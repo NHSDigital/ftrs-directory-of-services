@@ -12,22 +12,22 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Governance | [GOV-001](#gov-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
-| Governance | [GOV-002](#gov-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
-| Governance | [GOV-003](#gov-003) | Solution Architecture Framework assessment approved | Solution Architecture Framework assessment is approved. | (none) |
-| Governance | [GOV-004](#gov-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
-| Governance | [GOV-005](#gov-005) | GDPR compliance assessment signed by IG | GDPR compliance assessment signed by Information Governance. | (none) |
-| Governance | [GOV-006](#gov-006) | Medical Device out-of-scope statement recorded | Statement confirming service is out of scope for Medical Device regulation. | (none) |
-| Governance | [GOV-007](#gov-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
-| Governance | [GOV-008](#gov-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
-| Governance | [GOV-009](#gov-009) | Solution Assurance approval ticket closed | Solution Assurance approval ticket is closed. | (none) |
-| Governance | [GOV-010](#gov-010) | Clinical Safety assurance approval recorded | Clinical Safety assurance approval recorded. | [FTRS-1640](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1640), [FTRS-824](https://nhsd-jira.digital.nhs.uk/browse/FTRS-824) |
-| Governance | [GOV-011](#gov-011) | Information Governance approval recorded | Information Governance approval recorded. | (none) |
-| Governance | [GOV-012](#gov-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
-| Governance | [GOV-013](#gov-013) | SIRO sign-off obtained | Senior Information Risk Owner (SIRO) sign-off obtained. | (none) |
-| Governance | [GOV-014](#gov-014) | Caldicott Principles Guardian approval recorded | Caldicott Guardian approval recorded for data handling. | (none) |
-| Governance | [GOV-015](#gov-015) | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | (none) |
-| Governance | [GOV-016](#gov-016) | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | (none) |
+| Governance | [GOV-001](../../explanations.md#Explanations-GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
+| Governance | [GOV-002](../../explanations.md#Explanations-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
+| Governance | [GOV-003](../../explanations.md#Explanations-GOV-003) | Solution Architecture Framework assessment approved | Solution Architecture Framework assessment is approved. | (none) |
+| Governance | [GOV-004](../../explanations.md#Explanations-GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
+| Governance | [GOV-005](../../explanations.md#Explanations-GOV-005) | GDPR compliance assessment signed by IG | GDPR compliance assessment signed by Information Governance. | (none) |
+| Governance | [GOV-006](../../explanations.md#Explanations-GOV-006) | Medical Device out-of-scope statement recorded | Statement confirming service is out of scope for Medical Device regulation. | (none) |
+| Governance | [GOV-007](../../explanations.md#Explanations-GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
+| Governance | [GOV-008](../../explanations.md#Explanations-GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
+| Governance | [GOV-009](../../explanations.md#Explanations-GOV-009) | Solution Assurance approval ticket closed | Solution Assurance approval ticket is closed. | (none) |
+| Governance | [GOV-010](../../explanations.md#Explanations-GOV-010) | Clinical Safety assurance approval recorded | Clinical Safety assurance approval recorded. | [FTRS-1640](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1640), [FTRS-824](https://nhsd-jira.digital.nhs.uk/browse/FTRS-824) |
+| Governance | [GOV-011](../../explanations.md#Explanations-GOV-011) | Information Governance approval recorded | Information Governance approval recorded. | (none) |
+| Governance | [GOV-012](../../explanations.md#Explanations-GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
+| Governance | [GOV-013](../../explanations.md#Explanations-GOV-013) | SIRO sign-off obtained | Senior Information Risk Owner (SIRO) sign-off obtained. | (none) |
+| Governance | [GOV-014](../../explanations.md#Explanations-GOV-014) | Caldicott Principles Guardian approval recorded | Caldicott Guardian approval recorded for data handling. | (none) |
+| Governance | [GOV-015](../../explanations.md#Explanations-GOV-015) | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | (none) |
+| Governance | [GOV-016](../../explanations.md#Explanations-GOV-016) | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | (none) |
 
 ## Controls
 
@@ -37,7 +37,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Service Management pre-live acceptance signed
 
-See explanation: [GOV-001](../../explanations.md#gov-001)
+See explanation: [GOV-001](../../explanations.md#Explanations-GOV-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -47,7 +47,7 @@ See explanation: [GOV-001](../../explanations.md#gov-001)
 
 Well-Architected review completed & actions closed
 
-See explanation: [GOV-002](../../explanations.md#gov-002)
+See explanation: [GOV-002](../../explanations.md#Explanations-GOV-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -57,7 +57,7 @@ See explanation: [GOV-002](../../explanations.md#gov-002)
 
 Solution Architecture Framework assessment approved
 
-See explanation: [GOV-003](../../explanations.md#gov-003)
+See explanation: [GOV-003](../../explanations.md#Explanations-GOV-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -67,7 +67,7 @@ See explanation: [GOV-003](../../explanations.md#gov-003)
 
 Engineering Red-lines compliance checklist signed
 
-See explanation: [GOV-004](../../explanations.md#gov-004)
+See explanation: [GOV-004](../../explanations.md#Explanations-GOV-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -77,7 +77,7 @@ See explanation: [GOV-004](../../explanations.md#gov-004)
 
 GDPR compliance assessment signed by IG
 
-See explanation: [GOV-005](../../explanations.md#gov-005)
+See explanation: [GOV-005](../../explanations.md#Explanations-GOV-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -87,7 +87,7 @@ See explanation: [GOV-005](../../explanations.md#gov-005)
 
 Medical Device out-of-scope statement recorded
 
-See explanation: [GOV-006](../../explanations.md#gov-006)
+See explanation: [GOV-006](../../explanations.md#Explanations-GOV-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -97,7 +97,7 @@ See explanation: [GOV-006](../../explanations.md#gov-006)
 
 FtRS Architects review & approval logged
 
-See explanation: [GOV-007](../../explanations.md#gov-007)
+See explanation: [GOV-007](../../explanations.md#Explanations-GOV-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -107,7 +107,7 @@ See explanation: [GOV-007](../../explanations.md#gov-007)
 
 Cloud Expert deployment approval documented
 
-See explanation: [GOV-008](../../explanations.md#gov-008)
+See explanation: [GOV-008](../../explanations.md#Explanations-GOV-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -117,7 +117,7 @@ See explanation: [GOV-008](../../explanations.md#gov-008)
 
 Solution Assurance approval ticket closed
 
-See explanation: [GOV-009](../../explanations.md#gov-009)
+See explanation: [GOV-009](../../explanations.md#Explanations-GOV-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -127,7 +127,7 @@ See explanation: [GOV-009](../../explanations.md#gov-009)
 
 Clinical Safety assurance approval recorded
 
-See explanation: [GOV-010](../../explanations.md#gov-010)
+See explanation: [GOV-010](../../explanations.md#Explanations-GOV-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -137,7 +137,7 @@ See explanation: [GOV-010](../../explanations.md#gov-010)
 
 Information Governance approval recorded
 
-See explanation: [GOV-011](../../explanations.md#gov-011)
+See explanation: [GOV-011](../../explanations.md#Explanations-GOV-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -147,7 +147,7 @@ See explanation: [GOV-011](../../explanations.md#gov-011)
 
 TRG approval session outcome logged
 
-See explanation: [GOV-012](../../explanations.md#gov-012)
+See explanation: [GOV-012](../../explanations.md#Explanations-GOV-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -157,7 +157,7 @@ See explanation: [GOV-012](../../explanations.md#gov-012)
 
 SIRO sign-off obtained
 
-See explanation: [GOV-013](../../explanations.md#gov-013)
+See explanation: [GOV-013](../../explanations.md#Explanations-GOV-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -167,7 +167,7 @@ See explanation: [GOV-013](../../explanations.md#gov-013)
 
 Caldicott Principles Guardian approval recorded
 
-See explanation: [GOV-014](../../explanations.md#gov-014)
+See explanation: [GOV-014](../../explanations.md#Explanations-GOV-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -177,7 +177,7 @@ See explanation: [GOV-014](../../explanations.md#gov-014)
 
 DUEC Assurance Board acceptance logged
 
-See explanation: [GOV-015](../../explanations.md#gov-015)
+See explanation: [GOV-015](../../explanations.md#Explanations-GOV-015)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -187,7 +187,7 @@ See explanation: [GOV-015](../../explanations.md#gov-015)
 
 Live Services Board go-live approval recorded
 
-See explanation: [GOV-016](../../explanations.md#gov-016)
+See explanation: [GOV-016](../../explanations.md#Explanations-GOV-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

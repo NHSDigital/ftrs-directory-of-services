@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Observability | [OBS-025](#obs-025) | Alerts delivered to multi-channel with context | Alerts delivered with sufficient context to act (multi-channel). | (none) |
+| Observability | [OBS-025](../../explanations.md#Explanations-OBS-025) | Alerts delivered to multi-channel with context | Alerts delivered with sufficient context to act (multi-channel). | (none) |
 
 ## Controls
 
@@ -22,7 +22,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Alerts delivered to multi-channel with context
 
-See explanation: [OBS-025](../../explanations.md#obs-025)
+See explanation: [OBS-025](../../explanations.md#Explanations-OBS-025)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

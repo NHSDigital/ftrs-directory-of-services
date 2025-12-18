@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Compatibility | [COMP-002](#comp-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
+| Compatibility | [COMP-002](../../explanations.md#Explanations-COMP-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
 
 ## Controls
 
@@ -22,7 +22,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 MFA (CIS2) succeeds across supported platforms
 
-See explanation: [COMP-002](../../explanations.md#comp-002)
+See explanation: [COMP-002](../../explanations.md#Explanations-COMP-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

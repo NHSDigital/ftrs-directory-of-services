@@ -12,8 +12,8 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Security | [SEC-001](#sec-001) | Crypto algorithms conform; weak ciphers rejected | Use only strong, approved cryptographic algorithms; weak or deprecated ciphers are blocked. | (none) |
-| Security | [SEC-029](#sec-029) | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | All API endpoints enforce CIS2 JWT authentication with signature, issuer, audience and required assurance claim validation; invalid or missing tokens are rejected with structured errors. | [FTRS-1593](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1593) |
+| Security | [SEC-001](../../explanations.md#Explanations-SEC-001) | Crypto algorithms conform; weak ciphers rejected | Use only strong, approved cryptographic algorithms; weak or deprecated ciphers are blocked. | (none) |
+| Security | [SEC-029](../../explanations.md#Explanations-SEC-029) | All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims) | All API endpoints enforce CIS2 JWT authentication with signature, issuer, audience and required assurance claim validation; invalid or missing tokens are rejected with structured errors. | [FTRS-1593](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1593) |
 
 ## Controls
 
@@ -23,7 +23,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Crypto algorithms conform; weak ciphers rejected
 
-See explanation: [SEC-001](../../explanations.md#sec-001)
+See explanation: [SEC-001](../../explanations.md#Explanations-SEC-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -33,7 +33,7 @@ See explanation: [SEC-001](../../explanations.md#sec-001)
 
 All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
 
-See explanation: [SEC-029](../../explanations.md#sec-029)
+See explanation: [SEC-029](../../explanations.md#Explanations-SEC-029)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

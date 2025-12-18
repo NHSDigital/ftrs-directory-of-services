@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Accessibility | [ACC-001](#acc-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
+| Accessibility | [ACC-001](../../explanations.md#Explanations-ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
 
 ## Controls
 
@@ -22,7 +22,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 WCAG 2.2 AA scan & manual audit pass
 
-See explanation: [ACC-001](../../explanations.md#acc-001)
+See explanation: [ACC-001](../../explanations.md#Explanations-ACC-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

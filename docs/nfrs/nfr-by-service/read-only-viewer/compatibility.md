@@ -12,9 +12,9 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Compatibility | [COMP-001](#comp-001) | Published OS/browser list matches warranted spec | Supported OS/browser list matches published specification. | (none) |
-| Compatibility | [COMP-002](#comp-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
-| Compatibility | [COMP-003](#comp-003) | ≥90% critical journeys test pass per platform | Critical user journeys pass across all supported platforms at target success rate. | (none) |
+| Compatibility | [COMP-001](../../explanations.md#Explanations-COMP-001) | Published OS/browser list matches warranted spec | Supported OS/browser list matches published specification. | (none) |
+| Compatibility | [COMP-002](../../explanations.md#Explanations-COMP-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
+| Compatibility | [COMP-003](../../explanations.md#Explanations-COMP-003) | ≥90% critical journeys test pass per platform | Critical user journeys pass across all supported platforms at target success rate. | (none) |
 
 ## Controls
 
@@ -24,7 +24,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Published OS/browser list matches warranted spec
 
-See explanation: [COMP-001](../../explanations.md#comp-001)
+See explanation: [COMP-001](../../explanations.md#Explanations-COMP-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -34,7 +34,7 @@ See explanation: [COMP-001](../../explanations.md#comp-001)
 
 MFA (CIS2) succeeds across supported platforms
 
-See explanation: [COMP-002](../../explanations.md#comp-002)
+See explanation: [COMP-002](../../explanations.md#Explanations-COMP-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -44,7 +44,7 @@ See explanation: [COMP-002](../../explanations.md#comp-002)
 
 ≥90% critical journeys test pass per platform
 
-See explanation: [COMP-003](../../explanations.md#comp-003)
+See explanation: [COMP-003](../../explanations.md#Explanations-COMP-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

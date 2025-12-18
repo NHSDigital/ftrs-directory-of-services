@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Security | [SEC-001](#sec-001) | Crypto algorithms conform; weak ciphers rejected | Use only strong, approved cryptographic algorithms; weak or deprecated ciphers are blocked. | (none) |
+| Security | [SEC-001](../../explanations.md#Explanations-SEC-001) | Crypto algorithms conform; weak ciphers rejected | Use only strong, approved cryptographic algorithms; weak or deprecated ciphers are blocked. | (none) |
 
 ## Controls
 
@@ -22,7 +22,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Crypto algorithms conform; weak ciphers rejected
 
-See explanation: [SEC-001](../../explanations.md#sec-001)
+See explanation: [SEC-001](../../explanations.md#Explanations-SEC-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

@@ -12,10 +12,10 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Cost | [COST-002](#cost-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
-| Cost | [COST-005](#cost-005) | Budgets & alert notifications configured & tested | Budgets and cost alert notifications are configured and tested. | (none) |
-| Cost | COST-006 | #ftrs-cost-alerts channel created & receiving test alerts | Dedicated cost alerts channel receives test and live notifications. | (none) |
-| Cost | COST-007 | Quarterly cost review minutes & tracked actions | Quarterly cost reviews record minutes and follow-up actions. | (none) |
+| Cost | [COST-002](../../explanations.md#Explanations-COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
+| Cost | [COST-005](../../explanations.md#Explanations-COST-005) | Budgets & alert notifications configured & tested | Budgets and cost alert notifications are configured and tested. | (none) |
+| Cost | [COST-006](../../explanations.md#Explanations-COST-006) | #ftrs-cost-alerts channel created & receiving test alerts | Dedicated cost alerts channel receives test and live notifications. | (none) |
+| Cost | [COST-007](../../explanations.md#Explanations-COST-007) | Quarterly cost review minutes & tracked actions | Quarterly cost reviews record minutes and follow-up actions. | (none) |
 
 ## Controls
 
@@ -25,7 +25,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Monthly Cost Explorer review & anomaly log
 
-See explanation: [COST-002](../../explanations.md#cost-002)
+See explanation: [COST-002](../../explanations.md#Explanations-COST-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -35,7 +35,7 @@ See explanation: [COST-002](../../explanations.md#cost-002)
 
 Budgets & alert notifications configured & tested
 
-See explanation: [COST-005](../../explanations.md#cost-005)
+See explanation: [COST-005](../../explanations.md#Explanations-COST-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

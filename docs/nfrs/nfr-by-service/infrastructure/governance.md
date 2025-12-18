@@ -12,9 +12,9 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Governance | [GOV-001](#gov-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
-| Governance | [GOV-002](#gov-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
-| Governance | [GOV-004](#gov-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
+| Governance | [GOV-001](../../explanations.md#Explanations-GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
+| Governance | [GOV-002](../../explanations.md#Explanations-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
+| Governance | [GOV-004](../../explanations.md#Explanations-GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
 
 ## Controls
 
@@ -24,7 +24,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Service Management pre-live acceptance signed
 
-See explanation: [GOV-001](../../explanations.md#gov-001)
+See explanation: [GOV-001](../../explanations.md#Explanations-GOV-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -34,7 +34,7 @@ See explanation: [GOV-001](../../explanations.md#gov-001)
 
 Well-Architected review completed & actions closed
 
-See explanation: [GOV-002](../../explanations.md#gov-002)
+See explanation: [GOV-002](../../explanations.md#Explanations-GOV-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -44,7 +44,7 @@ See explanation: [GOV-002](../../explanations.md#gov-002)
 
 Engineering Red-lines compliance checklist signed
 
-See explanation: [GOV-004](../../explanations.md#gov-004)
+See explanation: [GOV-004](../../explanations.md#Explanations-GOV-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

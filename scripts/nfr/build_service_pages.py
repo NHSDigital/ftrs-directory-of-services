@@ -723,8 +723,11 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             by_code_dom = codes_by_domain.get(dom, {})
             codes_with_controls_dom = set(by_code_dom.keys())
             for domain, code, req, expl, stories in sorted([r for r in summary_rows if r[0] == dom], key=lambda r: r[1]):
-                code_anchor = code.lower()
-                code_cell = f"[{code}](#{code_anchor})" if code in codes_with_controls_dom else code
+                # Link code to central Explanations page for consistency
+                if code in explanations:
+                    code_cell = f"[{code}](../../explanations.md#Explanations-{code.upper()})"
+                else:
+                    code_cell = code
                 dmd.append(f"| {domain} | {code_cell} | {req} | {expl} | {stories} |")
             _append_blank_line(dmd)
             # Operations only for Performance domain
@@ -743,7 +746,7 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
                 _append_blank_line(dmd)
                 # Link to central explanations page to avoid cluttering service pages
                 if code in explanations:
-                    dmd.append(f"See explanation: [{code}](../../explanations.md#{code.lower()})")
+                    dmd.append(f"See explanation: [{code}](../../explanations.md#Explanations-{code.upper()})")
                     _append_blank_line(dmd)
                 # Sources for this NFR code if available
                 srcs = nfr_sources.get(code, [])

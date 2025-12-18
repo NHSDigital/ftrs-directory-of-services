@@ -12,16 +12,16 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Scalability | [SCAL-001](#scal-001) | Horizontal scale-out increases TPS linearly within tolerance | Horizontal scaling increases throughput nearly linearly without quality loss. | (none) |
-| Scalability | [SCAL-002](#scal-002) | Vertical resize retains data & function without downtime | Vertical resizing (bigger instance) retains data and operation with no downtime. | (none) |
-| Scalability | [SCAL-003](#scal-003) | All layers pass scalability checklist | All layers (app, DB, cache) meet defined scalability checklist items. | (none) |
-| Scalability | [SCAL-004](#scal-004) | Scale-down events occur after sustained low utilisation | Scale-down only occurs after sustained low utilisation (not transient dips). | (none) |
-| Scalability | [SCAL-005](#scal-005) | Autoscaling policy simulation triggers controlled scale | Autoscaling policy simulations trigger controlled scaling actions. | (none) |
-| Scalability | [SCAL-006](#scal-006) | Scale event shows no SLA breach in latency/error | Scaling events do not cause SLA breaches in latency or error rate. | (none) |
-| Scalability | [SCAL-007](#scal-007) | Capacity report shows ≥30% headroom | Capacity planning shows adequate headroom (e.g., ≥30%). | (none) |
-| Scalability | [SCAL-008](#scal-008) | No manual scaling tickets for variance period | During the variance period no manual scaling tickets are needed. | (none) |
-| Scalability | [SCAL-009](#scal-009) | Audit logs capture actor/reason for scaling | Audit logs record who initiated scaling and why. | (none) |
-| Scalability | [SCAL-010](#scal-010) | Predictive alert fires at utilisation forecast threshold | Predictive alerts fire before utilisation reaches critical thresholds. | (none) |
+| Scalability | [SCAL-001](../../explanations.md#Explanations-SCAL-001) | Horizontal scale-out increases TPS linearly within tolerance | Horizontal scaling increases throughput nearly linearly without quality loss. | (none) |
+| Scalability | [SCAL-002](../../explanations.md#Explanations-SCAL-002) | Vertical resize retains data & function without downtime | Vertical resizing (bigger instance) retains data and operation with no downtime. | (none) |
+| Scalability | [SCAL-003](../../explanations.md#Explanations-SCAL-003) | All layers pass scalability checklist | All layers (app, DB, cache) meet defined scalability checklist items. | (none) |
+| Scalability | [SCAL-004](../../explanations.md#Explanations-SCAL-004) | Scale-down events occur after sustained low utilisation | Scale-down only occurs after sustained low utilisation (not transient dips). | (none) |
+| Scalability | [SCAL-005](../../explanations.md#Explanations-SCAL-005) | Autoscaling policy simulation triggers controlled scale | Autoscaling policy simulations trigger controlled scaling actions. | (none) |
+| Scalability | [SCAL-006](../../explanations.md#Explanations-SCAL-006) | Scale event shows no SLA breach in latency/error | Scaling events do not cause SLA breaches in latency or error rate. | (none) |
+| Scalability | [SCAL-007](../../explanations.md#Explanations-SCAL-007) | Capacity report shows ≥30% headroom | Capacity planning shows adequate headroom (e.g., ≥30%). | (none) |
+| Scalability | [SCAL-008](../../explanations.md#Explanations-SCAL-008) | No manual scaling tickets for variance period | During the variance period no manual scaling tickets are needed. | (none) |
+| Scalability | [SCAL-009](../../explanations.md#Explanations-SCAL-009) | Audit logs capture actor/reason for scaling | Audit logs record who initiated scaling and why. | (none) |
+| Scalability | [SCAL-010](../../explanations.md#Explanations-SCAL-010) | Predictive alert fires at utilisation forecast threshold | Predictive alerts fire before utilisation reaches critical thresholds. | (none) |
 
 ## Controls
 
@@ -31,7 +31,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Horizontal scale-out increases TPS linearly within tolerance
 
-See explanation: [SCAL-001](../../explanations.md#scal-001)
+See explanation: [SCAL-001](../../explanations.md#Explanations-SCAL-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -41,7 +41,7 @@ See explanation: [SCAL-001](../../explanations.md#scal-001)
 
 Vertical resize retains data & function without downtime
 
-See explanation: [SCAL-002](../../explanations.md#scal-002)
+See explanation: [SCAL-002](../../explanations.md#Explanations-SCAL-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -51,7 +51,7 @@ See explanation: [SCAL-002](../../explanations.md#scal-002)
 
 All layers pass scalability checklist
 
-See explanation: [SCAL-003](../../explanations.md#scal-003)
+See explanation: [SCAL-003](../../explanations.md#Explanations-SCAL-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -61,7 +61,7 @@ See explanation: [SCAL-003](../../explanations.md#scal-003)
 
 Scale-down events occur after sustained low utilisation
 
-See explanation: [SCAL-004](../../explanations.md#scal-004)
+See explanation: [SCAL-004](../../explanations.md#Explanations-SCAL-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -71,7 +71,7 @@ See explanation: [SCAL-004](../../explanations.md#scal-004)
 
 Autoscaling policy simulation triggers controlled scale
 
-See explanation: [SCAL-005](../../explanations.md#scal-005)
+See explanation: [SCAL-005](../../explanations.md#Explanations-SCAL-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -81,7 +81,7 @@ See explanation: [SCAL-005](../../explanations.md#scal-005)
 
 Scale event shows no SLA breach in latency/error
 
-See explanation: [SCAL-006](../../explanations.md#scal-006)
+See explanation: [SCAL-006](../../explanations.md#Explanations-SCAL-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -91,7 +91,7 @@ See explanation: [SCAL-006](../../explanations.md#scal-006)
 
 Capacity report shows ≥30% headroom
 
-See explanation: [SCAL-007](../../explanations.md#scal-007)
+See explanation: [SCAL-007](../../explanations.md#Explanations-SCAL-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -101,7 +101,7 @@ See explanation: [SCAL-007](../../explanations.md#scal-007)
 
 No manual scaling tickets for variance period
 
-See explanation: [SCAL-008](../../explanations.md#scal-008)
+See explanation: [SCAL-008](../../explanations.md#Explanations-SCAL-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -111,7 +111,7 @@ See explanation: [SCAL-008](../../explanations.md#scal-008)
 
 Audit logs capture actor/reason for scaling
 
-See explanation: [SCAL-009](../../explanations.md#scal-009)
+See explanation: [SCAL-009](../../explanations.md#Explanations-SCAL-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -121,7 +121,7 @@ See explanation: [SCAL-009](../../explanations.md#scal-009)
 
 Predictive alert fires at utilisation forecast threshold
 
-See explanation: [SCAL-010](../../explanations.md#scal-010)
+See explanation: [SCAL-010](../../explanations.md#Explanations-SCAL-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

@@ -12,8 +12,8 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Cost | [COST-001](#cost-001) | Mandatory tagging set present on 100% resources | All resources have mandatory cost tags for allocation and reporting. | (none) |
-| Cost | [COST-002](#cost-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
+| Cost | [COST-001](../../explanations.md#Explanations-COST-001) | Mandatory tagging set present on 100% resources | All resources have mandatory cost tags for allocation and reporting. | (none) |
+| Cost | [COST-002](../../explanations.md#Explanations-COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
 
 ## Controls
 
@@ -23,7 +23,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Mandatory tagging set present on 100% resources
 
-See explanation: [COST-001](../../explanations.md#cost-001)
+See explanation: [COST-001](../../explanations.md#Explanations-COST-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -33,7 +33,7 @@ See explanation: [COST-001](../../explanations.md#cost-001)
 
 Monthly Cost Explorer review & anomaly log
 
-See explanation: [COST-002](../../explanations.md#cost-002)
+See explanation: [COST-002](../../explanations.md#Explanations-COST-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

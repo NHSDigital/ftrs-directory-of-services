@@ -12,16 +12,16 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Availability | [AVAIL-001](#avail-001) | Availability report shows ≥99.90% multi-AZ uptime | Multi-AZ deployment achieves target uptime (e.g., ≥99.90%). | (none) |
-| Availability | [AVAIL-002](#avail-002) | Region DR simulation meets plan objectives | Disaster recovery (DR) simulation meets documented objectives. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11) |
-| Availability | [AVAIL-003](#avail-003) | Uptime monitoring confirms 24x7 coverage | Continuous uptime monitoring covers 24x7 operations. | (none) |
-| Availability | [AVAIL-004](#avail-004) | Monthly maintenance minutes ≤150; single ≤60 | Maintenance windows stay within monthly and per-event minute limits. | (none) |
-| Availability | [AVAIL-005](#avail-005) | Tuesday window executed; smoke tests pass | Scheduled maintenance executes successfully with passing smoke tests afterward. | [FTRS-1004](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1004), [FTRS-1693](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1693) |
-| Availability | [AVAIL-006](#avail-006) | DR exercise restores service <2h | DR exercise restores service within target recovery time (< defined hours). | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-751](https://nhsd-jira.digital.nhs.uk/browse/FTRS-751) |
-| Availability | [AVAIL-007](#avail-007) | Replication lag ≤60s; fail-over data delta minimal | Data replication lag remains under target ensuring minimal failover delta. | (none) |
-| Availability | [AVAIL-008](#avail-008) | API uptime aligns with core service | API uptime aligns with overall service availability target. | (none) |
-| Availability | [AVAIL-009](#avail-009) | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | (none) |
-| Availability | [AVAIL-010](#avail-010) | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | (none) |
+| Availability | [AVAIL-001](../../explanations.md#Explanations-AVAIL-001) | Availability report shows ≥99.90% multi-AZ uptime | Multi-AZ deployment achieves target uptime (e.g., ≥99.90%). | (none) |
+| Availability | [AVAIL-002](../../explanations.md#Explanations-AVAIL-002) | Region DR simulation meets plan objectives | Disaster recovery (DR) simulation meets documented objectives. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11) |
+| Availability | [AVAIL-003](../../explanations.md#Explanations-AVAIL-003) | Uptime monitoring confirms 24x7 coverage | Continuous uptime monitoring covers 24x7 operations. | (none) |
+| Availability | [AVAIL-004](../../explanations.md#Explanations-AVAIL-004) | Monthly maintenance minutes ≤150; single ≤60 | Maintenance windows stay within monthly and per-event minute limits. | (none) |
+| Availability | [AVAIL-005](../../explanations.md#Explanations-AVAIL-005) | Tuesday window executed; smoke tests pass | Scheduled maintenance executes successfully with passing smoke tests afterward. | [FTRS-1004](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1004), [FTRS-1693](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1693) |
+| Availability | [AVAIL-006](../../explanations.md#Explanations-AVAIL-006) | DR exercise restores service <2h | DR exercise restores service within target recovery time (< defined hours). | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-751](https://nhsd-jira.digital.nhs.uk/browse/FTRS-751) |
+| Availability | [AVAIL-007](../../explanations.md#Explanations-AVAIL-007) | Replication lag ≤60s; fail-over data delta minimal | Data replication lag remains under target ensuring minimal failover delta. | (none) |
+| Availability | [AVAIL-008](../../explanations.md#Explanations-AVAIL-008) | API uptime aligns with core service | API uptime aligns with overall service availability target. | (none) |
+| Availability | [AVAIL-009](../../explanations.md#Explanations-AVAIL-009) | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | (none) |
+| Availability | [AVAIL-010](../../explanations.md#Explanations-AVAIL-010) | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | (none) |
 
 ## Controls
 
@@ -31,7 +31,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Availability report shows ≥99.90% multi-AZ uptime
 
-See explanation: [AVAIL-001](../../explanations.md#avail-001)
+See explanation: [AVAIL-001](../../explanations.md#Explanations-AVAIL-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -41,7 +41,7 @@ See explanation: [AVAIL-001](../../explanations.md#avail-001)
 
 Region DR simulation meets plan objectives
 
-See explanation: [AVAIL-002](../../explanations.md#avail-002)
+See explanation: [AVAIL-002](../../explanations.md#Explanations-AVAIL-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -51,7 +51,7 @@ See explanation: [AVAIL-002](../../explanations.md#avail-002)
 
 Uptime monitoring confirms 24x7 coverage
 
-See explanation: [AVAIL-003](../../explanations.md#avail-003)
+See explanation: [AVAIL-003](../../explanations.md#Explanations-AVAIL-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -61,7 +61,7 @@ See explanation: [AVAIL-003](../../explanations.md#avail-003)
 
 Monthly maintenance minutes ≤150; single ≤60
 
-See explanation: [AVAIL-004](../../explanations.md#avail-004)
+See explanation: [AVAIL-004](../../explanations.md#Explanations-AVAIL-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -71,7 +71,7 @@ See explanation: [AVAIL-004](../../explanations.md#avail-004)
 
 Tuesday window executed; smoke tests pass
 
-See explanation: [AVAIL-005](../../explanations.md#avail-005)
+See explanation: [AVAIL-005](../../explanations.md#Explanations-AVAIL-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -81,7 +81,7 @@ See explanation: [AVAIL-005](../../explanations.md#avail-005)
 
 DR exercise restores service <2h
 
-See explanation: [AVAIL-006](../../explanations.md#avail-006)
+See explanation: [AVAIL-006](../../explanations.md#Explanations-AVAIL-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -91,7 +91,7 @@ See explanation: [AVAIL-006](../../explanations.md#avail-006)
 
 Replication lag ≤60s; fail-over data delta minimal
 
-See explanation: [AVAIL-007](../../explanations.md#avail-007)
+See explanation: [AVAIL-007](../../explanations.md#Explanations-AVAIL-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -101,7 +101,7 @@ See explanation: [AVAIL-007](../../explanations.md#avail-007)
 
 API uptime aligns with core service
 
-See explanation: [AVAIL-008](../../explanations.md#avail-008)
+See explanation: [AVAIL-008](../../explanations.md#Explanations-AVAIL-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -111,7 +111,7 @@ See explanation: [AVAIL-008](../../explanations.md#avail-008)
 
 Non-UK access attempts blocked & logged
 
-See explanation: [AVAIL-009](../../explanations.md#avail-009)
+See explanation: [AVAIL-009](../../explanations.md#Explanations-AVAIL-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -121,7 +121,7 @@ See explanation: [AVAIL-009](../../explanations.md#avail-009)
 
 Blue/green deployment produces 0 failed requests
 
-See explanation: [AVAIL-010](../../explanations.md#avail-010)
+See explanation: [AVAIL-010](../../explanations.md#Explanations-AVAIL-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

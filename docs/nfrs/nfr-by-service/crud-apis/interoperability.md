@@ -12,23 +12,23 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
-| Interoperability | [INT-002](#int-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
-| Interoperability | [INT-003](#int-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
-| Interoperability | [INT-004](#int-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
-| Interoperability | [INT-005](#int-005) | Standard OperationOutcome error structure enforced | Error responses follow standard OperationOutcome structure. | (none) |
-| Interoperability | [INT-006](#int-006) | Identifier normalization applied (uppercase, trimmed) | Identifiers are normalised (case, trimming) for consistent matching. | (none) |
-| Interoperability | [INT-007](#int-007) | Strict content negotiation implemented | Strict content negotiation enforces supported media types only. | (none) |
-| Interoperability | [INT-009](#int-009) | Only documented FHIR search params accepted | Only documented FHIR search parameters are accepted; unknown ones rejected. | (none) |
-| Interoperability | [INT-010](#int-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
-| Interoperability | [INT-011](#int-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
-| Interoperability | [INT-012](#int-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
-| Interoperability | [INT-013](#int-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
-| Interoperability | [INT-014](#int-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
-| Interoperability | [INT-015](#int-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
-| Interoperability | [INT-016](#int-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
-| Interoperability | [INT-017](#int-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
-| Interoperability | [INT-018](#int-018) | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
+| Interoperability | [INT-001](../../explanations.md#Explanations-INT-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
+| Interoperability | [INT-002](../../explanations.md#Explanations-INT-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
+| Interoperability | [INT-003](../../explanations.md#Explanations-INT-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
+| Interoperability | [INT-004](../../explanations.md#Explanations-INT-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
+| Interoperability | [INT-005](../../explanations.md#Explanations-INT-005) | Standard OperationOutcome error structure enforced | Error responses follow standard OperationOutcome structure. | (none) |
+| Interoperability | [INT-006](../../explanations.md#Explanations-INT-006) | Identifier normalization applied (uppercase, trimmed) | Identifiers are normalised (case, trimming) for consistent matching. | (none) |
+| Interoperability | [INT-007](../../explanations.md#Explanations-INT-007) | Strict content negotiation implemented | Strict content negotiation enforces supported media types only. | (none) |
+| Interoperability | [INT-009](../../explanations.md#Explanations-INT-009) | Only documented FHIR search params accepted | Only documented FHIR search parameters are accepted; unknown ones rejected. | (none) |
+| Interoperability | [INT-010](../../explanations.md#Explanations-INT-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
+| Interoperability | [INT-011](../../explanations.md#Explanations-INT-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
+| Interoperability | [INT-012](../../explanations.md#Explanations-INT-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
+| Interoperability | [INT-013](../../explanations.md#Explanations-INT-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
+| Interoperability | [INT-014](../../explanations.md#Explanations-INT-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
+| Interoperability | [INT-015](../../explanations.md#Explanations-INT-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
+| Interoperability | [INT-016](../../explanations.md#Explanations-INT-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
+| Interoperability | [INT-017](../../explanations.md#Explanations-INT-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
+| Interoperability | [INT-018](../../explanations.md#Explanations-INT-018) | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
 
 ## Controls
 
@@ -38,7 +38,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Resources validated against UK Core profiles
 
-See explanation: [INT-001](../../explanations.md#int-001)
+See explanation: [INT-001](../../explanations.md#Explanations-INT-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -48,7 +48,7 @@ See explanation: [INT-001](../../explanations.md#int-001)
 
 Versioning & deprecation policy published
 
-See explanation: [INT-002](../../explanations.md#int-002)
+See explanation: [INT-002](../../explanations.md#Explanations-INT-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -58,7 +58,7 @@ See explanation: [INT-002](../../explanations.md#int-002)
 
 Minor releases backward compatible for 12 months
 
-See explanation: [INT-003](../../explanations.md#int-003)
+See explanation: [INT-003](../../explanations.md#Explanations-INT-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -68,7 +68,7 @@ See explanation: [INT-003](../../explanations.md#int-003)
 
 Semantic mapping round-trip fidelity preserved
 
-See explanation: [INT-004](../../explanations.md#int-004)
+See explanation: [INT-004](../../explanations.md#Explanations-INT-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -78,7 +78,7 @@ See explanation: [INT-004](../../explanations.md#int-004)
 
 Standard OperationOutcome error structure enforced
 
-See explanation: [INT-005](../../explanations.md#int-005)
+See explanation: [INT-005](../../explanations.md#Explanations-INT-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -88,7 +88,7 @@ See explanation: [INT-005](../../explanations.md#int-005)
 
 Identifier normalization applied (uppercase, trimmed)
 
-See explanation: [INT-006](../../explanations.md#int-006)
+See explanation: [INT-006](../../explanations.md#Explanations-INT-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -98,7 +98,7 @@ See explanation: [INT-006](../../explanations.md#int-006)
 
 Strict content negotiation implemented
 
-See explanation: [INT-007](../../explanations.md#int-007)
+See explanation: [INT-007](../../explanations.md#Explanations-INT-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -108,7 +108,7 @@ See explanation: [INT-007](../../explanations.md#int-007)
 
 Only documented FHIR search params accepted
 
-See explanation: [INT-009](../../explanations.md#int-009)
+See explanation: [INT-009](../../explanations.md#Explanations-INT-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -118,7 +118,7 @@ See explanation: [INT-009](../../explanations.md#int-009)
 
 Version-controlled integration contract published
 
-See explanation: [INT-010](../../explanations.md#int-010)
+See explanation: [INT-010](../../explanations.md#Explanations-INT-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -128,7 +128,7 @@ See explanation: [INT-010](../../explanations.md#int-010)
 
 Machine-readable changelog generated
 
-See explanation: [INT-011](../../explanations.md#int-011)
+See explanation: [INT-011](../../explanations.md#Explanations-INT-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -138,7 +138,7 @@ See explanation: [INT-011](../../explanations.md#int-011)
 
 Terminology bindings validated
 
-See explanation: [INT-012](../../explanations.md#int-012)
+See explanation: [INT-012](../../explanations.md#Explanations-INT-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -148,7 +148,7 @@ See explanation: [INT-012](../../explanations.md#int-012)
 
 Correlation IDs preserved across calls
 
-See explanation: [INT-013](../../explanations.md#int-013)
+See explanation: [INT-013](../../explanations.md#Explanations-INT-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -158,7 +158,7 @@ See explanation: [INT-013](../../explanations.md#int-013)
 
 Null vs absent data handled per FHIR
 
-See explanation: [INT-014](../../explanations.md#int-014)
+See explanation: [INT-014](../../explanations.md#Explanations-INT-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -168,7 +168,7 @@ See explanation: [INT-014](../../explanations.md#int-014)
 
 ≥90% interoperability scenario coverage
 
-See explanation: [INT-015](../../explanations.md#int-015)
+See explanation: [INT-015](../../explanations.md#Explanations-INT-015)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -178,7 +178,7 @@ See explanation: [INT-015](../../explanations.md#int-015)
 
 Stateless sequence-independent operations
 
-See explanation: [INT-016](../../explanations.md#int-016)
+See explanation: [INT-016](../../explanations.md#Explanations-INT-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -188,7 +188,7 @@ See explanation: [INT-016](../../explanations.md#int-016)
 
 Complete field-level input validation every request
 
-See explanation: [INT-017](../../explanations.md#int-017)
+See explanation: [INT-017](../../explanations.md#Explanations-INT-017)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -198,7 +198,7 @@ See explanation: [INT-017](../../explanations.md#int-017)
 
 Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples)
 
-See explanation: [INT-018](../../explanations.md#int-018)
+See explanation: [INT-018](../../explanations.md#Explanations-INT-018)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

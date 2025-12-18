@@ -12,34 +12,34 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Security | [SEC-002](#sec-002) | WAF security pillar checklist completed & gaps tracked | Complete the AWS/WAF security pillar checklist and track remediation actions for any gaps. | [FTRS-364](https://nhsd-jira.digital.nhs.uk/browse/FTRS-364) |
-| Security | [SEC-003](#sec-003) | All endpoints TLS only; storage encryption enabled | All service endpoints enforce TLS and all stored data (databases, buckets) is encrypted at rest. | [FTRS-1563](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1563) |
-| Security | [SEC-004](#sec-004) | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | (none) |
-| Security | [SEC-005](#sec-005) | Cross-environment data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | [FTRS-1494](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1494) |
-| Security | [SEC-006](#sec-006) | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | (none) |
-| Security | [SEC-007](#sec-007) | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | (none) |
-| Security | [SEC-008](#sec-008) | Perimeter scan shows no broad whitelist & secure channels | Perimeter scans show secure transport, no open broad whitelists, and hardened edge configuration. | (none) |
-| Security | [SEC-009](#sec-009) | ASVS & CIS benchmark automation reports pass thresholds | Automated ASVS and CIS benchmark scans meet pass thresholds; failures trigger remediation. | (none) |
-| Security | [SEC-010](#sec-010) | Annual pen test executed; remediation tickets raised & closed | Annual penetration test completed; identified issues tracked and closed. | [FTRS-1440](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1440), [FTRS-1455](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1455), [FTRS-1462](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1462), [FTRS-2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2) |
-| Security | [SEC-011](#sec-011) | Security features enabled latency within SLA | Enabling security controls does not push latency beyond defined SLAs. | (none) |
-| Security | [SEC-012](#sec-012) | IAM policy review confirms least privilege for system roles | IAM roles and policies grant least privilege; periodic reviews confirm minimal access. | [FTRS-1274](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1274) |
-| Security | [SEC-013](#sec-013) | Key rotation events logged; unauthorized access denied | Cryptographic keys rotate on schedule and unauthorized access attempts are rejected and logged. | (none) |
-| Security | [SEC-014](#sec-014) | mTLS handshake succeeds between designated services | Mutual TLS (mTLS) succeeds between designated internal services to protect sensitive flows. | [FTRS-1600](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1600) |
-| Security | [SEC-015](#sec-015) | Expiry alert fired in advance; renewal executed seamlessly | Certificate expiry is detected in advance; renewal occurs without downtime. | [FTRS-1604](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1604) |
-| Security | [SEC-016](#sec-016) | MFA enforced for all privileged infra roles | Privileged infrastructure roles require multi-factor authentication (MFA). | (none) |
-| Security | [SEC-017](#sec-017) | Scan reports zero unmanaged long-lived credentials | No long-lived unmanaged credentials; periodic scans confirm only managed secrets exist. | (none) |
-| Security | [SEC-018](#sec-018) | Supplier audit attestation stored & verified | Third-party supplier security attestation is collected and stored for audit. | (none) |
-| Security | [SEC-019](#sec-019) | Segmentation test confirms tenant isolation | Tenant or data segmentation tests confirm isolation boundaries hold. | (none) |
-| Security | [SEC-020](#sec-020) | Remote connections present valid Authority certs | Remote connections present valid certificates from trusted authorities. | (none) |
-| Security | [SEC-021](#sec-021) | Port scan matches approved diagnostic list only | Port scans reveal only approved diagnostic and service ports—no unexpected exposures. | (none) |
-| Security | [SEC-022](#sec-022) | Utility program access restricted to approved roles | Access to powerful utility programs is restricted to approved roles. | (none) |
-| Security | [SEC-023](#sec-023) | Deployment provenance shows unique traceable accounts | Deployment provenance shows traceable unique accounts per automated pipeline stage. | (none) |
-| Security | [SEC-024](#sec-024) | Code/data transfer logs show integrity & secure channels | Transfer of code or data maintains integrity and uses secure channels; events are logged. | (none) |
-| Security | [SEC-025](#sec-025) | PID requests enforce mTLS; plain text blocked | Requests containing identifiable patient data enforce mTLS; plaintext attempts are blocked. | (none) |
-| Security | [SEC-026](#sec-026) | API responses contain no unencrypted PID fields | API responses never include unencrypted patient identifiable data (PID) fields. | (none) |
-| Security | [SEC-027](#sec-027) | Build fails on high CVE; report archived | Build pipeline blocks release when critical CVEs exceed threshold; reports archived. | (none) |
-| Security | [SEC-028](#sec-028) | Release pipeline blocks on critical unresolved findings | Releases are halted if critical unresolved security findings remain. | (none) |
-| Security | [SEC-030](#sec-030) | Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure | Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance. | [FTRS-1602](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1602) |
+| Security | [SEC-002](../../explanations.md#Explanations-SEC-002) | WAF security pillar checklist completed & gaps tracked | Complete the AWS/WAF security pillar checklist and track remediation actions for any gaps. | [FTRS-364](https://nhsd-jira.digital.nhs.uk/browse/FTRS-364) |
+| Security | [SEC-003](../../explanations.md#Explanations-SEC-003) | All endpoints TLS only; storage encryption enabled | All service endpoints enforce TLS and all stored data (databases, buckets) is encrypted at rest. | [FTRS-1563](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1563) |
+| Security | [SEC-004](../../explanations.md#Explanations-SEC-004) | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | (none) |
+| Security | [SEC-005](../../explanations.md#Explanations-SEC-005) | Cross-environment data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | [FTRS-1494](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1494) |
+| Security | [SEC-006](../../explanations.md#Explanations-SEC-006) | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | (none) |
+| Security | [SEC-007](../../explanations.md#Explanations-SEC-007) | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | (none) |
+| Security | [SEC-008](../../explanations.md#Explanations-SEC-008) | Perimeter scan shows no broad whitelist & secure channels | Perimeter scans show secure transport, no open broad whitelists, and hardened edge configuration. | (none) |
+| Security | [SEC-009](../../explanations.md#Explanations-SEC-009) | ASVS & CIS benchmark automation reports pass thresholds | Automated ASVS and CIS benchmark scans meet pass thresholds; failures trigger remediation. | (none) |
+| Security | [SEC-010](../../explanations.md#Explanations-SEC-010) | Annual pen test executed; remediation tickets raised & closed | Annual penetration test completed; identified issues tracked and closed. | [FTRS-1440](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1440), [FTRS-1455](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1455), [FTRS-1462](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1462), [FTRS-2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2) |
+| Security | [SEC-011](../../explanations.md#Explanations-SEC-011) | Security features enabled latency within SLA | Enabling security controls does not push latency beyond defined SLAs. | (none) |
+| Security | [SEC-012](../../explanations.md#Explanations-SEC-012) | IAM policy review confirms least privilege for system roles | IAM roles and policies grant least privilege; periodic reviews confirm minimal access. | [FTRS-1274](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1274) |
+| Security | [SEC-013](../../explanations.md#Explanations-SEC-013) | Key rotation events logged; unauthorized access denied | Cryptographic keys rotate on schedule and unauthorized access attempts are rejected and logged. | (none) |
+| Security | [SEC-014](../../explanations.md#Explanations-SEC-014) | mTLS handshake succeeds between designated services | Mutual TLS (mTLS) succeeds between designated internal services to protect sensitive flows. | [FTRS-1600](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1600) |
+| Security | [SEC-015](../../explanations.md#Explanations-SEC-015) | Expiry alert fired in advance; renewal executed seamlessly | Certificate expiry is detected in advance; renewal occurs without downtime. | [FTRS-1604](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1604) |
+| Security | [SEC-016](../../explanations.md#Explanations-SEC-016) | MFA enforced for all privileged infra roles | Privileged infrastructure roles require multi-factor authentication (MFA). | (none) |
+| Security | [SEC-017](../../explanations.md#Explanations-SEC-017) | Scan reports zero unmanaged long-lived credentials | No long-lived unmanaged credentials; periodic scans confirm only managed secrets exist. | (none) |
+| Security | [SEC-018](../../explanations.md#Explanations-SEC-018) | Supplier audit attestation stored & verified | Third-party supplier security attestation is collected and stored for audit. | (none) |
+| Security | [SEC-019](../../explanations.md#Explanations-SEC-019) | Segmentation test confirms tenant isolation | Tenant or data segmentation tests confirm isolation boundaries hold. | (none) |
+| Security | [SEC-020](../../explanations.md#Explanations-SEC-020) | Remote connections present valid Authority certs | Remote connections present valid certificates from trusted authorities. | (none) |
+| Security | [SEC-021](../../explanations.md#Explanations-SEC-021) | Port scan matches approved diagnostic list only | Port scans reveal only approved diagnostic and service ports—no unexpected exposures. | (none) |
+| Security | [SEC-022](../../explanations.md#Explanations-SEC-022) | Utility program access restricted to approved roles | Access to powerful utility programs is restricted to approved roles. | (none) |
+| Security | [SEC-023](../../explanations.md#Explanations-SEC-023) | Deployment provenance shows unique traceable accounts | Deployment provenance shows traceable unique accounts per automated pipeline stage. | (none) |
+| Security | [SEC-024](../../explanations.md#Explanations-SEC-024) | Code/data transfer logs show integrity & secure channels | Transfer of code or data maintains integrity and uses secure channels; events are logged. | (none) |
+| Security | [SEC-025](../../explanations.md#Explanations-SEC-025) | PID requests enforce mTLS; plain text blocked | Requests containing identifiable patient data enforce mTLS; plaintext attempts are blocked. | (none) |
+| Security | [SEC-026](../../explanations.md#Explanations-SEC-026) | API responses contain no unencrypted PID fields | API responses never include unencrypted patient identifiable data (PID) fields. | (none) |
+| Security | [SEC-027](../../explanations.md#Explanations-SEC-027) | Build fails on high CVE; report archived | Build pipeline blocks release when critical CVEs exceed threshold; reports archived. | (none) |
+| Security | [SEC-028](../../explanations.md#Explanations-SEC-028) | Release pipeline blocks on critical unresolved findings | Releases are halted if critical unresolved security findings remain. | (none) |
+| Security | [SEC-030](../../explanations.md#Explanations-SEC-030) | Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure | Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance. | [FTRS-1602](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1602) |
 
 ## Controls
 
@@ -49,7 +49,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 WAF security pillar checklist completed & gaps tracked
 
-See explanation: [SEC-002](../../explanations.md#sec-002)
+See explanation: [SEC-002](../../explanations.md#Explanations-SEC-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -59,7 +59,7 @@ See explanation: [SEC-002](../../explanations.md#sec-002)
 
 All endpoints TLS only; storage encryption enabled
 
-See explanation: [SEC-003](../../explanations.md#sec-003)
+See explanation: [SEC-003](../../explanations.md#Explanations-SEC-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -69,7 +69,7 @@ See explanation: [SEC-003](../../explanations.md#sec-003)
 
 Storage services show encryption enabled
 
-See explanation: [SEC-004](../../explanations.md#sec-004)
+See explanation: [SEC-004](../../explanations.md#Explanations-SEC-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -79,7 +79,7 @@ See explanation: [SEC-004](../../explanations.md#sec-004)
 
 Cross-environment data access attempts denied
 
-See explanation: [SEC-005](../../explanations.md#sec-005)
+See explanation: [SEC-005](../../explanations.md#Explanations-SEC-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -89,7 +89,7 @@ See explanation: [SEC-005](../../explanations.md#sec-005)
 
 No direct prod console queries detected in audit period
 
-See explanation: [SEC-006](../../explanations.md#sec-006)
+See explanation: [SEC-006](../../explanations.md#Explanations-SEC-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -99,7 +99,7 @@ See explanation: [SEC-006](../../explanations.md#sec-006)
 
 SG rules audited; attempt broad ingress denied
 
-See explanation: [SEC-007](../../explanations.md#sec-007)
+See explanation: [SEC-007](../../explanations.md#Explanations-SEC-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -109,7 +109,7 @@ See explanation: [SEC-007](../../explanations.md#sec-007)
 
 Perimeter scan shows no broad whitelist & secure channels
 
-See explanation: [SEC-008](../../explanations.md#sec-008)
+See explanation: [SEC-008](../../explanations.md#Explanations-SEC-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -119,7 +119,7 @@ See explanation: [SEC-008](../../explanations.md#sec-008)
 
 ASVS & CIS benchmark automation reports pass thresholds
 
-See explanation: [SEC-009](../../explanations.md#sec-009)
+See explanation: [SEC-009](../../explanations.md#Explanations-SEC-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -129,7 +129,7 @@ See explanation: [SEC-009](../../explanations.md#sec-009)
 
 Annual pen test executed; remediation tickets raised & closed
 
-See explanation: [SEC-010](../../explanations.md#sec-010)
+See explanation: [SEC-010](../../explanations.md#Explanations-SEC-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -139,7 +139,7 @@ See explanation: [SEC-010](../../explanations.md#sec-010)
 
 Security features enabled latency within SLA
 
-See explanation: [SEC-011](../../explanations.md#sec-011)
+See explanation: [SEC-011](../../explanations.md#Explanations-SEC-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -149,7 +149,7 @@ See explanation: [SEC-011](../../explanations.md#sec-011)
 
 IAM policy review confirms least privilege for system roles
 
-See explanation: [SEC-012](../../explanations.md#sec-012)
+See explanation: [SEC-012](../../explanations.md#Explanations-SEC-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -159,7 +159,7 @@ See explanation: [SEC-012](../../explanations.md#sec-012)
 
 Key rotation events logged; unauthorized access denied
 
-See explanation: [SEC-013](../../explanations.md#sec-013)
+See explanation: [SEC-013](../../explanations.md#Explanations-SEC-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -169,7 +169,7 @@ See explanation: [SEC-013](../../explanations.md#sec-013)
 
 mTLS handshake succeeds between designated services
 
-See explanation: [SEC-014](../../explanations.md#sec-014)
+See explanation: [SEC-014](../../explanations.md#Explanations-SEC-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -179,7 +179,7 @@ See explanation: [SEC-014](../../explanations.md#sec-014)
 
 Expiry alert fired in advance; renewal executed seamlessly
 
-See explanation: [SEC-015](../../explanations.md#sec-015)
+See explanation: [SEC-015](../../explanations.md#Explanations-SEC-015)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -189,7 +189,7 @@ See explanation: [SEC-015](../../explanations.md#sec-015)
 
 MFA enforced for all privileged infra roles
 
-See explanation: [SEC-016](../../explanations.md#sec-016)
+See explanation: [SEC-016](../../explanations.md#Explanations-SEC-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -199,7 +199,7 @@ See explanation: [SEC-016](../../explanations.md#sec-016)
 
 Scan reports zero unmanaged long-lived credentials
 
-See explanation: [SEC-017](../../explanations.md#sec-017)
+See explanation: [SEC-017](../../explanations.md#Explanations-SEC-017)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -209,7 +209,7 @@ See explanation: [SEC-017](../../explanations.md#sec-017)
 
 Supplier audit attestation stored & verified
 
-See explanation: [SEC-018](../../explanations.md#sec-018)
+See explanation: [SEC-018](../../explanations.md#Explanations-SEC-018)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -219,7 +219,7 @@ See explanation: [SEC-018](../../explanations.md#sec-018)
 
 Segmentation test confirms tenant isolation
 
-See explanation: [SEC-019](../../explanations.md#sec-019)
+See explanation: [SEC-019](../../explanations.md#Explanations-SEC-019)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -229,7 +229,7 @@ See explanation: [SEC-019](../../explanations.md#sec-019)
 
 Remote connections present valid Authority certs
 
-See explanation: [SEC-020](../../explanations.md#sec-020)
+See explanation: [SEC-020](../../explanations.md#Explanations-SEC-020)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -239,7 +239,7 @@ See explanation: [SEC-020](../../explanations.md#sec-020)
 
 Port scan matches approved diagnostic list only
 
-See explanation: [SEC-021](../../explanations.md#sec-021)
+See explanation: [SEC-021](../../explanations.md#Explanations-SEC-021)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -249,7 +249,7 @@ See explanation: [SEC-021](../../explanations.md#sec-021)
 
 Utility program access restricted to approved roles
 
-See explanation: [SEC-022](../../explanations.md#sec-022)
+See explanation: [SEC-022](../../explanations.md#Explanations-SEC-022)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -259,7 +259,7 @@ See explanation: [SEC-022](../../explanations.md#sec-022)
 
 Deployment provenance shows unique traceable accounts
 
-See explanation: [SEC-023](../../explanations.md#sec-023)
+See explanation: [SEC-023](../../explanations.md#Explanations-SEC-023)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -269,7 +269,7 @@ See explanation: [SEC-023](../../explanations.md#sec-023)
 
 Code/data transfer logs show integrity & secure channels
 
-See explanation: [SEC-024](../../explanations.md#sec-024)
+See explanation: [SEC-024](../../explanations.md#Explanations-SEC-024)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -279,7 +279,7 @@ See explanation: [SEC-024](../../explanations.md#sec-024)
 
 PID requests enforce mTLS; plain text blocked
 
-See explanation: [SEC-025](../../explanations.md#sec-025)
+See explanation: [SEC-025](../../explanations.md#Explanations-SEC-025)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -289,7 +289,7 @@ See explanation: [SEC-025](../../explanations.md#sec-025)
 
 API responses contain no unencrypted PID fields
 
-See explanation: [SEC-026](../../explanations.md#sec-026)
+See explanation: [SEC-026](../../explanations.md#Explanations-SEC-026)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -299,7 +299,7 @@ See explanation: [SEC-026](../../explanations.md#sec-026)
 
 Build fails on high CVE; report archived
 
-See explanation: [SEC-027](../../explanations.md#sec-027)
+See explanation: [SEC-027](../../explanations.md#Explanations-SEC-027)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -309,7 +309,7 @@ See explanation: [SEC-027](../../explanations.md#sec-027)
 
 Release pipeline blocks on critical unresolved findings
 
-See explanation: [SEC-028](../../explanations.md#sec-028)
+See explanation: [SEC-028](../../explanations.md#Explanations-SEC-028)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -319,7 +319,7 @@ See explanation: [SEC-028](../../explanations.md#sec-028)
 
 Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure
 
-See explanation: [SEC-030](../../explanations.md#sec-030)
+See explanation: [SEC-030](../../explanations.md#Explanations-SEC-030)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

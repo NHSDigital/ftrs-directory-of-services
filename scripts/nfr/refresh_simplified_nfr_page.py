@@ -320,7 +320,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                                 nfr_stories.add(s.strip())
                 stories_sorted = sorted(nfr_stories)
                 stories_display = format_story_list(stories_sorted)
-                lines.append(f"| {n.get('code','')} | {req} | {expl} | {stories_display} |")
+                code = str(n.get('code',''))
+                code_cell = f"[{code}](../explanations.md#Explanations-{code.upper()})" if code else ""
+                lines.append(f"| {code_cell} | {req} | {expl} | {stories_display} |")
         else:
             # Fallback: when domain nfrs.yaml is missing, avoid leaking matrix-derived
             # stories that may be noisy or incorrect. Only render requirement and explanation.
@@ -330,7 +332,9 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 expl = expl.replace('|','/').replace('\n',' ')
                 # Show no stories in fallback to prevent stray inclusions
                 stories_display = '(none)'
-                lines.append(f"| {r['code']} | {req} | {expl} | {stories_display} |")
+                code = r['code']
+                code_cell = f"[{code}](../explanations.md#Explanations-{code.upper()})" if code else ""
+                lines.append(f"| {code_cell} | {req} | {expl} | {stories_display} |")
         lines.append("")
         # Collect gaps for a checklist section
         gaps: list[str] = []
@@ -417,7 +421,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 for code in sorted(grouped.keys()):
                     lines.append(f"### {code}")
                     if code in explanations:
-                        lines.append(f"See explanation: [{code}](../explanations.md#{code.lower()})")
+                        lines.append(f"See explanation: [{code}](../explanations.md#Explanations-{code.upper()})")
                     # Domain-level sources shown at top; omit per-NFR sources here
                     # Ensure exactly one blank before table
                     if lines and lines[-1] != "":
@@ -500,7 +504,7 @@ def _build_explanations_reference(by_domain: dict[str, list[dict]], explanations
         codes = [r['code'] for r in by_domain[dom] if r.get('code') in explanations]
         if not codes:
             continue
-        lines.append(f"- {dom}: " + ", ".join(f"[{c}](#{c.lower()})" for c in codes))
+        lines.append(f"- {dom}: " + ", ".join(f"[{c}](#Explanations-{c})" for c in codes))
     lines.append("")
     # Detailed sections
     for dom in sorted(by_domain.keys()):

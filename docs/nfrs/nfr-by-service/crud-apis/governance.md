@@ -12,9 +12,9 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Governance | [GOV-007](#gov-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
-| Governance | [GOV-008](#gov-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
-| Governance | [GOV-012](#gov-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
+| Governance | [GOV-007](../../explanations.md#Explanations-GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
+| Governance | [GOV-008](../../explanations.md#Explanations-GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
+| Governance | [GOV-012](../../explanations.md#Explanations-GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
 
 ## Controls
 
@@ -24,7 +24,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 FtRS Architects review & approval logged
 
-See explanation: [GOV-007](../../explanations.md#gov-007)
+See explanation: [GOV-007](../../explanations.md#Explanations-GOV-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -34,7 +34,7 @@ See explanation: [GOV-007](../../explanations.md#gov-007)
 
 Cloud Expert deployment approval documented
 
-See explanation: [GOV-008](../../explanations.md#gov-008)
+See explanation: [GOV-008](../../explanations.md#Explanations-GOV-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -44,7 +44,7 @@ See explanation: [GOV-008](../../explanations.md#gov-008)
 
 TRG approval session outcome logged
 
-See explanation: [GOV-012](../../explanations.md#gov-012)
+See explanation: [GOV-012](../../explanations.md#Explanations-GOV-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

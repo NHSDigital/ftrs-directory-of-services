@@ -12,28 +12,28 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Accessibility | [ACC-001](#acc-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
-| Accessibility | [ACC-002](#acc-002) | Automated scans run across critical pages & browsers | Automated scans run across critical pages and browser variants. | (none) |
-| Accessibility | [ACC-003](#acc-003) | Manual accessibility test executed per release | Manual accessibility tests are executed for each release cycle. | (none) |
-| Accessibility | [ACC-004](#acc-004) | Defects tracked with parity priority & SLA | Accessibility defects tracked with equal priority and defined SLAs. | (none) |
-| Accessibility | [ACC-005](#acc-005) | Tooling operational in dev/int/reference envs | Accessibility tooling operates correctly in dev, int, and reference environments. | (none) |
-| Accessibility | [ACC-006](#acc-006) | Assistive tech not blocked by headers/CSP | Assistive technologies are not blocked by headers or Content Security Policy (CSP). | (none) |
-| Accessibility | [ACC-007](#acc-007) | Test dataset covers tables/forms/status messages | Test dataset covers common components: tables, forms, status messages. | (none) |
-| Accessibility | [ACC-008](#acc-008) | CI accessibility stage completes <5min | CI accessibility scan stage completes quickly (under target time). | (none) |
-| Accessibility | [ACC-009](#acc-009) | Keyboard tab order regression test passes | Keyboard-only navigation preserves logical tab order without traps. | (none) |
-| Accessibility | [ACC-010](#acc-010) | Focus trap tests pass for modals/overlays | Focus handling works for modals and overlays without trapping user. | (none) |
-| Accessibility | [ACC-011](#acc-011) | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
-| Accessibility | [ACC-012](#acc-012) | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
-| Accessibility | [ACC-013](#acc-013) | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
-| Accessibility | [ACC-014](#acc-014) | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
-| Accessibility | [ACC-015](#acc-015) | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
-| Accessibility | [ACC-016](#acc-016) | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
-| Accessibility | [ACC-017](#acc-017) | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
-| Accessibility | [ACC-018](#acc-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
-| Accessibility | [ACC-019](#acc-019) | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
-| Accessibility | [ACC-020](#acc-020) | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
-| Accessibility | [ACC-021](#acc-021) | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
-| Accessibility | [ACC-022](#acc-022) | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | (none) |
+| Accessibility | [ACC-001](../../explanations.md#Explanations-ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
+| Accessibility | [ACC-002](../../explanations.md#Explanations-ACC-002) | Automated scans run across critical pages & browsers | Automated scans run across critical pages and browser variants. | (none) |
+| Accessibility | [ACC-003](../../explanations.md#Explanations-ACC-003) | Manual accessibility test executed per release | Manual accessibility tests are executed for each release cycle. | (none) |
+| Accessibility | [ACC-004](../../explanations.md#Explanations-ACC-004) | Defects tracked with parity priority & SLA | Accessibility defects tracked with equal priority and defined SLAs. | (none) |
+| Accessibility | [ACC-005](../../explanations.md#Explanations-ACC-005) | Tooling operational in dev/int/reference envs | Accessibility tooling operates correctly in dev, int, and reference environments. | (none) |
+| Accessibility | [ACC-006](../../explanations.md#Explanations-ACC-006) | Assistive tech not blocked by headers/CSP | Assistive technologies are not blocked by headers or Content Security Policy (CSP). | (none) |
+| Accessibility | [ACC-007](../../explanations.md#Explanations-ACC-007) | Test dataset covers tables/forms/status messages | Test dataset covers common components: tables, forms, status messages. | (none) |
+| Accessibility | [ACC-008](../../explanations.md#Explanations-ACC-008) | CI accessibility stage completes <5min | CI accessibility scan stage completes quickly (under target time). | (none) |
+| Accessibility | [ACC-009](../../explanations.md#Explanations-ACC-009) | Keyboard tab order regression test passes | Keyboard-only navigation preserves logical tab order without traps. | (none) |
+| Accessibility | [ACC-010](../../explanations.md#Explanations-ACC-010) | Focus trap tests pass for modals/overlays | Focus handling works for modals and overlays without trapping user. | (none) |
+| Accessibility | [ACC-011](../../explanations.md#Explanations-ACC-011) | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
+| Accessibility | [ACC-012](../../explanations.md#Explanations-ACC-012) | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
+| Accessibility | [ACC-013](../../explanations.md#Explanations-ACC-013) | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
+| Accessibility | [ACC-014](../../explanations.md#Explanations-ACC-014) | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
+| Accessibility | [ACC-015](../../explanations.md#Explanations-ACC-015) | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
+| Accessibility | [ACC-016](../../explanations.md#Explanations-ACC-016) | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
+| Accessibility | [ACC-017](../../explanations.md#Explanations-ACC-017) | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
+| Accessibility | [ACC-018](../../explanations.md#Explanations-ACC-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
+| Accessibility | [ACC-019](../../explanations.md#Explanations-ACC-019) | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
+| Accessibility | [ACC-020](../../explanations.md#Explanations-ACC-020) | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
+| Accessibility | [ACC-021](../../explanations.md#Explanations-ACC-021) | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
+| Accessibility | [ACC-022](../../explanations.md#Explanations-ACC-022) | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | (none) |
 
 ## Controls
 
@@ -43,7 +43,7 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 WCAG 2.2 AA scan & manual audit pass
 
-See explanation: [ACC-001](../../explanations.md#acc-001)
+See explanation: [ACC-001](../../explanations.md#Explanations-ACC-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -53,7 +53,7 @@ See explanation: [ACC-001](../../explanations.md#acc-001)
 
 Automated scans run across critical pages & browsers
 
-See explanation: [ACC-002](../../explanations.md#acc-002)
+See explanation: [ACC-002](../../explanations.md#Explanations-ACC-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -63,7 +63,7 @@ See explanation: [ACC-002](../../explanations.md#acc-002)
 
 Manual accessibility test executed per release
 
-See explanation: [ACC-003](../../explanations.md#acc-003)
+See explanation: [ACC-003](../../explanations.md#Explanations-ACC-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -73,7 +73,7 @@ See explanation: [ACC-003](../../explanations.md#acc-003)
 
 Defects tracked with parity priority & SLA
 
-See explanation: [ACC-004](../../explanations.md#acc-004)
+See explanation: [ACC-004](../../explanations.md#Explanations-ACC-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -83,7 +83,7 @@ See explanation: [ACC-004](../../explanations.md#acc-004)
 
 Tooling operational in dev/int/reference envs
 
-See explanation: [ACC-005](../../explanations.md#acc-005)
+See explanation: [ACC-005](../../explanations.md#Explanations-ACC-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -93,7 +93,7 @@ See explanation: [ACC-005](../../explanations.md#acc-005)
 
 Assistive tech not blocked by headers/CSP
 
-See explanation: [ACC-006](../../explanations.md#acc-006)
+See explanation: [ACC-006](../../explanations.md#Explanations-ACC-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -103,7 +103,7 @@ See explanation: [ACC-006](../../explanations.md#acc-006)
 
 Test dataset covers tables/forms/status messages
 
-See explanation: [ACC-007](../../explanations.md#acc-007)
+See explanation: [ACC-007](../../explanations.md#Explanations-ACC-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -113,7 +113,7 @@ See explanation: [ACC-007](../../explanations.md#acc-007)
 
 CI accessibility stage completes <5min
 
-See explanation: [ACC-008](../../explanations.md#acc-008)
+See explanation: [ACC-008](../../explanations.md#Explanations-ACC-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -123,7 +123,7 @@ See explanation: [ACC-008](../../explanations.md#acc-008)
 
 Keyboard tab order regression test passes
 
-See explanation: [ACC-009](../../explanations.md#acc-009)
+See explanation: [ACC-009](../../explanations.md#Explanations-ACC-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -133,7 +133,7 @@ See explanation: [ACC-009](../../explanations.md#acc-009)
 
 Focus trap tests pass for modals/overlays
 
-See explanation: [ACC-010](../../explanations.md#acc-010)
+See explanation: [ACC-010](../../explanations.md#Explanations-ACC-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -143,7 +143,7 @@ See explanation: [ACC-010](../../explanations.md#acc-010)
 
 Screen reader ARIA role announcements verified
 
-See explanation: [ACC-011](../../explanations.md#acc-011)
+See explanation: [ACC-011](../../explanations.md#Explanations-ACC-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -153,7 +153,7 @@ See explanation: [ACC-011](../../explanations.md#acc-011)
 
 Accessibility results documented with feature tests
 
-See explanation: [ACC-012](../../explanations.md#acc-012)
+See explanation: [ACC-012](../../explanations.md#Explanations-ACC-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -163,7 +163,7 @@ See explanation: [ACC-012](../../explanations.md#acc-012)
 
 Central issue log maintained & current
 
-See explanation: [ACC-013](../../explanations.md#acc-013)
+See explanation: [ACC-013](../../explanations.md#Explanations-ACC-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -173,7 +173,7 @@ See explanation: [ACC-013](../../explanations.md#acc-013)
 
 Accessibility champion/workgroup active
 
-See explanation: [ACC-014](../../explanations.md#acc-014)
+See explanation: [ACC-014](../../explanations.md#Explanations-ACC-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -183,7 +183,7 @@ See explanation: [ACC-014](../../explanations.md#acc-014)
 
 Monthly accessibility report published
 
-See explanation: [ACC-015](../../explanations.md#acc-015)
+See explanation: [ACC-015](../../explanations.md#Explanations-ACC-015)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -193,7 +193,7 @@ See explanation: [ACC-015](../../explanations.md#acc-015)
 
 Exception process documented & used
 
-See explanation: [ACC-016](../../explanations.md#acc-016)
+See explanation: [ACC-016](../../explanations.md#Explanations-ACC-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -203,7 +203,7 @@ See explanation: [ACC-016](../../explanations.md#acc-016)
 
 Exception record contains required fields
 
-See explanation: [ACC-017](../../explanations.md#acc-017)
+See explanation: [ACC-017](../../explanations.md#Explanations-ACC-017)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -213,7 +213,7 @@ See explanation: [ACC-017](../../explanations.md#acc-017)
 
 Pre-commit checks complete <30s
 
-See explanation: [ACC-018](../../explanations.md#acc-018)
+See explanation: [ACC-018](../../explanations.md#Explanations-ACC-018)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -223,7 +223,7 @@ See explanation: [ACC-018](../../explanations.md#acc-018)
 
 CI accessibility stage completes <5min
 
-See explanation: [ACC-019](../../explanations.md#acc-019)
+See explanation: [ACC-019](../../explanations.md#Explanations-ACC-019)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -233,7 +233,7 @@ See explanation: [ACC-019](../../explanations.md#acc-019)
 
 Overnight full scan duration <2h
 
-See explanation: [ACC-020](../../explanations.md#acc-020)
+See explanation: [ACC-020](../../explanations.md#Explanations-ACC-020)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -243,7 +243,7 @@ See explanation: [ACC-020](../../explanations.md#acc-020)
 
 Accessibility regression triggers alert
 
-See explanation: [ACC-021](../../explanations.md#acc-021)
+See explanation: [ACC-021](../../explanations.md#Explanations-ACC-021)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -253,7 +253,7 @@ See explanation: [ACC-021](../../explanations.md#acc-021)
 
 False positive ratio report shows improvement
 
-See explanation: [ACC-022](../../explanations.md#acc-022)
+See explanation: [ACC-022](../../explanations.md#Explanations-ACC-022)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
