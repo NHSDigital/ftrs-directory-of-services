@@ -1,6 +1,34 @@
 #set($lastUpdated = $input.params('_lastUpdated'))
 
-#if($lastUpdated == "2024-05-12")
+#if($lastUpdated == "2025-01-08")
+  #set($context.responseOverride.status = 401)
+  #set($context.responseOverride.header.Content-Type = "application/json")
+  {
+    "resourceType": "OperationOutcome",
+    "id": "unauthorized",
+    "issue": [
+      {
+        "severity": "error",
+        "code": "security",
+        "diagnostics": "Unauthorized access - invalid or expired credentials"
+      }
+    ]
+  }
+#elseif($lastUpdated == "2025-01-09")
+  #set($context.responseOverride.status = 500)
+  #set($context.responseOverride.header.Content-Type = "application/json")
+  {
+    "resourceType": "OperationOutcome",
+    "id": "internal-server-error",
+    "issue": [
+      {
+        "severity": "fatal",
+        "code": "exception",
+        "diagnostics": "Internal server error - unable to process the request due to an unexpected condition"
+      }
+    ]
+  }
+#elseif($lastUpdated == "2025-01-02")
   {
 
     "resourceType": "Bundle",
@@ -13,11 +41,11 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-02"
       }
     ]
   }
-#elseif($lastUpdated == "2025-12-10")
+#elseif($lastUpdated == "2025-01-07")
   {
     "resourceType": "Bundle",
     "id": "803d2eaa-d868-4cc4-b95e-2f81f04abbb8",
@@ -29,11 +57,11 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-12-10"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-07"
       }
     ]
   }
-#elseif($lastUpdated == "2025-10-01")
+#elseif($lastUpdated == "2025-01-01")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -44,15 +72,15 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-01"
       }
     ],
     "entry": [
       {
-        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
         "resource": {
           "resourceType": "Organization",
-          "id": "Y02578",
+          "id": "Y01234",
           "meta": {
             "versionId": "5",
             "lastUpdated": "2025-10-01T01:07:17.412+00:00",
@@ -62,18 +90,162 @@
               "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
             ]
           },
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 12345
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO177",
+                        "display": "PRESCRIBING COST CENTRE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 123456
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO76",
+                        "display": "GP PRACTICE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedDateTime",
+              "extension": [
+                {
+                  "url": "type",
+                  "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSDateTime",
+                    "code": "LastChangeDate",
+                    "display": "Last Change Date"
+                  }
+                },
+                {
+                  "url": "dateTime",
+                  "valueDateTime": "2023-08-22"
+                }
+              ]
+            }
+          ],
           "identifier": [
             {
               "use": "official",
               "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-              "value": "Y02578",
+              "value": "Y01234",
               "assigner": {
                 "display": "NHS BUSINESS SERVICES AUTHORITY"
               }
             }
           ],
           "active": "yes",
-          "type": "GP_PRACTICE",
           "name": "TEST MEDICAL CENTRE",
           "telecom": [
             {
@@ -117,7 +289,7 @@
       }
     ]
   }
-#elseif($lastUpdated == "2025-11-01")
+#elseif($lastUpdated == "2025-01-04")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -128,12 +300,12 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-11-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-04"
       }
     ],
     "entry": [
       {
-        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
         "resource": {
           "meta": {
             "versionId": "5",
@@ -144,11 +316,156 @@
               "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
             ]
           },
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 12345
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO177",
+                        "display": "PRESCRIBING COST CENTRE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 123456
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO76",
+                        "display": "GP PRACTICE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedDateTime",
+              "extension": [
+                {
+                  "url": "type",
+                  "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSDateTime",
+                    "code": "LastChangeDate",
+                    "display": "Last Change Date"
+                  }
+                },
+                {
+                  "url": "dateTime",
+                  "valueDateTime": "2023-08-22"
+                }
+              ]
+            }
+          ],
           "identifier": [
             {
               "use": "official",
               "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-              "value": "Y02578",
+              "value": "Y01234",
               "assigner": {
                 "display": "NHS BUSINESS SERVICES AUTHORITY"
               }
@@ -187,7 +504,7 @@
       }
     ]
   }
-#elseif($lastUpdated == "2025-09-01")
+#elseif($lastUpdated == "2025-01-03")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -198,15 +515,15 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-09-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-03"
       }
     ],
     "entry": [
       {
-        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
         "resource": {
           "resourceType": "Location",
-          "id": "Y02578",
+          "id": "Y01234",
           "meta": {
             "versionId": "5",
             "lastUpdated": "2025-10-01T01:07:17.412+00:00",
@@ -216,7 +533,7 @@
             {
               "use": "official",
               "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-              "value": "Y02578"
+              "value": "Y01234"
             }
           ],
           "active": true,
@@ -225,7 +542,7 @@
       }
     ]
   }
-#elseif($lastUpdated == "2025-08-01")
+#elseif($lastUpdated == "2025-01-05")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -236,15 +553,15 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-08-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-01-05"
       }
     ],
     "entry": [
       {
-        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
         "resource": {
           "resourceType": "Organization",
-          "id": "Y02578",
+          "id": "Y01234",
           "meta": {
             "versionId": "5",
             "lastUpdated": "2025-10-01T01:07:17.412+00:00",
@@ -255,11 +572,156 @@
             ],
             "legacySystemId": "12345"
           },
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 12345
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO177",
+                        "display": "PRESCRIBING COST CENTRE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "1974-04-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 123456
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO76",
+                        "display": "GP PRACTICE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2014-04-15"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedDateTime",
+              "extension": [
+                {
+                  "url": "type",
+                  "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSDateTime",
+                    "code": "LastChangeDate",
+                    "display": "Last Change Date"
+                  }
+                },
+                {
+                  "url": "dateTime",
+                  "valueDateTime": "2023-08-22"
+                }
+              ]
+            }
+          ],
           "identifier": [
             {
               "use": "official",
               "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-              "value": "Y02578",
+              "value": "Y01234",
               "assigner": {
                 "display": "NHS BUSINESS SERVICES AUTHORITY"
               }
@@ -283,6 +745,88 @@
         "resource": {
           "resourceType": "Organization",
           "id": "test-org",
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+              "extension": [
+                {
+                  "url": "instanceID",
+                  "valueInteger": 99999
+                },
+                {
+                  "url": "roleCode",
+                  "valueCodeableConcept": {
+                    "coding": [
+                      {
+                        "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                        "code": "RO76",
+                        "display": "GP PRACTICE"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Legal",
+                        "display": "Legal"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2020-01-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                  "extension": [
+                    {
+                      "url": "dateType",
+                      "valueCoding": {
+                        "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                        "code": "Operational",
+                        "display": "Operational"
+                      }
+                    },
+                    {
+                      "url": "period",
+                      "valuePeriod": {
+                        "start": "2020-01-01"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "url": "active",
+                  "valueBoolean": true
+                }
+              ]
+            },
+            {
+              "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedDateTime",
+              "extension": [
+                {
+                  "url": "type",
+                  "valueCoding": {
+                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSDateTime",
+                    "code": "LastChangeDate",
+                    "display": "Last Change Date"
+                  }
+                },
+                {
+                  "url": "dateTime",
+                  "valueDateTime": "2024-01-01"
+                }
+              ]
+            }
+          ],
           "active": true,
           "name": "Test Organization",
           "identifier": [
