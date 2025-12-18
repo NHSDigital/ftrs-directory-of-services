@@ -68,21 +68,34 @@ def update_server_urls(spec, api_name, workspace, environment):
 
     target_domain = env_domain_map[environment]
 
+    # Track if we updated any servers
+    updated_count = 0
+
     for server in spec['servers']:
-        if 'url' not in server or target_domain not in server['url']:
+        if 'url' not in server:
             continue
 
-        # Extract existing path after the API name
+        # Check if this server URL is for an NHS API service domain
         # e.g., https://internal-dev.api.service.nhs.uk/dos-search/FHIR/R4
         url_parts = server['url'].split('/')
-        if len(url_parts) < 4:
+        if len(url_parts) < 5:  # Must have protocol, empty, domain, api_name, and path
+            continue
+
+        # Check if URL matches NHS API service pattern
+        domain = url_parts[2]
+        if 'api.service.nhs.uk' not in domain:
             continue
 
         # Get path segments after the API name (e.g., /FHIR/R4)
         path_segments = '/'.join(url_parts[4:]) if len(url_parts) > 4 else ''
 
+        # Update this server URL to use the target environment domain
         server['url'] = build_server_url(target_domain, api_name, workspace, environment, path_segments)
-        print(f"Updated {environment} server URL to: {server['url']}", file=sys.stderr)
+        print(f"Updated server URL to: {server['url']}", file=sys.stderr)
+        updated_count += 1
+
+    if updated_count == 0:
+        print(f"Warning: No server URLs were updated for environment {environment}", file=sys.stderr)
 
 
 def write_spec_as_json(spec, output_file='/tmp/modified_spec.json'):
