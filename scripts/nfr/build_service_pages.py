@@ -734,7 +734,7 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             # Compute page-title-prefixed anchor base expected by Confluence for headings
             title_prefix = anchor_prefix_from_title(page_title_for(display_service(service), dom))
             for domain, code, req, expl, stories in sorted([r for r in summary_rows if r[0] == dom], key=lambda r: r[1]):
-                # Link code to the on-page Controls section using the title-prefixed heading anchor
+                # Link code to the on-page Controls section using Confluence auto heading anchor
                 code_cell = f"[{code}](#{title_prefix}-{code.upper()})"
                 dmd.append(f"| {domain} | {code_cell} | {req} | {expl} | {stories} |")
             _append_blank_line(dmd)
