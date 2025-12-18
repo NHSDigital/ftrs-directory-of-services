@@ -97,8 +97,8 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
         if frag:
             # Normalise fragment to Confluence anchor naming (uppercase code like ACC-002)
             frag = frag.upper()
-            # Prefer the heading-style anchor prefix used by Confluence UI
-            return confluence_page_link("Explanations", space=space, link_text=text, anchor=f"Explanations-{frag}")
+            # Link directly to the explicit anchor macro name on Explanations (INT-002)
+            return confluence_page_link("Explanations", space=space, link_text=text, anchor=frag)
         return confluence_page_link("Explanations", space=space, link_text=text)
     return re_href.sub(_repl, html)
 
@@ -112,16 +112,13 @@ def inject_code_anchors_for_explanations(storage_html: str) -> str:
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
         code = m.group(2)
-        # Insert two anchors: one plain code (ACC-002) and one prefixed with page title (Explanations-ACC-002)
-        anchors = [code, f"Explanations-{code}"]
-        macros = []
-        for a in anchors:
-            macros.append(
-                '<ac:structured-macro ac:name="anchor">'
-                f'<ac:parameter ac:name="anchor">{a}</ac:parameter>'
-                '</ac:structured-macro>'
-            )
-        return ''.join(macros) + m.group(1) + code + m.group(3)
+        # Insert a single, explicit anchor macro using the code (e.g., INT-002)
+        macro = (
+            '<ac:structured-macro ac:name="anchor">'
+            f'<ac:parameter ac:name="">{code}</ac:parameter>'
+            '</ac:structured-macro>'
+        )
+        return macro + m.group(1) + code + m.group(3)
     return re_h3_code.sub(_repl, storage_html)
 
 
@@ -148,7 +145,7 @@ def inject_code_anchors_for_page(storage_html: str, page_title: str) -> str:
         for a in anchors:
             parts.append(
                 '<ac:structured-macro ac:name="anchor">'
-                f'<ac:parameter ac:name="anchor">{a}</ac:parameter>'
+                f'<ac:parameter ac:name="">{a}</ac:parameter>'
                 '</ac:structured-macro>'
             )
         return ''.join(parts) + m.group(1) + code_upper + m.group(3)
