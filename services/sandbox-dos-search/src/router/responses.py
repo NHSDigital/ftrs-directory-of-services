@@ -24,7 +24,7 @@ SUCCESS_BUNDLE_ABC123 = {
                     }
                 ],
                 "active": True,
-                "name": "Example Organization",
+                "name": "Updated Example Organization",
                 "telecom": [
                     {"system": "phone", "value": "01234 567890"},
                     {"system": "email", "value": "example@example.com"},
