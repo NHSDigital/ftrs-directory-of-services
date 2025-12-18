@@ -81,12 +81,36 @@ def rewrite_service_index_links_to_page_links(html: str, map_folder_to_title) ->
 def rewrite_explanations_links_to_page_link(html: str) -> str:
     """Rewrite anchors pointing at ../explanations.md (or ../../explanations.md) to a Confluence page link.
 
-    Anchors to specific codes are currently dropped; Confluence will land on the page top.
+    Preserves fragment identifiers by emitting an <ac:anchor> targeting the Explanations page.
     """
-    re_href = re.compile(r'<a\s+href=["\'](?:\.\./){1,2}explanations\.md(?:#[^"\']*)?["\'][^>]*>.*?</a>', re.IGNORECASE)
-    def _repl(_m: re.Match) -> str:
+    re_href = re.compile(r'<a\s+href=["\'](?:\.\./){1,2}explanations\.md(#[^"\']*)?["\'][^>]*>.*?</a>', re.IGNORECASE)
+    def _repl(m: re.Match) -> str:
+        frag = (m.group(1) or "").lstrip('#')
+        if frag:
+            safe_title = "Explanations".replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            safe_anchor = frag
+            return f'<ac:link><ri:page ri:content-title="{safe_title}" /><ac:anchor>{safe_anchor}</ac:anchor></ac:link>'
         return confluence_page_link("Explanations")
     return re_href.sub(_repl, html)
+
+
+def inject_code_anchors_for_explanations(storage_html: str) -> str:
+    """Insert explicit anchor macros before each code heading (e.g., <h3>INT-003</h3>).
+
+    This guarantees stable anchors like 'int-003' regardless of Confluence's auto-generated IDs.
+    """
+    # Match H3 headings that look like NFR codes, e.g., INT-003, GOV-010, OBS-001
+    re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
+    def _repl(m: re.Match) -> str:
+        code = m.group(2)
+        anchor = code.lower()
+        anchor_macro = (
+            '<ac:structured-macro ac:name="anchor">'
+            f'<ac:parameter ac:name="anchor">{anchor}</ac:parameter>'
+            '</ac:structured-macro>'
+        )
+        return anchor_macro + m.group(1) + code + m.group(3)
+    return re_h3_code.sub(_repl, storage_html)
 
 
 def children_display_macro() -> str:
@@ -409,6 +433,7 @@ def main() -> None:
             # Build storage body without adding Children macro (links are now explicit)
             storage_override = None
             is_service_index = ('/nfr-by-service/' in pstr and path.name.lower() == 'index.md')
+            is_explanations_page = pstr.endswith('docs/nfrs/explanations.md') or path.name.lower() == 'explanations.md'
             if is_service_index:
                 storage_override = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None)) if not args.use_markdown_macro else wrap_markdown_macro(md)
             if is_domain_index:
@@ -424,6 +449,9 @@ def main() -> None:
             # Apply explanation link rewriting when we already built storage
             if storage_override is not None and not args.use_markdown_macro:
                 storage_override = rewrite_explanations_links_to_page_link(storage_override)
+            # If publishing the Explanations page, inject explicit anchor macros for each code
+            if storage_override is not None and not args.use_markdown_macro and is_explanations_page:
+                storage_override = inject_code_anchors_for_explanations(storage_override)
 
             # If this is the domain index and we resolved the category page id, update it directly by ID
             if is_domain_index and domain_parent_id:
@@ -435,6 +463,8 @@ def main() -> None:
                 cur_v = int((info.get("version") or {}).get("number", 1))
                 cur_title = info.get("title") or title
                 body = storage_override if storage_override is not None else (markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None)) if not args.use_markdown_macro else wrap_markdown_macro(md))
+                if not args.use_markdown_macro and is_explanations_page:
+                    body = inject_code_anchors_for_explanations(body)
                 api_update_page(base_url, str(domain_parent_id), cur_title, body, cur_v, headers, parent_id=None)
                 print(f"Published {path} -> page {domain_parent_id} ('{cur_title}')")
                 last_id = str(domain_parent_id)
@@ -448,6 +478,8 @@ def main() -> None:
                 cur_v = int((info.get("version") or {}).get("number", 1))
                 cur_title = info.get("title") or title
                 body = storage_override if storage_override is not None else (markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None)) if not args.use_markdown_macro else wrap_markdown_macro(md))
+                if not args.use_markdown_macro and is_explanations_page:
+                    body = inject_code_anchors_for_explanations(body)
                 api_update_page(base_url, str(service_parent_id), cur_title, body, cur_v, headers, parent_id=None)
                 print(f"Published {path} -> page {service_parent_id} ('{cur_title}')")
                 last_id = str(service_parent_id)
@@ -457,6 +489,8 @@ def main() -> None:
             if not args.use_markdown_macro:
                 body = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None))
                 body = rewrite_explanations_links_to_page_link(body)
+                if is_explanations_page:
+                    body = inject_code_anchors_for_explanations(body)
                 storage_override_general = body
             page_id = publish_one(
                 base_url,
@@ -496,6 +530,8 @@ def main() -> None:
                     storage_override = body
                 # If not using markdown macro, do not fallback silently – raise if conversion unavailable
                 body = storage_override if storage_override is not None else (markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None)) if not args.use_markdown_macro else wrap_markdown_macro(md))
+                if not args.use_markdown_macro and is_explanations_page:
+                    body = inject_code_anchors_for_explanations(body)
                 created = api_create_page(base_url, args.space, title, parent_for_file, body, headers)
                 print(f"Created {path} -> page {created.get('id')} ('{title}')")
                 last_id = str(created.get('id'))
