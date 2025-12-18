@@ -90,8 +90,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
     ]
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/dos-ingest-jwt-credentials*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/ods-terminology-api-key*",
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/mock-api-gateway-key*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/${var.environment}/ods-terminology-api-key*"
     ]
   }
 
@@ -104,6 +103,20 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
     ]
     resources = [
       data.aws_kms_key.secrets_manager_kms_key.arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "ods_mock_api_access_policy" {
+  count = var.environment == "dev" ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/dev/mock-api/api-key${local.workspace_suffix}*"
     ]
   }
 }
