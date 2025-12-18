@@ -111,6 +111,25 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
     return re_href.sub(_repl, html)
 
 
+def rewrite_internal_hash_links_to_ac_link(html: str) -> str:
+    """Rewrite <a href="#ANCHOR">text</a> to Confluence ac:link with ac:anchor.
+
+    Confluence storage links resolve same-page anchors more reliably using the
+    structured link format instead of raw <a href="#..."> anchors.
+    """
+    re_hash = re.compile(r'<a\s+href=["\']#([A-Za-z0-9][A-Za-z0-9\-_.:]*)["\'][^>]*>(.*?)</a>', re.IGNORECASE | re.DOTALL)
+    def _repl(m: re.Match) -> str:
+        anchor = m.group(1)
+        text = m.group(2) or ''
+        return (
+            '<ac:link>'
+            f'<ac:anchor>{anchor}</ac:anchor>'
+            f'<ac:link-body><![CDATA[{text}]]></ac:link-body>'
+            '</ac:link>'
+        )
+    return re_hash.sub(_repl, html)
+
+
 def inject_code_anchors_for_explanations(storage_html: str) -> str:
     """Insert explicit anchor macros before each code heading (e.g., <h3>INT-003</h3>).
 
@@ -501,6 +520,8 @@ def main() -> None:
             # Apply explanation link rewriting when we already built storage
             if storage_override is not None and not args.use_markdown_macro:
                 storage_override = rewrite_explanations_links_to_page_link(storage_override, space=args.space, base_url=base_url, page_id=explanations_page_id)
+                # Convert same-page hash links to ac:link with ac:anchor
+                storage_override = rewrite_internal_hash_links_to_ac_link(storage_override)
                 # inject generic anchors on any page with code headings
                 storage_override = inject_code_anchors_for_page(storage_override, title)
             # If publishing the Explanations page, inject explicit anchor macros for each code
@@ -547,6 +568,7 @@ def main() -> None:
             if not args.use_markdown_macro:
                 body = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None))
                 body = rewrite_explanations_links_to_page_link(body, space=args.space, base_url=base_url, page_id=explanations_page_id)
+                body = rewrite_internal_hash_links_to_ac_link(body)
                 if is_explanations_page:
                     body = inject_code_anchors_for_explanations(body)
                 body = inject_code_anchors_for_page(body, title)
