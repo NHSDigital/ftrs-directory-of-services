@@ -121,12 +121,16 @@ def rewrite_internal_hash_links_to_ac_link(html: str) -> str:
     def _repl(m: re.Match) -> str:
         anchor = m.group(1)
         text = m.group(2) or ''
-        return (
-            '<ac:link>'
-            f'<ac:anchor>{anchor}</ac:anchor>'
-            f'<ac:link-body><![CDATA[{text}]]></ac:link-body>'
-            '</ac:link>'
-        )
+        # Only rewrite pure NFR code anchors (e.g., INT-003 / int-003) which we inject explicitly.
+        if re.fullmatch(r'[A-Z]+-\d{3}', anchor) or re.fullmatch(r'[a-z]+-\d{3}', anchor):
+            return (
+                '<ac:link>'
+                f'<ac:anchor>{anchor}</ac:anchor>'
+                f'<ac:link-body><![CDATA[{text}]]></ac:link-body>'
+                '</ac:link>'
+            )
+        # Leave title-prefixed or other anchors as standard <a href="#..."> to use Confluence auto-heading anchors
+        return m.group(0)
     return re_hash.sub(_repl, html)
 
 
