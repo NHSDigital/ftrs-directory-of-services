@@ -95,11 +95,15 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
         frag = (m.group(1) or "").lstrip('#')
         text = m.group(2) or ''
         if frag:
-            frag = frag.upper()
+            raw = frag.strip()
+            if raw.lower().startswith('explanations-'):
+                raw = raw[len('explanations-'):]
+            code = raw.upper()
+            anchor = f"Explanations-{code}"
             if base_url and space and page_id:
-                url = f"{base_url}/spaces/{space}/pages/{page_id}/Explanations#Explanations-{frag}"
+                url = f"{base_url}/spaces/{space}/pages/{page_id}/Explanations#{anchor}"
                 return f'<a href="{url}">{text}</a>'
-            return confluence_page_link("Explanations", space=space, link_text=text, anchor=f"Explanations-{frag}")
+            return confluence_page_link("Explanations", space=space, link_text=text, anchor=anchor)
         if base_url and space and page_id:
             url = f"{base_url}/spaces/{space}/pages/{page_id}/Explanations"
             return f'<a href="{url}">{text}</a>'
