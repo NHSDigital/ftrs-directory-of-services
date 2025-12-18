@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
+| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | (none) |
 | Interoperability | [INT-002](#int-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
 | Interoperability | [INT-003](#int-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
 | Interoperability | [INT-004](#int-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
@@ -39,7 +39,7 @@ Resources validated against UK Core profiles
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) | Ensures national standard alignment |
+| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | (none) | Ensures national standard alignment |
 
 ### INT-002
 

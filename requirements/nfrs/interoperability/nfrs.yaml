@@ -4,8 +4,7 @@ nfrs:
 - code: INT-001
   requirement: Resources validated against UK Core profiles
   explanation: Resources conform to UK Core profiles ensuring national standard alignment.
-  stories:
-  - FTRS-978
+  stories: []
   controls:
   - control_id: uk-core-profile-validation
     measure: Resources validated against UK Core profiles
@@ -18,6 +17,20 @@ nfrs:
     - prod
     services:
     - crud-apis
+    status: draft
+    rationale: Ensures national standard alignment
+    stories:
+    - FTRS-978
+  - control_id: uk-core-profile-validation
+    measure: Resources validated against UK Core profiles
+    threshold: 100% resources pass UK Core validation in CI and pre-release audit
+    tooling: FHIR validators + contract test suite
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
     - dos-search
     status: draft
     rationale: Ensures national standard alignment
