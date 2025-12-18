@@ -88,8 +88,10 @@ def invoke_queue_populator_lambda(
     # Use database connection from dos_db_with_migration fixture
     db_connection_string = dos_db_with_migration.bind.url.render_as_string(hide_password=False)
 
-    # Mock environment variable for SQS queue URL
-    os.environ["SQS_QUEUE_URL"] = sqs_queues["queue_url"]
+    # Set environment variable for SQS queue URL
+    # In CI/CD, this will be None and should be set from environment
+    if sqs_queues["queue_url"]:
+        os.environ["SQS_QUEUE_URL"] = sqs_queues["queue_url"]
 
     config = QueuePopulatorConfig(
         db_config=DatabaseConfig.from_uri(db_connection_string),
@@ -105,8 +107,19 @@ def invoke_queue_populator_lambda(
     start_time = time.time()
 
     try:
+        # Only monkey-patch SQS_CLIENT for LocalStack (local dev)
+        # In CI/CD, use the real AWS client
+        if sqs_queues["endpoint_url"]:  # LocalStack
+            import queue_populator.lambda_handler as qp_module
+            original_sqs_client = qp_module.SQS_CLIENT
+            qp_module.SQS_CLIENT = sqs_queues["client"]
+
         # Call the queue populator directly
         populate_sqs_queue(config=config)
+
+        # Restore original SQS client if we patched it
+        if sqs_queues["endpoint_url"]:
+            qp_module.SQS_CLIENT = original_sqs_client
 
         # Record end time and duration
         end_time = time.time()

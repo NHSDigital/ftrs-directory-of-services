@@ -3,6 +3,7 @@ Feature: Queue Populator Lambda - Single Service Support
 
   Background:
     Given the test environment is configured
+
   Scenario: Queue populator processes single service event
     When the queue populator Lambda is invoked with event:
       | key        | value |

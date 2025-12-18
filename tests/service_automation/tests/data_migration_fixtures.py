@@ -11,8 +11,6 @@ import pytest
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session, create_engine
-from testcontainers.localstack import LocalStackContainer
-from testcontainers.postgres import PostgresContainer
 
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
@@ -24,18 +22,72 @@ from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.rds_data import gp_service
 
 
-@pytest.fixture(scope="session")
-def postgres_container() -> Generator[PostgresContainer, None, None]:
-    """PostgreSQL container for testing."""
-    with PostgresContainer("postgres:16") as postgres:
-        yield postgres
+# PostgreSQL connection details (requires docker-compose up locally)
+# In CI/CD these are overridden by environment variables
+POSTGRES_HOST = "localhost"
+POSTGRES_PORT = "5432"
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "postgres"
+POSTGRES_DB = "postgres"
+
+# LocalStack connection details (requires LocalStack running locally)
+# In CI/CD, endpoint_url will be None to use real AWS services
+LOCALSTACK_ENDPOINT = "http://localhost:4566"
+
+
+def _build_postgres_url(config: Dict[str, str]) -> str:
+    """Build PostgreSQL connection URL from config dict."""
+    return f"postgresql://{config['username']}:{config['password']}@{config['host']}:{config['port']}/{config['database']}"
 
 
 @pytest.fixture(scope="session")
-def localstack_container() -> Generator[LocalStackContainer, None, None]:
-    """LocalStack container with DynamoDB for testing."""
-    with LocalStackContainer(image="localstack/localstack:3.0") as localstack:
-        yield localstack
+def postgres_container() -> Generator[Dict[str, str], None, None]:
+    """
+    PostgreSQL connection info.
+    Uses environment variables if running in CI/CD, otherwise localhost (local dev).
+    """
+    # Check if running in CI/CD (GitHub Actions sets CI=true)
+    is_ci = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
+
+    if is_ci and os.getenv(ENV_SOURCE_DB_HOST):
+        # CI/CD - use environment variables
+        yield {
+            "host": os.getenv(ENV_SOURCE_DB_HOST),
+            "port": os.getenv(ENV_SOURCE_DB_PORT, POSTGRES_PORT),
+            "username": os.getenv(ENV_SOURCE_DB_USER, POSTGRES_USER),
+            "password": os.getenv(ENV_SOURCE_DB_PASSWORD, POSTGRES_PASSWORD),
+            "database": os.getenv(ENV_SOURCE_DB_NAME, POSTGRES_DB),
+        }
+    else:
+        # Local development - use localhost
+        yield {
+            "host": POSTGRES_HOST,
+            "port": POSTGRES_PORT,
+            "username": POSTGRES_USER,
+            "password": POSTGRES_PASSWORD,
+            "database": POSTGRES_DB,
+        }
+
+
+@pytest.fixture(scope="session")
+def localstack_container() -> Generator[Dict[str, str], None, None]:
+    """
+    LocalStack/AWS connection info.
+    Uses LocalStack endpoint for local dev, None for CI/CD (real AWS).
+    """
+    # Check if running in CI/CD (GitHub Actions sets CI=true)
+    is_ci = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
+
+    if is_ci:
+        # CI/CD - use real AWS (no endpoint_url)
+        yield {
+            "endpoint_url": None,
+        }
+    else:
+        # Local development - use LocalStack
+        yield {
+            "endpoint_url": LOCALSTACK_ENDPOINT,
+        }
 
 
 def _get_source_db_config() -> Dict[str, str]:
@@ -166,10 +218,10 @@ def _init_database(engine: Any) -> None:
     legacy.LegacyDoSModel.metadata.create_all(engine)
 
 
-def _init_database_with_migration(postgres_container: PostgresContainer) -> None:
+def _init_database_with_migration(postgres_container: Dict[str, str]) -> None:
     """Initialize database with schema and data from source database."""
     # Get container connection details
-    connection_string = postgres_container.get_connection_url()
+    connection_string = _build_postgres_url(postgres_container)
     engine = create_engine(connection_string, echo=False)
 
     # First, clean up any existing database to ensure we start fresh
@@ -178,15 +230,13 @@ def _init_database_with_migration(postgres_container: PostgresContainer) -> None
     # Get source database configuration
     source_config = _get_source_db_config()
 
-    # Parse connection URL to get individual components for psql commands
-    parsed = urlparse(connection_string)
-
+    # Use postgres_container config directly for psql commands
     container_config = {
-        "host": parsed.hostname,
-        "port": str(parsed.port),
-        "database": parsed.path.lstrip("/"),
-        "username": parsed.username,
-        "password": parsed.password,
+        "host": postgres_container["host"],
+        "port": postgres_container["port"],
+        "database": postgres_container["database"],
+        "username": postgres_container["username"],
+        "password": postgres_container["password"],
     }
 
     # Create temporary files for schema and data dumps
@@ -321,7 +371,7 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
 
 @pytest.fixture(name="dos_db", scope="function")
 def fixture_dos_db(
-    postgres_container: PostgresContainer,
+    postgres_container: Dict[str, str],
 ) -> Generator[Session, None, None]:
     """
     DoS database fixture for BDD tests with clean schema for each test.
@@ -332,7 +382,7 @@ def fixture_dos_db(
     Yields:
         Database session with initialized schema
     """
-    connection_string = postgres_container.get_connection_url()
+    connection_string = _build_postgres_url(postgres_container)
     engine = create_engine(connection_string, echo=False)
 
     try:
@@ -349,7 +399,7 @@ def fixture_dos_db(
 
 @pytest.fixture(name="dos_db_with_migration", scope="function")
 def fixture_dos_db_with_migration(
-    postgres_container: PostgresContainer,
+    postgres_container: Dict[str, str],
 ) -> Generator[Session, None, None]:
     """
     DoS database fixture with migrated data from source database.
@@ -360,7 +410,7 @@ def fixture_dos_db_with_migration(
     Yields:
         Database session with schema and data from source DB
     """
-    connection_string = postgres_container.get_connection_url()
+    connection_string = _build_postgres_url(postgres_container)
     engine = create_engine(connection_string, echo=False)
 
     try:
@@ -377,7 +427,7 @@ def fixture_dos_db_with_migration(
 
 @pytest.fixture(name="dynamodb", scope="function")
 def fixture_dynamodb(
-    localstack_container: LocalStackContainer,
+    localstack_container: Dict[str, str],
 ) -> Generator[Dict[str, Any], None, None]:
     """
     DynamoDB fixture with pre-created tables for each test.
@@ -390,34 +440,41 @@ def fixture_dynamodb(
     Yields:
         Dictionary with client, resource, and endpoint_url
     """
-    endpoint_url = localstack_container.get_url()
+    endpoint_url = localstack_container["endpoint_url"]
 
+    # Create boto3 client/resource with or without endpoint_url
+    # If endpoint_url is None, boto3 will use real AWS services
     client = boto3.client(
         "dynamodb",
         endpoint_url=endpoint_url,
-        aws_access_key_id="test",
-        aws_secret_access_key="test",
+        aws_access_key_id="test" if endpoint_url else None,
+        aws_secret_access_key="test" if endpoint_url else None,
         region_name="eu-west-2",
     )
 
     resource = boto3.resource(
         "dynamodb",
         endpoint_url=endpoint_url,
-        aws_access_key_id="test",
-        aws_secret_access_key="test",
+        aws_access_key_id="test" if endpoint_url else None,
+        aws_secret_access_key="test" if endpoint_url else None,
         region_name="eu-west-2",
     )
 
     try:
-        _create_dynamodb_tables(client)
+        # Only create tables for LocalStack (local dev)
+        # In CI/CD, tables should already exist in AWS
+        if endpoint_url:
+            _create_dynamodb_tables(client)
         yield {"client": client, "resource": resource, "endpoint_url": endpoint_url}
     finally:
-        _cleanup_dynamodb_tables(client)
+        # Only cleanup tables for LocalStack (local dev)
+        if endpoint_url:
+            _cleanup_dynamodb_tables(client)
 
 
 @pytest.fixture(name="sqs_queues", scope="function")
 def fixture_sqs_queues(
-    localstack_container: LocalStackContainer,
+    localstack_container: Dict[str, str],
 ) -> Generator[Dict[str, Any], None, None]:
     """
     SQS fixture with pre-created queues for testing.
@@ -437,38 +494,56 @@ def fixture_sqs_queues(
         get_dlq_queue_name,
     )
 
-    endpoint_url = localstack_container.get_url()
+    endpoint_url = localstack_container["endpoint_url"]
 
+    # Create boto3 client with or without endpoint_url
+    # If endpoint_url is None, boto3 will use real AWS services
     client = boto3.client(
         "sqs",
         endpoint_url=endpoint_url,
-        aws_access_key_id="test",
-        aws_secret_access_key="test",
+        aws_access_key_id="test" if endpoint_url else None,
+        aws_secret_access_key="test" if endpoint_url else None,
         region_name="eu-west-2",
     )
 
-    # Create DLQ first
-    dlq_name = get_dlq_queue_name()
-    dlq_response = client.create_queue(QueueName=dlq_name)
-    dlq_url = dlq_response["QueueUrl"]
-    logger.info(f"Created DLQ: {dlq_url}")
-
-    # Get DLQ ARN for redrive policy
-    dlq_attributes = client.get_queue_attributes(
-        QueueUrl=dlq_url, AttributeNames=["QueueArn"]
-    )
-    dlq_arn = dlq_attributes["Attributes"]["QueueArn"]
-
-    # Create migration queue with DLQ redrive policy
+    queue_url = None
+    dlq_url = None
     queue_name = get_migration_queue_name()
-    queue_response = client.create_queue(
-        QueueName=queue_name,
-        Attributes={
-            "RedrivePolicy": f'{{"deadLetterTargetArn":"{dlq_arn}","maxReceiveCount":"3"}}'
-        },
-    )
-    queue_url = queue_response["QueueUrl"]
-    logger.info(f"Created migration queue: {queue_url}")
+    dlq_name = get_dlq_queue_name()
+
+    # Only create queues for LocalStack (local dev)
+    # In CI/CD, queues should already exist in AWS
+    if endpoint_url:
+        # Create DLQ first
+        dlq_response = client.create_queue(QueueName=dlq_name)
+        dlq_url = dlq_response["QueueUrl"]
+        logger.info(f"Created DLQ: {dlq_url}")
+
+        # Get DLQ ARN for redrive policy
+        dlq_attributes = client.get_queue_attributes(
+            QueueUrl=dlq_url, AttributeNames=["QueueArn"]
+        )
+        dlq_arn = dlq_attributes["Attributes"]["QueueArn"]
+
+        # Create migration queue with DLQ redrive policy
+        queue_response = client.create_queue(
+            QueueName=queue_name,
+            Attributes={
+                "RedrivePolicy": f'{{"deadLetterTargetArn":"{dlq_arn}","maxReceiveCount":"3"}}'
+            },
+        )
+        queue_url = queue_response["QueueUrl"]
+        logger.info(f"Created migration queue: {queue_url}")
+    else:
+        # CI/CD - get existing queue URLs from AWS
+        try:
+            # Queues should already exist, get their URLs
+            queue_url = client.get_queue_url(QueueName=queue_name)["QueueUrl"]
+            dlq_url = client.get_queue_url(QueueName=dlq_name)["QueueUrl"]
+            logger.info(f"Using existing queue: {queue_url}")
+        except client.exceptions.QueueDoesNotExist:
+            logger.warning(f"Queue {queue_name} does not exist in AWS - will use environment variable SQS_QUEUE_URL")
+            # Queue URL will be set from environment variable in test
 
     try:
         yield {
@@ -480,13 +555,15 @@ def fixture_sqs_queues(
             "dlq_name": dlq_name,
         }
     finally:
-        # Cleanup queues
-        try:
-            client.delete_queue(QueueUrl=queue_url)
-            client.delete_queue(QueueUrl=dlq_url)
-            logger.info("Cleaned up SQS queues")
-        except Exception as e:
-            logger.warning(f"Failed to cleanup SQS queues: {e}")
+        # Only cleanup queues for LocalStack (local dev)
+        if endpoint_url and queue_url and dlq_url:
+            try:
+                client.delete_queue(QueueUrl=queue_url)
+                client.delete_queue(QueueUrl=dlq_url)
+                logger.info("Cleaned up SQS queues")
+            except Exception as e:
+                logger.warning(f"Failed to cleanup SQS queues: {e}")
+
 
 
 @pytest.fixture(scope="function")
@@ -520,7 +597,7 @@ def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisati
 
 @pytest.fixture(scope="function")
 def migration_helper(
-    postgres_container: PostgresContainer,
+    postgres_container: Dict[str, str],
     dynamodb: Dict[str, Any],
 ) -> MigrationHelper:
     """
@@ -536,7 +613,7 @@ def migration_helper(
     Raises:
         AssertionError: If required DynamoDB configuration is missing
     """
-    db_uri = postgres_container.get_connection_url()
+    db_uri = _build_postgres_url(postgres_container)
 
     if "endpoint_url" not in dynamodb:
         raise AssertionError(
