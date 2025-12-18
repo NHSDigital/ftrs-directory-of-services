@@ -1,0 +1,300 @@
+#set($lastUpdated = $input.params('_lastUpdated'))
+#set($scenario = $input.params('scenario'))
+
+#if($lastUpdated == "2024-05-12")
+  {
+
+    "resourceType": "Bundle",
+    "id": "1e47263e-db8c-4f25-8e31-3bf408bfde64",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:28:19.885+00:00"
+    },
+    "type": "searchset",
+    "total": 0,
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2024-05-12"
+      }
+    ]
+  }
+#elseif($lastUpdated == "2025-12-10")
+  {
+    "resourceType": "Bundle",
+    "id": "803d2eaa-d868-4cc4-b95e-2f81f04abbb8",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:27:01.356+00:00"
+    },
+    "type": "searchset",
+    "total": 0,
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-12-10"
+      }
+    ]
+  }
+#elseif($scenario == "invalid_data_types" || ($lastUpdated == "2025-10-01" && !$scenario))
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "Y02578",
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+            "source": "#d1490690d38fb53b",
+            "profile": [
+              "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+              "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+            ]
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y02578",
+              "assigner": {
+                "display": "NHS BUSINESS SERVICES AUTHORITY"
+              }
+            }
+          ],
+          "active": "yes",
+          "type": "GP_PRACTICE",
+          "name": "TEST MEDICAL CENTRE",
+          "telecom": [
+            {
+              "system": "phone",
+              "value": 1234567890
+            }
+          ],
+          "address": [
+            {
+              "extension": [
+                {
+                  "url": "https://fhir.hl7.org.uk/StructureDefinition/Extension-UKCore-AddressKey",
+                  "extension": [
+                    {
+                      "url": "type",
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-AddressKeyType",
+                            "code": "UPRN",
+                            "display": "Unique Property Reference Number"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "url": "value",
+                      "valueString": "12345"
+                    }
+                  ]
+                }
+              ],
+              "line": "123 TEST STREET",
+              "city": "TEST CITY",
+              "district": "TEST DISTRICT",
+              "postalCode": "TE1 2ST",
+              "country": "ENGLAND"
+            }
+          ]
+        }
+      }
+    ]
+  }
+#elseif($scenario == "missing_required_fields")
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "resource": {
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+            "source": "#d1490690d38fb53b",
+            "profile": [
+              "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+              "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+            ]
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y02578",
+              "assigner": {
+                "display": "NHS BUSINESS SERVICES AUTHORITY"
+              }
+            }
+          ],
+          "active": true,
+          "type": [
+            {
+              "coding": [
+                {
+                  "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSRecordUseType",
+                  "code": "Full",
+                  "display": "Full"
+                }
+              ]
+            }
+          ],
+          "telecom": [
+            {
+              "system": "phone",
+              "value": "0123 456789"
+            }
+          ],
+          "address": [
+            {
+              "line": [
+                "456 TEST AVENUE"
+              ],
+              "city": "TEST TOWN",
+              "district": "TEST COUNTY",
+              "postalCode": "TE5 6ST",
+              "country": "ENGLAND"
+            }
+          ]
+        }
+      }
+    ]
+  }
+#elseif($scenario == "invalid_resource")
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "resource": {
+          "resourceType": "Location",
+          "id": "Y02578",
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+            "source": "#d1490690d38fb53b"
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y02578"
+            }
+          ],
+          "active": true,
+          "name": "TEST LOCATION CENTRE"
+        }
+      }
+    ]
+  }
+#elseif($scenario == "extra_unexpected_field")
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "Y02578",
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+            "source": "#d1490690d38fb53b",
+            "profile": [
+              "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization",
+              "https://fhir.nhs.uk/England/StructureDefinition/England-Organization-ODS"
+            ],
+            "legacySystemId": "12345"
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y02578",
+              "assigner": {
+                "display": "NHS BUSINESS SERVICES AUTHORITY"
+              }
+            }
+          ],
+          "unexpected": "value",
+          "active": true,
+          "name": "TEST PRACTICE WITH EXTRA FIELDS"
+        }
+      }
+    ]
+  }
+#else
+  {
+    "resourceType": "Bundle",
+    "id": "test-bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "resource": {
+          "resourceType": "Organization",
+          "id": "test-org",
+          "active": true,
+          "name": "Test Organization",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "TEST001"
+            }
+          ]
+        }
+      }
+    ]
+  }
+#end
