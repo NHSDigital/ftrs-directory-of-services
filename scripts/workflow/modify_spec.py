@@ -44,8 +44,8 @@ def get_environment_domain_map():
 
 def build_server_url(target_domain, api_name, workspace, environment, path_segments):
     """Build the server URL based on environment and workspace"""
-    # Only internal-dev supports workspace-specific instances
-    if workspace and environment == 'internal-dev':
+    # If workspace is specified, deploy a workspaced instance
+    if workspace:
         instance_name = f"{api_name}-{workspace}"
     else:
         instance_name = api_name
