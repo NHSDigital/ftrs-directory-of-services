@@ -162,6 +162,19 @@
                 "amplify:ListResourcesForWebACL"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AllowKMSDecryptForSecretsManager",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "StringLike": {
+                "kms:ViaService": "secretsmanager.*.amazonaws.com"
+              }
+            }
         }
     ]
 }
