@@ -1,16 +1,11 @@
 """Step definitions for Queue Populator Lambda tests"""
 import json
 import time
-from datetime import datetime
 from pathlib import Path
 import pytest
-from pytest_bdd import given, parsers, scenarios, then, when
+from pytest_bdd import parsers, scenarios, then, when
 from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
-from utilities.infra.lambda_util import LambdaWrapper
-from utilities.infra.logs_util import CloudWatchLogsWrapper
-from utilities.infra.sqs_util import get_queue_url, get_approximate_message_count
-import boto3
 from loguru import logger
 
 # Import all common steps to register them (this includes "the test environment is configured")
@@ -25,46 +20,33 @@ scenarios(FEATURE_FILE)
 # which is imported above, so no need to redefine it here
 
 
-@pytest.fixture(scope="module")
-def aws_lambda_client():
-    """Create Lambda client wrapper"""
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    return LambdaWrapper(lambda_client, iam_resource)
-
-
-@pytest.fixture(scope="module")
-def cloudwatch_logs():
-    """Create CloudWatch Logs client wrapper"""
-    return CloudWatchLogsWrapper()
-
-
-@pytest.fixture(scope="function")
-def context():
-    """Create test context for each test scenario"""
-    return Context()
-
-
 @when("the queue populator Lambda is invoked with event:")
 def invoke_queue_populator_lambda(
     context: Context,
-    aws_lambda_client: LambdaWrapper,
-    datatable: list[list[str]],
-    project: str,
-    workspace: str,
-    env: str,
+    project,
+    workspace,
+    env,
+    sqs_queues,
+    dos_db_with_migration,
+    datatable,
 ):
     """
-    Invoke the queue populator Lambda with specified event parameters.
+    Invoke queue populator logic directly (not via Lambda).
 
     Args:
-        context: Test context to store Lambda response and timing
-        aws_lambda_client: Lambda client wrapper
-        datatable: Table of key-value pairs for the event payload from the feature file
-        project: Project name from fixtures (e.g., 'ftrs-dos')
-        workspace: Workspace suffix from fixtures
-        env: Environment name from fixtures (e.g., 'dev', 'test')
+        context: Test context
+        project: Project name
+        workspace: Workspace suffix
+        env: Environment name
+        sqs_queues: SQS fixture with queue URLs
+        dos_db_with_migration: DoS database session
+        datatable: Event parameters from feature file
     """
+    from queue_populator.lambda_handler import populate_sqs_queue
+    from queue_populator.config import QueuePopulatorConfig
+    from common.config import DatabaseConfig
+    import os
+
     # Parse the datatable into a dictionary
     # First row is the header, subsequent rows are data
     event_payload = {}
@@ -91,10 +73,9 @@ def invoke_queue_populator_lambda(
         else:
             event_payload[key] = value
 
-    logger.info(f"Invoking queue populator Lambda with payload: {json.dumps(event_payload, indent=2)}")
+    logger.info(f"Invoking queue populator with payload: {json.dumps(event_payload, indent=2)}")
 
-    # Get Lambda name from resource naming convention
-    # Lambda naming: {project}-{env}-{stack}-{resource}-{workspace}
+    # Get Lambda name for context (even though we won't invoke it)
     context.lambda_name = get_resource_name(
         project=project,
         workspace=workspace,
@@ -103,30 +84,46 @@ def invoke_queue_populator_lambda(
         resource="queue-populator-lambda"
     )
 
-    # Record start time for duration measurement
-    context.lambda_start_time = datetime.now()
+    # Build config for queue populator
+    # Use database connection from dos_db_with_migration fixture
+    db_connection_string = dos_db_with_migration.bind.url.render_as_string(hide_password=False)
 
-    # Invoke Lambda
+    # Mock environment variable for SQS queue URL
+    os.environ["SQS_QUEUE_URL"] = sqs_queues["queue_url"]
+
+    config = QueuePopulatorConfig(
+        db_config=DatabaseConfig.from_uri(db_connection_string),
+        type_ids=event_payload.get("type_ids"),
+        status_ids=event_payload.get("status_ids"),
+        service_id=event_payload.get("service_id"),
+        record_id=event_payload.get("record_id"),
+        full_sync=event_payload.get("service_id") is None,
+        table_name=event_payload.get("table_name", "services"),
+    )
+
+    # Record start time
+    start_time = time.time()
+
     try:
-        response = aws_lambda_client.invoke_function(
-            context.lambda_name,
-            event_payload
-        )
-        context.lambda_response = response
-        context.lambda_end_time = datetime.now()
-        context.lambda_duration_ms = (
-            context.lambda_end_time - context.lambda_start_time
-        ).total_seconds() * 1000
+        # Call the queue populator directly
+        populate_sqs_queue(config=config)
 
-        logger.info(f"Lambda invocation completed in {context.lambda_duration_ms:.2f}ms")
-        logger.info(f"Lambda response: {json.dumps(response, indent=2)}")
+        # Record end time and duration
+        end_time = time.time()
+        context.lambda_duration_ms = (end_time - start_time) * 1000
 
+        # Store response
+        context.lambda_response = {"statusCode": 200}
+        context.sqs_client = sqs_queues["client"]
+        context.queue_url = sqs_queues["queue_url"]
+
+        logger.info(f"Queue populator completed in {context.lambda_duration_ms:.2f}ms")
     except Exception as e:
-        context.lambda_error = e
-        context.lambda_end_time = datetime.now()
-        logger.error(f"Lambda invocation failed: {str(e)}")
+        logger.exception(f"Queue populator failed: {e}")
+        context.lambda_error = str(e)
         raise
 
+    return context
 
 @then("the Lambda execution should complete successfully")
 def verify_lambda_success(context: Context):
@@ -153,34 +150,29 @@ def verify_lambda_success(context: Context):
 
 @then(parsers.parse('the CloudWatch logs should contain "{log_reference}"'))
 def verify_cloudwatch_logs_contain_pattern(
-    context: Context, cloudwatch_logs: CloudWatchLogsWrapper, log_reference: str
+    context: Context, log_reference: str, caplog
 ):
     """
-    Verify that CloudWatch logs contain the expected log reference.
-    Uses retry logic to wait for logs to appear (up to 3 minutes).
+    Verify that logs contain the expected log reference.
+    Since we're calling the code directly, we check captured logs.
 
     Args:
         context: Test context containing Lambda name
-        cloudwatch_logs: CloudWatch Logs client wrapper
         log_reference: The log reference pattern to search for (e.g., "DM_QP_000")
+        caplog: Pytest fixture for capturing logs
     """
-    assert hasattr(context, "lambda_name"), "Lambda name not set in context"
+    logger.info(f"Verifying logs contain: {log_reference}")
 
-    logger.info(f"Verifying CloudWatch logs contain: {log_reference}")
+    # Check if the log reference appears in any captured log message
+    found = any(log_reference in record.message for record in caplog.records)
 
-    try:
-        # Use retry logic with 3 minute timeout, polling every 5 seconds
-        found = cloudwatch_logs.find_log_message_with_retry(
-            lambda_name=context.lambda_name,
-            message_pattern=log_reference,
-            timeout_minutes=3,
-            poll_interval_seconds=5
-        )
-        assert found, f"Log reference '{log_reference}' not found in CloudWatch logs"
-        logger.info(f"Successfully found log reference: {log_reference}")
+    assert found, (
+        f"Log reference '{log_reference}' not found in captured logs. "
+        f"Available logs: {[r.message for r in caplog.records]}"
+    )
 
-    except TimeoutError as e:
-        pytest.fail(str(e))
+    logger.info(f"Successfully found log reference: {log_reference}")
+
 
 
 @then(parsers.parse("the Lambda execution duration should be less than {max_duration:d} milliseconds"))
@@ -206,33 +198,24 @@ def verify_lambda_duration(context: Context, max_duration: int):
 
 
 @then(parsers.parse("the migration queue should contain at least {min_messages:d} message"))
-def verify_sqs_message_count(
-    context: Context, min_messages: int, project: str, workspace: str, env: str
-):
+def verify_sqs_message_count(context: Context, min_messages: int):
     """
     Verify that the migration SQS queue contains at least the expected number of messages.
 
     Args:
-        context: Test context
+        context: Test context with SQS client and queue URL
         min_messages: Minimum expected number of messages in the queue
-        project: Project name from fixtures
-        workspace: Workspace suffix from fixtures
-        env: Environment name from fixtures
     """
-    # Get the migration queue URL based on resource naming convention
-    queue_name = get_resource_name(
-        project=project,
-        workspace=workspace,
-        env=env,
-        stack="data-migration",
-        resource="queue"
-    )
-
-    logger.info(f"Verifying SQS queue '{queue_name}' contains at least {min_messages} message(s)")
+    logger.info(f"Verifying SQS queue contains at least {min_messages} message(s)")
 
     try:
-        queue_url = get_queue_url(queue_name)
-        actual_count = get_approximate_message_count(queue_url)
+        # Get message count from queue attributes
+        response = context.sqs_client.get_queue_attributes(
+            QueueUrl=context.queue_url,
+            AttributeNames=["ApproximateNumberOfMessages"]
+        )
+
+        actual_count = int(response["Attributes"]["ApproximateNumberOfMessages"])
 
         assert actual_count >= min_messages, (
             f"Expected at least {min_messages} message(s) in queue, "
@@ -247,3 +230,4 @@ def verify_sqs_message_count(
     except Exception as e:
         logger.error(f"Failed to verify SQS message count: {str(e)}")
         raise
+

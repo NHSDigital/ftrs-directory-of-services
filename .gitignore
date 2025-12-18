@@ -49,4 +49,3 @@ scans/*
 
 # vscode settings
 .vscode
-tests/service_automation/venv/

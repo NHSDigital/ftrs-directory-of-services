@@ -415,6 +415,80 @@ def fixture_dynamodb(
         _cleanup_dynamodb_tables(client)
 
 
+@pytest.fixture(name="sqs_queues", scope="function")
+def fixture_sqs_queues(
+    localstack_container: LocalStackContainer,
+) -> Generator[Dict[str, Any], None, None]:
+    """
+    SQS fixture with pre-created queues for testing.
+
+    Creates:
+        - Migration queue: ftrs-dos-dev-data-migration-queue-ftrs-276
+        - DLQ: ftrs-dos-dev-data-migration-dlq-ftrs-276
+
+    Args:
+        localstack_container: LocalStack container fixture
+
+    Yields:
+        Dictionary with client, endpoint_url, queue_url, and dlq_url
+    """
+    from utilities.common.data_migration.queue_config import (
+        get_migration_queue_name,
+        get_dlq_queue_name,
+    )
+
+    endpoint_url = localstack_container.get_url()
+
+    client = boto3.client(
+        "sqs",
+        endpoint_url=endpoint_url,
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+        region_name="eu-west-2",
+    )
+
+    # Create DLQ first
+    dlq_name = get_dlq_queue_name()
+    dlq_response = client.create_queue(QueueName=dlq_name)
+    dlq_url = dlq_response["QueueUrl"]
+    logger.info(f"Created DLQ: {dlq_url}")
+
+    # Get DLQ ARN for redrive policy
+    dlq_attributes = client.get_queue_attributes(
+        QueueUrl=dlq_url, AttributeNames=["QueueArn"]
+    )
+    dlq_arn = dlq_attributes["Attributes"]["QueueArn"]
+
+    # Create migration queue with DLQ redrive policy
+    queue_name = get_migration_queue_name()
+    queue_response = client.create_queue(
+        QueueName=queue_name,
+        Attributes={
+            "RedrivePolicy": f'{{"deadLetterTargetArn":"{dlq_arn}","maxReceiveCount":"3"}}'
+        },
+    )
+    queue_url = queue_response["QueueUrl"]
+    logger.info(f"Created migration queue: {queue_url}")
+
+    try:
+        yield {
+            "client": client,
+            "endpoint_url": endpoint_url,
+            "queue_url": queue_url,
+            "dlq_url": dlq_url,
+            "queue_name": queue_name,
+            "dlq_name": dlq_name,
+        }
+    finally:
+        # Cleanup queues
+        try:
+            client.delete_queue(QueueUrl=queue_url)
+            client.delete_queue(QueueUrl=dlq_url)
+            logger.info("Cleaned up SQS queues")
+        except Exception as e:
+            logger.warning(f"Failed to cleanup SQS queues: {e}")
+
+
 @pytest.fixture(scope="function")
 def dos_search_context() -> Dict[str, Any]:
     """
