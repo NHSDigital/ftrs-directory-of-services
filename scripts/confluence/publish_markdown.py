@@ -57,10 +57,17 @@ def markdown_to_storage(markdown_text: str, use_jira_macro: bool = False, jira_s
     return html
 
 
-def confluence_page_link(title: str) -> str:
-    # Return a Confluence storage link to a page by content title
+def confluence_page_link(title: str, space: Optional[str] = None, link_text: Optional[str] = None, anchor: Optional[str] = None) -> str:
+    # Return a Confluence storage link to a page by content title, with optional space and anchor
     safe_title = (title or "").replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    return f'<ac:link><ri:page ri:content-title="{safe_title}" /></ac:link>'
+    page = f'<ri:page ri:content-title="{safe_title}"' + (f' ri:space-key="{space}"' if space else '') + ' />'
+    parts = ['<ac:link>', page]
+    if link_text is not None and link_text != '':
+        parts.append('<ac:plain-text-link-body><![CDATA[' + link_text + ']]></ac:plain-text-link-body>')
+    if anchor:
+        parts.append(f'<ac:anchor>{anchor}</ac:anchor>')
+    parts.append('</ac:link>')
+    return ''.join(parts)
 
 
 def rewrite_service_index_links_to_page_links(html: str, map_folder_to_title) -> str:
@@ -78,21 +85,20 @@ def rewrite_service_index_links_to_page_links(html: str, map_folder_to_title) ->
     return re_href.sub(_repl, html)
 
 
-def rewrite_explanations_links_to_page_link(html: str) -> str:
+def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = None) -> str:
     """Rewrite anchors pointing at ../explanations.md (or ../../explanations.md) to a Confluence page link.
 
     Preserves fragment identifiers by emitting an <ac:anchor> targeting the Explanations page.
     """
-    re_href = re.compile(r'<a\s+href=["\'](?:\.\./){1,2}explanations\.md(#[^"\']*)?["\'][^>]*>.*?</a>', re.IGNORECASE)
+    re_href = re.compile(r'<a\s+href=["\'](?:\.\./){1,2}explanations\.md(#[^"\']*)?["\'][^>]*>(.*?)</a>', re.IGNORECASE | re.DOTALL)
     def _repl(m: re.Match) -> str:
         frag = (m.group(1) or "").lstrip('#')
+        text = m.group(2) or ''
         if frag:
             # Normalise fragment to Confluence anchor naming (uppercase code like ACC-002)
             frag = frag.upper()
-            safe_title = "Explanations".replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            safe_anchor = frag
-            return f'<ac:link><ri:page ri:content-title="{safe_title}" /><ac:anchor>{safe_anchor}</ac:anchor></ac:link>'
-        return confluence_page_link("Explanations")
+            return confluence_page_link("Explanations", space=space, link_text=text, anchor=frag)
+        return confluence_page_link("Explanations", space=space, link_text=text)
     return re_href.sub(_repl, html)
 
 
@@ -451,7 +457,7 @@ def main() -> None:
                 storage_override = body
             # Apply explanation link rewriting when we already built storage
             if storage_override is not None and not args.use_markdown_macro:
-                storage_override = rewrite_explanations_links_to_page_link(storage_override)
+                storage_override = rewrite_explanations_links_to_page_link(storage_override, space=args.space)
             # If publishing the Explanations page, inject explicit anchor macros for each code
             if storage_override is not None and not args.use_markdown_macro and is_explanations_page:
                 storage_override = inject_code_anchors_for_explanations(storage_override)
@@ -491,7 +497,7 @@ def main() -> None:
             storage_override_general = None
             if not args.use_markdown_macro:
                 body = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None))
-                body = rewrite_explanations_links_to_page_link(body)
+                body = rewrite_explanations_links_to_page_link(body, space=args.space)
                 if is_explanations_page:
                     body = inject_code_anchors_for_explanations(body)
                 storage_override_general = body
