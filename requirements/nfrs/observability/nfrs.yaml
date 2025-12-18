@@ -18,11 +18,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Ensures at-a-glance service health visibility
     stories:
@@ -32,39 +28,34 @@ nfrs:
   explanation: Authenticated remote health dashboard is accessible to support teams.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-003
   requirement: Health event visible ≤60s after failure
   explanation: Health events appear on dashboards shortly after failures (within target
     freshness).
-  stories: []
+  stories: [FTRS-1003]
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-004
   requirement: Automated maintenance tasks executed; zero manual interventions
   explanation: Automated maintenance tasks run successfully with no manual intervention
     required.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-005
   requirement: Performance metrics per layer present
   explanation: Layered performance metrics (app, DB, cache) are visible.
   stories:
   - FTRS-1016
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-006
   requirement: Remote performance dashboard matches local view
   explanation: Remote performance dashboard mirrors local environment metrics accurately.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-007
   requirement: Performance metrics latency ≤60s
   explanation: Performance metrics latency (ingest to display) stays within defined
@@ -81,11 +72,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Fresh metrics are required for accurate operational decisions
     stories: []
@@ -106,8 +93,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Detects throughput anomalies proactively
     stories:
@@ -127,8 +113,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Percentile visibility supports performance governance
     stories: []
@@ -146,14 +131,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures trustworthy aggregate metrics
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-011
   requirement: Failure types logged & classified in dashboard
   explanation: Failure types are logged and classified for reporting.
@@ -169,14 +152,12 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Improves incident triage
-    stories: []
+    stories: [FTRS-998]
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-012
   requirement: Error percentage metric & alert configured
   explanation: Error rate metric and alert exist to highlight reliability issues.
@@ -191,15 +172,13 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Early detection of reliability regressions
     stories:
     - FTRS-1017
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: OBS-013
   requirement: Infra log query returns expected fields
   explanation: Infrastructure logs return expected structured fields for queries.
@@ -216,14 +195,12 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures log usability for ops
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-014
   requirement: Infra log entries include required fields
   explanation: Infrastructure log entries include required contextual fields (e.g.,
@@ -240,86 +217,73 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Guarantees structured logging quality
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-015
   requirement: Retention policy enforced & reported
   explanation: Log retention policy is enforced and reported.
   stories: null
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-016
   requirement: SIEM forwarding delivers test event <60s
   explanation: Security/event forwarding to SIEM delivers test events within freshness
     target.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-017
   requirement: All log levels supported; dynamic change works
   explanation: All log levels are supported and can be changed dynamically.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-018
   requirement: Log level propagation <2min with alert on breach
   explanation: Log level changes propagate quickly (under defined minutes) with alert
     if breach.
-  stories:
-  - FTRS-967
+  stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-019
   requirement: Operational log shows full transaction chain
   explanation: Operational logs allow full transaction chain reconstruction.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-020
   requirement: Operations logs reconstruct workflow
   explanation: Operations logs reconstruct workflow sequences accurately.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-021
   requirement: Operational events include transaction_id
   explanation: Operational events include a transaction identifier for correlation.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-022
   requirement: Audit trail reconstructs user action
   explanation: Audit trail can reconstruct a specific user action sequence.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-023
   requirement: Audit events share transaction_id & ordered timestamps
   explanation: Audit events share transaction IDs and ordered timestamps for traceability.
-  stories: []
+  stories: [FTRS-1018]
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-024
   requirement: Alert rule triggers multi-channel notification
   explanation: Alert rules trigger multi-channel notifications (e.g., chat + email).
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-025
   requirement: Alerts delivered to multi-channel with context
   explanation: Alerts delivered with sufficient context to act (multi-channel).
@@ -345,29 +309,25 @@ nfrs:
   explanation: Analytics queries identify usage patterns from captured metrics.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-027
   requirement: Analytics outage non-impacting to transactions
   explanation: Analytics outages do not impact core transaction processing.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-028
   requirement: RBAC restricts dashboard sections
   explanation: Role-based access control (RBAC) restricts dashboard sections appropriately.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-029
   requirement: Dashboard freshness age ≤60s
   explanation: Dashboard freshness age remains under target (e.g., ≤60s).
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-030
   requirement: Distributed trace spans cover end-to-end request
   explanation: Distributed tracing spans cover end-to-end request path.
@@ -384,8 +344,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Enables end-to-end diagnosis and correlation across layers
     stories: []
@@ -395,8 +354,7 @@ nfrs:
     identifiers.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-032
   requirement: Per-endpoint 4xx/5xx response metrics & alert thresholds configured
   explanation: Per-endpoint 4xx and 5xx response metrics are captured with alert thresholds
@@ -404,8 +362,7 @@ nfrs:
   stories:
   - FTRS-1573
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: OBS-033
   requirement: Unauthorized API access attempts logged, classified, alerted
   explanation: Unauthorized API access attempts (failed authentication, forbidden
@@ -413,8 +370,7 @@ nfrs:
     and generate timely alerts for early detection of credential misuse or attack
     patterns.
   stories:
-  - FTRS-1607
-  - FTRS-1650
+  - infrastructure
   controls:
   - control_id: unauth-access-monitoring
     measure: Unauthorized API access attempts logged & alerted with context
@@ -429,11 +385,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
-    - dos-ingestion-api
-    - etl-ods
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Early detection of credential stuffing, token misuse, and privilege
       escalation attempts

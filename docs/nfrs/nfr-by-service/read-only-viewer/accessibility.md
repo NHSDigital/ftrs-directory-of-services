@@ -29,7 +29,7 @@ This page is auto-generated; do not hand-edit.
 | Accessibility | [ACC-015](#acc-015) | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
 | Accessibility | [ACC-016](#acc-016) | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
 | Accessibility | [ACC-017](#acc-017) | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
-| Accessibility | [ACC-018](#acc-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778 Commit Convention Enforcement](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898 Implement Ruff Linter and Formatter for service_automation tests](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
+| Accessibility | [ACC-018](#acc-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
 | Accessibility | [ACC-019](#acc-019) | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
 | Accessibility | [ACC-020](#acc-020) | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
 | Accessibility | [ACC-021](#acc-021) | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
@@ -181,7 +181,7 @@ Pre-commit checks complete <30s
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| precommit-accessibility-duration | Pre-commit checks complete <30s | Pre-commit accessibility checks complete < 30s | On commit | dev | Read-only Viewer | draft | [FTRS-1778 Commit Convention Enforcement](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898 Implement Ruff Linter and Formatter for service_automation tests](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) | Keeps local workflow efficient |
+| precommit-accessibility-duration | Pre-commit checks complete <30s | Pre-commit accessibility checks complete < 30s | On commit | dev | Read-only Viewer | draft | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) | Keeps local workflow efficient |
 
 ### ACC-019
 

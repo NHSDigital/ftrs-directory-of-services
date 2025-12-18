@@ -1,4 +1,4 @@
-# FtRS NFR – Service: ODS ETL – Domain: Cost
+# FtRS NFR – Service: Infrastructure – Domain: Cost
 
 Source: docs/nfrs/nfr-by-domain/* (derived)
 
@@ -30,7 +30,7 @@ Mandatory tagging set present on 100% resources
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | Continuous + monthly report | dev,int,ref,prod | ODS ETL | draft | (none) | Enables cost visibility and accountability |
+| mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | Continuous + monthly report | dev,int,ref,prod | Infrastructure | draft | (none) | Enables cost visibility and accountability |
 
 ### COST-002
 
@@ -38,7 +38,7 @@ Monthly Cost Explorer review & anomaly log
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Monthly | prod | ODS ETL | draft | (none) | Ensures proactive cost management |
+| monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Monthly | prod | Infrastructure | draft | (none) | Ensures proactive cost management |
 
 ### COST-003
 
@@ -46,7 +46,7 @@ CloudHealth access for each team infra engineer
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | Quarterly verification | prod | ODS ETL | draft | (none) | Ensures teams can act on cost insights |
+| cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | Quarterly verification | prod | Infrastructure | draft | (none) | Ensures teams can act on cost insights |
 
 ### COST-004
 
@@ -54,7 +54,7 @@ CloudHealth optimisation & tag compliance reports
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | Monthly | prod | ODS ETL | draft | (none) | Drives optimisation and tag hygiene |
+| optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | Monthly | prod | Infrastructure | draft | (none) | Drives optimisation and tag hygiene |
 
 ### COST-005
 
@@ -62,4 +62,4 @@ Budgets & alert notifications configured & tested
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | Quarterly + pre-fiscal review | prod | ODS ETL | draft | (none) | Prevents cost overruns via alerting |
+| budgets-and-alerts | Budgets & alert notifications configured & tested | Budgets configured; alerts tested successfully | Quarterly + pre-fiscal review | prod | Infrastructure | draft | (none) | Prevents cost overruns via alerting |

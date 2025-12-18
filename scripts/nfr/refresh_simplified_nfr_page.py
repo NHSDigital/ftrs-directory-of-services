@@ -66,97 +66,18 @@ def linkify_story_ids(text: str) -> str:
         return f"[{key}](https://nhsd-jira.digital.nhs.uk/browse/{key})"
     return RE_JIRA.sub(_repl, text)
 
-def load_jira_titles() -> dict[str, str]:
-    """Load Jira titles from cached markdown files under requirements/user-stories/backlog/jira.
+def format_story_list(keys: list[str]) -> str:
+    """Render Jira keys as comma-separated links without title lookup.
 
-    Expects files named KEY.md with first line formatted as "# KEY – Title".
-    Returns mapping KEY -> Title (without the key prefix).
-    """
-    titles: dict[str, str] = {}
-    cache_dir = Path("requirements/user-stories/backlog/jira")
-    if not cache_dir.exists():
-        return titles
-    for path in cache_dir.glob("FTRS-*.md"):
-        try:
-            with path.open("r", encoding="utf-8", errors="ignore") as f:
-                first = f.readline(4096).strip()
-        except Exception:
-            continue
-        m = re.match(r"^#\s*(FTRS-\d+)\s+[\u2013\-]\s+(.*)$", first)
-        if m:
-            key = m.group(1).strip()
-            title = m.group(2).strip()
-            if key and title:
-                titles[key] = title
-    return titles
-
-def format_story_list(keys: list[str], titles: dict[str, str]) -> str:
-    """Render Jira keys as comma-separated links with titles.
-
-    Example: "[FTRS-123 Title](link), [FTRS-456 Title](link)".
+    Example: "[FTRS-123](link), [FTRS-456](link)".
     Returns "(none)" when empty.
     """
     if not keys:
         return "(none)"
     items: list[str] = []
     for k in keys:
-        t = titles.get(k, "")
-        label = f"{k} {t}".strip().replace('|','/')
-        items.append(f"[{label}](https://nhsd-jira.digital.nhs.uk/browse/{k})")
+        items.append(f"[{k}](https://nhsd-jira.digital.nhs.uk/browse/{k})")
     return ", ".join(items)
-
-def get_jira_titles(keys: list[str]) -> dict[str, str]:
-    """Return titles using local cache; optionally fetch a limited number via Jira.
-
-    Disabled by default for speed. Enable with JIRA_FETCH_TITLES=true and
-    optionally cap with JIRA_FETCH_LIMIT (default 25). Short timeouts used.
-    """
-    titles = load_jira_titles()
-    import os
-    missing_all = [k for k in keys if k not in titles]
-    fetch_enabled = str(os.getenv("JIRA_FETCH_TITLES", "false")).lower() in ("1","true","yes","on")
-    if not missing_all or not fetch_enabled:
-        return titles
-    try:
-        cap = int(os.getenv("JIRA_FETCH_LIMIT", "25"))
-    except Exception:
-        cap = 25
-    missing = missing_all[: max(0, cap)]
-    try:
-        try:
-            import requests  # type: ignore
-        except Exception:
-            return titles
-        base = (os.getenv("JIRA_BASE_URL") or "https://nhsd-jira.digital.nhs.uk").rstrip('/')
-        auth_mode = (os.getenv("JIRA_AUTH") or "basic").lower()
-        user = os.getenv("JIRA_USER") or ""
-        token = os.getenv("JIRA_TOKEN") or ""
-        if not token:
-            return titles
-        headers = {"Accept": "application/json"}
-        if auth_mode == "bearer":
-            headers["Authorization"] = f"Bearer {token}"
-        else:
-            import base64
-            headers["Authorization"] = "Basic " + base64.b64encode(f"{user}:{token}".encode("utf-8")).decode("ascii")
-        for k in missing:
-            try:
-                resp = requests.get(
-                    f"{base}/rest/api/2/issue/{k}",
-                    headers=headers,
-                    params={"fields": "summary"},
-                    timeout=8,
-                )
-                if resp.status_code == 200:
-                    data = resp.json() or {}
-                    summary = ((data.get("fields") or {}).get("summary") or "").strip()
-                    if summary:
-                        titles[k] = summary
-            except Exception:
-                continue
-    except Exception:
-        return titles
-    return titles
 
 
 def _append_blank_line(lines: list[str]) -> None:
@@ -398,7 +319,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                             if isinstance(s, str) and s.strip():
                                 nfr_stories.add(s.strip())
                 stories_sorted = sorted(nfr_stories)
-                stories_display = format_story_list(stories_sorted, get_jira_titles(stories_sorted))
+                stories_display = format_story_list(stories_sorted)
                 lines.append(f"| {n.get('code','')} | {req} | {expl} | {stories_display} |")
         else:
             # Fallback: when domain nfrs.yaml is missing, avoid leaking matrix-derived
@@ -475,7 +396,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 payload = op.get('max_request_payload_bytes', '')
                 status = op.get('status')
                 story_keys = [s for s in (op.get('stories') or []) if isinstance(s, str)] if isinstance(op.get('stories'), list) else []
-                stories_display = format_story_list(sorted(set(story_keys)), get_jira_titles(list(set(story_keys))))
+                stories_display = format_story_list(sorted(set(story_keys)))
                 rationale = str(op.get('rationale','')).replace('\n',' ').replace('|','/')
                 lines.append(f"| {display_service(svc)} | {op_cell} | {p50} | {p95} | {mx} | {burst} | {sustained} | {payload} | {status} | {stories_display} | {rationale} |")
             # Single blank line after operations table
@@ -512,7 +433,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                         services = ",".join(c.get('services', [])) if isinstance(c.get('services'), list) else c.get('services','')
                         status = c.get('status','')
                         story_keys = [s for s in (c.get('stories') or []) if isinstance(s, str)] if isinstance(c.get('stories'), list) else []
-                        stories_display = format_story_list(sorted(set(story_keys)), get_jira_titles(list(set(story_keys))))
+                        stories_display = format_story_list(sorted(set(story_keys)))
                         rationale = c.get('rationale','').replace('\n',' ').replace('|','/')
                         lines.append(f"| {ctrl} | {measure} | {threshold} | {cadence} | {envs} | {services} | {status} | {stories_display} | {rationale} |")
                     # Single blank between groups

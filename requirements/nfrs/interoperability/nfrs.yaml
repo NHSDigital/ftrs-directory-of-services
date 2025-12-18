@@ -280,7 +280,7 @@ nfrs:
     - dos-search
     status: draft
     rationale: Enables end-to-end tracing and diagnostics
-    stories: []
+    stories: [FTRS-980]
 - code: INT-014
   requirement: Null vs absent data handled per FHIR
   explanation: Null vs absent data semantics follow FHIR specification rules.

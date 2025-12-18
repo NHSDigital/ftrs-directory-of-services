@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978 Implement Feedback from IOPS - Part 2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
+| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
 | Interoperability | [INT-002](#int-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
 | Interoperability | [INT-003](#int-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
 | Interoperability | [INT-004](#int-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
@@ -23,7 +23,7 @@ This page is auto-generated; do not hand-edit.
 | Interoperability | [INT-010](#int-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
 | Interoperability | [INT-011](#int-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
 | Interoperability | [INT-012](#int-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
-| Interoperability | [INT-013](#int-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | (none) |
+| Interoperability | [INT-013](#int-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
 | Interoperability | [INT-014](#int-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
 | Interoperability | [INT-015](#int-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
 | Interoperability | [INT-016](#int-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
@@ -39,7 +39,7 @@ Resources validated against UK Core profiles
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | [FTRS-978 Implement Feedback from IOPS - Part 2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) | Ensures national standard alignment |
+| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) | Ensures national standard alignment |
 
 ### INT-002
 
@@ -127,7 +127,7 @@ Correlation IDs preserved across calls
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | CI per build + monthly audit | int,ref,prod | DoS Search | draft | (none) | Enables end-to-end tracing and diagnostics |
+| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | CI per build + monthly audit | int,ref,prod | DoS Search | draft | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) | Enables end-to-end tracing and diagnostics |
 
 ### INT-014
 

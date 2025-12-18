@@ -16,8 +16,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Validates scale-out effectiveness
     stories: []
@@ -36,8 +35,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures safe vertical scaling
     stories: []
@@ -55,14 +53,12 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures scale readiness across tiers
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: SCAL-004
   requirement: Scale-down events occur after sustained low utilisation
   explanation: Scale-down only occurs after sustained low utilisation (not transient
@@ -77,14 +73,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Prevents scale instability
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: SCAL-005
   requirement: Autoscaling policy simulation triggers controlled scale
   explanation: Autoscaling policy simulations trigger controlled scaling actions.
@@ -99,8 +93,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Confirms autoscaling tuning
     stories: []
@@ -119,8 +112,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Protects user experience during scaling
     stories: []
@@ -137,8 +129,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures buffer for demand spikes
     stories: []
@@ -155,14 +146,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Confirms autoscaling effectiveness
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: SCAL-009
   requirement: Audit logs capture actor/reason for scaling
   explanation: Audit logs record who initiated scaling and why.
@@ -176,14 +165,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Provides traceability of scaling decisions
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: SCAL-010
   requirement: Predictive alert fires at utilisation forecast threshold
   explanation: Predictive alerts fire before utilisation reaches critical thresholds.
@@ -197,11 +184,9 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Prevents SLA breach via early action
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure

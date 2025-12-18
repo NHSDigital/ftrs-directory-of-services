@@ -1,4 +1,4 @@
-# FtRS NFR – Service: CRUD APIs – Domain: Compatibility
+# FtRS NFR – Service: Ingress API – Domain: Compatibility
 
 Source: docs/nfrs/nfr-by-domain/* (derived)
 
@@ -24,4 +24,4 @@ MFA (CIS2) succeeds across supported platforms
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Release cycle | int,ref,prod | CRUD APIs | draft | (none) | Ensures authentication compatibility |
+| mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Release cycle | int,ref,prod | Ingress API | draft | (none) | Ensures authentication compatibility |

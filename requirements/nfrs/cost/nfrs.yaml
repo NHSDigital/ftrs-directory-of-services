@@ -19,9 +19,9 @@ nfrs:
     services:
     - crud-apis
     - dos-ingestion-api
-    - etl-ods
     - dos-search
     - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Enables cost visibility and accountability
     stories: []
@@ -40,9 +40,10 @@ nfrs:
     services:
     - crud-apis
     - dos-ingestion-api
-    - etl-ods
     - dos-search
     - read-only-viewer
+    - infrastructure
+    - programme
     status: draft
     rationale: Ensures proactive cost management
     stories: []
@@ -60,11 +61,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Ensures teams can act on cost insights
     stories: []
@@ -81,11 +78,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Drives optimisation and tag hygiene
     stories: []
@@ -102,11 +95,8 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
+    - programme
     status: draft
     rationale: Prevents cost overruns via alerting
     stories: []
@@ -115,18 +105,12 @@ nfrs:
   explanation: Dedicated cost alerts channel receives test and live notifications.
   stories: []
   services:
-  - crud-apis
-  - dos-search
-  - dos-ingestion-api
-  - etl-ods
-  - read-only-viewer
+  - infrastructure
+  - programme
 - code: COST-007
   requirement: Quarterly cost review minutes & tracked actions
   explanation: Quarterly cost reviews record minutes and follow-up actions.
   stories: []
   services:
-  - crud-apis
-  - dos-search
-  - dos-ingestion-api
-  - etl-ods
-  - read-only-viewer
+  - infrastructure
+  - programme

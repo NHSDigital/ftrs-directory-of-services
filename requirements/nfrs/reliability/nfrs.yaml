@@ -7,8 +7,7 @@ nfrs:
     health checks.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-002
   requirement: AZ failure simulation maintains service
   explanation: Simulated AZ failure does not interrupt service delivery.
@@ -23,8 +22,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Validates resilience to Availability Zone failures
     stories: []
@@ -43,14 +41,12 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures reliability practices across lifecycle
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-004
   requirement: DoS simulation mitigated; service responsive
   explanation: Denial-of-service (DoS) simulation shows successful mitigation and
@@ -67,30 +63,26 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Validates resilience under volumetric attacks
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-005
   requirement: Injection attempt blocked; no code execution
   explanation: Injection attacks are blocked, preventing arbitrary code execution
     attempts.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-006
   requirement: Placement scan shows no forbidden co-residency
   explanation: Resource placement scan shows no forbidden co-residency (e.g., sensitive
     + public workloads).
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-007
   requirement: Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst
     capacity; rate limits + alerts)
@@ -112,11 +104,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
-    - dos-ingestion-api
-    - etl-ods
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Protects availability & integrity under authentication attack patterns
 - code: REL-008
@@ -124,14 +112,13 @@ nfrs:
   explanation: Man-in-the-middle (MITM) attempts fail due to secure certificate pinning.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-009
   requirement: Iframe embed blocked; headers verified
   explanation: UI prevents iframe embedding (clickjacking) via secure headers.
   stories: []
   services:
-  - read-only-viewer
+  - infrastructure
 - code: REL-010
   requirement: Batch suspend/resume preserves data integrity
   explanation: Pausing and resuming batch jobs does not corrupt or lose data.
@@ -146,7 +133,7 @@ nfrs:
     - int
     - ref
     services:
-    - etl-ods
+    - infrastructure
     status: draft
     rationale: Ensures reliable batch operations
     stories: []
@@ -165,8 +152,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Maintains reliability during node failures
     stories: []
@@ -185,14 +171,12 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures resilience to node loss without user impact
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-013
   requirement: Tier failure graceful degradation & recovery evidenced
   explanation: Tier failure triggers graceful degradation and later clean recovery.
@@ -208,8 +192,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Demonstrates graceful degradation patterns
     stories:
@@ -229,14 +212,12 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Demonstrates graceful handling of external dependency outages
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-015
   requirement: LB failure retains sessions & continues routing
   explanation: Load balancer failure preserves sessions and maintains routing continuity.
@@ -252,14 +233,12 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures resilience of routing tier
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: REL-016
   requirement: Server error shows logout/message per spec
   explanation: Server error paths show expected logout or user messaging per specification.
@@ -277,11 +256,11 @@ nfrs:
     - ref
     - prod
     services:
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Protects user experience during server errors
   services:
-  - read-only-viewer
+  - infrastructure
 - code: REL-017
   requirement: Restore drill meets RPO/RTO & ransomware defenses
   explanation: Restore drills meet RPO/RTO targets and confirm ransomware defenses.
@@ -289,5 +268,5 @@ nfrs:
   - FTRS-11
   - FTRS-344
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
+  - programme

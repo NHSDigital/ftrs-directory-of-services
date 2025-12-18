@@ -27,7 +27,7 @@ This page is auto-generated; do not hand-edit.
 | ACC-015 | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
 | ACC-016 | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
 | ACC-017 | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
-| ACC-018 | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778 Commit Convention Enforcement](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898 Implement Ruff Linter and Formatter for service_automation tests](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
+| ACC-018 | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
 | ACC-019 | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
 | ACC-020 | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
 | ACC-021 | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |

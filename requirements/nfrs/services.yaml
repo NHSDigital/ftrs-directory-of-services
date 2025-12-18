@@ -1,13 +1,15 @@
 # Canonical service display names for documentation
 # key: codebase service id; value: human-friendly display name
 services:
-  crud-apis: CRUD APIs
+  crud-apis: Ingress API
   dos-search: DoS Search
   dos-ui: DoS UI
   etl-ods: ODS ETL
   data-migration: Data Migration
   read-only-viewer: Read-only Viewer
   sandbox-dos-search: Sandbox DoS Search
+  infrastructure: Infrastructure
+  programme: Programme
 
 operations:
   dos-search:

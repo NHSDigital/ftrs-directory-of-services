@@ -1,4 +1,4 @@
-# FtRS NFR – Service: CRUD APIs – Domain: Interoperability
+# FtRS NFR – Service: Ingress API – Domain: Interoperability
 
 Source: docs/nfrs/nfr-by-domain/* (derived)
 
@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978 Implement Feedback from IOPS - Part 2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
+| Interoperability | [INT-001](#int-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
 | Interoperability | [INT-002](#int-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
 | Interoperability | [INT-003](#int-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
 | Interoperability | [INT-004](#int-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
@@ -23,11 +23,11 @@ This page is auto-generated; do not hand-edit.
 | Interoperability | [INT-010](#int-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
 | Interoperability | [INT-011](#int-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
 | Interoperability | [INT-012](#int-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
-| Interoperability | [INT-013](#int-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | (none) |
+| Interoperability | [INT-013](#int-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
 | Interoperability | [INT-014](#int-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
 | Interoperability | [INT-015](#int-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
 | Interoperability | [INT-016](#int-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
-| Interoperability | [INT-017](#int-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488 Mitigate Input Validation Vulnerabilities for REST & SOAP APIs](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
+| Interoperability | [INT-017](#int-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
 | Interoperability | [INT-018](#int-018) | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
 
 ## Controls
@@ -40,7 +40,7 @@ Resources validated against UK Core profiles
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | CRUD APIs | draft | [FTRS-978 Implement Feedback from IOPS - Part 2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) | Ensures national standard alignment |
+| uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | Ingress API | draft | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) | Ensures national standard alignment |
 
 ### INT-002
 
@@ -48,7 +48,7 @@ Versioning & deprecation policy published
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| versioning-deprecation-policy | Versioning & deprecation policy published | Policy published; changes communicated; minimum 6 months deprecation window | Review quarterly; update on change | prod | CRUD APIs | draft | (none) | Reduces integration friction |
+| versioning-deprecation-policy | Versioning & deprecation policy published | Policy published; changes communicated; minimum 6 months deprecation window | Review quarterly; update on change | prod | Ingress API | draft | (none) | Reduces integration friction |
 
 ### INT-003
 
@@ -56,7 +56,7 @@ Minor releases backward compatible for 12 months
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| backward-compatibility-window | Minor releases backward compatible for 12 months | No breaking changes; deprecation window \u226512 months; exceptions recorded | CI per build + release review | prod | CRUD APIs | draft | (none) | Protects consumer integrations |
+| backward-compatibility-window | Minor releases backward compatible for 12 months | No breaking changes; deprecation window \u226512 months; exceptions recorded | CI per build + release review | prod | Ingress API | draft | (none) | Protects consumer integrations |
 
 ### INT-004
 
@@ -64,7 +64,7 @@ Semantic mapping round-trip fidelity preserved
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| semantic-roundtrip-fidelity | Semantic mapping round-trip fidelity preserved | Round-trip preserves fields and codes; divergence \u2264 1% | CI per build + monthly audit | int,ref | CRUD APIs | draft | (none) | Maintains semantic integrity |
+| semantic-roundtrip-fidelity | Semantic mapping round-trip fidelity preserved | Round-trip preserves fields and codes; divergence \u2264 1% | CI per build + monthly audit | int,ref | Ingress API | draft | (none) | Maintains semantic integrity |
 
 ### INT-005
 
@@ -72,7 +72,7 @@ Standard OperationOutcome error structure enforced
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| operationoutcome-structure | Standard OperationOutcome error structure enforced | 100% error responses conform to OperationOutcome spec | CI per build + weekly contract audit | int,ref,prod | CRUD APIs | draft | (none) | Ensures consistent error semantics across integrations |
+| operationoutcome-structure | Standard OperationOutcome error structure enforced | 100% error responses conform to OperationOutcome spec | CI per build + weekly contract audit | int,ref,prod | Ingress API | draft | (none) | Ensures consistent error semantics across integrations |
 
 ### INT-006
 
@@ -80,7 +80,7 @@ Identifier normalization applied (uppercase, trimmed)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| identifier-normalization-enforced | Identifier normalization applied (uppercase, trimmed) | 100% identifiers normalised; mismatches \u2264 0.1% | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Ensures consistent identifier handling |
+| identifier-normalization-enforced | Identifier normalization applied (uppercase, trimmed) | 100% identifiers normalised; mismatches \u2264 0.1% | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Ensures consistent identifier handling |
 
 ### INT-007
 
@@ -88,7 +88,7 @@ Strict content negotiation implemented
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| strict-content-negotiation | Strict content negotiation implemented | Only documented media types accepted; correct response Content-Type | CI per build | int,ref,prod | CRUD APIs | draft | (none) | Prevents ambiguity in accepted formats |
+| strict-content-negotiation | Strict content negotiation implemented | Only documented media types accepted; correct response Content-Type | CI per build | int,ref,prod | Ingress API | draft | (none) | Prevents ambiguity in accepted formats |
 
 ### INT-009
 
@@ -96,7 +96,7 @@ Only documented FHIR search params accepted
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| documented-search-params-only | Only documented FHIR search params accepted | Unknown search params rejected with OperationOutcome | CI per build | int,ref,prod | CRUD APIs | draft | (none) | Prevents ambiguity in search semantics |
+| documented-search-params-only | Only documented FHIR search params accepted | Unknown search params rejected with OperationOutcome | CI per build | int,ref,prod | Ingress API | draft | (none) | Prevents ambiguity in search semantics |
 
 ### INT-010
 
@@ -104,7 +104,7 @@ Version-controlled integration contract published
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| version-controlled-contract | Version-controlled integration contract published | Contract published under version control; lint passes; updated \u22645 business days after change | CI per build + weekly audit | int,ref,prod | CRUD APIs | draft | (none) | Ensures consistent and timely documentation |
+| version-controlled-contract | Version-controlled integration contract published | Contract published under version control; lint passes; updated \u22645 business days after change | CI per build + weekly audit | int,ref,prod | Ingress API | draft | (none) | Ensures consistent and timely documentation |
 
 ### INT-011
 
@@ -112,7 +112,7 @@ Machine-readable changelog generated
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| machine-readable-changelog | Machine-readable changelog generated | Changelog generated per release with breaking changes highlighted | Per release | prod | CRUD APIs | draft | (none) | Supports integrators with clear changes |
+| machine-readable-changelog | Machine-readable changelog generated | Changelog generated per release with breaking changes highlighted | Per release | prod | Ingress API | draft | (none) | Supports integrators with clear changes |
 
 ### INT-012
 
@@ -120,7 +120,7 @@ Terminology bindings validated
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| terminology-binding-validation | Terminology bindings validated | 100% required bindings validated against value sets | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Ensures correct coding practices |
+| terminology-binding-validation | Terminology bindings validated | 100% required bindings validated against value sets | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Ensures correct coding practices |
 
 ### INT-013
 
@@ -128,7 +128,7 @@ Correlation IDs preserved across calls
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Enables end-to-end tracing and diagnostics |
+| correlation-id-preserved | Correlation IDs preserved across calls | 100% requests preserve transaction_id/correlation_id in logs and headers | CI per build + monthly audit | int,ref,prod | Ingress API | draft | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) | Enables end-to-end tracing and diagnostics |
 
 ### INT-014
 
@@ -136,7 +136,7 @@ Null vs absent data handled per FHIR
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| null-vs-absent-semantics | Null vs absent data handled per FHIR | Responses follow FHIR rules; conformance tests pass | CI per build | int,ref,prod | CRUD APIs | draft | (none) | Clarifies response semantics for consumers |
+| null-vs-absent-semantics | Null vs absent data handled per FHIR | Responses follow FHIR rules; conformance tests pass | CI per build | int,ref,prod | Ingress API | draft | (none) | Clarifies response semantics for consumers |
 
 ### INT-015
 
@@ -144,7 +144,7 @@ Null vs absent data handled per FHIR
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| interoperability-scenario-coverage | \u226590% interoperability scenario coverage | \u226590% coverage across documented scenarios; exceptions recorded | CI per build + quarterly review | int,ref,prod | CRUD APIs | draft | (none) | Ensures comprehensive interoperability validation |
+| interoperability-scenario-coverage | \u226590% interoperability scenario coverage | \u226590% coverage across documented scenarios; exceptions recorded | CI per build + quarterly review | int,ref,prod | Ingress API | draft | (none) | Ensures comprehensive interoperability validation |
 
 ### INT-016
 
@@ -152,7 +152,7 @@ Stateless sequence-independent operations
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| stateless-sequence-independence | Stateless sequence-independent operations | 100% documented operations produce correct outcome independent of prior invocation order | CI per build + quarterly audit | int,ref,prod | CRUD APIs | draft | (none) | Enables horizontal scaling and predictable consumer integration |
+| stateless-sequence-independence | Stateless sequence-independent operations | 100% documented operations produce correct outcome independent of prior invocation order | CI per build + quarterly audit | int,ref,prod | Ingress API | draft | (none) | Enables horizontal scaling and predictable consumer integration |
 
 ### INT-017
 
@@ -160,7 +160,7 @@ Complete field-level input validation every request
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| field-validation-complete | Complete field-level input validation every request | 100% of inputs validated; rich error responses on failure | CI per build | int,ref,prod | CRUD APIs | draft | [FTRS-1488 Mitigate Input Validation Vulnerabilities for REST & SOAP APIs](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) | Protects system integrity via strict input validation |
+| field-validation-complete | Complete field-level input validation every request | 100% of inputs validated; rich error responses on failure | CI per build | int,ref,prod | Ingress API | draft | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) | Protects system integrity via strict input validation |
 
 ### INT-018
 
@@ -168,4 +168,4 @@ Comprehensive published OpenAPI documentation (overview, audience, related APIs,
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| api-documentation-completeness | Comprehensive published OpenAPI documentation | All required catalogue sections present; spec passes lint; updated ≤5 business days after prod change | CI per build + weekly audit | int,ref,prod | CRUD APIs | draft | (none) | Reduces integration friction; ensures transparency for consumers |
+| api-documentation-completeness | Comprehensive published OpenAPI documentation | All required catalogue sections present; spec passes lint; updated ≤5 business days after prod change | CI per build + weekly audit | int,ref,prod | Ingress API | draft | (none) | Reduces integration friction; ensures transparency for consumers |

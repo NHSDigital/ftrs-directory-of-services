@@ -44,11 +44,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Formalizes WAF security governance; gaps tracked to closure
     stories:
@@ -72,11 +68,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Aligns with NHS policy; Config provides continuous guardrails; CI blocks
       drift
@@ -97,11 +89,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Guardrails ensure encryption at rest across services
     stories: []
@@ -123,11 +111,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Prevents accidental or malicious cross-environment data access
     stories: []
@@ -145,11 +129,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Detects improper direct access to production consoles
     stories: []
@@ -170,11 +150,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Prevents risky network exposure via security groups
     stories: []
@@ -194,11 +170,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Confirms perimeter hygiene and secure external exposure
     stories: []
@@ -220,11 +192,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Baseline hardening validated continuously; monthly cadence catches
       drift
@@ -246,11 +214,8 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
+    - programme
     status: draft
     rationale: Validates security posture with external testing and tracked remediation
     stories: []
@@ -269,8 +234,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures security does not breach performance SLAs
     stories: []
@@ -293,11 +257,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Continuous analysis prevents privilege creep; periodic review catches
       drift
@@ -319,11 +279,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Audit trail confirms rotation compliance and denial of unauthorized
       access
@@ -349,8 +305,8 @@ nfrs:
     - ref
     - prod
     services:
-    - dos-search
     - crud-apis
+    - infrastructure
     status: draft
     rationale: Enforces trusted ITOC certificate chain, strong ciphers, timely revocation,
       and zero-downtime rotation for secure service-to-service trust
@@ -372,8 +328,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Proactive renewal prevents downtime; alerts ensure timely action
     stories:
@@ -395,11 +350,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Strong authentication for privileged accounts reduces risk
     stories: []
@@ -420,11 +371,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Reduces risk from forgotten credentials; continuous scanning plus scheduled
       audits
@@ -443,11 +390,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Ensures supplier compliance and auditable records
     stories: []
@@ -466,11 +409,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Ensures strict isolation between tenants per policy
     stories: []
@@ -490,7 +429,7 @@ nfrs:
     - ref
     - prod
     services:
-    - etl-ods
+    - infrastructure
     status: draft
     rationale: External data source interactions require strict certificate validation
     stories: []
@@ -511,11 +450,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Detects misconfigurations; verifies adherence to diagnostic port policy
     stories: []
@@ -535,11 +470,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Prevents misuse of diagnostic utilities
     stories: []
@@ -560,11 +491,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Ensures accountability and traceability for all deployments
     stories: []
@@ -585,11 +512,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Validates integrity and secure transport for all transfers
     stories: []
@@ -609,8 +532,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures transport security for sensitive data; test coverage verifies
       enforcement
@@ -631,8 +553,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures sensitive data is never returned unencrypted
     stories: []
@@ -654,11 +575,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Prevents introduction of known vulnerabilities; gate aligned to release
       quality
@@ -678,11 +595,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Enforces remediation before release; gate consolidates multiple scanner
       outputs
@@ -740,11 +653,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
     status: draft
     rationale: Prevents certificate/private key exposure by enforcing exclusive use
       of encrypted secret storage and continuous scanning

@@ -1,4 +1,4 @@
-# FtRS NFR – Service: CRUD APIs – Domain: Performance
+# FtRS NFR – Service: Ingress API – Domain: Performance
 
 Source: docs/nfrs/nfr-by-domain/* (derived)
 
@@ -46,8 +46,8 @@ Sources: [Performance NFRs – Atomic Requirements](requirements/nfrs/areas/perf
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Operation ID | p50 ms | p95 ms | Max ms | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|------------|------|------|------|---------|
-| perf-org-get-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | continuous | prod | CRUD APIs | draft | (none) | Get Organisation (org-get) | 40 | 100 | 300 | Aligns with defined operation targets |
-| perf-org-update-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | continuous | prod | CRUD APIs | draft | (none) | Update Organisation (org-update) | 70 | 150 | 400 | Aligns with defined operation targets |
+| perf-org-get-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | continuous | prod | Ingress API | draft | (none) | Get Organisation (org-get) | 40 | 100 | 300 | Aligns with defined operation targets |
+| perf-org-update-latency | Assert p50/p95/max targets per operation | As per operations in PERF-001 (crud-apis endpoints) | continuous | prod | Ingress API | draft | (none) | Update Organisation (org-update) | 70 | 150 | 400 | Aligns with defined operation targets |
 
 ### PERF-013
 
@@ -57,7 +57,7 @@ Sources: [Performance NFRs – Atomic Requirements](requirements/nfrs/areas/perf
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Operation ID | Max Payload (bytes) | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|------------|-------------------|---------|
-| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Get HealthcareService (healthcare-service-get) |  | Prevents oversized payload degradation |
-| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Get Organisation (org-get) |  | Prevents oversized payload degradation |
-| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Search by ODS (org-search-ods) |  | Prevents oversized payload degradation |
-| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | CRUD APIs | draft | (none) | Update Organisation (org-update) |  | Prevents oversized payload degradation |
+| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Get HealthcareService (healthcare-service-get) |  | Prevents oversized payload degradation |
+| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Get Organisation (org-get) |  | Prevents oversized payload degradation |
+| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Search by ODS (org-search-ods) |  | Prevents oversized payload degradation |
+| perf-request-payload-limits | Maximum request payload size per endpoint 1MB | Max_request_payload_bytes enforced per endpoint per operations registry | CI per build + monthly audit | int,ref,prod | Ingress API | draft | (none) | Update Organisation (org-update) |  | Prevents oversized payload degradation |

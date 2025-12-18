@@ -14,8 +14,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Tracks SLA against multi-AZ deployment goals
     stories: []
@@ -34,8 +33,7 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Validates disaster recovery readiness across regions
     stories:
@@ -53,8 +51,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures continuous availability monitoring
     stories: []
@@ -71,8 +68,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Controls maintenance impact to meet availability objectives
     stories: []
@@ -93,14 +89,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures safe scheduled maintenance without user impact
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: AVAIL-006
   requirement: DR exercise restores service <2h
   explanation: DR exercise restores service within target recovery time (< defined
@@ -118,15 +112,13 @@ nfrs:
     - int
     - ref
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Validates recovery objectives and data integrity
     stories:
     - FTRS-11
   services:
-  - crud-apis
-  - dos-search
+    - infrastructure
 - code: AVAIL-007
   requirement: Replication lag ≤60s; fail-over data delta minimal
   explanation: Data replication lag remains under target ensuring minimal failover
@@ -142,14 +134,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures rapid failover with minimal inconsistency
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: AVAIL-008
   requirement: API uptime aligns with core service
   explanation: API uptime aligns with overall service availability target.
@@ -163,14 +153,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Aligns API availability to overall SLA
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: AVAIL-009
   requirement: Non-UK access attempts blocked & logged
   explanation: Access from non-approved geographic regions is blocked and logged.
@@ -185,14 +173,12 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Reduces risk from out-of-region access
     stories: []
   services:
-  - crud-apis
-  - dos-search
+  - infrastructure
 - code: AVAIL-010
   requirement: Blue/green deployment produces 0 failed requests
   explanation: Blue/green deployments complete with zero failed user requests.
@@ -208,8 +194,7 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
     status: draft
     rationale: Ensures safe deployments without user impact
     stories: []

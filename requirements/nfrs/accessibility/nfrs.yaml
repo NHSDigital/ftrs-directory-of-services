@@ -16,6 +16,7 @@ nfrs:
     - ref
     services:
     - read-only-viewer
+    - programme
     status: draft
     rationale: Ensures accessibility conformance for UI surfaces
     stories: []

@@ -14,8 +14,8 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
+    - infrastructure
     status: draft
     rationale: Ensures service readiness sign-off
     stories: []
@@ -32,8 +32,8 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - infrastructure
+    - programme
     status: draft
     rationale: Maintains architectural quality
     stories: []
@@ -53,15 +53,13 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Ensures architectural governance sign-off
 - code: GOV-004
   requirement: Engineering Red-lines compliance checklist signed
   explanation: Engineering red-lines compliance checklist is signed.
   stories:
-  - FTRS-6
   controls:
   - control_id: nhs-github-enterprise-repos
     measure: All FtRS code repositories are hosted in NHS GitHub Enterprise and comply
@@ -77,11 +75,8 @@ nfrs:
     - ref
     - prod
     services:
-    - crud-apis
-    - dos-ingestion-api
-    - etl-ods
-    - dos-search
-    - read-only-viewer
+    - infrastructure
+    - programme
     status: draft
     rationale: Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise
       and securing repositories; provides traceable evidence and automated verification
@@ -98,8 +93,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Ensures data protection compliance
     stories: []
@@ -107,10 +101,8 @@ nfrs:
   requirement: Medical Device out-of-scope statement recorded
   explanation: Statement confirming service is out of scope for Medical Device regulation.
   stories:
-  - FTRS-1559
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: medical-device-out-of-scope
     measure: Medical Device out-of-scope statement recorded
@@ -120,8 +112,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Confirms regulatory position
     stories: []
@@ -130,8 +121,7 @@ nfrs:
   explanation: Architecture review and approval logged by FtRS architects.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: ftrs-architects-approval
     measure: FtRS Architects review & approval logged
@@ -143,6 +133,7 @@ nfrs:
     services:
     - crud-apis
     - dos-search
+    - programme
     status: draft
     rationale: Provides architectural oversight evidence
     stories: []
@@ -164,6 +155,7 @@ nfrs:
     services:
     - crud-apis
     - dos-search
+    - programme
     status: draft
     rationale: Confirms infrastructure deployment readiness
     stories: []
@@ -180,8 +172,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Meets governance approval requirements
     stories: []
@@ -200,8 +191,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Complies with clinical safety governance
     stories: []
@@ -221,8 +211,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Meets IG governance
     stories: []
@@ -244,6 +233,7 @@ nfrs:
     services:
     - crud-apis
     - dos-search
+    - programme
     status: draft
     rationale: Documents technical governance approval
     stories: []
@@ -252,8 +242,7 @@ nfrs:
   explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: siro-signoff
     measure: SIRO sign-off obtained
@@ -263,8 +252,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Confirms senior risk acceptance
     stories: []
@@ -273,8 +261,7 @@ nfrs:
   explanation: Caldicott Guardian approval recorded for data handling.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: caldicott-guardian-approval
     measure: Caldicott Principles Guardian approval recorded
@@ -284,8 +271,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Ensures data handling governance
     stories: []
@@ -294,8 +280,7 @@ nfrs:
   explanation: DUEC Assurance Board acceptance logged.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: duec-acceptance
     measure: DUEC Assurance Board acceptance logged
@@ -305,8 +290,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Documents assurance acceptance
     stories: []
@@ -315,8 +299,7 @@ nfrs:
   explanation: Live Services Board go-live approval recorded.
   stories: []
   services:
-  - crud-apis
-  - dos-search
+  - programme
   controls:
   - control_id: live-services-go-live
     measure: Live Services Board go-live approval recorded
@@ -326,8 +309,7 @@ nfrs:
     environments:
     - prod
     services:
-    - crud-apis
-    - dos-search
+    - programme
     status: draft
     rationale: Final governance approval before production
     stories: []

@@ -97,89 +97,13 @@ def load_nfr_sources() -> Dict[str, List[Dict[str,str]]]:
         pass
     return mapping
 
-def load_jira_titles() -> Dict[str, str]:
-    titles: Dict[str, str] = {}
-    cache_dir = ROOT / "requirements" / "user-stories" / "backlog" / "jira"
-    if not cache_dir.exists():
-        return titles
-    for path in cache_dir.glob("FTRS-*.md"):
-        try:
-            with path.open("r", encoding="utf-8", errors="ignore") as f:
-                first = f.readline(4096).strip()
-        except Exception:
-            continue
-        m = re.match(r"^#\s*(FTRS-\d+)\s+[\u2013\-]\s+(.*)$", first)
-        if m:
-            key = m.group(1).strip()
-            title = m.group(2).strip()
-            if key and title:
-                titles[key] = title
-    return titles
-
-def format_story_list(keys: List[str], titles: Dict[str, str]) -> str:
+def format_story_list(keys: List[str]) -> str:
     if not keys:
         return "(none)"
     items: List[str] = []
     for k in keys:
-        t = titles.get(k, "")
-        label = f"{k} {t}".strip().replace('|','/')
-        items.append(f"[{label}](https://nhsd-jira.digital.nhs.uk/browse/{k})")
+        items.append(f"[{k}](https://nhsd-jira.digital.nhs.uk/browse/{k})")
     return ", ".join(items)
-
-def get_jira_titles(keys: List[str]) -> Dict[str, str]:
-    """Return titles for keys using local cache; optionally fetch a limited number via Jira.
-
-    Network fetch is disabled by default to keep generators fast and deterministic.
-    Enable with env JIRA_FETCH_TITLES=true and optionally cap with JIRA_FETCH_LIMIT (int).
-    """
-    titles = load_jira_titles()
-    need_all = [k for k in keys if k not in titles]
-    # Fast path: no missing or fetching disabled
-    import os
-    fetch_enabled = str(os.getenv("JIRA_FETCH_TITLES", "false")).lower() in ("1","true","yes","on")
-    if not need_all or not fetch_enabled:
-        return titles
-    # Respect cap
-    try:
-        cap = int(os.getenv("JIRA_FETCH_LIMIT", "25"))
-    except Exception:
-        cap = 25
-    need = need_all[: max(0, cap)]
-    try:
-        try:
-            import requests  # type: ignore
-        except Exception:
-            return titles
-        base = (os.getenv("JIRA_BASE_URL") or "https://nhsd-jira.digital.nhs.uk").rstrip('/')
-        auth_mode = (os.getenv("JIRA_AUTH") or "basic").lower()
-        user = os.getenv("JIRA_USER") or ""
-        token = os.getenv("JIRA_TOKEN") or ""
-        if not token:
-            return titles
-        headers: Dict[str,str] = {"Accept": "application/json"}
-        if auth_mode == "bearer":
-            headers["Authorization"] = f"Bearer {token}"
-        else:
-            import base64
-            headers["Authorization"] = "Basic " + base64.b64encode(f"{user}:{token}".encode("utf-8")).decode("ascii")
-        for k in need:
-            try:
-                resp = requests.get(
-                    f"{base}/rest/api/2/issue/{k}",
-                    headers=headers,
-                    params={"fields": "summary"},
-                    timeout=8,
-                )
-                if resp.status_code == 200:
-                    data = resp.json() or {}
-                    summary = ((data.get("fields") or {}).get("summary") or "").strip()
-                    if summary:
-                        titles[k] = summary
-            except Exception:
-                continue
-    except Exception:
-        return titles
-    return titles
 
 def load_domain_sources() -> Dict[str, List[Dict[str,str]]]:
     mapping: Dict[str, List[Dict[str,str]]] = {}
@@ -620,7 +544,7 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             key = it['code']
             if key not in seen_codes:
                 union_keys = sorted(list(stories_by_code.get(key, set())))
-                stories_cell = format_story_list(union_keys, get_jira_titles(union_keys))
+                stories_cell = format_story_list(union_keys)
                 summary_rows.append((it['domain'], it['code'], it['requirement'], it.get('explanation',''), stories_cell))
                 seen_codes.add(key)
         # Group controls by code (filter out summary-only items without control fields)
@@ -749,7 +673,7 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
                         str(op.get("sustained_tps_target","")),
                         str(op.get("max_request_payload_bytes","")),
                         str(op.get("status","")),
-                        format_story_list(sorted(set([s for s in (op.get("stories") or []) if isinstance(s, str)])), get_jira_titles(sorted(set([s for s in (op.get("stories") or []) if isinstance(s, str)])))),
+                        format_story_list(sorted(set([s for s in (op.get("stories") or []) if isinstance(s, str)]))),
                         str(op.get("rationale","")),
                     ]
                     lines.append('| ' + ' | '.join(row) + ' |')
@@ -861,18 +785,18 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
                         op_stories = matched_op.get('stories') or []
                         if isinstance(op_stories, list) and op_stories:
                             op_keys = sorted(set([s for s in op_stories if isinstance(s, str)]))
-                            op_stories_val = format_story_list(op_keys, get_jira_titles(op_keys))
+                            op_stories_val = format_story_list(op_keys)
                     prefer_op = (str(it.get('domain','')).lower() == 'performance' and str(it.get('code','')).upper() == 'PERF-001')
                     if prefer_op:
                         if op_stories_val:
                             stories_cell = op_stories_val
                         else:
                             ctrl_keys = sorted(set(re.findall(r"\bFTRS-\d+\b", ctrl_stories_val or "")))
-                            stories_cell = format_story_list(ctrl_keys, get_jira_titles(ctrl_keys))
+                            stories_cell = format_story_list(ctrl_keys)
                     else:
                         if isinstance(ctrl_stories_val, str) and ctrl_stories_val.strip():
                             ctrl_keys = sorted(set(re.findall(r"\bFTRS-\d+\b", ctrl_stories_val)))
-                            stories_cell = format_story_list(ctrl_keys, get_jira_titles(ctrl_keys))
+                            stories_cell = format_story_list(ctrl_keys)
                         elif op_stories_val:
                             stories_cell = op_stories_val
                         else:
@@ -937,6 +861,8 @@ def write_service_summary(service_map: Dict[str, List[Dict[str, str]]]) -> None:
     lines.append("")
     lines.append("- Control: governance/verification check that enforces an NFR. Defines measure, threshold, cadence, environments/services scope, status, rationale, and stories for traceability.")
     lines.append("- Operation: performance-specific expectation for an endpoint or job. Tied to a service and operation_id; sets p50/p95 latency, absolute max, burst/sustained TPS, payload limits, status, rationale, and stories.")
+    lines.append("")
+    lines.append("## Service Index")
     lines.append("")
     lines.append("| Service | Page |")
     lines.append("|---------|------|")
