@@ -31,8 +31,15 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "5"
-  policy_jsons = [
+  number_of_policy_jsons = var.environment == "dev" ? "6" : "5"
+  policy_jsons = var.environment == "dev" ? [
+    data.aws_iam_policy_document.s3_access_policy.json,
+    data.aws_iam_policy_document.sqs_access_policy.json,
+    data.aws_iam_policy_document.ssm_access_policy.json,
+    data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy_document.ods_mock_api_access_policy[0].json
+    ] : [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
