@@ -1,0 +1,48 @@
+variable "api_gateway_name" {
+  description = "The name of the ODS Mock API Gateway (mock service for testing)"
+  type        = string
+}
+
+variable "api_gateway_description" {
+  description = "The description of the ODS Mock API Gateway (simulates real ODS API for development/testing)"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment name (e.g., dev, test, prod)"
+  type        = string
+}
+
+# API Gateway rate limiting settings
+
+variable "throttle_burst_limit" {
+  description = "Mock API Gateway throttle burst limit"
+  type        = number
+  default     = 100
+}
+
+variable "throttle_rate_limit" {
+  description = "Mock API Gateway throttle rate limit"
+  type        = number
+  default     = 50
+}
+
+variable "quota_limit" {
+  description = "Mock API key quota limit per day"
+  type        = number
+  default     = 1000
+}
+
+# CloudWatch logging settings
+
+variable "api_gateway_log_group_retention_days" {
+  description = "API Gateway CloudWatch log group retention in days"
+  type        = number
+  default     = 7
+}
+
+variable "api_gateway_log_group_class" {
+  description = "API Gateway CloudWatch log group class"
+  type        = string
+  default     = "STANDARD"
+}
