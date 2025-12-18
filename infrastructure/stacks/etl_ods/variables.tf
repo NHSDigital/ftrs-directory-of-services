@@ -103,3 +103,9 @@ variable "consumer_lambda_logs_retention" {
   type        = number
   default     = 14
 }
+
+variable "ods_api_page_limit" {
+  description = "The maximum number of organisations to retrieve per page from the ODS API"
+  type        = number
+  default     = 1000
+}

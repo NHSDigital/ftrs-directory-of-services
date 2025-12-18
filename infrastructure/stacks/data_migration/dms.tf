@@ -17,6 +17,7 @@ resource "aws_dms_replication_instance" "dms_replication_instance" {
   replication_subnet_group_id = aws_dms_replication_subnet_group.dms_replication_subnet_group[0].id
   multi_az                    = var.dms_instance_multi_az
   auto_minor_version_upgrade  = var.dms_replication_instance_auto_minor_version_upgrade
+  kms_key_arn                 = data.aws_kms_key.dms_kms_alias.arn
 }
 
 resource "aws_dms_endpoint" "dms_source_endpoint" {
@@ -31,6 +32,7 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
 
   secrets_manager_arn             = aws_secretsmanager_secret.source_rds_credentials[0].arn
   secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
+  kms_key_arn                     = data.aws_kms_key.dms_kms_alias.arn
 }
 
 resource "aws_dms_endpoint" "dms_target_endpoint" {
@@ -44,6 +46,7 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
 
   secrets_manager_arn             = aws_secretsmanager_secret.target_rds_credentials[0].arn
   secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
+  kms_key_arn                     = data.aws_kms_key.dms_kms_alias.arn
 }
 
 resource "aws_dms_replication_task" "dms_full_replication_task" {
