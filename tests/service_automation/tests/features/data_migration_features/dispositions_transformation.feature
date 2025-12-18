@@ -63,27 +63,13 @@ Feature: Data Migration
       """
       {
         "dispositions": [
-            {
-                "codeID": 4,
-                "id": "2f24429d-3a71-553c-805e-6d3609302b3e",
-                "source": "pathways",
-                "time": 120,
-                "codeType": "Disposition (Dx)",
-                "codeValue": "To contact a Primary Care Service within 2 hours"
-            },
-            {
-                "codeID": 5,
-                "id": "f63756bd-443c-50f0-ad92-4cf9da8fdf77",
-                "source": "pathways",
-                "time": 360,
-                "codeType": "Disposition (Dx)",
-                "codeValue": "To contact a Primary Care Service within 6 hours"
-            }
+            "DX05",
+            "DX06"
         ]
       }
       """
 
-  Scenario: Disposition codes with a minimal set of populated properties are also migrated
+  Scenario: Disposition codes with a empty DX code is populated with empty list and  migrated
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                       |
       | id                                  | 10275752                                                    |
@@ -140,14 +126,6 @@ Feature: Data Migration
       """
       {
         "dispositions": [
-            {
-                "codeID": 1000,
-                "id": "2f24429d-3a71-553c-805e-6d3609302b3e",
-                "source": "pathways",
-                "time": null,
-                "codeType": "Disposition (Dx)",
-                "codeValue": "Test disposition, null time and dxcode"
-            }
         ]
       }
       """

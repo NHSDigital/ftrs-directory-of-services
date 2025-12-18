@@ -97,80 +97,21 @@ Feature: Data Migration
           "providedBy": "dfab9d49-584d-5096-87aa-5ce1afc3d067",
           "symptomGroupSymptomDiscriminators": [
               {
-                  "sg": {
-                      "codeID": 1006,
-                      "id": "7ac04bbf-06bb-5c0b-a956-21558a59b94c",
-                      "source": "pathways",
-                      "codeType": "Symptom Group (SG)",
-                      "codeValue": "Abdominal, Flank, Groin or Back Pain or Swelling"
-                  },
-                  "sd": {
-                      "codeID": 4003,
-                      "id": "300af504-ba5d-5973-a877-a0789c6863ab",
-                      "source": "pathways",
-                      "codeType": "Symptom Discriminator (SD)",
-                      "synonyms": [],
-                      "codeValue": "PC full Primary Care assessment and prescribing capability"
-                  }
+                  "sg": 1006,
+                  "sd": 4003
               },
               {
-                  "sg": {
-                      "codeID": 360,
-                      "id": "39ce1220-2586-5b2e-a35d-3021b2e0337c",
-                      "source": "servicefinder",
-                      "codeType": "Symptom Group (SG)",
-                      "codeValue": "z2.0 - Service Types"
-                  },
-                  "sd": {
-                      "codeID": 14020,
-                      "id": "3f6333f8-d4f2-5528-a2d8-5925da018905",
-                      "source": "servicefinder",
-                      "codeType": "Symptom Discriminator (SD)",
-                      "synonyms": [],
-                      "codeValue": "GP Choice"
-                  }
+                  "sg": 360,
+                  "sd": 14020
+
               },
               {
-                  "sg": {
-                      "codeID": 1228,
-                      "id": "9e4a3d4b-5f15-5002-9fb2-a2529752f2a7",
-                      "source": "pathways",
-                      "codeType": "Symptom Group (SG)",
-                      "codeValue": "Self-Harm"
-                  },
-                  "sd": {
-                      "codeID": 4003,
-                      "id": "300af504-ba5d-5973-a877-a0789c6863ab",
-                      "source": "pathways",
-                      "codeType": "Symptom Discriminator (SD)",
-                      "synonyms": [],
-                      "codeValue": "PC full Primary Care assessment and prescribing capability"
-                  }
+                  "sg": 1228,
+                  "sd": 4003
               },
               {
-                  "sg": {
-                      "codeID": 360,
-                      "id": "39ce1220-2586-5b2e-a35d-3021b2e0337c",
-                      "source": "servicefinder",
-                      "codeType": "Symptom Group (SG)",
-                      "codeValue": "z2.0 - Service Types"
-                  },
-                  "sd": {
-                      "codeID": 14023,
-                      "id": "6ce70d41-9337-578d-a662-d9fe25016d40",
-                      "source": "servicefinder",
-                      "codeType": "Symptom Discriminator (SD)",
-                      "synonyms": [
-                          "General Practice",
-                          "Long Covid",
-                          "Post Covid",
-                          "GP Surgery",
-                          "Doctors Surgery",
-                          "Primary Care",
-                          "GP In Hours"
-                      ],
-                      "codeValue": "GP Practice"
-                  }
+                  "sg": 360,
+                  "sd": 14023
               }
           ],
           "telecom": {

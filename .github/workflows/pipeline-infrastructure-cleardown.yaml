@@ -54,6 +54,19 @@ jobs:
       type: app
     secrets: inherit
 
+  cleardown-apim-proxies:
+    name: "Cleardown APIM proxies"
+    needs:
+      - metadata
+    if: needs.metadata.outputs.environment == 'dev' && needs.metadata.outputs.workspace != 'default'
+    uses: ./.github/workflows/apim-proxy-cleardown.yaml
+    with:
+      environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
+      workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
+      apim_env: internal-dev
+      api_names: '["dos-search"]'
+    secrets: inherit
+
   cleardown-artefacts:
     if: github.actor != 'github-actions[bot]'
     name: "Cleardown Artefacts"

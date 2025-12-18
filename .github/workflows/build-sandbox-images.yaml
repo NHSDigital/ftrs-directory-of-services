@@ -50,7 +50,7 @@ jobs:
           echo "API_NAME=$CLEAN_NAME" >> "$GITHUB_ENV"
 
       - name: "Checkout code"
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' && inputs.application_tag || '' }}
 
@@ -61,7 +61,7 @@ jobs:
 
       - name: "Cache asdf tools"
         id: asdf-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.asdf
           key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
@@ -97,7 +97,7 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Publish artefacts to GitHub"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         with:
