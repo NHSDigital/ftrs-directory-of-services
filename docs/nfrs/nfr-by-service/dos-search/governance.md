@@ -12,9 +12,9 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Governance | [GOV-007](#GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
-| Governance | [GOV-008](#GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
-| Governance | [GOV-012](#GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
+| Governance | [GOV-007](#DoSSearch–GovernanceNFRs&Controls-GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
+| Governance | [GOV-008](#DoSSearch–GovernanceNFRs&Controls-GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
+| Governance | [GOV-012](#DoSSearch–GovernanceNFRs&Controls-GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
 
 ## Controls
 

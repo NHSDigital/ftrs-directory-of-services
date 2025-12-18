@@ -12,22 +12,22 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Governance | [GOV-001](#GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
-| Governance | [GOV-002](#GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
-| Governance | [GOV-003](#GOV-003) | Solution Architecture Framework assessment approved | Solution Architecture Framework assessment is approved. | (none) |
-| Governance | [GOV-004](#GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
-| Governance | [GOV-005](#GOV-005) | GDPR compliance assessment signed by IG | GDPR compliance assessment signed by Information Governance. | (none) |
-| Governance | [GOV-006](#GOV-006) | Medical Device out-of-scope statement recorded | Statement confirming service is out of scope for Medical Device regulation. | (none) |
-| Governance | [GOV-007](#GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
-| Governance | [GOV-008](#GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
-| Governance | [GOV-009](#GOV-009) | Solution Assurance approval ticket closed | Solution Assurance approval ticket is closed. | (none) |
-| Governance | [GOV-010](#GOV-010) | Clinical Safety assurance approval recorded | Clinical Safety assurance approval recorded. | [FTRS-1640](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1640), [FTRS-824](https://nhsd-jira.digital.nhs.uk/browse/FTRS-824) |
-| Governance | [GOV-011](#GOV-011) | Information Governance approval recorded | Information Governance approval recorded. | (none) |
-| Governance | [GOV-012](#GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
-| Governance | [GOV-013](#GOV-013) | SIRO sign-off obtained | Senior Information Risk Owner (SIRO) sign-off obtained. | (none) |
-| Governance | [GOV-014](#GOV-014) | Caldicott Principles Guardian approval recorded | Caldicott Guardian approval recorded for data handling. | (none) |
-| Governance | [GOV-015](#GOV-015) | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | (none) |
-| Governance | [GOV-016](#GOV-016) | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | (none) |
+| Governance | [GOV-001](#Programme–GovernanceNFRs&Controls-GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
+| Governance | [GOV-002](#Programme–GovernanceNFRs&Controls-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
+| Governance | [GOV-003](#Programme–GovernanceNFRs&Controls-GOV-003) | Solution Architecture Framework assessment approved | Solution Architecture Framework assessment is approved. | (none) |
+| Governance | [GOV-004](#Programme–GovernanceNFRs&Controls-GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
+| Governance | [GOV-005](#Programme–GovernanceNFRs&Controls-GOV-005) | GDPR compliance assessment signed by IG | GDPR compliance assessment signed by Information Governance. | (none) |
+| Governance | [GOV-006](#Programme–GovernanceNFRs&Controls-GOV-006) | Medical Device out-of-scope statement recorded | Statement confirming service is out of scope for Medical Device regulation. | (none) |
+| Governance | [GOV-007](#Programme–GovernanceNFRs&Controls-GOV-007) | FtRS Architects review & approval logged | Architecture review and approval logged by FtRS architects. | (none) |
+| Governance | [GOV-008](#Programme–GovernanceNFRs&Controls-GOV-008) | Cloud Expert deployment approval documented | Cloud expert deployment approval documented (infrastructure readiness). | (none) |
+| Governance | [GOV-009](#Programme–GovernanceNFRs&Controls-GOV-009) | Solution Assurance approval ticket closed | Solution Assurance approval ticket is closed. | (none) |
+| Governance | [GOV-010](#Programme–GovernanceNFRs&Controls-GOV-010) | Clinical Safety assurance approval recorded | Clinical Safety assurance approval recorded. | [FTRS-1640](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1640), [FTRS-824](https://nhsd-jira.digital.nhs.uk/browse/FTRS-824) |
+| Governance | [GOV-011](#Programme–GovernanceNFRs&Controls-GOV-011) | Information Governance approval recorded | Information Governance approval recorded. | (none) |
+| Governance | [GOV-012](#Programme–GovernanceNFRs&Controls-GOV-012) | TRG approval session outcome logged | Technical Review Group (TRG) approval outcome documented. | (none) |
+| Governance | [GOV-013](#Programme–GovernanceNFRs&Controls-GOV-013) | SIRO sign-off obtained | Senior Information Risk Owner (SIRO) sign-off obtained. | (none) |
+| Governance | [GOV-014](#Programme–GovernanceNFRs&Controls-GOV-014) | Caldicott Principles Guardian approval recorded | Caldicott Guardian approval recorded for data handling. | (none) |
+| Governance | [GOV-015](#Programme–GovernanceNFRs&Controls-GOV-015) | DUEC Assurance Board acceptance logged | DUEC Assurance Board acceptance logged. | (none) |
+| Governance | [GOV-016](#Programme–GovernanceNFRs&Controls-GOV-016) | Live Services Board go-live approval recorded | Live Services Board go-live approval recorded. | (none) |
 
 ## Controls
 

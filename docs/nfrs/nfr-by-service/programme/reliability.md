@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Reliability | [REL-017](#REL-017) | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-344](https://nhsd-jira.digital.nhs.uk/browse/FTRS-344) |
+| Reliability | [REL-017](#Programme–ReliabilityNFRs&Controls-REL-017) | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-344](https://nhsd-jira.digital.nhs.uk/browse/FTRS-344) |
 
 ## Controls
 

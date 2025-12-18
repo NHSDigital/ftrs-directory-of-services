@@ -12,16 +12,16 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Availability | [AVAIL-001](#AVAIL-001) | Availability report shows ≥99.90% multi-AZ uptime | Multi-AZ deployment achieves target uptime (e.g., ≥99.90%). | (none) |
-| Availability | [AVAIL-002](#AVAIL-002) | Region DR simulation meets plan objectives | Disaster recovery (DR) simulation meets documented objectives. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11) |
-| Availability | [AVAIL-003](#AVAIL-003) | Uptime monitoring confirms 24x7 coverage | Continuous uptime monitoring covers 24x7 operations. | (none) |
-| Availability | [AVAIL-004](#AVAIL-004) | Monthly maintenance minutes ≤150; single ≤60 | Maintenance windows stay within monthly and per-event minute limits. | (none) |
-| Availability | [AVAIL-005](#AVAIL-005) | Tuesday window executed; smoke tests pass | Scheduled maintenance executes successfully with passing smoke tests afterward. | [FTRS-1004](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1004), [FTRS-1693](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1693) |
-| Availability | [AVAIL-006](#AVAIL-006) | DR exercise restores service <2h | DR exercise restores service within target recovery time (< defined hours). | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-751](https://nhsd-jira.digital.nhs.uk/browse/FTRS-751) |
-| Availability | [AVAIL-007](#AVAIL-007) | Replication lag ≤60s; fail-over data delta minimal | Data replication lag remains under target ensuring minimal failover delta. | (none) |
-| Availability | [AVAIL-008](#AVAIL-008) | API uptime aligns with core service | API uptime aligns with overall service availability target. | (none) |
-| Availability | [AVAIL-009](#AVAIL-009) | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | (none) |
-| Availability | [AVAIL-010](#AVAIL-010) | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | (none) |
+| Availability | [AVAIL-001](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-001) | Availability report shows ≥99.90% multi-AZ uptime | Multi-AZ deployment achieves target uptime (e.g., ≥99.90%). | (none) |
+| Availability | [AVAIL-002](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-002) | Region DR simulation meets plan objectives | Disaster recovery (DR) simulation meets documented objectives. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11) |
+| Availability | [AVAIL-003](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-003) | Uptime monitoring confirms 24x7 coverage | Continuous uptime monitoring covers 24x7 operations. | (none) |
+| Availability | [AVAIL-004](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-004) | Monthly maintenance minutes ≤150; single ≤60 | Maintenance windows stay within monthly and per-event minute limits. | (none) |
+| Availability | [AVAIL-005](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-005) | Tuesday window executed; smoke tests pass | Scheduled maintenance executes successfully with passing smoke tests afterward. | [FTRS-1004](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1004), [FTRS-1693](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1693) |
+| Availability | [AVAIL-006](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-006) | DR exercise restores service <2h | DR exercise restores service within target recovery time (< defined hours). | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-751](https://nhsd-jira.digital.nhs.uk/browse/FTRS-751) |
+| Availability | [AVAIL-007](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-007) | Replication lag ≤60s; fail-over data delta minimal | Data replication lag remains under target ensuring minimal failover delta. | (none) |
+| Availability | [AVAIL-008](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-008) | API uptime aligns with core service | API uptime aligns with overall service availability target. | (none) |
+| Availability | [AVAIL-009](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-009) | Non-UK access attempts blocked & logged | Access from non-approved geographic regions is blocked and logged. | (none) |
+| Availability | [AVAIL-010](#Infrastructure–AvailabilityNFRs&Controls-AVAIL-010) | Blue/green deployment produces 0 failed requests | Blue/green deployments complete with zero failed user requests. | (none) |
 
 ## Controls
 

@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Observability | [OBS-025](#OBS-025) | Alerts delivered to multi-channel with context | Alerts delivered with sufficient context to act (multi-channel). | (none) |
+| Observability | [OBS-025](#DataMigration–ObservabilityNFRs&Controls-OBS-025) | Alerts delivered to multi-channel with context | Alerts delivered with sufficient context to act (multi-channel). | (none) |
 
 ## Controls
 

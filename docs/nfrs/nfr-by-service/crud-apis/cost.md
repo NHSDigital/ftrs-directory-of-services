@@ -12,8 +12,8 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Cost | [COST-001](#COST-001) | Mandatory tagging set present on 100% resources | All resources have mandatory cost tags for allocation and reporting. | (none) |
-| Cost | [COST-002](#COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
+| Cost | [COST-001](#IngressAPI–CostNFRs&Controls-COST-001) | Mandatory tagging set present on 100% resources | All resources have mandatory cost tags for allocation and reporting. | (none) |
+| Cost | [COST-002](#IngressAPI–CostNFRs&Controls-COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
 
 ## Controls
 

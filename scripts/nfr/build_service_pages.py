@@ -534,6 +534,15 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
     def display_operation(svc: str, op_id: str) -> str:
         disp = op_names.get(svc, {}).get(op_id)
         return f"{disp} ({op_id})" if disp else op_id
+
+    def page_title_for(service_disp: str, dom: str) -> str:
+        dom_tc = dom.capitalize()
+        suffix = "NFRs & Operations" if dom_tc == "Performance" else "NFRs & Controls"
+        return f"{service_disp} – {dom_tc} {suffix}"
+
+    def anchor_prefix_from_title(title: str) -> str:
+        # Confluence heading anchors squash spaces but retain punctuation/dashes
+        return (title or "").replace(" ", "")
     for service, items in sorted(service_map.items()):
         service_dir = OUTPUT_DIR / service
         service_dir.mkdir(parents=True, exist_ok=True)
@@ -722,9 +731,11 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             dmd.append("|--------|------|-------------|-------------|---------|")
             by_code_dom = codes_by_domain.get(dom, {})
             codes_with_controls_dom = set(by_code_dom.keys())
+            # Compute page-title-prefixed anchor base expected by Confluence for headings
+            title_prefix = anchor_prefix_from_title(page_title_for(display_service(service), dom))
             for domain, code, req, expl, stories in sorted([r for r in summary_rows if r[0] == dom], key=lambda r: r[1]):
-                # Link code to the on-page Controls section for this code
-                code_cell = f"[{code}](#{code.upper()})"
+                # Link code to the on-page Controls section using the title-prefixed heading anchor
+                code_cell = f"[{code}](#{title_prefix}-{code.upper()})"
                 dmd.append(f"| {domain} | {code_cell} | {req} | {expl} | {stories} |")
             _append_blank_line(dmd)
             # Operations only for Performance domain

@@ -12,10 +12,10 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Cost | [COST-002](#COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
-| Cost | [COST-005](#COST-005) | Budgets & alert notifications configured & tested | Budgets and cost alert notifications are configured and tested. | (none) |
-| Cost | [COST-006](#COST-006) | #ftrs-cost-alerts channel created & receiving test alerts | Dedicated cost alerts channel receives test and live notifications. | (none) |
-| Cost | [COST-007](#COST-007) | Quarterly cost review minutes & tracked actions | Quarterly cost reviews record minutes and follow-up actions. | (none) |
+| Cost | [COST-002](#Programme–CostNFRs&Controls-COST-002) | Monthly Cost Explorer review & anomaly log | Monthly cost review identifies anomalies and tracks actions. | (none) |
+| Cost | [COST-005](#Programme–CostNFRs&Controls-COST-005) | Budgets & alert notifications configured & tested | Budgets and cost alert notifications are configured and tested. | (none) |
+| Cost | [COST-006](#Programme–CostNFRs&Controls-COST-006) | #ftrs-cost-alerts channel created & receiving test alerts | Dedicated cost alerts channel receives test and live notifications. | (none) |
+| Cost | [COST-007](#Programme–CostNFRs&Controls-COST-007) | Quarterly cost review minutes & tracked actions | Quarterly cost reviews record minutes and follow-up actions. | (none) |
 
 ## Controls
 

@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Accessibility | [ACC-001](#ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
+| Accessibility | [ACC-001](#Programme–AccessibilityNFRs&Controls-ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
 
 ## Controls
 

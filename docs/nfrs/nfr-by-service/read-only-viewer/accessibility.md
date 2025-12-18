@@ -12,28 +12,28 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Accessibility | [ACC-001](#ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
-| Accessibility | [ACC-002](#ACC-002) | Automated scans run across critical pages & browsers | Automated scans run across critical pages and browser variants. | (none) |
-| Accessibility | [ACC-003](#ACC-003) | Manual accessibility test executed per release | Manual accessibility tests are executed for each release cycle. | (none) |
-| Accessibility | [ACC-004](#ACC-004) | Defects tracked with parity priority & SLA | Accessibility defects tracked with equal priority and defined SLAs. | (none) |
-| Accessibility | [ACC-005](#ACC-005) | Tooling operational in dev/int/reference envs | Accessibility tooling operates correctly in dev, int, and reference environments. | (none) |
-| Accessibility | [ACC-006](#ACC-006) | Assistive tech not blocked by headers/CSP | Assistive technologies are not blocked by headers or Content Security Policy (CSP). | (none) |
-| Accessibility | [ACC-007](#ACC-007) | Test dataset covers tables/forms/status messages | Test dataset covers common components: tables, forms, status messages. | (none) |
-| Accessibility | [ACC-008](#ACC-008) | CI accessibility stage completes <5min | CI accessibility scan stage completes quickly (under target time). | (none) |
-| Accessibility | [ACC-009](#ACC-009) | Keyboard tab order regression test passes | Keyboard-only navigation preserves logical tab order without traps. | (none) |
-| Accessibility | [ACC-010](#ACC-010) | Focus trap tests pass for modals/overlays | Focus handling works for modals and overlays without trapping user. | (none) |
-| Accessibility | [ACC-011](#ACC-011) | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
-| Accessibility | [ACC-012](#ACC-012) | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
-| Accessibility | [ACC-013](#ACC-013) | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
-| Accessibility | [ACC-014](#ACC-014) | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
-| Accessibility | [ACC-015](#ACC-015) | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
-| Accessibility | [ACC-016](#ACC-016) | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
-| Accessibility | [ACC-017](#ACC-017) | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
-| Accessibility | [ACC-018](#ACC-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
-| Accessibility | [ACC-019](#ACC-019) | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
-| Accessibility | [ACC-020](#ACC-020) | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
-| Accessibility | [ACC-021](#ACC-021) | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
-| Accessibility | [ACC-022](#ACC-022) | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | (none) |
+| Accessibility | [ACC-001](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-001) | WCAG 2.2 AA scan & manual audit pass | Product passes WCAG 2.2 AA via automated and manual audits. | (none) |
+| Accessibility | [ACC-002](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-002) | Automated scans run across critical pages & browsers | Automated scans run across critical pages and browser variants. | (none) |
+| Accessibility | [ACC-003](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-003) | Manual accessibility test executed per release | Manual accessibility tests are executed for each release cycle. | (none) |
+| Accessibility | [ACC-004](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-004) | Defects tracked with parity priority & SLA | Accessibility defects tracked with equal priority and defined SLAs. | (none) |
+| Accessibility | [ACC-005](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-005) | Tooling operational in dev/int/reference envs | Accessibility tooling operates correctly in dev, int, and reference environments. | (none) |
+| Accessibility | [ACC-006](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-006) | Assistive tech not blocked by headers/CSP | Assistive technologies are not blocked by headers or Content Security Policy (CSP). | (none) |
+| Accessibility | [ACC-007](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-007) | Test dataset covers tables/forms/status messages | Test dataset covers common components: tables, forms, status messages. | (none) |
+| Accessibility | [ACC-008](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-008) | CI accessibility stage completes <5min | CI accessibility scan stage completes quickly (under target time). | (none) |
+| Accessibility | [ACC-009](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-009) | Keyboard tab order regression test passes | Keyboard-only navigation preserves logical tab order without traps. | (none) |
+| Accessibility | [ACC-010](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-010) | Focus trap tests pass for modals/overlays | Focus handling works for modals and overlays without trapping user. | (none) |
+| Accessibility | [ACC-011](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-011) | Screen reader ARIA role announcements verified | Screen reader announces ARIA roles and states correctly. | (none) |
+| Accessibility | [ACC-012](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-012) | Accessibility results documented with feature tests | Accessibility results are documented alongside feature tests. | (none) |
+| Accessibility | [ACC-013](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-013) | Central issue log maintained & current | Centralised accessibility issue log is maintained and current. | (none) |
+| Accessibility | [ACC-014](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-014) | Accessibility champion/workgroup active | Active champion or workgroup drives accessibility practice. | (none) |
+| Accessibility | [ACC-015](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-015) | Monthly accessibility report published | Monthly accessibility report is published for stakeholders. | (none) |
+| Accessibility | [ACC-016](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-016) | Exception process documented & used | Exception process for accessibility deviations is documented. | (none) |
+| Accessibility | [ACC-017](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-017) | Exception record contains required fields | Exception records include required fields (impact, mitigation, expiry). | (none) |
+| Accessibility | [ACC-018](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-018) | Pre-commit checks complete <30s | Pre-commit accessibility checks finish within target duration. | [FTRS-1778](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1778), [FTRS-898](https://nhsd-jira.digital.nhs.uk/browse/FTRS-898) |
+| Accessibility | [ACC-019](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-019) | CI accessibility stage completes <5min | CI accessibility stage completes within target time window. | (none) |
+| Accessibility | [ACC-020](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-020) | Overnight full scan duration <2h | Overnight full scan finishes under defined maximum duration. | (none) |
+| Accessibility | [ACC-021](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-021) | Accessibility regression triggers alert | Regression in accessibility triggers automated alert. | (none) |
+| Accessibility | [ACC-022](#Read-onlyViewer–AccessibilityNFRs&Controls-ACC-022) | False positive ratio report shows improvement | False positive ratio is measured and trending toward improvement. | (none) |
 
 ## Controls
 
