@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Compatibility | [COMP-002](../../explanations.md#Explanations-COMP-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
+| Compatibility | [COMP-002](#COMP-002) | MFA (CIS2) succeeds across supported platforms | Multi-factor authentication (CIS2) works across supported platforms. | (none) |
 
 ## Controls
 

@@ -12,23 +12,23 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-001](../../explanations.md#Explanations-INT-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
-| Interoperability | [INT-002](../../explanations.md#Explanations-INT-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
-| Interoperability | [INT-003](../../explanations.md#Explanations-INT-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
-| Interoperability | [INT-004](../../explanations.md#Explanations-INT-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
-| Interoperability | [INT-005](../../explanations.md#Explanations-INT-005) | Standard OperationOutcome error structure enforced | Error responses follow standard OperationOutcome structure. | (none) |
-| Interoperability | [INT-006](../../explanations.md#Explanations-INT-006) | Identifier normalization applied (uppercase, trimmed) | Identifiers are normalised (case, trimming) for consistent matching. | (none) |
-| Interoperability | [INT-007](../../explanations.md#Explanations-INT-007) | Strict content negotiation implemented | Strict content negotiation enforces supported media types only. | (none) |
-| Interoperability | [INT-009](../../explanations.md#Explanations-INT-009) | Only documented FHIR search params accepted | Only documented FHIR search parameters are accepted; unknown ones rejected. | (none) |
-| Interoperability | [INT-010](../../explanations.md#Explanations-INT-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
-| Interoperability | [INT-011](../../explanations.md#Explanations-INT-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
-| Interoperability | [INT-012](../../explanations.md#Explanations-INT-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
-| Interoperability | [INT-013](../../explanations.md#Explanations-INT-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
-| Interoperability | [INT-014](../../explanations.md#Explanations-INT-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
-| Interoperability | [INT-015](../../explanations.md#Explanations-INT-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
-| Interoperability | [INT-016](../../explanations.md#Explanations-INT-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
-| Interoperability | [INT-017](../../explanations.md#Explanations-INT-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
-| Interoperability | [INT-018](../../explanations.md#Explanations-INT-018) | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
+| Interoperability | [INT-001](#INT-001) | Resources validated against UK Core profiles | Resources conform to UK Core profiles ensuring national standard alignment. | [FTRS-978](https://nhsd-jira.digital.nhs.uk/browse/FTRS-978) |
+| Interoperability | [INT-002](#INT-002) | Versioning & deprecation policy published | Versioning and deprecation policy is published for integrators. | (none) |
+| Interoperability | [INT-003](#INT-003) | Minor releases backward compatible for 12 months | Minor releases remain backward compatible for the defined support window. | (none) |
+| Interoperability | [INT-004](#INT-004) | Semantic mapping round-trip fidelity preserved | Semantic mappings preserve meaning when round-tripped between formats. | (none) |
+| Interoperability | [INT-005](#INT-005) | Standard OperationOutcome error structure enforced | Error responses follow standard OperationOutcome structure. | (none) |
+| Interoperability | [INT-006](#INT-006) | Identifier normalization applied (uppercase, trimmed) | Identifiers are normalised (case, trimming) for consistent matching. | (none) |
+| Interoperability | [INT-007](#INT-007) | Strict content negotiation implemented | Strict content negotiation enforces supported media types only. | (none) |
+| Interoperability | [INT-009](#INT-009) | Only documented FHIR search params accepted | Only documented FHIR search parameters are accepted; unknown ones rejected. | (none) |
+| Interoperability | [INT-010](#INT-010) | Version-controlled integration contract published | Integration contract is version-controlled and published. | (none) |
+| Interoperability | [INT-011](#INT-011) | Machine-readable changelog generated | Machine-readable changelog is generated for each release. | (none) |
+| Interoperability | [INT-012](#INT-012) | Terminology bindings validated | Terminology bindings are validated to ensure correct coding. | (none) |
+| Interoperability | [INT-013](#INT-013) | Correlation IDs preserved across calls | Correlation IDs persist across internal and external calls for tracing. | [FTRS-980](https://nhsd-jira.digital.nhs.uk/browse/FTRS-980) |
+| Interoperability | [INT-014](#INT-014) | Null vs absent data handled per FHIR | Null vs absent data semantics follow FHIR specification rules. | (none) |
+| Interoperability | [INT-015](#INT-015) | ≥90% interoperability scenario coverage | Test coverage spans ≥90% of defined interoperability scenarios. | (none) |
+| Interoperability | [INT-016](#INT-016) | Stateless sequence-independent operations | Operations are stateless and do not rely on sequence order. | (none) |
+| Interoperability | [INT-017](#INT-017) | Complete field-level input validation every request | Input validation covers every field on every request to prevent malformed data. | [FTRS-1488](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1488) |
+| Interoperability | [INT-018](#INT-018) | Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples) | Comprehensive OpenAPI documentation is published (overview, audience, related APIs, roadmap, SLA, tech stack, security/auth, test environment, onboarding, endpoints with examples) to support integrator adoption. | (none) |
 
 ## Controls
 

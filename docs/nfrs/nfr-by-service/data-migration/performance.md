@@ -12,8 +12,8 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Performance | [PERF-001](../../explanations.md#Explanations-PERF-001) | Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml) | Each API or batch operation meets agreed median and 95th percentile latency targets. | (none) |
-| Performance | [PERF-006](../../explanations.md#Explanations-PERF-006) | Batch window p95 latency delta ≤5% | Batch window latency stays within a small variance (e.g., p95 delta ≤ defined %). | (none) |
+| Performance | [PERF-001](#PERF-001) | Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml) | Each API or batch operation meets agreed median and 95th percentile latency targets. | (none) |
+| Performance | [PERF-006](#PERF-006) | Batch window p95 latency delta ≤5% | Batch window latency stays within a small variance (e.g., p95 delta ≤ defined %). | (none) |
 
 ## Operations
 

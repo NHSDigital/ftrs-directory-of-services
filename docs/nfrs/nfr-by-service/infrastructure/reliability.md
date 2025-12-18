@@ -12,23 +12,23 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Reliability | [REL-001](../../explanations.md#Explanations-REL-001) | Health checks, multi-AZ deployment documented | Service remains healthy across multiple availability zones with verified health checks. | (none) |
-| Reliability | [REL-002](../../explanations.md#Explanations-REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | (none) |
-| Reliability | [REL-003](../../explanations.md#Explanations-REL-003) | Lifecycle reliability checklist completed | Lifecycle reliability checklist is completed for the service components. | (none) |
-| Reliability | [REL-004](../../explanations.md#Explanations-REL-004) | DoS simulation mitigated; service responsive | Denial-of-service (DoS) simulation shows successful mitigation and continued responsiveness. | (none) |
-| Reliability | [REL-005](../../explanations.md#Explanations-REL-005) | Injection attempt blocked; no code execution | Injection attacks are blocked, preventing arbitrary code execution attempts. | (none) |
-| Reliability | [REL-006](../../explanations.md#Explanations-REL-006) | Placement scan shows no forbidden co-residency | Resource placement scan shows no forbidden co-residency (e.g., sensitive + public workloads). | (none) |
-| Reliability | [REL-007](../../explanations.md#Explanations-REL-007) | Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts) | Brute force or auth anomaly attempts are rate limited and create alerts. | [FTRS-1598](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1598) |
-| Reliability | [REL-008](../../explanations.md#Explanations-REL-008) | MITM attempt fails; pinned cert validation passes | Man-in-the-middle (MITM) attempts fail due to secure certificate pinning. | (none) |
-| Reliability | [REL-009](../../explanations.md#Explanations-REL-009) | Iframe embed blocked; headers verified | UI prevents iframe embedding (clickjacking) via secure headers. | (none) |
-| Reliability | [REL-010](../../explanations.md#Explanations-REL-010) | Batch suspend/resume preserves data integrity | Pausing and resuming batch jobs does not corrupt or lose data. | (none) |
-| Reliability | [REL-011](../../explanations.md#Explanations-REL-011) | Unhealthy node auto-replaced; workload continues | Unhealthy nodes are automatically replaced with workload continuity. | (none) |
-| Reliability | [REL-012](../../explanations.md#Explanations-REL-012) | Single node removal shows stable performance & zero data loss | Removing a single node yields no data loss and minimal performance impact. | (none) |
-| Reliability | [REL-013](../../explanations.md#Explanations-REL-013) | Tier failure graceful degradation & recovery evidenced | Tier failure triggers graceful degradation and later clean recovery. | [FTRS-343](https://nhsd-jira.digital.nhs.uk/browse/FTRS-343) |
-| Reliability | [REL-014](../../explanations.md#Explanations-REL-014) | External outage shows fallback & user messaging | External dependency outage invokes fallback and clear user messaging. | (none) |
-| Reliability | [REL-015](../../explanations.md#Explanations-REL-015) | LB failure retains sessions & continues routing | Load balancer failure preserves sessions and maintains routing continuity. | (none) |
-| Reliability | [REL-016](../../explanations.md#Explanations-REL-016) | Server error shows logout/message per spec | Server error paths show expected logout or user messaging per specification. | [FTRS-973](https://nhsd-jira.digital.nhs.uk/browse/FTRS-973) |
-| Reliability | [REL-017](../../explanations.md#Explanations-REL-017) | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-344](https://nhsd-jira.digital.nhs.uk/browse/FTRS-344) |
+| Reliability | [REL-001](#REL-001) | Health checks, multi-AZ deployment documented | Service remains healthy across multiple availability zones with verified health checks. | (none) |
+| Reliability | [REL-002](#REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | (none) |
+| Reliability | [REL-003](#REL-003) | Lifecycle reliability checklist completed | Lifecycle reliability checklist is completed for the service components. | (none) |
+| Reliability | [REL-004](#REL-004) | DoS simulation mitigated; service responsive | Denial-of-service (DoS) simulation shows successful mitigation and continued responsiveness. | (none) |
+| Reliability | [REL-005](#REL-005) | Injection attempt blocked; no code execution | Injection attacks are blocked, preventing arbitrary code execution attempts. | (none) |
+| Reliability | [REL-006](#REL-006) | Placement scan shows no forbidden co-residency | Resource placement scan shows no forbidden co-residency (e.g., sensitive + public workloads). | (none) |
+| Reliability | [REL-007](#REL-007) | Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts) | Brute force or auth anomaly attempts are rate limited and create alerts. | [FTRS-1598](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1598) |
+| Reliability | [REL-008](#REL-008) | MITM attempt fails; pinned cert validation passes | Man-in-the-middle (MITM) attempts fail due to secure certificate pinning. | (none) |
+| Reliability | [REL-009](#REL-009) | Iframe embed blocked; headers verified | UI prevents iframe embedding (clickjacking) via secure headers. | (none) |
+| Reliability | [REL-010](#REL-010) | Batch suspend/resume preserves data integrity | Pausing and resuming batch jobs does not corrupt or lose data. | (none) |
+| Reliability | [REL-011](#REL-011) | Unhealthy node auto-replaced; workload continues | Unhealthy nodes are automatically replaced with workload continuity. | (none) |
+| Reliability | [REL-012](#REL-012) | Single node removal shows stable performance & zero data loss | Removing a single node yields no data loss and minimal performance impact. | (none) |
+| Reliability | [REL-013](#REL-013) | Tier failure graceful degradation & recovery evidenced | Tier failure triggers graceful degradation and later clean recovery. | [FTRS-343](https://nhsd-jira.digital.nhs.uk/browse/FTRS-343) |
+| Reliability | [REL-014](#REL-014) | External outage shows fallback & user messaging | External dependency outage invokes fallback and clear user messaging. | (none) |
+| Reliability | [REL-015](#REL-015) | LB failure retains sessions & continues routing | Load balancer failure preserves sessions and maintains routing continuity. | (none) |
+| Reliability | [REL-016](#REL-016) | Server error shows logout/message per spec | Server error paths show expected logout or user messaging per specification. | [FTRS-973](https://nhsd-jira.digital.nhs.uk/browse/FTRS-973) |
+| Reliability | [REL-017](#REL-017) | Restore drill meets RPO/RTO & ransomware defenses | Restore drills meet RPO/RTO targets and confirm ransomware defenses. | [FTRS-11](https://nhsd-jira.digital.nhs.uk/browse/FTRS-11), [FTRS-344](https://nhsd-jira.digital.nhs.uk/browse/FTRS-344) |
 
 ## Controls
 

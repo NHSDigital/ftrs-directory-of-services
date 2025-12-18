@@ -723,11 +723,8 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
             by_code_dom = codes_by_domain.get(dom, {})
             codes_with_controls_dom = set(by_code_dom.keys())
             for domain, code, req, expl, stories in sorted([r for r in summary_rows if r[0] == dom], key=lambda r: r[1]):
-                # Link code to central Explanations page for consistency
-                if code in explanations:
-                    code_cell = f"[{code}](../../explanations.md#Explanations-{code.upper()})"
-                else:
-                    code_cell = code
+                # Link code to the on-page Controls section for this code
+                code_cell = f"[{code}](#{code.upper()})"
                 dmd.append(f"| {domain} | {code_cell} | {req} | {expl} | {stories} |")
             _append_blank_line(dmd)
             # Operations only for Performance domain

@@ -136,10 +136,9 @@ def _sanitize_title_for_anchor(title: str) -> str:
 def inject_code_anchors_for_page(storage_html: str, page_title: str) -> str:
     """Insert anchors for NFR code headings across any page.
 
-    Adds three anchors per code:
-      - lowercase: int-002
-      - uppercase: INT-002
-      - title-prefixed uppercase: <SquashedPageTitle>-INT-002
+        Adds two anchors per code:
+            - lowercase: int-002
+            - uppercase: INT-002
     """
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
@@ -151,7 +150,7 @@ def inject_code_anchors_for_page(storage_html: str, page_title: str) -> str:
         for a in anchors:
             parts.append(
                 '<ac:structured-macro ac:name="anchor">'
-                f'<ac:parameter ac:name="">{a}</ac:parameter>'
+                f'<ac:parameter ac:name="anchor">{a}</ac:parameter>'
                 '</ac:structured-macro>'
             )
         return ''.join(parts) + m.group(1) + code_upper + m.group(3)

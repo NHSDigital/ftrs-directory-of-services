@@ -12,7 +12,7 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Interoperability | [INT-008](../../explanations.md#Explanations-INT-008) | Reference data sync latency ≤24h | Reference data synchronises within defined latency (e.g., ≤24h). | (none) |
+| Interoperability | [INT-008](#INT-008) | Reference data sync latency ≤24h | Reference data synchronises within defined latency (e.g., ≤24h). | (none) |
 
 ## Controls
 

@@ -12,16 +12,16 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Performance | [PERF-001](../../explanations.md#Explanations-PERF-001) | Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml) | Each API or batch operation meets agreed median and 95th percentile latency targets. | (none) |
-| Performance | [PERF-002](../../explanations.md#Explanations-PERF-002) | Performance pillar checklist completed & actions closed | Performance pillar checklist is completed and any actions are closed. | (none) |
-| Performance | [PERF-003](../../explanations.md#Explanations-PERF-003) | Performance expectations table versioned & referenced | The versioned performance expectations table is maintained and referenced by tests. | (none) |
-| Performance | [PERF-004](../../explanations.md#Explanations-PERF-004) | Anonymised live-like dataset present & audited | A representative, anonymised dataset exists for realistic performance validation. | (none) |
-| Performance | [PERF-005](../../explanations.md#Explanations-PERF-005) | Automated test suite matches defined actions & exclusions | Automated performance tests implement all defined actions and listed exclusions. | (none) |
-| Performance | [PERF-007](../../explanations.md#Explanations-PERF-007) | Telemetry overhead within CPU & latency thresholds | Telemetry overhead (CPU, latency) remains within acceptable limits while capturing required data. | (none) |
-| Performance | [PERF-008](../../explanations.md#Explanations-PERF-008) | 8h rolling window p95 variance ≤10% | Rolling window performance variance remains stable within target percentage bounds. | (none) |
-| Performance | [PERF-009](../../explanations.md#Explanations-PERF-009) | Regression alert triggers on >10% p95 increase | Alerting triggers when p95 latency regresses beyond the defined threshold (e.g., >10%). | (none) |
-| Performance | [PERF-010](../../explanations.md#Explanations-PERF-010) | Percentile methodology document & tool configuration aligned | Documented percentile methodology matches tool configuration (consistent measurement). | (none) |
-| Performance | [PERF-013](../../explanations.md#Explanations-PERF-013) | Request payload size per endpoint stays within the defined maximum (max_request_payload_bytes) | Endpoint request payloads remain under the maximum defined size to protect performance. | (none) |
+| Performance | [PERF-001](#PERF-001) | Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml) | Each API or batch operation meets agreed median and 95th percentile latency targets. | (none) |
+| Performance | [PERF-002](#PERF-002) | Performance pillar checklist completed & actions closed | Performance pillar checklist is completed and any actions are closed. | (none) |
+| Performance | [PERF-003](#PERF-003) | Performance expectations table versioned & referenced | The versioned performance expectations table is maintained and referenced by tests. | (none) |
+| Performance | [PERF-004](#PERF-004) | Anonymised live-like dataset present & audited | A representative, anonymised dataset exists for realistic performance validation. | (none) |
+| Performance | [PERF-005](#PERF-005) | Automated test suite matches defined actions & exclusions | Automated performance tests implement all defined actions and listed exclusions. | (none) |
+| Performance | [PERF-007](#PERF-007) | Telemetry overhead within CPU & latency thresholds | Telemetry overhead (CPU, latency) remains within acceptable limits while capturing required data. | (none) |
+| Performance | [PERF-008](#PERF-008) | 8h rolling window p95 variance ≤10% | Rolling window performance variance remains stable within target percentage bounds. | (none) |
+| Performance | [PERF-009](#PERF-009) | Regression alert triggers on >10% p95 increase | Alerting triggers when p95 latency regresses beyond the defined threshold (e.g., >10%). | (none) |
+| Performance | [PERF-010](#PERF-010) | Percentile methodology document & tool configuration aligned | Documented percentile methodology matches tool configuration (consistent measurement). | (none) |
+| Performance | [PERF-013](#PERF-013) | Request payload size per endpoint stays within the defined maximum (max_request_payload_bytes) | Endpoint request payloads remain under the maximum defined size to protect performance. | (none) |
 
 ## Operations
 
