@@ -49,3 +49,4 @@ scans/*
 
 # vscode settings
 .vscode
+.vscode/settings.json
