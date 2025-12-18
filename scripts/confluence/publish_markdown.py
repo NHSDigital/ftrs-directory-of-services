@@ -87,6 +87,8 @@ def rewrite_explanations_links_to_page_link(html: str) -> str:
     def _repl(m: re.Match) -> str:
         frag = (m.group(1) or "").lstrip('#')
         if frag:
+            # Normalise fragment to Confluence anchor naming (uppercase code like ACC-002)
+            frag = frag.upper()
             safe_title = "Explanations".replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             safe_anchor = frag
             return f'<ac:link><ri:page ri:content-title="{safe_title}" /><ac:anchor>{safe_anchor}</ac:anchor></ac:link>'
@@ -103,7 +105,8 @@ def inject_code_anchors_for_explanations(storage_html: str) -> str:
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
         code = m.group(2)
-        anchor = code.lower()
+        # Use uppercase code as anchor name to match Confluence URL fragments e.g., Explanations-ACC-002
+        anchor = code
         anchor_macro = (
             '<ac:structured-macro ac:name="anchor">'
             f'<ac:parameter ac:name="anchor">{anchor}</ac:parameter>'
