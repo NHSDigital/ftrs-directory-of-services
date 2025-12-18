@@ -116,7 +116,7 @@ data "aws_iam_policy_document" "ods_mock_api_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.project}/dev/mock-api/api-key${local.workspace_suffix}*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.project_prefix}/mock-api/api-key${local.workspace_suffix}*"
     ]
   }
 }
