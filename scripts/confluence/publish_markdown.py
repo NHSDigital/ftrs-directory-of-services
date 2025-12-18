@@ -97,11 +97,11 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
         if frag:
             frag = frag.upper()
             if base_url and space and page_id:
-                url = f"{base_url}/spaces/{space}/pages/{page_id}#{frag}"
+                url = f"{base_url}/spaces/{space}/pages/{page_id}/Explanations#Explanations-{frag}"
                 return f'<a href="{url}">{text}</a>'
-            return confluence_page_link("Explanations", space=space, link_text=text, anchor=frag)
+            return confluence_page_link("Explanations", space=space, link_text=text, anchor=f"Explanations-{frag}")
         if base_url and space and page_id:
-            url = f"{base_url}/spaces/{space}/pages/{page_id}"
+            url = f"{base_url}/spaces/{space}/pages/{page_id}/Explanations"
             return f'<a href="{url}">{text}</a>'
         return confluence_page_link("Explanations", space=space, link_text=text)
     return re_href.sub(_repl, html)
@@ -116,13 +116,15 @@ def inject_code_anchors_for_explanations(storage_html: str) -> str:
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
         code = m.group(2)
-        # Use the canonical parameter name for the anchor macro
-        macro = (
-            '<ac:structured-macro ac:name="anchor">'
-            f'<ac:parameter ac:name="anchor">{code}</ac:parameter>'
-            '</ac:structured-macro>'
-        )
-        return macro + m.group(1) + code + m.group(3)
+        anchors = [code, f"Explanations-{code}"]
+        macros = []
+        for a in anchors:
+            macros.append(
+                '<ac:structured-macro ac:name="anchor">'
+                f'<ac:parameter ac:name="anchor">{a}</ac:parameter>'
+                '</ac:structured-macro>'
+            )
+        return ''.join(macros) + m.group(1) + code + m.group(3)
     return re_h3_code.sub(_repl, storage_html)
 
 
