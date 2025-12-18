@@ -1,6 +1,5 @@
+#set($statusCode = 200)
 {
-    "statusCode": 200,
-    "body": {
-        "test": "working"
-    }
+  "statusCode": $statusCode,
+  "body": "{\"resourceType\":\"Bundle\",\"id\":\"test-bundle\",\"type\":\"searchset\",\"total\":1,\"entry\":[{\"resource\":{\"resourceType\":\"Organization\",\"id\":\"test-org\",\"active\":true,\"name\":\"Test Organization\",\"identifier\":[{\"use\":\"official\",\"system\":\"https://fhir.nhs.uk/Id/ods-organization-code\",\"value\":\"TEST001\"}]}}]}"
 }

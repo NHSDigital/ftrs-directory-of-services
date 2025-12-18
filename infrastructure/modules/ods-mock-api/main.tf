@@ -109,7 +109,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/fhir+json" = "$input.body"
+    "application/fhir+json" = "$util.parseJson($input.body).body"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
