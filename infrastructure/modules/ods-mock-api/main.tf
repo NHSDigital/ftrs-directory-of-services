@@ -109,7 +109,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/fhir+json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.body"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
@@ -127,7 +127,7 @@ resource "aws_api_gateway_integration_response" "organization_get_401" {
   }
 
   response_templates = {
-    "application/fhir+json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.body"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
@@ -145,7 +145,7 @@ resource "aws_api_gateway_integration_response" "organization_get_500" {
   }
 
   response_templates = {
-    "application/fhir+json" = "$input.json('$.body')"
+    "application/fhir+json" = "$input.body"
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
