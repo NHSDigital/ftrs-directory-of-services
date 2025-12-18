@@ -63,7 +63,7 @@ def confluence_page_link(title: str, space: Optional[str] = None, link_text: Opt
     page = f'<ri:page ri:content-title="{safe_title}"' + (f' ri:space-key="{space}"' if space else '') + ' />'
     parts = ['<ac:link>', page]
     if link_text is not None and link_text != '':
-        parts.append('<ac:plain-text-link-body><![CDATA[' + link_text + ']]></ac:plain-text-link-body>')
+        parts.append('<ac:link-body><![CDATA[' + link_text + ']]></ac:link-body>')
     if anchor:
         parts.append(f'<ac:anchor>{anchor}</ac:anchor>')
     parts.append('</ac:link>')
@@ -97,7 +97,8 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
         if frag:
             # Normalise fragment to Confluence anchor naming (uppercase code like ACC-002)
             frag = frag.upper()
-            return confluence_page_link("Explanations", space=space, link_text=text, anchor=frag)
+            # Prefer the heading-style anchor prefix used by Confluence UI
+            return confluence_page_link("Explanations", space=space, link_text=text, anchor=f"Explanations-{frag}")
         return confluence_page_link("Explanations", space=space, link_text=text)
     return re_href.sub(_repl, html)
 
@@ -111,14 +112,16 @@ def inject_code_anchors_for_explanations(storage_html: str) -> str:
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
         code = m.group(2)
-        # Use uppercase code as anchor name to match Confluence URL fragments e.g., Explanations-ACC-002
-        anchor = code
-        anchor_macro = (
-            '<ac:structured-macro ac:name="anchor">'
-            f'<ac:parameter ac:name="anchor">{anchor}</ac:parameter>'
-            '</ac:structured-macro>'
-        )
-        return anchor_macro + m.group(1) + code + m.group(3)
+        # Insert two anchors: one plain code (ACC-002) and one prefixed with page title (Explanations-ACC-002)
+        anchors = [code, f"Explanations-{code}"]
+        macros = []
+        for a in anchors:
+            macros.append(
+                '<ac:structured-macro ac:name="anchor">'
+                f'<ac:parameter ac:name="anchor">{a}</ac:parameter>'
+                '</ac:structured-macro>'
+            )
+        return ''.join(macros) + m.group(1) + code + m.group(3)
     return re_h3_code.sub(_repl, storage_html)
 
 
