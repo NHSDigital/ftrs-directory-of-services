@@ -61,7 +61,7 @@ resource "aws_api_gateway_integration" "organization_get_mock" {
   type = "MOCK"
 
   request_templates = {
-    "application/fhir+json" = file(local.vtl_template_path)
+    "application/fhir+json" = "{\"statusCode\": 200}"
   }
 }
 
@@ -109,7 +109,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   }
 
   response_templates = {
-    "application/fhir+json" = "$util.parseJson($input.body).body"
+    "application/fhir+json" = file(local.vtl_template_path)
   }
 
   depends_on = [aws_api_gateway_integration.organization_get_mock]
