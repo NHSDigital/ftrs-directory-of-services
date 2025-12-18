@@ -78,6 +78,17 @@ def rewrite_service_index_links_to_page_links(html: str, map_folder_to_title) ->
     return re_href.sub(_repl, html)
 
 
+def rewrite_explanations_links_to_page_link(html: str) -> str:
+    """Rewrite anchors pointing at ../explanations.md (or ../../explanations.md) to a Confluence page link.
+
+    Anchors to specific codes are currently dropped; Confluence will land on the page top.
+    """
+    re_href = re.compile(r'<a\s+href=["\'](?:\.\./){1,2}explanations\.md(?:#[^"\']*)?["\'][^>]*>.*?</a>', re.IGNORECASE)
+    def _repl(_m: re.Match) -> str:
+        return confluence_page_link("Explanations")
+    return re_href.sub(_repl, html)
+
+
 def children_display_macro() -> str:
     # Storage macro that renders links to all child pages of the current page
     return (
@@ -410,6 +421,9 @@ def main() -> None:
                 else:
                     body = wrap_markdown_macro(md)
                 storage_override = body
+            # Apply explanation link rewriting when we already built storage
+            if storage_override is not None and not args.use_markdown_macro:
+                storage_override = rewrite_explanations_links_to_page_link(storage_override)
 
             # If this is the domain index and we resolved the category page id, update it directly by ID
             if is_domain_index and domain_parent_id:
@@ -438,6 +452,12 @@ def main() -> None:
                 print(f"Published {path} -> page {service_parent_id} ('{cur_title}')")
                 last_id = str(service_parent_id)
                 continue
+            # For non-macro, convert here to enable explanation link rewriting
+            storage_override_general = None
+            if not args.use_markdown_macro:
+                body = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None))
+                body = rewrite_explanations_links_to_page_link(body)
+                storage_override_general = body
             page_id = publish_one(
                 base_url,
                 args.auth,
@@ -447,7 +467,7 @@ def main() -> None:
                 title,
                 md,
                 parent_for_file,
-                storage_override=storage_override,
+                storage_override=(storage_override if storage_override is not None else storage_override_general),
                 prefer_storage=(not args.use_markdown_macro),
                 jira_macro=args.jira_macro,
                 jira_server_id=(args.jira_server_id or None),
