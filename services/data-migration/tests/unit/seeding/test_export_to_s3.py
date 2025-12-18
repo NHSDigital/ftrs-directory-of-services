@@ -327,8 +327,16 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
             "S3Bucket": "test_s3_bucket_name",
         },
+        {
+            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
+            "S3Bucket": "test_s3_bucket_name",
+        },
     ]
-    mock_processed_exports = [mocker.Mock(shape=[1]), mocker.Mock(shape=[1])]
+    mock_processed_exports = [
+        mocker.Mock(shape=[1]),
+        mocker.Mock(shape=[1]),
+        mocker.Mock(shape=[1]),
+    ]
     process_export_mock.side_effect = mock_processed_exports
 
     await run_s3_export("local", "workspace")
@@ -337,6 +345,7 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
         [
             mocker.call("location", "local", "workspace"),
             mocker.call("organisation", "local", "workspace"),
+            mocker.call("data-migration-state", "local", "workspace"),
         ]
     )
 
@@ -351,6 +360,12 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             mocker.call(
                 {
                     "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
+                    "S3Bucket": "test_s3_bucket_name",
+                }
+            ),
+            mocker.call(
+                {
+                    "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
                     "S3Bucket": "test_s3_bucket_name",
                 }
             ),
@@ -370,6 +385,11 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
                 path="s3://test_s3_bucket_name/backups/test_table_2.parquet",
                 dataset=False,
             ),
+            mocker.call(
+                df=mock_processed_exports[2],
+                path="s3://test_s3_bucket_name/backups/test_table_3.parquet",
+                dataset=False,
+            ),
         ]
     )
 
@@ -379,6 +399,7 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
             {
                 "test_table_1": "s3://test_s3_bucket_name/backups/test_table_1.parquet",
                 "test_table_2": "s3://test_s3_bucket_name/backups/test_table_2.parquet",
+                "test_table_3": "s3://test_s3_bucket_name/backups/test_table_3.parquet",
             }
         ),
         overwrite=True,
