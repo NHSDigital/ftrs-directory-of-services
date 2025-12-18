@@ -85,7 +85,7 @@ def rewrite_service_index_links_to_page_links(html: str, map_folder_to_title) ->
     return re_href.sub(_repl, html)
 
 
-def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = None) -> str:
+def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = None, base_url: Optional[str] = None, page_id: Optional[str] = None) -> str:
     """Rewrite anchors pointing at ../explanations.md (or ../../explanations.md) to a Confluence page link.
 
     Preserves fragment identifiers by emitting an <ac:anchor> targeting the Explanations page.
@@ -95,10 +95,14 @@ def rewrite_explanations_links_to_page_link(html: str, space: Optional[str] = No
         frag = (m.group(1) or "").lstrip('#')
         text = m.group(2) or ''
         if frag:
-            # Normalise fragment to Confluence anchor naming (uppercase code like ACC-002)
             frag = frag.upper()
-            # Link directly to the explicit anchor macro name on Explanations (INT-002)
+            if base_url and space and page_id:
+                url = f"{base_url}/spaces/{space}/pages/{page_id}#{frag}"
+                return f'<a href="{url}">{text}</a>'
             return confluence_page_link("Explanations", space=space, link_text=text, anchor=frag)
+        if base_url and space and page_id:
+            url = f"{base_url}/spaces/{space}/pages/{page_id}"
+            return f'<a href="{url}">{text}</a>'
         return confluence_page_link("Explanations", space=space, link_text=text)
     return re_href.sub(_repl, html)
 
@@ -112,10 +116,10 @@ def inject_code_anchors_for_explanations(storage_html: str) -> str:
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
     def _repl(m: re.Match) -> str:
         code = m.group(2)
-        # Insert a single, explicit anchor macro using the code (e.g., INT-002)
+        # Use the canonical parameter name for the anchor macro
         macro = (
             '<ac:structured-macro ac:name="anchor">'
-            f'<ac:parameter ac:name="">{code}</ac:parameter>'
+            f'<ac:parameter ac:name="anchor">{code}</ac:parameter>'
             '</ac:structured-macro>'
         )
         return macro + m.group(1) + code + m.group(3)
@@ -383,6 +387,10 @@ def main() -> None:
             t = item.get("title") or ""
             service_children[t] = str(item.get("id"))
 
+    # Resolve Explanations page ID (space-wide)
+    explanations_page = api_get_page(base_url, args.space, "Explanations", headers)
+    explanations_page_id = str(explanations_page.get("id")) if explanations_page else None
+
     def map_service_folder_to_title(folder: str) -> str:
         key = folder.strip().lower()
         mapping = {
@@ -487,7 +495,7 @@ def main() -> None:
                 storage_override = body
             # Apply explanation link rewriting when we already built storage
             if storage_override is not None and not args.use_markdown_macro:
-                storage_override = rewrite_explanations_links_to_page_link(storage_override, space=args.space)
+                storage_override = rewrite_explanations_links_to_page_link(storage_override, space=args.space, base_url=base_url, page_id=explanations_page_id)
                 # inject generic anchors on any page with code headings
                 storage_override = inject_code_anchors_for_page(storage_override, title)
             # If publishing the Explanations page, inject explicit anchor macros for each code
@@ -533,7 +541,7 @@ def main() -> None:
             storage_override_general = None
             if not args.use_markdown_macro:
                 body = markdown_to_storage(md, use_jira_macro=args.jira_macro, jira_server_id=(args.jira_server_id or None), jira_server_name=(args.jira_server_name or None))
-                body = rewrite_explanations_links_to_page_link(body, space=args.space)
+                body = rewrite_explanations_links_to_page_link(body, space=args.space, base_url=base_url, page_id=explanations_page_id)
                 if is_explanations_page:
                     body = inject_code_anchors_for_explanations(body)
                 body = inject_code_anchors_for_page(body, title)
