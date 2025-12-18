@@ -1,47 +1,6 @@
-#set($lastUpdated = $input.params('_lastUpdated'))
-#if($lastUpdated == "2024-05-12")
 {
     "statusCode": 200,
     "body": {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": 0,
-        "entry": []
+        "test": "working"
     }
 }
-#elseif($lastUpdated == "2025-10-01")
-{
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "id": "befa3684-518d-4e67-a83e-978db11a539f",
-        "meta": {
-            "lastUpdated": "2025-11-17T18:32:16.814+00:00"
-        },
-        "type": "searchset",
-        "total": 1,
-        "link": [{
-            "relation": "self",
-            "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
-        }],
-        "entry": [{
-            "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y02578",
-            "resource": {
-                "resourceType": "Organization",
-                "id": "Y02578",
-                "name": "DUMMY TEST MEDICAL CENTRE"
-            }
-        }]
-    }
-}
-#else
-{
-    "statusCode": 200,
-    "body": {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": 0,
-        "entry": []
-    }
-}
-#end
