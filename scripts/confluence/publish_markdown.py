@@ -139,11 +139,11 @@ def inject_code_anchors_for_page(storage_html: str, page_title: str) -> str:
       - title-prefixed uppercase: <SquashedPageTitle>-INT-002
     """
     re_h3_code = re.compile(r'(<h3>)([A-Z]+-[0-9]{3})(</h3>)')
-    page_prefix = _sanitize_title_for_anchor(page_title)
     def _repl(m: re.Match) -> str:
         code_upper = m.group(2)
         code_lower = code_upper.lower()
-        anchors = [code_lower, code_upper, f"{page_prefix}-{code_upper}"]
+        # Only simple, macro-safe anchors to avoid REST 400 errors from invalid names
+        anchors = [code_lower, code_upper]
         parts = []
         for a in anchors:
             parts.append(
