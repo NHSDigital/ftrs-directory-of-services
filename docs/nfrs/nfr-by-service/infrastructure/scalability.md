@@ -31,6 +31,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Horizontal scale-out increases TPS linearly within tolerance
 
+See explanation: [SCAL-001](../../explanations.md#scal-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | horizontal-scale-linear | Horizontal scale-out increases TPS linearly within tolerance | TPS increases ~linearly per replica within agreed tolerance | Quarterly simulation | int,ref | Infrastructure | draft | (none) | Validates scale-out effectiveness |
@@ -38,6 +40,8 @@ Horizontal scale-out increases TPS linearly within tolerance
 ### SCAL-002
 
 Vertical resize retains data & function without downtime
+
+See explanation: [SCAL-002](../../explanations.md#scal-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -47,6 +51,8 @@ Vertical resize retains data & function without downtime
 
 All layers pass scalability checklist
 
+See explanation: [SCAL-003](../../explanations.md#scal-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | scalability-checklist-complete | All layers pass scalability checklist | 100% checklist items complete; exceptions recorded with expiry | Quarterly | int,ref | Infrastructure | draft | (none) | Ensures scale readiness across tiers |
@@ -54,6 +60,8 @@ All layers pass scalability checklist
 ### SCAL-004
 
 Scale-down events occur after sustained low utilisation
+
+See explanation: [SCAL-004](../../explanations.md#scal-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -63,6 +71,8 @@ Scale-down events occur after sustained low utilisation
 
 Autoscaling policy simulation triggers controlled scale
 
+See explanation: [SCAL-005](../../explanations.md#scal-005)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | autoscaling-policy-simulation | Autoscaling policy simulation triggers controlled scale | Policy simulates expected scale events; no flapping | Quarterly | int,ref | Infrastructure | draft | (none) | Confirms autoscaling tuning |
@@ -70,6 +80,8 @@ Autoscaling policy simulation triggers controlled scale
 ### SCAL-006
 
 Scale event shows no SLA breach in latency/error
+
+See explanation: [SCAL-006](../../explanations.md#scal-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -79,6 +91,8 @@ Scale event shows no SLA breach in latency/error
 
 Capacity report shows ≥30% headroom
 
+See explanation: [SCAL-007](../../explanations.md#scal-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | capacity-headroom | Capacity report shows ≥30% headroom | >= 30% capacity headroom maintained | Monthly | prod | Infrastructure | draft | (none) | Ensures buffer for demand spikes |
@@ -86,6 +100,8 @@ Capacity report shows ≥30% headroom
 ### SCAL-008
 
 No manual scaling tickets for variance period
+
+See explanation: [SCAL-008](../../explanations.md#scal-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -95,6 +111,8 @@ No manual scaling tickets for variance period
 
 Audit logs capture actor/reason for scaling
 
+See explanation: [SCAL-009](../../explanations.md#scal-009)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | scaling-audit-context | Audit logs capture actor/reason for scaling | 100% scale events have actor, reason, correlation_id | Continuous + quarterly audit | prod | Infrastructure | draft | (none) | Provides traceability of scaling decisions |
@@ -102,6 +120,8 @@ Audit logs capture actor/reason for scaling
 ### SCAL-010
 
 Predictive alert fires at utilisation forecast threshold
+
+See explanation: [SCAL-010](../../explanations.md#scal-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

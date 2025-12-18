@@ -24,6 +24,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Crypto algorithms conform; weak ciphers rejected
 
+See explanation: [SEC-001](../../explanations.md#sec-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | CI per change + monthly scan | dev,int,ref,prod | Ingress API | draft | (none) | Enforces modern TLS standards; automated scans detect drift |
@@ -32,6 +34,8 @@ Crypto algorithms conform; weak ciphers rejected
 
 mTLS handshake succeeds between designated services
 
+See explanation: [SEC-014](../../explanations.md#sec-014)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | mtls-service-handshake | mTLS handshake succeeds between designated services using ITOC-approved CA signed leaf + intermediate certs (chain to ITOC root); invalid/expired/revoked/untrusted-issuer/weak-cipher attempts rejected | 100% handshake success for valid ITOC chain; 0 successful handshakes with expired, revoked, weak cipher, or non-ITOC issuer certs; rotation introduces 0 downtime | CI per build + cert rotation checks + revocation poll ≤5m | int,ref,prod | Ingress API | draft | [FTRS-1600](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1600) | Enforces trusted ITOC certificate chain, strong ciphers, timely revocation, and zero-downtime rotation for secure service-to-service trust |
@@ -39,6 +43,8 @@ mTLS handshake succeeds between designated services
 ### SEC-029
 
 All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
+
+See explanation: [SEC-029](../../explanations.md#sec-029)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

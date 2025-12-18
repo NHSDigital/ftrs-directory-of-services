@@ -25,6 +25,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Monthly Cost Explorer review & anomaly log
 
+See explanation: [COST-002](../../explanations.md#cost-002)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | monthly-cost-review | Monthly Cost Explorer review & anomaly log | Review completed; anomalies logged with actions | Monthly | prod | Programme | draft | (none) | Ensures proactive cost management |
@@ -32,6 +34,8 @@ Monthly Cost Explorer review & anomaly log
 ### COST-005
 
 Budgets & alert notifications configured & tested
+
+See explanation: [COST-005](../../explanations.md#cost-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

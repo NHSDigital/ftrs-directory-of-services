@@ -520,6 +520,15 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
     op_names = load_operation_display_names()
     nfr_sources = load_nfr_sources()
     domain_sources = load_domain_sources()
+    # Optional: load plain-language explanations for cross-linking
+    explanations: Dict[str, str] = {}
+    if YAML_AVAILABLE and EXPLANATIONS_FILE.exists():
+        try:
+            import yaml  # type: ignore
+            exp_data = yaml.safe_load(EXPLANATIONS_FILE.read_text(encoding="utf-8")) or {}
+            explanations = (exp_data.get("explanations") or {})
+        except Exception:
+            explanations = {}
     def display_service(s: str) -> str:
         return service_names.get(s, s)
     def display_operation(svc: str, op_id: str) -> str:
@@ -732,6 +741,10 @@ def write_service_pages(service_map: Dict[str, List[Dict[str, str]]]) -> None:
                 _append_blank_line(dmd)
                 dmd.append(req)
                 _append_blank_line(dmd)
+                # Link to central explanations page to avoid cluttering service pages
+                if code in explanations:
+                    dmd.append(f"See explanation: [{code}](../../explanations.md#{code.lower()})")
+                    _append_blank_line(dmd)
                 # Sources for this NFR code if available
                 srcs = nfr_sources.get(code, [])
                 if srcs:

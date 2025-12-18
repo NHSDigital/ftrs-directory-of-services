@@ -22,6 +22,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Reference data sync latency ≤24h
 
+See explanation: [INT-008](../../explanations.md#int-008)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | reference-data-sync-latency | Reference data sync latency ≤24h | Sync completes within 24 hours | Daily | prod | ODS ETL | draft | (none) | Timely reference data ensures correct behaviour |

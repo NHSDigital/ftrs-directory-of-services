@@ -31,6 +31,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Availability report shows ≥99.90% multi-AZ uptime
 
+See explanation: [AVAIL-001](../../explanations.md#avail-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | multi-az-uptime-report | Availability report shows ≥99.90% multi-AZ uptime | >= 99.90% monthly uptime across multi-AZ deployment | Monthly | prod | Infrastructure | draft | (none) | Tracks SLA against multi-AZ deployment goals |
@@ -38,6 +40,8 @@ Availability report shows ≥99.90% multi-AZ uptime
 ### AVAIL-002
 
 Region DR simulation meets plan objectives
+
+See explanation: [AVAIL-002](../../explanations.md#avail-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -47,6 +51,8 @@ Region DR simulation meets plan objectives
 
 Uptime monitoring confirms 24x7 coverage
 
+See explanation: [AVAIL-003](../../explanations.md#avail-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | uptime-monitoring-coverage | Uptime monitoring confirms 24x7 coverage | 24x7 coverage; alerts configured for service degradation | Continuous monitoring | prod | Infrastructure | draft | (none) | Ensures continuous availability monitoring |
@@ -54,6 +60,8 @@ Uptime monitoring confirms 24x7 coverage
 ### AVAIL-004
 
 Monthly maintenance minutes ≤150; single ≤60
+
+See explanation: [AVAIL-004](../../explanations.md#avail-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -63,6 +71,8 @@ Monthly maintenance minutes ≤150; single ≤60
 
 Tuesday window executed; smoke tests pass
 
+See explanation: [AVAIL-005](../../explanations.md#avail-005)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | scheduled-maintenance-smoke-tests | Tuesday window executed; smoke tests pass | Maintenance completes; post-window smoke tests 100% pass; no Sev-1/2 incidents | Weekly maintenance window | prod | Infrastructure | draft | [FTRS-1004](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1004), [FTRS-1693](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1693) | Ensures safe scheduled maintenance without user impact |
@@ -70,6 +80,8 @@ Tuesday window executed; smoke tests pass
 ### AVAIL-006
 
 DR exercise restores service <2h
+
+See explanation: [AVAIL-006](../../explanations.md#avail-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -79,6 +91,8 @@ DR exercise restores service <2h
 
 Replication lag ≤60s; fail-over data delta minimal
 
+See explanation: [AVAIL-007](../../explanations.md#avail-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | replication-lag-threshold | Replication lag \u226460s; fail-over data delta minimal | Replication lag \u2264 60s for primary datasets; failover delta \u2264 1% records | Continuous + monthly report | prod | Infrastructure | draft | (none) | Ensures rapid failover with minimal inconsistency |
@@ -86,6 +100,8 @@ Replication lag ≤60s; fail-over data delta minimal
 ### AVAIL-008
 
 API uptime aligns with core service
+
+See explanation: [AVAIL-008](../../explanations.md#avail-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -95,6 +111,8 @@ API uptime aligns with core service
 
 Non-UK access attempts blocked & logged
 
+See explanation: [AVAIL-009](../../explanations.md#avail-009)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | geo-blocking-enforced | Non-UK access attempts blocked & logged | 100% non-UK requests blocked at edge; structured log with country + ip | Continuous + weekly audit | prod | Infrastructure | draft | (none) | Reduces risk from out-of-region access |
@@ -102,6 +120,8 @@ Non-UK access attempts blocked & logged
 ### AVAIL-010
 
 Blue/green deployment produces 0 failed requests
+
+See explanation: [AVAIL-010](../../explanations.md#avail-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

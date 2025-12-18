@@ -24,6 +24,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 FtRS Architects review & approval logged
 
+See explanation: [GOV-007](../../explanations.md#gov-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | ftrs-architects-approval | FtRS Architects review & approval logged | Review minutes and approval recorded; actions tracked | Pre-live + on major change | prod | Ingress API | draft | (none) | Provides architectural oversight evidence |
@@ -32,6 +34,8 @@ FtRS Architects review & approval logged
 
 Cloud Expert deployment approval documented
 
+See explanation: [GOV-008](../../explanations.md#gov-008)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | cloud-expert-approval | Cloud Expert deployment approval documented | Approval recorded; infra readiness checklist passed | Pre-live | prod | Ingress API | draft | (none) | Confirms infrastructure deployment readiness |
@@ -39,6 +43,8 @@ Cloud Expert deployment approval documented
 ### GOV-012
 
 TRG approval session outcome logged
+
+See explanation: [GOV-012](../../explanations.md#gov-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

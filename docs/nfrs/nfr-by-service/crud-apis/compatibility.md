@@ -22,6 +22,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 MFA (CIS2) succeeds across supported platforms
 
+See explanation: [COMP-002](../../explanations.md#comp-002)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Release cycle | int,ref,prod | Ingress API | draft | (none) | Ensures authentication compatibility |

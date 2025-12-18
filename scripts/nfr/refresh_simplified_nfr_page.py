@@ -417,7 +417,7 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
                 for code in sorted(grouped.keys()):
                     lines.append(f"### {code}")
                     if code in explanations:
-                        lines.append(explanations[code])
+                        lines.append(f"See explanation: [{code}](../explanations.md#{code.lower()})")
                     # Domain-level sources shown at top; omit per-NFR sources here
                     # Ensure exactly one blank before table
                     if lines and lines[-1] != "":
@@ -472,6 +472,56 @@ def build_domain_pages(by_domain: dict[str, list[dict]], explanations: dict[str,
         tail = Path(fname).read_text(encoding="utf-8").splitlines()
         tail_preview = " | ".join([l for l in tail[-3:]]) if len(tail) >= 3 else " | ".join(tail)
         print(f"TAIL:{domain}:{tail_preview}")
+
+def _build_explanations_reference(by_domain: dict[str, list[dict]], explanations: dict[str,str]) -> None:
+    """Generate a single reference page listing all NFR explanations.
+
+    Output: docs/nfrs/explanations.md with anchors per code (e.g., #int-003).
+    """
+    out = Path("docs/nfrs/explanations.md")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # Build code -> domain map for grouping
+    code_to_domain: dict[str,str] = {}
+    for dom, rows in by_domain.items():
+        for r in rows:
+            code = str(r.get("code",""))
+            if code and code not in code_to_domain:
+                code_to_domain[code] = dom
+    # Group codes by domain order
+    lines: list[str] = []
+    lines.append("# FtRS NFR – Explanations")
+    lines.append("")
+    lines.append("This page is auto-generated; do not hand-edit.")
+    lines.append("")
+    # Domain index
+    lines.append("## Index by Domain")
+    lines.append("")
+    for dom in sorted(by_domain.keys()):
+        codes = [r['code'] for r in by_domain[dom] if r.get('code') in explanations]
+        if not codes:
+            continue
+        lines.append(f"- {dom}: " + ", ".join(f"[{c}](#{c.lower()})" for c in codes))
+    lines.append("")
+    # Detailed sections
+    for dom in sorted(by_domain.keys()):
+        codes = [r['code'] for r in by_domain[dom] if r.get('code') in explanations]
+        if not codes:
+            continue
+        lines.append(f"## {dom}")
+        lines.append("")
+        for code in codes:
+            text = str(explanations.get(code, "")).strip()
+            if not text:
+                continue
+            lines.append(f"### {code}")
+            lines.append("")
+            # Preserve paragraphs from YAML block scalars
+            for para in text.splitlines():
+                lines.append(para)
+            lines.append("")
+    content = "\n".join(lines).rstrip() + "\n"
+    out.write_text(content, encoding="utf-8")
+    print(f"Wrote explanations page: {out}")
 
 def build_output():
     # Build domains from schema-backed YAML files only
@@ -539,6 +589,9 @@ def build_output():
 
     # Build domain pages (split files)
     build_domain_pages(by_domain, explanations, registries)
+
+    # Build central explanations reference page
+    _build_explanations_reference(by_domain, explanations)
     # Index summary linking to split pages
     lines.append("## Domain Index")
     lines.append("")

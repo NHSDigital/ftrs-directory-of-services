@@ -53,6 +53,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 App & infra health panels show green
 
+See explanation: [OBS-001](../../explanations.md#obs-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Continuous + CI verification on change | int,ref,prod | Infrastructure | draft | [FTRS-1015](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1015) | Ensures at-a-glance service health visibility |
@@ -60,6 +62,8 @@ App & infra health panels show green
 ### OBS-007
 
 Performance metrics latency ≤60s
+
+See explanation: [OBS-007](../../explanations.md#obs-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -69,6 +73,8 @@ Performance metrics latency ≤60s
 
 TPS per endpoint displayed & threshold alert configured
 
+See explanation: [OBS-008](../../explanations.md#obs-008)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | tps-threshold-alert | TPS per endpoint displayed & threshold alert configured | TPS dashboard present; alert rule configured and tested | CI validation + monthly alert fire drill | int,ref,prod | Infrastructure | draft | [FTRS-1688](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1688) | Detects throughput anomalies proactively |
@@ -76,6 +82,8 @@ TPS per endpoint displayed & threshold alert configured
 ### OBS-009
 
 Endpoint latency histograms with p50/p95/p99
+
+See explanation: [OBS-009](../../explanations.md#obs-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -85,6 +93,8 @@ Endpoint latency histograms with p50/p95/p99
 
 Aggregate latency panel accurate within 2% roll-up
 
+See explanation: [OBS-010](../../explanations.md#obs-010)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | aggregate-latency-accuracy | Aggregate latency panel accurate within 2% roll-up | Roll-up accuracy within \u22642% vs raw series | Monthly calibration | prod | Infrastructure | draft | (none) | Ensures trustworthy aggregate metrics |
@@ -92,6 +102,8 @@ Aggregate latency panel accurate within 2% roll-up
 ### OBS-011
 
 Failure types logged & classified in dashboard
+
+See explanation: [OBS-011](../../explanations.md#obs-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -101,6 +113,8 @@ Failure types logged & classified in dashboard
 
 Error percentage metric & alert configured
 
+See explanation: [OBS-012](../../explanations.md#obs-012)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | error-percentage-alert | Error percentage metric & alert configured | Alert triggers when error% > 1% over 5m; playbook linked | Continuous + monthly tuning | prod | Infrastructure | draft | [FTRS-1017](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1017) | Early detection of reliability regressions |
@@ -108,6 +122,8 @@ Error percentage metric & alert configured
 ### OBS-013
 
 Infra log query returns expected fields
+
+See explanation: [OBS-013](../../explanations.md#obs-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -117,6 +133,8 @@ Infra log query returns expected fields
 
 Infra log entries include required fields
 
+See explanation: [OBS-014](../../explanations.md#obs-014)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | infra-log-required-fields | Infra log entries include required fields | 100% entries include required fields; schema lint passes | CI per build + monthly audit | int,ref,prod | Infrastructure | draft | (none) | Guarantees structured logging quality |
@@ -125,6 +143,8 @@ Infra log entries include required fields
 
 Distributed trace spans cover end-to-end request
 
+See explanation: [OBS-030](../../explanations.md#obs-030)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | distributed-trace-coverage | Distributed trace spans cover end-to-end request | ≥95% of requests include spans across key tiers | Continuous + monthly sampling review | int,ref,prod | Infrastructure | draft | [FTRS-885](https://nhsd-jira.digital.nhs.uk/browse/FTRS-885) | Enables end-to-end diagnosis and correlation across layers |
@@ -132,6 +152,8 @@ Distributed trace spans cover end-to-end request
 ### OBS-033
 
 Unauthorized API access attempts logged, classified, alerted
+
+See explanation: [OBS-033](../../explanations.md#obs-033)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

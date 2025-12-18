@@ -37,6 +37,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Resources validated against UK Core profiles
 
+See explanation: [INT-001](../../explanations.md#int-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | uk-core-profile-validation | Resources validated against UK Core profiles | 100% resources pass UK Core validation in CI and pre-release audit | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | (none) | Ensures national standard alignment |
@@ -44,6 +46,8 @@ Resources validated against UK Core profiles
 ### INT-002
 
 Versioning & deprecation policy published
+
+See explanation: [INT-002](../../explanations.md#int-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -53,6 +57,8 @@ Versioning & deprecation policy published
 
 Minor releases backward compatible for 12 months
 
+See explanation: [INT-003](../../explanations.md#int-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | backward-compatibility-window | Minor releases backward compatible for 12 months | No breaking changes; deprecation window \u226512 months; exceptions recorded | CI per build + release review | prod | DoS Search | draft | (none) | Protects consumer integrations |
@@ -60,6 +66,8 @@ Minor releases backward compatible for 12 months
 ### INT-004
 
 Semantic mapping round-trip fidelity preserved
+
+See explanation: [INT-004](../../explanations.md#int-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -69,6 +77,8 @@ Semantic mapping round-trip fidelity preserved
 
 Standard OperationOutcome error structure enforced
 
+See explanation: [INT-005](../../explanations.md#int-005)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | operationoutcome-structure | Standard OperationOutcome error structure enforced | 100% error responses conform to OperationOutcome spec | CI per build + weekly contract audit | int,ref,prod | DoS Search | draft | (none) | Ensures consistent error semantics across integrations |
@@ -76,6 +86,8 @@ Standard OperationOutcome error structure enforced
 ### INT-006
 
 Identifier normalization applied (uppercase, trimmed)
+
+See explanation: [INT-006](../../explanations.md#int-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -85,6 +97,8 @@ Identifier normalization applied (uppercase, trimmed)
 
 Strict content negotiation implemented
 
+See explanation: [INT-007](../../explanations.md#int-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | strict-content-negotiation | Strict content negotiation implemented | Only documented media types accepted; correct response Content-Type | CI per build | int,ref,prod | DoS Search | draft | (none) | Prevents ambiguity in accepted formats |
@@ -92,6 +106,8 @@ Strict content negotiation implemented
 ### INT-009
 
 Only documented FHIR search params accepted
+
+See explanation: [INT-009](../../explanations.md#int-009)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -101,6 +117,8 @@ Only documented FHIR search params accepted
 
 Version-controlled integration contract published
 
+See explanation: [INT-010](../../explanations.md#int-010)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | version-controlled-contract | Version-controlled integration contract published | Contract published under version control; lint passes; updated \u22645 business days after change | CI per build + weekly audit | int,ref,prod | DoS Search | draft | (none) | Ensures consistent and timely documentation |
@@ -108,6 +126,8 @@ Version-controlled integration contract published
 ### INT-011
 
 Machine-readable changelog generated
+
+See explanation: [INT-011](../../explanations.md#int-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -117,6 +137,8 @@ Machine-readable changelog generated
 
 Terminology bindings validated
 
+See explanation: [INT-012](../../explanations.md#int-012)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | terminology-binding-validation | Terminology bindings validated | 100% required bindings validated against value sets | CI per build + monthly audit | int,ref,prod | DoS Search | draft | (none) | Ensures correct coding practices |
@@ -124,6 +146,8 @@ Terminology bindings validated
 ### INT-013
 
 Correlation IDs preserved across calls
+
+See explanation: [INT-013](../../explanations.md#int-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -133,6 +157,8 @@ Correlation IDs preserved across calls
 
 Null vs absent data handled per FHIR
 
+See explanation: [INT-014](../../explanations.md#int-014)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | null-vs-absent-semantics | Null vs absent data handled per FHIR | Responses follow FHIR rules; conformance tests pass | CI per build | int,ref,prod | DoS Search | draft | (none) | Clarifies response semantics for consumers |
@@ -140,6 +166,8 @@ Null vs absent data handled per FHIR
 ### INT-015
 
 ≥90% interoperability scenario coverage
+
+See explanation: [INT-015](../../explanations.md#int-015)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -149,6 +177,8 @@ Null vs absent data handled per FHIR
 
 Stateless sequence-independent operations
 
+See explanation: [INT-016](../../explanations.md#int-016)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | stateless-sequence-independence | Stateless sequence-independent operations | 100% documented operations produce correct outcome independent of prior invocation order | CI per build + quarterly audit | int,ref,prod | DoS Search | draft | (none) | Enables horizontal scaling and predictable consumer integration |
@@ -156,6 +186,8 @@ Stateless sequence-independent operations
 ### INT-018
 
 Comprehensive published OpenAPI documentation (overview, audience, related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment, onboarding, endpoints with examples)
+
+See explanation: [INT-018](../../explanations.md#int-018)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

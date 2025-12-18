@@ -22,6 +22,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 WCAG 2.2 AA scan & manual audit pass
 
+See explanation: [ACC-001](../../explanations.md#acc-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Quarterly + pre-release | int,ref | Programme | draft | (none) | Ensures accessibility conformance for UI surfaces |

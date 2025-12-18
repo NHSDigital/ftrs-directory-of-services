@@ -23,6 +23,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Crypto algorithms conform; weak ciphers rejected
 
+See explanation: [SEC-001](../../explanations.md#sec-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | crypto-cipher-policy | Crypto algorithms conform; weak ciphers rejected | TLS1.2+ only; no weak/legacy ciphers enabled | CI per change + monthly scan | dev,int,ref,prod | Read-only Viewer | draft | (none) | Enforces modern TLS standards; automated scans detect drift |
@@ -30,6 +32,8 @@ Crypto algorithms conform; weak ciphers rejected
 ### SEC-029
 
 All API endpoints enforce CIS2 JWT authentication (signature, issuer, audience, assurance claims)
+
+See explanation: [SEC-029](../../explanations.md#sec-029)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

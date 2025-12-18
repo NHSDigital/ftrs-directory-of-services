@@ -37,6 +37,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Service Management pre-live acceptance signed
 
+See explanation: [GOV-001](../../explanations.md#gov-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | service-management-pre-live | Service Management pre-live acceptance signed | Acceptance signed; evidence stored | Pre-live | prod | Programme | draft | (none) | Ensures service readiness sign-off |
@@ -44,6 +46,8 @@ Service Management pre-live acceptance signed
 ### GOV-002
 
 Well-Architected review completed & actions closed
+
+See explanation: [GOV-002](../../explanations.md#gov-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -53,6 +57,8 @@ Well-Architected review completed & actions closed
 
 Solution Architecture Framework assessment approved
 
+See explanation: [GOV-003](../../explanations.md#gov-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | saf-assessment-approved | Solution Architecture Framework assessment approved | Approved assessment stored with evidence link; exceptions recorded | Pre-live | prod | Programme | draft | (none) | Ensures architectural governance sign-off |
@@ -60,6 +66,8 @@ Solution Architecture Framework assessment approved
 ### GOV-004
 
 Engineering Red-lines compliance checklist signed
+
+See explanation: [GOV-004](../../explanations.md#gov-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -69,6 +77,8 @@ Engineering Red-lines compliance checklist signed
 
 GDPR compliance assessment signed by IG
 
+See explanation: [GOV-005](../../explanations.md#gov-005)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | gdpr-assessment-signed | GDPR compliance assessment signed by IG | Assessment signed; actions tracked | Pre-live + annual | prod | Programme | draft | (none) | Ensures data protection compliance |
@@ -76,6 +86,8 @@ GDPR compliance assessment signed by IG
 ### GOV-006
 
 Medical Device out-of-scope statement recorded
+
+See explanation: [GOV-006](../../explanations.md#gov-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -85,6 +97,8 @@ Medical Device out-of-scope statement recorded
 
 FtRS Architects review & approval logged
 
+See explanation: [GOV-007](../../explanations.md#gov-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | ftrs-architects-approval | FtRS Architects review & approval logged | Review minutes and approval recorded; actions tracked | Pre-live + on major change | prod | Programme | draft | (none) | Provides architectural oversight evidence |
@@ -92,6 +106,8 @@ FtRS Architects review & approval logged
 ### GOV-008
 
 Cloud Expert deployment approval documented
+
+See explanation: [GOV-008](../../explanations.md#gov-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -101,6 +117,8 @@ Cloud Expert deployment approval documented
 
 Solution Assurance approval ticket closed
 
+See explanation: [GOV-009](../../explanations.md#gov-009)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | solution-assurance-approval | Solution Assurance approval ticket closed | Approval obtained; ticket closed | Pre-live | prod | Programme | draft | (none) | Meets governance approval requirements |
@@ -108,6 +126,8 @@ Solution Assurance approval ticket closed
 ### GOV-010
 
 Clinical Safety assurance approval recorded
+
+See explanation: [GOV-010](../../explanations.md#gov-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -117,6 +137,8 @@ Clinical Safety assurance approval recorded
 
 Information Governance approval recorded
 
+See explanation: [GOV-011](../../explanations.md#gov-011)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | ig-approval-recorded | Information Governance approval recorded | Approval recorded; actions tracked | Pre-live | prod | Programme | draft | (none) | Meets IG governance |
@@ -124,6 +146,8 @@ Information Governance approval recorded
 ### GOV-012
 
 TRG approval session outcome logged
+
+See explanation: [GOV-012](../../explanations.md#gov-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -133,6 +157,8 @@ TRG approval session outcome logged
 
 SIRO sign-off obtained
 
+See explanation: [GOV-013](../../explanations.md#gov-013)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | siro-signoff | SIRO sign-off obtained | Sign-off recorded; evidence stored | Pre-live | prod | Programme | draft | (none) | Confirms senior risk acceptance |
@@ -140,6 +166,8 @@ SIRO sign-off obtained
 ### GOV-014
 
 Caldicott Principles Guardian approval recorded
+
+See explanation: [GOV-014](../../explanations.md#gov-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -149,6 +177,8 @@ Caldicott Principles Guardian approval recorded
 
 DUEC Assurance Board acceptance logged
 
+See explanation: [GOV-015](../../explanations.md#gov-015)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | duec-acceptance | DUEC Assurance Board acceptance logged | Acceptance recorded; actions tracked | Pre-live | prod | Programme | draft | (none) | Documents assurance acceptance |
@@ -156,6 +186,8 @@ DUEC Assurance Board acceptance logged
 ### GOV-016
 
 Live Services Board go-live approval recorded
+
+See explanation: [GOV-016](../../explanations.md#gov-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

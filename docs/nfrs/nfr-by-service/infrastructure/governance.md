@@ -24,6 +24,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Service Management pre-live acceptance signed
 
+See explanation: [GOV-001](../../explanations.md#gov-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | service-management-pre-live | Service Management pre-live acceptance signed | Acceptance signed; evidence stored | Pre-live | prod | Infrastructure | draft | (none) | Ensures service readiness sign-off |
@@ -32,6 +34,8 @@ Service Management pre-live acceptance signed
 
 Well-Architected review completed & actions closed
 
+See explanation: [GOV-002](../../explanations.md#gov-002)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | well-architected-review | Well-Architected review completed & actions closed | Review complete; actions closed or exceptioned | Pre-live + annual | prod | Infrastructure | draft | (none) | Maintains architectural quality |
@@ -39,6 +43,8 @@ Well-Architected review completed & actions closed
 ### GOV-004
 
 Engineering Red-lines compliance checklist signed
+
+See explanation: [GOV-004](../../explanations.md#gov-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

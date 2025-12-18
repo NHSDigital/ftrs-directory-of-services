@@ -42,6 +42,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Each operation meets registry-defined percentile targets (p50/p95) logged & asserted (see performance/expectations.yaml)
 
+See explanation: [PERF-001](../../explanations.md#perf-001)
+
 Sources: [Performance NFRs – Atomic Requirements](requirements/nfrs/areas/performance/overview.md#PERF-001)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Operation ID | p50 ms | p95 ms | Max ms | Rationale |
@@ -52,6 +54,8 @@ Sources: [Performance NFRs – Atomic Requirements](requirements/nfrs/areas/perf
 ### PERF-013
 
 Request payload size per endpoint stays within the defined maximum (max_request_payload_bytes)
+
+See explanation: [PERF-013](../../explanations.md#perf-013)
 
 Sources: [Performance NFRs – Atomic Requirements](requirements/nfrs/areas/performance/overview.md#PERF-013)
 

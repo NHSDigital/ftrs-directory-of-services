@@ -24,6 +24,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Published OS/browser list matches warranted spec
 
+See explanation: [COMP-001](../../explanations.md#comp-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | published-supported-platforms | Published OS/browser list matches warranted spec | Supported platform list published and current | Quarterly | prod | Read-only Viewer | draft | (none) | Sets clear compatibility expectations for users |
@@ -32,6 +34,8 @@ Published OS/browser list matches warranted spec
 
 MFA (CIS2) succeeds across supported platforms
 
+See explanation: [COMP-002](../../explanations.md#comp-002)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | mfa-platforms | MFA (CIS2) succeeds across supported platforms | MFA journeys pass across supported platforms | Release cycle | int,ref,prod | Read-only Viewer | draft | (none) | Ensures authentication compatibility |
@@ -39,6 +43,8 @@ MFA (CIS2) succeeds across supported platforms
 ### COMP-003
 
 ≥90% critical journeys test pass per platform
+
+See explanation: [COMP-003](../../explanations.md#comp-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

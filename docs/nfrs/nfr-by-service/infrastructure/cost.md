@@ -28,6 +28,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Mandatory tagging set present on 100% resources
 
+See explanation: [COST-001](../../explanations.md#cost-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | Continuous + monthly report | dev,int,ref,prod | Infrastructure | draft | (none) | Enables cost visibility and accountability |
@@ -35,6 +37,8 @@ Mandatory tagging set present on 100% resources
 ### COST-002
 
 Monthly Cost Explorer review & anomaly log
+
+See explanation: [COST-002](../../explanations.md#cost-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -44,6 +48,8 @@ Monthly Cost Explorer review & anomaly log
 
 CloudHealth access for each team infra engineer
 
+See explanation: [COST-003](../../explanations.md#cost-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | cloudhealth-access | CloudHealth access for each team infra engineer | Access provisioned; onboarding verified | Quarterly verification | prod | Infrastructure | draft | (none) | Ensures teams can act on cost insights |
@@ -52,6 +58,8 @@ CloudHealth access for each team infra engineer
 
 CloudHealth optimisation & tag compliance reports
 
+See explanation: [COST-004](../../explanations.md#cost-004)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | optimisation-reports | CloudHealth optimisation & tag compliance reports | Reports generated; tracked actions created | Monthly | prod | Infrastructure | draft | (none) | Drives optimisation and tag hygiene |
@@ -59,6 +67,8 @@ CloudHealth optimisation & tag compliance reports
 ### COST-005
 
 Budgets & alert notifications configured & tested
+
+See explanation: [COST-005](../../explanations.md#cost-005)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

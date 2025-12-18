@@ -23,6 +23,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Mandatory tagging set present on 100% resources
 
+See explanation: [COST-001](../../explanations.md#cost-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | mandatory-tagging | Mandatory tagging set present on 100% resources | 100% resources carry mandatory tags | Continuous + monthly report | dev,int,ref,prod | Read-only Viewer | draft | (none) | Enables cost visibility and accountability |
@@ -30,6 +32,8 @@ Mandatory tagging set present on 100% resources
 ### COST-002
 
 Monthly Cost Explorer review & anomaly log
+
+See explanation: [COST-002](../../explanations.md#cost-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

@@ -38,6 +38,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 AZ failure simulation maintains service
 
+See explanation: [REL-002](../../explanations.md#rel-002)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Quarterly exercise | int,ref | Infrastructure | draft | (none) | Validates resilience to Availability Zone failures |
@@ -45,6 +47,8 @@ AZ failure simulation maintains service
 ### REL-003
 
 Lifecycle reliability checklist completed
+
+See explanation: [REL-003](../../explanations.md#rel-003)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -54,6 +58,8 @@ Lifecycle reliability checklist completed
 
 DoS simulation mitigated; service responsive
 
+See explanation: [REL-004](../../explanations.md#rel-004)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | dos-simulation-mitigated | DoS simulation mitigated; service responsive | Sustained responsiveness; error rate \u2264 1%; p95 latency within SLA during attack | Quarterly exercise | int,ref | Infrastructure | draft | (none) | Validates resilience under volumetric attacks |
@@ -61,6 +67,8 @@ DoS simulation mitigated; service responsive
 ### REL-007
 
 Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; rate limits + alerts)
+
+See explanation: [REL-007](../../explanations.md#rel-007)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -70,6 +78,8 @@ Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst capacity; 
 
 Batch suspend/resume preserves data integrity
 
+See explanation: [REL-010](../../explanations.md#rel-010)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | batch-suspend-resume-integrity | Batch suspend/resume preserves data integrity | 0 data loss; consistent resume and reconciliation | Release cycle validation | int,ref | Infrastructure | draft | (none) | Ensures reliable batch operations |
@@ -77,6 +87,8 @@ Batch suspend/resume preserves data integrity
 ### REL-011
 
 Unhealthy node auto-replaced; workload continues
+
+See explanation: [REL-011](../../explanations.md#rel-011)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -86,6 +98,8 @@ Unhealthy node auto-replaced; workload continues
 
 Single node removal shows stable performance & zero data loss
 
+See explanation: [REL-012](../../explanations.md#rel-012)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | single-node-removal-safety | Single node removal shows stable performance & zero data loss | 0 data loss; p95 latency delta \u2264 10% during removal | Quarterly drill | int,ref | Infrastructure | draft | (none) | Ensures resilience to node loss without user impact |
@@ -93,6 +107,8 @@ Single node removal shows stable performance & zero data loss
 ### REL-013
 
 Tier failure graceful degradation & recovery evidenced
+
+See explanation: [REL-013](../../explanations.md#rel-013)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -102,6 +118,8 @@ Tier failure graceful degradation & recovery evidenced
 
 External outage shows fallback & user messaging
 
+See explanation: [REL-014](../../explanations.md#rel-014)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | external-outage-fallback | External outage shows fallback & user messaging | Documented fallback engaged; user messaging displayed; error rate \u2264 2%; recovery within SLA | Quarterly | int,ref | Infrastructure | draft | (none) | Demonstrates graceful handling of external dependency outages |
@@ -110,6 +128,8 @@ External outage shows fallback & user messaging
 
 LB failure retains sessions & continues routing
 
+See explanation: [REL-015](../../explanations.md#rel-015)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | lb-failure-session-retention | LB failure retains sessions & continues routing | Zero session loss; traffic re-routed within 30s; p95 latency delta \u2264 10% | Semi-annual drill | int,ref | Infrastructure | draft | (none) | Ensures resilience of routing tier |
@@ -117,6 +137,8 @@ LB failure retains sessions & continues routing
 ### REL-016
 
 Server error shows logout/message per spec
+
+See explanation: [REL-016](../../explanations.md#rel-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

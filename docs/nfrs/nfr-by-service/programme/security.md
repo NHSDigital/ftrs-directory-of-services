@@ -22,6 +22,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Annual pen test executed; remediation tickets raised & closed
 
+See explanation: [SEC-010](../../explanations.md#sec-010)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | annual-pentest | Annual pen test executed; remediation tickets raised & closed | Pen test executed; all critical findings remediated or exceptioned | Annual | prod | Programme | draft | [FTRS-1440](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1440), [FTRS-1455](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1455), [FTRS-1462](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1462), [FTRS-2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2) | Validates security posture with external testing and tracked remediation |

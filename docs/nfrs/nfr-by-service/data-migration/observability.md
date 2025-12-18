@@ -22,6 +22,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 Alerts delivered to multi-channel with context
 
+See explanation: [OBS-025](../../explanations.md#obs-025)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | migration-variance-alerts | Actionable alerts on data-migration error rate and duration variance | Alert when error_rate >1% over 5m window OR full-sync duration > baseline +20%; include playbook link, correlation_id, impacted counts | Continuous evaluation; monthly threshold tuning; weekly report | int,ref,prod | Data Migration | draft | (none) | Early detection of pipeline health issues to reduce MTTR and prevent silent degradation |

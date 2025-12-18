@@ -43,6 +43,8 @@ Control: governance/verification check that enforces an NFR. Defines measure, th
 
 WCAG 2.2 AA scan & manual audit pass
 
+See explanation: [ACC-001](../../explanations.md#acc-001)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | wcag-aa-pass | WCAG 2.2 AA scan & manual audit pass | Automated AA scan passes; manual audit issues triaged and resolved | Quarterly + pre-release | int,ref | Read-only Viewer | draft | (none) | Ensures accessibility conformance for UI surfaces |
@@ -50,6 +52,8 @@ WCAG 2.2 AA scan & manual audit pass
 ### ACC-002
 
 Automated scans run across critical pages & browsers
+
+See explanation: [ACC-002](../../explanations.md#acc-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -59,6 +63,8 @@ Automated scans run across critical pages & browsers
 
 Manual accessibility test executed per release
 
+See explanation: [ACC-003](../../explanations.md#acc-003)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | manual-accessibility-test | Manual accessibility test executed per release | Release includes manual accessibility audit; issues triaged within 5 business days | Per release | ref | Read-only Viewer | draft | (none) | Ensures human validation beyond automation |
@@ -66,6 +72,8 @@ Manual accessibility test executed per release
 ### ACC-004
 
 Defects tracked with parity priority & SLA
+
+See explanation: [ACC-004](../../explanations.md#acc-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -75,6 +83,8 @@ Defects tracked with parity priority & SLA
 
 Tooling operational in dev/int/reference envs
 
+See explanation: [ACC-005](../../explanations.md#acc-005)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | accessibility-tooling-operational | Tooling operational in dev/int/reference envs | CI scanners and browser runners functional in dev/int/ref | CI per build | dev,int,ref | Read-only Viewer | draft | (none) | Guarantees tooling readiness across envs |
@@ -82,6 +92,8 @@ Tooling operational in dev/int/reference envs
 ### ACC-006
 
 Assistive tech not blocked by headers/CSP
+
+See explanation: [ACC-006](../../explanations.md#acc-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -91,6 +103,8 @@ Assistive tech not blocked by headers/CSP
 
 Test dataset covers tables/forms/status messages
 
+See explanation: [ACC-007](../../explanations.md#acc-007)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | accessibility-test-dataset-coverage | Test dataset covers tables/forms/status messages | Dataset includes representative components; annual review | Annual | int | Read-only Viewer | draft | (none) | Ensures coverage of common interactive components |
@@ -98,6 +112,8 @@ Test dataset covers tables/forms/status messages
 ### ACC-008
 
 CI accessibility stage completes <5min
+
+See explanation: [ACC-008](../../explanations.md#acc-008)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -107,6 +123,8 @@ CI accessibility stage completes <5min
 
 Keyboard tab order regression test passes
 
+See explanation: [ACC-009](../../explanations.md#acc-009)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | keyboard-tab-order | Keyboard tab order regression test passes | Tab order matches expected flow; no focus loss | CI per build + pre-release | int,ref | Read-only Viewer | draft | (none) | Supports keyboard-only navigation |
@@ -114,6 +132,8 @@ Keyboard tab order regression test passes
 ### ACC-010
 
 Focus trap tests pass for modals/overlays
+
+See explanation: [ACC-010](../../explanations.md#acc-010)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -123,6 +143,8 @@ Focus trap tests pass for modals/overlays
 
 Screen reader ARIA role announcements verified
 
+See explanation: [ACC-011](../../explanations.md#acc-011)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | aria-role-announcements | Screen reader ARIA role announcements verified | ARIA roles/states announced correctly across key flows | Quarterly | ref | Read-only Viewer | draft | (none) | Validates semantic accessibility |
@@ -130,6 +152,8 @@ Screen reader ARIA role announcements verified
 ### ACC-012
 
 Accessibility results documented with feature tests
+
+See explanation: [ACC-012](../../explanations.md#acc-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -139,6 +163,8 @@ Accessibility results documented with feature tests
 
 Central issue log maintained & current
 
+See explanation: [ACC-013](../../explanations.md#acc-013)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | accessibility-issue-log-current | Central issue log maintained & current | Log updated within 5 business days of finding; monthly review | Monthly | int | Read-only Viewer | draft | (none) | Ensures visibility of accessibility work |
@@ -146,6 +172,8 @@ Central issue log maintained & current
 ### ACC-014
 
 Accessibility champion/workgroup active
+
+See explanation: [ACC-014](../../explanations.md#acc-014)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -155,6 +183,8 @@ Accessibility champion/workgroup active
 
 Monthly accessibility report published
 
+See explanation: [ACC-015](../../explanations.md#acc-015)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | monthly-accessibility-report | Monthly accessibility report published | Report produced and published monthly with tracked actions | Monthly | int,ref | Read-only Viewer | draft | (none) | Maintains visibility and accountability |
@@ -162,6 +192,8 @@ Monthly accessibility report published
 ### ACC-016
 
 Exception process documented & used
+
+See explanation: [ACC-016](../../explanations.md#acc-016)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -171,6 +203,8 @@ Exception process documented & used
 
 Exception record contains required fields
 
+See explanation: [ACC-017](../../explanations.md#acc-017)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | accessibility-exception-record-fields | Exception record contains required fields | 100% exceptions include fields; expiry monitored | Monthly | int | Read-only Viewer | draft | (none) | Ensures actionable exception management |
@@ -178,6 +212,8 @@ Exception record contains required fields
 ### ACC-018
 
 Pre-commit checks complete <30s
+
+See explanation: [ACC-018](../../explanations.md#acc-018)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -187,6 +223,8 @@ Pre-commit checks complete <30s
 
 CI accessibility stage completes <5min
 
+See explanation: [ACC-019](../../explanations.md#acc-019)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | ci-accessibility-duration-policy | CI accessibility stage completes <5min | CI job < 5 minutes; breaches trigger optimisation ticket | CI per build | int | Read-only Viewer | draft | (none) | Enforces pipeline performance policy |
@@ -194,6 +232,8 @@ CI accessibility stage completes <5min
 ### ACC-020
 
 Overnight full scan duration <2h
+
+See explanation: [ACC-020](../../explanations.md#acc-020)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
@@ -203,6 +243,8 @@ Overnight full scan duration <2h
 
 Accessibility regression triggers alert
 
+See explanation: [ACC-021](../../explanations.md#acc-021)
+
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | accessibility-regression-alert | Accessibility regression triggers alert | Alert fires on score drop or new critical issue | CI per build | int | Read-only Viewer | draft | (none) | Fast feedback on regressions |
@@ -210,6 +252,8 @@ Accessibility regression triggers alert
 ### ACC-022
 
 False positive ratio report shows improvement
+
+See explanation: [ACC-022](../../explanations.md#acc-022)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|

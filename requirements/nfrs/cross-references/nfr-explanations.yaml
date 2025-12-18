@@ -134,7 +134,25 @@ explanations:
   # Interoperability
   INT-001: "Resources conform to UK Core profiles ensuring national standard alignment."
   INT-002: "Versioning and deprecation policy is published for integrators."
-  INT-003: "Minor releases remain backward compatible for the defined support window."
+  INT-003: |
+    Minor releases must remain backward compatible for consumers. Deprecations are announced
+    in a minor release and not removed within the same major. Removal happens at the next
+    major release and never earlier than 12 months after the first deprecation notice
+    (whichever is later).
+
+    Why this matters:
+    - Protects integrators from frequent breaking changes tied to team release cadence.
+    - Guarantees a clear minimum adaptation window that spans typical annual planning cycles.
+    - Keeps policy consumer-centric while still allowing evolution at major boundaries.
+
+    Acceptance (evidence we expect to see):
+    - Contract compatibility tests pass for supported minor versions in CI and at release review.
+    - A deprecation ledger records first-notice date, affected fields/endpoints, and planned removal version.
+    - Release notes include deprecations with migration guidance and timelines.
+    - A CI gate prevents breaking changes in minor releases unless an approved exception is recorded.
+
+    Exceptions:
+    - Rare, pre-approved, and documented with consumer sign-off; mitigations and timelines included.
   INT-004: "Semantic mappings preserve meaning when round-tripped between formats."
   INT-005: "Error responses follow standard OperationOutcome structure."
   INT-006: "Identifiers are normalised (case, trimming) for consistent matching."
