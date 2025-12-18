@@ -1,5 +1,4 @@
 #set($lastUpdated = $input.params('_lastUpdated'))
-#set($scenario = $input.params('scenario'))
 
 #if($lastUpdated == "2024-05-12")
   {
@@ -34,7 +33,7 @@
       }
     ]
   }
-#elseif($scenario == "invalid_data_types" || ($lastUpdated == "2025-10-01" && !$scenario))
+#elseif($lastUpdated == "2025-10-01")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -118,7 +117,7 @@
       }
     ]
   }
-#elseif($scenario == "missing_required_fields")
+#elseif($lastUpdated == "2025-11-01")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -129,7 +128,7 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-11-01"
       }
     ],
     "entry": [
@@ -188,7 +187,7 @@
       }
     ]
   }
-#elseif($scenario == "invalid_resource")
+#elseif($lastUpdated == "2025-09-01")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -199,7 +198,7 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-09-01"
       }
     ],
     "entry": [
@@ -226,7 +225,7 @@
       }
     ]
   }
-#elseif($scenario == "extra_unexpected_field")
+#elseif($lastUpdated == "2025-08-01")
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -237,7 +236,7 @@
     "link": [
       {
         "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-01"
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-08-01"
       }
     ],
     "entry": [
