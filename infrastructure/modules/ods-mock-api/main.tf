@@ -116,49 +116,15 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   depends_on = [aws_api_gateway_integration.organization_get_mock]
 }
 
-resource "aws_api_gateway_integration_response" "organization_get_401" {
-  rest_api_id       = aws_api_gateway_rest_api.ods_mock.id
-  resource_id       = aws_api_gateway_resource.organization.id
-  http_method       = aws_api_gateway_method.organization_get.http_method
-  status_code       = aws_api_gateway_method_response.organization_get_401.status_code
-  selection_pattern = "401"
 
-  response_parameters = {
-    "method.response.header.Content-Type" = "'application/fhir+json'"
-  }
 
-  response_templates = {
-    "application/fhir+json" = "$input.body"
-  }
 
-  depends_on = [aws_api_gateway_integration.organization_get_mock]
-}
-
-resource "aws_api_gateway_integration_response" "organization_get_500" {
-  rest_api_id       = aws_api_gateway_rest_api.ods_mock.id
-  resource_id       = aws_api_gateway_resource.organization.id
-  http_method       = aws_api_gateway_method.organization_get.http_method
-  status_code       = aws_api_gateway_method_response.organization_get_500.status_code
-  selection_pattern = "500"
-
-  response_parameters = {
-    "method.response.header.Content-Type" = "'application/fhir+json'"
-  }
-
-  response_templates = {
-    "application/fhir+json" = "$input.body"
-  }
-
-  depends_on = [aws_api_gateway_integration.organization_get_mock]
-}
 
 resource "aws_api_gateway_deployment" "ods_mock" {
   rest_api_id = aws_api_gateway_rest_api.ods_mock.id
 
   depends_on = [
     aws_api_gateway_integration_response.organization_get_200,
-    aws_api_gateway_integration_response.organization_get_401,
-    aws_api_gateway_integration_response.organization_get_500,
   ]
 
   triggers = {
