@@ -49,7 +49,6 @@ def test_to_fhir_maps_fields_correctly() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="abc123",
         non_primary_role_codes=["bcd123"],
@@ -242,6 +241,7 @@ def test__build_telecom_str_phone() -> None:
     assert telecom[0].value == "0300 311 22 33"
     assert telecom[0].use is None
 
+
 def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
     valid_uuid = str(uuid.uuid4())
@@ -254,7 +254,6 @@ def test_from_fhir_maps_fields_correctly() -> None:
         ],
         name="Test GP Org",
         active=True,
-        type=org_type,
         telecom=[ContactPoint(system="phone", value="0300 311 22 33")],
     )
     internal_organisation = mapper.from_fhir(org)
@@ -265,7 +264,6 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.telecom == [
         Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
     ]
-    assert internal_organisation.type == "GP Practice"
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
@@ -437,7 +435,6 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
     assert result.telecom[0].value == "0300 311 22 33"
-    assert result.type[0].coding[0].display == "GP Practice"
 
 
 def test_to_fhir_bundle_single_org() -> None:
@@ -448,7 +445,6 @@ def test_to_fhir_bundle_single_org() -> None:
         name="Test Org 1",
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_single = mapper.to_fhir_bundle([org1])
@@ -466,11 +462,7 @@ def test_to_fhir_bundle_single_org() -> None:
     )
     assert resource.identifier[0].use == "official"
     assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].use == "work"
     assert resource.telecom[0].value == "020 7972 3272"
-    assert resource.type[0].coding[0].display == "GP Practice"
-    assert resource.type[0].coding[0].code == "GP Practice"
-    assert resource.type[0].text == "GP Practice"
     assert (
         resource.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -487,7 +479,6 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     org2 = Organisation(
@@ -496,7 +487,6 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         name="Test Org 2",
         active=False,
         telecom=[],
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
@@ -1011,7 +1001,6 @@ def test_to_fhir_with_legal_dates() -> None:
         name="Test Org",
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-        type="GP Practice",
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="RO182",
@@ -2467,6 +2456,7 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
         modifiedBy="TEST",
         primary_role_code="RO182",
         non_primary_role_codes=["RO198", "RO76"],
+        telecom=[]
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2486,6 +2476,7 @@ def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
         active=True,
         modifiedBy="TEST",
         non_primary_role_codes=["RO198", "RO76"],
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2505,6 +2496,7 @@ def test__build_organisation_extensions_with_legal_dates() -> None:
         primary_role_code="RO182",
         non_primary_role_codes=["RO198"],
         legalDates=LegalDates(start=date(2020, 1, 1), end=date(2025, 12, 31)),
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2528,6 +2520,7 @@ def test__build_organisation_extensions_with_no_roles() -> None:
         name="Test Org",
         active=True,
         modifiedBy="TEST",
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2547,6 +2540,7 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
         name="Test Org",
         active=True,
         modifiedBy="TEST",
+        telecom=[],
         primary_role_code="RO182",  # To create valid Organisation
     )
 
@@ -2571,6 +2565,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
         active=True,
         modifiedBy="TEST",
         non_primary_role_codes=["RO198"],  # To create valid Organisation
+        telecom=[]
     )
 
     with patch.object(mapper, "_build_organisation_role_extension", return_value=None):

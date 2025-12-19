@@ -403,7 +403,6 @@ def test_update_organisation_telecom_phone_validation_error_exception(
             {"system": "phone", "value": "01234"},
             {"system": "email", "value": "mailnhs.net"},
         ],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)
@@ -436,7 +435,6 @@ def test_update_organisation_telecom_email_validation_error_exception(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "email", "value": "mailnhs.net"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)
@@ -469,7 +467,6 @@ def test_update_organisation_telecom_url_validation_error_exception(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "url", "value": "nhs.net"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)
@@ -506,7 +503,6 @@ def test_update_organisation_telecom_no_type_value_error_exception(
             {"value": "01234"},
             {"system": "email", "value": "mailnhs.net"},
         ],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)
@@ -542,7 +538,6 @@ def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
             {"system": "pager", "value": "01234"},
             {"system": "email", "value": "mailnhs.net"},
         ],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)
@@ -577,7 +572,6 @@ def test_update_organisation_telecom_invalid_value_character_value_error_excepti
         "telecom": [
             {"system": "phone", "value": "0300 311 22 33#"},
         ],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     try:
         organisation_service.process_organisation_update(test_org_id, update_payload)

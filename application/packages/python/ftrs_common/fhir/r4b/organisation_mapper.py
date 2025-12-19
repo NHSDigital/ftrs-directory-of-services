@@ -1,5 +1,4 @@
 from fhir.resources.R4B.bundle import Bundle, BundleEntry
-from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
@@ -7,10 +6,8 @@ from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.base_mapper import FhirMapper
 from ftrs_common.fhir.fhir_validator import FhirValidator
 from ftrs_common.utils.title_case_sanitization import sanitize_string_field
-from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.domain import Organisation, Telecom
-from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
 
 VALID_PRIMARY_TYPE_CODES = {

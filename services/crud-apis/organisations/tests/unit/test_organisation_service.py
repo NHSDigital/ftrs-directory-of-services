@@ -158,7 +158,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "non_primary_role_codes": [OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         }
         assert (
-            "Computed outdated fields: ['active', 'name', 'telecom', 'primary_role_code', 'non_primary_role_codes', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
+            "Computed outdated fields: ['active', 'name', 'primary_role_code', 'non_primary_role_codes', 'telecom', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
             in caplog.text
         )
 
@@ -201,7 +201,7 @@ def test_raises_error_when_organisation_already_exists() -> None:
     org_repository.get_by_ods_code.return_value = Organisation(
         identifier_ODS_ODSCode="M81094",
         name="Existing Organisation",
-        active=True,   
+        active=True,
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
@@ -607,7 +607,6 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
         active=True,
         name="Test Org",
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-        
         endpoints=[],
         id=organisation_id,
         createdBy="test",

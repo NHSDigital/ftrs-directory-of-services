@@ -10,9 +10,8 @@ from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeHandler,
 )
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.domain import Telecom
-from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
