@@ -1,5 +1,5 @@
 from time import perf_counter
-from typing import Iterable
+from typing import Any, Iterable
 from uuid import uuid4
 
 from boto3.dynamodb.types import TypeSerializer
@@ -52,6 +52,8 @@ class DataMigrationProcessor:
     This class is responsible for managing the data migration process.
     It includes methods to transform legacy service data into the new format.
     """
+
+    serializer: TypeSerializer = TypeSerializer()
 
     def __init__(
         self,
@@ -223,11 +225,7 @@ class DataMigrationProcessor:
             yield from session.scalars(stmt)
 
     def _create_put_item(
-        self,
-        model: BaseModel,
-        table_name: str,
-        serializer: TypeSerializer,
-        with_condition: bool = True,
+        self, model: BaseModel, table_name: str, **kwargs: dict[str, Any]
     ) -> dict:
         """Helper method to create DynamoDB Put item with proper serialization."""
         data = model.model_dump(mode="json")
@@ -237,16 +235,10 @@ class DataMigrationProcessor:
         put_item = {
             "Put": {
                 "TableName": table_name,
-                "Item": {k: serializer.serialize(v) for k, v in data.items()},
-            }
+                "Item": {k: self.serializer.serialize(v) for k, v in data.items()},
+                **kwargs,
+            },
         }
-
-        if with_condition:
-            put_item["Put"]["ConditionExpression"] = (
-                "attribute_not_exists(id) AND attribute_not_exists(#field)"
-            )
-            put_item["Put"]["ExpressionAttributeNames"] = {"#field": "field"}
-
         return put_item
 
     def _save(self, result: ServiceTransformOutput, service_id: int) -> None:
@@ -254,7 +246,6 @@ class DataMigrationProcessor:
         Save the transformed result to DynamoDB using transact_write_items for atomic writes.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-        serializer = TypeSerializer()
 
         # Cache table names
         env = self.config.env
@@ -273,19 +264,34 @@ class DataMigrationProcessor:
 
         # Add all organisations
         transact_items.extend(
-            self._create_put_item(org, tables["organisation"], serializer)
+            self._create_put_item(
+                org,
+                tables["organisation"],
+                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
+                ExpressionAttributeNames={"#field": "field"},
+            )
             for org in result.organisation
         )
 
         # Add all locations
         transact_items.extend(
-            self._create_put_item(loc, tables["location"], serializer)
+            self._create_put_item(
+                loc,
+                tables["location"],
+                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
+                ExpressionAttributeNames={"#field": "field"},
+            )
             for loc in result.location
         )
 
         # Add all healthcare services
         transact_items.extend(
-            self._create_put_item(hc, tables["healthcare_service"], serializer)
+            self._create_put_item(
+                hc,
+                tables["healthcare_service"],
+                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
+                ExpressionAttributeNames={"#field": "field"},
+            )
             for hc in result.healthcare_service
         )
 
@@ -302,7 +308,11 @@ class DataMigrationProcessor:
             healthcare_service=result.healthcare_service[0],
         )
         transact_items.append(
-            self._create_put_item(state_data, tables["state"], serializer)
+            self._create_put_item(
+                state_data,
+                tables["state"],
+                ConditionExpression="attribute_not_exists(source_record_id)",
+            )
         )
 
         # Execute atomic transaction
@@ -313,7 +323,33 @@ class DataMigrationProcessor:
                 record_id=service_id,
                 item_count=len(transact_items),
             )
-        except Exception:
+        except Exception as e:
+            # Check if it's a TransactionCanceledException with ConditionalCheckFailed
+            error_code = None
+            if hasattr(e, "response"):
+                error_code = e.response.get("Error", {}).get("Code")
+
+            if (
+                e.__class__.__name__ == "TransactionCanceledException"
+                or error_code == "TransactionCanceledException"
+            ):
+                # Check if the cancellation reason is ConditionalCheckFailed
+                cancellation_reasons = []
+                if hasattr(e, "response"):
+                    cancellation_reasons = e.response.get("CancellationReasons", [])
+
+                # If any item failed due to ConditionalCheckFailed, it means records already exist
+                if any(
+                    reason.get("Code") == "ConditionalCheckFailed"
+                    for reason in cancellation_reasons
+                ):
+                    self.logger.log(
+                        DataMigrationLogBase.DM_ETL_022,
+                        record_id=service_id,
+                    )
+                    return
+
+            # For all other exceptions, log and re-raise
             self.logger.exception(
                 f"Failed to write items transactionally for service {service_id}"
             )
@@ -346,7 +382,7 @@ class DataMigrationProcessor:
         """
         Check if a data migration state record exists for the given service ID.
         Returns True if the state record exists.
-        Uses get_item with the source_record_id and version as composite key.
+        Uses get_item with the source_record_id as the key.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
 

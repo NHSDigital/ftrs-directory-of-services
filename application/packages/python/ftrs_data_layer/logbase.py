@@ -183,6 +183,11 @@ class DataMigrationLogBase(LogBase):
         message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
     )
 
+    DM_ETL_022 = LogReference(
+        level=ERROR,
+        message="One or more items exist for  Service ID {record_id}",
+    )
+
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
