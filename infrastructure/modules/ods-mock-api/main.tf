@@ -106,7 +106,7 @@ resource "aws_api_gateway_integration_response" "organization_get_200" {
   status_code = aws_api_gateway_method_response.organization_get_200.status_code
 
   response_parameters = {
-    # Content-Type is dynamically set by the VTL template based on Accept header
+    "method.response.header.Content-Type" = "'application/fhir+json'"
   }
 
   response_templates = {
