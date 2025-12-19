@@ -1,8 +1,18 @@
 #set($lastUpdated = $input.params('_lastUpdated'))
+#set($acceptHeader = $input.params('Accept'))
+#if($acceptHeader && ($acceptHeader.contains('application/json') || $acceptHeader.contains('application/fhir+json')))
+  #if($acceptHeader.contains('application/fhir+json'))
+    #set($responseContentType = "application/fhir+json")
+  #else
+    #set($responseContentType = "application/json")
+  #end
+#else
+  #set($responseContentType = "application/fhir+json")
+#end
 
 #if($lastUpdated == "2025-12-15")
   #set($context.responseOverride.status = 401)
-  #set($context.responseOverride.header.Content-Type = "application/json")
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "OperationOutcome",
     "id": "unauthorized",
@@ -16,7 +26,7 @@
   }
 #elseif($lastUpdated == "2025-12-16")
   #set($context.responseOverride.status = 500)
-  #set($context.responseOverride.header.Content-Type = "application/json")
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "OperationOutcome",
     "id": "internal-server-error",
@@ -29,6 +39,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-09")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
 
     "resourceType": "Bundle",
@@ -46,6 +58,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-14")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "803d2eaa-d868-4cc4-b95e-2f81f04abbb8",
@@ -62,6 +76,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-08")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -290,6 +306,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-11")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -505,6 +523,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-10")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -543,6 +563,8 @@
     ]
   }
 #elseif($lastUpdated == "2025-12-12")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "befa3684-518d-4e67-a83e-978db11a539f",
@@ -734,7 +756,27 @@
       }
     ]
   }
+#elseif($lastUpdated == "2025-12-17")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
+  {
+    "resourceType": "Bundle",
+    "id": "unknown-resource-type",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "resource": {
+          "resourceType": "Location",
+          "id": "wrong-resource-type",
+          "name": "This is a Location instead of Organization"
+        }
+      }
+    ]
+  }
 #else
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
   {
     "resourceType": "Bundle",
     "id": "test-bundle",
@@ -837,6 +879,39 @@
             }
           ]
         }
+      }
+    ]
+  }
+#elseif($lastUpdated == "2025-12-13")
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
+  {
+    "resourceType": "Bundle",
+    "id": "invalid-resource-type",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "resource": {
+          "resourceType": "Location",
+          "id": "invalid-org",
+          "name": "This is a Location returned instead of Organization (invalid resource type)"
+        }
+      }
+    ]
+  }
+#else
+  #set($context.responseOverride.status = 200)
+  #set($context.responseOverride.header.Content-Type = $responseContentType)
+  {
+    "resourceType": "Bundle",
+    "id": "default-response",
+    "type": "searchset",
+    "total": 0,
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=$lastUpdated"
       }
     ]
   }
