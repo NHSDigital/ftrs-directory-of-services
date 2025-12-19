@@ -563,6 +563,10 @@ class CrudApisLogBase(LogBase):
         level=WARNING,
         message="Received invalid legal dates, legal period start and end dates are equal: {date}.",
     )
+    ORGANISATION_024 = LogReference(
+        level=ERROR,
+        message="Error when validating roles for organisation {organisation_id}: {error_message}.",
+    )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,
         message="Received request to create healthcare service with name: {name} and type: {type}.",

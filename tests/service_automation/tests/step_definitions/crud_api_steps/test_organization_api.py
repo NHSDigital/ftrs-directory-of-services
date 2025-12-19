@@ -43,12 +43,9 @@ def update_name(payload: dict, value: str):
     payload["name"] = value
 
 
-def update_type(payload: dict, value: str):
-    payload["type"][0]["text"] = value
-
-
 def update_telecom(payload: dict, value: str):
     payload["telecom"][0]["value"] = value
+
 
 
 def update_identifier(payload: dict, value: str):
@@ -61,7 +58,6 @@ def update_active(payload: dict, value: str):
 
 FIELD_UPDATERS = {
     "name": update_name,
-    "type": update_type,
     "telecom": update_telecom,
     "identifier": update_identifier,
     "active": update_active,
@@ -161,7 +157,6 @@ def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = Fals
     fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
-        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
@@ -369,8 +364,8 @@ def build_organisation_role_extension_with_typed_period(
                     "coding": [
                         {
                             "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": "RO76",
-                            "display": "GP PRACTICE",
+                            "code": "RO182",
+                            "display": "Pharmacy"
                         }
                     ]
                 },
@@ -641,7 +636,9 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
 
 def _build_invalid_role_extension(invalid_scenario: str) -> dict:
     """Build invalid OrganisationRole extensions for different test scenarios."""
-    if invalid_scenario == "invalid role extension url":
+    typed_period = build_typed_period_extension("2020-01-15", "2025-12-31", "Legal")
+
+    if invalid_scenario == "invalid organisation role extension url":
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID",
             "extension": [
@@ -656,16 +653,23 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    },
+                    }
                 },
-            ],
+                typed_period
+            ]
         }
-    elif invalid_scenario == "missing role extension url":
+    elif invalid_scenario == "missing role organisation url":
         return {
             # "url" is missing here
-            "extension": [{"url": "instanceID", "valueInteger": 12345}]
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                typed_period
+            ]
         }
-    elif invalid_scenario == "empty role extension url":
+    elif invalid_scenario == "empty organisation role extension url":
         return {
             "url": "",  # Empty string URL
             "extension": [
@@ -680,9 +684,104 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    },
+                    }
                 },
-            ],
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "missing roleCode extension":
+        # OrganisationRole without any roleCode extension
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing valueCodeableConcept":
+        # roleCode extension without valueCodeableConcept
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode"
+                    # No valueCodeableConcept
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing coding array":
+        # roleCode with valueCodeableConcept but no coding array
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        # No coding array
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode empty code value":
+        # roleCode with empty code value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "",  # Empty code value
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode invalid enum value":
+        # roleCode with invalid enum value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "INVALID_CODE",  # Not a valid OrganisationTypeCode
+                                "display": "Invalid Code"
+                            }
+                        ]
+                    }
+                },
+                typed_period
+            ]
         }
     else:
         raise ValueError(f"Unknown role extension invalid_scenario: {invalid_scenario}")
@@ -723,12 +822,19 @@ def step_update_with_invalid_extension(
     """Update organization with various invalid extension scenarios."""
     payload = _load_default_payload()
 
-    # Handle role-level validation scenarios
-    if invalid_scenario in (
-        "invalid role extension url",
-        "missing role extension url",
-        "empty role extension url",
-    ):
+    # Handle role-level validation scenarios (URL and roleCode structure)
+    role_level_scenarios = (
+        "invalid organisation role extension url",
+        "missing role organisation url",
+        "empty organisation role extension url",
+        "missing roleCode extension",
+        "roleCode missing valueCodeableConcept",
+        "roleCode missing coding array",
+        "roleCode empty code value",
+        "roleCode invalid enum value"
+    )
+
+    if invalid_scenario in role_level_scenarios:
         invalid_role_extension = _build_invalid_role_extension(invalid_scenario)
         payload["extension"] = [invalid_role_extension]
     else:
@@ -859,6 +965,22 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
+    actual = getattr(item, field, None)
+
+    if field == "non_primary_role_codes":
+        if value.strip() == "[]":
+            expected = []
+        else:
+            # Remove brackets and split by comma, stripping whitespace from each code
+            cleaned = value.strip().strip("[]")
+            expected = [code.strip() for code in cleaned.split(",")] if cleaned else []
+
+        # Convert actual values to strings for comparison if they are enums
+        actual_codes = [str(code.value) if hasattr(code, 'value') else str(code) for code in (actual or [])]
+
+        logger.info(f"Validating {field}: expected={expected}, actual={actual_codes}")
+        assert actual_codes == expected, f"{field} mismatch: expected {expected}, got {actual_codes}"
+        return
 
     # Convert string "None" to Python None for comparison
     expected = None if value == "None" else value
@@ -937,3 +1059,134 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     )
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
+
+@when(
+    parsers.parse(
+        'I set the role extensions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_set_role_extensions(
+    api_request_context_mtls_crud: object,
+    primary_role_code: str,
+    non_primary_role_codes: str,
+) -> object:
+    """Set role extensions with primary and non-primary role codes and update organization."""
+    payload = _load_default_payload()
+
+    role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    payload["extension"] = []
+
+    # Handle None primary role code
+    if primary_role_code.lower() == "none":
+        primary_role_code = None
+
+    # Build primary role extension if primary code exists
+    if primary_role_code:
+        primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": primary_role_code,
+                        }]
+                    }
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload["extension"].append(primary_ext)
+
+    role_codes_list = []
+    if non_primary_role_codes and non_primary_role_codes.strip():
+        cleaned = non_primary_role_codes.strip().strip("[]")
+        if cleaned and cleaned.lower() != "none":
+            role_codes_list = [code.strip() for code in cleaned.split(",")]
+
+    # Build non-primary role extensions
+    for code in role_codes_list:
+        if code.lower() == "none":
+            continue
+
+        non_primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": code,
+                        }]
+                    }
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload["extension"].append(non_primary_ext)
+
+    logger.info(f"Extension count: {len(payload.get('extension', []))}")
+
+    organisation_id = payload.get("id")
+    url = get_url("crud") + f"/Organization/{organisation_id}"
+
+    logger.info(f"Updating organization {organisation_id} with role extensions")
+    logger.debug(f"Payload: {json.dumps(payload, indent=2)}")
+
+    response = api_request_context_mtls_crud.put(
+        url,
+        data=json.dumps(payload),
+        headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+        },
+    )
+
+    response.request_body = payload
+
+    logger.info(f"Response status: {response.status}")
+    logger.debug(f"Response body: {response.text()}")
+
+    return response
+

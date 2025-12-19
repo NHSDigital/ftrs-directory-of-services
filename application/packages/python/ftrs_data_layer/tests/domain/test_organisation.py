@@ -28,6 +28,8 @@ def test_organisation() -> None:
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "name": "Test Organisation",
+        "non_primary_role_codes": [],
+        "primary_role_code": None,
         "telecom": "123456789",
         "type": "GP Practice",
         "endpoints": [],

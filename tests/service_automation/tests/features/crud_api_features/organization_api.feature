@@ -77,7 +77,6 @@ Feature: Organization API Endpoint
     Examples:
       | field   | value                           |
       | name    | Medical Practice - !Covid Local |
-      | type    | !Surgery                        |
       | telecom | 9876543210(                     |
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
@@ -93,9 +92,65 @@ Feature: Organization API Endpoint
       | field   | value           | field_path       | invalid_value   |
       | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
       | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
-      | type    | #BRANCH SURGERY | type[0].text     | #BRANCH SURGERY |
-      | type    | BRANCH#SURGERY  | type[0].text     | BRANCH#SURGERY  |
       | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
+
+  Scenario Outline: Update Organisation with valid non-primary roles
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
+    Then I receive a status code "200" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains an issue with code "success"
+    And the database reflects "primary_role_code" with value "<primary_role_code>"
+    And the database reflects "non_primary_role_codes" with value "<non_primary_role_codes>"
+
+    Examples:
+      | primary_role_code  | non_primary_role_codes|
+      | RO177              | [RO76]                |
+      | RO177              | [RO80]                |
+      | RO177              | [RO87]                |
+      | RO177              | [RO76, RO80]          |
+      | RO177              | [RO76, RO80, RO87]    |
+      | RO182              | []                    |
+
+  Scenario Outline: Reject Organisation with invalid primary and non-primary role combinations
+    Given that the stack is "organisation"
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
+    Then I receive a status code "422" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the diagnostics message indicates the "<expected_error_message>"
+
+    Examples:
+      | primary_role_code  | non_primary_role_codes| expected_error_message                          |
+      | RO177              | [RO80, RO80]          | Duplicate non-primary roles are not allowed     |
+      | RO177              | []                    | must have at least one non-primary role         |
+      | RO177              | [RO268]               | Invalid role code: 'RO268'. Incorrect enum value|
+      | RO177              | [RO76, RO268]         | Invalid role code: 'RO268'. Incorrect enum value|
+      | RO182              | [RO268]               | Invalid role code: 'RO268'. Incorrect enum value|
+      | None               | [RO76, RO80, RO87]    | Primary role code must be provided              |
+
+
+  Scenario Outline: Reject Organization update with invalid roleCode extension structure
+      Given that the stack is "organisation"
+      When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+      And I receive the diagnostics "<expected_error>"
+
+      Examples:
+        | invalid_scenario                     | expected_error                                                           |
+        | missing roleCode extension           | OrganisationRole extension must contain at least one roleCode extension  |
+        | roleCode missing valueCodeableConcept| roleCode must have a valueCodeableConcept                                |
+        | roleCode missing coding array        | roleCode valueCodeableConcept must contain at least one coding           |
+        | roleCode empty code value            | [{'type': 'string_pattern_mismatch'                                      |
+        | roleCode invalid enum value          | Invalid role code: 'INVALID_CODE'. Incorrect enum value                  |
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
@@ -107,10 +162,9 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates "<field>" is missing
 
     Examples:
-      | field      |
-      | name       |
-      | type       |
-      | active     |
+      | field  |
+      | name   |
+      | active |
       | identifier |
 
   Scenario: Update Organization with non-existent ID
@@ -215,29 +269,54 @@ Feature: Organization API Endpoint
       | 2020-01-15  | 2024-12-31 | 2020-01-15        | 2024-12-31      |
       | 2020-02-29  | 2028-02-29 | 2020-02-29        | 2028-02-29      |
 
-  Scenario Outline: Reject Organization update with invalid extensions for legal date
-    Given that the stack is "organisation"
-    When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
-    And I receive the diagnostics "<expected_error>"
+  Scenario Outline: Reject Organization update with invalid OrganisationRole extension URL
+      Given that the stack is "organisation"
+      When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+      And I receive the diagnostics "<expected_error>"
 
-    Examples:
-      | invalid_scenario                  | expected_error                                                                                                    |
-      | missing dateType                  | TypedPeriod extension must contain dateType and period                                                            |
-      | missing period                    | TypedPeriod extension must contain dateType and period                                                            |
-      | non-Legal dateType                | dateType must be Legal                                                                                            |
-      | invalid periodType extension url  | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod       |
-      | invalid periodType system         | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'                               |
-      | invalid role extension url        | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
-      | missing role extension url        | Extension URL must be present and cannot be empty or None                                                         |
-      | empty role extension url          | Extension URL must be present and cannot be empty or None                                                         |
-      | missing TypedPeriod extension url | OrganisationRole extension must contain at least one TypedPeriod extension                                        |
-      | empty TypedPeriod extension url   | OrganisationRole extension must contain at least one TypedPeriod extension                                        |
-      | missing start date with end       | Legal period start date is required when TypedPeriod extension is present                                         |
-      | missing both start and end        | Legal period start date is required when TypedPeriod extension is present                                         |
+      Examples:
+        | invalid_scenario           | expected_error                                                                                      |
+        | invalid organisation role extension url | Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID |
+        | missing role organisation url | Extension URL must be present and cannot be empty or None                                           |
+        | empty organisation role extension url   | Extension URL must be present and cannot be empty or None                                           |
+
+  Scenario Outline: Reject Organization update with invalid TypedPeriod extension URL
+      Given that the stack is "organisation"
+      When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+      And I receive the diagnostics "<expected_error>"
+
+      Examples:
+        | invalid_scenario                  | expected_error                                                                                 |
+        | invalid periodType extension url  | OrganisationRole extension must contain at least one TypedPeriod extension containing legal dates |
+        | missing TypedPeriod extension url | OrganisationRole extension must contain at least one TypedPeriod extension                     |
+        | empty TypedPeriod extension url   | OrganisationRole extension must contain at least one TypedPeriod extension                     |
+
+  Scenario Outline: Reject Organization update with invalid TypedPeriod extension structure for legal dates content
+      Given that the stack is "organisation"
+      When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
+      Then I receive a status code "422" in response
+      And the response body contains an "OperationOutcome" resource
+      And the OperationOutcome contains an issue with severity "error"
+      And the OperationOutcome contains an issue with code "invalid"
+      And I receive the diagnostics "<expected_error>"
+
+      Examples:
+        | invalid_scenario           | expected_error                                                                   |
+        | missing dateType           | TypedPeriod extension must contain dateType and period                           |
+        | missing period             | TypedPeriod extension must contain dateType and period                           |
+        | non-Legal dateType         | At least one Typed Period extension should have dateType as Legal                |
+        | invalid periodType system  | dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType' |
+        | missing start date with end| Legal period start date is required when TypedPeriod extension is present        |
+        | missing both start and end | Legal period start date is required when TypedPeriod extension is present        |
+
 
   Scenario Outline: Reject Organization update with invalid date format
     Given that the stack is "organisation"
