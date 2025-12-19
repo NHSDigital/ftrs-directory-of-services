@@ -50,7 +50,6 @@ resource "aws_api_gateway_method" "organization_get" {
 
   request_parameters = {
     "method.request.querystring._lastUpdated" = false
-    "method.request.querystring.scenario"     = false
   }
 }
 
