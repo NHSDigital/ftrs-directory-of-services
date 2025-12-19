@@ -212,7 +212,10 @@ def test_patch_local_save_method(mocker: MockerFixture) -> None:
         "modifiedBy": "SYSTEM",
         "modifiedDateTime": "2025-07-15T12:00:00Z",
         "endpoints": [],
+        "non_primary_role_codes": [],
+        "primary_role_code": None,
         "telecom": None,
+        "type": None,
         "legalDates": None,
     }
     assert loc_content == {

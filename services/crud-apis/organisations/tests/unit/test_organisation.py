@@ -28,6 +28,8 @@ def get_organisation() -> dict:
         "name": "Test Organisation",
         "telecom": "123456789",
         "type": "GP Practice",
+        "primary_role_code": None,
+        "non_primary_role_codes": [],
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
@@ -251,7 +253,6 @@ def test_update_organisation_success() -> None:
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
     assert response.status_code == HTTPStatus.OK
@@ -279,7 +280,6 @@ def test_update_organisation_no_updates(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
@@ -320,7 +320,6 @@ def test_update_organisation_operation_outcome(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
@@ -341,7 +340,6 @@ def test_update_organisation_missing_required_field() -> None:
         ],
         "name": "ABC",
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
 
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
@@ -369,7 +367,6 @@ def test_update_organisation_missing_required_field() -> None:
                     ],
                     "name": "ABC",
                     "telecom": [{"system": "phone", "value": "0123456789"}],
-                    "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
                 },
             }
         ]
@@ -394,7 +391,6 @@ def test_update_organisation_unexpected_exception(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
@@ -460,56 +456,6 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
     assert response.json()["detail"] == "Organisation not found"
 
 
-def test_type_validator_invalid_coding_and_text_missing() -> None:
-    update_payload = {
-        "resourceType": "Organization",
-        "id": str(test_org_id),
-        "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
-        },
-        "identifier": [
-            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
-        ],
-        "name": "Test Org",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{}]}],
-    }
-
-    response = client.put(f"/Organization/{test_org_id}", json=update_payload)
-
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "value_error",
-                "loc": ["body"],
-                "msg": "Value error, 'type' must have either 'coding' or 'text' populated.",
-                "input": {
-                    "resourceType": "Organization",
-                    "id": str(test_org_id),
-                    "meta": {
-                        "profile": [
-                            "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
-                        ]
-                    },
-                    "identifier": [
-                        {
-                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                            "value": "12345",
-                        }
-                    ],
-                    "name": "Test Org",
-                    "active": True,
-                    "telecom": [{"system": "phone", "value": "0123456789"}],
-                    "type": [{"coding": [{}]}],
-                },
-                "ctx": {"error": {}},
-            }
-        ]
-    }
-
-
 def test_organization_query_params_success() -> None:
     query = OrganizationQueryParams(identifier="odsOrganisationCode|ABC123")
     assert query.identifier == "odsOrganisationCode|ABC123"
@@ -562,7 +508,6 @@ def test_update_organisation_empty_identifier_object() -> None:
         "identifier": [{}],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -599,7 +544,6 @@ def test_update_organisation_identifier_missing_value() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -635,7 +579,6 @@ def test_update_organisation_identifier_empty_value() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -671,7 +614,6 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -702,7 +644,6 @@ def test_update_organisation_identifier_empty_list() -> None:
         "identifier": [],  # Empty identifier list
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 

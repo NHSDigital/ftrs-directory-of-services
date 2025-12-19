@@ -12,14 +12,12 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := build
 
-.PHONY: install build unit-test publish
+.PHONY: install build unit-test publish re-tag
 
 PUSH_SCRIPT ?= $(ROOT_DIR)/scripts/workflow/push-to-ecr.sh
 PUSH_WRAPPER ?= $(ROOT_DIR)/scripts/workflow/push-wrapper.sh
 
 API_NAME ?=
-ENVIRONMENT ?=
-AWS_REGION ?=
 
 ifneq ($(strip $(COMMIT_HASH)),)
 COMMIT_SOURCE := $(strip $(COMMIT_HASH))
@@ -37,6 +35,13 @@ FULL_IMAGE := ${API_NAME}:${IMAGE_TAG}
 PUSH_IMAGE ?= $(FULL_IMAGE)
 CONTAINER_NAME := ${API_NAME}-tests
 SMOKE_SCRIPT := ./scripts/smoke.sh
+
+LOCAL_IMAGE ?= ${FULL_IMAGE}
+REMOTE_NAME ?= ${API_NAME}
+REMOTE_TAG ?= ${IMAGE_TAG}
+
+REMOTE_TAG := $(shell printf '%.7s' "$(REMOTE_TAG)")
+VERSION_TAG ?=
 
 install:
 	if command -v docker >/dev/null 2>&1; then \
@@ -100,10 +105,40 @@ publish:
 	fi; \
 	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
 	API_NAME="${API_NAME}" \
-	LOCAL_IMAGE="${FULL_IMAGE}" \
+	LOCAL_IMAGE="${LOCAL_IMAGE}" \
+	REMOTE_NAME="${REMOTE_NAME}" \
+	REMOTE_TAG="${REMOTE_TAG}" \
+	DOCKER_TOKEN="${DOCKER_TOKEN}" \
+	"$(PUSH_WRAPPER)"
+
+re-tag:
+	if [ -z "${API_NAME}" ]; then \
+		echo "Missing required variable: API_NAME"; \
+		exit 1; \
+	fi
+	if [ -z "${REMOTE_TAG}" ]; then \
+		echo "REMOTE_TAG is required"; \
+		exit 1; \
+	fi
+	if [ -f "${PUSH_SCRIPT}" ]; then \
+		chmod +x "$(PUSH_SCRIPT)" >/dev/null 2>&1 || true; \
+	else \
+		echo "Push script not found: ${PUSH_SCRIPT}"; \
+		exit 1; \
+	fi
+	if [ -z "${DOCKER_TOKEN}" ]; then \
+		echo "DOCKER_TOKEN is required"; \
+		exit 1; \
+	fi; \
+	if [ -z "${VERSION_TAG}" ]; then \
+		echo "VERSION_TAG is required"; \
+		exit 1; \
+	fi; \
+	chmod +x "$(PUSH_WRAPPER)" >/dev/null 2>&1 || true; \
+	API_NAME="${API_NAME}" \
+	LOCAL_IMAGE="${API_NAME}:${REMOTE_TAG}" \
 	REMOTE_NAME="${API_NAME}" \
-	REMOTE_TAG="${IMAGE_TAG}" \
-	ENVIRONMENT="${ENVIRONMENT}" \
-	AWS_REGION="${AWS_REGION}" \
+	REMOTE_TAG="${REMOTE_TAG}" \
+	VERSION_TAG="${VERSION_TAG}" \
 	DOCKER_TOKEN="${DOCKER_TOKEN}" \
 	"$(PUSH_WRAPPER)"

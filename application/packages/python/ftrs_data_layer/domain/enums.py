@@ -22,6 +22,14 @@ class OrganisationType(str, Enum):
     GP_PRACTICE = "GP Practice"
 
 
+class OrganisationTypeCode(str, Enum):
+    PRESCRIBING_COST_CENTRE_CODE = "RO177"
+    GP_PRACTICE_ROLE_CODE = "RO76"
+    OUT_OF_HOURS_ROLE_CODE = "RO80"
+    WALK_IN_CENTRE_ROLE_CODE = "RO87"
+    PHARMACY_ROLE_CODE = "RO182"
+
+
 class HealthcareServiceCategory(str, Enum):
     GP_SERVICES = "GP Services"
 

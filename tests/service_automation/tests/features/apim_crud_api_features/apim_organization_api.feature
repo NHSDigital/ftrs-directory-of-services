@@ -28,6 +28,5 @@ Feature: Organization API Endpoint via APIM
     Examples:
       | field  |
       | name   |
-      | type   |
       | active |
 
