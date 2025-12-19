@@ -16,18 +16,32 @@ service_automation
 ├── tests
 │   ├── csv_files
 │   ├── features
-│   │   ├── is_api_features
-│   │   └── is_infra_features
+│   │   ├── apim_crud_api_features
+│   │   ├── crud_api_features
+│   │   ├── data_migration_features
+│   │   ├── etl_ods_features
+│   │   │   ├── etl_ods_happy.feature
+│   │   │   ├── etl_ods_mock.feature
+│   │   │   └── etl_ods_unhappy.feature
+│   │   ├── infra_features
+│   │   └── is_api_features
+│   ├── fixtures
+│   │   └── ods_fixtures.py
 │   ├── oas_schemas
 │   ├── pages
 │   │   └── ui_pages
 │   ├── step_definitions
-│   │   ├── is_api_steps
-│   │   ├── is_infra_steps
-│   │   └── ui_steps
+│   │   ├── crud_api_steps
+│   │   ├── data_migration_steps
+│   │   ├── etl_ods_steps
+│   │   │   ├── test_etl_ods.py
+│   │   │   └── test_etl_ods_upstream.py
+│   │   ├── infra_steps
+│   │   └── is_api_steps
 │   └── utilities
 │       ├── common
-│       └── infra
+│       ├── infra
+│       └── ods
 ├── .tool-versions
 ├── Makefile
 ├── README.MD
@@ -167,6 +181,51 @@ make test MARKERS="healthcare-service-exists"
 ```shell
 make test MARKERS="etl-ods"
 ```
+
+### Running ETL-ODS Mock tests
+
+The ETL-ODS mock tests validate the ETL processor Lambda's ability to handle various upstream API scenarios using a mock ODS API Gateway. These tests are essential for verifying error handling and data processing capabilities without relying on external services.
+
+```shell
+make test MARKERS="etl-ods-mock"
+```
+
+#### How ETL Mock Works
+
+The ETL mock system works by:
+
+1. **Mock Infrastructure**: Uses Terraform-deployed API Gateway as an ODS mock service
+2. **Lambda Configuration**: Temporarily reconfigures the ETL Lambda to point to the mock API instead of the real ODS service
+3. **Scenario-Based Testing**: Provides predefined test scenarios that return specific responses from the mock API
+4. **Automatic Cleanup**: Restores the original Lambda configuration after tests complete
+
+#### Available Test Scenarios
+
+The ETL mock includes the following test scenarios:
+
+| Scenario | Description | Purpose |
+|----------|-------------|---------|
+| **Happy Path** | Successful API response with valid organization data | Validates normal processing flow |
+| **Empty Payload** | API returns empty results | Tests handling of no data scenarios |
+| **Invalid Data Types** | API returns data with incorrect types | Validates data type validation |
+| **Missing Required Fields** | API response missing mandatory fields | Tests schema validation |
+| **Extra Unexpected Fields** | API response includes unexpected fields | Tests robustness against API changes |
+| **Invalid Resource Type** | API returns invalid resource types | Validates resource type checking |
+| **Request Too Old** | API indicates request is too old | Tests time-based validation |
+| **Unauthorized** | API returns 401 unauthorized error | Tests authentication handling |
+| **Server Error** | API returns 500 server error | Tests upstream error handling |
+| **Unknown Resource Type** | API returns unknown resource types | Tests unknown data handling |
+| **Unknown Search Parameter** | API doesn't recognize search parameters | Tests parameter validation |
+
+Each scenario is designed to test specific error conditions and edge cases that might occur when interacting with the real ODS API.
+
+#### Configuration
+
+The mock system automatically:
+- Retrieves the mock API Gateway URL from AWS Systems Manager Parameter Store
+- Configures the ETL Lambda environment variables to use the mock endpoint
+- Manages test data scenarios through predefined date-based triggers
+- Restores the original Lambda configuration after test completion
 
 Or you can run tests for multiple markers
 
