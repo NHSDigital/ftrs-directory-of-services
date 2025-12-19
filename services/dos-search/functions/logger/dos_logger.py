@@ -86,13 +86,32 @@ class DosLogger:
 
         # Mandatory/default DOS fields
         # NHSD correlation id
-        corr = (
+        # Client's will provide this header as X-CORRELATION-ID, which will get mapped by the APIM Proxy into the format:
+        # <Request-ID>.<Correlation-ID>.<Message-ID>
+        # We will therefore extract Correlation ID & Message ID both from the header NHSD-Correlation-ID (Request ID still comes through independently so we will use the separate header for that)
+        corr_header = (
             self._get_header(
                 "NHSD-Correlation-ID",
             )
             or self.placeholder
         )
+        header_length = 3
+        reqid_corr_msgid = corr_header.split(".")
+        corr = (
+            reqid_corr_msgid[1]
+            if len(reqid_corr_msgid) == header_length
+            else self.placeholder
+        )
+        msgid = (
+            reqid_corr_msgid[2]
+            if len(reqid_corr_msgid) == header_length
+            else self.placeholder
+        )
+
         mandatory["dos_nhsd_correlation_id"] = corr
+
+        # APIM message id
+        mandatory["dos_message_id"] = msgid
 
         # NHSD request id
         reqid = (
@@ -102,15 +121,6 @@ class DosLogger:
             or self.placeholder
         )
         mandatory["dos_nhsd_request_id"] = reqid
-
-        # APIM message id
-        msgid = (
-            self._get_header(
-                "NHSD-Message-Id",
-            )
-            or self.placeholder
-        )
-        mandatory["dos_message_id"] = msgid
 
         # Default category to LOGGING, can be overridden later
         mandatory["dos_message_category"] = "LOGGING"
