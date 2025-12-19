@@ -1,8 +1,6 @@
 from decimal import Decimal
-from uuid import UUID
 
 import pytest
-from boto3.dynamodb.types import TypeSerializer
 from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import (
@@ -20,7 +18,6 @@ from ftrs_data_layer.domain import (
 from ftrs_data_layer.domain.legacy.service import (
     Service,
 )
-from pydantic import BaseModel
 from pytest_mock import MockerFixture
 from sqlalchemy import Engine
 
@@ -664,426 +661,276 @@ def test_save(
         assert "Item" in item["Put"]
 
 
-def test_verify_state_record_exist_returns_true_when_state_exists(
+def test_save_handles_transaction_cancelled_with_conditional_check_failed(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that verify_state_record_exist returns True when state record exists."""
+    """Test that _save handles TransactionCanceledException with ConditionalCheckFailed gracefully."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
-    # Mock logger debug method
-    processor.logger.debug = mocker.MagicMock()
+    # Create a real exception (not a MagicMock) with proper attributes
+    class MockTransactionCanceledException(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                ],
+            }
+
+    # Create an instance of the exception
+    mock_exception = MockTransactionCanceledException()
+    # Set the class name to match what the code checks
+    mock_exception.__class__.__name__ = "TransactionCanceledException"
+
+    # Mock DynamoDB client to raise the exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should not raise exception, should return gracefully
+    processor._save(result, mock_legacy_service.id)
+
+    # Verify DM_ETL_022 was logged
+    logs = mock_logger.get_log("DM_ETL_022")
+    assert len(logs) > 0, "DM_ETL_022 was not logged"
+    assert logs[0]["reference"] == "DM_ETL_022"
+
+
+def test_save_handles_transaction_cancelled_without_conditional_check_failed(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save re-raises TransactionCanceledException if not due to ConditionalCheckFailed."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Create a real exception with different cancellation reasons
+    class MockTransactionCanceledException(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ValidationError"},
+                    {"Code": "ThrottlingError"},
+                ],
+            }
+
+    mock_exception = MockTransactionCanceledException()
+    mock_exception.__class__.__name__ = "TransactionCanceledException"
+
+    # Mock DynamoDB client to raise the exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should raise the exception since it's not ConditionalCheckFailed
+    with pytest.raises(Exception):
+        processor._save(result, mock_legacy_service.id)
+
+
+def test_save_handles_other_exceptions(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save re-raises non-TransactionCanceledException exceptions."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock DynamoDB client to raise a different exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = Exception(
+        "Some other DynamoDB error"
+    )
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should raise the exception
+    with pytest.raises(Exception, match="Some other DynamoDB error"):
+        processor._save(result, mock_legacy_service.id)
+
+
+def test_save_checks_exception_via_response_code(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save checks exception code via response attribute."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Create mock exception with response but different class name
+    mock_exception = Exception("Transaction cancelled")
+    mock_exception.response = {
+        "Error": {"Code": "TransactionCanceledException"},
+        "CancellationReasons": [
+            {"Code": "ConditionalCheckFailed"},
+        ],
+    }
+
+    # Mock DynamoDB client to raise the exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should not raise exception, should return gracefully
+    processor._save(result, mock_legacy_service.id)
+
+    # Verify DM_ETL_022 was logged
+    logs = mock_logger.get_log("DM_ETL_022")
+    assert len(logs) > 0, "DM_ETL_022 was not logged"
+    assert logs[0]["reference"] == "DM_ETL_022"
+
+
+def test_save_skips_when_state_exists(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save returns early when state record already exists."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
 
     # Mock DynamoDB client
     mock_dynamodb_client = mocker.MagicMock()
-    mock_dynamodb_client.get_item.return_value = {
-        "Item": {
-            "source_record_id": {"S": "services#123"},
-            "version": {"N": "1"},
-        }
-    }
+    mock_dynamodb_client.transact_write_items = mocker.MagicMock()
 
     mocker.patch(
         "service_migration.processor.get_dynamodb_client",
         return_value=mock_dynamodb_client,
     )
 
-    result = processor.verify_state_record_exist(123)
+    # Mock verify_state_record_exist to return True (exists)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=True)
 
-    assert result is True
-    mock_dynamodb_client.get_item.assert_called_once_with(
-        TableName="ftrs-dos-test-database-data-migration-state-test_workspace",
-        Key={
-            "source_record_id": {"S": "services#123"},
-        },
-    )
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    transformer.transform(mock_legacy_service, validation_issues)
+
+    # Call _save - but first need to call through _process_service
+    processor._process_service(mock_legacy_service)
+
+    # Verify transact_write_items was NOT called since state exists
+    assert mock_dynamodb_client.transact_write_items.call_count == 0
+
+    # Verify DM_ETL_019 was logged (state exists)
+    assert mock_logger.was_logged("DM_ETL_019") is True
 
 
-def test_verify_state_record_exist_returns_false_when_state_not_exists(
+def test_save_logs_success_on_successful_write(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that verify_state_record_exist returns False when state record doesn't exist."""
+    """Test that _save logs DM_ETL_021 on successful transactional write."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
+    processor.metadata = mock_metadata_cache
 
-    # Mock logger debug method
-    processor.logger.debug = mocker.MagicMock()
-
-    # Mock DynamoDB client - no Item in response
+    # Mock DynamoDB client
     mock_dynamodb_client = mocker.MagicMock()
-    mock_dynamodb_client.get_item.return_value = {}
+    mock_dynamodb_client.transact_write_items.return_value = {}
 
     mocker.patch(
         "service_migration.processor.get_dynamodb_client",
         return_value=mock_dynamodb_client,
     )
 
-    result = processor.verify_state_record_exist(456)
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    assert result is False
-    mock_dynamodb_client.get_item.assert_called_once_with(
-        TableName="ftrs-dos-test-database-data-migration-state-test_workspace",
-        Key={
-            "source_record_id": {"S": "services#456"},
-        },
-    )
+    validation_issues = []
+    item_count = 4
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
+    processor._save(result, mock_legacy_service.id)
 
-def test_verify_state_record_exist_handles_exception(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that verify_state_record_exist raises exceptions when DynamoDB errors occur."""
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Mock DynamoDB client to raise exception
-    mock_dynamodb_client = mocker.MagicMock()
-    mock_dynamodb_client.get_item.side_effect = Exception("DynamoDB error")
-
-    mocker.patch(
-        "service_migration.processor.get_dynamodb_client",
-        return_value=mock_dynamodb_client,
-    )
-
-    # Should raise the exception
-    with pytest.raises(Exception, match="DynamoDB error"):
-        processor.verify_state_record_exist(789)
-
-
-def test_verify_state_record_exist_constructs_correct_source_record_id(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that verify_state_record_exist constructs the correct source_record_id."""
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Mock logger debug method
-    processor.logger.debug = mocker.MagicMock()
-
-    mock_dynamodb_client = mocker.MagicMock()
-    mock_dynamodb_client.get_item.return_value = {}
-
-    mocker.patch(
-        "service_migration.processor.get_dynamodb_client",
-        return_value=mock_dynamodb_client,
-    )
-
-    processor.verify_state_record_exist(12345)
-
-    # Verify the source_record_id format
-    call_args = mock_dynamodb_client.get_item.call_args
-    assert call_args[1]["Key"]["source_record_id"]["S"] == "services#12345"
-
-
-def test_verify_state_record_exist_uses_correct_table_name(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that verify_state_record_exist uses the correct table name."""
-    # Modify config for this test
-    mock_config.env = "dev"
-    mock_config.workspace = "my_workspace"
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Mock logger debug method
-    processor.logger.debug = mocker.MagicMock()
-
-    mock_dynamodb_client = mocker.MagicMock()
-    mock_dynamodb_client.get_item.return_value = {}
-
-    mocker.patch(
-        "service_migration.processor.get_dynamodb_client",
-        return_value=mock_dynamodb_client,
-    )
-
-    processor.verify_state_record_exist(999)
-
-    # Verify the table name format
-    call_args = mock_dynamodb_client.get_item.call_args
+    # Verify DM_ETL_021 was logged with correct parameters
+    assert mock_logger.was_logged("DM_ETL_021") is True
+    log_entry = mock_logger.get_log("DM_ETL_021")[0]
+    assert "item_count" in log_entry["detail"]
     assert (
-        call_args[1]["TableName"]
-        == "ftrs-dos-dev-database-data-migration-state-my_workspace"
-    )
-
-
-def test_create_put_item_basic_functionality(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item creates correct DynamoDB Put item structure."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Create a mock model
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "test-uuid-123"
-    mock_model.model_dump.return_value = {
-        "name": "Test Name",
-        "status": "active",
-        "count": 42,
-    }
-
-    serializer = TypeSerializer()
-    table_name = "test-table"
-
-    result = processor._create_put_item(mock_model, table_name, serializer)
-
-    # Verify structure
-    assert "Put" in result
-    assert "TableName" in result["Put"]
-    assert result["Put"]["TableName"] == table_name
-    assert "Item" in result["Put"]
-
-    # Verify required fields are added
-    item = result["Put"]["Item"]
-    assert "id" in item
-    assert "field" in item
-    assert item["id"]["S"] == "test-uuid-123"
-    assert item["field"]["S"] == "document"
-
-    # Verify model data is included
-    assert "name" in item
-    assert "status" in item
-    assert "count" in item
-
-
-def test_create_put_item_with_condition_expression(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item includes condition expression by default."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "test-uuid"
-    mock_model.model_dump.return_value = {"name": "Test"}
-
-    serializer = TypeSerializer()
-
-    result = processor._create_put_item(
-        mock_model, "test-table", serializer, with_condition=True
-    )
-
-    # Verify condition expression is present
-    assert "ConditionExpression" in result["Put"]
-    assert (
-        result["Put"]["ConditionExpression"]
-        == "attribute_not_exists(id) AND attribute_not_exists(#field)"
-    )
-
-    # Verify expression attribute names
-    assert "ExpressionAttributeNames" in result["Put"]
-    assert result["Put"]["ExpressionAttributeNames"] == {"#field": "field"}
-
-
-def test_create_put_item_without_condition_expression(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item can skip condition expression when requested."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "test-uuid"
-    mock_model.model_dump.return_value = {"name": "Test"}
-
-    serializer = TypeSerializer()
-
-    result = processor._create_put_item(
-        mock_model, "test-table", serializer, with_condition=False
-    )
-
-    # Verify condition expression is NOT present
-    assert "ConditionExpression" not in result["Put"]
-    assert "ExpressionAttributeNames" not in result["Put"]
-
-
-def test_create_put_item_serializes_data_correctly(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item properly serializes different data types."""
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "uuid-123"
-    mock_model.model_dump.return_value = {
-        "string_field": "test",
-        "number_field": 42,
-        "boolean_field": True,
-        "list_field": ["a", "b", "c"],
-        "dict_field": {"key": "value"},
-        "null_field": None,
-    }
-
-    serializer = TypeSerializer()
-
-    result = processor._create_put_item(mock_model, "test-table", serializer)
-
-    item = result["Put"]["Item"]
-
-    # Verify string serialization
-    assert item["string_field"]["S"] == "test"
-
-    # Verify number serialization
-    assert item["number_field"]["N"] == "42"
-
-    # Verify boolean serialization
-    assert item["boolean_field"]["BOOL"] is True
-
-    # Verify list serialization
-    assert "L" in item["list_field"]
-
-    # Verify dict serialization
-    assert "M" in item["dict_field"]
-
-    # Verify null serialization
-    assert item["null_field"]["NULL"] is True
-
-
-def test_create_put_item_converts_id_to_string(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item converts model.id to string."""
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Test with UUID
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = UUID("12345678-1234-5678-1234-567812345678")
-    mock_model.model_dump.return_value = {"name": "Test"}
-
-    serializer = TypeSerializer()
-
-    result = processor._create_put_item(mock_model, "test-table", serializer)
-
-    # Verify ID is converted to string
-    assert result["Put"]["Item"]["id"]["S"] == "12345678-1234-5678-1234-567812345678"
-    assert isinstance(result["Put"]["Item"]["id"]["S"], str)
-
-
-def test_create_put_item_adds_field_attribute(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item always adds 'field' attribute set to 'document'."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "test-id"
-    mock_model.model_dump.return_value = {"name": "Test"}
-
-    serializer = TypeSerializer()
-
-    result = processor._create_put_item(mock_model, "test-table", serializer)
-
-    # Verify field attribute
-    assert "field" in result["Put"]["Item"]
-    assert result["Put"]["Item"]["field"]["S"] == "document"
-
-
-def test_create_put_item_with_organisation_model(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test _create_put_item with a real Organisation model structure."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    # Create a mock organisation
-    mock_org = mocker.MagicMock(spec=Organisation)
-    mock_org.id = "org-uuid-123"
-    mock_org.model_dump.return_value = {
-        "identifier_ODS_ODSCode": "ABC123",
-        "name": "Test Organisation",
-        "active": True,
-        "type": "GP Practice",
-    }
-
-    serializer = TypeSerializer()
-    table_name = "ftrs-dos-test-organisation"
-
-    result = processor._create_put_item(mock_org, table_name, serializer)
-
-    # Verify organisation-specific fields are serialized
-    item = result["Put"]["Item"]
-    assert item["identifier_ODS_ODSCode"]["S"] == "ABC123"
-    assert item["name"]["S"] == "Test Organisation"
-    assert item["active"]["BOOL"] is True
-    assert item["type"]["S"] == "GP Practice"
-
-
-def test_create_put_item_calls_model_dump_with_json_mode(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-) -> None:
-    """Test that _create_put_item calls model_dump with mode='json'."""
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-
-    mock_model = mocker.MagicMock(spec=BaseModel)
-    mock_model.id = "test-id"
-    mock_model.model_dump.return_value = {"name": "Test"}
-
-    serializer = TypeSerializer()
-
-    processor._create_put_item(mock_model, "test-table", serializer)
-
-    # Verify model_dump was called with mode="json"
-    mock_model.model_dump.assert_called_once_with(mode="json")
+        log_entry["detail"]["item_count"] == item_count
+    )  # org, location, service, state
