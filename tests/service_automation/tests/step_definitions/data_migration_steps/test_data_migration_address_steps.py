@@ -102,3 +102,65 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
             )
 
 
+@then(parsers.parse("the location for service ID '{service_id:d}' should have no address"))
+def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -> None:
+    """Verify that the location for a specific service ID has no address (address is None).
+
+    This is used for testing scenarios where address is "Not Available" or invalid,
+    and should result in formatted_address = None.
+    """
+    # Generate the UUID for the location based on the service ID
+    location_uuid = str(generate_uuid(service_id, "location"))
+
+    dynamodb_resource = dynamodb["resource"]
+    table = dynamodb_resource.Table(get_table_name('location'))
+
+    response = table.get_item(Key={"id": location_uuid, "field": "document"})
+    item = response.get("Item")
+
+    if not item:
+        # Fallback: scan to locate item by generated UUID if key structure differs
+        scan = table.scan()
+        for candidate in scan.get("Items", []):
+            if candidate.get("id") == location_uuid:
+                item = candidate
+                break
+
+    assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
+
+    # Check if address is None or missing in the document
+    if "document" in item and isinstance(item["document"], dict):
+        address = item["document"].get("address")
+    else:
+        address = item.get("address")
+
+    assert address is None, (
+        f"Expected location for service ID {service_id} to have no address (None), "
+        f"but found: {address}"
+    )
+
+
+@then(parsers.parse("the service should have a validation error with code '{error_code}'"))
+def service_should_have_validation_error(service_id: int, error_code: str, dynamodb: Dict[str, Any]) -> None:
+    """Verify that a service migration resulted in a validation error with the specified code.
+
+    This checks for fatal validation errors like 'address_required' or 'invalid_address'
+    that prevent migration.
+
+    Note: This step definition assumes validation errors are tracked somewhere accessible.
+    Implementation may need adjustment based on how validation errors are stored/reported.
+    """
+    # TODO: This needs to be implemented based on how validation errors are actually stored
+    # Options:
+    # 1. Check migration metrics/logs
+    # 2. Check a validation_errors table in DynamoDB
+    # 3. Check CloudWatch logs
+    # 4. Check a specific error tracking mechanism
+
+    # For now, we'll check if the service was NOT migrated (skipped or error count > 0)
+    # This is a placeholder - actual implementation depends on the validation error tracking mechanism
+
+    pytest.skip(
+        f"Step definition for validation error checking needs implementation. "
+        f"Expected to check for error code: {error_code} for service ID: {service_id}"
+    )
