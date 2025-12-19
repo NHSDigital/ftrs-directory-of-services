@@ -200,18 +200,18 @@ class TestErrorUtil:
         assert result.issue[0].code == "invalid"
         assert result.issue[0].diagnostics == "boom"
 
+    def test_create_invalid_header_operation_outcome(self):
+        headers = ["X-NHSD-Z", "Authorization"]
 
-def test_create_invalid_header_operation_outcome(self):
-    headers = ["X-NHSD-Z", "Authorization"]
+        result = create_invalid_header_operation_outcome(headers)
 
-    result = create_invalid_header_operation_outcome(headers)
-
-    assert isinstance(result, OperationOutcome)
-    assert len(result.issue) == 1
-    issue = result.issue[0]
-    assert issue.severity == "error"
-    assert issue.code == "value"
-    assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
-    assert (
-        issue.diagnostics == "Invalid request headers supplied: authorization, x-nhsd-z"
-    )
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "value"
+        assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
+        assert (
+            issue.diagnostics
+            == "Invalid request headers supplied: authorization, x-nhsd-z"
+        )
