@@ -43,12 +43,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Formalizes WAF security governance; gaps tracked to closure
     stories:
     - FTRS-364
+  teams:
+  - infrastructure
 - code: SEC-003
   requirement: All endpoints TLS only; storage encryption enabled
   explanation: All service endpoints enforce TLS and all stored data (databases, buckets)
@@ -67,11 +67,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Aligns with NHS policy; Config provides continuous guardrails; CI blocks
       drift
+  teams:
+  - infrastructure
 - code: SEC-004
   requirement: Storage services show encryption enabled
   explanation: Every storage service (S3, RDS, etc.) shows encryption enabled with
@@ -88,11 +88,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Guardrails ensure encryption at rest across services
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-005
   requirement: Cross-environment data access attempts denied
   explanation: 'Strict environment isolation: data access from one environment to
@@ -110,11 +110,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Prevents accidental or malicious cross-environment data access
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-006
   requirement: No direct prod console queries detected in audit period
   explanation: No direct production console queries by engineers outside approved,
@@ -128,11 +128,11 @@ nfrs:
     cadence: Weekly audit + alerting
     environments:
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Detects improper direct access to production consoles
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-007
   requirement: SG rules audited; attempt broad ingress denied
   explanation: Network security groups allow only narrowly scoped inbound rules; broad
@@ -149,11 +149,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Prevents risky network exposure via security groups
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-008
   requirement: Perimeter scan shows no broad whitelist & secure channels
   explanation: Perimeter scans show secure transport, no open broad whitelists, and
@@ -169,11 +169,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Confirms perimeter hygiene and secure external exposure
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-009
   requirement: ASVS & CIS benchmark automation reports pass thresholds
   explanation: Automated ASVS and CIS benchmark scans meet pass thresholds; failures
@@ -191,12 +191,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Baseline hardening validated continuously; monthly cadence catches
       drift
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-010
   requirement: Annual pen test executed; remediation tickets raised & closed
   explanation: Annual penetration test completed; identified issues tracked and closed.
@@ -213,12 +213,12 @@ nfrs:
     cadence: Annual
     environments:
     - prod
-    services:
-    - infrastructure
-    - programme
     status: draft
     rationale: Validates security posture with external testing and tracked remediation
     stories: []
+  teams:
+  - infrastructure
+  - programme
 - code: SEC-011
   requirement: Security features enabled latency within SLA
   explanation: Enabling security controls does not push latency beyond defined SLAs.
@@ -233,11 +233,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures security does not breach performance SLAs
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-012
   requirement: IAM policy review confirms least privilege for system roles
   explanation: IAM roles and policies grant least privilege; periodic reviews confirm
@@ -256,12 +256,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Continuous analysis prevents privilege creep; periodic review catches
       drift
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-013
   requirement: Key rotation events logged; unauthorized access denied
   explanation: Cryptographic keys rotate on schedule and unauthorized access attempts
@@ -278,12 +278,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Audit trail confirms rotation compliance and denial of unauthorized
       access
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-014
   requirement: mTLS handshake succeeds between designated services
   explanation: Mutual TLS (mTLS) succeeds between designated internal services to
@@ -299,19 +299,20 @@ nfrs:
       0 downtime
     tooling: Integration tests (valid/expired/revoked/wrong-CA/weak-cipher) + gateway
       cert management + OCSP/CRL polling
-    cadence: CI per build + cert rotation checks + revocation poll ≤5m
+    cadence: "CI per build + cert rotation checks + revocation poll \u22645m"
     environments:
     - int
     - ref
     - prod
     services:
     - crud-apis
-    - infrastructure
     status: draft
     rationale: Enforces trusted ITOC certificate chain, strong ciphers, timely revocation,
       and zero-downtime rotation for secure service-to-service trust
     stories:
     - FTRS-1600
+  teams:
+  - infrastructure
 - code: SEC-015
   requirement: Expiry alert fired in advance; renewal executed seamlessly
   explanation: Certificate expiry is detected in advance; renewal occurs without downtime.
@@ -327,12 +328,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Proactive renewal prevents downtime; alerts ensure timely action
     stories:
     - FTRS-1604
+  teams:
+  - infrastructure
 - code: SEC-016
   requirement: MFA enforced for all privileged infra roles
   explanation: Privileged infrastructure roles require multi-factor authentication
@@ -349,11 +350,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Strong authentication for privileged accounts reduces risk
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-017
   requirement: Scan reports zero unmanaged long-lived credentials
   explanation: No long-lived unmanaged credentials; periodic scans confirm only managed
@@ -370,12 +371,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Reduces risk from forgotten credentials; continuous scanning plus scheduled
       audits
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-018
   requirement: Supplier audit attestation stored & verified
   explanation: Third-party supplier security attestation is collected and stored for
@@ -389,11 +390,11 @@ nfrs:
     cadence: Annual + on contract change
     environments:
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures supplier compliance and auditable records
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-019
   requirement: Segmentation test confirms tenant isolation
   explanation: Tenant or data segmentation tests confirm isolation boundaries hold.
@@ -408,11 +409,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures strict isolation between tenants per policy
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-020
   requirement: Remote connections present valid Authority certs
   explanation: Remote connections present valid certificates from trusted authorities.
@@ -428,15 +429,15 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: External data source interactions require strict certificate validation
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-021
   requirement: Port scan matches approved diagnostic list only
-  explanation: Port scans reveal only approved diagnostic and service ports—no unexpected
-    exposures.
+  explanation: "Port scans reveal only approved diagnostic and service ports\u2014\
+    no unexpected exposures."
   stories: []
   controls:
   - control_id: port-scan-diagnostic-only
@@ -449,11 +450,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Detects misconfigurations; verifies adherence to diagnostic port policy
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-022
   requirement: Utility program access restricted to approved roles
   explanation: Access to powerful utility programs is restricted to approved roles.
@@ -469,11 +470,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Prevents misuse of diagnostic utilities
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-023
   requirement: Deployment provenance shows unique traceable accounts
   explanation: Deployment provenance shows traceable unique accounts per automated
@@ -490,11 +491,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures accountability and traceability for all deployments
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-024
   requirement: Code/data transfer logs show integrity & secure channels
   explanation: Transfer of code or data maintains integrity and uses secure channels;
@@ -511,11 +512,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Validates integrity and secure transport for all transfers
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-025
   requirement: PID requests enforce mTLS; plain text blocked
   explanation: Requests containing identifiable patient data enforce mTLS; plaintext
@@ -531,12 +532,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures transport security for sensitive data; test coverage verifies
       enforcement
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-026
   requirement: API responses contain no unencrypted PID fields
   explanation: API responses never include unencrypted patient identifiable data (PID)
@@ -552,11 +553,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures sensitive data is never returned unencrypted
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-027
   requirement: Build fails on high CVE; report archived
   explanation: Build pipeline blocks release when critical CVEs exceed threshold;
@@ -574,12 +575,12 @@ nfrs:
     - dev
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Prevents introduction of known vulnerabilities; gate aligned to release
       quality
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-028
   requirement: Release pipeline blocks on critical unresolved findings
   explanation: Releases are halted if critical unresolved security findings remain.
@@ -594,12 +595,12 @@ nfrs:
     - dev
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Enforces remediation before release; gate consolidates multiple scanner
       outputs
     stories: []
+  teams:
+  - infrastructure
 - code: SEC-029
   requirement: All API endpoints enforce CIS2 JWT authentication (signature, issuer,
     audience, assurance claims)
@@ -652,10 +653,10 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Prevents certificate/private key exposure by enforcing exclusive use
       of encrypted secret storage and continuous scanning
     stories:
     - FTRS-1602
+  teams:
+  - infrastructure

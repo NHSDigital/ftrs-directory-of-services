@@ -367,14 +367,29 @@ body {
   font-size: 0.75rem;
 }
 
-.tag-service {
-  background: #d9ead3;
-  color: #274e13;
+.tag.tag-service {
+  background: #007f3b;
+  color: #ffffff;
 }
 
-.tag-env {
-  background: #d0e0f0;
-  color: #1a3a5c;
+.tag.tag-env {
+  background: #005eb8;
+  color: #ffffff;
+}
+
+.tag.tag-team {
+  background: #e69138;
+  color: #ffffff;
+}
+
+.tag.tag-release {
+  background: #d5281b;
+  color: #ffffff;
+}
+
+.tag.tag-operation {
+  background: #6f42c1;
+  color: #ffffff;
 }
 
 /* Multi-select */

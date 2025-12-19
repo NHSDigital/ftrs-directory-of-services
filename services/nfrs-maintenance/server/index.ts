@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const NFR_BASE_PATH = path.resolve(__dirname, '../../../requirements/nfrs');
+const NFR_META_PATH = path.join(NFR_BASE_PATH, 'cross-references', 'nfr-meta.yaml');
 
 const app = express();
 app.use(cors());
@@ -160,6 +161,46 @@ app.delete('/api/services/service/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting service:', error);
     res.status(500).json({ error: 'Failed to delete service' });
+  }
+});
+
+// Get NFR teams and releases metadata
+app.get('/api/catalog', async (_req, res) => {
+  try {
+    const content = await fs.readFile(NFR_META_PATH, 'utf-8');
+    const data = yaml.load(content);
+    res.json(data);
+  } catch (error) {
+    console.error('Error loading NFR catalog:', error);
+    res.status(500).json({ error: 'Failed to load NFR catalog' });
+  }
+});
+
+// Update NFR teams and releases metadata
+app.put('/api/catalog', async (req, res) => {
+  try {
+    const { teams, releases, version } = req.body;
+
+    const meta = {
+      version: version ?? 1.0,
+      generated: new Date().toISOString().replace('T', ' ').substring(0, 19) + '+00:00',
+      teams: teams ?? [],
+      releases: releases ?? []
+    };
+
+    const yamlContent = yaml.dump(meta, {
+      lineWidth: -1,
+      noRefs: true,
+      quotingType: '"',
+      forceQuotes: false,
+      indent: 2
+    });
+
+    await fs.writeFile(NFR_META_PATH, yamlContent, 'utf-8');
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating NFR catalog:', error);
+    res.status(500).json({ error: 'Failed to update NFR catalog' });
   }
 });
 

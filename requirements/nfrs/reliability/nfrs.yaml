@@ -6,7 +6,7 @@ nfrs:
   explanation: Service remains healthy across multiple availability zones with verified
     health checks.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-002
   requirement: AZ failure simulation maintains service
@@ -21,11 +21,11 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Validates resilience to Availability Zone failures
     stories: []
+  teams:
+  - infrastructure
 - code: REL-003
   requirement: Lifecycle reliability checklist completed
   explanation: Lifecycle reliability checklist is completed for the service components.
@@ -40,12 +40,10 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures reliability practices across lifecycle
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-004
   requirement: DoS simulation mitigated; service responsive
@@ -62,26 +60,24 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Validates resilience under volumetric attacks
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-005
   requirement: Injection attempt blocked; no code execution
   explanation: Injection attacks are blocked, preventing arbitrary code execution
     attempts.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-006
   requirement: Placement scan shows no forbidden co-residency
   explanation: Resource placement scan shows no forbidden co-residency (e.g., sensitive
     + public workloads).
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-007
   requirement: Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst
@@ -93,8 +89,8 @@ nfrs:
   - control_id: auth-brute-force-protection
     measure: Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate
       burst supported)
-    threshold: Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s;
-      ≤1% false positives
+    threshold: "Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert\
+      \ \u226430s; \u22641% false positives"
     tooling: Auth gateway rate limiter + anomaly aggregator + performance harness
       + alerting
     cadence: Continuous runtime enforcement + daily compliance script
@@ -103,21 +99,21 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Protects availability & integrity under authentication attack patterns
+  teams:
+  - infrastructure
 - code: REL-008
   requirement: MITM attempt fails; pinned cert validation passes
   explanation: Man-in-the-middle (MITM) attempts fail due to secure certificate pinning.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-009
   requirement: Iframe embed blocked; headers verified
   explanation: UI prevents iframe embedding (clickjacking) via secure headers.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-010
   requirement: Batch suspend/resume preserves data integrity
@@ -132,11 +128,11 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures reliable batch operations
     stories: []
+  teams:
+  - infrastructure
 - code: REL-011
   requirement: Unhealthy node auto-replaced; workload continues
   explanation: Unhealthy nodes are automatically replaced with workload continuity.
@@ -151,11 +147,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Maintains reliability during node failures
     stories: []
+  teams:
+  - infrastructure
 - code: REL-012
   requirement: Single node removal shows stable performance & zero data loss
   explanation: Removing a single node yields no data loss and minimal performance
@@ -170,12 +166,10 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures resilience to node loss without user impact
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-013
   requirement: Tier failure graceful degradation & recovery evidenced
@@ -191,12 +185,12 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Demonstrates graceful degradation patterns
     stories:
     - FTRS-343
+  teams:
+  - infrastructure
 - code: REL-014
   requirement: External outage shows fallback & user messaging
   explanation: External dependency outage invokes fallback and clear user messaging.
@@ -211,12 +205,10 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Demonstrates graceful handling of external dependency outages
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-015
   requirement: LB failure retains sessions & continues routing
@@ -232,12 +224,10 @@ nfrs:
     environments:
     - int
     - ref
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures resilience of routing tier
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: REL-016
   requirement: Server error shows logout/message per spec
@@ -255,11 +245,9 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Protects user experience during server errors
-  services:
+  teams:
   - infrastructure
 - code: REL-017
   requirement: Restore drill meets RPO/RTO & ransomware defenses
@@ -267,6 +255,6 @@ nfrs:
   stories:
   - FTRS-11
   - FTRS-344
-  services:
+  teams:
   - infrastructure
   - programme

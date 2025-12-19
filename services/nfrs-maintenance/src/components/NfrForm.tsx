@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NFR, Control, Operation, ServicesConfig } from '../types';
+import { NFR, Control, Operation, ServicesConfig, NfrMetaFile } from '../types';
 import ControlForm from './ControlForm';
 import OperationForm from './OperationForm';
 
@@ -8,19 +8,26 @@ interface Props {
   defaultCode?: string;
   domain: string;
   services: ServicesConfig;
+  catalog: NfrMetaFile;
   explanation: string;
   onSave: (nfr: NFR, explanation: string) => void;
   onCancel: () => void;
   saving: boolean;
 }
 
-export default function NFRForm({ nfr, defaultCode, domain, services, explanation: initialExplanation, onSave, onCancel, saving }: Props) {
+export default function NFRForm({ nfr, defaultCode, domain, services, catalog, explanation: initialExplanation, onSave, onCancel, saving }: Props) {
+  const getServiceName = (id: string): string => {
+    return services.services[id] || id;
+  };
+
   const [formData, setFormData] = useState<NFR>({
     code: nfr?.code || defaultCode || '',
     requirement: nfr?.requirement || '',
     explanation: nfr?.explanation || '',
     stories: nfr?.stories || [],
     services: nfr?.services || [],
+    teams: nfr?.teams || [],
+    releases: nfr?.releases || [],
     controls: nfr?.controls || [],
     operations: nfr?.operations || []
   });
@@ -42,6 +49,8 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
         explanation: nfr.explanation || '',
         stories: nfr.stories || [],
         services: nfr.services || [],
+        teams: nfr.teams || [],
+        releases: nfr.releases || [],
         controls: nfr.controls || [],
         operations: nfr.operations || []
       });
@@ -66,6 +75,36 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
       ? current.filter(s => s !== serviceId)
       : [...current, serviceId];
     handleChange('services', updated);
+  };
+
+  const handleTeamToggle = (teamId: string) => {
+    const current = formData.teams || [];
+    const updated = current.includes(teamId)
+      ? current.filter(t => t !== teamId)
+      : [...current, teamId];
+    handleChange('teams', updated);
+  };
+
+  const handleReleaseToggle = (releaseId: string) => {
+    const current = formData.releases || [];
+    const existing = current.find(r => r.id === releaseId);
+    let updated;
+    if (existing) {
+      updated = current.filter(r => r.id !== releaseId);
+    } else {
+      updated = [...current, { id: releaseId }];
+    }
+    handleChange('releases', updated);
+  };
+
+  const handleReleaseStatusChange = (releaseId: string, status: string) => {
+    const current = formData.releases || [];
+    const updated = current.map(r =>
+      r.id === releaseId
+        ? { ...r, overall_status: status || undefined }
+        : r
+    );
+    handleChange('releases', updated);
   };
 
   const handleAddControl = () => {
@@ -136,6 +175,8 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
     // Note: explanation is now stored separately in cross-references file
     if (formData.stories && formData.stories.length > 0) cleanedData.stories = formData.stories;
     if (formData.services && formData.services.length > 0) cleanedData.services = formData.services;
+    if (formData.teams && formData.teams.length > 0) cleanedData.teams = formData.teams;
+    if (formData.releases && formData.releases.length > 0) cleanedData.releases = formData.releases;
     if (formData.controls && formData.controls.length > 0) cleanedData.controls = formData.controls;
     if (formData.operations && formData.operations.length > 0) cleanedData.operations = formData.operations;
 
@@ -215,6 +256,63 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
             </div>
           </div>
 
+          <div className="form-group">
+            <label>Responsible Teams</label>
+            <div className="multi-select">
+              {catalog.teams.map(team => (
+                <label key={team.id} className="multi-select-option">
+                  <input
+                    type="checkbox"
+                    checked={(formData.teams || []).includes(team.id)}
+                    onChange={() => handleTeamToggle(team.id)}
+                  />
+                  {team.name}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Releases</label>
+            {catalog.releases.length === 0 ? (
+              <p style={{ fontSize: '0.875rem', color: '#6f777b' }}>
+                No releases defined in catalog.
+              </p>
+            ) : (
+              <div className="controls-section">
+                {catalog.releases.map(release => {
+                  const existing = (formData.releases || []).find(r => r.id === release.id);
+                  return (
+                    <div key={release.id} className="control-item" style={{ marginBottom: '0.5rem' }}>
+                      <div className="control-header">
+                        <label className="multi-select-option" style={{ marginBottom: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={!!existing}
+                            onChange={() => handleReleaseToggle(release.id)}
+                          />
+                          <span style={{ marginLeft: '0.5rem' }}>{release.name}</span>
+                        </label>
+                      </div>
+                      {existing && (
+                        <div className="form-group" style={{ marginTop: '0.5rem' }}>
+                          <label htmlFor={`release-status-${release.id}`}>Overall status</label>
+                          <input
+                            id={`release-status-${release.id}`}
+                            type="text"
+                            value={existing.overall_status || ''}
+                            onChange={e => handleReleaseStatusChange(release.id, e.target.value)}
+                            placeholder="e.g., in-review, not-started, complete"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Controls Section */}
           <div className="controls-section">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -247,6 +345,25 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
                   </div>
                 </div>
                 <p style={{ fontSize: '0.875rem' }}>{ctrl.measure}</p>
+                {ctrl.operation_ids && ctrl.operation_ids.length > 0 && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '0.675rem', textTransform: 'uppercase', color: '#768692', marginBottom: '0.25rem' }}>
+                      Operations covered
+                    </div>
+                    <div className="tag-list">
+                      {ctrl.operation_ids.map(opId => {
+                        const op = (formData.operations || []).find(o => o.operation_id === opId);
+                        const serviceName = op ? getServiceName(op.service) : undefined;
+                        const label = serviceName ? `${serviceName} / ${opId}` : opId;
+                        return (
+                          <span key={opId} className="tag tag-operation">
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -307,6 +424,7 @@ export default function NFRForm({ nfr, defaultCode, domain, services, explanatio
           <ControlForm
             control={editingControlIndex !== null ? formData.controls?.[editingControlIndex] : undefined}
             services={services}
+            operations={formData.operations || []}
             onSave={handleSaveControl}
             onCancel={() => {
               setShowControlForm(false);

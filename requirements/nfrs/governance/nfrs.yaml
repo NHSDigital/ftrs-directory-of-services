@@ -13,12 +13,12 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
-    - infrastructure
     status: draft
     rationale: Ensures service readiness sign-off
     stories: []
+  teams:
+  - infrastructure
+  - programme
 - code: GOV-002
   requirement: Well-Architected review completed & actions closed
   explanation: Well-Architected review completed; remediation actions closed.
@@ -31,12 +31,12 @@ nfrs:
     cadence: Pre-live + annual
     environments:
     - prod
-    services:
-    - infrastructure
-    - programme
     status: draft
     rationale: Maintains architectural quality
     stories: []
+  teams:
+  - infrastructure
+  - programme
 - code: GOV-003
   requirement: Solution Architecture Framework assessment approved
   explanation: Solution Architecture Framework assessment is approved.
@@ -52,14 +52,14 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Ensures architectural governance sign-off
+  teams:
+  - programme
 - code: GOV-004
   requirement: Engineering Red-lines compliance checklist signed
   explanation: Engineering red-lines compliance checklist is signed.
-  stories:
+  stories: null
   controls:
   - control_id: nhs-github-enterprise-repos
     measure: All FtRS code repositories are hosted in NHS GitHub Enterprise and comply
@@ -74,12 +74,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
-    - programme
     status: draft
     rationale: Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise
       and securing repositories; provides traceable evidence and automated verification
+  teams:
+  - infrastructure
+  - programme
 - code: GOV-005
   requirement: GDPR compliance assessment signed by IG
   explanation: GDPR compliance assessment signed by Information Governance.
@@ -92,17 +92,15 @@ nfrs:
     cadence: Pre-live + annual
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Ensures data protection compliance
     stories: []
+  teams:
+  - programme
 - code: GOV-006
   requirement: Medical Device out-of-scope statement recorded
   explanation: Statement confirming service is out of scope for Medical Device regulation.
-  stories:
-  services:
-  - programme
+  stories: null
   controls:
   - control_id: medical-device-out-of-scope
     measure: Medical Device out-of-scope statement recorded
@@ -111,17 +109,15 @@ nfrs:
     cadence: Annual review
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Confirms regulatory position
     stories: []
+  teams:
+  - programme
 - code: GOV-007
   requirement: FtRS Architects review & approval logged
   explanation: Architecture review and approval logged by FtRS architects.
   stories: []
-  services:
-  - programme
   controls:
   - control_id: ftrs-architects-approval
     measure: FtRS Architects review & approval logged
@@ -133,10 +129,11 @@ nfrs:
     services:
     - crud-apis
     - dos-search
-    - programme
     status: draft
     rationale: Provides architectural oversight evidence
     stories: []
+  teams:
+  - programme
 - code: GOV-008
   requirement: Cloud Expert deployment approval documented
   explanation: Cloud expert deployment approval documented (infrastructure readiness).
@@ -155,10 +152,11 @@ nfrs:
     services:
     - crud-apis
     - dos-search
-    - programme
     status: draft
     rationale: Confirms infrastructure deployment readiness
     stories: []
+  teams:
+  - programme
 - code: GOV-009
   requirement: Solution Assurance approval ticket closed
   explanation: Solution Assurance approval ticket is closed.
@@ -171,11 +169,11 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Meets governance approval requirements
     stories: []
+  teams:
+  - programme
 - code: GOV-010
   requirement: Clinical Safety assurance approval recorded
   explanation: Clinical Safety assurance approval recorded.
@@ -190,11 +188,11 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Complies with clinical safety governance
     stories: []
+  teams:
+  - programme
 - code: GOV-011
   requirement: Information Governance approval recorded
   explanation: Information Governance approval recorded.
@@ -210,11 +208,11 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Meets IG governance
     stories: []
+  teams:
+  - programme
 - code: GOV-012
   requirement: TRG approval session outcome logged
   explanation: Technical Review Group (TRG) approval outcome documented.
@@ -233,16 +231,15 @@ nfrs:
     services:
     - crud-apis
     - dos-search
-    - programme
     status: draft
     rationale: Documents technical governance approval
     stories: []
+  teams:
+  - programme
 - code: GOV-013
   requirement: SIRO sign-off obtained
   explanation: Senior Information Risk Owner (SIRO) sign-off obtained.
   stories: []
-  services:
-  - programme
   controls:
   - control_id: siro-signoff
     measure: SIRO sign-off obtained
@@ -251,17 +248,15 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Confirms senior risk acceptance
     stories: []
+  teams:
+  - programme
 - code: GOV-014
   requirement: Caldicott Principles Guardian approval recorded
   explanation: Caldicott Guardian approval recorded for data handling.
   stories: []
-  services:
-  - programme
   controls:
   - control_id: caldicott-guardian-approval
     measure: Caldicott Principles Guardian approval recorded
@@ -270,17 +265,15 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Ensures data handling governance
     stories: []
+  teams:
+  - programme
 - code: GOV-015
   requirement: DUEC Assurance Board acceptance logged
   explanation: DUEC Assurance Board acceptance logged.
   stories: []
-  services:
-  - programme
   controls:
   - control_id: duec-acceptance
     measure: DUEC Assurance Board acceptance logged
@@ -289,17 +282,15 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Documents assurance acceptance
     stories: []
+  teams:
+  - programme
 - code: GOV-016
   requirement: Live Services Board go-live approval recorded
   explanation: Live Services Board go-live approval recorded.
   stories: []
-  services:
-  - programme
   controls:
   - control_id: live-services-go-live
     measure: Live Services Board go-live approval recorded
@@ -308,8 +299,8 @@ nfrs:
     cadence: Pre-live
     environments:
     - prod
-    services:
-    - programme
     status: draft
     rationale: Final governance approval before production
     stories: []
+  teams:
+  - programme

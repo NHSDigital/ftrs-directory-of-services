@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchNFRs, addNFR, updateNFR, deleteNFR, updateExplanation } from '../api';
-import { NFR, NFRFile, ServicesConfig, ExplanationsFile } from '../types';
+import { NFR, NFRFile, ServicesConfig, ExplanationsFile, NfrMetaFile } from '../types';
 import NFRCard from './NFRCard';
-import NFRForm from './NFRForm';
+import NFRForm from './NfrForm';
 import ConfirmDialog from './ConfirmDialog';
 
 interface Props {
   services: ServicesConfig;
   explanations: ExplanationsFile;
+  catalog: NfrMetaFile;
   onExplanationsChange: (explanations: ExplanationsFile) => void;
 }
 
-export default function DomainView({ services, explanations, onExplanationsChange }: Props) {
+export default function DomainView({ services, explanations, catalog, onExplanationsChange }: Props) {
   const { domainName } = useParams<{ domainName: string }>();
   const [nfrFile, setNfrFile] = useState<NFRFile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -187,6 +188,7 @@ export default function DomainView({ services, explanations, onExplanationsChang
           defaultCode={isCreating ? getNextCode() : undefined}
           domain={domainName || ''}
           services={services}
+          catalog={catalog}
           explanation={editingNfr ? (explanations.explanations[editingNfr.code] || '') : ''}
           onSave={handleSave}
           onCancel={handleCancel}

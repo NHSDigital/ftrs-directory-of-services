@@ -10,6 +10,7 @@ SCRIPTS_DIR = ROOT / "scripts" / "nfr"
 
 REFRESH_SIMPLIFIED = SCRIPTS_DIR / "refresh_simplified_nfr_page.py"
 BUILD_SERVICE = SCRIPTS_DIR / "build_service_pages.py"
+BUILD_TEAM_RELEASE_OP = SCRIPTS_DIR / "build_team_release_operation_pages.py"
 
 
 def python_bin() -> str:
@@ -41,7 +42,9 @@ def main() -> None:
     run_script(REFRESH_SIMPLIFIED)
     # 2) Generate per-service pages and insert links into simplified index
     run_script(BUILD_SERVICE)
-    print("Completed: domain pages, simplified index, and per-service pages")
+    # 3) Generate per-team, per-release, and per-operation views
+    run_script(BUILD_TEAM_RELEASE_OP)
+    print("Completed: domain pages, simplified index, per-service pages, and team/release/operation views")
 
 
 if __name__ == "__main__":

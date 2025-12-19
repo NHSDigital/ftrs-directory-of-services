@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Control, ServicesConfig } from '../types';
+import { Control, Operation, ServicesConfig } from '../types';
 
 interface Props {
   control?: Control;
   services: ServicesConfig;
+  operations: Operation[];
   onSave: (control: Control) => void;
   onCancel: () => void;
 }
@@ -11,7 +12,11 @@ interface Props {
 const ENVIRONMENTS = ['dev', 'int', 'ref', 'prod'];
 const STATUSES = ['draft', 'approved', 'implemented', 'verified', 'deprecated'];
 
-export default function ControlForm({ control, services, onSave, onCancel }: Props) {
+export default function ControlForm({ control, services, operations, onSave, onCancel }: Props) {
+  const getServiceName = (id: string): string => {
+    return services.services[id] || id;
+  };
+
   const [formData, setFormData] = useState<Control>({
     control_id: control?.control_id || '',
     measure: control?.measure || '',
@@ -21,6 +26,7 @@ export default function ControlForm({ control, services, onSave, onCancel }: Pro
     environments: control?.environments || [],
     services: control?.services || [],
     operation_id: control?.operation_id || '',
+    operation_ids: control?.operation_ids || (control?.operation_id ? [control.operation_id] : []),
     status: control?.status || 'draft',
     rationale: control?.rationale || '',
     stories: control?.stories || []
@@ -39,6 +45,7 @@ export default function ControlForm({ control, services, onSave, onCancel }: Pro
         environments: control.environments || [],
         services: control.services || [],
         operation_id: control.operation_id || '',
+        operation_ids: control.operation_ids || (control.operation_id ? [control.operation_id] : []),
         status: control.status || 'draft',
         rationale: control.rationale || '',
         stories: control.stories || []
@@ -73,6 +80,14 @@ export default function ControlForm({ control, services, onSave, onCancel }: Pro
     handleChange('services', updated);
   };
 
+  const handleOperationToggle = (operationId: string) => {
+    const current = formData.operation_ids || [];
+    const updated = current.includes(operationId)
+      ? current.filter(id => id !== operationId)
+      : [...current, operationId];
+    handleChange('operation_ids', updated);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -87,7 +102,7 @@ export default function ControlForm({ control, services, onSave, onCancel }: Pro
     if (formData.cadence) cleanedData.cadence = formData.cadence;
     if (formData.environments && formData.environments.length > 0) cleanedData.environments = formData.environments;
     if (formData.services && formData.services.length > 0) cleanedData.services = formData.services;
-    if (formData.operation_id) cleanedData.operation_id = formData.operation_id;
+    if (formData.operation_ids && formData.operation_ids.length > 0) cleanedData.operation_ids = formData.operation_ids;
     if (formData.status) cleanedData.status = formData.status;
     if (formData.rationale) cleanedData.rationale = formData.rationale;
     if (formData.stories && formData.stories.length > 0) cleanedData.stories = formData.stories;
@@ -176,14 +191,28 @@ export default function ControlForm({ control, services, onSave, onCancel }: Pro
             </div>
 
             <div className="form-group">
-              <label htmlFor="operation_id">Operation ID</label>
-              <input
-                id="operation_id"
-                type="text"
-                value={formData.operation_id}
-                onChange={e => handleChange('operation_id', e.target.value)}
-                placeholder="Optional operation correlation"
-              />
+              <label>Operations covered</label>
+              {operations.length === 0 ? (
+                <p style={{ fontSize: '0.875rem', color: '#6f777b' }}>
+                  No operations defined for this NFR.
+                </p>
+              ) : (
+                <div className="multi-select">
+                  {operations.map(op => {
+                    const label = `${getServiceName(op.service)} / ${op.operation_id}`;
+                    return (
+                      <label key={`${op.service}:${op.operation_id}`} className="multi-select-option">
+                        <input
+                          type="checkbox"
+                          checked={(formData.operation_ids || []).includes(op.operation_id)}
+                          onChange={() => handleOperationToggle(op.operation_id)}
+                        />
+                        {label}
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 

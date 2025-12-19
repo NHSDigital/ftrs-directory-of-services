@@ -17,53 +17,54 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures at-a-glance service health visibility
     stories:
     - FTRS-1015
+  teams:
+  - infrastructure
 - code: OBS-002
   requirement: Authenticated remote health dashboard accessible
   explanation: Authenticated remote health dashboard is accessible to support teams.
   stories: []
-  services:
-    - infrastructure
+  teams:
+  - infrastructure
 - code: OBS-003
-  requirement: Health event visible ≤60s after failure
+  requirement: "Health event visible \u226460s after failure"
   explanation: Health events appear on dashboards shortly after failures (within target
     freshness).
-  stories: [FTRS-1003]
-  services:
-    - infrastructure
+  stories:
+  - FTRS-1003
+  teams:
+  - infrastructure
 - code: OBS-004
   requirement: Automated maintenance tasks executed; zero manual interventions
   explanation: Automated maintenance tasks run successfully with no manual intervention
     required.
   stories: []
-  services:
-    - infrastructure
+  teams:
+  - infrastructure
 - code: OBS-005
   requirement: Performance metrics per layer present
   explanation: Layered performance metrics (app, DB, cache) are visible.
   stories:
   - FTRS-1016
-  services:
-    - infrastructure
+  teams:
+  - infrastructure
 - code: OBS-006
   requirement: Remote performance dashboard matches local view
   explanation: Remote performance dashboard mirrors local environment metrics accurately.
   stories: []
-  services:
-    - infrastructure
+  teams:
+  - infrastructure
 - code: OBS-007
-  requirement: Performance metrics latency ≤60s
-  explanation: Performance metrics latency (ingest to display) stays within defined
-    limit (e.g., ≤60s).
+  requirement: "Performance metrics latency \u226460s"
+  explanation: "Performance metrics latency (ingest to display) stays within defined\
+    \ limit (e.g., \u226460s)."
   stories: []
   controls:
   - control_id: perf-metrics-latency
-    measure: Performance metrics latency ≤60s
+    measure: "Performance metrics latency \u226460s"
     threshold: Metrics pipeline delivers data within 60s latency
     tooling: Metrics agent + ingestion SLA alerting
     cadence: Continuous monitoring
@@ -71,11 +72,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Fresh metrics are required for accurate operational decisions
     stories: []
+  teams:
+  - infrastructure
 - code: OBS-008
   requirement: TPS per endpoint displayed & threshold alert configured
   explanation: Per-endpoint transactions per second (TPS) are displayed with alert
@@ -92,12 +93,12 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Detects throughput anomalies proactively
     stories:
     - FTRS-1688
+  teams:
+  - infrastructure
 - code: OBS-009
   requirement: Endpoint latency histograms with p50/p95/p99
   explanation: Latency histograms show p50/p95/p99 for each endpoint.
@@ -112,15 +113,15 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Percentile visibility supports performance governance
     stories: []
+  teams:
+  - infrastructure
 - code: OBS-010
   requirement: Aggregate latency panel accurate within 2% roll-up
-  explanation: Aggregate latency panel roll-ups remain within acceptable accuracy
-    margin (e.g., ≤2%).
+  explanation: "Aggregate latency panel roll-ups remain within acceptable accuracy\
+    \ margin (e.g., \u22642%)."
   stories: []
   controls:
   - control_id: aggregate-latency-accuracy
@@ -130,12 +131,10 @@ nfrs:
     cadence: Monthly calibration
     environments:
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures trustworthy aggregate metrics
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-011
   requirement: Failure types logged & classified in dashboard
@@ -151,12 +150,11 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Improves incident triage
-    stories: [FTRS-998]
-  services:
+    stories:
+    - FTRS-998
+  teams:
   - infrastructure
 - code: OBS-012
   requirement: Error percentage metric & alert configured
@@ -171,14 +169,12 @@ nfrs:
     cadence: Continuous + monthly tuning
     environments:
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Early detection of reliability regressions
     stories:
     - FTRS-1017
-  services:
-    - infrastructure
+  teams:
+  - infrastructure
 - code: OBS-013
   requirement: Infra log query returns expected fields
   explanation: Infrastructure logs return expected structured fields for queries.
@@ -194,12 +190,10 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Ensures log usability for ops
     stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-014
   requirement: Infra log entries include required fields
@@ -216,73 +210,72 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Guarantees structured logging quality
-  services:
+  teams:
   - infrastructure
 - code: OBS-015
   requirement: Retention policy enforced & reported
   explanation: Log retention policy is enforced and reported.
   stories: null
-  services:
+  teams:
   - infrastructure
 - code: OBS-016
   requirement: SIEM forwarding delivers test event <60s
   explanation: Security/event forwarding to SIEM delivers test events within freshness
     target.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-017
   requirement: All log levels supported; dynamic change works
   explanation: All log levels are supported and can be changed dynamically.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-018
   requirement: Log level propagation <2min with alert on breach
   explanation: Log level changes propagate quickly (under defined minutes) with alert
     if breach.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-019
   requirement: Operational log shows full transaction chain
   explanation: Operational logs allow full transaction chain reconstruction.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-020
   requirement: Operations logs reconstruct workflow
   explanation: Operations logs reconstruct workflow sequences accurately.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-021
   requirement: Operational events include transaction_id
   explanation: Operational events include a transaction identifier for correlation.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-022
   requirement: Audit trail reconstructs user action
   explanation: Audit trail can reconstruct a specific user action sequence.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-023
   requirement: Audit events share transaction_id & ordered timestamps
   explanation: Audit events share transaction IDs and ordered timestamps for traceability.
-  stories: [FTRS-1018]
-  services:
+  stories:
+  - FTRS-1018
+  teams:
   - infrastructure
 - code: OBS-024
   requirement: Alert rule triggers multi-channel notification
   explanation: Alert rules trigger multi-channel notifications (e.g., chat + email).
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-025
   requirement: Alerts delivered to multi-channel with context
@@ -308,25 +301,25 @@ nfrs:
   requirement: Analytics query identifies usage pattern
   explanation: Analytics queries identify usage patterns from captured metrics.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-027
   requirement: Analytics outage non-impacting to transactions
   explanation: Analytics outages do not impact core transaction processing.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-028
   requirement: RBAC restricts dashboard sections
   explanation: Role-based access control (RBAC) restricts dashboard sections appropriately.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-029
-  requirement: Dashboard freshness age ≤60s
-  explanation: Dashboard freshness age remains under target (e.g., ≤60s).
+  requirement: "Dashboard freshness age \u226460s"
+  explanation: "Dashboard freshness age remains under target (e.g., \u226460s)."
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-030
   requirement: Distributed trace spans cover end-to-end request
@@ -336,24 +329,24 @@ nfrs:
   controls:
   - control_id: distributed-trace-coverage
     measure: Distributed trace spans cover end-to-end request
-    threshold: ≥95% of requests include spans across key tiers
+    threshold: "\u226595% of requests include spans across key tiers"
     tooling: Tracing SDKs + sampling config
     cadence: Continuous + monthly sampling review
     environments:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Enables end-to-end diagnosis and correlation across layers
     stories: []
+  teams:
+  - infrastructure
 - code: OBS-031
   requirement: Anonymised behaviour metrics collected without identifiers
   explanation: Anonymised behavioural metrics are collected without exposing personal
     identifiers.
   stories: []
-  services:
+  teams:
   - infrastructure
 - code: OBS-032
   requirement: Per-endpoint 4xx/5xx response metrics & alert thresholds configured
@@ -361,7 +354,7 @@ nfrs:
     so error rate spikes are detected and acted upon quickly.
   stories:
   - FTRS-1573
-  services:
+  teams:
   - infrastructure
 - code: OBS-033
   requirement: Unauthorized API access attempts logged, classified, alerted
@@ -384,8 +377,8 @@ nfrs:
     - int
     - ref
     - prod
-    services:
-    - infrastructure
     status: draft
     rationale: Early detection of credential stuffing, token misuse, and privilege
       escalation attempts
+  teams:
+  - infrastructure

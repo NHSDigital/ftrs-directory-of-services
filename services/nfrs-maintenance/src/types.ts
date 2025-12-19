@@ -9,6 +9,7 @@ export interface Control {
   environments?: string[];
   services?: string[];
   operation_id?: string;
+  operation_ids?: string[];
   status?: string;
   rationale?: string;
   stories?: string[];
@@ -35,6 +36,8 @@ export interface NFR {
   explanation?: string;
   stories?: string[];
   services?: string[];
+  teams?: string[];
+  releases?: ReleaseInfo[];
   controls?: Control[];
   operations?: Operation[];
 }
@@ -71,4 +74,31 @@ export interface ExplanationsFile {
   version: string | number;
   generated?: string;
   explanations: { [code: string]: string };
+}
+
+export interface ReleaseInfo {
+  id: string;
+  operations?: string[];
+  overall_status?: string;
+  team_status?: { [teamId: string]: string };
+}
+
+export interface TeamMeta {
+  id: string;
+  name: string;
+  description?: string;
+  services?: string[];
+}
+
+export interface ReleaseMeta {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface NfrMetaFile {
+  version: string | number;
+  generated?: string;
+  teams: TeamMeta[];
+  releases: ReleaseMeta[];
 }

@@ -68,6 +68,22 @@ export default function NFRCard({ nfr, services, explanation, onEdit, onDelete }
             ))}
           </div>
         )}
+        {nfr.teams && nfr.teams.length > 0 && (
+          <div className="tag-list">
+            {nfr.teams.map(team => (
+              <span key={team} className="tag tag-team">{team}</span>
+            ))}
+          </div>
+        )}
+        {nfr.releases && nfr.releases.length > 0 && (
+          <div className="tag-list">
+            {nfr.releases.map(rel => (
+              <span key={rel.id} className="tag tag-release">
+                {rel.id}{rel.overall_status ? ` (${rel.overall_status})` : ''}
+              </span>
+            ))}
+          </div>
+        )}
         {nfr.stories && nfr.stories.length > 0 && (
           <span>{nfr.stories.length} linked stories</span>
         )}
@@ -100,6 +116,23 @@ export default function NFRCard({ nfr, services, explanation, onEdit, onDelete }
                   <span>
                     <label>Tooling</label>
                     {ctrl.tooling}
+                  </span>
+                )}
+                {ctrl.operation_ids && ctrl.operation_ids.length > 0 && (
+                  <span>
+                    <label>Operations</label>
+                    <div className="tag-list">
+                      {(ctrl.operation_ids || []).map(opId => {
+                        const op = nfr.operations?.find(o => o.operation_id === opId);
+                        const serviceName = op ? getServiceName(op.service) : undefined;
+                        const label = serviceName ? `${serviceName} / ${opId}` : opId;
+                        return (
+                          <span key={opId} className="tag tag-operation">
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </span>
                 )}
               </div>

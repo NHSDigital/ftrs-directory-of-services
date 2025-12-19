@@ -1,4 +1,4 @@
-import { Domain, NFRFile, ServicesConfig, NFR, ExplanationsFile } from './types';
+import { Domain, NFRFile, ServicesConfig, NFR, ExplanationsFile, NfrMetaFile } from './types';
 
 const API_BASE = '/api';
 
@@ -114,4 +114,20 @@ export async function deleteExplanation(code: string): Promise<void> {
     method: 'DELETE'
   });
   if (!response.ok) throw new Error('Failed to delete explanation');
+}
+
+// Catalog (teams & releases) API
+export async function fetchCatalog(): Promise<NfrMetaFile> {
+  const response = await fetch(`${API_BASE}/catalog`);
+  if (!response.ok) throw new Error('Failed to fetch NFR catalog');
+  return response.json();
+}
+
+export async function updateCatalog(catalog: NfrMetaFile): Promise<void> {
+  const response = await fetch(`${API_BASE}/catalog`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(catalog)
+  });
+  if (!response.ok) throw new Error('Failed to update NFR catalog');
 }

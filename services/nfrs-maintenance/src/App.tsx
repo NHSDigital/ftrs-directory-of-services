@@ -1,28 +1,32 @@
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { fetchDomains, fetchServices, fetchExplanations } from './api';
-import { Domain, ServicesConfig, ExplanationsFile } from './types';
+import { fetchDomains, fetchServices, fetchExplanations, fetchCatalog } from './api';
+import { Domain, ServicesConfig, ExplanationsFile, NfrMetaFile } from './types';
 import DomainView from './components/DomainView';
 import ServicesView from './components/ServicesView';
+import TeamsReleasesView from './components/TeamsReleasesView';
 
 function App() {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [services, setServices] = useState<ServicesConfig | null>(null);
   const [explanations, setExplanations] = useState<ExplanationsFile | null>(null);
+  const [catalog, setCatalog] = useState<NfrMetaFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [domainsData, servicesData, explanationsData] = await Promise.all([
+        const [domainsData, servicesData, explanationsData, catalogData] = await Promise.all([
           fetchDomains(),
           fetchServices(),
-          fetchExplanations()
+          fetchExplanations(),
+          fetchCatalog()
         ]);
         setDomains(domainsData);
         setServices(servicesData);
         setExplanations(explanationsData);
+         setCatalog(catalogData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load data');
       } finally {
@@ -40,6 +44,10 @@ function App() {
     return <div className="empty-state"><h3>Error</h3><p>{error}</p></div>;
   }
 
+  if (!services || !explanations || !catalog) {
+    return <div className="empty-state"><h3>Error</h3><p>Failed to load configuration data.</p></div>;
+  }
+
   return (
     <div className="app">
       <nav className="sidebar">
@@ -52,6 +60,14 @@ function App() {
               className={({ isActive }) => isActive ? 'active' : ''}
             >
               Services
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/teams-releases"
+              className={({ isActive }) => isActive ? 'active' : ''}
+            >
+              Teams & Releases
             </NavLink>
           </li>
         </ul>
@@ -80,8 +96,18 @@ function App() {
             path="/services"
             element={
               <ServicesView
-                services={services!}
+                services={services}
                 onServicesChange={setServices}
+              />
+            }
+          />
+          <Route
+            path="/teams-releases"
+            element={
+              <TeamsReleasesView
+                catalog={catalog}
+                services={services}
+                onCatalogChange={setCatalog}
               />
             }
           />
@@ -89,8 +115,9 @@ function App() {
             path="/domain/:domainName"
             element={
               <DomainView
-                services={services!}
-                explanations={explanations!}
+                services={services}
+                explanations={explanations}
+                catalog={catalog}
                 onExplanationsChange={setExplanations}
               />
             }

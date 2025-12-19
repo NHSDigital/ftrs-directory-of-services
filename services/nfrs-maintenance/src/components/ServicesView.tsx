@@ -53,11 +53,11 @@ export default function ServicesView({ services, onServicesChange }: Props) {
       await deleteService(deletingServiceId);
       const newServices = { ...services.services };
       delete newServices[deletingServiceId];
-      
+
       // Also remove from operations if present
       const newOperations = { ...services.operations };
       delete newOperations[deletingServiceId];
-      
+
       onServicesChange({
         services: newServices,
         operations: newOperations

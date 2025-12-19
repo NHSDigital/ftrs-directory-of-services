@@ -8,8 +8,6 @@ services:
   data-migration: Data Migration
   read-only-viewer: Read-only Viewer
   sandbox-dos-search: Sandbox DoS Search
-  infrastructure: Infrastructure
-  programme: Programme
 
 operations:
   dos-search:
