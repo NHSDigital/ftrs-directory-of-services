@@ -92,9 +92,9 @@ def get_organization() -> Response:
         return create_response(400, fhir_resource)
     except InvalidRequestHeadersError as exception:
         invalid_headers: list[str] = exception.args[0] if exception.args else []
-        logger.warning(
+        dos_logger.warning(
             "Invalid request headers supplied",
-            extra={"invalid_headers": invalid_headers},
+            invalid_headers=invalid_headers,
         )
         fhir_resource = error_util.create_invalid_header_operation_outcome(
             invalid_headers

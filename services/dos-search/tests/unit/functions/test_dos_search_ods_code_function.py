@@ -127,7 +127,7 @@ class TestLambdaHandler:
         )
         mock_logger.warning.assert_called_with(
             "Invalid request headers supplied",
-            extra={"invalid_headers": ["x-nhsd-unknown"]},
+            invalid_headers=["x-nhsd-unknown"],
         )
         assert_response(
             response,
