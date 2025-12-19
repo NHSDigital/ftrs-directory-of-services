@@ -1,9 +1,9 @@
 team_owner                          = "data-sourcing"
 lambda_runtime                      = "python3.12"
 processor_name                      = "processor-lambda"
-processor_lambda_handler            = "pipeline.processor.processor_lambda_handler"
+processor_lambda_handler            = "pipeline.producer.processor_handler.processor_lambda_handler"
 consumer_name                       = "consumer-lambda"
-consumer_lambda_handler             = "pipeline.consumer.consumer_lambda_handler"
+consumer_lambda_handler             = "pipeline.consumer.consumer_handler.consumer_lambda_handler"
 consumer_lambda_connection_timeout  = 30
 processor_lambda_connection_timeout = 720
 lambda_memory_size                  = 512
