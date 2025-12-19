@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.contactpoint import ContactPoint
@@ -829,7 +830,6 @@ def test__extract_legal_dates_no_matching_url() -> None:
 
 def test__extract_legal_dates_ext_with_dict_method() -> None:
     """Test _extract_legal_dates handles extensions with .dict() method within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
@@ -874,8 +874,6 @@ def test__extract_legal_dates_ext_with_dict_method() -> None:
 
 def test__extract_legal_dates_mixed_extension_types() -> None:
     """Test _extract_legal_dates with mixed dict and Extension object types within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
 
@@ -1142,8 +1140,6 @@ def test__parse_legal_period(
     Note: Validation of dateType='Legal' happens in Pydantic validator,
     so the mapper just extracts dates regardless of dateType value.
     """
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     ext_obj = Extension.model_validate(typed_period_ext) if typed_period_ext else None
     start, end = mapper._parse_legal_period(ext_obj)
@@ -1220,8 +1216,6 @@ def test_to_fhir_partial_dates_absent_not_null(
     expected_end_in_period: str | None,
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
-    from ftrs_data_layer.domain.organisation import LegalDates
-
     mapper = OrganizationMapper()
 
     legal_dates = None
@@ -2456,7 +2450,7 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
         modifiedBy="TEST",
         primary_role_code="RO182",
         non_primary_role_codes=["RO198", "RO76"],
-        telecom=[]
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2530,8 +2524,6 @@ def test__build_organisation_extensions_with_no_roles() -> None:
 
 def test__build_organisation_extensions_primary_role_returns_none() -> None:
     """Test that None primary_ext is not added to extensions (line 80)."""
-    from unittest.mock import patch
-
     mapper = OrganizationMapper()
 
     org = Organisation(
@@ -2553,8 +2545,6 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
 
 def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
     """Test that None non_primary_ext is not added to extensions (line 87)."""
-    from unittest.mock import patch
-
     mapper = OrganizationMapper()
 
     # Create org with only non-primary role codes
@@ -2565,7 +2555,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
         active=True,
         modifiedBy="TEST",
         non_primary_role_codes=["RO198"],  # To create valid Organisation
-        telecom=[]
+        telecom=[],
     )
 
     with patch.object(mapper, "_build_organisation_role_extension", return_value=None):
