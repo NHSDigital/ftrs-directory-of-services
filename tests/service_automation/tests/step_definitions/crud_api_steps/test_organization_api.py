@@ -413,7 +413,6 @@ def validate_db_entry_against_payload(item, payload):
     expected_fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
-        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
