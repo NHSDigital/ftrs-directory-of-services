@@ -821,7 +821,7 @@ components:
               items:
                 type: string
               example:
-                - https://fhir.nhs.uk/StructureDefinition/UKCore-OrganizationAffiliation
+                - https://fhir.hl7.org.uk/StructureDefinition/UKCore-OrganizationAffiliation
         organization:
           type: object
           properties:
@@ -902,7 +902,7 @@ components:
               items:
                 type: string
               example:
-                - https://fhir.nhs.uk/StructureDefinition/UKCore-Organization
+                - https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization
         active:
           type: boolean
           example: true

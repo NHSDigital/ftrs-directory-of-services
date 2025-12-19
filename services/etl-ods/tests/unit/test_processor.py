@@ -273,7 +273,7 @@ def test_processor_processing_organisations_successful(
                 "id": "00000000-0000-0000-0000-000000000abc",
                 "meta": {
                     "profile": [
-                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                        "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                     ]
                 },
                 "active": True,

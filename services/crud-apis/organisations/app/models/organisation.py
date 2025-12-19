@@ -99,7 +99,9 @@ class OrganisationUpdatePayload(BaseModel):
     meta: dict = Field(
         ...,
         example={
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
     )
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
