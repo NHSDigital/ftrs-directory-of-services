@@ -71,6 +71,8 @@ servers:
     description: Sandbox
   - url: 'https://int.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Integration
+  - url: 'https://ref.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Reference
   - url: 'https://api.service.nhs.uk/dos-search/FHIR/R4'
     description: Production
 security:
