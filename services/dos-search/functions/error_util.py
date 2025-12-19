@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
@@ -21,11 +21,43 @@ INVALID_SEARCH_DATA_CODING: dict[str, list] = {
     ]
 }
 
-VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict] = {
+REC_BAD_REQUEST_CODING: dict[str, list] = {
+    "coding": [
+        {
+            "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
+            "version": "1",
+            "code": "REC_BAD_REQUEST",
+            "display": "400: The Receiver was unable to process the request.",
+        }
+    ]
+}
+
+VALUE_ERROR_MAPPINGS: dict[type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
 }
+
+
+def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutcome:
+    diagnostics = (
+        "Invalid request headers supplied: "
+        + ", ".join(sorted(header.lower() for header in headers))
+        if headers
+        else "Invalid request headers supplied"
+    )
+    return OperationOutcome.model_validate(
+        {
+            "issue": [
+                _create_issue(
+                    "value",
+                    "error",
+                    details=REC_BAD_REQUEST_CODING,
+                    diagnostics=diagnostics,
+                )
+            ]
+        }
+    )
 
 
 def create_resource_internal_server_error() -> OperationOutcome:
@@ -46,7 +78,7 @@ def create_validation_error_operation_outcome(
     )
 
 
-def _create_issue_from_error(error: ErrorDetails) -> Dict[str, Any]:
+def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
     if error.get("type") == "value_error":
         if custom_error := error.get("ctx", {}).get("error"):
             return _handle_custom_error(custom_error)
