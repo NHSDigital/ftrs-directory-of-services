@@ -35,9 +35,8 @@ def event(ods_code):
     return {
         "headers": {
             # Mandatory log field headers
-            "NHSD-Correlation-ID": "correlation_id",
+            "NHSD-Correlation-ID": "request_id.correlation_id.message_id",
             "NHSD-Request-ID": "request_id",
-            "NHSD-Message-Id": "message_id",
             # One-time log field headers
             "NHSD-Api-Version": "v0.0.0",
             "NHSD-End-User-Role": "Clinician",

@@ -78,7 +78,6 @@ class TestDosLogger:
         modified_event = deepcopy(event)
         modified_event["headers"].pop("NHSD-Correlation-ID")
         modified_event["headers"].pop("NHSD-Request-ID")
-        modified_event["headers"].pop("NHSD-Message-Id")
 
         extract = dict(log_data)
         extract["dos_nhsd_correlation_id"] = dos_logger.placeholder
