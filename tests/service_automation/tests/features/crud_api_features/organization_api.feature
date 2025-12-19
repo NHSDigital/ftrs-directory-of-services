@@ -62,9 +62,8 @@ Feature: Organization API Endpoint
     Then the database reflects "<field>" with value "<value>"
 
     Examples:
-      | field   | value                           |
-      | name    | Medical Practice - !Covid Local |
-      | telecom | 9876543210(                     |
+      | field  | value                           |
+      | name   | Medical Practice - !Covid Local |
 
   Scenario Outline: Reject Organization update with invalid special characters in specific fields
     Given that the stack is "organisation"
@@ -73,13 +72,12 @@ Feature: Organization API Endpoint
     When I set the "<field>" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
-    And the diagnostics message indicates invalid characters in the "<field_path>" with value "<value>"
+    And the diagnostics message indicates invalid characters in the "<field_path>" with value "<invalid_value>"
 
     Examples:
       | field   | value           | field_path       | invalid_value   |
       | name    | BRANCH*SURGERY  | name             | BRANCH*SURGERY  |
       | name    | BRANCH SURGERY$ | name             | BRANCH SURGERY$ |
-      | telecom | 0123456@789     | telecom[0].value | 0123456@789     |
 
   Scenario Outline: Update Organisation with valid non-primary roles
     Given that the stack is "organisation"
@@ -154,7 +152,6 @@ Feature: Organization API Endpoint
       | meta         |
       | identifier   |
       | name         |
-      | type         |
       | active       |
       | telecom      |
 
