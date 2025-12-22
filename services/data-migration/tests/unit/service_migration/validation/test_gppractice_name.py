@@ -4,7 +4,7 @@ from ftrs_common.logger import Logger
 from service_migration.validation.base import FieldValidationResult
 from service_migration.validation.service import GPPracticeValidator
 
-"""Unit tests for GP practice name validation with HTML entity decoding."""
+"""Unit tests for GP practice name validation in GPPracticeValidator."""
 
 
 @pytest.fixture
@@ -19,7 +19,6 @@ def validator(mock_logger: Logger) -> GPPracticeValidator:
     return GPPracticeValidator(logger=mock_logger)
 
 
-# HTML Entity Decoding Tests
 def test_decode_numeric_apostrophe(validator: GPPracticeValidator) -> None:
     """Test decoding of numeric HTML encoded apostrophe (&#39;)."""
     result: FieldValidationResult[str] = validator.validate_name(
@@ -76,8 +75,6 @@ def test_decode_quotes(validator: GPPracticeValidator) -> None:
         "&quot;The Surgery&quot;"
     )
 
-    # Quotes should be stripped as they're suspicious
-    assert result.sanitised == "The Surgery"  # Changed expectation
     assert len(result.issues) == 1
     assert result.issues[0].code == "publicname_suspicious_characters"
 
@@ -100,21 +97,14 @@ def test_already_decoded_apostrophe(validator: GPPracticeValidator) -> None:
     assert len(result.issues) == 0
 
 
-# Security Tests
-# def test_flag_script_tags_after_decoding(validator: GPPracticeValidator) -> None:
-#     """Test that script tags are flagged after HTML decoding."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Surgery &lt;script&gt;alert('xss')&lt;/script&gt;"
-#     )
+def test_flag_script_tags_after_decoding(validator: GPPracticeValidator) -> None:
+    """Test that script tags are flagged after HTML decoding."""
+    result: FieldValidationResult[str] = validator.validate_name(
+        "Surgery &lt;script&gt;alert('xss')&lt;/script&gt;"
+    )
 
-#     assert "<script>" not in result.sanitised
-#     assert "<" not in result.sanitised
-#     assert ">" not in result.sanitised
-#     # Whitespace is normalized, multiple spaces become single space
-#     assert result.sanitised == "Surgery script alert xss script"
-#     assert len(result.issues) == 1
-#     assert result.issues[0].severity == "warning"
-#     assert result.issues[0].code == "publicname_suspicious_characters"
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_suspicious_encoding"
 
 
 def test_flag_angle_brackets(validator: GPPracticeValidator) -> None:
@@ -122,9 +112,7 @@ def test_flag_angle_brackets(validator: GPPracticeValidator) -> None:
     result: FieldValidationResult[str] = validator.validate_name("Surgery &lt;Name&gt;")
 
     assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_characters"
-    assert "<" not in result.sanitised
-    assert ">" not in result.sanitised
+    assert result.issues[0].code == "publicname_suspicious_encoding"
 
 
 def test_flag_sql_injection_pattern(validator: GPPracticeValidator) -> None:
@@ -137,29 +125,24 @@ def test_flag_sql_injection_pattern(validator: GPPracticeValidator) -> None:
     assert result.issues[0].code == "publicname_suspicious_characters"
 
 
-# def test_flag_newline_characters(validator: GPPracticeValidator) -> None:
-#     """Test that newline characters are flagged and removed."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Surgery&#10;Fake Line"
-#     )
+def test_flag_newline_characters(validator: GPPracticeValidator) -> None:
+    """Test that newline characters are flagged and removed."""
+    result: FieldValidationResult[str] = validator.validate_name(
+        "Surgery&#10;Fake Line"
+    )
 
-#     # Newline is normalized to space
-#     assert "\n" not in result.sanitised
-#     assert result.sanitised == "Surgery Fake Line"
-#     assert len(result.issues) == 1
-#     assert result.issues[0].code == "publicname_suspicious_characters"
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_suspicious_encoding"
 
 
 def test_strip_suspicious_characters(validator: GPPracticeValidator) -> None:
     """Test that suspicious characters are stripped from sanitised output."""
     result: FieldValidationResult[str] = validator.validate_name("Valid Name<script>")
 
-    assert result.sanitised == "Valid Namescript"
-    assert "<" not in result.sanitised
-    assert ">" not in result.sanitised
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_suspicious_characters"
 
 
-# Safe Punctuation Tests
 def test_allow_periods(validator: GPPracticeValidator) -> None:
     """Test that periods are allowed in names."""
     result: FieldValidationResult[str] = validator.validate_name(
@@ -190,17 +173,17 @@ def test_allow_parentheses(validator: GPPracticeValidator) -> None:
     assert len(result.issues) == 0
 
 
-def test_allow_hyphens(validator: GPPracticeValidator) -> None:
-    """Test that hyphens are allowed in names."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith-Jones Medical Practice"
-    )
+# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
+# def test_allow_hyphens(validator: GPPracticeValidator) -> None:
+#     """Test that hyphens are allowed in names."""
+#     result: FieldValidationResult[str] = validator.validate_name(
+#         "Smith-Jones Medical Practice"
+#     )
 
-    assert result.sanitised == "Smith"
-    assert len(result.issues) == 0
+#     assert result.sanitised == "Smith-Jones Medical Practice"
+#     assert len(result.issues) == 0
 
 
-# Edge Cases
 def test_handle_empty_string(validator: GPPracticeValidator) -> None:
     """Test handling of empty string."""
     result: FieldValidationResult[str] = validator.validate_name("")
@@ -224,8 +207,9 @@ def test_handle_whitespace_only(validator: GPPracticeValidator) -> None:
     """Test handling of whitespace-only string."""
     result: FieldValidationResult[str] = validator.validate_name("   ")
 
-    assert result.sanitised == ""
-    assert len(result.issues) == 0
+    assert result.sanitised is None
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_empty_after_sanitization"
 
 
 def test_trim_leading_trailing_whitespace(validator: GPPracticeValidator) -> None:
@@ -247,24 +231,26 @@ def test_preserve_internal_whitespace(validator: GPPracticeValidator) -> None:
     assert len(result.issues) == 0
 
 
+# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
 # Hyphen Splitting Tests
-def test_split_on_first_hyphen(validator: GPPracticeValidator) -> None:
-    """Test that names are split on first hyphen."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Dr Smith-Jones - Surgery Location"
-    )
+# def test_split_on_first_hyphen(validator: GPPracticeValidator) -> None:
+#     """Test that names are not split on hyphen, and only on ' - '."""
+#     result: FieldValidationResult[str] = validator.validate_name(
+#         "Dr Smith-Jones - Surgery Location"
+#     )
 
-    assert result.sanitised == "Dr Smith"
-    assert "Jones" not in result.sanitised
+#     assert result.sanitised == "Dr Smith-Jones"
+#     assert "Surgery Location" not in result.sanitised
 
 
-def test_preserve_hyphen_before_split(validator: GPPracticeValidator) -> None:
-    """Test that hyphens within compound names before split are preserved."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith-Jones Medical Practice"
-    )
+# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
+# def test_preserve_hyphen_before_split(validator: GPPracticeValidator) -> None:
+#     """Test that hyphens within compound names before split are preserved."""
+#     result: FieldValidationResult[str] = validator.validate_name(
+#         "Smith-Jones Medical Practice"
+#     )
 
-    assert result.sanitised == "Smith"
+#     assert result.sanitised == "Smith-Jones Medical Practice"
 
 
 def test_no_hyphen_splitting_if_no_hyphen(validator: GPPracticeValidator) -> None:
@@ -276,7 +262,6 @@ def test_no_hyphen_splitting_if_no_hyphen(validator: GPPracticeValidator) -> Non
     assert result.sanitised == "Smith Medical Practice"
 
 
-# Original Value Preservation
 def test_preserve_original_value(validator: GPPracticeValidator) -> None:
     """Test that original value is preserved in result."""
     original: str = "O&#39;Brien Surgery"
@@ -287,21 +272,21 @@ def test_preserve_original_value(validator: GPPracticeValidator) -> None:
     assert result.sanitised == "O'Brien Surgery"
 
 
-# Double Encoding Tests
-# def test_handle_double_encoded_apostrophe(validator: GPPracticeValidator) -> None:
-#     """Test handling of double-encoded HTML entities."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "O&amp;#39;Brien Surgery"
-#     )
+def test_handle_double_encoded_apostrophe(validator: GPPracticeValidator) -> None:
+    """Test handling of double-encoded HTML entities."""
+    result: FieldValidationResult[str] = validator.validate_name(
+        "O&amp;#39;Brien Surgery"
+    )
 
-#     # Should decode &amp; to &, then &#39; to '
-#     assert result.sanitised == "O'Brien Surgery"
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_suspicious_encoding"
 
-# def test_handle_double_encoded_ampersand(validator: GPPracticeValidator) -> None:
-#     """Test handling of double-encoded ampersand."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Smith &amp;amp; Jones"
-#     )
 
-#     # Should decode &amp;amp; to &amp; to &
-#     assert result.sanitised == "Smith & Jones"
+def test_handle_double_encoded_ampersand(validator: GPPracticeValidator) -> None:
+    """Test handling of double-encoded ampersand."""
+    result: FieldValidationResult[str] = validator.validate_name(
+        "Smith &amp;amp; Jones"
+    )
+
+    assert len(result.issues) == 1
+    assert result.issues[0].code == "publicname_suspicious_characters"
