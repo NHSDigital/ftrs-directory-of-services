@@ -1,16 +1,12 @@
 #!/bin/bash
 
 # Script to deploy API spec to Proxygen APIM
-# Required environment variables: WORKSPACE, API_NAME, PROXY_ENV, ACCESS_TOKEN, MODIFIED_SPEC_PATH, PROXYGEN_URL
+# Required environment variables: API_NAME, PROXY_ENV, ACCESS_TOKEN, MODIFIED_SPEC_PATH, PROXYGEN_URL
+# Optional environment variables: WORKSPACE (when specified deploy a workspaced proxy)
 
 set -e
 
 # Validate required environment variables
-if [ -z "$WORKSPACE" ]; then
-    echo "Error: WORKSPACE environment variable is required" >&2
-    exit 1
-fi
-
 if [ -z "$API_NAME" ]; then
     echo "Error: API_NAME environment variable is required" >&2
     exit 1
@@ -41,13 +37,14 @@ if [ ! -f "$MODIFIED_SPEC_PATH" ]; then
     exit 1
 fi
 
-# Set instance name based on environment
-if [ "$PROXY_ENV" = "internal-dev" ]; then
-    # For internal-dev, include the full path as instance name
+# Set instance name based on workspace
+if [ -n "$WORKSPACE" ]; then
+    # If workspace is set, deploy a workspaced proxy
     # e.g., dos-search-ftrs-000_FHIR_R4
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
 else
-    # For other environments, use just the API_NAME
+    # Otherwise use just the API_NAME
+    # e.g., dos-search_FHIR_R4
     INSTANCE_NAME="${API_NAME}_FHIR_R4"
 fi
 
