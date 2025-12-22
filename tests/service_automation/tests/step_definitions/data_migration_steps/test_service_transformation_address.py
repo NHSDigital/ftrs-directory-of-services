@@ -4,7 +4,6 @@ from step_definitions.data_migration_steps.test_data_migration_address_steps imp
 scenarios(
     "../../tests/features/data_migration_features/location/service_transformation_address_with_county.feature"
 )
-
 scenarios(
     "../../tests/features/data_migration_features/location/service_transformation_address_with_special_characters.feature"
 )
@@ -17,4 +16,6 @@ scenarios(
 scenarios(
     "../../tests/features/data_migration_features/location/service_transformation_address_without_town.feature"
 )
-
+scenarios(
+    "../../tests/features/data_migration_features/location/service_transformation_address_not_available.feature"
+)

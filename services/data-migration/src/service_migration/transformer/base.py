@@ -175,9 +175,9 @@ class ServiceTransformer(ABC):
         self,
         service: legacy_model.Service,
         organisation_id: UUID,
-    ) -> Location:
+    ) -> Location | None:
         """
-        Create a Location instance from the source DoS service data.
+        Create a Location instance from the source DoS service data if address is valid.
         """
         position = (
             PositionGCS(
@@ -187,21 +187,12 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
-        if service.address and service.address != "Not Available":
-            formatted_address = format_address(
-                service.address, service.town, service.postcode
-            )
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_015,
-                organisation=organisation_id,
-                address=formatted_address,
-            )
 
-        else:
-            formatted_address = None
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
-            )
+        formatted_address = format_address(
+            service.address,
+            service.town,
+            service.postcode,
+        )
 
         return Location(
             id=generate_uuid(service.id, "location"),
