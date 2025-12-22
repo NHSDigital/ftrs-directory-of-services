@@ -31,34 +31,20 @@ class ServiceValidator(Validator[Service]):
             sanitised=data,
         )
 
-        # Store sanitized values
-        sanitised_email = data.email
-        sanitised_publicphone = data.publicphone
-        sanitised_nonpublicphone = data.nonpublicphone
-
         if email_result := self.validate_email(data.email):
-            sanitised_email = email_result.sanitised
+            data.email = email_result.sanitised
             validation_result.issues.extend(email_result.issues)
 
         if publicphone_result := self.validate_phone_number(data.publicphone):
-            sanitised_publicphone = publicphone_result.sanitised
+            data.publicphone = publicphone_result.sanitised
             validation_result.issues.extend(publicphone_result.issues)
 
         if nonpublicphone_result := self.validate_phone_number(
             data.nonpublicphone,
             expression="nonpublicphone",
         ):
-            sanitised_nonpublicphone = nonpublicphone_result.sanitised
+            data.nonpublicphone = nonpublicphone_result.sanitised
             validation_result.issues.extend(nonpublicphone_result.issues)
-
-        # Create new Service instance with sanitised values
-        validation_result.sanitised = Service(
-            id=data.id,
-            publicname=data.publicname,
-            email=sanitised_email,
-            publicphone=sanitised_publicphone,
-            nonpublicphone=sanitised_nonpublicphone,
-        )
 
         return validation_result
 
@@ -70,20 +56,10 @@ class GPPracticeValidator(ServiceValidator):
     def validate(self, data: Service) -> ValidationResult[Service]:
         result = super().validate(data)
 
-        sanitised_name = data.publicname
         name_result = self.validate_name(data.publicname)
         if name_result:
-            sanitised_name = name_result.sanitised
+            data.publicname = name_result.sanitised
             result.issues.extend(name_result.issues)
-
-        # Create new Service instance with sanitised name
-        result.sanitised = Service(
-            id=result.sanitised.id,
-            publicname=sanitised_name,
-            email=result.sanitised.email,
-            publicphone=result.sanitised.publicphone,
-            nonpublicphone=result.sanitised.nonpublicphone,
-        )
 
         return result
 
