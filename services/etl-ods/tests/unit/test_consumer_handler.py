@@ -44,6 +44,13 @@ def test_consumer_lambda_handler_success(
     assert expected_processing_log_2 in caplog.text
     assert expected_success_log_2 in caplog.text
 
+    expected_batch_complete_log = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
+    )
+    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
+    assert expected_batch_complete_log in caplog.text
+    assert expected_pipeline_end_log in caplog.text
+
 
 @patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) -> None:
@@ -92,6 +99,57 @@ def test_consumer_lambda_handler_failure(
     assert expected_failure_log_1 in caplog.text
     assert expected_processing_log_2 in caplog.text
     assert expected_success_log_2 in caplog.text
+
+    expected_batch_complete_log = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
+    )
+    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
+    assert expected_batch_complete_log in caplog.text
+    assert expected_pipeline_end_log in caplog.text
+
+
+@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+def test_consumer_lambda_handler_logs_start_events(
+    mock_process_message: MagicMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    event = {
+        "Records": [
+            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
+        ]
+    }
+
+    consumer_lambda_handler(event, {})
+
+    expected_consumer_start_log = OdsETLPipelineLogBase.ETL_CONSUMER_001.value.message
+    assert expected_consumer_start_log in caplog.text
+
+
+@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+def test_consumer_lambda_handler_logs_batch_statistics(
+    mock_process_message: MagicMock,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    event = {
+        "Records": [
+            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
+            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {"messageId": "3", "path": "test3", "body": {"key": "value3"}},
+        ]
+    }
+
+    mock_process_message.side_effect = [None, Exception("Test exception"), None]
+
+    response = consumer_lambda_handler(event, {})
+
+    assert response["batchItemFailures"] == [{"itemIdentifier": "2"}]
+
+    expected_batch_complete_log = (
+        OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
+    )
+    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
+    assert expected_batch_complete_log in caplog.text
+    assert expected_pipeline_end_log in caplog.text
 
 
 @pytest.mark.parametrize(

@@ -293,6 +293,28 @@ class OdsETLPipelineLogBase(LogBase):
     LogBase for the ODS ETL Pipeline operations
     """
 
+    # ETL Pipeline Start/End tracking
+    ETL_PIPELINE_START = LogReference(
+        level=INFO,
+        message="ODS ETL Pipeline run started.",
+    )
+    ETL_PIPELINE_END = LogReference(
+        level=INFO,
+        message="ODS ETL Pipeline run completed.",
+    )
+    ETL_PROCESSOR_START = LogReference(
+        level=INFO,
+        message="ETL ODS Processor Lambda started.",
+    )
+    ETL_PROCESSOR_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Processor Lambda completed successfully.",
+    )
+    ETL_CONSUMER_BATCH_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Consumer Lambda batch processing completed.",
+    )
+
     ETL_PROCESSOR_001 = LogReference(
         level=INFO, message="Fetching outdated organizations for date {date}."
     )

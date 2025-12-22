@@ -26,7 +26,10 @@ def fixed_ids() -> Generator[None, None, None]:
     set_request_id(None)
 
 
-def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
+def test_processor_lambda_handler_success(
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
     date = datetime.now().strftime("%Y-%m-%d")
     event = {"date": date}
@@ -36,9 +39,17 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
     mock_processor.assert_called_once_with(date=date)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
+    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
+    expected_processor_start_log = (
+        OdsETLPipelineLogBase.ETL_PROCESSOR_START.value.message
+    )
+    assert expected_pipeline_start_log in caplog.text
+    assert expected_processor_start_log in caplog.text
+
 
 def test_processor_lambda_handler_success_is_scheduled(
     mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
 
@@ -50,20 +61,37 @@ def test_processor_lambda_handler_success_is_scheduled(
     mock_processor.assert_called_once_with(date=previous_date)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
+    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
+    expected_processor_start_log = (
+        OdsETLPipelineLogBase.ETL_PROCESSOR_START.value.message
+    )
+    assert expected_pipeline_start_log in caplog.text
+    assert expected_processor_start_log in caplog.text
 
-def test_processor_lambda_handler_missing_date() -> None:
+
+def test_processor_lambda_handler_missing_date(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     response = processor_lambda_handler({}, {})
     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
     assert json.loads(response["body"]) == {"error": "Date parameter is required"}
 
+    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
+    assert expected_pipeline_start_log in caplog.text
 
-def test_processor_lambda_handler_invalid_date_format() -> None:
+
+def test_processor_lambda_handler_invalid_date_format(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     invalid_event = {"date": "14-05-2025"}
     response = processor_lambda_handler(invalid_event, {})
     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
     assert json.loads(response["body"]) == {
         "error": "Date must be in YYYY-MM-DD format"
     }
+
+    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
+    assert expected_pipeline_start_log in caplog.text
 
 
 def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
@@ -90,7 +118,10 @@ def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
-def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
+def test_processor_lambda_handler_exception(
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
     mock_processor.side_effect = Exception("Test error")
     date = datetime.now().strftime("%Y-%m-%d")
@@ -103,9 +134,29 @@ def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
     error_body = json.loads(result["body"])
     assert "Unexpected error: Test error" in error_body["error"]
 
+    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
+    assert expected_pipeline_start_log in caplog.text
+
+
+def test_processor_lambda_handler_logs_duration(
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    date = datetime.now().strftime("%Y-%m-%d")
+    event = {"date": date}
+
+    processor_lambda_handler(event, {})
+
+    mock_processor.assert_called_once_with(date=date)
+
+    expected_completion_log = OdsETLPipelineLogBase.ETL_PROCESSOR_COMPLETE.value.message
+    assert expected_completion_log in caplog.text
+
 
 def test_processor_logs_and_raises_request_exception(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     mocker.patch(
         "pipeline.producer.processor.fetch_outdated_organisations",
@@ -122,7 +173,8 @@ def test_processor_logs_and_raises_request_exception(
 
 
 def test_processor_logs_and_raises_generic_exception(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+    mocker: MockerFixture,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     mocker.patch(
         "pipeline.producer.processor.fetch_outdated_organisations",
