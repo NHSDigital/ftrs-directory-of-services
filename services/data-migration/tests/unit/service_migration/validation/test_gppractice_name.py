@@ -19,274 +19,246 @@ def validator(mock_logger: Logger) -> GPPracticeValidator:
     return GPPracticeValidator(logger=mock_logger)
 
 
-def test_decode_numeric_apostrophe(validator: GPPracticeValidator) -> None:
-    """Test decoding of numeric HTML encoded apostrophe (&#39;)."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "St Peters Health Centre (Dr S D&#39;Souza)"
-    )
-
-    assert result.sanitised == "St Peters Health Centre (Dr S D'Souza)"
+def assert_valid_name(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Assert that a name is valid and sanitized correctly."""
+    result: FieldValidationResult[str] = validator.validate_name(input_name)
+    assert result.sanitised == expected
     assert len(result.issues) == 0
 
 
-def test_decode_named_apostrophe(validator: GPPracticeValidator) -> None:
-    """Test decoding of named HTML entity apostrophe (&apos;)."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "O&apos;Brien Medical Practice"
-    )
-
-    assert result.sanitised == "O'Brien Medical Practice"
-    assert len(result.issues) == 0
-
-
-def test_decode_hex_apostrophe(validator: GPPracticeValidator) -> None:
-    """Test decoding of hex HTML encoded apostrophe (&#x27;)."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Dr O&#x27;Connor Surgery"
-    )
-
-    assert result.sanitised == "Dr O'Connor Surgery"
-    assert len(result.issues) == 0
-
-
-def test_decode_multiple_apostrophes(validator: GPPracticeValidator) -> None:
-    """Test decoding multiple apostrophes in one name."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "O&#39;Brien &amp; D&#39;Souza Medical Centre"
-    )
-
-    assert result.sanitised == "O'Brien & D'Souza Medical Centre"
-    assert len(result.issues) == 0
-
-
-def test_decode_ampersand(validator: GPPracticeValidator) -> None:
-    """Test decoding of HTML encoded ampersand (&amp;)."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith &amp; Jones Surgery"
-    )
-
-    assert result.sanitised == "Smith & Jones Surgery"
-    assert len(result.issues) == 0
-
-
-def test_decode_quotes(validator: GPPracticeValidator) -> None:
-    """Test decoding of HTML encoded quotes (&quot;)."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "&quot;The Surgery&quot;"
-    )
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_characters"
-
-
-def test_no_decoding_needed(validator: GPPracticeValidator) -> None:
-    """Test name without HTML entities passes through unchanged."""
-    result: FieldValidationResult[str] = validator.validate_name("Normal Surgery Name")
-
-    assert result.sanitised == "Normal Surgery Name"
-    assert len(result.issues) == 0
-
-
-def test_already_decoded_apostrophe(validator: GPPracticeValidator) -> None:
-    """Test name with already decoded apostrophe."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "O'Brien Medical Practice"
-    )
-
-    assert result.sanitised == "O'Brien Medical Practice"
-    assert len(result.issues) == 0
-
-
-def test_flag_script_tags_after_decoding(validator: GPPracticeValidator) -> None:
-    """Test that script tags are flagged after HTML decoding."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Surgery &lt;script&gt;alert('xss')&lt;/script&gt;"
-    )
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_encoding"
-
-
-def test_flag_angle_brackets(validator: GPPracticeValidator) -> None:
-    """Test that angle brackets are flagged as suspicious."""
-    result: FieldValidationResult[str] = validator.validate_name("Surgery &lt;Name&gt;")
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_encoding"
-
-
-def test_flag_sql_injection_pattern(validator: GPPracticeValidator) -> None:
-    """Test that SQL injection patterns are flagged."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "O&#39;Brien&#39; OR 1=1"
-    )
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_characters"
-
-
-def test_flag_newline_characters(validator: GPPracticeValidator) -> None:
-    """Test that newline characters are flagged and removed."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Surgery&#10;Fake Line"
-    )
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_encoding"
-
-
-def test_strip_suspicious_characters(validator: GPPracticeValidator) -> None:
-    """Test that suspicious characters are stripped from sanitised output."""
-    result: FieldValidationResult[str] = validator.validate_name("Valid Name<script>")
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_characters"
-
-
-def test_allow_periods(validator: GPPracticeValidator) -> None:
-    """Test that periods are allowed in names."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "St. Mary&#39;s Medical Centre"
-    )
-
-    assert result.sanitised == "St. Mary's Medical Centre"
-    assert len(result.issues) == 0
-
-
-def test_allow_commas(validator: GPPracticeValidator) -> None:
-    """Test that commas are allowed in names."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith, Jones &amp; Partners"
-    )
-
-    assert result.sanitised == "Smith, Jones & Partners"
-    assert len(result.issues) == 0
-
-
-def test_allow_parentheses(validator: GPPracticeValidator) -> None:
-    """Test that parentheses are allowed in names."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Health Centre (Dr O&#39;Brien)"
-    )
-
-    assert result.sanitised == "Health Centre (Dr O'Brien)"
-    assert len(result.issues) == 0
-
-
-# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
-# def test_allow_hyphens(validator: GPPracticeValidator) -> None:
-#     """Test that hyphens are allowed in names."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Smith-Jones Medical Practice"
-#     )
-
-#     assert result.sanitised == "Smith-Jones Medical Practice"
-#     assert len(result.issues) == 0
-
-
-def test_handle_empty_string(validator: GPPracticeValidator) -> None:
-    """Test handling of empty string."""
-    result: FieldValidationResult[str] = validator.validate_name("")
-
+def assert_invalid_name(
+    validator: GPPracticeValidator, input_name: str, expected_code: str
+) -> None:
+    """Assert that a name is invalid with expected error code."""
+    result: FieldValidationResult[str] = validator.validate_name(input_name)
     assert result.sanitised is None
     assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_required"
+    assert result.issues[0].code == expected_code
     assert result.issues[0].severity == "error"
 
 
-def test_handle_none_value(validator: GPPracticeValidator) -> None:
-    """Test handling of None value."""
-    result: FieldValidationResult[str] = validator.validate_name(None)
+# Entity Decoding Tests
+@pytest.mark.parametrize(
+    "input_name,expected",
+    [
+        (
+            "St Peters Health Centre (Dr S D&#39;Souza)",
+            "St Peters Health Centre (Dr S D'Souza)",
+        ),
+        ("O&apos;Brien Medical Practice", "O'Brien Medical Practice"),
+        ("Dr O&#x27;Connor Surgery", "Dr O'Connor Surgery"),
+        (
+            "O&#39;Brien &amp; D&#39;Souza Medical Centre",
+            "O'Brien & D'Souza Medical Centre",
+        ),
+        ("Smith &amp; Jones Surgery", "Smith & Jones Surgery"),
+        ("O'Brien Medical Practice", "O'Brien Medical Practice"),
+        ("Normal Surgery Name", "Normal Surgery Name"),
+    ],
+)
+def test_valid_entity_decoding(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Test decoding of allowed HTML entities."""
+    assert_valid_name(validator, input_name, expected)
 
+
+# Allowed Characters Tests
+@pytest.mark.parametrize(
+    "input_name,expected",
+    [
+        ("St. Mary&#39;s Medical Centre", "St. Mary's Medical Centre"),
+        ("Smith, Jones &amp; Partners", "Smith, Jones & Partners"),
+        ("Health Centre (Dr O&#39;Brien)", "Health Centre (Dr O'Brien)"),
+    ],
+)
+def test_allowed_special_characters(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Test that periods, commas, and parentheses are allowed."""
+    assert_valid_name(validator, input_name, expected)
+
+
+# Security Tests - Dangerous Patterns
+@pytest.mark.parametrize(
+    "malicious_input",
+    [
+        "&quot;The Surgery&quot;",
+        "Surgery &lt;script&gt;alert('xss')&lt;/script&gt;",
+        "Surgery &lt;Name&gt;",
+        "Surgery&#10;Fake Line",
+        "javascript:alert('xss')",
+        "data:text/html,<script>alert('xss')</script>",
+        "Surgery onclick=alert(1)",
+    ],
+)
+def test_reject_dangerous_patterns(
+    validator: GPPracticeValidator, malicious_input: str
+) -> None:
+    """Test that dangerous patterns are rejected."""
+    assert_invalid_name(validator, malicious_input, "publicname_suspicious_encoding")
+
+
+# Security Tests - Disallowed Entities
+@pytest.mark.parametrize(
+    "input_name",
+    [
+        "Test &lt;Surgery&gt;",
+        "Practice &nbsp; Name",
+        "Surgery &copy; 2024",
+        "Test &#60;script&#62;",
+    ],
+)
+def test_reject_disallowed_entities(
+    validator: GPPracticeValidator, input_name: str
+) -> None:
+    """Test that disallowed HTML entities are rejected."""
+    assert_invalid_name(validator, input_name, "publicname_suspicious_encoding")
+
+
+# Security Tests - Nested Encoding
+@pytest.mark.parametrize(
+    "nested_encoding",
+    [
+        "O&amp;#39;Brien",
+        "O&amp;apos;Brien",
+        "O&amp;#x27;Brien",
+        "Smith &amp;amp; Jones",
+        "&amp;amp;amp;",
+        "&amp;amp;amp;amp;",
+        "Test &amp;lt;script&amp;gt;",
+        "&amp;#60;script&amp;#62;",
+    ],
+)
+def test_reject_nested_encoding(
+    validator: GPPracticeValidator, nested_encoding: str
+) -> None:
+    """Test that any level of nested encoding is rejected."""
+    assert_invalid_name(validator, nested_encoding, "publicname_suspicious_encoding")
+
+
+# Security Tests - Special Symbols
+@pytest.mark.parametrize(
+    "input_name",
+    [
+        "Smith @ Medical Centre",
+        "Practice #1",
+        "Surgery 100%",
+        "Clinic*Star",
+        "Health+Plus",
+        'The "Best" Surgery',
+        "Valid Name<script>",
+        "O&#39;Brien&#39; OR 1=1",
+    ],
+)
+def test_reject_special_symbols(
+    validator: GPPracticeValidator, input_name: str
+) -> None:
+    """Test that special symbols are rejected."""
+    assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
+
+
+# Ampersand Rules Tests
+@pytest.mark.parametrize(
+    "input_name,should_pass",
+    [
+        ("Smith & Jones", True),
+        ("Smith& Jones", False),
+        ("Smith &Jones", False),
+        ("Smith&Jones", False),
+    ],
+)
+def test_ampersand_spacing_rules(
+    validator: GPPracticeValidator, input_name: str, should_pass: bool
+) -> None:
+    """Test that ampersand must be surrounded by spaces."""
+    if should_pass:
+        assert_valid_name(validator, input_name, input_name)
+    else:
+        assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
+
+
+# Whitespace Tests
+@pytest.mark.parametrize(
+    "input_name,expected,error_code",
+    [
+        ("  St Peters Surgery  ", "St Peters Surgery", None),
+        ("St  Peters  Surgery", "St Peters Surgery", None),
+        ("   ", None, "publicname_empty_after_sanitization"),
+    ],
+)
+def test_whitespace_handling(
+    validator: GPPracticeValidator,
+    input_name: str,
+    expected: str | None,
+    error_code: str | None,
+) -> None:
+    """Test whitespace trimming and normalization."""
+    if error_code:
+        assert_invalid_name(validator, input_name, error_code)
+    else:
+        assert_valid_name(validator, input_name, expected)
+
+
+# Empty/None Tests
+@pytest.mark.parametrize(
+    "input_name,expected_code",
+    [
+        ("", "publicname_required"),
+        (None, "publicname_required"),
+    ],
+)
+def test_empty_or_none_input(
+    validator: GPPracticeValidator, input_name: str | None, expected_code: str
+) -> None:
+    """Test handling of empty or None values."""
+    result: FieldValidationResult[str] = validator.validate_name(input_name)
     assert result.sanitised is None
     assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_required"
+    assert result.issues[0].code == expected_code
+    assert result.issues[0].severity == "error"
 
 
-def test_handle_whitespace_only(validator: GPPracticeValidator) -> None:
-    """Test handling of whitespace-only string."""
-    result: FieldValidationResult[str] = validator.validate_name("   ")
-
-    assert result.sanitised is None
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_empty_after_sanitization"
+# Length Tests
+def test_reject_name_too_long(validator: GPPracticeValidator) -> None:
+    """Test that names exceeding maximum length are rejected."""
+    long_name: str = "A" * 201
+    assert_invalid_name(validator, long_name, "publicname_too_long")
 
 
-def test_trim_leading_trailing_whitespace(validator: GPPracticeValidator) -> None:
-    """Test trimming of leading and trailing whitespace."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "  St Peters Surgery  "
-    )
-
-    assert result.sanitised == "St Peters Surgery"
-    assert len(result.issues) == 0
-
-
-def test_preserve_internal_whitespace(validator: GPPracticeValidator) -> None:
-    """Test that excessive internal whitespace is normalized."""
-    result: FieldValidationResult[str] = validator.validate_name("St  Peters  Surgery")
-
-    # Multiple spaces are collapsed to single space during sanitization
-    assert result.sanitised == "St Peters Surgery"
+def test_allow_name_at_max_length(validator: GPPracticeValidator) -> None:
+    """Test that names at exactly max length are accepted."""
+    max_name: str = "A" * 200
+    result: FieldValidationResult[str] = validator.validate_name(max_name)
+    assert result.sanitised is not None
     assert len(result.issues) == 0
 
 
 # TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
-# Hyphen Splitting Tests
-# def test_split_on_first_hyphen(validator: GPPracticeValidator) -> None:
-#     """Test that names are not split on hyphen, and only on ' - '."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Dr Smith-Jones - Surgery Location"
-#     )
-
-#     assert result.sanitised == "Dr Smith-Jones"
-#     assert "Surgery Location" not in result.sanitised
-
-
-# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
-# def test_preserve_hyphen_before_split(validator: GPPracticeValidator) -> None:
-#     """Test that hyphens within compound names before split are preserved."""
-#     result: FieldValidationResult[str] = validator.validate_name(
-#         "Smith-Jones Medical Practice"
-#     )
-
-#     assert result.sanitised == "Smith-Jones Medical Practice"
-
-
 def test_no_hyphen_splitting_if_no_hyphen(validator: GPPracticeValidator) -> None:
     """Test normal processing when no hyphen present."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith Medical Practice"
-    )
-
-    assert result.sanitised == "Smith Medical Practice"
+    assert_valid_name(validator, "Smith Medical Practice", "Smith Medical Practice")
 
 
+# Original Value Preservation Test
 def test_preserve_original_value(validator: GPPracticeValidator) -> None:
     """Test that original value is preserved in result."""
     original: str = "O&#39;Brien Surgery"
     result: FieldValidationResult[str] = validator.validate_name(original)
-
     assert result.original == original
     assert result.sanitised != original
     assert result.sanitised == "O'Brien Surgery"
 
 
-def test_handle_double_encoded_apostrophe(validator: GPPracticeValidator) -> None:
-    """Test handling of double-encoded HTML entities."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "O&amp;#39;Brien Surgery"
-    )
-
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_encoding"
-
-
-def test_handle_double_encoded_ampersand(validator: GPPracticeValidator) -> None:
-    """Test handling of double-encoded ampersand."""
-    result: FieldValidationResult[str] = validator.validate_name(
-        "Smith &amp;amp; Jones"
-    )
-
+# Character Categorization Test
+def test_categorize_multiple_character_types(validator: GPPracticeValidator) -> None:
+    """Test that multiple suspicious character types are categorized."""
+    result: FieldValidationResult[str] = validator.validate_name("Surgery <script>@#%")
+    assert result.sanitised is None
     assert len(result.issues) == 1
     assert result.issues[0].code == "publicname_suspicious_characters"
+    diagnostics: str = result.issues[0].diagnostics
+    assert "angle_brackets" in diagnostics
+    assert "special_symbols" in diagnostics
