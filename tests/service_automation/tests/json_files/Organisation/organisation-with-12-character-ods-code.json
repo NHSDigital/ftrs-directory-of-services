@@ -7,7 +7,7 @@
   "identifier_ODS_ODSCode": "ABCDEFGHIJ12",
   "active": true,
   "name": "GP: Crocus Medical Practice Saffron Walden West Essex",
-  "telecom": null,
+  "telecom": [],
   "type": "GP Practice",
   "endpoints": []
 }

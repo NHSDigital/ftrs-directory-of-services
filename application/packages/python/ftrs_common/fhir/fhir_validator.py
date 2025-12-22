@@ -47,7 +47,6 @@ class FhirValidator:
         """
 
         special_characters_pattern = r"[\";\\`<>|#*@$]"
-
         stack = [(resource, "")]
 
         while stack:
@@ -61,7 +60,10 @@ class FhirValidator:
                     new_path = f"{path}[{idx}]"
                     stack.append((item, new_path))
             elif isinstance(current, str):
-                if re.search(special_characters_pattern, current):
+                # Skipping telecom value field validation as it may contain special characters
+                if not (
+                    path.startswith("telecom") and path.endswith("value")
+                ) and re.search(special_characters_pattern, current):
                     msg = f"Field '{path}' contains invalid characters: {current}"
                     FhirValidator._log_and_raise(msg, "invalid", fhir_model)
 
@@ -95,6 +97,7 @@ class FhirValidator:
         """
         resource = FhirValidator._validate_resource_structure(resource, fhir_model)
         resource = FhirValidator._check_for_special_characters(resource, fhir_model)
+
         try:
             return fhir_model.model_validate(resource)
         except ValidationError as e:
