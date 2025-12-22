@@ -41,8 +41,7 @@ module "processor_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {
@@ -110,8 +109,7 @@ module "queue_populator_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {
@@ -231,8 +229,7 @@ module "reference_data_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {

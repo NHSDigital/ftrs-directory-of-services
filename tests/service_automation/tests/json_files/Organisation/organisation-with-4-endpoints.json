@@ -7,7 +7,7 @@
   "identifier_ODS_ODSCode": "M00081046",
   "active": true,
   "name": "Abbottswood Medical Practice, Pershore, Worcestershire",
-  "telecom": null,
+  "telecom": [{"type": "phone", "value": "0300 311 22 33", "use": "work", "isPublic" : true}, {"type": "web", "value": " https://example123.com", "use": "work", "isPublic" : true},{"type": "email", "value": "test134@nhs.net", "use": "work", "isPublic" : true } ],
   "type": "GP Practice",
   "endpoints": [
     {

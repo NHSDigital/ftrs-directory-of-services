@@ -10,13 +10,10 @@ lambda_memory_size                  = 512
 etl_ods_pipeline_store_bucket_name  = "pipeline-store"
 s3_versioning                       = false
 
-aws_lambda_layers = [
-  "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python312:16"
-]
 
 delay_seconds              = 10
 visibility_timeout_seconds = 30
-max_message_size           = 2048
+max_message_size           = 10240
 message_retention_seconds  = 86400
 receive_wait_time_seconds  = 2
 

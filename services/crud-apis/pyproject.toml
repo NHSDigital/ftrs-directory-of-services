@@ -15,14 +15,17 @@ dependencies = [
     "pydantic-settings (>=2.9.1,<3.0.0)",
     "httpx (>=0.28.1,<0.29.0)",
     "aws-lambda-powertools (>=3.11.0,<4.0.0)",
-    "email-validator (>=2.1.0,<3.0.0)",
     "fhir-resources (>=8.0.0,<9.0.0)",
-    "numpy (>=1.26.4,<2.0.0)"
+    "numpy (>=1.26.4,<2.0.0)",
 ]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.shared.dependencies]
+ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+
 
 [tool.poetry.group.dev.dependencies]
 freezegun = "^1.5.1"
@@ -30,7 +33,6 @@ ruff = "^0.14.2"
 pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
 pytest-mock = "^3.14.0"
-ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 uvicorn = "^0.34.2"
 boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
