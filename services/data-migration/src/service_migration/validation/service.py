@@ -92,6 +92,7 @@ class GPPracticeValidator(ServiceValidator):
 
         Security measures:
         - Length validation to prevent DoS
+        - Applies hyphen-splitting business rule before validation
         - Validates BEFORE decoding to catch encoding attacks
         - Rejects ANY nested encoding (not just double encoding)
         - Only allows specific safe HTML entities
@@ -105,9 +106,34 @@ class GPPracticeValidator(ServiceValidator):
         Returns:
             FieldValidationResult containing sanitised name and any validation issues
         """
+        # Store full original for audit trail
+        full_original = name
+
         # Early validation checks
         if error := self._validate_basic_checks(name):
             return error
+
+        # Apply hyphen-splitting business rule BEFORE validation
+        # This ensures we only validate the part we'll actually use
+        name = name.split(" - ", maxsplit=1)[0].strip()
+
+        # Log when suffix is discarded for monitoring/security purposes
+        if " - " in full_original:
+            self.logger.info(
+                "Practice name suffix discarded",
+                extra={
+                    "validation_code": "publicname_suffix_removed",
+                    "original_length": len(full_original),
+                    "sanitized_length": len(name),
+                },
+            )
+
+        # Check if empty after splitting
+        if not name:
+            return self._error(
+                "publicname_empty_after_sanitization",
+                "Name is empty after removing suffix",
+            )
 
         # Decode and validate characters
         try:
@@ -141,7 +167,7 @@ class GPPracticeValidator(ServiceValidator):
                 f"Name contains unexpected character types: {char_types}",
             )
 
-        # Sanitize and apply business rules
+        # Sanitize whitespace only (hyphen-splitting already done)
         cleaned_name = self._sanitize(decoded_name)
         if not cleaned_name:
             return self._error(
@@ -150,7 +176,7 @@ class GPPracticeValidator(ServiceValidator):
             )
 
         return FieldValidationResult(
-            original=name,
+            original=full_original,
             sanitised=cleaned_name,
             issues=[],
         )
@@ -283,21 +309,19 @@ class GPPracticeValidator(ServiceValidator):
 
     def _sanitize(self, name: str) -> str:
         """
-        Normalize whitespace and apply business rules.
+        Normalize whitespace only.
 
         - Converts newlines/tabs to spaces
         - Collapses multiple spaces to single space
-        - Splits on first hyphen (TODO: FTRS-1961)
         - Strips leading/trailing whitespace
+
+        Note: Hyphen-splitting is now done before validation in validate_name()
         """
         # Normalize newlines and tabs to spaces
         name = re.sub(r"[\n\r\t]+", " ", name)
         # Collapse multiple spaces to single space
         name = re.sub(r"\s+", " ", name)
-        # Apply business rule: split on hyphen
-        # TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
-        name = name.split("-", maxsplit=1)[0].strip()
-        return name
+        return name.strip()
 
     def _categorize_characters(self, text: str) -> str:
         """

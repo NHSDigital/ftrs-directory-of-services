@@ -236,10 +236,60 @@ def test_allow_name_at_max_length(validator: GPPracticeValidator) -> None:
     assert len(result.issues) == 0
 
 
-# TODO: FTRS-1961 fix as part of "some GP practice names are truncated"
-def test_no_hyphen_splitting_if_no_hyphen(validator: GPPracticeValidator) -> None:
-    """Test normal processing when no hyphen present."""
-    assert_valid_name(validator, "Smith Medical Practice", "Smith Medical Practice")
+# Hyphen Splitting Tests
+@pytest.mark.parametrize(
+    "input_name,expected",
+    [
+        ("Smith Medical Practice", "Smith Medical Practice"),
+        ("Abbey-Dale Medical Centre", "Abbey-Dale Medical Centre"),
+        ("Lockside Medical Centre - T+G", "Lockside Medical Centre"),
+        ("Smith Surgery - Branch 1", "Smith Surgery"),
+        ("O&#39;Brien Practice - North", "O'Brien Practice"),
+        ("Health Centre - Dr Jones - Room 5", "Health Centre"),
+        ("St. Mary&#39;s - West Wing", "St. Mary's"),
+        ("Normal Surgery", "Normal Surgery"),
+        ("Practice-Name-With-Hyphens", "Practice-Name-With-Hyphens"),
+        ("Centre - ", "Centre"),
+        (" - Standalone Hyphen", ""),
+    ],
+)
+def test_hyphen_splitting_business_rule(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Test that names are split on ' - ' and only first part is kept."""
+    if expected == "":
+        assert_invalid_name(
+            validator, input_name, "publicname_empty_after_sanitization"
+        )
+    else:
+        assert_valid_name(validator, input_name, expected)
+
+
+@pytest.mark.parametrize(
+    "input_name,expected",
+    [
+        # SQL injection in suffix (should be discarded)
+        ("Valid Practice - '; DROP TABLE--", "Valid Practice"),
+        # XSS in suffix (should be discarded)
+        ("Valid Practice - <script>alert(1)</script>", "Valid Practice"),
+        # Malicious entity in suffix (should be discarded)
+        ("Valid Practice - &lt;script&gt;", "Valid Practice"),
+        # Multiple hyphens (only first split)
+        ("Practice - Bad - Worse", "Practice"),
+        # Empty after split (should error)
+        (" - <script>alert(1)</script>", ""),
+    ],
+)
+def test_hyphen_splitting_security(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Test that malicious content in suffixes is safely discarded."""
+    if expected == "":
+        assert_invalid_name(
+            validator, input_name, "publicname_empty_after_sanitization"
+        )
+    else:
+        assert_valid_name(validator, input_name, expected)
 
 
 # Original Value Preservation Test
