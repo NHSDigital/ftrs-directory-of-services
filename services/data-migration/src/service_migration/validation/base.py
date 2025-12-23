@@ -13,7 +13,7 @@ from service_migration.validation.types import TypeToValidate, ValidationResult
 
 class Validator(ABC, Generic[TypeToValidate]):
     def __init__(self, logger: Logger) -> None:
-        self.logger = logger
+        self.logger = logger or Logger.get(service="data-migration-validation")
 
     @abstractmethod
     def validate(self, data: TypeToValidate) -> ValidationResult:
