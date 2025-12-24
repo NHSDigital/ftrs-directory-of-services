@@ -934,3 +934,18 @@ def test_save_logs_success_on_successful_write(
     assert (
         log_entry["detail"]["item_count"] == item_count
     )  # org, location, service, state
+
+
+# TODO: FTRS-1595 Add unit tests
+# Acceptance Criteria (Given/When/Then format)
+
+# Given I have a transformed service record with ID 12345
+# When a record does not exist in the state table for key "services#12345"
+# Then the pipeline treats the record as an 'insert' operation
+# And the pipeline saves the records directly to the DynamoDB tables
+# And no state record is created
+
+# Given I have a transformed service record with ID 12435
+# When a record exists in the state table for key "services#12345"
+# Then the pipeline treats the record as an 'update' operation
+# And the pipeline exits with a log (not implemented yet)
