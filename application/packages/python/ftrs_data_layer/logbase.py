@@ -169,6 +169,25 @@ class DataMigrationLogBase(LogBase):
         message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
     )
 
+    DM_ETL_019 = LogReference(
+        level=INFO,
+        message="State record found for Service ID {record_id}, Skipping now...",
+    )
+    DM_ETL_020 = LogReference(
+        level=INFO,
+        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+    )
+
+    DM_ETL_021 = LogReference(
+        level=INFO,
+        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
+    )
+
+    DM_ETL_022 = LogReference(
+        level=ERROR,
+        message="One or more items exist for  Service ID {record_id}",
+    )
+
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
     )
