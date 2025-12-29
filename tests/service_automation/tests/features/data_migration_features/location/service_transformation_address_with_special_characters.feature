@@ -1,8 +1,5 @@
 @data-migration
 Feature: Service Transformation with Address and County
-  As a test author
-  I want to execute a data migration for an service transformation with Address and County
-  So that I can confirm the migration process accurately transforms and transfers the service data without errors
 
   Background:
     Given the test environment is configured
