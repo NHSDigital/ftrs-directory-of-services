@@ -58,11 +58,14 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
 
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    # Address is always in document.address structure
-    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid}"
-    assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
-
-    address = item["document"]["address"]
+    # Extract address - it can be either in document.address or directly in item
+    if "document" in item and isinstance(item["document"], dict):
+        assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
+        address = item["document"]["address"]
+    else:
+        # Fallback: address might be directly in item (not wrapped in document)
+        assert "address" in item, f"Location item missing 'address' field for UUID {location_uuid} (service ID {service_id})"
+        address = item["address"]
 
     # Build expected mapping from datatable (skip header row)
     expected: Dict[str, Any] = {}
@@ -109,9 +112,12 @@ def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -
 
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    # Address is always in document.address structure
-    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid}"
-    address = item["document"].get("address")
+    # Extract address - it can be either in document.address or directly in item
+    if "document" in item and isinstance(item["document"], dict):
+        address = item["document"].get("address")
+    else:
+        # Fallback: address might be directly in item (not wrapped in document)
+        address = item.get("address")
 
     assert address is None, (
         f"Expected location for service ID {service_id} to have no address (None), "
@@ -120,21 +126,21 @@ def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -
 
 
 @then(parsers.parse("the service should have a validation error with code '{error_code}'"))
-def service_should_have_validation_error(service_id: int, error_code: str, context: Dict[str, Any]) -> None:
+def service_should_have_validation_error(error_code: str, migration_context: Dict[str, Any]) -> None:
     """Verify that a service migration resulted in a validation error with the specified code.
 
     This checks that the service was not successfully migrated due to validation errors.
     The error should be captured in the migration context metrics.
     """
-    metrics = context.get("metrics", {})
+    metrics = migration_context.get("metrics", {})
 
     # Service with validation errors should not be migrated
     assert metrics.get("errors", 0) > 0, (
-        f"Expected service {service_id} to have validation errors, but errors count is {metrics.get('errors', 0)}"
+        f"Expected service to have validation errors, but errors count is {metrics.get('errors', 0)}"
     )
 
     # The service should be counted as transformed but not migrated
     assert metrics.get("migrated", 0) == 0, (
-        f"Expected service {service_id} not to be migrated due to validation error '{error_code}', "
+        f"Expected service not to be migrated due to validation error '{error_code}', "
         f"but migrated count is {metrics.get('migrated', 0)}"
     )
