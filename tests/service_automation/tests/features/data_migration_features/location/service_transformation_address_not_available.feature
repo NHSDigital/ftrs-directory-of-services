@@ -1,8 +1,8 @@
 @data-migration
 Feature: Service Transformation with "Not Available" Address
-  As a test author
-  I want to execute a data migration for services with "Not Available" address values
-  So that I can confirm these cases are handled correctly without errors
+  As a service directory user
+  I want services with "Not Available" address to be migrated without an address field
+  So that placeholder values do not appear in the directory
 
   Background:
     Given the test environment is configured
