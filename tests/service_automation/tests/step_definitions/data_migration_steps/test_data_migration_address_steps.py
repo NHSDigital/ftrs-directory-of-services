@@ -53,27 +53,16 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
     dynamodb_resource = dynamodb["resource"]
     table = dynamodb_resource.Table(get_table_name('location'))
 
-
     response = table.get_item(Key={"id": location_uuid, "field": "document"})
     item = response.get("Item")
 
-    if not item:
-        # Fallback: scan to locate item by generated UUID if key structure differs
-        scan = table.scan()
-        for candidate in scan.get("Items", []):
-            if candidate.get("id") == location_uuid:
-                item = candidate
-                break
-
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    address: Dict[str, Any]
-    if "address" in item and isinstance(item["address"], dict):
-        address = item["address"]
-    elif "document" in item and isinstance(item["document"], dict) and "address" in item["document"]:
-        address = item["document"]["address"]
-    else:
-        pytest.fail(f"No address field present for location UUID {location_uuid} (service ID {service_id})")
+    # Address is always in document.address structure
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid}"
+    assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
+
+    address = item["document"]["address"]
 
     # Build expected mapping from datatable (skip header row)
     expected: Dict[str, Any] = {}
@@ -118,21 +107,11 @@ def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -
     response = table.get_item(Key={"id": location_uuid, "field": "document"})
     item = response.get("Item")
 
-    if not item:
-        # Fallback: scan to locate item by generated UUID if key structure differs
-        scan = table.scan()
-        for candidate in scan.get("Items", []):
-            if candidate.get("id") == location_uuid:
-                item = candidate
-                break
-
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    # Check if address is None or missing in the document
-    if "document" in item and isinstance(item["document"], dict):
-        address = item["document"].get("address")
-    else:
-        address = item.get("address")
+    # Address is always in document.address structure
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid}"
+    address = item["document"].get("address")
 
     assert address is None, (
         f"Expected location for service ID {service_id} to have no address (None), "
@@ -141,26 +120,21 @@ def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -
 
 
 @then(parsers.parse("the service should have a validation error with code '{error_code}'"))
-def service_should_have_validation_error(service_id: int, error_code: str, dynamodb: Dict[str, Any]) -> None:
+def service_should_have_validation_error(service_id: int, error_code: str, context: Dict[str, Any]) -> None:
     """Verify that a service migration resulted in a validation error with the specified code.
 
-    This checks for fatal validation errors like 'address_required' or 'invalid_address'
-    that prevent migration.
-
-    Note: This step definition assumes validation errors are tracked somewhere accessible.
-    Implementation may need adjustment based on how validation errors are stored/reported.
+    This checks that the service was not successfully migrated due to validation errors.
+    The error should be captured in the migration context metrics.
     """
-    # TODO: This needs to be implemented based on how validation errors are actually stored
-    # Options:
-    # 1. Check migration metrics/logs
-    # 2. Check a validation_errors table in DynamoDB
-    # 3. Check CloudWatch logs
-    # 4. Check a specific error tracking mechanism
+    metrics = context.get("metrics", {})
 
-    # For now, we'll check if the service was NOT migrated (skipped or error count > 0)
-    # This is a placeholder - actual implementation depends on the validation error tracking mechanism
+    # Service with validation errors should not be migrated
+    assert metrics.get("errors", 0) > 0, (
+        f"Expected service {service_id} to have validation errors, but errors count is {metrics.get('errors', 0)}"
+    )
 
-    pytest.skip(
-        f"Step definition for validation error checking needs implementation. "
-        f"Expected to check for error code: {error_code} for service ID: {service_id}"
+    # The service should be counted as transformed but not migrated
+    assert metrics.get("migrated", 0) == 0, (
+        f"Expected service {service_id} not to be migrated due to validation error '{error_code}', "
+        f"but migrated count is {metrics.get('migrated', 0)}"
     )

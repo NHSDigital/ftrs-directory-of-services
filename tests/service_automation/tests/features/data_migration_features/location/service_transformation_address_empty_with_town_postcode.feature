@@ -1,8 +1,8 @@
 @data-migration
 Feature: Service Transformation with Empty Address but Town/Postcode Present
-  As a test author
-  I want to execute a data migration for services with empty address but populated town or postcode
-  So that I can confirm validation errors are raised as expected per data quality rules
+  As a data quality officer
+  I want to reject services with empty address fields even when town or postcode are populated
+  So that all migrated services have complete and valid address information
 
   Background:
     Given the test environment is configured
