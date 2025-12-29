@@ -2,11 +2,10 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="IS_Proxy_Test_Plan">
+      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -24,6 +23,70 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor">
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters"></stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">false</stringProp>
+        <stringProp name="script">// AWS SDK JARs must be placed in JMETER_HOME/lib directory
+// Required JARs (download from Maven Central):
+// - aws-java-sdk-secretsmanager-1.12.529.jar
+// - aws-java-sdk-core-1.12.529.jar
+
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder
+import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest
+import com.amazonaws.services.secretsmanager.model.GetSecretValueResult
+import groovy.json.JsonSlurper
+
+try {
+    // Get the secret name from JMeter variable or use default
+    String secretName = vars.get(&quot;AWS_SECRET_NAME&quot;) ?: &quot;/ftrs-dos/dev/dos-search/jwt-credentials&quot;
+    String region = vars.get(&quot;AWS_REGION&quot;) ?: &quot;eu-west-2&quot;
+
+    log.info(&quot;Fetching secret: ${secretName} from region: ${region}&quot;)
+
+    // Create AWS Secrets Manager client using default credentials chain
+    // This will use: environment variables, system properties, AWS credentials file, IAM role
+    def client = AWSSecretsManagerClientBuilder.standard()
+        .withRegion(region)
+        .withCredentials(new DefaultAWSCredentialsProviderChain())
+        .build()
+
+    // Create request to get secret value
+    GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest()
+        .withSecretId(secretName)
+
+    // Retrieve the secret
+    GetSecretValueResult getSecretValueResult = client.getSecretValue(getSecretValueRequest)
+    String secretString = getSecretValueResult.getSecretString()
+
+    log.info(&quot;Successfully retrieved secret&quot;)
+
+    // Parse the JSON secret string
+    def jsonSlurper = new JsonSlurper()
+    def secretJson = jsonSlurper.parseText(secretString)
+
+    // Process key-value pairs and set them as JMeter variables
+    secretJson.each { key, value -&gt;
+        vars.put(key as String, value as String)
+        log.info(&quot;Set variable: ${key}&quot;)
+    }
+
+    log.info(&quot;Successfully processed ${secretJson.size()} key-value pairs from secret&quot;)
+
+} catch (ClassNotFoundException e) {
+    log.error(&quot;AWS SDK classes not found. Please ensure AWS SDK JARs are in JMETER_HOME/lib directory&quot;)
+    log.error(&quot;Error: ${e.message}&quot;, e)
+} catch (Exception e) {
+    log.error(&quot;Error fetching or processing AWS secret: ${e.message}&quot;, e)
+    e.printStackTrace()
+    // Optionally fail the test or continue with default values
+    // throw e
+}
+</stringProp>
+      </JSR223PreProcessor>
+      <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
@@ -37,11 +100,11 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -64,10 +127,12 @@ import java.io.IOException;
 public static String readFileContent(Path filePath) throws IOException {
     return new String(Files.readAllBytes(filePath));
 }
-    String apikey = vars.get(&quot;ApiKey&quot;);
-    String kid_name = vars.get(&quot;Kid&quot;);
+    String apikey = vars.get(&quot;api_key&quot;);
+    String kid_name = vars.get(&quot;kid&quot;);
+    String key = vars.get(&quot;private_key&quot;)
     tokenExpireTime = 300000;
-    String key = readFileContent(Path.of(&quot;parameter_files/&quot;+kid_name+&quot;.pem&quot;));
+//    String key = readFileContent(Path.of(&quot;parameter_files/&quot;+kid_name+&quot;.pem&quot;));
+
 
     // Set cert to the main part of the key
     String[] parts = key.split(&quot;-----&quot;);
@@ -84,7 +149,8 @@ public static String readFileContent(Path filePath) throws IOException {
 
     String apim_env = vars.get(&quot;Apim_Env&quot;);
     String apim_domain = vars.get(&quot;Apim_Domain&quot;);
-    String fullendpoint = &quot;https://&quot;+apim_env+apim_domain+&quot;/oauth2/token&quot;;
+    // String fullendpoint = &quot;https://&quot;+apim_env+apim_domain+&quot;/oauth2/token&quot;;
+    String fullendpoint = vars.get(&quot;token_url&quot;);
     log.info(fullendpoint);
     String subject = apikey;
     String issuer = apikey;
@@ -115,7 +181,7 @@ public static String readFileContent(Path filePath) throws IOException {
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token">
             <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -148,7 +214,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">content-type</stringProp>
@@ -157,14 +223,14 @@ public static String readFileContent(Path filePath) throws IOException {
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
               <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -175,7 +241,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -187,7 +253,7 @@ public static String readFileContent(Path filePath) throws IOException {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Authorization</stringProp>
@@ -201,13 +267,13 @@ public static String readFileContent(Path filePath) throws IOException {
             </Arguments>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer">
             <stringProp name="ConstantTimer.delay">3000</stringProp>
           </ConstantTimer>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="Apim_Domain" elementType="Argument">
             <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -217,7 +283,7 @@ public static String readFileContent(Path filePath) throws IOException {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -259,7 +325,7 @@ public static String readFileContent(Path filePath) throws IOException {
         <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
         <stringProp name="cacheKey">true</stringProp>
-        <stringProp name="script">def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
+        <stringProp name="script">def scriptFile = new File(&apos;./scripts/LoadApimParams.groovy&apos;)
 def scriptText = scriptFile.text
 evaluate(scriptText)</stringProp>
       </JSR223PreProcessor>
