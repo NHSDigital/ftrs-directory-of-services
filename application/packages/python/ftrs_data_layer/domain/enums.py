@@ -91,3 +91,26 @@ class TimeUnit(str, Enum):
     DAYS = "days"
     MONTHS = "months"
     YEARS = "years"
+
+
+class TelecomType(str, Enum):
+    PHONE = "phone"
+    EMAIL = "email"
+    WEB = "web"
+
+    def to_fhir_value(self) -> str:
+        if self == TelecomType.WEB:
+            return "url"
+        return self.value
+
+    @staticmethod
+    def from_fhir_value(value: str) -> "TelecomType":
+        if value is None:
+            msg = "Telecom type (system) cannot be None or empty"
+            raise ValueError(msg)
+        if value == "url":
+            return TelecomType.WEB
+        for telecom_type in TelecomType:
+            if telecom_type.value == value:
+                return telecom_type
+        raise ValueError("invalid telecom type (system): " + value)

@@ -1,4 +1,5 @@
 import typing
+from builtins import str
 
 import pytest
 from fhir.resources.R4B.organization import Organization
@@ -31,6 +32,7 @@ def assert_operation_outcome(
                 "resourceType": "Organization",
                 "active": True,
                 "name": "Test Organization",
+                "telecom": [{"system": "phone", "value": "123456"}],
             },
             Organization,
             lambda result: (
@@ -152,7 +154,10 @@ def test_validate_fhir_validation_error(
     [
         {"resourceType": "DummyResource", "name": "Valid Name"},
         {"resourceType": "DummyResource", "modifiedBy": "ValidUser"},
-        {"resourceType": "DummyResource", "telecom": [{"value": "123456"}]},
+        {
+            "resourceType": "DummyResource",
+            "telecom": [{"system": "phone", "value": "123456"}],
+        },
         {"resourceType": "DummyResource", "type": [{"text": "Type1"}]},
     ],
 )
@@ -164,11 +169,14 @@ def test_check_for_special_characters_valid(resource: dict) -> None:
 @pytest.mark.parametrize(
     "resource,expected_error_field",
     [
-        ({"resourceType": "DummyResource", "name": 'Invalid"Name'}, "name"),
+        ({"resourceType": "DummyResource", "name": "Invalid@Name"}, "name"),
         ({"resourceType": "DummyResource", "modifiedBy": "Invalid#User"}, "modifiedBy"),
         (
-            {"resourceType": "DummyResource", "telecom": [{"value": "123;456"}]},
-            "telecom[0].value",
+            {
+                "resourceType": "DummyResource",
+                "telecom": [{"system": ";phone", "value": "123456"}],
+            },
+            "telecom[0].system",
         ),
         (
             {"resourceType": "DummyResource", "type": [{"text": "Type$1"}]},

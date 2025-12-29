@@ -14,7 +14,7 @@ from ftrs_data_layer.domain.enums import (
 from pydantic import BaseModel
 
 
-class Telecom(BaseModel):
+class HealthcareServiceTelecom(BaseModel):
     phone_public: str | None
     phone_private: str | None
     email: str | None
@@ -35,7 +35,7 @@ class HealthcareService(DBModel):
     providedBy: UUID | None
     location: UUID | None
     name: str
-    telecom: Telecom | None
+    telecom: HealthcareServiceTelecom | None
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[str]

@@ -27,9 +27,10 @@ from .enums import (
     OpeningTimeCategory,
     OrganisationType,
 )
-from .healthcare_service import HealthcareService, Telecom
+from .healthcare_service import HealthcareService, HealthcareServiceTelecom
 from .location import Address, Location, PositionGCS
 from .organisation import Organisation
+from .telecom import Telecom
 
 __all__ = [
     "DBModel",
@@ -57,6 +58,7 @@ __all__ = [
     "ClinicalCodeSource",
     "ClinicalCodeType",
     "HealthcareService",
+    "HealthcareServiceTelecom",
     "Telecom",
     "Address",
     "PositionGCS",

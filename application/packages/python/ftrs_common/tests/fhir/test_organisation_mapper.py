@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.contactpoint import ContactPoint
@@ -12,15 +13,17 @@ from ftrs_common.fhir.r4b.organisation_mapper import (
     TYPED_PERIOD_URL,
     OrganizationMapper,
 )
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
+from pydantic import ValidationError
 
 
 def make_fhir_org(
     id: str = str(uuid.uuid4()),
     name: str = "Test Org",
     active: bool = True,
-    telecom: list | None = None,
+    telecom: list[Telecom] | None = None,
     type: list | None = None,
 ) -> FhirOrganisation:
     kwargs = {
@@ -28,7 +31,6 @@ def make_fhir_org(
         "identifier": [Identifier.model_construct(value=id)],
         "name": name,
         "active": active,
-        "type": type,
     }
     if telecom is not None:
         if not isinstance(telecom, list):
@@ -45,7 +47,9 @@ def test_to_fhir_maps_fields_correctly() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="abc123",
         non_primary_role_codes=["bcd123"],
@@ -58,8 +62,8 @@ def test_to_fhir_maps_fields_correctly() -> None:
     assert fhir_org.active is True
     assert fhir_org.identifier[0].value == "ODS1"
     assert fhir_org.telecom[0].system == "phone"
-    assert fhir_org.telecom[0].value == "01234"
-    assert fhir_org.telecom[0].use == "work"
+    assert fhir_org.telecom[0].value == "0300 311 22 33"
+    assert fhir_org.telecom[0].use is None
     assert (
         fhir_org.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -75,7 +79,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     fhir_org = mapper.to_fhir(org)
@@ -200,13 +204,43 @@ def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
 
 def test__build_telecom() -> None:
     mapper = OrganizationMapper()
-    telecom = mapper._build_telecom("01234")
+    telecom = mapper._build_telecom(
+        [
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+            Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="http://example.com", isPublic=True),
+        ]
+    )
     assert isinstance(telecom, list)
-    assert telecom[0]["system"] == "phone"
-    assert telecom[0]["value"] == "01234"
-    assert telecom[0]["use"] == "work"
-    telecom_none = mapper._build_telecom(None)
-    assert telecom_none == []
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
+    assert telecom[1].system == "email"
+    assert telecom[1].value == "test@nhs.net"
+    assert telecom[1].use is None
+    assert telecom[2].system == "url"
+    assert telecom[2].value == "http://example.com"
+    assert telecom[2].use is None
+
+
+def test__build_telecom_empty_list() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom([])
+    assert telecom_empty_list == []
+
+
+def test__build_telecom_none() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom(None)
+    assert telecom_empty_list == []
+
+
+def test__build_telecom_str_phone() -> None:
+    mapper = OrganizationMapper()
+    telecom = mapper._build_telecom("0300 311 22 33")
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
 
 
 def test_from_fhir_maps_fields_correctly() -> None:
@@ -219,16 +253,18 @@ def test_from_fhir_maps_fields_correctly() -> None:
                 system="https://fhir.nhs.uk/Id/ods-organization-code", value=valid_uuid
             )
         ],
-        name="Test Org",
+        name="Test GP Org",
         active=True,
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="0300 311 22 33")],
     )
     internal_organisation = mapper.from_fhir(org)
     assert isinstance(internal_organisation, Organisation)
     assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
-    assert internal_organisation.name == "Test Org"
+    assert internal_organisation.name == "Test GP Org"
     assert internal_organisation.active is True
-    assert internal_organisation.telecom == "01234"
+    assert internal_organisation.telecom == [
+        Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+    ]
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
@@ -272,7 +308,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         "id": "C88037",
         "active": True,
         "name": "Test Org",
-        "telecom": [{"system": "phone", "value": "01234"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -391,13 +427,6 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                 "assigner": {"display": "HSCIC"},
             }
         ],
-        "type": {
-            "coding": {
-                "system": "https://fhir.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRecordClass-1",
-                "code": "1",
-                "display": "HSCOrg",
-            }
-        },
     }
     result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
     assert isinstance(result, FhirOrganisation)
@@ -406,7 +435,7 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
     assert result.active is True
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
-    assert result.telecom[0].value == "01234"
+    assert result.telecom[0].value == "0300 311 22 33"
 
 
 def test_to_fhir_bundle_single_org() -> None:
@@ -416,7 +445,7 @@ def test_to_fhir_bundle_single_org() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_single = mapper.to_fhir_bundle([org1])
@@ -434,8 +463,7 @@ def test_to_fhir_bundle_single_org() -> None:
     )
     assert resource.identifier[0].use == "official"
     assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].value == "01234"
-    assert resource.telecom[0].use == "work"
+    assert resource.telecom[0].value == "020 7972 3272"
     assert (
         resource.meta.profile[0]
         == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
@@ -449,7 +477,9 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     org2 = Organisation(
@@ -457,7 +487,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
+        telecom=[],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
@@ -474,28 +504,57 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
 def test__get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="020 7972 3272")],
     )
-    assert mapper._get_org_telecom(org) == "01234"
+    assert mapper._get_org_telecom(org) == [
+        Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)
+    ]
 
 
-def test__get_org_telecom_none() -> None:
+def test__get_org_telecom_with_no_system() -> None:
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(value="020 7972 3272")],
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+    assert "Telecom type (system) cannot be None or empty" in str(exc_info.value)
+
+
+def test__get_org_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[],
     )
-    assert mapper._get_org_telecom(org) is None
+    assert mapper._get_org_telecom(org) == []
 
 
 def test__get_org_telecom_with_no_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[
-            ContactPoint(system="email", value="test@example.com"),
+            ContactPoint(system="pager", value="1337"),
             ContactPoint(system="fax", value="12345"),
         ],
     )
-    assert mapper._get_org_telecom(org) is None
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "invalid telecom type (system): pager" in str(exc_info.value)
+
+
+def test_get_org_telecom_with_invalid_phone() -> None:
+    OrganizationMapper()
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(system="phone", value="1337")],
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "value is not a valid phone number" in str(exc_info.value)
 
 
 def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
@@ -771,7 +830,6 @@ def test__extract_legal_dates_no_matching_url() -> None:
 
 def test__extract_legal_dates_ext_with_dict_method() -> None:
     """Test _extract_legal_dates handles extensions with .dict() method within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
@@ -816,8 +874,6 @@ def test__extract_legal_dates_ext_with_dict_method() -> None:
 
 def test__extract_legal_dates_mixed_extension_types() -> None:
     """Test _extract_legal_dates with mixed dict and Extension object types within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
 
@@ -942,7 +998,7 @@ def test_to_fhir_with_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="RO182",
@@ -1084,8 +1140,6 @@ def test__parse_legal_period(
     Note: Validation of dateType='Legal' happens in Pydantic validator,
     so the mapper just extracts dates regardless of dateType value.
     """
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     ext_obj = Extension.model_validate(typed_period_ext) if typed_period_ext else None
     start, end = mapper._parse_legal_period(ext_obj)
@@ -1102,6 +1156,7 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         name="Test Org",
         active=True,
         modifiedBy="ODS_ETL_PIPELINE",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1161,8 +1216,6 @@ def test_to_fhir_partial_dates_absent_not_null(
     expected_end_in_period: str | None,
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
-    from ftrs_data_layer.domain.organisation import LegalDates
-
     mapper = OrganizationMapper()
 
     legal_dates = None
@@ -1177,6 +1230,7 @@ def test_to_fhir_partial_dates_absent_not_null(
         legalDates=legal_dates,
         modifiedBy="ODS_ETL_PIPELINE",
         primary_role_code="RO182",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1943,7 +1997,6 @@ def test_from_fhir_with_primary_and_non_primary_role_codes() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -2004,7 +2057,6 @@ def test_from_fhir_with_multiple_non_primary_role_codes() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -2105,7 +2157,6 @@ def test_from_fhir_with_only_primary_role_code() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "Pharmacy"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -2150,7 +2201,6 @@ def test_from_fhir_with_only_non_primary_role_codes() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "extension": [
             {
                 "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
@@ -2400,6 +2450,7 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
         modifiedBy="TEST",
         primary_role_code="RO182",
         non_primary_role_codes=["RO198", "RO76"],
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2419,6 +2470,7 @@ def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
         active=True,
         modifiedBy="TEST",
         non_primary_role_codes=["RO198", "RO76"],
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2438,6 +2490,7 @@ def test__build_organisation_extensions_with_legal_dates() -> None:
         primary_role_code="RO182",
         non_primary_role_codes=["RO198"],
         legalDates=LegalDates(start=date(2020, 1, 1), end=date(2025, 12, 31)),
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2461,6 +2514,7 @@ def test__build_organisation_extensions_with_no_roles() -> None:
         name="Test Org",
         active=True,
         modifiedBy="TEST",
+        telecom=[],
     )
 
     result = mapper._build_organisation_extensions(org)
@@ -2470,8 +2524,6 @@ def test__build_organisation_extensions_with_no_roles() -> None:
 
 def test__build_organisation_extensions_primary_role_returns_none() -> None:
     """Test that None primary_ext is not added to extensions (line 80)."""
-    from unittest.mock import patch
-
     mapper = OrganizationMapper()
 
     org = Organisation(
@@ -2480,6 +2532,7 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
         name="Test Org",
         active=True,
         modifiedBy="TEST",
+        telecom=[],
         primary_role_code="RO182",  # To create valid Organisation
     )
 
@@ -2492,8 +2545,6 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
 
 def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
     """Test that None non_primary_ext is not added to extensions (line 87)."""
-    from unittest.mock import patch
-
     mapper = OrganizationMapper()
 
     # Create org with only non-primary role codes
@@ -2504,6 +2555,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
         active=True,
         modifiedBy="TEST",
         non_primary_role_codes=["RO198"],  # To create valid Organisation
+        telecom=[],
     )
 
     with patch.object(mapper, "_build_organisation_role_extension", return_value=None):
