@@ -1,7 +1,7 @@
 import java.nio.file.Files
 import java.nio.file.Paths
 
-def csvPath = "parameter_files/plan_params.csv"
+def csvPath = "parameter_files/backend_params.csv"
 def file = new File(csvPath)
 
 if (file.exists()) {
@@ -21,35 +21,9 @@ if (file.exists()) {
 }
 
 def pp_endpoint = vars.get("param_0_0")
-def pp_apim_env = vars.get("param_0_1")
-def pp_apikey = vars.get("param_0_2")
-def pp_kid = vars.get("param_0_3")
 
 def serviceendpoint = props.get("serviceendpoint")
 if (serviceendpoint == null || serviceendpoint == "") {
     serviceendpoint = pp_endpoint
 }
 vars.put("ServiceEndpoint", serviceendpoint)
-
-
-def kid = props.get("kid")
-if (kid == null || kid == "") {
-  kid = pp_kid
-}
-vars.put("Kid", kid)
-
-
-def Apim_Env = props.get("apim_env")
-if (Apim_Env == null || Apim_Env == "") {
-    Apim_Env = pp_apim_env
-}
-vars.put("Apim_Env", Apim_Env)
-
-def apikey = props.get("apikey")
-if (apikey == null || apikey == "") {
-    apikey = pp_apikey
-}
-vars.put("ApiKey", apikey)
-
-
-

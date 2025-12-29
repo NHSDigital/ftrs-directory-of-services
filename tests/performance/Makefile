@@ -1,6 +1,7 @@
 PROJECT_NAME := ftrs-dos
 ENV_LEVEL_PROJECT := ftrs-directory-of-services
 ENVIRONMENT ?= dev
+STACK := dos-search
 PYTHON_VERSION ?= 3.12
 LOCAL_DIR := parameter_files
 MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-account-wide-is-performance-files-bucket
@@ -31,6 +32,9 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.529/aws-java-sdk-core-1.12.529.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
 	echo "running performance tests against ${PLAN_NAME}..."
@@ -101,6 +105,13 @@ jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME
 		-passout pass:$$PASSKEY; \
 	echo "Created ${LOCAL_DIR}/${PFX_NAME}.pfx"; \
 
+jmeter-setup-jwt-certs:
+	echo "/ftrs-dos/$(ENVIRONMENT)/$(STACK)/jwt-credentials";
+	aws secretsmanager get-secret-value \
+		--region $(AWS_REGION) \
+		--secret-id /ftrs-dos/$(ENVIRONMENT)/$(STACK)/jwt-credentials \
+		--query 'SecretString' \
+		--output text > ./parameter_files/jwt-credentials.json;
 
 
 
