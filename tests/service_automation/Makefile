@@ -5,6 +5,8 @@ ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
 MARKERS ?= ui is-api is-infra
 TEST_TYPE ?= non-ui
+API_NAME ?= dos-search
+PROXY_NAME ?= dos-search--internal-qa--dos-search-ftrs-769_FHIR_R4
 
 # ==============================================================================
 
@@ -33,7 +35,7 @@ test:
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
 		else \
-			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$(PROXY_NAME) -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
 

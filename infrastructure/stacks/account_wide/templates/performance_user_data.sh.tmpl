@@ -118,6 +118,7 @@ systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
 # Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
 PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3
+AWS_JAVA_SDK_VERSION=2.40.16
 DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional,jpgc-tst,jpgc-casutg"
 
 mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
@@ -135,6 +136,13 @@ bash "$${JM_HOME}/bin/PluginsManagerCMD.sh" install "$${DEFAULT_PLUGINS}" || tru
 mkdir -p "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/java-jwt-$${JWT_VER}.jar" \
   "https://repo1.maven.org/maven2/com/auth0/java-jwt/$${JWT_VER}/java-jwt-$${JWT_VER}.jar" || true
+
+# Always install AWS SDK dependencies for AWS-related JMeter plugins
+curl -fL -o "$${JM_HOME}/lib/aws-core-$${AWS_JAVA_SDK_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/$${AWS_JAVA_SDK_VERSION}/aws-core-$${AWS_JAVA_SDK_VERSION}.jar" || true
+
+curl -fL -o "$${JM_HOME}/lib/secretsmanager-$${AWS_JAVA_SDK_VERSION}.jar" \
+  "https://repo1.maven.org/maven2/software/amazon/awssdk/secretsmanager/$${AWS_JAVA_SDK_VERSION}/secretsmanager-$${AWS_JAVA_SDK_VERSION}.jar" || true
 
 # Provide convenience symlinks like gp_search
 ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
