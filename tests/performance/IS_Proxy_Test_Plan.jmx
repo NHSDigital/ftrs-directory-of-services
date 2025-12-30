@@ -6,6 +6,7 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -41,7 +42,7 @@ import groovy.json.JsonSlurper
 
 try {
     // Get the secret name from JMeter variable or use default
-    String secretName = vars.get(&quot;AWS_SECRET_NAME&quot;) ?: &quot;/ftrs-dos/dev/dos-search/jwt-credentials&quot;
+    String secretName = vars.get(&quot;AWS_SECRET_NAME&quot;)
     String region = vars.get(&quot;AWS_REGION&quot;) ?: &quot;eu-west-2&quot;
     String awsProfile = vars.get(&quot;AWS_PROFILE&quot;) ?: &quot;default&quot;
 
@@ -232,7 +233,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </JSONPostProcessor>
             <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -275,7 +276,7 @@ public static String readFileContent(Path filePath) throws IOException {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="Apim_Domain" elementType="Argument">
             <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -285,7 +286,7 @@ public static String readFileContent(Path filePath) throws IOException {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
