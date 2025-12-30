@@ -20,6 +20,7 @@ if (file.exists()) {
     }
 }
 
+// Set ServiceEndpoint
 def pp_endpoint = vars.get("param_0_0")
 
 def serviceendpoint = props.get("serviceendpoint")
