@@ -130,17 +130,21 @@ def service_should_have_validation_error(error_code: str, migration_context: Dic
     """Verify that a service migration resulted in a validation error with the specified code.
 
     This checks that the service was not successfully migrated due to validation errors.
-    The error should be captured in the migration context metrics.
+    The error should be captured in the migration result metrics as an invalid record.
     """
-    metrics = migration_context.get("metrics", {})
+    result = migration_context.get("result")
+    assert result is not None, "Migration result not found in context"
 
-    # Service with validation errors should not be migrated
-    assert metrics.get("errors", 0) > 0, (
-        f"Expected service to have validation errors, but errors count is {metrics.get('errors', 0)}"
+    metrics = result.metrics
+    assert metrics is not None, "Metrics not found in migration result"
+
+    # Service with validation errors should be marked as invalid
+    assert metrics.invalid_records > 0, (
+        f"Expected service to be marked as invalid, but invalid_records count is {metrics.invalid_records}"
     )
 
-    # The service should be counted as transformed but not migrated
-    assert metrics.get("migrated", 0) == 0, (
+    # The service should not be migrated
+    assert metrics.migrated_records == 0, (
         f"Expected service not to be migrated due to validation error '{error_code}', "
-        f"but migrated count is {metrics.get('migrated', 0)}"
+        f"but migrated_records count is {metrics.migrated_records}"
     )
