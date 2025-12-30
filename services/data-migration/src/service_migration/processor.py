@@ -97,33 +97,11 @@ class DataMigrationProcessor:
         """
         Process a single record by transforming it using the appropriate transformer.
 
-        TODO: FTRS-1595 Process a single service through the migration pipeline.
-
-        TODO: FTRS-1595 Pipeline workflow steps
-        1. Extract service from source database
-        2. Validate the service can be migrated
-        3. Transform to future data model
-        4. Lookup existing state (step 5 - determines insert vs update)
-        5. Compare and determine what needs updating (future implementation)
-        6. Save to future system tables
-
-        TODO: Current behavior per acceptance criteria
-        - When state record NOT found (key "services#{service_id}" doesn't exist):
-        * Treat as 'insert' operation
-        * Save records directly to DynamoDB tables
-        * No state record is created at this stage
-
-        - When state record EXISTS (key "services#{service_id}" found):
-        * Treat as 'update' operation
-        * Exit early with log message
-        * Update logic not yet implemented
-
-        TODO: FTRS-1595 Future implementation for update operations
-        - Compare transformed data with last known state from state table
-        - Identify what has changed between current and previous migration
-        - Perform targeted updates only on changed data
-        - Use optimistic locking via version numbers to prevent conflicts
-        - Handle concurrent updates by failing and requeuing subsequent updates
+        Pipeline workflow:
+        1. Validate the service can be migrated
+        2. Transform to future data model
+        3. Check state table to determine if insert or update operation
+        4. Save to future system tables (insert only, update logic pending)
         """
 
         self.logger.append_keys(record_id=service.id)
@@ -187,33 +165,14 @@ class DataMigrationProcessor:
                 ),
             )
 
-            # TODO: FTRS-1595 Step 5 - Check state table to determine insert vs update operation
-            # Check if state record exists (Step 5)
-            state = self.verify_state_record_exist(
-                service.id
-            )  # CHANGED: Now returns DataMigrationState | None
+            # Check if service has been previously migrated
+            state = self.verify_state_record_exist(service.id)
 
-            if state is not None:  # CHANGED: Check if state object exists
-                # TODO: FTRS-1595 Update scenario - state record exists
-                # This service has been previously migrated
-                # Currently: Log and exit early (update logic not implemented)
-                # Future: Compare state, identify changes, perform targeted updates
-
-                # Update scenario - exit early
-                # self.logger.log(
-                #     DataMigrationLogBase.DM_ETL_019,
-                #     record_id=service.id,
-                # )
-                # Note: DM_ETL_019 is now logged inside verify_state_record_exist
-                # # Exit early - no save operation occurs
+            if state is not None:
+                # Update scenario: state exists, exit early (update logic not yet implemented)
                 return
 
-            # TODO: FTRS-1595 Insert scenario - no state record exists
-            # This is a new service that hasn't been migrated before
-            # Continue with migration to insert into future system tables
-            # Note: Not creating state records at this stage per acceptance criteria
-
-            # Insert scenario - continue with save
+            # Insert scenario: new service, continue with save
             self._save(result, service.id)
             self.metrics.migrated_records += 1
 
@@ -292,17 +251,7 @@ class DataMigrationProcessor:
         """
         Save the transformed result to DynamoDB using transact_write_items for atomic writes.
 
-        TODO: FTRS-1595 Save all transformed entities to the future system tables.
-
-        TODO: FTRS-1595 Current save behavior
-        - Saves all entities to their respective DynamoDB tables
-        - Creates a state record (will be modified in future tickets)
-
-        TODO: FTRS-1595 Future behavior changes
-        - Only save when no state record exists (insert operation)
-        - For update operations, perform targeted saves based on comparison
-        - State record creation will be conditional based on operation type
-        - Implement optimistic locking using version numbers
+        Creates organisation, location, healthcare service, and state records atomically.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
 
@@ -440,69 +389,31 @@ class DataMigrationProcessor:
     def verify_state_record_exist(self, record_id: int) -> DataMigrationState | None:
         """
         Check if a data migration state record exists for the given service ID.
-        Returns True if the state record exists.
-        Uses get_item with the source_record_id as the key.
 
-        TODO: FTRS-1595 Step 5 of data migration workflow - State Table Lookup
-        This method checks the DynamoDB state table to determine if a service has been
-        previously migrated. The state table uses composite keys in format "services#{service_id}".
+        Uses direct DynamoDB client access due to state table's different key structure
+        (source_record_id vs standard id+field pattern).
 
-        TODO: FTRS-1595 Technical Implementation Detail - Direct DynamoDB Access
-        Uses direct DynamoDB client instead of repositories because:
-        1. State table uses different key structure (source_record_id) vs standard tables (id + field)
-        2. Repositories are configured for standard table structure and cannot handle state table
-        3. Future tickets will use TransactWriteItems for atomic updates across all tables
-        4. No need to create separate data migration repository - direct client access is sufficient
+        Args:
+            record_id: The DoS service ID to lookup
 
-        TODO: FTRS-1595 Purpose of separate state table
-        1. Limiting data updates: Only compares against last DoS-migrated state, allowing
-        future system to accept data from other sources (ODS, Ordinance Survey) without
-        the migration pipeline overwriting those updates.
-        2. Ensuring consistency: Provides optimistic locking mechanism via versioning to
-        prevent concurrent updates from causing conflicts.
-
-        TODO: FTRS-1595 Consistent Read requirement
-        Uses ConsistentRead=True to ensure we get the latest committed state and prevent
-        race conditions when multiple Lambda invocations process the same service concurrently.
-
-        Args: service_id the DoS service ID to lookup
-
-        Returns: DataMigrationState object if record exists (update operation), None otherwise (insert operation)
+        Returns:
+            DataMigrationState object if record exists (update operation), None otherwise (insert operation)
         """
-        # 1. Get DynamoDB client - bypasses repositories due to different key structure
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-
-        # 2. Format the state table name with environment and workspace
         state_table = format_table_name(
             "data-migration-state", self.config.env, self.config.workspace
         )
+        source_record_id = f"services#{record_id}"
 
-        # 3. Construct the composite key in format "services#{service_id}"
-        # Note: State table uses "source_record_id" as primary key, not "id" + "field"
-        source_record_id = "services#" + str(record_id)
-
-        # 4. Perform GetItem operation to check if state record exists
-        # FTRS-1595 Perform GetItem with ConsistentRead=True to ensure latest state
         response = dynamodb_client.get_item(
             TableName=state_table,
-            Key={
-                "source_record_id": {"S": source_record_id},
-            },
-            ConsistentRead=True,  # ADDED: Ensures we get latest committed state
+            Key={"source_record_id": {"S": source_record_id}},
+            ConsistentRead=True,
         )
 
-        # 5. Check if Item exists in response
-        exists = "Item" in response
-
-        # 6. Log the result
-        # FTRS-1595 Check if the item exists in the response
-        if exists:
+        if "Item" in response:
             self.logger.debug(f"State record found for service ID: {record_id}")
-
-            # State record exists - this service has been previously migrated
-            # Parse the DynamoDB item into DataMigrationState object
             state = DataMigrationState.from_dynamodb_item(response["Item"])
-
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_019,
                 record_id=record_id,
@@ -510,11 +421,6 @@ class DataMigrationProcessor:
                 message="State record found - treating as update operation",
             )
             return state
-        else:
-            self.logger.debug(f"No state record found for service ID: {record_id}")
 
-            # No state record exists - this is a new service to the migration pipeline
-            self.logger.debug(
-                f"No state record found for service ID: {record_id} - treating as insert operation"
-            )
-            return None
+        self.logger.debug(f"No state record found for service ID: {record_id}")
+        return None

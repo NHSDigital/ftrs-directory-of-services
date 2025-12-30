@@ -897,24 +897,13 @@ def test_save_skips_when_state_exists(
         healthcare_service=result.healthcare_service[0],
     )
 
-    # Mock verify_state_record_exist to return True (exists)
-    processor.verify_state_record_exist = mocker.MagicMock(
-        return_value=mock_state
-    )  # TODO: return a state object!
-
-    # validation_issues = []
-    # transformer = processor.get_transformer(mock_legacy_service)
-    # transformer.transform(mock_legacy_service, validation_issues)
+    # Mock verify_state_record_exist to return state object
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=mock_state)
 
     # Call _save - but first need to call through _process_service
     processor._process_service(mock_legacy_service)
 
     # Verify transact_write_items was NOT called since state exists
-    assert mock_dynamodb_client.transact_write_items.call_count == 0
-
-    # Verify DM_ETL_019 was logged (state exists)
-    # assert mock_logger.was_logged("DM_ETL_019") is True
-
     assert mock_dynamodb_client.transact_write_items.call_count == 0
 
 
@@ -960,7 +949,6 @@ def test_save_logs_success_on_successful_write(
     )  # org, location, service, state
 
 
-# FTRS-1595 AC1: Insert Operation Tests
 def test_verify_state_record_exist_returns_none_for_new_service(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
@@ -997,7 +985,6 @@ def test_verify_state_record_exist_returns_none_for_new_service(
     assert call_args["ConsistentRead"] is True
 
 
-# FTRS-1595 AC2: Update Operation Tests
 def test_verify_state_record_exist_returns_object_for_existing_service(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
@@ -1042,7 +1029,6 @@ def test_verify_state_record_exist_returns_object_for_existing_service(
     )
 
     # Mock DataMigrationState.from_dynamodb_item to return a valid state object
-    # Use model_construct() to bypass Pydantic validation since we're using mock objects
     mock_state = DataMigrationState.model_construct(
         id=uuid4(),
         source_record_id=test_source_record_id,
@@ -1107,7 +1093,6 @@ def test_update_operation_exits_early_with_state(
     )
 
     # Don't mock verify_state_record_exist, but mock get_item to return state
-    # Use model_construct() to bypass Pydantic validation since we're using mock objects
     mock_state = DataMigrationState.model_construct(
         id=uuid4(),
         source_record_id=f"services#{mock_legacy_service.id}",
