@@ -5,7 +5,7 @@ from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_data_layer.domain.enums import OrganisationType
 from pytest_mock import MockFixture
 
-from pipeline.producer.validation import (
+from producer.validation import (
     GP_PRACTICE_ROLE_CODE,
     PRESCRIBING_COST_CENTRE_CODE,
     get_permitted_org_type,
@@ -182,7 +182,7 @@ def test_returns_gp_practice_for_valid_org(
     }
 
     mock_is_gp = mocker.patch(
-        "pipeline.producer.validation.is_gp",
+        "producer.validation.is_gp",
         return_value=True,
     )
 
@@ -204,7 +204,7 @@ def test_returns_none_for_invalid_org(mocker: MockFixture) -> None:
     }
 
     mock_is_gp = mocker.patch(
-        "pipeline.producer.validation.is_gp",
+        "producer.validation.is_gp",
         return_value=False,
     )
 

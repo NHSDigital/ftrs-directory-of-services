@@ -6,7 +6,7 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from pipeline.utilities import (
+from utilities import (
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
     make_request,

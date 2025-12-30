@@ -3,7 +3,7 @@ from ftrs_common.utils.correlation_id import fetch_or_set_correlation_id
 from ftrs_common.utils.request_id import fetch_or_set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.consumer.consumer import process_message_and_send_request
+from consumer.consumer import process_message_and_send_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 

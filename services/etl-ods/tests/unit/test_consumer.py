@@ -5,7 +5,7 @@ import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests_mock import Mocker as RequestsMock
 
-from pipeline.consumer.consumer import (
+from consumer.consumer import (
     RequestProcessingError,
     process_message_and_send_request,
 )

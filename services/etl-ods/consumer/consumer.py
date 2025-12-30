@@ -9,7 +9,7 @@ from ftrs_common.utils.correlation_id import (
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.utilities import get_base_apim_api_url, make_request
+from utilities import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 

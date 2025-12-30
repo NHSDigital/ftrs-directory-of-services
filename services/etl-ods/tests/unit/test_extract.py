@@ -4,7 +4,7 @@ import pytest
 from pytest_mock import MockerFixture
 from requests import HTTPError
 
-from pipeline.producer.extract import (
+from producer.extract import (
     _extract_organizations_from_bundle,
     fetch_organisation_uuid,
     fetch_outdated_organisations,
@@ -48,7 +48,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", return_value=mock_bundle
+        "producer.extract.make_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -68,7 +68,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -125,7 +125,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=[first_page, second_page]
+        "producer.extract.make_request", side_effect=[first_page, second_page]
     )
 
     date = "2025-10-15"
@@ -141,7 +141,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
 def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
     """Test fetching organisation UUID from APIM."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -154,7 +154,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
         ],
     }
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", return_value=mock_response
+        "producer.extract.make_request", return_value=mock_response
     )
 
     result_bundle = fetch_organisation_uuid("XYZ999")
@@ -171,7 +171,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -184,7 +184,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         raise http_err
 
     mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_request", side_effect=raise_http_error_not_found
     )
 
     with caplog.at_level("WARNING"):
@@ -199,7 +199,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -213,7 +213,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         raise http_err
 
     mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_request", side_effect=raise_http_error_not_found
     )
     with caplog.at_level("ERROR"):
         with pytest.raises(HTTPError) as excinfo:
@@ -226,11 +226,11 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
 ) -> None:
     """Test fetch_organisation_uuid handles invalid resource type."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_request",
         return_value={
             "resourceType": "Not Bundle",
             "status_code": 200,
@@ -252,11 +252,11 @@ def test_fetch_organisation_uuid_no_organisation_returned(
 ) -> None:
     """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_request",
         return_value={
             "resourceType": "Bundle",
             "status_code": 200,

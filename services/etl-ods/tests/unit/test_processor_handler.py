@@ -10,8 +10,8 @@ from ftrs_common.utils.request_id import set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 
-from pipeline.producer.processor import processor
-from pipeline.producer.processor_handler import MAX_DAYS_PAST, processor_lambda_handler
+from producer.processor import processor
+from producer.processor_handler import MAX_DAYS_PAST, processor_lambda_handler
 
 TEST_CORRELATION_ID = "test-correlation"
 TEST_REQUEST_ID = "test-request"
@@ -27,7 +27,7 @@ def fixed_ids() -> Generator[None, None, None]:
 
 
 def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    mock_processor = mocker.patch("producer.processor_handler.processor")
     date = datetime.now().strftime("%Y-%m-%d")
     event = {"date": date}
 
@@ -40,7 +40,7 @@ def test_processor_lambda_handler_success(mocker: MockerFixture) -> None:
 def test_processor_lambda_handler_success_is_scheduled(
     mocker: MockerFixture,
 ) -> None:
-    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    mock_processor = mocker.patch("producer.processor_handler.processor")
 
     event = {"is_scheduled": True}
 
@@ -69,7 +69,7 @@ def test_processor_lambda_handler_invalid_date_format() -> None:
 def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
     old_date = "2023-01-01"
     event = {"date": old_date}
-    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    mock_processor = mocker.patch("producer.processor_handler.processor")
     response = processor_lambda_handler(event, {})
 
     mock_processor.assert_not_called()
@@ -84,14 +84,14 @@ def test_processor_lambda_handler_date_exactly_185_days(mocker: MockerFixture) -
         "%Y-%m-%d"
     )
     event = {"date": date_185_days_ago}
-    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    mock_processor = mocker.patch("producer.processor_handler.processor")
     response = processor_lambda_handler(event, {})
     mock_processor.assert_called_once_with(date=date_185_days_ago)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
 
 def test_processor_lambda_handler_exception(mocker: MockerFixture) -> None:
-    mock_processor = mocker.patch("pipeline.producer.processor_handler.processor")
+    mock_processor = mocker.patch("producer.processor_handler.processor")
     mock_processor.side_effect = Exception("Test error")
     date = datetime.now().strftime("%Y-%m-%d")
     event = {"date": date}
@@ -108,7 +108,7 @@ def test_processor_logs_and_raises_request_exception(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.processor.fetch_outdated_organisations",
+        "producer.processor.fetch_outdated_organisations",
         side_effect=requests.exceptions.RequestException("network fail"),
     )
     date = datetime.now().strftime("%Y-%m-%d")
@@ -125,7 +125,7 @@ def test_processor_logs_and_raises_generic_exception(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.processor.fetch_outdated_organisations",
+        "producer.processor.fetch_outdated_organisations",
         side_effect=Exception("unexpected error"),
     )
     date = datetime.now().strftime("%Y-%m-%d")

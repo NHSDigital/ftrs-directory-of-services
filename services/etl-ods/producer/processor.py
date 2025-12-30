@@ -8,13 +8,13 @@ from ftrs_common.utils.correlation_id import (
 from ftrs_common.utils.request_id import get_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.producer.extract import (
+from producer.extract import (
     fetch_organisation_uuid,
     fetch_outdated_organisations,
 )
-from pipeline.producer.load_data import load_data
-from pipeline.producer.transform import transform_to_payload
-from pipeline.producer.validation import get_permitted_org_type
+from producer.load_data import load_data
+from producer.transform import transform_to_payload
+from producer.validation import get_permitted_org_type
 
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
