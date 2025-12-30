@@ -36,7 +36,7 @@ class TestDataMigrationProcessor(unittest.TestCase):
 
         # Mock verify_state_record_exist to return False (state doesn't exist)
         self.verify_state_patch = patch.object(
-            self.processor, "verify_state_record_exist", return_value=False
+            self.processor, "verify_state_record_exist", return_value=None
         )
         self.mock_verify_state = self.verify_state_patch.start()
 
