@@ -19,16 +19,51 @@ def update_spec_title(spec, workspace):
         spec['info']['title'] = f"{workspace} {original_title}"
 
 
-def update_target_url(spec, workspace):
-    """Update x-nhsd-apim target URL to include workspace"""
-    if workspace and 'x-nhsd-apim' in spec and 'target' in spec['x-nhsd-apim']:
-        original_url = spec['x-nhsd-apim']['target']['url']
-        # Insert workspace after the api name
-        # e.g., https://dos-search.dev.ftrs.cloud.nhs.uk becomes
-        # https://dos-search-ftrs-000.dev.ftrs.cloud.nhs.uk
+def get_environment_target_domain_map():
+    """Return mapping of environments to target backend domains"""
+    return {
+        'internal-dev': 'dev.ftrs.cloud.nhs.uk',
+        'internal-qa': 'test.ftrs.cloud.nhs.uk',
+        'int': 'int.ftrs.cloud.nhs.uk',
+        'ref': 'ref.ftrs.cloud.nhs.uk',
+        'prod': 'prod.ftrs.cloud.nhs.uk'
+    }
+
+
+def update_target_url(spec, workspace, environment):
+    """Update x-nhsd-apim target URL based on environment and workspace"""
+    if 'x-nhsd-apim' not in spec or 'target' not in spec['x-nhsd-apim']:
+        return
+
+    original_url = spec['x-nhsd-apim']['target']['url']
+
+    # Get the environment-specific target domain
+    env_target_map = get_environment_target_domain_map()
+
+    if environment and environment in env_target_map:
+        target_domain = env_target_map[environment]
+
+        # Extract the service name from the original URL
+        # e.g., from https://dos-search.dev.ftrs.cloud.nhs.uk get 'dos-search'
+        # or from https://crud.dev.ftrs.cloud.nhs.uk get 'crud'
+        parts = original_url.replace('https://', '').split('.', 1)
+        if len(parts) == 2:
+            service_name = parts[0]
+
+            # If workspace is specified, append it to the service name
+            if workspace:
+                service_name = f"{service_name}-{workspace}"
+
+            # Build the new URL with the environment-specific domain
+            new_url = f"https://{service_name}.{target_domain}"
+            spec['x-nhsd-apim']['target']['url'] = new_url
+            print(f"Updated target URL to: {new_url}", file=sys.stderr)
+    elif workspace:
+        # If no environment mapping but workspace is specified, just add workspace
         parts = original_url.replace('https://', '').split('.', 1)
         if len(parts) == 2:
             spec['x-nhsd-apim']['target']['url'] = f"https://{parts[0]}-{workspace}.{parts[1]}"
+            print(f"Updated target URL with workspace: {spec['x-nhsd-apim']['target']['url']}", file=sys.stderr)
 
 
 def get_environment_domain_map():
@@ -111,7 +146,7 @@ def modify_spec(spec_file, workspace, api_name, environment):
     try:
         spec = load_spec_file(spec_file)
         update_spec_title(spec, workspace)
-        update_target_url(spec, workspace)
+        update_target_url(spec, workspace, environment)
         update_server_urls(spec, api_name, workspace, environment)
         return write_spec_as_json(spec)
 
