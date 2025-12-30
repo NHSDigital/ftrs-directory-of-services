@@ -14,13 +14,13 @@ from ftrs_data_layer.domain import (
     EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
+    HealthcareServiceTelecom,
     HealthcareServiceType,
     Location,
     NotAvailable,
     OpeningTime,
     Organisation,
     PositionGCS,
-    Telecom,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
@@ -121,7 +121,7 @@ class ServiceTransformer(ABC):
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
-            telecom=None,
+            telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
             createdDateTime=self.start_time,
@@ -233,7 +233,7 @@ class ServiceTransformer(ABC):
             providedBy=organisation_id,
             location=location_id,
             name=service.name,
-            telecom=Telecom(
+            telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
                 phone_private=service.nonpublicphone,
                 email=service.email,
