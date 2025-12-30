@@ -20,6 +20,7 @@ if (file.exists()) {
     }
 }
 
+// Set Apim_Env
 def pp_apim_env = vars.get("param_0_0")
 
 def Apim_Env = props.get("apim_env")
@@ -27,3 +28,13 @@ if (Apim_Env == null || Apim_Env == "") {
     Apim_Env = pp_apim_env
 }
 vars.put("Apim_Env", Apim_Env)
+
+def pp_env = vars.get("param_0_1")
+
+
+// Set Environment
+def Env = props.get("env")
+if (Env == null || Env == "") {
+    Env = pp_env
+}
+vars.put("Env", Env)
