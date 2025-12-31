@@ -306,7 +306,7 @@ class DataMigrationProcessor:
         # Add DataMigrationState record
         state_data = DataMigrationState(
             id=uuid4(),
-            source_record_id=f"services#{service_id}",
+            source_record_id=DataMigrationState.make_source_record_id(service_id),
             version=1,
             organisation_id=result.organisation[0].id,
             organisation=result.organisation[0],
@@ -403,7 +403,7 @@ class DataMigrationProcessor:
         state_table = format_table_name(
             "data-migration-state", self.config.env, self.config.workspace
         )
-        source_record_id = f"services#{record_id}"
+        source_record_id = DataMigrationState.make_source_record_id(record_id)
 
         response = dynamodb_client.get_item(
             TableName=state_table,
