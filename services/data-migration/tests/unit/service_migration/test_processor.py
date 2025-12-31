@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 import pytest
 from freezegun import freeze_time
@@ -15,6 +16,7 @@ from ftrs_data_layer.domain import (
     PositionGCS,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.domain.legacy.service import (
     Service,
 )
@@ -151,7 +153,7 @@ def test_process_service(
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
     processor._save = mocker.MagicMock()
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     assert processor.metrics == DataMigrationMetrics(
         total_records=0,
@@ -506,7 +508,7 @@ def test_process_service_error(
     processor.metadata = mock_metadata_cache
 
     processor._save = mocker.MagicMock(side_effect=Exception("Test error"))
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     processor._process_service(mock_legacy_service)
 
@@ -632,7 +634,7 @@ def test_save(
     )
 
     # Mock verify_state_record_exist to return False (not exists)
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
@@ -704,7 +706,7 @@ def test_save_handles_transaction_cancelled_with_conditional_check_failed(
     )
 
     # Mock verify_state_record_exist to return False
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
@@ -758,7 +760,7 @@ def test_save_handles_transaction_cancelled_without_conditional_check_failed(
     )
 
     # Mock verify_state_record_exist to return False
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
@@ -795,7 +797,7 @@ def test_save_handles_other_exceptions(
     )
 
     # Mock verify_state_record_exist to return False
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
@@ -839,7 +841,7 @@ def test_save_checks_exception_via_response_code(
     )
 
     # Mock verify_state_record_exist to return False
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
@@ -877,21 +879,34 @@ def test_save_skips_when_state_exists(
         return_value=mock_dynamodb_client,
     )
 
-    # Mock verify_state_record_exist to return True (exists)
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=True)
-
+    # Transform the service first to get entities
     validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Create mock state object matching what would exist in DynamoDB
+    mock_state = DataMigrationState(
+        id=uuid4(),
+        source_record_id=DataMigrationState.make_source_record_id(
+            mock_legacy_service.id
+        ),
+        version=1,  # First version
+        organisation_id=result.organisation[0].id,
+        organisation=result.organisation[0],
+        location_id=result.location[0].id,
+        location=result.location[0],
+        healthcare_service_id=result.healthcare_service[0].id,
+        healthcare_service=result.healthcare_service[0],
+    )
+
+    # Mock verify_state_record_exist to return state object
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=mock_state)
 
     # Call _save - but first need to call through _process_service
     processor._process_service(mock_legacy_service)
 
     # Verify transact_write_items was NOT called since state exists
     assert mock_dynamodb_client.transact_write_items.call_count == 0
-
-    # Verify DM_ETL_019 was logged (state exists)
-    assert mock_logger.was_logged("DM_ETL_019") is True
 
 
 def test_save_logs_success_on_successful_write(
@@ -918,7 +933,7 @@ def test_save_logs_success_on_successful_write(
     )
 
     # Mock verify_state_record_exist to return False
-    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
     validation_issues = []
     item_count = 4
@@ -934,3 +949,180 @@ def test_save_logs_success_on_successful_write(
     assert (
         log_entry["detail"]["item_count"] == item_count
     )  # org, location, service, state
+
+
+def test_verify_state_record_exist_returns_none_for_new_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+) -> None:
+    """When record does not exist in state table, returns None (insert operation)"""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    # Mock logger.debug() to avoid MockLogger TypeError
+    processor.logger.debug = mocker.MagicMock()
+
+    # Mock DynamoDB client to return empty response (no Item)
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.get_item.return_value = {}  # No "Item" key = doesn't exist
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Call the method
+    result = processor.verify_state_record_exist(12345)
+
+    # Verify returns None for insert scenario
+    assert result is None
+
+    # Verify get_item was called with correct parameters
+    mock_dynamodb_client.get_item.assert_called_once()
+    call_args = mock_dynamodb_client.get_item.call_args[1]
+    assert call_args["Key"]["source_record_id"][
+        "S"
+    ] == DataMigrationState.make_source_record_id(12345)
+    assert call_args["ConsistentRead"] is True
+
+
+def test_verify_state_record_exist_returns_object_for_existing_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+) -> None:
+    """When record exists in state table, returns DataMigrationState object and logs DM_ETL_019"""
+    # Test data constants
+    test_record_id = 12345
+    test_version = 2
+    test_source_record_id = DataMigrationState.make_source_record_id(test_record_id)
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    # Mock logger.debug() to avoid MockLogger TypeError
+    processor.logger.debug = mocker.MagicMock()
+
+    # Create a mock DynamoDB response with state record
+    mock_dynamodb_response = {
+        "Item": {
+            "id": {"S": str(uuid4())},
+            "source_record_id": {"S": test_source_record_id},
+            "version": {"N": str(test_version)},
+            "organisation_id": {"S": str(uuid4())},
+            "organisation": {"M": {}},  # Simplified for test
+            "location_id": {"S": str(uuid4())},
+            "location": {"M": {}},  # Simplified for test
+            "healthcare_service_id": {"S": str(uuid4())},
+            "healthcare_service": {"M": {}},  # Simplified for test
+        }
+    }
+
+    # Mock DynamoDB client to return state record
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.get_item.return_value = mock_dynamodb_response
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock DataMigrationState.from_dynamodb_item to return a valid state object
+    mock_state = DataMigrationState.model_construct(
+        id=uuid4(),
+        source_record_id=test_source_record_id,
+        version=test_version,
+        organisation_id=uuid4(),
+        organisation=mocker.MagicMock(),
+        location_id=uuid4(),
+        location=mocker.MagicMock(),
+        healthcare_service_id=uuid4(),
+        healthcare_service=mocker.MagicMock(),
+    )
+
+    mocker.patch.object(
+        DataMigrationState,
+        "from_dynamodb_item",
+        return_value=mock_state,
+    )
+
+    # Call the method
+    result = processor.verify_state_record_exist(test_record_id)
+
+    # Verify returns DataMigrationState object
+    assert result is not None
+    assert isinstance(result, DataMigrationState)
+    assert result.source_record_id == test_source_record_id
+    assert result.version == test_version
+
+    # Verify DM_ETL_019 was logged
+    assert mock_logger.was_logged("DM_ETL_019") is True
+    log_entry = mock_logger.get_log("DM_ETL_019")[0]
+    assert log_entry["detail"]["record_id"] == test_record_id
+    assert log_entry["detail"]["version"] == test_version
+    assert "update operation" in log_entry["detail"]["message"]
+
+
+def test_update_operation_exits_early_with_state(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """When state exists, _process_service exits early without saving"""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock logger methods to avoid MockLogger TypeError
+    processor.logger.debug = mocker.MagicMock()
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+
+    # Mock DynamoDB client
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items = mocker.MagicMock()
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Don't mock verify_state_record_exist, but mock get_item to return state
+    mock_state = DataMigrationState.model_construct(
+        id=uuid4(),
+        source_record_id=DataMigrationState.make_source_record_id(
+            mock_legacy_service.id
+        ),
+        version=1,
+        organisation_id=uuid4(),
+        organisation=mocker.MagicMock(),
+        location_id=uuid4(),
+        location=mocker.MagicMock(),
+        healthcare_service_id=uuid4(),
+        healthcare_service=mocker.MagicMock(),
+    )
+
+    mock_dynamodb_client.get_item.return_value = {"Item": {}}
+    mocker.patch.object(
+        DataMigrationState,
+        "from_dynamodb_item",
+        return_value=mock_state,
+    )
+
+    # Process the service
+    processor._process_service(mock_legacy_service)
+
+    # Verify no transact_write_items was called (early exit)
+    assert mock_dynamodb_client.transact_write_items.call_count == 0
+
+    # Verify DM_ETL_019 was logged (from verify_state_record_exist)
+    assert mock_logger.was_logged("DM_ETL_019") is True
