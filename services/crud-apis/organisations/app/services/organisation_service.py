@@ -97,6 +97,10 @@ class OrganisationService:
                     diagnostics.append(
                         f"Telecom value field contains an invalid url: {error['input']}"
                     )
+                elif "string_type" in error["type"]:
+                    diagnostics.append(
+                        f"'{error['loc'][0]}' field {error['msg'].lower()}"
+                    )
                 else:
                     diagnostics.append(f"Unexpected validation error: {error['msg']}")
             outcome = OperationOutcomeHandler.build(
