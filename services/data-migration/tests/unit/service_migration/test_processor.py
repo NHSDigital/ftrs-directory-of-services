@@ -887,7 +887,9 @@ def test_save_skips_when_state_exists(
     # Create mock state object matching what would exist in DynamoDB
     mock_state = DataMigrationState(
         id=uuid4(),
-        source_record_id=f"services#{mock_legacy_service.id}",  # "services#123"
+        source_record_id=DataMigrationState.make_source_record_id(
+            mock_legacy_service.id
+        ),
         version=1,  # First version
         organisation_id=result.organisation[0].id,
         organisation=result.organisation[0],
@@ -954,7 +956,7 @@ def test_verify_state_record_exist_returns_none_for_new_service(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
 ) -> None:
-    """AC1: When record does not exist in state table, returns None (insert operation)"""
+    """When record does not exist in state table, returns None (insert operation)"""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
@@ -981,7 +983,9 @@ def test_verify_state_record_exist_returns_none_for_new_service(
     # Verify get_item was called with correct parameters
     mock_dynamodb_client.get_item.assert_called_once()
     call_args = mock_dynamodb_client.get_item.call_args[1]
-    assert call_args["Key"]["source_record_id"]["S"] == "services#12345"
+    assert call_args["Key"]["source_record_id"][
+        "S"
+    ] == DataMigrationState.make_source_record_id(12345)
     assert call_args["ConsistentRead"] is True
 
 
@@ -990,11 +994,11 @@ def test_verify_state_record_exist_returns_object_for_existing_service(
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
 ) -> None:
-    """AC2: When record exists in state table, returns DataMigrationState object and logs DM_ETL_019"""
+    """When record exists in state table, returns DataMigrationState object and logs DM_ETL_019"""
     # Test data constants
     test_record_id = 12345
     test_version = 2
-    test_source_record_id = f"services#{test_record_id}"
+    test_source_record_id = DataMigrationState.make_source_record_id(test_record_id)
 
     processor = DataMigrationProcessor(
         config=mock_config,
@@ -1071,7 +1075,7 @@ def test_update_operation_exits_early_with_state(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """AC2: When state exists, _process_service exits early without saving"""
+    """When state exists, _process_service exits early without saving"""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
@@ -1095,7 +1099,9 @@ def test_update_operation_exits_early_with_state(
     # Don't mock verify_state_record_exist, but mock get_item to return state
     mock_state = DataMigrationState.model_construct(
         id=uuid4(),
-        source_record_id=f"services#{mock_legacy_service.id}",
+        source_record_id=DataMigrationState.make_source_record_id(
+            mock_legacy_service.id
+        ),
         version=1,
         organisation_id=uuid4(),
         organisation=mocker.MagicMock(),
