@@ -24,12 +24,94 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
-        <stringProp name="scriptLanguage">groovy</stringProp>
-        <stringProp name="parameters"></stringProp>
-        <stringProp name="filename"></stringProp>
-        <stringProp name="cacheKey">false</stringProp>
-        <stringProp name="script">// AWS SDK JARs must be placed in JMETER_HOME/lib directory
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests">
+        <intProp name="ThreadGroup.num_threads">140</intProp>
+        <intProp name="ThreadGroup.ramp_time">60</intProp>
+        <longProp name="ThreadGroup.duration">3600</longProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
+          <collectionProp name="load_profile">
+            <collectionProp name="1947752597">
+              <stringProp name="48">0</stringProp>
+              <stringProp name="1572">15</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867568524">
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867573484">
+              <stringProp name="1603">25</stringProp>
+              <stringProp name="1603">25</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867599276">
+              <stringProp name="1629">30</stringProp>
+              <stringProp name="1629">30</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867604236">
+              <stringProp name="1634">35</stringProp>
+              <stringProp name="1634">35</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867630028">
+              <stringProp name="1660">40</stringProp>
+              <stringProp name="1660">40</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867634988">
+              <stringProp name="1665">45</stringProp>
+              <stringProp name="1665">45</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867660780">
+              <stringProp name="1691">50</stringProp>
+              <stringProp name="1691">50</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867665740">
+              <stringProp name="1696">55</stringProp>
+              <stringProp name="1696">55</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867691532">
+              <stringProp name="1722">60</stringProp>
+              <stringProp name="1722">60</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867696492">
+              <stringProp name="1727">65</stringProp>
+              <stringProp name="1727">65</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1867722284">
+              <stringProp name="1753">70</stringProp>
+              <stringProp name="1753">70</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+          </collectionProp>
+        </kg.apc.jmeter.timers.VariableThroughputTimer>
+        <hashTree/>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Request Transaction Controller" enabled="true">
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">false</stringProp>
+            <stringProp name="script">// AWS SDK JARs must be placed in JMETER_HOME/lib directory
 // Required JARs (download from Maven Central):
 // - aws-java-sdk-secretsmanager-1.12.529.jar
 // - aws-java-sdk-core-1.12.529.jar
@@ -87,90 +169,8 @@ try {
     // throw e
 }
 </stringProp>
-      </JSR223PreProcessor>
-      <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests" enabled="true">
-        <intProp name="ThreadGroup.num_threads">1400</intProp>
-        <intProp name="ThreadGroup.ramp_time">60</intProp>
-        <longProp name="ThreadGroup.duration">3600</longProp>
-        <longProp name="ThreadGroup.delay">0</longProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-        </elementProp>
-      </ThreadGroup>
-      <hashTree>
-        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
-          <collectionProp name="load_profile">
-            <collectionProp name="-1120911667">
-              <stringProp name="48">0</stringProp>
-              <stringProp name="48780">150</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-1672724898">
-              <stringProp name="start_rps">200</stringProp>
-              <stringProp name="49586">200</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-750545620">
-              <stringProp name="49741">250</stringProp>
-              <stringProp name="49741">250</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1760967596">
-              <stringProp name="50547">300</stringProp>
-              <stringProp name="50547">300</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1826931628">
-              <stringProp name="50702">350</stringProp>
-              <stringProp name="50702">350</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-1444112116">
-              <stringProp name="51508">400</stringProp>
-              <stringProp name="51508">400</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-1402042388">
-              <stringProp name="51663">450</stringProp>
-              <stringProp name="51663">450</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-378118836">
-              <stringProp name="52469">500</stringProp>
-              <stringProp name="52469">500</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="-312154804">
-              <stringProp name="52624">550</stringProp>
-              <stringProp name="52624">550</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="712539532">
-              <stringProp name="53430">600</stringProp>
-              <stringProp name="53430">600</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="753838476">
-              <stringProp name="53585">650</stringProp>
-              <stringProp name="53585">650</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1778532812">
-              <stringProp name="54391">700</stringProp>
-              <stringProp name="54391">700</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-          </collectionProp>
-        </kg.apc.jmeter.timers.VariableThroughputTimer>
-        <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Request Transaction Controller">
-          <boolProp name="TransactionController.includeTimers">false</boolProp>
-        </TransactionController>
-        <hashTree>
+          </JSR223PreProcessor>
+          <hashTree/>
           <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
@@ -342,7 +342,7 @@ public static String readFileContent(Path filePath) throws IOException {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor" enabled="true">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
         <stringProp name="scriptLanguage">groovy</stringProp>
         <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
