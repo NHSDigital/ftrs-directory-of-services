@@ -239,7 +239,7 @@ def test_processor_processing_organisations_successful(
 ) -> None:
     expected_call_count = 2  # ODS Terminology API + APIM UUID lookup
     date = datetime.now().strftime("%Y-%m-%d")
-    load_data_mock = mocker.patch("pipeline.processor.load_data")
+    load_data_mock = mocker.patch("pipeline.processor.send_messages_to_queue")
     assert processor(date) is None
     assert requests_mock.call_count == expected_call_count
 
@@ -261,7 +261,7 @@ def test_processor_processing_organisations_successful(
     assert (
         requests_mock.request_history[1] == mock_responses.apim_org_abc123.last_request
     )
-    # Assert load_data call
+    # Assert send_messages_to_queue call
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
     # Check the data struct
@@ -454,7 +454,7 @@ def test_processor_continue_on_validation_failure(
 
     date = datetime.now().strftime("%Y-%m-%d")
 
-    load_data_mock = mocker.patch("pipeline.processor.load_data")
+    load_data_mock = mocker.patch("pipeline.processor.send_messages_to_queue")
     assert processor(date) is None
 
     assert requests_mock.call_count == expected_call_count
@@ -483,7 +483,7 @@ def test_processor_continue_on_validation_failure(
     )
     assert requests_mock.request_history[2] == apim_efg456_mock.last_request
 
-    # Assert load_data call - only EFG456 should be loaded
+    # Assert send_messages_to_queue call - only EFG456 should be loaded
     load_data_mock.assert_called_once()
     data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
 
