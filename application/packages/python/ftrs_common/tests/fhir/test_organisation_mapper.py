@@ -1,26 +1,29 @@
 import uuid
 from datetime import date
+from unittest.mock import patch
 
 import pytest
-from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganisation
 from ftrs_common.fhir.r4b.organisation_mapper import (
     ORGANISATION_ROLE_URL,
+    ROLE_CODE_SYSTEM_URL,
     TYPED_PERIOD_URL,
     OrganizationMapper,
 )
-from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
+from pydantic import ValidationError
 
 
 def make_fhir_org(
     id: str = str(uuid.uuid4()),
     name: str = "Test Org",
     active: bool = True,
-    telecom: list | None = None,
+    telecom: list[Telecom] | None = None,
     type: list | None = None,
 ) -> FhirOrganisation:
     kwargs = {
@@ -28,7 +31,6 @@ def make_fhir_org(
         "identifier": [Identifier.model_construct(value=id)],
         "name": name,
         "active": active,
-        "type": type,
     }
     if telecom is not None:
         if not isinstance(telecom, list):
@@ -45,24 +47,29 @@ def test_to_fhir_maps_fields_correctly() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
-        type="GP Practice",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         modifiedBy="ODS_ETL_PIPELINE",
+        primary_role_code="abc123",
+        non_primary_role_codes=["bcd123"],
     )
     fhir_org = mapper.to_fhir(org)
+    EXPECTED_EXTENTION_LENGTH = 2
     assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org"
     assert fhir_org.active is True
     assert fhir_org.identifier[0].value == "ODS1"
     assert fhir_org.telecom[0].system == "phone"
-    assert fhir_org.telecom[0].value == "01234"
-    assert fhir_org.telecom[0].use == "work"
+    assert fhir_org.telecom[0].value == "0300 311 22 33"
+    assert fhir_org.telecom[0].use is None
     assert (
         fhir_org.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
-    assert fhir_org.type[0].coding[0].display == "GP Practice"
+    assert fhir_org.extension is not None
+    assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
 
 
 def test_to_fhir_handles_missing_telecom() -> None:
@@ -72,8 +79,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
-        type="GP Practice",
+        telecom=[],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     fhir_org = mapper.to_fhir(org)
@@ -100,6 +106,9 @@ def test__build_identifier() -> None:
     assert identifier[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
     assert identifier[0].value == "ODS1"
     assert identifier[0].use == "official"
+
+
+# _extract_ods_code_from_identifiers tests
 
 
 def test__extract_ods_code_from_identifiers_success() -> None:
@@ -195,27 +204,47 @@ def test__extract_ods_code_from_identifiers_non_dict_in_list() -> None:
 
 def test__build_telecom() -> None:
     mapper = OrganizationMapper()
-    telecom = mapper._build_telecom("01234")
+    telecom = mapper._build_telecom(
+        [
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+            Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True),
+            Telecom(type=TelecomType.WEB, value="http://example.com", isPublic=True),
+        ]
+    )
     assert isinstance(telecom, list)
-    assert telecom[0]["system"] == "phone"
-    assert telecom[0]["value"] == "01234"
-    assert telecom[0]["use"] == "work"
-    telecom_none = mapper._build_telecom(None)
-    assert telecom_none == []
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
+    assert telecom[1].system == "email"
+    assert telecom[1].value == "test@nhs.net"
+    assert telecom[1].use is None
+    assert telecom[2].system == "url"
+    assert telecom[2].value == "http://example.com"
+    assert telecom[2].use is None
 
 
-def test__build_type() -> None:
+def test__build_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
-    type_list = mapper._build_type("GP Practice")
-    assert isinstance(type_list, list)
-    assert type_list[0].coding[0].display == "GP Practice"
-    assert type_list[0].coding[0].code == "GP Practice"
-    assert type_list[0].text == "GP Practice"
+    telecom_empty_list = mapper._build_telecom([])
+    assert telecom_empty_list == []
+
+
+def test__build_telecom_none() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom(None)
+    assert telecom_empty_list == []
+
+
+def test__build_telecom_str_phone() -> None:
+    mapper = OrganizationMapper()
+    telecom = mapper._build_telecom("0300 311 22 33")
+    assert telecom[0].system == "phone"
+    assert telecom[0].value == "0300 311 22 33"
+    assert telecom[0].use is None
 
 
 def test_from_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
-    org_type = [CodeableConcept(text="GP Practice")]
     valid_uuid = str(uuid.uuid4())
     org = FhirOrganisation(
         id=valid_uuid,
@@ -224,18 +253,18 @@ def test_from_fhir_maps_fields_correctly() -> None:
                 system="https://fhir.nhs.uk/Id/ods-organization-code", value=valid_uuid
             )
         ],
-        name="Test Org",
+        name="Test GP Org",
         active=True,
-        type=org_type,
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="0300 311 22 33")],
     )
     internal_organisation = mapper.from_fhir(org)
     assert isinstance(internal_organisation, Organisation)
     assert internal_organisation.identifier_ODS_ODSCode == valid_uuid
-    assert internal_organisation.name == "Test Org"
+    assert internal_organisation.name == "Test GP Org"
     assert internal_organisation.active is True
-    assert internal_organisation.telecom == "01234"
-    assert internal_organisation.type == "GP Practice"
+    assert internal_organisation.telecom == [
+        Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+    ]
     assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
 
 
@@ -265,45 +294,11 @@ def test_from_fhir_sanitizes_organization_name(
         ],
         name=fhir_name,
         active=True,
-        type=[CodeableConcept(text="Hospital")],
     )
 
     result = mapper.from_fhir(fhir_org)
 
     assert result.name == expected_name
-
-
-@pytest.mark.parametrize(
-    "fhir_type,expected_type",
-    [
-        ("nhs trust", "NHS Trust"),
-        ("GP PRACTICE", "GP Practice"),
-        ("icb organization", "ICB Organization"),
-        ("pcn network", "PCN Network"),
-    ],
-)
-def test_from_fhir_sanitizes_organization_type(
-    fhir_type: str, expected_type: str
-) -> None:
-    """Test that organization types are sanitized with title case and acronym preservation."""
-    mapper = OrganizationMapper()
-    valid_uuid = str(uuid.uuid4())
-    fhir_org = FhirOrganisation(
-        id=valid_uuid,
-        identifier=[
-            Identifier(
-                system="https://fhir.nhs.uk/Id/ods-organization-code",
-                value=valid_uuid,
-            )
-        ],
-        name="Test Organization",
-        active=True,
-        type=[CodeableConcept(text=fhir_type)],
-    )
-
-    result = mapper.from_fhir(fhir_org)
-
-    assert result.type == expected_type
 
 
 def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
@@ -313,72 +308,114 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
         "id": "C88037",
         "active": True,
         "name": "Test Org",
-        "telecom": [{"system": "phone", "value": "01234"}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
         "extension": [
             {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-ActivePeriod-1",
-                "valuePeriod": {
-                    "extension": [
-                        {
-                            "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
-                            "valueString": "Operational",
-                        }
-                    ],
-                    "start": "1974-04-01",
-                },
-            },
-            {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
+                    {"url": "instanceID", "valueInteger": 195834},
                     {
-                        "url": "role",
-                        "valueCoding": {
-                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
-                            "code": "177",
-                            "display": "PRESCRIBING COST CENTRE",
-                        },
-                    },
-                    {"url": "primaryRole", "valueBoolean": True},
-                    {
-                        "url": "activePeriod",
-                        "valuePeriod": {
-                            "extension": [
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
                                 {
-                                    "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
-                                    "valueString": "Operational",
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
                                 }
-                            ],
-                            "start": "1974-04-01",
+                            ]
                         },
                     },
-                    {"url": "status", "valueString": "Active"},
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "1974-04-01"}},
+                        ],
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Operational",
+                                    "display": "Operational",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "1974-04-01"}},
+                        ],
+                    },
+                    {"url": "active", "valueBoolean": True},
                 ],
             },
             {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {"url": "instanceID", "valueInteger": 195835},
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                    "display": "GP PRACTICE",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "2014-04-15"}},
+                        ],
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Operational",
+                                    "display": "Operational",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "2014-04-15"}},
+                        ],
+                    },
+                    {"url": "active", "valueBoolean": True},
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedDateTime",
                 "extension": [
                     {
-                        "url": "role",
+                        "url": "type",
                         "valueCoding": {
-                            "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
-                            "code": "76",
-                            "display": "GP PRACTICE",
+                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-ODSDateTime",
+                            "code": "LastChangeDate",
+                            "display": "Last Change Date",
                         },
                     },
-                    {"url": "primaryRole", "valueBoolean": False},
-                    {
-                        "url": "activePeriod",
-                        "valuePeriod": {
-                            "extension": [
-                                {
-                                    "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-DateType-1",
-                                    "valueString": "Operational",
-                                }
-                            ],
-                            "start": "2014-04-15",
-                        },
-                    },
-                    {"url": "status", "valueString": "Active"},
+                    {"url": "dateTime", "valueDateTime": "2020-04-04"},
                 ],
             },
         ],
@@ -387,25 +424,18 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
                 "use": "official",
                 "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                 "value": "C88037",
+                "assigner": {"display": "HSCIC"},
             }
         ],
-        "type": {
-            "coding": {
-                "system": "https://fhir.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRecordClass-1",
-                "code": "1",
-                "display": "HSCOrg",
-            }
-        },
     }
-    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
     assert isinstance(result, FhirOrganisation)
     assert result.id == "C88037"
     assert result.name == "Test Org"
     assert result.active is True
     assert result.identifier[0].value == "C88037"
     assert result.telecom[0].system == "phone"
-    assert result.telecom[0].value == "01234"
-    assert result.type[0].coding[0].display == "GP Practice"
+    assert result.telecom[0].value == "0300 311 22 33"
 
 
 def test_to_fhir_bundle_single_org() -> None:
@@ -415,8 +445,7 @@ def test_to_fhir_bundle_single_org() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
-        type="GP Practice",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_single = mapper.to_fhir_bundle([org1])
@@ -434,11 +463,7 @@ def test_to_fhir_bundle_single_org() -> None:
     )
     assert resource.identifier[0].use == "official"
     assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].value == "01234"
-    assert resource.telecom[0].use == "work"
-    assert resource.type[0].coding[0].display == "GP Practice"
-    assert resource.type[0].coding[0].code == "GP Practice"
-    assert resource.type[0].text == "GP Practice"
+    assert resource.telecom[0].value == "020 7972 3272"
     assert (
         resource.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
@@ -452,8 +477,9 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
-        telecom="01234",
-        type="GP Practice",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     org2 = Organisation(
@@ -461,8 +487,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
-        telecom=None,
-        type="GP Practice",
+        telecom=[],
         modifiedBy="ODS_ETL_PIPELINE",
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
@@ -476,236 +501,60 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
     }
 
 
-def test__get_org_type() -> None:
-    mapper = OrganizationMapper()
-    org_type = [CodeableConcept(text="GP Practice")]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) == "GP Practice"
-
-
-def test__get_org_type_invalid_missing_type() -> None:
-    mapper = OrganizationMapper()
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=None
-    )
-    assert mapper._get_org_type(org) is None
-
-
-def test__get_org_type_with_coding_display() -> None:
-    mapper = OrganizationMapper()
-    org_type = [
-        CodeableConcept(
-            coding=[
-                {
-                    "system": "http://example.org/fhir/CodeSystem/org-type",
-                    "code": "GP",
-                    "display": "GP Practice",
-                }
-            ]
-        )
-    ]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) == "GP Practice"
-
-
-def test__get_org_type_with_no_display() -> None:
-    mapper = OrganizationMapper()
-    org_type = [CodeableConcept(id="abc")]
-    org = make_fhir_org(
-        id=str(uuid.uuid4()), name="Test Org", active=True, telecom=None, type=org_type
-    )
-    assert mapper._get_org_type(org) is None
-
-
 def test__get_org_telecom_with_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
-        telecom=[ContactPoint(system="phone", value="01234")],
+        telecom=[ContactPoint(system="phone", value="020 7972 3272")],
     )
-    assert mapper._get_org_telecom(org) == "01234"
+    assert mapper._get_org_telecom(org) == [
+        Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)
+    ]
 
 
-def test__get_org_telecom_none() -> None:
+def test__get_org_telecom_with_no_system() -> None:
+    mapper = OrganizationMapper()
+    org = make_fhir_org(
+        telecom=[ContactPoint(value="020 7972 3272")],
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+    assert "Telecom type (system) cannot be None or empty" in str(exc_info.value)
+
+
+def test__get_org_telecom_empty_list() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[],
     )
-    assert mapper._get_org_telecom(org) is None
+    assert mapper._get_org_telecom(org) == []
 
 
 def test__get_org_telecom_with_no_phone() -> None:
     mapper = OrganizationMapper()
     org = make_fhir_org(
         telecom=[
-            ContactPoint(system="email", value="test@example.com"),
+            ContactPoint(system="pager", value="1337"),
             ContactPoint(system="fax", value="12345"),
         ],
     )
-    assert mapper._get_org_telecom(org) is None
+    with pytest.raises(ValueError) as exc_info:
+        mapper._get_org_telecom(org)
+
+    assert "invalid telecom type (system): pager" in str(exc_info.value)
 
 
-def test__get_role_code_from_extension_england_structure() -> None:
-    """Test extracting role code from England structure."""
+def test_get_org_telecom_with_invalid_phone() -> None:
+    OrganizationMapper()
     mapper = OrganizationMapper()
-    ext = {
-        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-        "extension": [
-            {
-                "url": "roleCode",
-                "valueCodeableConcept": {
-                    "coding": [
-                        {
-                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": "RO177",
-                            "display": "PRESCRIBING COST CENTRE",
-                        }
-                    ]
-                },
-            }
-        ],
-    }
-    result = mapper._get_role_code_from_extension(ext)
-    assert result == "RO177"
+    org = make_fhir_org(
+        telecom=[ContactPoint(system="phone", value="1337")],
+    )
 
+    with pytest.raises(ValidationError) as exc_info:
+        mapper._get_org_telecom(org)
 
-def test__get_role_code_from_extension_returns_none_when_missing() -> None:
-    """Test returns None when roleCode is missing."""
-    mapper = OrganizationMapper()
-    ext = {
-        "extension": [
-            {"url": "ABC", "valueInteger": 78491},
-            {"url": "EFG", "valueBoolean": True},
-        ]
-    }
-    result = mapper._get_role_code_from_extension(ext)
-    assert result is None
-
-
-def test__get_role_code_from_extension_returns_none_empty_coding() -> None:
-    """Test returns None when coding array is empty."""
-    mapper = OrganizationMapper()
-    ext = {
-        "extension": [
-            {
-                "url": "roleCode",
-                "valueCodeableConcept": {"coding": []},
-            }
-        ]
-    }
-    result = mapper._get_role_code_from_extension(ext)
-    assert result is None
-
-
-def test__get_role_code_from_extension_returns_none_no_valuecodeableconcept() -> None:
-    """Test returns None when valueCodeableConcept is missing."""
-    mapper = OrganizationMapper()
-    ext = {
-        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-        "extension": [
-            {
-                "url": "roleCode",
-            }
-        ],
-    }
-    result = mapper._get_role_code_from_extension(ext)
-    assert result is None
-
-
-def test_get_all_role_codes_england_structure_multiple_roles() -> None:
-    """Test extracting multiple role codes from England structure."""
-    mapper = OrganizationMapper()
-    ods_org = {
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "instanceID",
-                        "valueInteger": 78491,
-                    },
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO177",
-                                    "display": "PRESCRIBING COST CENTRE",
-                                }
-                            ]
-                        },
-                    },
-                ],
-            },
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "instanceID",
-                        "valueInteger": 195368,
-                    },
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO76",
-                                    "display": "GP PRACTICE",
-                                }
-                            ]
-                        },
-                    },
-                ],
-            },
-        ]
-    }
-    result = mapper.get_all_role_codes(ods_org)
-    assert result == ["RO177", "RO76"]
-
-
-def test_get_all_role_codes_returns_empty_list_no_extensions() -> None:
-    """Test returns empty list when no role extensions present."""
-    mapper = OrganizationMapper()
-    ods_org = {"identifier": [{"value": "TEST123"}]}
-    result = mapper.get_all_role_codes(ods_org)
-    assert result == []
-
-
-def test_get_all_role_codes_skips_non_role_extensions() -> None:
-    """Test skips extensions that are not role extensions."""
-    mapper = OrganizationMapper()
-    ods_org = {
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [],
-            }
-        ]
-    }
-    result = mapper.get_all_role_codes(ods_org)
-    assert result == []
-
-
-def test_get_all_role_codes_correct_url_no_role_code() -> None:
-    """Test get_all_role_codes with correct url but no role code present."""
-    mapper = OrganizationMapper()
-    ods_org = {
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    # No roleCode present
-                ],
-            }
-        ]
-    }
-    result = mapper.get_all_role_codes(ods_org)
-    assert result == []
+    assert "value is not a valid phone number" in str(exc_info.value)
 
 
 def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
@@ -725,25 +574,74 @@ def test_from_ods_fhir_to_fhir_with_dos_org_type() -> None:
         ],
         "extension": [
             {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
-                    {"url": "role", "valueCoding": {"code": "177"}},
-                    {"url": "primaryRole", "valueBoolean": True},
+                    {"url": "instanceID", "valueInteger": 195834},
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "2014-04-01"}},
+                        ],
+                    },
+                    {"url": "active", "valueBoolean": True},
                 ],
             },
             {
-                "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
                 "extension": [
-                    {"url": "role", "valueCoding": {"code": "76"}},
-                    {"url": "primaryRole", "valueBoolean": False},
+                    {"url": "instanceID", "valueInteger": 195835},
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {
+                                    "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                    "code": "Legal",
+                                    "display": "Legal",
+                                },
+                            },
+                            {"url": "period", "valuePeriod": {"start": "2014-04-01"}},
+                        ],
+                    },
+                    {"url": "active", "valueBoolean": True},
                 ],
             },
         ],
     }
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
     assert result is not None
     assert result.identifier[0].value == "ODS123"
-    assert result.type[0].text == "GP Practice"
 
 
 def test__extract_legal_dates_with_valid_typed_period() -> None:
@@ -932,7 +830,6 @@ def test__extract_legal_dates_no_matching_url() -> None:
 
 def test__extract_legal_dates_ext_with_dict_method() -> None:
     """Test _extract_legal_dates handles extensions with .dict() method within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
 
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
@@ -977,8 +874,6 @@ def test__extract_legal_dates_ext_with_dict_method() -> None:
 
 def test__extract_legal_dates_mixed_extension_types() -> None:
     """Test _extract_legal_dates with mixed dict and Extension object types within OrganisationRole."""
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     fhir_org = make_fhir_org()
 
@@ -1095,33 +990,6 @@ def test__extract_legal_dates_first_matching_extension_wins() -> None:
     assert end == "2025-12-31"
 
 
-def test_build_legal_date_extension_with_both_dates() -> None:
-    """Test building legal date extension with both start and end dates."""
-    mapper = OrganizationMapper()
-    result = mapper._build_legal_date_extension("2020-01-15", "2025-12-31")
-
-    assert result is not None
-    result_dict = result.dict()
-    assert (
-        result_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
-    )
-    assert str(len(result_dict["extension"])) == "2"
-
-    # Check dateType sub-extension
-    date_type = next(
-        (e for e in result_dict["extension"] if e["url"] == "dateType"), None
-    )
-    assert date_type is not None
-    assert date_type["valueCoding"]["code"] == "Legal"
-
-    # Check period sub-extension
-    period = next((e for e in result_dict["extension"] if e["url"] == "period"), None)
-    assert period is not None
-    assert period["valuePeriod"]["start"] == "2020-01-15"
-    assert period["valuePeriod"]["end"] == "2025-12-31"
-
-
 def test_to_fhir_with_legal_dates() -> None:
     """Test to_fhir includes legal date extension."""
     mapper = OrganizationMapper()
@@ -1130,10 +998,10 @@ def test_to_fhir_with_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        telecom="01234",
-        type="GP Practice",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
         modifiedBy="ODS_ETL_PIPELINE",
+        primary_role_code="RO182",
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1146,88 +1014,17 @@ def test_to_fhir_with_legal_dates() -> None:
     ext_dict = fhir_org.extension[0].dict()
     assert (
         ext_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     )
 
-    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    # Check that the TypedPeriod extension is present
+    typed_period = next(
+        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
+    )
+    assert typed_period is not None
+    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
     assert period["valuePeriod"]["start"] == "2020-01-15"
     assert period["valuePeriod"]["end"] == "2025-12-31"
-
-
-@pytest.mark.parametrize(
-    "start_date,end_date,expected_start,expected_end",
-    [
-        pytest.param(
-            "2020-01-15",
-            "2025-12-31",
-            "2020-01-15",
-            "2025-12-31",
-            id="both_dates_present",
-        ),
-        pytest.param(
-            "1974-04-01",
-            None,
-            "1974-04-01",
-            None,
-            id="only_start_date",
-        ),
-        pytest.param(
-            None,
-            "2025-12-31",
-            None,
-            "2025-12-31",
-            id="only_end_date",
-        ),
-    ],
-)
-def test__build_legal_date_extension_with_dates(
-    start_date: str | None,
-    end_date: str | None,
-    expected_start: str | None,
-    expected_end: str | None,
-) -> None:
-    """Test building TypedPeriod extension with various date combinations."""
-    mapper = OrganizationMapper()
-    extension = mapper._build_legal_date_extension(start_date, end_date)
-
-    assert extension is not None
-    ext_dict = extension.dict()
-    assert (
-        ext_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
-    )
-    assert str(len(ext_dict["extension"])) == "2"
-
-    # Check dateType sub-extension
-    date_type = next((e for e in ext_dict["extension"] if e["url"] == "dateType"), None)
-    assert date_type is not None
-    assert (
-        date_type["valueCoding"]["system"]
-        == "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
-    )
-    assert date_type["valueCoding"]["code"] == "Legal"
-    assert date_type["valueCoding"]["display"] == "Legal"
-
-    # Check period sub-extension
-    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
-    assert period is not None
-
-    if expected_start is not None:
-        assert period["valuePeriod"]["start"] == expected_start
-    else:
-        assert "start" not in period["valuePeriod"]
-
-    if expected_end is not None:
-        assert period["valuePeriod"]["end"] == expected_end
-    else:
-        assert "end" not in period["valuePeriod"]
-
-
-def test__build_legal_date_extension_no_dates_returns_none() -> None:
-    """Test building TypedPeriod extension with no dates returns None."""
-    mapper = OrganizationMapper()
-    extension = mapper._build_legal_date_extension(None, None)
-    assert extension is None
 
 
 @pytest.mark.parametrize(
@@ -1343,8 +1140,6 @@ def test__parse_legal_period(
     Note: Validation of dateType='Legal' happens in Pydantic validator,
     so the mapper just extracts dates regardless of dateType value.
     """
-    from fhir.resources.R4B.extension import Extension
-
     mapper = OrganizationMapper()
     ext_obj = Extension.model_validate(typed_period_ext) if typed_period_ext else None
     start, end = mapper._parse_legal_period(ext_obj)
@@ -1360,8 +1155,8 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        type="GP Practice",
         modifiedBy="ODS_ETL_PIPELINE",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1371,47 +1166,6 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         not hasattr(fhir_org, "extension")
         or fhir_org.extension is None
         or len(fhir_org.extension) == 0
-    )
-
-
-def test_from_ods_fhir_to_fhir_no_legal_dates() -> None:
-    """Test from_ods_fhir_to_fhir when no legal dates present in ODS FHIR OrganisationRole."""
-    mapper = OrganizationMapper()
-    ods_org = {
-        "resourceType": "Organization",
-        "id": "C88037",
-        "active": True,
-        "name": "Test Org",
-        "identifier": [
-            {
-                "use": "official",
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "C88037",
-            }
-        ],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {"coding": [{"code": "RO76"}]},
-                    }
-                ],
-            }
-        ],
-    }
-
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
-
-    assert result is not None
-    # Extension should be present (the OrganisationRole), even without legal dates
-    assert result.extension is not None
-    assert len(result.extension) == 1
-    # Verify it's the OrganisationRole
-    assert (
-        result.extension[0].url
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     )
 
 
@@ -1429,7 +1183,6 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
         ],
         name="Test Org",
         active=True,
-        type=[CodeableConcept(text="GP Practice")],
     )
 
     org = mapper.from_fhir(fhir_org)
@@ -1463,8 +1216,6 @@ def test_to_fhir_partial_dates_absent_not_null(
     expected_end_in_period: str | None,
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
-    from ftrs_data_layer.domain.organisation import LegalDates
-
     mapper = OrganizationMapper()
 
     legal_dates = None
@@ -1476,9 +1227,10 @@ def test_to_fhir_partial_dates_absent_not_null(
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        type="GP Practice",
         legalDates=legal_dates,
         modifiedBy="ODS_ETL_PIPELINE",
+        primary_role_code="RO182",
+        telecom=[],
     )
 
     fhir_org = mapper.to_fhir(org)
@@ -1487,7 +1239,11 @@ def test_to_fhir_partial_dates_absent_not_null(
     assert len(fhir_org.extension) == 1
 
     ext_dict = fhir_org.extension[0].dict()
-    period = next((e for e in ext_dict["extension"] if e["url"] == "period"), None)
+    typed_period = next(
+        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
+    )
+    assert typed_period is not None
+    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
 
     if expected_start_in_period is not None:
         assert "start" in period["valuePeriod"]
@@ -1557,7 +1313,7 @@ def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
@@ -1590,6 +1346,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
 ):
     """Test from_ods_fhir_to_fhir extracts first OrganisationRole with nested Legal TypedPeriod."""
     mapper = OrganizationMapper()
+    EXPECTED_EXTENSION_COUNT = 2
     ods_org = {
         "resourceType": "Organization",
         "id": "K84605",
@@ -1690,11 +1447,11 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 1
+    assert len(result.extension) == EXPECTED_EXTENSION_COUNT
 
     # Should extract the FIRST OrganisationRole
     ext_dict = result.extension[0].dict()
@@ -1743,7 +1500,7 @@ def test_from_ods_fhir_to_fhir_no_organisation_role() -> None:
         "extension": [],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     # Should have no extensions when no OrganisationRole present
@@ -1836,7 +1593,7 @@ def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     # Verify the result has the entire OrganisationRole with nested TypedPeriod
     assert result is not None
@@ -1875,6 +1632,7 @@ def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
 def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
     """Test from_ods_fhir_to_fhir extracts first OrganisationRole when multiple roles exist."""
     mapper = OrganizationMapper()
+    EXPECTED_EXTENSION_COUNT = 2
     ods_org = {
         "resourceType": "Organization",
         "id": "B98765",
@@ -1964,11 +1722,11 @@ def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
         ],
     }
 
-    result = mapper.from_ods_fhir_to_fhir(ods_org, "GP Practice")
+    result = mapper.from_ods_fhir_to_fhir(ods_org)
 
     assert result is not None
     assert result.extension is not None
-    assert len(result.extension) == 1
+    assert len(result.extension) == EXPECTED_EXTENSION_COUNT
 
     # Should extract the FIRST OrganisationRole (RO177)
     ext_dict = result.extension[0].dict()
@@ -2057,60 +1815,6 @@ def test_is_legal_typed_period_extension_non_legal(
     assert org_mapper._is_legal_typed_period(operational_ext) is False
 
 
-def test_find_legal_typed_period_extension_found(
-    org_mapper: OrganizationMapper,
-) -> None:
-    """Test _find_legal_typed_period finds Legal TypedPeriod in OrganisationRole."""
-    legal_period = make_typed_period_ext("Legal")
-    org_role = make_org_role_ext(legal_period)
-    found = org_mapper._find_legal_typed_period(org_role)
-    assert found is not None
-    assert found.url == TYPED_PERIOD_URL
-
-
-def test_find_legal_typed_period_extension_not_found(
-    org_mapper: OrganizationMapper,
-) -> None:
-    """Test _find_legal_typed_period returns None when no Legal TypedPeriod."""
-    operational_period = make_typed_period_ext("Operational")
-    org_role = make_org_role_ext(operational_period)
-    found = org_mapper._find_legal_typed_period(org_role)
-    assert found is None
-
-
-def test_extract_first_organisation_role_with_legal_dates_extension_based(
-    org_mapper: OrganizationMapper,
-) -> None:
-    """Test _extract_first_organisation_role extracts role with Legal TypedPeriod (Extension-based)."""
-    legal_period = make_typed_period_ext("Legal", "2020-01-01", "2021-12-31")
-    org_role = make_org_role_ext(legal_period)
-    extensions = [org_role]
-
-    result = org_mapper._extract_first_organisation_role(extensions)
-
-    assert result is not None
-    assert result["url"] == ORGANISATION_ROLE_URL
-    assert len(result["extension"]) == 1
-    typed_period = result["extension"][0]
-    assert typed_period["url"] == TYPED_PERIOD_URL
-
-
-def test_extract_first_organisation_role_no_legal_dates_extension_based(
-    org_mapper: OrganizationMapper,
-) -> None:
-    """Test _extract_first_organisation_role returns OrganisationRole even when no Legal TypedPeriod (Extension-based)."""
-    operational_period = make_typed_period_ext("Operational")
-    org_role = make_org_role_ext(operational_period)
-    extensions = [org_role]
-
-    result = org_mapper._extract_first_organisation_role(extensions)
-    assert result is not None
-    assert result["url"] == ORGANISATION_ROLE_URL
-    # Should contain the Operational TypedPeriod
-    assert len(result["extension"]) == 1
-    assert result["extension"][0]["url"] == TYPED_PERIOD_URL
-
-
 def test_get_typed_period_extension_found(org_mapper: OrganizationMapper) -> None:
     """Test _get_typed_period_extension finds Legal TypedPeriod in OrganisationRole."""
     legal_period = make_typed_period_ext("Legal")
@@ -2132,6 +1836,90 @@ def test_get_typed_period_extension_not_found(org_mapper: OrganizationMapper) ->
 
     result = org_mapper._get_typed_period_extension(extensions)
     assert result is None
+
+
+def test__get_typed_period_extension_skips_non_org_role_extensions() -> None:
+    """Test _get_typed_period_extension skips extensions with wrong URL (line 403)."""
+    mapper = OrganizationMapper()
+
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": "https://some.other.extension/url",
+                "valueString": "some value",
+            }
+        ),
+        Extension.model_validate(
+            {
+                "url": TYPED_PERIOD_URL,  # Not ORGANISATION_ROLE_URL
+                "extension": [
+                    {
+                        "url": "dateType",
+                        "valueCoding": {"code": "Legal"},
+                    }
+                ],
+            }
+        ),
+    ]
+
+    result = mapper._get_typed_period_extension(extensions)
+
+    assert result is None
+
+
+def test__get_typed_period_extension_skips_org_role_without_extension() -> None:
+    """Test _get_typed_period_extension skips OrganisationRole without sub-extensions (line 405)."""
+    mapper = OrganizationMapper()
+
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                # Missing extension attribute
+            }
+        )
+    ]
+
+    result = mapper._get_typed_period_extension(extensions)
+
+    assert result is None
+
+
+def test__get_typed_period_extension_returns_legal_period() -> None:
+    """Test _get_typed_period_extension returns Legal TypedPeriod (line 408)."""
+    mapper = OrganizationMapper()
+
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                    },
+                    {
+                        "url": TYPED_PERIOD_URL,
+                        "extension": [
+                            {
+                                "url": "dateType",
+                                "valueCoding": {"code": "Legal"},
+                            },
+                            {
+                                "url": "period",
+                                "valuePeriod": {"start": "2020-01-01"},
+                            },
+                        ],
+                    },
+                ],
+            }
+        )
+    ]
+
+    result = mapper._get_typed_period_extension(extensions)
+
+    assert result is not None
+    assert result.url == TYPED_PERIOD_URL
 
 
 def test_parse_legal_period_both_dates(org_mapper: OrganizationMapper) -> None:
@@ -2191,3 +1979,1041 @@ def test_parse_legal_period_none_extension(org_mapper: OrganizationMapper) -> No
 
     assert start is None
     assert end is None
+
+
+def test_from_fhir_with_primary_and_non_primary_role_codes() -> None:
+    """Test from_fhir correctly extracts primary and non-primary role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO177"
+    assert result.non_primary_role_codes == ["RO76"]
+
+
+def test_from_fhir_with_multiple_non_primary_role_codes() -> None:
+    """Test from_fhir correctly extracts multiple non-primary role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO80",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO177"
+    assert result.non_primary_role_codes == ["RO76", "RO80"]
+
+
+def test_from_fhir_with_no_role_codes() -> None:
+    """Test from_fhir handles organization with no role codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org = FhirOrganisation(
+        id=valid_uuid,
+        identifier=[
+            Identifier(
+                system="https://fhir.nhs.uk/Id/ods-organization-code",
+                value=valid_uuid,
+            )
+        ],
+        name="Test Organization",
+        active=True,
+    )
+
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code is None
+    assert result.non_primary_role_codes == []
+
+
+def test_from_fhir_with_only_primary_role_code() -> None:
+    """Test from_fhir with only primary role code and no non-primary codes."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO182",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code == "RO182"
+    assert result.non_primary_role_codes == []
+
+
+def test_from_fhir_with_only_non_primary_role_codes() -> None:
+    """Test from_fhir with only non-primary role codes (no primary)."""
+    mapper = OrganizationMapper()
+    valid_uuid = str(uuid.uuid4())
+
+    fhir_org_dict = {
+        "resourceType": "Organization",
+        "id": valid_uuid,
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": valid_uuid,
+            }
+        ],
+        "name": "Test Organization",
+        "active": True,
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO76",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+
+    fhir_org = FhirOrganisation.model_validate(fhir_org_dict)
+    result = mapper.from_fhir(fhir_org)
+
+    assert isinstance(result, Organisation)
+    assert result.primary_role_code is None
+    assert result.non_primary_role_codes == ["RO76"]
+
+
+def test_from_ods_fhir_to_fhir_with_primary_role_only() -> None:
+    """Test from_ods_fhir_to_fhir correctly includes only primary role extension."""
+    mapper = OrganizationMapper()
+    ods_fhir_organisation = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO182",
+                                    "display": "PHARMACY",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        ],
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+
+    assert isinstance(result, FhirOrganisation)
+    assert result.id == "C88037"
+    assert result.name == "Test Org"
+    assert result.active is True
+    assert result.extension is not None
+    assert len(result.extension) == 1
+    assert (
+        result.extension[0].url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+
+def test_from_ods_fhir_to_fhir_with_multiple_role_extensions() -> None:
+    """Test from_ods_fhir_to_fhir correctly includes multiple role extensions."""
+    mapper = OrganizationMapper()
+    ods_fhir_organisation = {
+        "resourceType": "Organization",
+        "id": "C88037",
+        "active": True,
+        "name": "Test Org",
+        "telecom": [{"system": "phone", "value": "01234"}],
+        "extension": [
+            {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO177",
+                                    "display": "PRESCRIBING COST CENTRE",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        ],
+        "identifier": [
+            {
+                "use": "official",
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "C88037",
+            }
+        ],
+    }
+
+    result = mapper.from_ods_fhir_to_fhir(ods_fhir_organisation)
+
+    assert isinstance(result, FhirOrganisation)
+    assert result.extension is not None
+    assert len(result.extension) == 1
+    assert (
+        result.extension[0].url
+        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    )
+
+
+# _build_typed_period_extension tests
+def test__build_typed_period_extension_with_both_dates() -> None:
+    """Test building TypedPeriod extension with both start and end dates."""
+    mapper = OrganizationMapper()
+    result = mapper._build_typed_period_extension("2020-01-01", "2025-12-31")
+
+    assert isinstance(result, Extension)
+    assert result.url == TYPED_PERIOD_URL
+    assert str(len(result.extension)) == "2"
+
+    date_type_ext = next(e for e in result.extension if e.url == "dateType")
+    assert date_type_ext.valueCoding.code == "Legal"
+    assert date_type_ext.valueCoding.display == "Legal"
+    assert (
+        date_type_ext.valueCoding.system
+        == "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+    )
+
+    period_ext = next(e for e in result.extension if e.url == "period")
+    assert period_ext.valuePeriod.start == "2020-01-01"
+    assert period_ext.valuePeriod.end == "2025-12-31"
+
+
+def test__build_typed_period_extension_with_start_only() -> None:
+    """Test building TypedPeriod extension with only start date."""
+    mapper = OrganizationMapper()
+    result = mapper._build_typed_period_extension("2020-01-01", None)
+
+    assert isinstance(result, Extension)
+    assert result.url == TYPED_PERIOD_URL
+    period_ext = next(e for e in result.extension if e.url == "period")
+    assert period_ext.valuePeriod.start == "2020-01-01"
+    assert (
+        not hasattr(period_ext.valuePeriod, "end") or period_ext.valuePeriod.end is None
+    )
+
+
+def test__build_typed_period_extension_with_no_dates() -> None:
+    """Test building TypedPeriod extension returns None when no dates provided."""
+    mapper = OrganizationMapper()
+    result = mapper._build_typed_period_extension(None, None)
+
+    assert result is None
+
+
+# _build_organisation_role_extension tests
+
+
+def test__build_organisation_role_extension_with_role_code_only() -> None:
+    """Test building OrganisationRole extension with only role code."""
+    mapper = OrganizationMapper()
+    result = mapper._build_organisation_role_extension("RO182")
+
+    assert isinstance(result, Extension)
+    assert result.url == ORGANISATION_ROLE_URL
+    assert len(result.extension) == 1
+
+    role_code_ext = result.extension[0]
+    assert role_code_ext.url == "roleCode"
+    assert role_code_ext.valueCodeableConcept is not None
+    assert len(role_code_ext.valueCodeableConcept.coding) == 1
+    assert role_code_ext.valueCodeableConcept.coding[0].code == "RO182"
+    assert role_code_ext.valueCodeableConcept.coding[0].display == "RO182"
+    assert (
+        role_code_ext.valueCodeableConcept.coding[0].system
+        == "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
+    )
+
+
+def test__build_organisation_role_extension_with_legal_dates() -> None:
+    """Test building OrganisationRole extension with role code and legal dates."""
+    mapper = OrganizationMapper()
+    result = mapper._build_organisation_role_extension(
+        "RO177", "2020-01-01", "2025-12-31"
+    )
+
+    assert isinstance(result, Extension)
+    assert result.url == ORGANISATION_ROLE_URL
+    assert str(len(result.extension)) == "2"
+
+    result_dict = result.model_dump()
+    role_code_ext = next(e for e in result_dict["extension"] if e["url"] == "roleCode")
+    assert role_code_ext["valueCodeableConcept"]["coding"][0]["code"] == "RO177"
+
+    typed_period_ext = next(
+        e for e in result_dict["extension"] if e["url"] == TYPED_PERIOD_URL
+    )
+    assert typed_period_ext is not None
+
+
+def test__build_organisation_role_extension_with_start_date_only() -> None:
+    """Test building OrganisationRole extension with role code and start date."""
+    mapper = OrganizationMapper()
+    result = mapper._build_organisation_role_extension("RO182", "2020-01-01", None)
+
+    assert isinstance(result, Extension)
+    assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
+
+
+def test__build_organisation_role_extension_with_end_date_only() -> None:
+    """Test building OrganisationRole extension with role code and end date."""
+    mapper = OrganizationMapper()
+    result = mapper._build_organisation_role_extension("RO182", None, "2025-12-31")
+
+    assert isinstance(result, Extension)
+    assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
+
+
+# _build_organisation_extensions tests
+
+
+def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> None:
+    """Test building extensions with primary and non-primary role codes."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        primary_role_code="RO182",
+        non_primary_role_codes=["RO198", "RO76"],
+        telecom=[],
+    )
+
+    result = mapper._build_organisation_extensions(org)
+
+    assert str(len(result)) == "3"  # 1 primary + 2 non-primary
+    for ext in result:
+        assert ext.url == ORGANISATION_ROLE_URL
+
+
+def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
+    """Test building extensions with only non-primary role codes."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        non_primary_role_codes=["RO198", "RO76"],
+        telecom=[],
+    )
+
+    result = mapper._build_organisation_extensions(org)
+
+    assert str(len(result)) == "2"
+
+
+def test__build_organisation_extensions_with_legal_dates() -> None:
+    """Test building extensions includes legal dates only for primary role."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        primary_role_code="RO182",
+        non_primary_role_codes=["RO198"],
+        legalDates=LegalDates(start=date(2020, 1, 1), end=date(2025, 12, 31)),
+        telecom=[],
+    )
+
+    result = mapper._build_organisation_extensions(org)
+
+    assert str(len(result)) == "2"
+
+    # Primary role should have TypedPeriod (2 sub-extensions: roleCode + TypedPeriod)
+    primary_ext = result[0]
+    assert str(len(primary_ext.extension)) == "2"
+    # Non-primary role should not have TypedPeriod (1 sub-extension: roleCode only)
+    non_primary_ext = result[1]
+    assert str(len(non_primary_ext.extension)) == "1"
+
+
+def test__build_organisation_extensions_with_no_roles() -> None:
+    """Test building extensions returns empty list when no roles."""
+    mapper = OrganizationMapper()
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        telecom=[],
+    )
+
+    result = mapper._build_organisation_extensions(org)
+
+    assert str(len(result)) == "0"
+
+
+def test__build_organisation_extensions_primary_role_returns_none() -> None:
+    """Test that None primary_ext is not added to extensions (line 80)."""
+    mapper = OrganizationMapper()
+
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        telecom=[],
+        primary_role_code="RO182",  # To create valid Organisation
+    )
+
+    # Mock _build_organisation_role_extension to return None
+    with patch.object(mapper, "_build_organisation_role_extension", return_value=None):
+        result = mapper._build_organisation_extensions(org)
+
+    assert len(result) == 0
+
+
+def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
+    """Test that None non_primary_ext is not added to extensions (line 87)."""
+    mapper = OrganizationMapper()
+
+    # Create org with only non-primary role codes
+    org = Organisation(
+        id="123e4567-e89b-12d3-a456-42661417400a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org",
+        active=True,
+        modifiedBy="TEST",
+        non_primary_role_codes=["RO198"],  # To create valid Organisation
+        telecom=[],
+    )
+
+    with patch.object(mapper, "_build_organisation_role_extension", return_value=None):
+        result = mapper._build_organisation_extensions(org)
+
+    assert len(result) == 0
+
+
+# _extract_all_role_codes tests
+
+
+def test__extract_all_role_codes_with_single_role() -> None:
+    """Test extracting role codes from extensions with single role."""
+    mapper = OrganizationMapper()
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                    "code": "RO182",
+                                    "display": "PHARMACY",
+                                }
+                            ]
+                        },
+                    }
+                ],
+            }
+        )
+    ]
+
+    result = mapper._extract_all_role_codes(extensions)
+
+    assert result == ["RO182"]
+
+
+def test__extract_all_role_codes_with_multiple_roles() -> None:
+    """Test extracting role codes from extensions with multiple roles."""
+    mapper = OrganizationMapper()
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                    }
+                ],
+            }
+        ),
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO177"}]},
+                    }
+                ],
+            }
+        ),
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO198"}]},
+                    }
+                ],
+            }
+        ),
+    ]
+
+    result = mapper._extract_all_role_codes(extensions)
+
+    assert result == ["RO182", "RO177", "RO198"]
+
+
+def test__extract_all_role_codes_with_empty_extensions() -> None:
+    """Test extracting role codes returns empty list for empty extensions."""
+    mapper = OrganizationMapper()
+    extensions = []
+
+    result = mapper._extract_all_role_codes(extensions)
+
+    assert result == []
+
+
+def test__extract_all_role_codes_with_non_role_extensions() -> None:
+    """Test extracting role codes ignores non-OrganisationRole extensions."""
+    mapper = OrganizationMapper()
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": "https://some.other.extension",
+                "valueString": "some value",
+            }
+        ),
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "roleCode",
+                        "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                    }
+                ],
+            }
+        ),
+    ]
+
+    result = mapper._extract_all_role_codes(extensions)
+
+    assert result == ["RO182"]
+
+
+def test__extract_all_role_codes_skips_role_without_code() -> None:
+    """Test that role extensions without valid role codes are skipped (line 309)."""
+    mapper = OrganizationMapper()
+
+    # Extension with ORGANISATION_ROLE_URL but no valid roleCode
+    extensions = [
+        Extension.model_validate(
+            {
+                "url": ORGANISATION_ROLE_URL,
+                "extension": [
+                    {
+                        "url": "someOtherUrl",  # Not roleCode
+                        "valueString": "some value",
+                    }
+                ],
+            }
+        )
+    ]
+
+    result = mapper._extract_all_role_codes(extensions)
+
+    # Should return empty list since no valid role code found
+    assert result == []
+
+
+# get_primary_and_non_primary_role_codes tests
+
+
+def test_get_primary_and_non_primary_role_codes_empty_list() -> None:
+    """Test get_primary_and_non_primary_role_codes with empty list (line 344)."""
+    mapper = OrganizationMapper()
+
+    result_primary, result_non_primary = mapper.get_primary_and_non_primary_role_codes(
+        []
+    )
+
+    assert result_primary is None
+    assert result_non_primary == []
+
+
+# _get_role_code tests
+
+
+def test__get_role_code_no_value_codeable_concept() -> None:
+    """Test _get_role_code when valueCodeableConcept is None (line 362)."""
+    mapper = OrganizationMapper()
+
+    ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    # Missing valueCodeableConcept
+                }
+            ],
+        }
+    )
+
+    result = mapper._get_role_code(ext)
+
+    assert result is None
+
+
+def test__get_role_code_no_coding() -> None:
+    """Test _get_role_code when coding is None or empty (line 364)."""
+    mapper = OrganizationMapper()
+
+    ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        # Missing coding
+                    },
+                }
+            ],
+        }
+    )
+
+    result = mapper._get_role_code(ext)
+
+    assert result is None
+
+
+def test__get_role_code_returns_code_value() -> None:
+    """Test _get_role_code successfully extracts code (line 366)."""
+    mapper = OrganizationMapper()
+
+    ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": ROLE_CODE_SYSTEM_URL,
+                                "code": "RO182",
+                                "display": "PHARMACY",
+                            }
+                        ]
+                    },
+                }
+            ],
+        }
+    )
+
+    result = mapper._get_role_code(ext)
+
+    assert result == "RO182"
+
+
+# _find_legal_typed_period_in_role tests
+def test__find_legal_typed_period_in_role_with_legal_period() -> None:
+    """Test finding Legal TypedPeriod in OrganisationRole extension."""
+    mapper = OrganizationMapper()
+    org_role_ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                },
+                {
+                    "url": TYPED_PERIOD_URL,
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Legal"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {"start": "2020-01-01"},
+                        },
+                    ],
+                },
+            ],
+        }
+    )
+
+    result = mapper._find_legal_typed_period_in_role(org_role_ext)
+
+    assert result is not None
+    assert result.url == TYPED_PERIOD_URL
+
+
+def test__find_legal_typed_period_in_role_with_no_typed_period() -> None:
+    """Test finding Legal TypedPeriod returns None when not present."""
+    mapper = OrganizationMapper()
+    org_role_ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                }
+            ],
+        }
+    )
+
+    result = mapper._find_legal_typed_period_in_role(org_role_ext)
+
+    assert result is None
+
+
+def test__find_legal_typed_period_in_role_with_non_legal_period() -> None:
+    """Test finding Legal TypedPeriod returns None when dateType is not Legal."""
+    mapper = OrganizationMapper()
+    org_role_ext = Extension.model_validate(
+        {
+            "url": ORGANISATION_ROLE_URL,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                },
+                {
+                    "url": TYPED_PERIOD_URL,
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {"code": "Operational"},
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {"start": "2020-01-01"},
+                        },
+                    ],
+                },
+            ],
+        }
+    )
+
+    result = mapper._find_legal_typed_period_in_role(org_role_ext)
+
+    assert result is None
+
+
+# _build_legal_dates_from_fhir tests
+
+
+def test__build_legal_dates_from_fhir_with_both_dates() -> None:
+    """Test building LegalDates from FHIR resource with both dates."""
+    mapper = OrganizationMapper()
+    fhir_org = FhirOrganisation(
+        id="test-id",
+        identifier=[Identifier.model_construct(value="ODS1")],
+        name="Test Org",
+        active=True,
+        extension=[
+            Extension.model_validate(
+                {
+                    "url": ORGANISATION_ROLE_URL,
+                    "extension": [
+                        {
+                            "url": "roleCode",
+                            "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                        },
+                        {
+                            "url": TYPED_PERIOD_URL,
+                            "extension": [
+                                {
+                                    "url": "dateType",
+                                    "valueCoding": {"code": "Legal"},
+                                },
+                                {
+                                    "url": "period",
+                                    "valuePeriod": {
+                                        "start": "2020-01-01",
+                                        "end": "2025-12-31",
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                }
+            )
+        ],
+    )
+
+    result = mapper._build_legal_dates_from_fhir(fhir_org)
+
+    assert result is not None
+    assert isinstance(result, LegalDates)
+    assert str(result.start) == "2020-01-01"
+    assert str(result.end) == "2025-12-31"
+
+
+def test__build_legal_dates_from_fhir_with_start_only() -> None:
+    """Test building LegalDates from FHIR resource with only start date."""
+    mapper = OrganizationMapper()
+    fhir_org = FhirOrganisation(
+        id="test-id",
+        identifier=[Identifier.model_construct(value="ODS1")],
+        name="Test Org",
+        active=True,
+        extension=[
+            Extension.model_validate(
+                {
+                    "url": ORGANISATION_ROLE_URL,
+                    "extension": [
+                        {
+                            "url": "roleCode",
+                            "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                        },
+                        {
+                            "url": TYPED_PERIOD_URL,
+                            "extension": [
+                                {
+                                    "url": "dateType",
+                                    "valueCoding": {"code": "Legal"},
+                                },
+                                {
+                                    "url": "period",
+                                    "valuePeriod": {"start": "2020-01-01"},
+                                },
+                            ],
+                        },
+                    ],
+                }
+            )
+        ],
+    )
+
+    result = mapper._build_legal_dates_from_fhir(fhir_org)
+
+    assert result is not None
+    assert str(result.start) == "2020-01-01"
+    assert result.end is None
+
+
+def test__build_legal_dates_from_fhir_with_no_legal_dates() -> None:
+    """Test building LegalDates returns None when no legal dates present."""
+    mapper = OrganizationMapper()
+    fhir_org = FhirOrganisation(
+        id="test-id",
+        identifier=[Identifier.model_construct(value="ODS1")],
+        name="Test Org",
+        active=True,
+        extension=[
+            Extension.model_validate(
+                {
+                    "url": ORGANISATION_ROLE_URL,
+                    "extension": [
+                        {
+                            "url": "roleCode",
+                            "valueCodeableConcept": {"coding": [{"code": "RO182"}]},
+                        }
+                    ],
+                }
+            )
+        ],
+    )
+
+    result = mapper._build_legal_dates_from_fhir(fhir_org)
+
+    assert result is None
+
+
+def test__build_legal_dates_from_fhir_with_no_extensions() -> None:
+    """Test building LegalDates returns None when no extensions present."""
+    mapper = OrganizationMapper()
+    fhir_org = FhirOrganisation(
+        id="test-id",
+        identifier=[Identifier.model_construct(value="ODS1")],
+        name="Test Org",
+        active=True,
+    )
+
+    result = mapper._build_legal_dates_from_fhir(fhir_org)
+
+    assert result is None

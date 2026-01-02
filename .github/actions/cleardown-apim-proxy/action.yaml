@@ -1,0 +1,61 @@
+name: 'Cleardown API Proxy from APIM environment'
+description: 'Remove an API Proxy from an APIM environment'
+
+inputs:
+  api_name:
+    description: 'Name of the API to cleardown'
+    required: true
+  workspace:
+    description: 'Workspace identifier (e.g., ftrs-000). If specified, a workspaced proxy will be cleared from the APIM environment'
+    required: false
+  environment:
+    description: 'The environment (e.g., dev, test, prod)'
+    required: true
+  apim_env:
+    description: 'APIM environment to cleardown the API Proxy from (e.g., internal-dev, internal-qa, int, ref, prod)'
+    required: true
+  aws_region:
+    description: 'AWS region for Secrets Manager'
+    required: true
+  proxygen_url:
+    description: 'Proxygen API URL'
+    required: true
+
+outputs:
+  cleardown_status:
+    description: 'Status of the cleardown'
+    value: ${{ steps.cleardown.outputs.status }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get Proxygen Access Token
+      id: get-token
+      uses: ./.github/actions/authenticate-apim
+      with:
+        api_name: ${{ inputs.api_name }}
+        environment: ${{ inputs.environment }}
+        aws_region: ${{ inputs.aws_region }}
+
+    - name: Cleardown API Proxy from APIM environment
+      id: cleardown
+      shell: bash
+      run: |
+        export API_NAME="${{ inputs.api_name }}"
+        export WORKSPACE="${{ inputs.workspace }}"
+        export PROXY_ENV="${{ inputs.apim_env }}"
+        export ACCESS_TOKEN="${{ steps.get-token.outputs.access_token }}"
+        export PROXYGEN_URL="${{ inputs.proxygen_url }}"
+
+        STATUS=$(./scripts/workflow/cleardown-apim-proxy.sh | tail -n1)
+        echo "status=$STATUS" >> $GITHUB_OUTPUT
+
+    - name: Output cleardown details
+      shell: bash
+      run: |
+        echo "Cleardown Summary:"
+        echo "- API Name: ${{ inputs.api_name }}"
+        echo "- Workspace: ${{ inputs.workspace }}"
+        echo "- Environment: ${{ inputs.environment }}"
+        echo "- APIM Environment: ${{ inputs.apim_env }}"
+        echo "- Status: ${{ steps.cleardown.outputs.status }}"

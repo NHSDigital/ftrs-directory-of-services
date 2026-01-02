@@ -151,17 +151,33 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="Record {record_id} failed validation and was not migrated",
     )
-    DM_ETL_015 = LogReference(
-        level=INFO,
-        message="Address for Organisation ID {organisation} is {address}",
-    )
-    DM_ETL_016 = LogReference(
-        level=WARNING,
-        message="No address found for Organisation ID {organisation}, setting address to None",
-    )
     DM_ETL_017 = LogReference(
         level=INFO,
         message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
+    )
+
+    DM_ETL_018 = LogReference(
+        level=WARNING,
+        message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
+    )
+
+    DM_ETL_019 = LogReference(
+        level=INFO,
+        message="State record found for Service ID {record_id}, Skipping now...",
+    )
+    DM_ETL_020 = LogReference(
+        level=INFO,
+        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+    )
+
+    DM_ETL_021 = LogReference(
+        level=INFO,
+        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
+    )
+
+    DM_ETL_022 = LogReference(
+        level=ERROR,
+        message="One or more items exist for  Service ID {record_id}",
     )
 
     DM_ETL_999 = LogReference(
@@ -293,7 +309,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Fetching ODS Data returned {bundle_total} outdated organisations.",
+        message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
     )
     ETL_PROCESSOR_003 = LogReference(
         level=INFO, message="Fetching organisation data for code: {ods_code}."
@@ -342,7 +358,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_PROCESSOR_021 = LogReference(
         level=WARNING,
-        message="Organisation link is missing in the response.",
+        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
     )
     ETL_PROCESSOR_022 = LogReference(
         level=WARNING,
@@ -387,6 +403,13 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_PROCESSOR_033 = LogReference(
         level=INFO,
         message="Checking if organisation is permitted type",
+    )
+    ETL_PROCESSOR_034 = LogReference(
+        level=INFO, message="Processing page {page_num} for date {date}."
+    )
+    ETL_PROCESSOR_035 = LogReference(
+        level=INFO,
+        message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
@@ -550,6 +573,10 @@ class CrudApisLogBase(LogBase):
     ORGANISATION_023 = LogReference(
         level=WARNING,
         message="Received invalid legal dates, legal period start and end dates are equal: {date}.",
+    )
+    ORGANISATION_024 = LogReference(
+        level=ERROR,
+        message="Error when validating roles for organisation {organisation_id}: {error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,

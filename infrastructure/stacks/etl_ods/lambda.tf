@@ -42,16 +42,16 @@ module "processor_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.common_packages_layer.arn],
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
-    "APIM_URL"     = var.apim_url
-    "ODS_URL"      = var.ods_url
+    "ENVIRONMENT"        = var.environment
+    "WORKSPACE"          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"       = var.project
+    "APIM_URL"           = var.apim_url
+    "ODS_URL"            = var.ods_url
+    "ODS_API_PAGE_LIMIT" = tostring(var.ods_api_page_limit)
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -88,8 +88,7 @@ module "consumer_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.common_packages_layer.arn],
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {

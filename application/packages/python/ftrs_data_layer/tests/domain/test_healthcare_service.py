@@ -7,13 +7,10 @@ from ftrs_data_layer.domain import (
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
     DayOfWeek,
-    Disposition,
     HealthcareService,
+    HealthcareServiceTelecom,
     NotAvailable,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from pydantic import ValidationError
 
@@ -34,7 +31,7 @@ def test_healthcare_service_round_trip_and_types() -> None:
         modifiedDateTime="2023-10-01T00:00:00Z",
         migrationNotes=None,
         name="Test Healthcare Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="123456789",
             phone_private="987654321",
             email="example@mail.com",
@@ -42,33 +39,11 @@ def test_healthcare_service_round_trip_and_types() -> None:
         ),
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
-                sg=SymptomGroup(
-                    codeID=1000,
-                    codeType="Symptom Group (SG)",
-                    codeValue="Abdominal or Flank Injury, Blunt",
-                    id="b4d7ceba-77b8-4966-803a-d8291bd7e804",
-                    source="pathways",
-                ),
-                sd=SymptomDiscriminator(
-                    codeID=4003,
-                    codeType="Symptom Discriminator (SD)",
-                    codeValue="PC full Primary Care assessment and prescribing capability",
-                    id="df046f42-42bc-46ca-a6f0-db496e9a1292",
-                    source="pathways",
-                    synonyms=[],
-                ),
+                sg=1000,
+                sd=4003,
             )
         ],
-        dispositions=[
-            Disposition(
-                id="39b75651-e40e-4214-b308-8a58cf8046ce",
-                source="pathways",
-                codeType="Disposition (Dx)",
-                codeID=301,
-                codeValue="Dx1",
-                time=10,
-            )
-        ],
+        dispositions=["DX1", "DX114"],
         openingTime=[
             AvailableTime(
                 dayOfWeek=DayOfWeek.MONDAY,
@@ -157,19 +132,3 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
     # Act / Assert
     with pytest.raises(ValidationError):
         HealthcareService.model_validate(payload)
-
-
-def test_telecom() -> None:
-    telecom = Telecom(
-        phone_public="00000000000",
-        phone_private="12345678901#EXT0123",
-        email="test@nhs.net",
-        web="ww.test.co.u",
-    )
-
-    assert telecom.model_dump(mode="json") == {
-        "phone_public": "00000000000",
-        "phone_private": "12345678901#EXT0123",
-        "email": "test@nhs.net",
-        "web": "ww.test.co.u",
-    }

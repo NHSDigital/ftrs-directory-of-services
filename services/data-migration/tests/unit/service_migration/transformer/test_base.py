@@ -10,17 +10,14 @@ from ftrs_data_layer.domain import (
     AvailableTime,
     AvailableTimePublicHolidays,
     AvailableTimeVariation,
-    Disposition,
     Endpoint,
     HealthcareService,
+    HealthcareServiceTelecom,
     Location,
     NotAvailable,
     Organisation,
     PositionGCS,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from ftrs_data_layer.domain.legacy import (
     OpeningTimeDay,
@@ -102,6 +99,7 @@ def test_service_transformer_build_organisation(
         modifiedBy="DATA_MIGRATION",
         modifiedDateTime="2025-07-17T12:00:00Z",
         identifier_ODS_ODSCode="A12345",
+        telecom=[],
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
@@ -362,7 +360,7 @@ def test_build_healthcare_service(
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         name="Test Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
             email="firstname.lastname@nhs.net",
@@ -426,58 +424,15 @@ def test_build_healthcare_service(
         ],
         symptomGroupSymptomDiscriminators=[
             SymptomGroupSymptomDiscriminatorPair(
-                sg=SymptomGroup(
-                    id="2b52f7e2-c0ab-5e00-8d7d-75ede400fe7c",
-                    source="pathways",
-                    codeType="Symptom Group (SG)",
-                    codeID=1035,
-                    codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
-                ),
-                sd=SymptomDiscriminator(
-                    id="300af504-ba5d-5973-a877-a0789c6863ab",
-                    source="pathways",
-                    codeType="Symptom Discriminator (SD)",
-                    codeID=4003,
-                    codeValue="PC full Primary Care assessment and prescribing capability",
-                    synonyms=[],
-                ),
+                sg=1035,
+                sd=4003,
             ),
             SymptomGroupSymptomDiscriminatorPair(
-                sg=SymptomGroup(
-                    id="39ce1220-2586-5b2e-a35d-3021b2e0337c",
-                    source="servicefinder",
-                    codeType="Symptom Group (SG)",
-                    codeID=360,
-                    codeValue="z2.0 - Service Types",
-                ),
-                sd=SymptomDiscriminator(
-                    id="6ce70d41-9337-578d-a662-d9fe25016d40",
-                    source="servicefinder",
-                    codeType="Symptom Discriminator (SD)",
-                    codeID=14023,
-                    codeValue="GP Practice",
-                    synonyms=["General Practice"],
-                ),
+                sg=360,
+                sd=14023,
             ),
         ],
-        dispositions=[
-            Disposition(
-                id="4443b15a-26a3-517f-8a93-eb7c2539d4fc",
-                source="pathways",
-                codeType="Disposition (Dx)",
-                codeID=126,
-                codeValue="Contact Own GP Practice next working day for appointment",
-                time=7200,
-            ),
-            Disposition(
-                id="ae7a129f-cda2-51f6-aff6-88a94f7f36de",
-                source="pathways",
-                codeType="Disposition (Dx)",
-                codeID=10,
-                codeValue="Speak to a Primary Care Service within 2 hours",
-                time=120,
-            ),
-        ],
+        dispositions=["DX115", "DX12"],
     )
 
 
@@ -746,38 +701,12 @@ def test_build_sgsds(
     assert isinstance(result, list)
     assert result == [
         SymptomGroupSymptomDiscriminatorPair(
-            sg=SymptomGroup(
-                id="2b52f7e2-c0ab-5e00-8d7d-75ede400fe7c",
-                source="pathways",
-                codeType="Symptom Group (SG)",
-                codeID=1035,
-                codeValue="Breathing Problems, Breathlessness or Wheeze, Pregnant",
-            ),
-            sd=SymptomDiscriminator(
-                id="300af504-ba5d-5973-a877-a0789c6863ab",
-                source="pathways",
-                codeType="Symptom Discriminator (SD)",
-                codeID=4003,
-                codeValue="PC full Primary Care assessment and prescribing capability",
-                synonyms=[],
-            ),
+            sg=1035,
+            sd=4003,
         ),
         SymptomGroupSymptomDiscriminatorPair(
-            sg=SymptomGroup(
-                id="39ce1220-2586-5b2e-a35d-3021b2e0337c",
-                source="servicefinder",
-                codeType="Symptom Group (SG)",
-                codeID=360,
-                codeValue="z2.0 - Service Types",
-            ),
-            sd=SymptomDiscriminator(
-                id="6ce70d41-9337-578d-a662-d9fe25016d40",
-                source="servicefinder",
-                codeType="Symptom Discriminator (SD)",
-                codeID=14023,
-                codeValue="GP Practice",
-                synonyms=["General Practice"],
-            ),
+            sg=360,
+            sd=14023,
         ),
     ]
 
@@ -794,24 +723,7 @@ def test_build_dispositions(
     result = transformer.build_dispositions(mock_legacy_service)
 
     assert isinstance(result, list)
-    assert result == [
-        Disposition(
-            id="4443b15a-26a3-517f-8a93-eb7c2539d4fc",
-            source="pathways",
-            codeType="Disposition (Dx)",
-            codeID=126,
-            codeValue="Contact Own GP Practice next working day for appointment",
-            time=7200,
-        ),
-        Disposition(
-            id="ae7a129f-cda2-51f6-aff6-88a94f7f36de",
-            source="pathways",
-            codeType="Disposition (Dx)",
-            codeID=10,
-            codeValue="Speak to a Primary Care Service within 2 hours",
-            time=120,
-        ),
-    ]
+    assert result == ["DX115", "DX12"]
 
 
 def test_build_age_eligibility_criteria_empty(

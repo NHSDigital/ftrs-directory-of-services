@@ -25,12 +25,10 @@ def test_update_payload_validator_valid_details() -> None:
         name="NHS Digital",
         active=True,
         telecom=[{"system": "phone", "value": "123456789", "use": "work"}],
-        type=[{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     )
     assert payload.name == "NHS Digital"
     assert payload.active is True
     assert payload.telecom[0].value == "123456789"
-    assert payload.type[0].coding[0].code == "GP Practice"
     assert payload.identifier[0].value == "ABC123"
 
 
@@ -53,7 +51,6 @@ def test_update_payload_validator_empty_name() -> None:
             name="   ",
             active=True,
             telecom=[{"system": "phone", "value": "123456789"}],
-            type=[{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
         )
 
 
@@ -64,7 +61,6 @@ def test_update_payload_validator_missing_id() -> None:
             meta={"versionId": "1"},
             name="NHS Digital",
             modified_by="test_user",
-            type=[{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
             active=True,
             telecom=[{"system": "phone", "value": "123456789"}],
             identifier=[

@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -6,11 +7,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.enums import TelecomType
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
 from organisations.app.models.organisation import OrganizationQueryParams
 from organisations.app.router.organisation import _get_organization_query_params, router
+from organisations.app.services.organisation_service import OrganisationService
 
 test_app = FastAPI()
 test_app.include_router(router)
@@ -26,8 +30,16 @@ def get_organisation() -> dict:
         "identifier_oldDoS_uid": "test_UUID",
         "active": True,
         "name": "Test Organisation",
-        "telecom": "123456789",
+        "telecom": [
+            {
+                "type": TelecomType.PHONE.value,
+                "value": "0300 311 22 33",
+                "isPublic": True,
+            }
+        ],
         "type": "GP Practice",
+        "primary_role_code": None,
+        "non_primary_role_codes": [],
         "createdBy": "ROBOT",
         "createdDateTime": "2023-10-01T00:00:00Z",
         "modifiedBy": "ROBOT",
@@ -252,8 +264,7 @@ def test_update_organisation_success() -> None:
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
     assert response.status_code == HTTPStatus.OK
@@ -283,7 +294,6 @@ def test_update_organisation_no_updates(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     response = client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
@@ -326,7 +336,6 @@ def test_update_organisation_operation_outcome(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
@@ -348,8 +357,7 @@ def test_update_organisation_missing_required_field() -> None:
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
         ],
         "name": "ABC",
-        "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
     }
 
     response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
@@ -376,12 +384,227 @@ def test_update_organisation_missing_required_field() -> None:
                         }
                     ],
                     "name": "ABC",
-                    "telecom": [{"system": "phone", "value": "0123456789"}],
-                    "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
+                    "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
                 },
             }
         ]
     }
+
+
+def test_update_organisation_telecom_phone_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [
+            {"system": "phone", "value": "01234"},
+            {"system": "email", "value": "mailnhs.net"},
+        ],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Telecom value field contains an invalid phone number: 01234"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_email_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [{"system": "email", "value": "mailnhs.net"}],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Telecom value field contains an invalid email address: mailnhs.net"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_url_validation_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [{"system": "url", "value": "nhs.net"}],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    print("exc_info:", exc_info.value.outcome)
+    assert (
+        "Telecom value field contains an invalid url: nhs.net"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_no_type_value_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [
+            {"value": "01234"},
+            {"system": "email", "value": "mailnhs.net"},
+        ],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Validation failed for the following resource: Telecom type (system) cannot be None or empty"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [
+            {"system": "pager", "value": "01234"},
+            {"system": "email", "value": "mailnhs.net"},
+        ],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Validation failed for the following resource: invalid telecom type (system): pager"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
+
+
+def test_update_organisation_telecom_invalid_value_character_value_error_exception(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    organisation_service = OrganisationService(org_repository=org_repository)
+    update_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+        "telecom": [
+            {"system": "phone", "value": "0300 311 22 33#"},
+        ],
+    }
+    try:
+        organisation_service.process_organisation_update(test_org_id, update_payload)
+    except OperationOutcomeException as e:
+        mock_organisation_service.process_organisation_update.side_effect = e
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=update_payload)
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        "Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300 311 22 33#"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
 
 
 def test_update_organisation_unexpected_exception(
@@ -404,7 +627,6 @@ def test_update_organisation_unexpected_exception(
         "name": "Test Organisation",
         "active": False,
         "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{"system": "TO-DO", "code": "GP Practice"}]}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
@@ -470,58 +692,6 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
     assert response.json()["detail"] == "Organisation not found"
 
 
-def test_type_validator_invalid_coding_and_text_missing() -> None:
-    update_payload = {
-        "resourceType": "Organization",
-        "id": str(test_org_id),
-        "meta": {
-            "profile": [
-                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
-            ]
-        },
-        "identifier": [
-            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
-        ],
-        "name": "Test Org",
-        "active": True,
-        "telecom": [{"system": "phone", "value": "0123456789"}],
-        "type": [{"coding": [{}]}],
-    }
-
-    response = client.put(f"/Organization/{test_org_id}", json=update_payload)
-
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert response.json() == {
-        "detail": [
-            {
-                "type": "value_error",
-                "loc": ["body"],
-                "msg": "Value error, 'type' must have either 'coding' or 'text' populated.",
-                "input": {
-                    "resourceType": "Organization",
-                    "id": str(test_org_id),
-                    "meta": {
-                        "profile": [
-                            "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
-                        ]
-                    },
-                    "identifier": [
-                        {
-                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                            "value": "12345",
-                        }
-                    ],
-                    "name": "Test Org",
-                    "active": True,
-                    "telecom": [{"system": "phone", "value": "0123456789"}],
-                    "type": [{"coding": [{}]}],
-                },
-                "ctx": {"error": {}},
-            }
-        ]
-    }
-
-
 def test_organization_query_params_success() -> None:
     query = OrganizationQueryParams(identifier="odsOrganisationCode|ABC123")
     assert query.identifier == "odsOrganisationCode|ABC123"
@@ -576,7 +746,6 @@ def test_update_organisation_empty_identifier_object() -> None:
         "identifier": [{}],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -615,7 +784,6 @@ def test_update_organisation_identifier_missing_value() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -653,7 +821,6 @@ def test_update_organisation_identifier_empty_value() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -691,7 +858,6 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         ],
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 
@@ -724,7 +890,6 @@ def test_update_organisation_identifier_empty_list() -> None:
         "identifier": [],  # Empty identifier list
         "name": "Test Organization",
         "active": True,
-        "type": [{"text": "GP Practice"}],
         "telecom": [],
     }
 

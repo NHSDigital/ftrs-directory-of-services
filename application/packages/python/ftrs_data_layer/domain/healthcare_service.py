@@ -4,7 +4,6 @@ from uuid import UUID
 from ftrs_data_layer.domain.availability import OpeningTime
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
-    Disposition,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import (
@@ -15,7 +14,7 @@ from ftrs_data_layer.domain.enums import (
 from pydantic import BaseModel
 
 
-class Telecom(BaseModel):
+class HealthcareServiceTelecom(BaseModel):
     phone_public: str | None
     phone_private: str | None
     email: str | None
@@ -36,9 +35,9 @@ class HealthcareService(DBModel):
     providedBy: UUID | None
     location: UUID | None
     name: str
-    telecom: Telecom | None
+    telecom: HealthcareServiceTelecom | None
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
-    dispositions: list[Disposition]
+    dispositions: list[str]
     migrationNotes: list[str] | None = None
     ageEligibilityCriteria: list[AgeRangeType] | None = None

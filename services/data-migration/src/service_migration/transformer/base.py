@@ -14,20 +14,17 @@ from ftrs_data_layer.domain import (
     EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
+    HealthcareServiceTelecom,
     HealthcareServiceType,
     Location,
     NotAvailable,
     OpeningTime,
     Organisation,
     PositionGCS,
-    Telecom,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
-    ClinicalCodeSource,
     Disposition,
-    SymptomDiscriminator,
-    SymptomGroup,
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import TimeUnit
@@ -124,7 +121,7 @@ class ServiceTransformer(ABC):
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
-            telecom=None,
+            telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
             createdDateTime=self.start_time,
@@ -178,9 +175,9 @@ class ServiceTransformer(ABC):
         self,
         service: legacy_model.Service,
         organisation_id: UUID,
-    ) -> Location:
+    ) -> Location | None:
         """
-        Create a Location instance from the source DoS service data.
+        Create a Location instance from the source DoS service data if address is valid.
         """
         position = (
             PositionGCS(
@@ -190,21 +187,12 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
-        if service.address and service.address != "Not Available":
-            formatted_address = format_address(
-                service.address, service.town, service.postcode
-            )
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_015,
-                organisation=organisation_id,
-                address=formatted_address,
-            )
 
-        else:
-            formatted_address = None
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
-            )
+        formatted_address = format_address(
+            service.address,
+            service.town,
+            service.postcode,
+        )
 
         return Location(
             id=generate_uuid(service.id, "location"),
@@ -245,7 +233,7 @@ class ServiceTransformer(ABC):
             providedBy=organisation_id,
             location=location_id,
             name=service.name,
-            telecom=Telecom(
+            telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
                 phone_private=service.nonpublicphone,
                 email=service.email,
@@ -342,49 +330,38 @@ class ServiceTransformer(ABC):
         """
         Build a single SymptomGroupSymptomDiscriminatorPair from a ServiceSGSD code.
         """
-        sg = self.metadata.symptom_groups.get(code.sgid)
-        sd = self.metadata.symptom_discriminators.get(code.sdid)
-
-        source = (
-            ClinicalCodeSource.SERVICE_FINDER
-            if sg.zcodeexists is True
-            else ClinicalCodeSource.PATHWAYS
-        )
-
         return SymptomGroupSymptomDiscriminatorPair(
-            sg=SymptomGroup(
-                id=generate_uuid(sg.id, "symptomgroup"),
-                codeID=code.sgid,
-                codeValue=sg.name,
-                source=source,
-            ),
-            sd=SymptomDiscriminator(
-                id=generate_uuid(sd.id, "symptomdiscriminator"),
-                codeID=code.sdid,
-                codeValue=sd.description,
-                source=source,
-                synonyms=[syn.name for syn in sd.synonyms],
-            ),
+            sg=code.sgid,
+            sd=code.sdid,
         )
 
     def build_dispositions(self, service: legacy_model.Service) -> list[Disposition]:
         """
         Build dispositions from the service's dispositions.
         """
-        return [self.build_disposition(code) for code in service.dispositions]
+        dispositions = []
+        for code in service.dispositions:
+            disposition = self.build_disposition(code, service.id)
+            if disposition is not None:
+                dispositions.append(disposition)
+        return dispositions
 
-    def build_disposition(self, code: legacy_model.ServiceDisposition) -> Disposition:
+    def build_disposition(
+        self, code: legacy_model.ServiceDisposition, service_id: int
+    ) -> str | None:
         """
         Build a single Disposition from a ServiceDisposition code.
+        Returns None if the disposition is not found in metadata.
         """
         disposition = self.metadata.dispositions.get(code.dispositionid)
-        return Disposition(
-            id=generate_uuid(code.id, "pathways:disposition"),
-            codeID=code.dispositionid,
-            codeValue=disposition.name,
-            source=ClinicalCodeSource.PATHWAYS,
-            time=disposition.dispositiontime,
-        )
+        if disposition is None:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_018,
+                service_id=service_id,
+                disposition_id=code.dispositionid,
+            )
+            return None
+        return disposition.dxcode
 
     def build_age_eligibility_criteria(
         self, service: legacy_model.Service

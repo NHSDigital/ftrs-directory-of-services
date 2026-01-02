@@ -231,8 +231,8 @@ paths:
                               valueCodeableConcept:
                                 coding:
                                   - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
-                                    code: "RO76"
-                                    display: "GP PRACTICE"
+                                    code: "RO177"
+                                    display: "PRESCRIBING COST CENTRE"
                             - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
                               extension:
                                 - url: "dateType"
@@ -244,6 +244,14 @@ paths:
                                   valuePeriod:
                                     start: "2020-01-15"
                                     end: "2025-12-31"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+                          extension:
+                            - url: "roleCode"
+                              valueCodeableConcept:
+                                coding:
+                                  - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
+                                    code: "RO76"
+                                    display: "GP PRACTICE"
                       active: true
                       name: "Example Organization"
                       telecom:
@@ -491,13 +499,13 @@ paths:
 
         The Organization resource supports the following optional FHIR extensions:
 
-        ### OrganisationRole Extension with TypedPeriod for Legal Dates
+        ### OrganisationRole Extension with Primary and Non-Primary Roles
 
-        You can optionally include legal start and end dates by nesting a TypedPeriod extension within an OrganisationRole extension:
+        Organizations can have multiple roles defined using OrganisationRole extensions. Each organization must have exactly one primary role and may optionally have multiple non-primary roles.
 
         - **OrganisationRole Extension URL**: `https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole`
         - **Required sub-extensions**:
-          - `roleCode`: Organization role code from the ODS CodeSystem
+          - `roleCode`: Sub-extension with `valueCodeableConcept` containing the organization role code from the ODS CodeSystem
         - **Optional sub-extensions**:
           - `instanceID`: Unique identifier for the role instance
           - `active`: Boolean indicating if the role is active
@@ -505,7 +513,15 @@ paths:
             - `dateType`: Must be set to "Legal" from the England-PeriodType CodeSystem
             - `period`: Contains `start` and/or `end` dates in YYYY-MM-DD format
 
-        **Validation rules**:
+        **Allowed Role Combinations**:
+        - Exactly one role is designated as the primary role
+        - The primary role includes TypedPeriod extension with legal dates
+        - Non-primary roles may optionally include TypedPeriod extensions
+        - If the primary role is `RO177`, at least one non-primary role must be present and must be one of: `RO76`, `RO80`, or `RO87`
+        - If the primary role is `RO182`, the non-primary roles array may be empty
+        - Duplicate non-primary role codes are not allowed
+
+        **General Validation Rules**:
         - OrganisationRole extension must contain `roleCode` sub-extensions
         - OrganisationRole extension must contain at least one TypedPeriod extension
         - If TypedPeriod is included, it must contain both `dateType` and `period` sub-extensions
@@ -516,7 +532,7 @@ paths:
         - Start and end dates must not be equal if both are provided
         - Extension URLs must exactly match the expected NHS England structure definitions
 
-        **Example**:
+        **Example with Primary Role (RO177) and Non-Primary Roles**:
         ```json
         "extension": [
           {
@@ -528,8 +544,8 @@ paths:
                   "coding": [
                     {
                       "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                      "code": "RO76",
-                      "display": "GP PRACTICE"
+                      "code": "RO177",
+                      "display": "PRESCRIBING COST CENTRE"
                     }
                   ]
                 }
@@ -553,6 +569,40 @@ paths:
                     }
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO76",
+                      "display": "GP PRACTICE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO80",
+                      "display": "BRANCH SURGERY"
+                    }
+                  ]
+                }
               }
             ]
           }
@@ -868,6 +918,38 @@ paths:
                               display: Parameter content is invalid
                           text: TypedPeriod extension URL is missing
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                ro177-missing-non-primary-roles:
+                  summary: RO177 primary role without required non-primary roles
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Primary role RO177 must have at least one non-primary role from [RO76, RO80, RO87]"
+                invalid-non-primary-role-code:
+                  summary: Invalid non-primary role code (e.g., RO268)
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Invalid non-primary role code: RO268 is not allowed"
+                duplicate-non-primary-roles:
+                  summary: Duplicate non-primary role codes
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Duplicate non-primary roles are not allowed"
+                missing-primary-role-code:
+                  summary: Primary role code not provided
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Primary role code must be provided"
 components:
   parameters:
     AcceptFHIR:
