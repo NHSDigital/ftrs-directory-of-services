@@ -337,12 +337,63 @@ paths:
             application/fhir+json:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: OperationOutcome
-                issue:
-                  - severity: error
-                    code: invalid
-                    diagnostics: Invalid format for identifier parameter
+              examples:
+                invalid-identifier-separator:
+                  summary: Missing identifier separator
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Identifier format is invalid
+                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+                invalid-identifier-system:
+                  summary: Invalid identifier system
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Identifier system is invalid
+                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'odsOrganisationCode'"
+                invalid-identifier-format:
+                  summary: Invalid ODS code format
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: ODS code format is invalid
+                        diagnostics: "Invalid identifier value: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$"
+                unexpected-query-param:
+                  summary: Unexpected query parameter
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_UNKNOWN
+                              display: Parameter not understood
+                          text: Unexpected query parameters provided
+                        diagnostics: "Unexpected query parameter(s): foo, bar. Only 'identifier' is allowed."
         '404':
           description: Organization not found
           headers:
@@ -367,7 +418,13 @@ paths:
                 issue:
                   - severity: error
                     code: not-found
-                    diagnostics: Organisation with ODS code 'DEF456' not found
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_NO_EXIST
+                          display: Resource does not exist
+                      text: The requested organisation was not found
+                    diagnostics: "Organisation with ODS code 'DEF456' not found"
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           headers:
@@ -388,22 +445,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
               example:
-                invalid-identifier-value:
-                  summary: Invalid ODS code format
-                  value:
-                    resourceType: "OperationOutcome"
-                    issue:
-                      - severity: "error"
-                        code: "invalid"
-                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{1,12}$"
-                invalid-identifier-system:
-                  summary: Invalid identifier system
-                  value:
-                    resourceType: "OperationOutcome"
-                    issue:
-                      - severity: "error"
-                        code: "invalid"
-                        diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: invalid
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_PARAM_INVALID
+                          display: Parameter content is invalid
+                      text: Validation failed for resource
+                    diagnostics: "Validation failed for resource."
         '500':
           description: Internal server error
           headers:
@@ -430,11 +482,11 @@ paths:
                     code: exception
                     details:
                       coding:
-                        - system: "http://terminology.hl7.org/CodeSystem/operation-outcome"
-                          code: "exception"
-                          display: "Exception"
-                      text: "An unexpected error occurred: please try again later."
-                    diagnostics: "please try again later."
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_ERROR_PARSING
+                          display: Error processing request
+                      text: An unexpected error occurred
+                    diagnostics: "Unhandled exception occurred"
   '/Organization/{id}':
     put:
       security:
@@ -625,7 +677,13 @@ paths:
                 resourceType: OperationOutcome
                 issue:
                   - severity: information
-                    code: success
+                    code: informational
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_UPDATED
+                          display: Existing resource updated
+                      text: Organisation updated successfully
                     diagnostics: Organisation updated successfully
         '404':
           description: Organization not found
@@ -651,6 +709,12 @@ paths:
                 issue:
                   - severity: error
                     code: not-found
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_NO_EXIST
+                          display: Resource does not exist
+                      text: The requested organisation was not found
                     diagnostics: Organisation not found.
         '422':
           description: Unprocessable Entity (validation errors)
@@ -679,6 +743,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Required field is missing
                         diagnostics: "Field 'name' is required"
                 invalid-organisation-role-extension-url:
                   summary: Invalid OrganisationRole extension URL
@@ -687,6 +757,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Extension URL is invalid
                         diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID"
                 missing-organisation-role-extension-url:
                   summary: Missing OrganisationRole extension URL
@@ -695,6 +771,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Extension URL is missing
                         diagnostics: "Invalid extension URL: None"
                 invalid-typed-period-extension-url:
                   summary: Invalid TypedPeriod extension URL within OrganisationRole
@@ -703,6 +785,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is invalid
                         diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod"
                 invalid-typed-period-missing-subextension:
                   summary: TypedPeriod extension missing required sub-extension
@@ -711,6 +799,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension is incomplete
                         diagnostics: "TypedPeriod extension must contain both 'dateType' and 'period' sub-extensions"
                 invalid-typed-period-non-legal:
                   summary: TypedPeriod extension with non-Legal dateType
@@ -719,6 +813,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: dateType must be Legal
                         diagnostics: "dateType must be 'Legal' from system 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
                 invalid-typed-period-system:
                   summary: TypedPeriod extension with invalid system
@@ -727,6 +827,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: dateType system is invalid
                         diagnostics: "dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
                 invalid-typed-period-empty-period:
                   summary: TypedPeriod extension with empty period
@@ -735,6 +841,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Legal period start date is required
                         diagnostics: "Legal period start date is required when TypedPeriod extension is present"
                 invalid-typed-period-missing-start-date:
                   summary: TypedPeriod extension with missing start date
@@ -743,6 +855,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Legal period start date is required
                         diagnostics: "Legal period start date is required when TypedPeriod extension is present"
                 invalid-typed-period-equal-dates:
                   summary: TypedPeriod extension with equal start and end dates
@@ -751,6 +869,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Start and end dates must not be equal
                         diagnostics: "Legal period start and end dates must not be equal"
                 missing-typed-period-extension:
                   summary: OrganisationRole extension without required TypedPeriod
@@ -759,6 +883,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension is required
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 empty-typed-period-extension-url:
                   summary: TypedPeriod extension with empty URL
@@ -767,6 +897,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is empty
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 missing-typed-period-extension-url:
                   summary: TypedPeriod extension with missing URL field
@@ -775,6 +911,12 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is missing
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 ro177-missing-non-primary-roles:
                   summary: RO177 primary role without required non-primary roles
@@ -854,7 +996,7 @@ components:
               items:
                 type: string
               example:
-                - https://fhir.nhs.uk/StructureDefinition/UKCore-Organization
+                - https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization
         extension:
           type: array
           description: |
@@ -1123,18 +1265,6 @@ components:
         resourceType:
           type: string
           example: OperationOutcome
-        id:
-          type: string
-          example: 6f4ca309-19d7-4f61-90b3-acbd1f2eb8f8
-        meta:
-          type: object
-          properties:
-            profile:
-              type: array
-              items:
-                type: string
-              example:
-                - https://simplifier.net/guide/UKCoreDevelopment2/ProfileUKCore-OperationOutcome
         issue:
           type: array
           items:
@@ -1142,9 +1272,11 @@ components:
             required:
               - severity
               - code
+              - details
             properties:
               severity:
                 type: string
+                description: Indicates how relevant the issue is to the overall success of the action
                 enum:
                   - fatal
                   - error
@@ -1153,24 +1285,50 @@ components:
                 example: error
               code:
                 type: string
+                description: FHIR issue type code (e.g., invalid, not-found, exception)
                 example: invalid
               details:
                 type: object
+                description: Additional details about the error using FHIR operation-outcome codes
+                required:
+                  - coding
                 properties:
                   coding:
                     type: array
                     items:
                       type: object
+                      required:
+                        - system
+                        - code
+                        - display
                       properties:
                         system:
                           type: string
-                          example: https://fhir.nhs.uk/Codesystem/http-error-codes
+                          enum:
+                            - http://terminology.hl7.org/CodeSystem/operation-outcome
+                          example: http://terminology.hl7.org/CodeSystem/operation-outcome
                         code:
                           type: string
-                          example: INVALID
+                          description: Code from the FHIR operation-outcome CodeSystem
+                          example: MSG_PARAM_INVALID
+                        display:
+                          type: string
+                          example: Parameter content is invalid
+                  text:
+                    type: string
+                    description: Human-readable description of the error
+                    example: The ODS code format is invalid
               diagnostics:
                 type: string
-                example: Invalid resource.
+                description: Detailed diagnostic information
+                example: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$
+              expression:
+                type: array
+                description: FHIRPath expression indicating which element(s) caused the issue
+                items:
+                  type: string
+                example:
+                  - Organization.identifier[0].value
   securitySchemes:
     app-level3:
       $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3

@@ -66,7 +66,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
     assert fhir_org.telecom[0].use is None
     assert (
         fhir_org.meta.profile[0]
-        == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+        == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
     assert fhir_org.extension is not None
     assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
@@ -95,7 +95,7 @@ def test__build_meta_profile() -> None:
     mapper = OrganizationMapper()
     meta = mapper._build_meta_profile()
     assert meta == {
-        "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        "profile": ["https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"]
     }
 
 
@@ -466,7 +466,7 @@ def test_to_fhir_bundle_single_org() -> None:
     assert resource.telecom[0].value == "020 7972 3272"
     assert (
         resource.meta.profile[0]
-        == "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+        == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
 
 

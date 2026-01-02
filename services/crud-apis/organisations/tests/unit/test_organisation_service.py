@@ -262,7 +262,9 @@ def test_process_organisation_update_no_changes(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -302,7 +304,9 @@ def test_process_organisation_update_with_changes(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -338,7 +342,9 @@ def test_process_organisation_update_missing_required_field() -> None:
     fhir_org = {
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -360,7 +366,9 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
         "id": organisation_id,
         # Missing required resourceType field
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -387,7 +395,9 @@ def test_process_organisation_update_with_invalid_phone_number(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -428,7 +438,9 @@ def test_process_organisation_update_with_invalid_email_number(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -469,7 +481,9 @@ def test_process_organisation_update_with_invalid_url(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -510,7 +524,9 @@ def test_process_organisation_update_with_invalid_char_in_phone_number(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -551,7 +567,9 @@ def test_process_organisation_update_with_invalid_no_telecom_system(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
@@ -593,7 +611,9 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
         "resourceType": "Organization",
         "id": organisation_id,
         "meta": {
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         "identifier": [
             {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
