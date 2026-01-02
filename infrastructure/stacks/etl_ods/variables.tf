@@ -101,8 +101,14 @@ variable "ods_url" {
   default     = "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
 }
 
-variable "processor_lambda_logs_retention" {
-  description = "The number of days to retain logs for the processor lambda"
+variable "extractor_lambda_logs_retention" {
+  description = "The number of days to retain logs for the extractor lambda"
+  type        = number
+  default     = 14
+}
+
+variable "transformer_lambda_logs_retention" {
+  description = "The number of days to retain logs for the transformer lambda"
   type        = number
   default     = 14
 }
