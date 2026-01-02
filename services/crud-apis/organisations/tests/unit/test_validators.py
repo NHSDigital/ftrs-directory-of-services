@@ -12,7 +12,9 @@ def test_update_payload_validator_valid_details() -> None:
         id="123",
         resourceType="Organization",
         meta={
-            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
         },
         identifier=[
             {
@@ -37,7 +39,7 @@ def test_update_payload_validator_empty_name() -> None:
             resourceType="Organization",
             meta={
                 "profile": [
-                    "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                    "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                 ]
             },
             identifier=[
@@ -76,7 +78,7 @@ def test_update_payload_validator_missing_resource_type() -> None:
             id="123",
             meta={
                 "profile": [
-                    "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                    "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                 ]
             },
             identifier=[
