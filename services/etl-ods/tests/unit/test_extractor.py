@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from pytest_mock import MockerFixture
 
 from pipeline.extractor import (
-    _send_organisations_to_transform_queue,
+    _send_organisations_to_queue,
     _validate_date,
     extractor_lambda_handler,
     processor,
@@ -66,7 +66,7 @@ def test_processor_no_organisations(mocker: MockerFixture) -> None:
     mock_send.assert_not_called()
 
 
-def test_send_organisations_to_transform_queue(mocker: MockerFixture) -> None:
+def test_send_organisations_to_queue(mocker: MockerFixture) -> None:
     """Test sending organizations to transform queue."""
     mock_organisations = [
         {"id": "org1", "name": "Test Org 1"},
@@ -77,7 +77,7 @@ def test_send_organisations_to_transform_queue(mocker: MockerFixture) -> None:
     mocker.patch("pipeline.extractor.get_request_id", return_value="req-456")
     mock_send_messages = mocker.patch("pipeline.extractor.send_messages_to_queue")
 
-    _send_organisations_to_transform_queue(mock_organisations)
+    _send_organisations_to_queue(mock_organisations)
 
     expected_messages = [
         {
