@@ -1,7 +1,7 @@
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockFixture
 
-from pipeline.transform import transform_to_payload
+from producer.transform import transform_to_payload
 
 
 def test_transform_to_payload_logs_and_returns_organization(
@@ -14,10 +14,10 @@ def test_transform_to_payload_logs_and_returns_organization(
     fake_organization.identifier = [mocker.MagicMock(value=ods_code)]
 
     mock_mapper = mocker.patch(
-        "pipeline.transform.OrganizationMapper.from_ods_fhir_to_fhir",
+        "producer.transform.OrganizationMapper.from_ods_fhir_to_fhir",
         return_value=fake_organization,
     )
-    mock_logger = mocker.patch("pipeline.transform.ods_processor_logger.log")
+    mock_logger = mocker.patch("producer.transform.ods_processor_logger.log")
 
     result = transform_to_payload(ods_fhir)
 

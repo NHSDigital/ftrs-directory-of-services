@@ -10,7 +10,7 @@ from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
-from pipeline.utilities import (
+from utilities import (
     _get_api_key_for_url,
     build_headers,
     get_base_apim_api_url,
@@ -108,7 +108,7 @@ def test_make_request_success(
     """
     Test the make_request function for a successful request.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
@@ -137,7 +137,7 @@ def test_make_request_with_params(
     """
     Test the make_request function with parameters.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
@@ -171,7 +171,7 @@ def test_make_request_with_json_data(
     """
     Test the make_request function with JSON data.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     mock_call = requests_mock.put(
         "https://api.example.com/resource",
@@ -241,7 +241,7 @@ def test_make_request_fhir_operation_outcome(
     """
     Test make_request raises OperationOutcomeException on FHIR OperationOutcome with error severity.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     fhir_response = {
         "resourceType": "OperationOutcome",
@@ -328,7 +328,7 @@ def test_build_headers_fhir_and_json(mocker: MockerFixture) -> None:
     """
     Test build_headers creates proper FHIR headers with API key.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     options = {
         "json_data": {"foo": "bar"},
@@ -388,7 +388,7 @@ def test_make_request_json_decode_error(
     """
     Test make_request logs and raises JSONDecodeError when response is not valid JSON.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     requests_mock.get(
         "https://api.example.com/resource",
@@ -409,7 +409,7 @@ def test_make_request_with_ods_terminology_api_key(
     """
     Test make_request uses ODS Terminology API key for api.service.nhs.uk URLs.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="ods-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="ods-api-key")
 
     mock_call = requests_mock.get(
         "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
@@ -436,7 +436,7 @@ def test_make_request_without_response_correlation_id(
     """
     Test make_request handles response without X-Correlation-ID header.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     # Mock response without X-Correlation-ID header
     requests_mock.get(
@@ -458,8 +458,8 @@ def test_make_request_with_response_correlation_id(
     """
     Test make_request handles response with X-Correlation-ID header.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
-    mock_logger = mocker.patch("pipeline.utilities.ods_utils_logger")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
+    mock_logger = mocker.patch("utilities.ods_utils_logger")
 
     # Mock response with X-Correlation-ID header
     requests_mock.get(
@@ -496,7 +496,7 @@ def test_make_request_with_jwt_auth(
     mock_jwt_auth.get_auth_headers.return_value = {
         "Authorization": "Bearer test-jwt-token"
     }
-    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+    mocker.patch("utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
 
     url = "https://api.example.com/resource"
     result = make_request(url, jwt_required=True)
@@ -511,7 +511,7 @@ def test_make_request_without_jwt_auth(
     """
     Test the make_request function without JWT authentication.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     mock_call = requests_mock.get(
         "https://api.example.com/resource",
@@ -543,7 +543,7 @@ def test_get_jwt_authenticator_returns_configured_instance(
     # Stop the global mock and create a new one for this test
     mocker.stopall()
 
-    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_jwt_authenticator_class = mocker.patch("utilities.JWTAuthenticator")
     mock_instance = mocker.MagicMock()
     mock_jwt_authenticator_class.return_value = mock_instance
 
@@ -569,7 +569,7 @@ def test_get_jwt_authenticator_returns_configured_instance(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("utilities.boto3.client")
 def test__get_api_key_for_url_ods_terminology_key(
     mock_boto_client: MagicMock,
 ) -> None:
@@ -600,7 +600,7 @@ def test__get_api_key_for_url_ods_terminology_key(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("utilities.boto3.client")
 def test__get_api_key_for_url_client_error_logs(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -629,7 +629,7 @@ def test__get_api_key_for_url_client_error_logs(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("utilities.boto3.client")
 def test__get_api_key_for_url_client_error_non_resource_not_found(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -664,7 +664,7 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     """
     mocker.stopall()
 
-    mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
+    mock_jwt_authenticator_class = mocker.patch("utilities.JWTAuthenticator")
     mock_instance = mocker.MagicMock()
     mock_jwt_authenticator_class.return_value = mock_instance
 
@@ -686,8 +686,8 @@ def test_build_headers_with_jwt_required(mocker: MockerFixture) -> None:
     """
     mock_jwt_auth = MagicMock()
     mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer test-token"}
-    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
 
     options = {
         "json_data": {"foo": "bar"},
@@ -707,7 +707,7 @@ def test_build_headers_without_jwt_required(mocker: MockerFixture) -> None:
     """
     Test build_headers function does not include JWT headers when not required.
     """
-    mocker.patch("pipeline.utilities._get_api_key_for_url", return_value="test-api-key")
+    mocker.patch("utilities._get_api_key_for_url", return_value="test-api-key")
     options = {
         "json_data": {"foo": "bar"},
         "jwt_required": False,
@@ -728,7 +728,7 @@ def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
     """
     mock_jwt_auth = MagicMock()
     mock_jwt_auth.get_auth_headers.return_value = {"Authorization": "Bearer fhir-token"}
-    mocker.patch("pipeline.utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
+    mocker.patch("utilities.get_jwt_authenticator", return_value=mock_jwt_auth)
 
     options = {
         "json_data": {"resourceType": "Patient"},
@@ -752,7 +752,7 @@ def test_build_headers_fhir_with_jwt(mocker: MockerFixture) -> None:
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("pipeline.utilities.boto3.client")
+@patch("utilities.boto3.client")
 def test__get_api_key_for_url_json_decode_error_logs(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:

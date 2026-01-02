@@ -5,7 +5,7 @@ import pytest
 from botocore.exceptions import ClientError
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.load_data import get_queue_name, load_data
+from producer.load_data import get_queue_name, load_data
 
 
 def test_get_queue_name_without_workspace() -> None:
@@ -139,7 +139,7 @@ def test_load_data_without_correlation_id(caplog: pytest.LogCaptureFixture) -> N
         {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
     ):
         with patch("boto3.client") as mock_boto_client:
-            with patch("pipeline.load_data.get_correlation_id", return_value=None):
+            with patch("producer.load_data.get_correlation_id", return_value=None):
                 mock_sqs = MagicMock()
                 mock_boto_client.return_value = mock_sqs
                 mock_sqs.get_queue_url.return_value = {
