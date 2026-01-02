@@ -77,17 +77,17 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 		make _install-dependency name="$${plugin}"; \
 	done
 
-jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME=cert_name] [KEY_NAME=key_name] [PFX_NAME=pfx_name]
+jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME=cert_name] [KEY_NAME=key_name] [PFX_NAME=pfx_name] [ENVIRONMENT=dev|test|int|ref]
 
 	aws secretsmanager get-secret-value \
 	--region eu-west-2 \
-	--secret-id /ftrs-directory-of-services/dev/api-ca-cert \
+	--secret-id /ftrs-directory-of-services/${ENVIRONMENT}/api-ca-cert \
 	--query 'SecretString' \
 	--output text > ${LOCAL_DIR}/${CERT_NAME}.crt
 
 	aws secretsmanager get-secret-value \
 		--region eu-west-2 \
-		--secret-id /ftrs-directory-of-services/dev/api-ca-pk \
+		--secret-id /ftrs-directory-of-services/${ENVIRONMENT}/api-ca-pk \
 		--query 'SecretString' \
 		--output text > ${LOCAL_DIR}/${KEY_NAME}.pem
 

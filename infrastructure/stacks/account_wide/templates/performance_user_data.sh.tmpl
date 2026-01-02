@@ -133,16 +133,15 @@ java -cp "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}
 bash "$${JM_HOME}/bin/PluginsManagerCMD.sh" install "$${DEFAULT_PLUGINS}" || true
 
 # Always install JWT dependency (used by IS_Proxy_Test_Plan)
-mkdir -p "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/java-jwt-$${JWT_VER}.jar" \
   "https://repo1.maven.org/maven2/com/auth0/java-jwt/$${JWT_VER}/java-jwt-$${JWT_VER}.jar" || true
 
 # Always install AWS SDK dependencies for AWS-related JMeter plugins
-curl -fL -o "$${JM_HOME}/lib/aws-core-$${AWS_JAVA_SDK_VERSION}.jar" \
-  "https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/$${AWS_JAVA_SDK_VERSION}/aws-core-$${AWS_JAVA_SDK_VERSION}.jar" || true
+curl -fL -o "$${JM_HOME}/lib/aws-core-2.40.16.jar" \
+  "https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/2.40.16/aws-core-2.40.16.jar" || true
 
-curl -fL -o "$${JM_HOME}/lib/secretsmanager-$${AWS_JAVA_SDK_VERSION}.jar" \
-  "https://repo1.maven.org/maven2/software/amazon/awssdk/secretsmanager/$${AWS_JAVA_SDK_VERSION}/secretsmanager-$${AWS_JAVA_SDK_VERSION}.jar" || true
+curl -fL -o "$${JM_HOME}/lib/secretsmanager-2.40.16.jar" \
+  "https://repo1.maven.org/maven2/software/amazon/awssdk/secretsmanager/2.40.16/secretsmanager-2.40.16.jar" || true
 
 # Provide convenience symlinks like gp_search
 ln -sf /opt/jmeter/apache-jmeter/bin/jmeter /usr/local/bin/jmeter
