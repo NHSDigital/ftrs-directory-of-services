@@ -7,16 +7,25 @@ variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
 
-variable "processor_name" {
-  description = "The name of the ETL ODS Processor Lambda function"
+variable "extractor_name" {
+  description = "The name of the ETL ODS Extractor Lambda function"
+}
+
+variable "transformer_name" {
+  description = "The name of the ETL ODS Transformer Lambda function"
 }
 
 variable "consumer_name" {
   description = "The name of the ETL ODS Consumer Lambda function"
 }
 
-variable "processor_lambda_handler" {
-  description = "The handler for the ETL ODS Processor Lambda function"
+variable "extractor_lambda_handler" {
+  description = "The handler for the ETL ODS Extractor Lambda function"
+  type        = string
+}
+
+variable "transformer_lambda_handler" {
+  description = "The handler for the ETL ODS Transformer Lambda function"
   type        = string
 }
 
@@ -30,8 +39,13 @@ variable "consumer_lambda_connection_timeout" {
   type        = number
 }
 
-variable "processor_lambda_connection_timeout" {
-  description = "The timeout for the ETL ODS processor lambda function. 12 minutes to allow for longer processing times"
+variable "extractor_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS extractor lambda function. 12 minutes to allow for longer processing times"
+  type        = number
+}
+
+variable "transformer_lambda_connection_timeout" {
+  description = "The timeout for the ETL ODS transformer lambda function"
   type        = number
 }
 

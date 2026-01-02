@@ -5,7 +5,7 @@ import pytest
 from botocore.exceptions import ClientError
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.load_data import get_queue_name, load_data
+from pipeline.sqs_sender import get_queue_name, load_data, send_messages_to_queue
 
 
 def test_get_queue_name_without_workspace() -> None:
@@ -20,6 +20,49 @@ def test_get_queue_name_with_workspace() -> None:
     result = get_queue_name("test", "branch")
     expected = "ftrs-dos-test-etl-ods-queue-branch"
     assert result == expected
+
+
+def test_get_queue_name_with_custom_suffix() -> None:
+    """Test queue name generation with custom suffix"""
+    result = get_queue_name("test", "branch", "transform")
+    expected = "ftrs-dos-test-etl-ods-transform-branch"
+    assert result == expected
+
+
+def test_send_messages_to_queue_successful(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test successful message sending to SQS with custom suffix"""
+    with patch.dict(
+        "os.environ",
+        {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
+    ):
+        with patch("boto3.client") as mock_boto_client:
+            mock_sqs = MagicMock()
+            mock_boto_client.return_value = mock_sqs
+            mock_sqs.get_queue_url.return_value = {
+                "QueueUrl": "https://sqs.region.amazonaws.com/test-transform-queue"
+            }
+            mock_sqs.send_message_batch.return_value = {
+                "Successful": [{"Id": "1"}],
+                "Failed": [],
+            }
+
+            test_messages = [{"test": "message1"}]
+            send_messages_to_queue(test_messages, queue_suffix="transform")
+
+            mock_boto_client.assert_called_once_with("sqs", region_name="local")
+            mock_sqs.get_queue_url.assert_called_once_with(
+                QueueName="ftrs-dos-test-etl-ods-transform-local"
+            )
+
+            expected_batch = [
+                {"Id": "1", "MessageBody": json.dumps({"test": "message1"})},
+            ]
+            mock_sqs.send_message_batch.assert_called_once_with(
+                QueueUrl="https://sqs.region.amazonaws.com/test-transform-queue",
+                Entries=expected_batch,
+            )
 
 
 def test_load_data_successful(
@@ -139,7 +182,7 @@ def test_load_data_without_correlation_id(caplog: pytest.LogCaptureFixture) -> N
         {"ENVIRONMENT": "test", "AWS_REGION": "local", "WORKSPACE": "local"},
     ):
         with patch("boto3.client") as mock_boto_client:
-            with patch("pipeline.load_data.get_correlation_id", return_value=None):
+            with patch("pipeline.sqs_sender.get_correlation_id", return_value=None):
                 mock_sqs = MagicMock()
                 mock_boto_client.return_value = mock_sqs
                 mock_sqs.get_queue_url.return_value = {
