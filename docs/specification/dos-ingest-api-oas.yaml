@@ -1339,3 +1339,7 @@ x-nhsd-apim:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  ratelimiting:
+    proxy:
+      timeunit: "minute"
+      limit: 300
