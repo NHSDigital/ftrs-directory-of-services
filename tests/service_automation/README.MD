@@ -226,6 +226,7 @@ The mock system automatically:
 - Configures the ETL Lambda environment variables to use the mock endpoint
 - Manages test data scenarios through predefined date-based triggers
 - Restores the original Lambda configuration after test completion
+- Available in both dev and test environments
 
 Or you can run tests for multiple markers
 

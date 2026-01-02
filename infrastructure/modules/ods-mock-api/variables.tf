@@ -4,7 +4,7 @@ variable "api_gateway_name" {
 }
 
 variable "api_gateway_description" {
-  description = "The description of the ODS Mock API Gateway (simulates real ODS API for development/testing)"
+  description = "The description of the ODS Mock API Gateway (simulates real ODS API for development and testing environments)"
   type        = string
 }
 
