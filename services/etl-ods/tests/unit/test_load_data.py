@@ -90,7 +90,7 @@ def test_load_data_successful(
                 QueueName="ftrs-dos-test-etl-ods-queue-local"
             )
             expected_batch = [
-                {"Id": "1", "MessageBody": json.dumps("message1")},
+                {"Id": "1", "MessageBody": "message1"},
             ]
             mock_sqs.send_message_batch.assert_called_once_with(
                 QueueUrl="https://sqs.region.amazonaws.com/test-queue",
