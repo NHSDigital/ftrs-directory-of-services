@@ -10,8 +10,6 @@ requires-python = ">=3.12,<4.0.0"
 dependencies = [
     "pydantic (>=2.10.6,<3.0.0)",
     "aws-lambda-powertools (>=3.13.0,<4.0.0)",
-    "requests-mock (>=1.12.1,<2.0.0)",
-    "pytest-mock (>=3.14.1,<4.0.0)",
     "typing-extensions (>=4.15.0,<5.0.0)",
     "PyJWT[crypto] (>=2.8.0,<3.0.0)"
 ]
@@ -23,17 +21,21 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 package-mode = false
 
+[tool.poetry.group.shared.dependencies]
+ftrs-python-packages = {path = "../../application/packages/python", develop = true}
+
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.14.2"
 pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
-pytest-mock = "^3.14.0"
 typer = "^0.15.2"
 requests = "^2.32.3"
 boto3 = "^1.38.6"
-boto3-stubs = {extras = ["dynamodb"], version = "^1.38.6"}
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 numpy = "^1.26.4"
+boto3-stubs = {extras = ["dynamodb", "s3", "sqs"], version = "^1.41.1"}
+pytest-mock = "^3.15.1"
+requests-mock = "^1.12.1"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"

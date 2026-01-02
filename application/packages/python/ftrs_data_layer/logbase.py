@@ -151,14 +151,6 @@ class DataMigrationLogBase(LogBase):
         level=WARNING,
         message="Record {record_id} failed validation and was not migrated",
     )
-    DM_ETL_015 = LogReference(
-        level=INFO,
-        message="Address for Organisation ID {organisation} is {address}",
-    )
-    DM_ETL_016 = LogReference(
-        level=WARNING,
-        message="No address found for Organisation ID {organisation}, setting address to None",
-    )
     DM_ETL_017 = LogReference(
         level=INFO,
         message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
@@ -167,6 +159,25 @@ class DataMigrationLogBase(LogBase):
     DM_ETL_018 = LogReference(
         level=WARNING,
         message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
+    )
+
+    DM_ETL_019 = LogReference(
+        level=INFO,
+        message="State record found for Service ID {record_id}, Skipping now...",
+    )
+    DM_ETL_020 = LogReference(
+        level=INFO,
+        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+    )
+
+    DM_ETL_021 = LogReference(
+        level=INFO,
+        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
+    )
+
+    DM_ETL_022 = LogReference(
+        level=ERROR,
+        message="One or more items exist for  Service ID {record_id}",
     )
 
     DM_ETL_999 = LogReference(
@@ -562,6 +573,10 @@ class CrudApisLogBase(LogBase):
     ORGANISATION_023 = LogReference(
         level=WARNING,
         message="Received invalid legal dates, legal period start and end dates are equal: {date}.",
+    )
+    ORGANISATION_024 = LogReference(
+        level=ERROR,
+        message="Error when validating roles for organisation {organisation_id}: {error_message}.",
     )
     HEALTHCARESERVICE_001 = LogReference(
         level=INFO,

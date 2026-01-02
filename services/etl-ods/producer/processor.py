@@ -14,7 +14,6 @@ from producer.extract import (
 )
 from producer.load_data import load_data
 from producer.transform import transform_to_payload
-from producer.validation import get_permitted_org_type
 
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
@@ -66,11 +65,7 @@ def _process_organisation(organisation: dict) -> str | None:
         correlation_id = get_correlation_id()
         request_id = get_request_id()
 
-        permitted_org_type = get_permitted_org_type(organisation)
-        if not permitted_org_type:
-            return None
-
-        fhir_organisation = transform_to_payload(organisation, permitted_org_type)
+        fhir_organisation = transform_to_payload(organisation)
         ods_code = fhir_organisation.identifier[0].value
 
         org_uuid = fetch_organisation_uuid(ods_code)

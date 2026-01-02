@@ -2,9 +2,9 @@ name: "Derive Workspace action"
 description: "Derives the name of the workspace for subsequent actions to run against"
 
 outputs:
-    workspace:
-        description: "The derived workspace name"
-        value: ${{ steps.derive-workspace.outputs.workspace }}
+  workspace:
+    description: "The derived workspace name"
+    value: ${{ steps.derive-workspace.outputs.workspace }}
 
 runs:
   using: "composite"

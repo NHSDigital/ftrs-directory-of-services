@@ -1,8 +1,9 @@
 import pytest
 from fhir.resources.R4B.address import Address
-from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganization
+from ftrs_data_layer.domain import Telecom
+from ftrs_data_layer.domain.enums import TelecomType
 
 from functions.ftrs_service.fhir_mapper.organization_mapper import OrganizationMapper
 
@@ -37,16 +38,6 @@ class TestOrganizationMapper:
         assert identifiers[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
         assert identifiers[0].value == "123456"
 
-    def test_create_telecom(self, organization_mapper, organisation):
-        # Act
-        telecom = organization_mapper._create_telecom(organisation)
-
-        # Assert
-        assert len(telecom) == 1
-        assert isinstance(telecom[0], ContactPoint)
-        assert telecom[0].system == "phone"
-        assert telecom[0].value == "123456789"
-
     def test_create_dummy_address(self, organization_mapper):
         # Act
         address = organization_mapper._create_dummy_address()
@@ -63,9 +54,21 @@ class TestOrganizationMapper:
     @pytest.mark.parametrize(
         ("org_name", "telecom", "active"),
         [
-            ("Test Org 1", "01234567890", True),
-            ("Test Org 2", "09876543210", False),
-            ("Default Name", "00000000000", True),
+            (
+                "Test Org 1",
+                [
+                    Telecom(
+                        type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True
+                    )
+                ],
+                True,
+            ),
+            (
+                "Test Org 2",
+                [Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+                False,
+            ),
+            ("Default Name", [], True),
         ],
     )
     def test_map_to_organization_with_different_values(
@@ -81,5 +84,6 @@ class TestOrganizationMapper:
 
         # Assert
         assert org_resource.name == org_name
-        assert org_resource.telecom[0].value == telecom
+        if len(telecom) > 0 or len(org_resource.telecom) > 0:
+            assert org_resource.telecom[0].value == telecom[0].value
         assert org_resource.active == active
