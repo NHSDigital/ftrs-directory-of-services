@@ -263,7 +263,10 @@ def test_processor_processing_organisations_successful(
     )
     # Assert send_messages_to_queue call
     load_data_mock.assert_called_once()
-    data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
+    # Check the first argument (messages) and queue_suffix parameter
+    call_args, call_kwargs = load_data_mock.call_args
+    data_to_load = [json.loads(entry) for entry in call_args[0]]
+    assert call_kwargs.get("queue_suffix") == "queue"
     # Check the data struct
     assert data_to_load == [
         {
@@ -485,7 +488,10 @@ def test_processor_continue_on_validation_failure(
 
     # Assert send_messages_to_queue call - only EFG456 should be loaded
     load_data_mock.assert_called_once()
-    data_to_load = [json.loads(entry) for entry in load_data_mock.call_args[0][0]]
+    # Check the first argument (messages) and queue_suffix parameter
+    call_args, call_kwargs = load_data_mock.call_args
+    data_to_load = [json.loads(entry) for entry in call_args[0]]
+    assert call_kwargs.get("queue_suffix") == "queue"
 
     assert len(data_to_load) == 1
     assert data_to_load[0]["path"] == "00000000-0000-0000-0000-000000000EFG"
