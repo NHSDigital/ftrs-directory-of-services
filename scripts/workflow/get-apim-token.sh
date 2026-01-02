@@ -12,54 +12,15 @@ set -e
       --region $AWS_REGION \
       --output text)
 
-# Create Python script for JWT generation
-cat > /tmp/create_jwt.py << 'PYTHON_SCRIPT'
-import uuid
-from time import time
-
-import jwt
-import sys
-import os
-import json
-
-def create_signed_jwt(proxygen_jwt_secrets):
-    """Create a signed JWT for APIM authentication"""
-    try:
-        proxygen_jwt_creds = json.loads(proxygen_jwt_secrets)
-
-        # Set JWT claims
-        claims = {
-            "sub": proxygen_jwt_creds["client_id"],
-            "iss": proxygen_jwt_creds["client_id"],
-            "jti": str(uuid.uuid4()),
-            "aud": proxygen_jwt_creds["token_url"],
-            "exp": int(time()) + 300,
-        }
-
-        signed_jwt = jwt.encode(
-          claims, proxygen_jwt_creds["private_key"], algorithm="RS512", headers={'kid': proxygen_jwt_creds["kid"]}
-        )
-
-        return signed_jwt
-
-    except Exception as e:
-        print(f"Error creating signed JWT: {str(e)}", file=sys.stderr)
-        sys.exit(1)
-
-if __name__ == "__main__":
-    proxygen_jwt_secrets = os.environ.get('PROXYGEN_JWT_SECRETS')
-
-    signed_jwt = create_signed_jwt(proxygen_jwt_secrets)
-    print(signed_jwt)
-PYTHON_SCRIPT
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Generate signed JWT
 echo "Creating signed JWT..." >&2
-SIGNED_JWT=$(token_url="$token_url" python3 /tmp/create_jwt.py)
+SIGNED_JWT=$(PROXYGEN_JWT_SECRETS="$PROXYGEN_JWT_SECRETS" python3 "$SCRIPT_DIR/create_jwt.py")
 
 if [ -z "$SIGNED_JWT" ]; then
     echo "Error: Failed to create signed JWT" >&2
-    rm -f /tmp/create_jwt.py
     exit 1
 fi
 
@@ -75,9 +36,6 @@ RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TOKEN_URL" \
 # Extract HTTP status code and response body
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | head -n-1)
-
-# Clean up temporary file
-rm -f /tmp/create_jwt.py
 
 # Check response
 if [ "$HTTP_CODE" -ne 200 ]; then
