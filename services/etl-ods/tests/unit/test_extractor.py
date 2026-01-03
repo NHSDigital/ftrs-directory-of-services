@@ -39,9 +39,7 @@ def test_processor_success(mocker: MockerFixture) -> None:
         "pipeline.extractor.fetch_outdated_organisations",
         return_value=mock_organisations,
     )
-    mock_send = mocker.patch(
-        "pipeline.extractor._send_organisations_to_transform_queue"
-    )
+    mock_send = mocker.patch("pipeline.extractor._send_organisations_to_queue")
 
     date = "2025-01-15"
     processor(date)
@@ -55,9 +53,7 @@ def test_processor_no_organisations(mocker: MockerFixture) -> None:
     mock_fetch = mocker.patch(
         "pipeline.extractor.fetch_outdated_organisations", return_value=[]
     )
-    mock_send = mocker.patch(
-        "pipeline.extractor._send_organisations_to_transform_queue"
-    )
+    mock_send = mocker.patch("pipeline.extractor._send_organisations_to_queue")
 
     date = "2025-01-15"
     processor(date)
@@ -99,17 +95,22 @@ def test_send_organisations_to_queue(mocker: MockerFixture) -> None:
 
 def test_extractor_lambda_handler_success(mocker: MockerFixture) -> None:
     """Test successful lambda handler execution."""
+    # Use a recent date to avoid validation failure
+    recent_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
     mock_processor = mocker.patch("pipeline.extractor.processor")
 
-    event = {"date": "2025-01-15"}
+    event = {"date": recent_date}
     context = MagicMock()
     context.aws_request_id = "test-request-id"
 
     result = extractor_lambda_handler(event, context)
 
     assert result["statusCode"] == HTTPStatus.OK
-    assert "Successfully processed organizations for 2025-01-15" in result["message"]
-    mock_processor.assert_called_once_with("2025-01-15")
+    assert (
+        f"Successfully processed organizations for {recent_date}" in result["message"]
+    )
+    mock_processor.assert_called_once_with(date=recent_date)
 
 
 def test_extractor_lambda_handler_missing_date() -> None:
@@ -120,7 +121,8 @@ def test_extractor_lambda_handler_missing_date() -> None:
     result = extractor_lambda_handler(event, context)
 
     assert result["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert "Missing required parameter: date" in result["error"]
+    error_body = result["body"]
+    assert "Missing required parameter: date" in error_body
 
 
 def test_extractor_lambda_handler_invalid_date_format() -> None:
@@ -131,7 +133,8 @@ def test_extractor_lambda_handler_invalid_date_format() -> None:
     result = extractor_lambda_handler(event, context)
 
     assert result["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert "Date must be in YYYY-MM-DD format" in result["error"]
+    error_body = result["body"]
+    assert "Date must be in YYYY-MM-DD format" in error_body
 
 
 def test_extractor_lambda_handler_date_too_old() -> None:
@@ -143,20 +146,25 @@ def test_extractor_lambda_handler_date_too_old() -> None:
     result = extractor_lambda_handler(event, context)
 
     assert result["statusCode"] == HTTPStatus.BAD_REQUEST
-    assert f"Date {old_date} is older than 185 days" in result["error"]
+    error_body = result["body"]
+    assert "Date must not be more than 185 days in the past" in error_body
 
 
 def test_extractor_lambda_handler_exception(mocker: MockerFixture) -> None:
     """Test lambda handler handles processor exceptions."""
+    # Use a recent date to avoid validation failure
+    recent_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
     mocker.patch("pipeline.extractor.processor", side_effect=Exception("Test error"))
 
-    event = {"date": "2025-01-15"}
+    event = {"date": recent_date}
     context = MagicMock()
 
     result = extractor_lambda_handler(event, context)
 
     assert result["statusCode"] == HTTPStatus.INTERNAL_SERVER_ERROR
-    assert "Processing failed: Test error" in result["error"]
+    error_body = result["body"]
+    assert "Unexpected error: Test error" in error_body
 
 
 def test_validate_date_valid() -> None:
@@ -182,7 +190,7 @@ def test_validate_date_too_old() -> None:
     is_valid, error = _validate_date(old_date)
 
     assert is_valid is False
-    assert f"Date {old_date} is older than 185 days" in error
+    assert "Date must not be more than 185 days in the past" in error
 
 
 def test_validate_date_exactly_185_days() -> None:

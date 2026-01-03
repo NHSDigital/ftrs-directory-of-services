@@ -88,14 +88,17 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             # if triggered by EventBridge Scheduler, use the scheduled time minus one day
             date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
         if not date:
-            return _error_response(400, "Date parameter is required")
+            return _error_response(400, "Missing required parameter: date")
 
         valid, error_message = _validate_date(date)
         if not valid:
             return _error_response(400, error_message)
         else:
             processor(date=date)
-            return {"statusCode": 200, "body": "Extraction complete"}
+            return {
+                "statusCode": 200,
+                "message": f"Successfully processed organizations for {date}",
+            }
 
     except Exception as e:
         ods_processor_logger.log(
@@ -115,7 +118,7 @@ def _validate_date(date_str: str) -> tuple[bool, str | None]:
         return False, "Date must be in YYYY-MM-DD format"
     today = datetime.now(timezone.utc)
     if (today - input_date).days > MAX_DAYS_PAST:
-        return False, f"Date must not be more than {MAX_DAYS_PAST} days in the past"
+        return False, "Date must not be more than 185 days in the past"
     return True, None
 
 

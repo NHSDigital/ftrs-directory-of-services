@@ -1,5 +1,5 @@
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_mock import MockerFixture
@@ -43,7 +43,12 @@ def test_transformer_lambda_handler_success(mocker: MockerFixture) -> None:
 def test_transformer_lambda_handler_missing_fields(mocker: MockerFixture) -> None:
     """Test transformer handles missing required fields."""
     event = {
-        "Records": [{"messageId": "msg1", "body": json.dumps({"incomplete": "data"})}]
+        "Records": [
+            {
+                "messageId": "msg1",
+                "body": json.dumps({"incomplete": "data"}),
+            }
+        ]
     }
 
     result = transformer_lambda_handler(event, {})
@@ -175,18 +180,20 @@ def test_process_organisation_success(mocker: MockerFixture) -> None:
     mocker.patch(
         "pipeline.transformer.fetch_organisation_uuid", return_value="uuid-123"
     )
-    mocker.patch(
-        "pipeline.transformer.current_correlation_id.get", return_value="corr-123"
-    )
-    mocker.patch("pipeline.transformer.current_request_id.get", return_value="req-456")
 
-    result = _process_organisation(mock_organisation)
+    # Use patch context manager to mock the context variables
+    with patch("pipeline.transformer.current_correlation_id") as mock_corr_id:
+        with patch("pipeline.transformer.current_request_id") as mock_req_id:
+            mock_corr_id.get.return_value = "corr-123"
+            mock_req_id.get.return_value = "req-456"
 
-    assert result is not None
-    parsed_result = json.loads(result)
-    assert parsed_result["path"] == "uuid-123"
-    assert parsed_result["correlation_id"] == "corr-123"
-    assert parsed_result["request_id"] == "req-456"
+            result = _process_organisation(mock_organisation)
+
+            assert result is not None
+            parsed_result = json.loads(result)
+            assert parsed_result["path"] == "uuid-123"
+            assert parsed_result["correlation_id"] == "corr-123"
+            assert parsed_result["request_id"] == "req-456"
 
 
 def test_process_organisation_uuid_not_found(mocker: MockerFixture) -> None:
