@@ -60,7 +60,7 @@ def _send_organisations_to_queue(organisations: list[dict]) -> None:
         messages.append(message_body)
 
     # Send all messages using the centralized SQS sender
-    send_messages_to_queue(messages, queue_suffix="transform")
+    send_messages_to_queue(messages, queue_suffix="transform-queue")
 
 
 def extractor_lambda_handler(event: dict, context: any) -> dict:

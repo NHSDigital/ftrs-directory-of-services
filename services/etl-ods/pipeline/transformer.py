@@ -111,7 +111,9 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
 
                     # Send data in batches of BATCH_SIZE to final queue
                     if len(transformed_batch) == BATCH_SIZE:
-                        send_messages_to_queue(transformed_batch, queue_suffix="queue")
+                        send_messages_to_queue(
+                            transformed_batch, queue_suffix="load-queue"
+                        )
                         transformed_batch.clear()
 
                 ods_processor_logger.log(
@@ -128,6 +130,6 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
 
     # Send any remaining transformed data to final queue
     if transformed_batch:
-        send_messages_to_queue(transformed_batch, queue_suffix="queue")
+        send_messages_to_queue(transformed_batch, queue_suffix="load-queue")
 
     return {"batchItemFailures": batch_item_failures}

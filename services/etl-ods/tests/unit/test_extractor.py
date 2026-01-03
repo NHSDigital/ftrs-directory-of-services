@@ -89,7 +89,7 @@ def test_send_organisations_to_queue(mocker: MockerFixture) -> None:
     ]
 
     mock_send_messages.assert_called_once_with(
-        expected_messages, queue_suffix="transform"
+        expected_messages, queue_suffix="transform-queue"
     )
 
 

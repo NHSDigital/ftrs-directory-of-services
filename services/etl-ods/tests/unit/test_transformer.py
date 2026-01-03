@@ -37,7 +37,9 @@ def test_transformer_lambda_handler_success(mocker: MockerFixture) -> None:
 
     assert result["batchItemFailures"] == []
     mock_process.assert_called_once()
-    mock_send_messages.assert_called_once_with(["processed_data"], queue_suffix="queue")
+    mock_send_messages.assert_called_once_with(
+        ["processed_data"], queue_suffix="load-queue"
+    )
 
 
 def test_transformer_lambda_handler_missing_fields(mocker: MockerFixture) -> None:
