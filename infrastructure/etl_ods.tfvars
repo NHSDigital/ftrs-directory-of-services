@@ -22,7 +22,7 @@ s3_versioning                      = false
 
 
 delay_seconds              = 10
-visibility_timeout_seconds = 30
+visibility_timeout_seconds = 1800
 max_message_size           = 10240
 message_retention_seconds  = 86400
 receive_wait_time_seconds  = 2
