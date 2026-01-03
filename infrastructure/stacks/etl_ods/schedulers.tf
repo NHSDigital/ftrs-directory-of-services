@@ -6,7 +6,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
   # checkov:skip=CKV_AWS_297: TODO Determine if we need a KMS key for Scheduler
   name        = "${local.resource_prefix}-ods-etl-schedule${local.workspace_suffix}"
   group_name  = aws_scheduler_schedule_group.etl_schedule_group.name
-  description = "Schedule to trigger the ODS ETL processor lambda"
+  description = "Schedule to trigger the ODS ETL extractor lambda"
   state       = local.is_primary_environment ? "ENABLED" : "DISABLED"
 
   flexible_time_window {
@@ -17,7 +17,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
   schedule_expression_timezone = "Europe/London"
 
   target {
-    arn      = module.processor_lambda.lambda_function_arn
+    arn      = module.extractor_lambda.lambda_function_arn
     role_arn = aws_iam_role.ods_etl_scheduler_invoke_role.arn
 
     input = jsonencode({ "is_scheduled" = true })
