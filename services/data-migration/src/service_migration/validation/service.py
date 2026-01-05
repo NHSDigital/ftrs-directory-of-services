@@ -55,7 +55,7 @@ class GPPracticeValidator(ServiceValidator):
         r"^[a-zA-Z0-9\s\-'.,()]+(?:\s+&\s+[a-zA-Z0-9\s\-'.,()]+)*$"
     )
     # Maximum allowed length for practice names
-    MAX_NAME_LENGTH = 200  # TODO: FTRS-1961 confirm appropriate length
+    MAX_NAME_LENGTH = 100
 
     # More comprehensive dangerous patterns
     DANGEROUS_PATTERNS = re.compile(
