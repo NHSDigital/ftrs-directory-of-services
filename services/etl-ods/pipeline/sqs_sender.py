@@ -54,6 +54,10 @@ def send_messages_to_queue(
         queue_suffix: Queue type suffix (e.g., "queue", "extraction", "transform")
         batch_size: Number of messages per batch (max 10 for SQS)
     """
+    # Return early if no messages to send
+    if not messages:
+        return
+
     try:
         correlation_id = get_correlation_id()
         if correlation_id:
@@ -66,10 +70,16 @@ def send_messages_to_queue(
         response_get_queue = get_queue_url(queue_name, sqs)
         queue_url = response_get_queue["QueueUrl"]
 
+        total_messages = len(messages)
+
         # Process messages in batches
         for i in range(0, len(messages), batch_size):
             batch = messages[i : i + batch_size]
-            _send_batch_to_sqs(sqs, queue_url, batch, i)
+            batch_start = i + 1
+            batch_end = min(i + len(batch), total_messages)
+            _send_batch_to_sqs(
+                sqs, queue_url, batch, (batch_start, batch_end, total_messages)
+            )
 
     except Exception as e:
         ods_processor_logger.log(
@@ -80,19 +90,23 @@ def send_messages_to_queue(
 
 
 def _send_batch_to_sqs(
-    sqs: BaseClient, queue_url: str, batch: list[str | dict], batch_offset: int = 0
+    sqs: BaseClient,
+    queue_url: str,
+    batch: list[str | dict],
+    batch_info: tuple[int, int, int],  # (batch_start, batch_end, total_messages)
 ) -> None:
-    """Send a single batch of messages to SQS."""
+    """Send a single batch of messages to SQS with progress tracking."""
+    batch_start, batch_end, total_messages = batch_info
     sqs_entries = []
-    for index, message in enumerate(batch, start=1):
+    for index, message in enumerate(batch, start=batch_start):
         message_body = json.dumps(message) if isinstance(message, dict) else message
-        sqs_entries.append(
-            {"Id": str(batch_offset + index), "MessageBody": message_body}
-        )
+        sqs_entries.append({"Id": str(index), "MessageBody": message_body})
 
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_014,
         number=len(sqs_entries),
+        batch_range=f"{batch_start}-{batch_end}",
+        remaining=total_messages - batch_end,
     )
 
     response = sqs.send_message_batch(QueueUrl=queue_url, Entries=sqs_entries)
@@ -105,6 +119,7 @@ def _send_batch_to_sqs(
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_015,
             failed=failed,
+            batch_range=f"{batch_start}-{batch_end}",
         )
 
         for fail in failed_messages:
@@ -119,6 +134,8 @@ def _send_batch_to_sqs(
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_017,
             successful=successful,
+            batch_range=f"{batch_start}-{batch_end}",
+            remaining=total_messages - batch_end,
         )
 
 

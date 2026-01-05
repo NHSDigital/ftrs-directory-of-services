@@ -116,10 +116,10 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
                         )
                         transformed_batch.clear()
 
-                ods_processor_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_004,
-                    message_id=message_id,
-                )
+                    ods_processor_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_004,
+                        message_id=message_id,
+                    )
 
         except Exception:
             ods_processor_logger.log(
