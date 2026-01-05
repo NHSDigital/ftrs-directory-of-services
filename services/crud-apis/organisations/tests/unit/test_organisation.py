@@ -306,6 +306,29 @@ def test_update_organisation_no_updates(
     )
 
 
+def test_update_organisation_success_no_telecom() -> None:
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+    }
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["issue"][0]["code"] == "success"
+    assert response.json()["issue"][0]["severity"] == "information"
+    assert (
+        response.json()["issue"][0]["diagnostics"]
+        == "Organisation updated successfully"
+    )
+
+
 def test_update_organisation_operation_outcome(
     mock_organisation_service: MockerFixture,
 ) -> None:
