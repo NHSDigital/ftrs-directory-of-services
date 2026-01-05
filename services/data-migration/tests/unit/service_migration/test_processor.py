@@ -150,8 +150,6 @@ def test_process_service(
     )
     processor.metadata = mock_metadata_cache
 
-    processor.logger.append_keys = mocker.MagicMock()
-    processor.logger.remove_keys = mocker.MagicMock()
     processor._save = mocker.MagicMock()
     processor.verify_state_record_exist = mocker.MagicMock(return_value=None)
 
@@ -463,8 +461,6 @@ def test_handles_invalid_service(
 
     processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
     processor.metadata = mock_metadata_cache
-    processor.logger.append_keys = mocker.MagicMock()
-    processor.logger.remove_keys = mocker.MagicMock()
     processor._save = mocker.MagicMock()
 
     assert processor.metrics == DataMigrationMetrics(
@@ -957,13 +953,13 @@ def test_verify_state_record_exist_returns_none_for_new_service(
     mock_logger: MockLogger,
 ) -> None:
     """When record does not exist in state table, returns None (insert operation)"""
+    # Test data constants
+    test_record_id = 12345
+
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
-
-    # Mock logger.debug() to avoid MockLogger TypeError
-    processor.logger.debug = mocker.MagicMock()
 
     # Mock DynamoDB client to return empty response (no Item)
     mock_dynamodb_client = mocker.MagicMock()
@@ -979,6 +975,16 @@ def test_verify_state_record_exist_returns_none_for_new_service(
 
     # Verify returns None for insert scenario
     assert result is None
+
+    # Verify DM_ETL_023 was logged (retrieving state)
+    assert mock_logger.was_logged("DM_ETL_023") is True
+    log_entry = mock_logger.get_log("DM_ETL_023")[0]
+    assert log_entry["detail"]["record_id"] == test_record_id
+
+    # Verify DM_ETL_020 was logged (no state record found)
+    assert mock_logger.was_logged("DM_ETL_020") is True
+    log_entry = mock_logger.get_log("DM_ETL_020")[0]
+    assert log_entry["detail"]["record_id"] == test_record_id
 
     # Verify get_item was called with correct parameters
     mock_dynamodb_client.get_item.assert_called_once()
@@ -1004,9 +1010,6 @@ def test_verify_state_record_exist_returns_object_for_existing_service(
         config=mock_config,
         logger=mock_logger,
     )
-
-    # Mock logger.debug() to avoid MockLogger TypeError
-    processor.logger.debug = mocker.MagicMock()
 
     # Create a mock DynamoDB response with state record
     mock_dynamodb_response = {
@@ -1060,7 +1063,12 @@ def test_verify_state_record_exist_returns_object_for_existing_service(
     assert result.source_record_id == test_source_record_id
     assert result.version == test_version
 
-    # Verify DM_ETL_019 was logged
+    # Verify DM_ETL_023 was logged (retrieving state)
+    assert mock_logger.was_logged("DM_ETL_023") is True
+    log_entry = mock_logger.get_log("DM_ETL_023")[0]
+    assert log_entry["detail"]["record_id"] == test_record_id
+
+    # Verify DM_ETL_019 was logged (state found)
     assert mock_logger.was_logged("DM_ETL_019") is True
     log_entry = mock_logger.get_log("DM_ETL_019")[0]
     assert log_entry["detail"]["record_id"] == test_record_id
@@ -1081,11 +1089,6 @@ def test_update_operation_exits_early_with_state(
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
-
-    # Mock logger methods to avoid MockLogger TypeError
-    processor.logger.debug = mocker.MagicMock()
-    processor.logger.append_keys = mocker.MagicMock()
-    processor.logger.remove_keys = mocker.MagicMock()
 
     # Mock DynamoDB client
     mock_dynamodb_client = mocker.MagicMock()
