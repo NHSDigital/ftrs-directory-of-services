@@ -99,9 +99,11 @@ class JWTAuthenticator:
         current_time = time()
 
         # Check if we have a cached token that hasn't expired
-        if (self._cached_token and
-            self._token_expires_at and
-            current_time < self._token_expires_at):
+        if (
+            self._cached_token
+            and self._token_expires_at
+            and current_time < self._token_expires_at
+        ):
             print("Using cached JWT token")
             return self._cached_token
 
