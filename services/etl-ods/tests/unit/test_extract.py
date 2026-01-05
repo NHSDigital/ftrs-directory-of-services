@@ -48,7 +48,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "producer.extract.make_request", return_value=mock_bundle
+        "producer.extract.make_ods_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -68,7 +68,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "producer.extract.make_request",
+        "producer.extract.make_ods_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -125,7 +125,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "producer.extract.make_request", side_effect=[first_page, second_page]
+        "producer.extract.make_ods_request", side_effect=[first_page, second_page]
     )
 
     date = "2025-10-15"
@@ -154,7 +154,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
         ],
     }
     make_request_mock = mocker.patch(
-        "producer.extract.make_request", return_value=mock_response
+        "producer.extract.make_apim_request", return_value=mock_response
     )
 
     result_bundle = fetch_organisation_uuid("XYZ999")
@@ -184,7 +184,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         raise http_err
 
     mocker.patch(
-        "producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
     )
 
     with caplog.at_level("WARNING"):
@@ -213,7 +213,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         raise http_err
 
     mocker.patch(
-        "producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
     )
     with caplog.at_level("ERROR"):
         with pytest.raises(HTTPError) as excinfo:
@@ -230,7 +230,7 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "producer.extract.make_request",
+        "producer.extract.make_apim_request",
         return_value={
             "resourceType": "Not Bundle",
             "status_code": 200,
@@ -256,7 +256,7 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "producer.extract.make_request",
+        "producer.extract.make_apim_request",
         return_value={
             "resourceType": "Bundle",
             "status_code": 200,

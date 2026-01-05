@@ -9,7 +9,7 @@ from ftrs_common.utils.correlation_id import (
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from utilities import get_base_apim_api_url, make_request
+from consumer.apim_client import get_base_apim_api_url, make_apim_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
@@ -47,7 +47,7 @@ def process_message_and_send_request(record: dict) -> None:
         api_url = api_url + "/Organization/" + path
 
         try:
-            response_data = make_request(
+            response_data = make_apim_request(
                 api_url, method="PUT", json=body, jwt_required=True
             )
             ods_consumer_logger.log(

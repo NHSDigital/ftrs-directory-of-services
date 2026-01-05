@@ -6,11 +6,8 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from utilities import (
-    get_base_apim_api_url,
-    get_base_ods_terminology_api_url,
-    make_request,
-)
+from consumer.apim_client import get_base_apim_api_url, make_apim_request
+from producer.ods_client import get_base_ods_terminology_api_url, make_ods_request
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
 
@@ -41,7 +38,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
             page_num=page_count,
         )
 
-        bundle = make_request(ods_url, params=params)
+        bundle = make_ods_request(ods_url, params=params)
         organisations = _extract_organizations_from_bundle(bundle)
 
         if organisations:
@@ -117,7 +114,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             OdsETLPipelineLogBase.ETL_PROCESSOR_028,
             ods_code=ods_code,
         )
-        response = make_request(
+        response = make_apim_request(
             organisation_get_uuid_uri, method="GET", jwt_required=True
         )
         if isinstance(response, dict) and response.get("resourceType") == "Bundle":
