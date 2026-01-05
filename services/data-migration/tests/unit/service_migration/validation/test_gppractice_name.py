@@ -224,13 +224,13 @@ def test_empty_or_none_input(
 # Length Tests
 def test_reject_name_too_long(validator: GPPracticeValidator) -> None:
     """Test that names exceeding maximum length are rejected."""
-    long_name: str = "A" * 201
+    long_name: str = "A" * 101
     assert_invalid_name(validator, long_name, "publicname_too_long")
 
 
 def test_allow_name_at_max_length(validator: GPPracticeValidator) -> None:
     """Test that names at exactly max length are accepted."""
-    max_name: str = "A" * 200
+    max_name: str = "A" * 100
     result: FieldValidationResult[str] = validator.validate_name(max_name)
     assert result.sanitised is not None
     assert len(result.issues) == 0
