@@ -113,6 +113,13 @@ class GPPracticeValidator(ServiceValidator):
         if error := self._validate_basic_checks(name):
             return error
 
+        # Remove GP prefix variations from the start of the name
+        gp_prefixes = ["GP - ", "GP -", "GP- ", "GP-"]
+        for prefix in gp_prefixes:
+            if name.startswith(prefix):
+                name = name[len(prefix) :].strip()
+                break
+
         # Apply hyphen-splitting business rule BEFORE validation
         # This ensures we only validate the part we'll actually use
         name = name.split(" - ", maxsplit=1)[0].strip()
