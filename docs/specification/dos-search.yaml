@@ -32,10 +32,10 @@ info:
     TBC
 
     ## Service levels
-    This is a platinum service, meaning it is operational and supported 24 hours a day, 365 days a year. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
+    Business hours support between 8am and 6pm, Monday to Friday, but not bank holidays. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
 
     ## Rate limits
-    This API is rate limited. The default rate limit is 5 requests per second and 300 requests per minute. If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
+    This API is rate limited. The default rate limit is 10 requests per second and 300 requests per minute. If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
 
     ## Technology
     This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
@@ -52,7 +52,7 @@ info:
     ## Network access
     This API is available over the internet.
 
-    This API is accessible from the public internet using standard HTTPS connections. No VPN or NHS network connection is required. Authentication is handled via JWT Private Key authentication as described in the access modes section
+    This API is accessible from the public internet using standard HTTPS connections. See access mode section for authentication methods.
 
     ## Errors
     We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
@@ -67,9 +67,11 @@ info:
 
     ### Sandbox testing
     Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing) is for early developer testing, only covers a limited set of scenarios, and is open access, so does not allow you to test authorisation.
+    Link to sandbox test environment: `https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4`
 
     ### Integration testing
     Our [integration test environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing) is for formal integration testing and includes authorisation via JWT Private Key.
+    Link to integration test environment: `https://int.api.service.nhs.uk/dos-search/FHIR/R4`
 
     ## Onboarding
     You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
@@ -81,7 +83,9 @@ info:
 
     ## Related APIs
     The following APIs are related to this API:
-    - [Organisation Data Service - FHIR API](https://digital.nhs.uk/developer/api-catalogue/organisation-data-service-fhir) - use this API to search for organisation and practitioner information
+    - [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap)
+    - [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest)
+    - [Electronic Prescription Service - Directory of Services API](https://digital.nhs.uk/developer/api-catalogue/electronic-prescription-service-directory-of-services)
 
     ## Contact us
     For support or to provide feedback on this API, please [contact us](https://digital.nhs.uk/developer/help-and-support).
@@ -100,7 +104,7 @@ security:
 paths:
   /Organization:
     get:
-      summary: Search for organizations by ODS code to return Organisation details (including endpoints managed by the Organisation)
+      summary: Search for organisations by ODS code to return Organisation details (including endpoints managed by the Organisation)
       description: |
         ## Overview
         Retrieve an Organisation identified by an ODS code (including endpoints managed by the Organisation).
