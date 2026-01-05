@@ -63,16 +63,18 @@ module "extractor_lambda" {
 }
 
 module "transformer_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.transformer_name}"
-  description             = "Lambda to transform individual ODS organizations and send to consumer queue"
-  handler                 = var.transformer_lambda_handler
-  runtime                 = var.lambda_runtime
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
-  ignore_source_code_hash = false
-  timeout                 = var.transformer_lambda_connection_timeout
-  memory_size             = var.lambda_memory_size
+  source                         = "../../modules/lambda"
+  function_name                  = "${local.resource_prefix}-${var.transformer_name}"
+  description                    = "Lambda to transform individual ODS organizations and send to consumer queue"
+  handler                        = var.transformer_lambda_handler
+  runtime                        = var.lambda_runtime
+  s3_bucket_name                 = local.artefacts_bucket
+  s3_key                         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash        = false
+  timeout                        = var.transformer_lambda_connection_timeout
+  memory_size                    = var.lambda_memory_size
+  reserved_concurrent_executions = 30
+
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.transformer_lambda_security_group.id]
@@ -109,9 +111,15 @@ module "transformer_lambda" {
 resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
   event_source_arn        = aws_sqs_queue.transform_queue.arn
   function_name           = module.transformer_lambda.lambda_function_name
-  enabled                 = true
   batch_size              = 10
+  enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
+
+  scaling_config {
+    maximum_concurrency = 30
+  }
+
+  maximum_batching_window_in_seconds = 5
 
   depends_on = [
     module.transformer_lambda
@@ -119,16 +127,17 @@ resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
 }
 
 module "consumer_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.consumer_name}"
-  description             = "Lambda to consume queue data in the etl pipeline"
-  handler                 = var.consumer_lambda_handler
-  runtime                 = var.lambda_runtime
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
-  ignore_source_code_hash = false
-  timeout                 = var.consumer_lambda_connection_timeout
-  memory_size             = var.lambda_memory_size
+  source                         = "../../modules/lambda"
+  function_name                  = "${local.resource_prefix}-${var.consumer_name}"
+  description                    = "Lambda to consume queue data in the etl pipeline"
+  handler                        = var.consumer_lambda_handler
+  runtime                        = var.lambda_runtime
+  s3_bucket_name                 = local.artefacts_bucket
+  s3_key                         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  ignore_source_code_hash        = false
+  timeout                        = var.consumer_lambda_connection_timeout
+  memory_size                    = var.lambda_memory_size
+  reserved_concurrent_executions = 30
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
@@ -169,6 +178,12 @@ resource "aws_lambda_event_source_mapping" "consumer_queue_trigger" {
   batch_size              = 10
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
+
+  scaling_config {
+    maximum_concurrency = 30
+  }
+
+  maximum_batching_window_in_seconds = 5
 
   depends_on = [
     module.consumer_lambda

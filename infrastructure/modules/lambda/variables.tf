@@ -138,3 +138,9 @@ variable "cloudwatch_log_level" {
   type        = string
   default     = "INFO"
 }
+
+variable "reserved_concurrent_executions" {
+  description = "Reserved concurrent executions for the Lambda function"
+  type        = number
+  default     = null
+}
