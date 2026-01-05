@@ -404,6 +404,7 @@ class DataMigrationProcessor:
             "data-migration-state", self.config.env, self.config.workspace
         )
         source_record_id = DataMigrationState.make_source_record_id(record_id)
+        self.logger.info(f"Retrieving state record for service ID: {record_id}")
 
         response = dynamodb_client.get_item(
             TableName=state_table,
@@ -422,5 +423,5 @@ class DataMigrationProcessor:
             )
             return state
 
-        self.logger.debug(f"No state record found for service ID: {record_id}")
+        self.logger.info(f"No state record found for service ID: {record_id}")
         return None
