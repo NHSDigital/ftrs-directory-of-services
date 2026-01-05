@@ -28,9 +28,6 @@ info:
     This access mode adopts the following security/authentication patterns:
     - JWT Private Key authentication
 
-    ## Roadmap
-    TBC
-
     ## Service levels
     Business hours support between 8am and 6pm, Monday to Friday, but not bank holidays. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
 
