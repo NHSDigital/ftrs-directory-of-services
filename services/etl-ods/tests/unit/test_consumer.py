@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.consumer import (
@@ -17,7 +18,9 @@ from pipeline.consumer import (
 def test_consumer_lambda_handler_success(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
             {
@@ -73,7 +76,9 @@ def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) 
 def test_consumer_lambda_handler_failure(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
             {
@@ -134,7 +139,9 @@ def test_consumer_lambda_handler_handle_missing_message_parameters(
     path: str,
     body: dict,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
             {

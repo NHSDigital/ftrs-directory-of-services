@@ -1,4 +1,5 @@
 import json
+import os
 from http import HTTPStatus
 
 import requests
@@ -60,26 +61,45 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
                     message_id=record["messageId"],
                 )
             except RateLimitExceededException as rate_limit_error:
-                ods_consumer_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_010,
-                    message_id=message_id,
-                    receive_count=receive_count,
-                    error_message=f"Rate limit exceeded - message will be retried: {str(rate_limit_error)}",
-                )
+                max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+                if receive_count >= max_receive_count:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                        message_id=message_id,
+                        receive_count=receive_count,
+                        error_message=f"Rate limit exceeded - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                        exception=rate_limit_error,
+                    )
+                else:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                        message_id=message_id,
+                        receive_count=receive_count,
+                        error_message=f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})",
+                    )
                 batch_item_failures.append({"itemIdentifier": record["messageId"]})
             except Exception:
-                ods_consumer_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_005,
-                    message_id=record["messageId"],
-                )
+                max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+                if receive_count >= max_receive_count:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                        message_id=record["messageId"],
+                        error_message=f"Processing failed - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                    )
+                else:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                        message_id=record["messageId"],
+                        error_message=f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count})",
+                    )
                 batch_item_failures.append({"itemIdentifier": record["messageId"]})
 
-        # if batch_item_failures:
-        #     ods_consumer_logger.log(
-        #         OdsETLPipelineLogBase.ETL_CONSUMER_012,
-        #         retry_count=len(batch_item_failures),
-        #         total_records=len(records),
-        #     )
+        if batch_item_failures:
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                retry_count=len(batch_item_failures),
+                total_records=len(records),
+            )
 
         sqs_batch_response["batchItemFailures"] = batch_item_failures
         return sqs_batch_response

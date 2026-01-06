@@ -13,6 +13,9 @@ EXPECTED_BATCH_CALLS = 2
 
 def test_transformer_lambda_handler_success(mocker: MockerFixture) -> None:
     """Test successful transformation of organization messages."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mocker.patch("pipeline.transformer.ods_transformer_logger")
+
     mock_process = mocker.patch(
         "pipeline.transformer._process_organisation", return_value="processed_data"
     )
@@ -45,6 +48,7 @@ def test_transformer_lambda_handler_success(mocker: MockerFixture) -> None:
 
 def test_transformer_lambda_handler_missing_fields(mocker: MockerFixture) -> None:
     """Test transformer handles missing required fields."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
             {
@@ -63,6 +67,9 @@ def test_transformer_lambda_handler_missing_fields(mocker: MockerFixture) -> Non
 
 def test_transformer_lambda_handler_processing_failure(mocker: MockerFixture) -> None:
     """Test transformer handles processing failures."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mocker.patch("pipeline.transformer.ods_transformer_logger")
+
     mock_process = mocker.patch(
         "pipeline.transformer._process_organisation", return_value=None
     )
@@ -93,6 +100,9 @@ def test_transformer_lambda_handler_processing_failure(mocker: MockerFixture) ->
 
 def test_transformer_lambda_handler_batch_processing(mocker: MockerFixture) -> None:
     """Test transformer processes multiple messages and sends in batches."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mocker.patch("pipeline.transformer.ods_transformer_logger")
+
     mock_process = mocker.patch(
         "pipeline.transformer._process_organisation", return_value="processed_data"
     )
@@ -127,6 +137,9 @@ def test_transformer_lambda_handler_batch_processing(mocker: MockerFixture) -> N
 
 def test_transformer_lambda_handler_exception(mocker: MockerFixture) -> None:
     """Test transformer handles processing exceptions."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mocker.patch("pipeline.transformer.ods_transformer_logger")
+
     mocker.patch(
         "pipeline.transformer._process_organisation",
         side_effect=Exception("Processing failed"),

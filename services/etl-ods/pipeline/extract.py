@@ -14,7 +14,7 @@ from pipeline.utilities import (
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
 
-ods_processor_logger = Logger.get(service="ods_processor")
+ods_extractor_logger = Logger.get(service="ods_extractor")
 
 
 def fetch_outdated_organisations(date: str) -> list[dict]:
@@ -28,14 +28,14 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     page_count = 0
     max_pages = 100  # Safety limit to prevent infinite loops
 
-    ods_processor_logger.log(
+    ods_extractor_logger.log(
         OdsETLPipelineLogBase.ETL_EXTRACTOR_001,
         date=date,
     )
 
     while ods_url and page_count < max_pages:
         page_count += 1
-        ods_processor_logger.log(
+        ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_034,
             date=date,
             page_num=page_count,
@@ -46,7 +46,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
 
         if organisations:
             all_organisations.extend(organisations)
-            ods_processor_logger.log(
+            ods_extractor_logger.log(
                 OdsETLPipelineLogBase.ETL_EXTRACTOR_035,
                 page_num=page_count,
                 page_total=len(organisations),
@@ -57,13 +57,13 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         params = None  # Clear params for subsequent pages
 
     if not all_organisations:
-        ods_processor_logger.log(
+        ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_020,
             date=date,
         )
         return []
 
-    ods_processor_logger.log(
+    ods_extractor_logger.log(
         OdsETLPipelineLogBase.ETL_EXTRACTOR_002,
         bundle_total=len(all_organisations),
         total_pages=page_count,
@@ -80,7 +80,7 @@ def _get_page_limit() -> int:
     except (ValueError, TypeError):
         pass
 
-    ods_processor_logger.log(
+    ods_extractor_logger.log(
         OdsETLPipelineLogBase.ETL_EXTRACTOR_021,
         invalid_value=raw_value,
         env_var="ODS_API_PAGE_LIMIT",
@@ -113,7 +113,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     )
 
     try:
-        ods_processor_logger.log(
+        ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_028,
             ods_code=ods_code,
         )
@@ -125,7 +125,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             if organizations:
                 return organizations[0].get("id")
             return None
-        ods_processor_logger.log(
+        ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_030,
             ods_code=ods_code,
             type=response.get("resourceType"),
@@ -137,7 +137,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             http_err.response is not None
             and http_err.response.status_code == HTTPStatus.NOT_FOUND
         ):
-            ods_processor_logger.log(
+            ods_extractor_logger.log(
                 OdsETLPipelineLogBase.ETL_EXTRACTOR_007,
             )
             raise ValueError(
@@ -148,7 +148,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
 
 def validate_ods_code(ods_code: str) -> None:
     if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
-        ods_processor_logger.log(
+        ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_012,
             e=f"Invalid ODS code: {ods_code}",
         )

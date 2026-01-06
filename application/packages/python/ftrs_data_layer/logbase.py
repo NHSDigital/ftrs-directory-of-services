@@ -420,6 +420,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=ERROR,
         message="Request failed for message id: {message_id}.",
     )
+    ETL_CONSUMER_010 = LogReference(
+        level=ERROR,
+        message="Returning {retry_count} messages to queue due to failure out of {total_records} processed records.",
+    )
     ETL_UTILS_001 = LogReference(
         level=INFO,
         message="Running in local environment, using LOCAL_CRUD_API_URL environment variable.",

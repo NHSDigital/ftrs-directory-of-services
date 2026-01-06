@@ -94,10 +94,11 @@ module "transformer_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
-    "APIM_URL"     = var.apim_url
+    "ENVIRONMENT"       = var.environment
+    "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"      = var.project
+    "APIM_URL"          = var.apim_url
+    "MAX_RECEIVE_COUNT" = tostring(var.max_receive_count)
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -157,10 +158,11 @@ module "consumer_lambda" {
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
-    "APIM_URL"     = var.apim_url
+    "ENVIRONMENT"       = var.environment
+    "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"      = var.project
+    "APIM_URL"          = var.apim_url
+    "MAX_RECEIVE_COUNT" = tostring(var.max_receive_count)
   }
 
   account_id     = data.aws_caller_identity.current.account_id
