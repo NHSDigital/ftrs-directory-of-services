@@ -20,8 +20,18 @@ def test_consumer_lambda_handler_success(
 ) -> None:
     event = {
         "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
         ]
     }
 
@@ -66,8 +76,18 @@ def test_consumer_lambda_handler_failure(
 ) -> None:
     event = {
         "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
         ]
     }
 
@@ -119,6 +139,7 @@ def test_consumer_lambda_handler_handle_missing_message_parameters(
         "Records": [
             {
                 "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "path": path,
                 "body": body,
             }

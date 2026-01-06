@@ -22,6 +22,7 @@ def test_transformer_lambda_handler_success(mocker: MockerFixture) -> None:
         "Records": [
             {
                 "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "body": json.dumps(
                     {
                         "organisation": {"id": "org1", "name": "Test Org"},
@@ -48,6 +49,7 @@ def test_transformer_lambda_handler_missing_fields(mocker: MockerFixture) -> Non
         "Records": [
             {
                 "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "body": json.dumps({"incomplete": "data"}),
             }
         ]
@@ -70,6 +72,7 @@ def test_transformer_lambda_handler_processing_failure(mocker: MockerFixture) ->
         "Records": [
             {
                 "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "body": json.dumps(
                     {
                         "organisation": {"id": "org1", "name": "Test Org"},
@@ -101,6 +104,7 @@ def test_transformer_lambda_handler_batch_processing(mocker: MockerFixture) -> N
         records.append(
             {
                 "messageId": f"msg{i}",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "body": json.dumps(
                     {
                         "organisation": {"id": f"org{i}", "name": f"Test Org {i}"},
@@ -132,6 +136,7 @@ def test_transformer_lambda_handler_exception(mocker: MockerFixture) -> None:
         "Records": [
             {
                 "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "body": json.dumps(
                     {
                         "organisation": {"id": "org1", "name": "Test Org"},
