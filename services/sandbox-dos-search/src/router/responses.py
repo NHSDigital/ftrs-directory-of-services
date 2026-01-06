@@ -25,21 +25,6 @@ SUCCESS_BUNDLE_ABC123 = {
                 ],
                 "active": True,
                 "name": "Example Organization",
-                "telecom": [
-                    {"system": "phone", "value": "01234 567890"},
-                    {"system": "email", "value": "example@example.com"},
-                ],
-                "address": [
-                    {
-                        "line": [
-                            "Example Medical Practice",
-                            "Example Street",
-                        ],
-                        "city": "Example City",
-                        "postalCode": "AB12 3CD",
-                        "country": "ENGLAND",
-                    }
-                ],
             },
             "search": {"mode": "match"},
         },
