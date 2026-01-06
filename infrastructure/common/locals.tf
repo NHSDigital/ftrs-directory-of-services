@@ -44,4 +44,9 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
+
+  github_runner_arn = var.app_github_runner_role_arn
+
+  opensearch_collection_name = var.opensearch_collection_name
+  opensearch_index_name      = "${var.index_base}${local.workspace_suffix}"
 }
