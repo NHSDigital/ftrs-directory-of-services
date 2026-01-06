@@ -64,3 +64,64 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
     }
   ])
 }
+
+resource "aws_opensearchserverless_security_policy" "opensearch_serverless_workspace_network_access_policy" {
+  count       = local.workspace_suffix == "" ? 0 : 1
+  name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-nap"
+  description = "Workspace-level network access for collection dashboards and collection endpoint"
+  type        = "network"
+
+  policy = jsonencode([
+    {
+      Description     = "Workspace dashboard access"
+      AllowFromPublic = true
+      Rules = [
+        {
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
+          ResourceType = "dashboard"
+        }
+      ]
+    },
+    {
+      Description     = "Workspace network access for collection"
+      AllowFromPublic = false
+      Rules = [
+        {
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
+          ResourceType = "collection"
+        }
+      ]
+    }
+  ])
+}
+
+resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspace_data_access_policy" {
+  count       = local.workspace_suffix == "" ? 0 : 1
+  name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
+  type        = "data"
+  description = "Workspace-level data access for collection (allows ingestion by pipeline/runner)"
+
+  policy = jsonencode([
+    {
+      Rules = [
+        {
+          ResourceType = "collection"
+          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
+          Permission = [
+            "aoss:CreateCollectionItems",
+            "aoss:UpdateCollectionItems",
+            "aoss:DescribeCollectionItems",
+            "aoss:DeleteCollectionItems"
+          ]
+        }
+      ],
+      Principal = concat(
+        [
+          aws_iam_role.osis_pipelines_role.arn,
+          local.github_runner_arn
+        ],
+        local.env_sso_roles
+      )
+    }
+  ])
+}

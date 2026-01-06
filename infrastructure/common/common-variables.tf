@@ -70,6 +70,12 @@ variable "app_github_runner_role_name" {
   default     = "app-github-runner"
 }
 
+variable "app_github_runner_role_arn" {
+  description = "IAM role ARN for the GitHub runner to include in policies (optional override)"
+  type        = string
+  default     = ""
+}
+
 variable "stack_name" {
   description = "The hyphenated version of the stack name used in names of resources defined in that stack"
   type        = string
@@ -176,4 +182,16 @@ variable "included_cloudfront_log_fields" {
     "sc-range-start",
     "sc-range-end"
   ]
+}
+
+variable "index_base" {
+  description = "Base name of the OpenSearch index (workspace suffix will be appended at runtime)"
+  type        = string
+  default     = "triage_code"
+}
+
+variable "opensearch_collection_name" {
+  description = "Optional existing OpenSearch collection name to use; leave empty to let modules create or lookup a collection."
+  type        = string
+  default     = ""
 }

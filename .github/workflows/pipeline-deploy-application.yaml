@@ -202,6 +202,20 @@ jobs:
       type: app
     secrets: inherit
 
+  deploy-open-search-indexes:
+    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
+    if: github.ref != 'refs/heads/main'
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+      - restore-dynamodb-from-s3
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets: inherit
+
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:

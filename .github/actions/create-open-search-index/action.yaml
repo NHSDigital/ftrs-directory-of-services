@@ -1,0 +1,53 @@
+name: 'Create open search index action'
+description: 'Creates the required index in open search'
+
+inputs:
+  workspace:
+    description: 'The name of the workspace'
+    required: false
+    default: ''
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  domain:
+    description: 'The name of the collection to target (defaults to ftrs-dos-dev-osc)'
+    required: true
+    default: 'ftrs-dos-dev-osc'
+  index:
+    description: 'The OpenSearch index name to create'
+    required: true
+    default: 'triage_code*'
+  aws_region:
+    description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
+    required: true
+    default: ''
+outputs:
+  endpoint:
+    description: 'Resolved OpenSearch collection endpoint'
+    value: '${{ steps.create_index.outputs.endpoint }}'
+  final_index:
+    description: 'Final index name created'
+    value: '${{ steps.create_index.outputs.final_index }}'
+runs:
+  using: 'composite'
+  steps:
+    - name: Create OpenSearch index
+      id: create_index
+      shell: bash
+      env:
+        INDEX: ${{ inputs.index }}
+        OPEN_SEARCH_DOMAIN: ${{ inputs.domain }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        AWS_REGION: ${{ inputs.aws_region }}
+      run: |
+        set -euo pipefail
+
+        echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>}"
+
+        python3 -m pip install --upgrade pip setuptools wheel
+
+        python3 -m pip install boto3 requests
+
+        python3 ./scripts/workflow/create_open_search_index.py
+
