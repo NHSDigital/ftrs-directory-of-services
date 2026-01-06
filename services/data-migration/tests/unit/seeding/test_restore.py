@@ -167,7 +167,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
                 ["location"],
             ),
             mocker.call(
-                "ftrs-dos-local-database-data-migration-state-fdos-000",
+                "ftrs-dos-local-data-migration-state-fdos-000",
                 ["data-migration-state"],
             ),
         ]
