@@ -48,6 +48,6 @@ locals {
 
   github_runner_arn = var.app_github_runner_role_arn
 
-  opensearch_collection_name = try(data.aws_opensearchserverless_collection.opensearch_serverless_collection.name, "")
+  opensearch_collection_name = var.opensearch_collection_name
   opensearch_index_name      = "${var.index_base}${local.workspace_suffix}"
 }
