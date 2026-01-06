@@ -6,7 +6,8 @@ import pytest
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
-from producer.ods_client import get_base_ods_terminology_api_url, make_ods_request
+from common.url_utils import get_base_ods_terminology_api_url
+from producer.ods_client import make_ods_request
 
 
 @patch.dict(

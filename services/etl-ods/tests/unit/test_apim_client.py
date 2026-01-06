@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
-from common.apim_client import get_base_apim_api_url, make_apim_request
+from common.apim_client import make_apim_request
+from common.url_utils import get_base_apim_api_url
 
 
 @patch.dict(
