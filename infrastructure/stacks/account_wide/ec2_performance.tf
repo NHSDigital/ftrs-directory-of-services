@@ -123,7 +123,8 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
     resources = [
       aws_secretsmanager_secret.api_jmeter_pks_key[0].arn,
       aws_secretsmanager_secret.api_ca_cert_secret[0].arn,
-      aws_secretsmanager_secret.api_ca_pk_secret[0].arn
+      aws_secretsmanager_secret.api_ca_pk_secret[0].arn,
+      aws_secretsmanager_secret.dos_search_jwt_credentials[0].arn
     ]
   }
 
