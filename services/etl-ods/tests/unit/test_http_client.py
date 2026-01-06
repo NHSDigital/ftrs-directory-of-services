@@ -280,3 +280,25 @@ def test_build_headers_with_all_options() -> None:
     assert headers["apikey"] == "test-api-key"
     assert headers["Authorization"] == "Bearer test-token"
     assert "X-Correlation-ID" in headers
+
+
+def test_make_request_with_response_request_id_header(
+    requests_mock: RequestsMock, mocker: MockerFixture
+) -> None:
+    requests_mock.get(
+        "https://api.example.com/resource",
+        json={"key": "value"},
+        status_code=HTTPStatus.OK,
+        headers={"X-Request-ID": "test-request-id-123"},
+    )
+
+    mock_logger_append_keys = mocker.patch(
+        "common.http_client.http_client_logger.append_keys"
+    )
+
+    headers = build_headers()
+    result = make_request("https://api.example.com/resource", headers=headers)
+
+    assert result == {"key": "value", "status_code": HTTPStatus.OK}
+
+    mock_logger_append_keys.assert_any_call(response_request_id="test-request-id-123")

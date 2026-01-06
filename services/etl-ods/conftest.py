@@ -29,5 +29,5 @@ def mock_jwt_authenticator_global(mocker: MockerFixture) -> MagicMock:
     mock_auth.get_auth_headers.return_value = {"Authorization": "Bearer mock-jwt-token"}
     mock_auth.get_bearer_token.return_value = "mock-jwt-token"
     mocker.patch("common.auth.get_jwt_authenticator", return_value=mock_auth)
-    mocker.patch("consumer.apim_client.get_jwt_authenticator", return_value=mock_auth)
+    mocker.patch("common.apim_client.get_jwt_authenticator", return_value=mock_auth)
     return mock_auth

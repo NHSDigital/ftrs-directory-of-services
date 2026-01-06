@@ -11,13 +11,15 @@ from ftrs_common.utils.correlation_id import (
 from ftrs_common.utils.request_id import REQUEST_ID_HEADER
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-http_client_logger = Logger.get(service="ods_http_client")
-
 TIMEOUT_SECONDS = 20
+FHIR_JSON_CONTENT_TYPE = "application/fhir+json"
+RESOURCE_TYPE_OPERATION_OUTCOME = "OperationOutcome"
+
+http_client_logger = Logger.get(service="ods_http_client")
 
 
 def handle_operation_outcomes(data: dict, method: str | None = None) -> dict:
-    if data.get("resourceType") != "OperationOutcome":
+    if data.get("resourceType") != RESOURCE_TYPE_OPERATION_OUTCOME:
         return data
 
     severities = {
@@ -41,7 +43,7 @@ def build_headers(
 
     headers = {
         CORRELATION_ID_HEADER: correlation_id,
-        "Accept": "application/fhir+json",
+        "Accept": FHIR_JSON_CONTENT_TYPE,
     }
 
     if api_key:
@@ -51,7 +53,7 @@ def build_headers(
         headers.update(auth_headers)
 
     if json_data is not None or json_string is not None:
-        headers["Content-Type"] = "application/fhir+json"
+        headers["Content-Type"] = FHIR_JSON_CONTENT_TYPE
 
     return headers
 

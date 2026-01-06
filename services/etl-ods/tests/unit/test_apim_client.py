@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
-from consumer.apim_client import get_base_apim_api_url, make_apim_request
+from common.apim_client import get_base_apim_api_url, make_apim_request
 
 
 @patch.dict(
@@ -44,9 +44,7 @@ def test_make_apim_request_success_with_jwt(
     mock_jwt_auth.get_auth_headers.return_value = {
         "Authorization": "Bearer test-jwt-token"
     }
-    mocker.patch(
-        "consumer.apim_client.get_jwt_authenticator", return_value=mock_jwt_auth
-    )
+    mocker.patch("common.apim_client.get_jwt_authenticator", return_value=mock_jwt_auth)
 
     mock_call = requests_mock.get(
         "https://apim.example.com/Organization",
@@ -97,9 +95,7 @@ def test_make_apim_request_with_json_data(
     mock_jwt_auth.get_auth_headers.return_value = {
         "Authorization": "Bearer test-jwt-token"
     }
-    mocker.patch(
-        "consumer.apim_client.get_jwt_authenticator", return_value=mock_jwt_auth
-    )
+    mocker.patch("common.apim_client.get_jwt_authenticator", return_value=mock_jwt_auth)
 
     expected_response = {
         "resourceType": "OperationOutcome",

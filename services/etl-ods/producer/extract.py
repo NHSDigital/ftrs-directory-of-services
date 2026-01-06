@@ -6,10 +6,20 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from consumer.apim_client import get_base_apim_api_url, make_apim_request
-from producer.ods_client import get_base_ods_terminology_api_url, make_ods_request
+from common.apim_client import make_apim_request
+from common.url_utils import (
+    build_organization_search_url,
+    get_base_apim_api_url,
+    get_base_ods_terminology_api_url,
+)
+from producer.ods_client import make_ods_request
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
+MAX_PAGES = 100  # Safety limit to prevent infinite loops
+RESOURCE_TYPE_BUNDLE = "Bundle"
+RESOURCE_TYPE_ORGANIZATION = "Organization"
+LINK_RELATION_NEXT = "next"
+ODS_CODE_PATTERN = r"^[A-Za-z0-9]{5,12}$"
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -23,14 +33,13 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     params = {"_lastUpdated": f"{date}", "_count": _get_page_limit()}
     ods_url = get_base_ods_terminology_api_url()
     page_count = 0
-    max_pages = 100  # Safety limit to prevent infinite loops
 
     ods_processor_logger.log(
         OdsETLPipelineLogBase.ETL_PROCESSOR_001,
         date=date,
     )
 
-    while ods_url and page_count < max_pages:
+    while ods_url and page_count < MAX_PAGES:
         page_count += 1
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_034,
@@ -87,12 +96,12 @@ def _get_page_limit() -> int:
 
 
 def _extract_next_page_url(bundle: dict) -> str | None:
-    if bundle.get("resourceType") != "Bundle":
+    if bundle.get("resourceType") != RESOURCE_TYPE_BUNDLE:
         return None
 
     links = bundle.get("link", [])
     for link in links:
-        if link.get("relation") == "next":
+        if link.get("relation") == LINK_RELATION_NEXT:
             return link.get("url")
 
     return None
@@ -104,10 +113,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
     validate_ods_code(ods_code)
     base_url = get_base_apim_api_url()
-    identifier_param = f"odsOrganisationCode|{ods_code}"
-    organisation_get_uuid_uri = (
-        base_url + "/Organization?identifier=" + identifier_param
-    )
+    organisation_get_uuid_uri = build_organization_search_url(base_url, ods_code)
 
     try:
         ods_processor_logger.log(
@@ -117,7 +123,10 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
         response = make_apim_request(
             organisation_get_uuid_uri, method="GET", jwt_required=True
         )
-        if isinstance(response, dict) and response.get("resourceType") == "Bundle":
+        if (
+            isinstance(response, dict)
+            and response.get("resourceType") == RESOURCE_TYPE_BUNDLE
+        ):
             organizations = _extract_organizations_from_bundle(response)
             if organizations:
                 return organizations[0].get("id")
@@ -155,10 +164,10 @@ def validate_ods_code(ods_code: str) -> None:
 
 def _extract_organizations_from_bundle(bundle: dict) -> list[dict]:
     organizations = []
-    if bundle.get("resourceType") == "Bundle":
+    if bundle.get("resourceType") == RESOURCE_TYPE_BUNDLE:
         entries = bundle.get("entry", [])
         for entry in entries:
             resource = entry.get("resource")
-            if resource and resource.get("resourceType") == "Organization":
+            if resource and resource.get("resourceType") == RESOURCE_TYPE_ORGANIZATION:
                 organizations.append(resource)
     return organizations
