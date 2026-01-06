@@ -133,8 +133,7 @@ jobs:
     secrets: inherit
 
   deploy-proxy-to-apim:
-    name: "Authenticate and Deploy ${{ matrix.api_name }} API to Proxygen in ${{ needs.metadata.outputs.environment }}"
-    if: needs.metadata.outputs.environment == 'dev' && github.ref != 'refs/heads/main' # TODO: Update condition once further environment work is complete
+    name: "Deploy ${{ matrix.api_name }} API to Proxygen"
     needs:
       - metadata
       - deploy-application-infrastructure
@@ -148,7 +147,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       api_name: ${{ matrix.api_name }}
-      apim_env: "internal-dev"
+      apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
