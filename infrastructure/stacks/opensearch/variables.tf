@@ -58,20 +58,8 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   type        = string
 }
 
-variable "index_base" {
-  description = "Base name of the OpenSearch index (workspace suffix will be appended at runtime)"
-  type        = string
-  default     = "triage_code"
-}
-
 variable "include_github_runner_principal" {
   description = "Whether to include the GitHub runner role ARN in access policy Principals"
   type        = bool
   default     = false
-}
-
-variable "opensearch_collection_name" {
-  description = "Optional existing OpenSearch collection name to use; leave empty to let modules create or lookup a collection."
-  type        = string
-  default     = ""
 }
