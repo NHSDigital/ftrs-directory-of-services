@@ -3,10 +3,16 @@ Shared pytest fixtures for all test files.
 This module provides reusable fixtures that can be used across all test files.
 """
 
+import importlib.util
+import sys
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Callable
 from uuid import UUID, uuid4
 
 import pytest
+from botocore.credentials import ReadOnlyCredentials
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
 from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
@@ -192,3 +198,114 @@ def create_fhir_endpoint():
         )
 
     return _create_fhir_endpoint
+
+
+@dataclass
+class DummyResp:
+    status_code: int
+    _text: str
+    headers: dict[str, str]
+    reason: str
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+
+def _find_repo_root_with_scripts(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur] + list(cur.parents):
+        if (p / "scripts" / "workflow").exists():
+            return p
+    return start.resolve().parents[4]
+
+
+def _load_module_spec() -> Any:
+    repo_root = _find_repo_root_with_scripts(Path(__file__))
+    mod_path = repo_root / "scripts" / "workflow" / "create_open_search_index.py"
+    spec = importlib.util.spec_from_file_location(
+        "scripts.workflow.create_open_search_index", str(mod_path)
+    )
+    module = importlib.util.module_from_spec(spec)  # type: ignore
+    # ensure spec and its loader are present before returning
+    assert spec is not None
+    assert spec.loader is not None
+    return module
+
+
+@pytest.fixture
+def create_module() -> Any:
+    prev_local = sys.modules.get("create_open_search_index")
+    prev_pkg = sys.modules.get("scripts.workflow.create_open_search_index")
+    module = _load_module_spec()
+    sys.modules["create_open_search_index"] = module
+    sys.modules["scripts.workflow.create_open_search_index"] = module
+    try:
+        module.__spec__.loader.exec_module(module)  # type: ignore
+        yield module
+    finally:
+        if prev_local is None:
+            sys.modules.pop("create_open_search_index", None)
+        else:
+            sys.modules["create_open_search_index"] = prev_local
+        if prev_pkg is None:
+            sys.modules.pop("scripts.workflow.create_open_search_index", None)
+        else:
+            sys.modules["scripts.workflow.create_open_search_index"] = prev_pkg
+
+
+def _load_populate_spec() -> Any:
+    repo_root = _find_repo_root_with_scripts(Path(__file__))
+    mod_path = repo_root / "scripts" / "workflow" / "populate_open_search_index.py"
+    spec = importlib.util.spec_from_file_location(
+        "scripts.workflow.populate_open_search_index", str(mod_path)
+    )
+    module = importlib.util.module_from_spec(spec)  # type: ignore
+    # ensure spec and its loader are present before returning
+    assert spec is not None
+    assert spec.loader is not None
+    return module
+
+
+@pytest.fixture
+def create_populate_module() -> Any:
+    prev_local = sys.modules.get("populate_open_search_index")
+    prev_pkg = sys.modules.get("scripts.workflow.populate_open_search_index")
+    module = _load_populate_spec()
+    sys.modules["populate_open_search_index"] = module
+    sys.modules["scripts.workflow.populate_open_search_index"] = module
+    try:
+        module.__spec__.loader.exec_module(module)  # type: ignore
+        yield module
+    finally:
+        if prev_local is None:
+            sys.modules.pop("populate_open_search_index", None)
+        else:
+            sys.modules["populate_open_search_index"] = prev_local
+        if prev_pkg is None:
+            sys.modules.pop("scripts.workflow.populate_open_search_index", None)
+        else:
+            sys.modules["scripts.workflow.populate_open_search_index"] = prev_pkg
+
+
+@pytest.fixture
+def fake_credentials() -> ReadOnlyCredentials:
+    return ReadOnlyCredentials(
+        access_key="AKIAFAKE", secret_key="secret", token="token"
+    )
+
+
+def _dummy_response_factory(
+    status_code: int = 200,
+    text: str = "",
+    headers: dict[str, str] | None = None,
+    reason: str = "",
+) -> Any:
+    return DummyResp(
+        status_code=status_code, _text=text, headers=headers or {}, reason=reason
+    )
+
+
+@pytest.fixture
+def dummy_response() -> Callable[..., Any]:
+    return _dummy_response_factory

@@ -57,3 +57,15 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }
+
+variable "index_base" {
+  description = "Base name of the OpenSearch index (workspace suffix will be appended at runtime)"
+  type        = string
+  default     = "triage_code"
+}
+
+variable "include_github_runner_principal" {
+  description = "Whether to include the GitHub runner role ARN in access policy Principals"
+  type        = bool
+  default     = false
+}
