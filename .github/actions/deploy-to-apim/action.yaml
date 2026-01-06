@@ -42,9 +42,9 @@ runs:
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       shell: bash
       run: |
-        # Skip validation if workspace is not provided (e.g., for int environment)
-        if [ -z "${{ inputs.workspace }}" ]; then
-          echo "No workspace provided - skipping validation (environment: ${{ inputs.environment }})"
+        # Skip validation if workspace is not provided or is 'default' (e.g., for int environment)
+        if [ -z "${{ inputs.workspace }}" ] || [ "${{ inputs.workspace }}" == "default" ]; then
+          echo "No workspace provided or default workspace - skipping validation (environment: ${{ inputs.environment }})"
         elif [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
           echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
           exit 1
