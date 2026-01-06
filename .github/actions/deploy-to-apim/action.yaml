@@ -58,7 +58,10 @@ runs:
       shell: bash
       run: |
         export API_NAME="${{ inputs.api_name }}"
-        export WORKSPACE="${{ inputs.workspace }}"
+        # Only set WORKSPACE if it's not empty and not 'default'
+        if [ -n "${{ inputs.workspace }}" ] && [ "${{ inputs.workspace }}" != "default" ]; then
+          export WORKSPACE="${{ inputs.workspace }}"
+        fi
         export PROXY_ENV="${{ inputs.apim_env }}"
 
         chmod +x ./scripts/workflow/modify-oas-spec.sh
@@ -98,7 +101,10 @@ runs:
       shell: bash
       run: |
         export API_NAME="${{ inputs.api_name }}"
-        export WORKSPACE="${{ inputs.workspace }}"
+        # Only set WORKSPACE if it's not empty and not 'default'
+        if [ -n "${{ inputs.workspace }}" ] && [ "${{ inputs.workspace }}" != "default" ]; then
+          export WORKSPACE="${{ inputs.workspace }}"
+        fi
         export PROXY_ENV="${{ inputs.apim_env }}"
         export ACCESS_TOKEN="${{ inputs.access_token }}"
         export PROXYGEN_URL="${{ inputs.proxygen_url }}"
