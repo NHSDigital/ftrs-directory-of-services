@@ -666,7 +666,6 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     # Stop all existing mocks
     mocker.stopall()
 
-    # Clear the global cache by setting it to None
     pipeline.utilities._jwt_authenticator = None
 
     mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
@@ -675,7 +674,6 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
 
     result = get_jwt_authenticator()
 
-    # Verify the constructor was called with correct parameters for local environment
     mock_jwt_authenticator_class.assert_called_once_with(
         environment="local",
         region="eu-west-2",

@@ -23,7 +23,7 @@ def test_transform_to_payload_logs_and_returns_organization(
 
     mock_mapper.assert_called_once_with(ods_fhir)
     mock_logger.assert_called_once_with(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_026,
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_026,
         ods_code=ods_code,
     )
     assert result == fake_organization

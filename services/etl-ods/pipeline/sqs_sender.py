@@ -36,7 +36,7 @@ def get_queue_url(queue_name: str, sqs: BaseClient) -> dict[str, Any]:
         return sqs.get_queue_url(QueueName=queue_name)
     except Exception as e:
         ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_013,
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_013,
             queue_name=queue_name,
             error_message=str(e),
         )
@@ -83,7 +83,7 @@ def send_messages_to_queue(
 
     except Exception as e:
         ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_018,
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_018,
             error_message=str(e),
         )
         raise
@@ -103,7 +103,7 @@ def _send_batch_to_sqs(
         sqs_entries.append({"Id": str(index), "MessageBody": message_body})
 
     ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_014,
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_014,
         number=len(sqs_entries),
         batch_range=f"{batch_start}-{batch_end}",
         remaining=total_messages - batch_end,
@@ -117,14 +117,14 @@ def _send_batch_to_sqs(
 
     if failed > 0:
         ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_015,
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_015,
             failed=failed,
             batch_range=f"{batch_start}-{batch_end}",
         )
 
         for fail in failed_messages:
             ods_processor_logger.log(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_016,
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_016,
                 id=fail.get("Id"),
                 message=fail.get("Message"),
                 code=fail.get("Code"),
@@ -132,7 +132,7 @@ def _send_batch_to_sqs(
 
     if successful > 0:
         ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_017,
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_017,
             successful=successful,
             batch_range=f"{batch_start}-{batch_end}",
             remaining=total_messages - batch_end,

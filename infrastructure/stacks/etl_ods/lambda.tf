@@ -73,7 +73,7 @@ module "transformer_lambda" {
   ignore_source_code_hash        = false
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 30
+  reserved_concurrent_executions = 5
 
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -116,7 +116,7 @@ resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 30
+    maximum_concurrency = 5
   }
 
   maximum_batching_window_in_seconds = 5
@@ -137,7 +137,7 @@ module "consumer_lambda" {
   ignore_source_code_hash        = false
   timeout                        = var.consumer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 30
+  reserved_concurrent_executions = 5
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
@@ -180,7 +180,7 @@ resource "aws_lambda_event_source_mapping" "consumer_queue_trigger" {
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 30
+    maximum_concurrency = 5
   }
 
   maximum_batching_window_in_seconds = 5

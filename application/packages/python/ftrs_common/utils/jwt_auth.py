@@ -20,9 +20,8 @@ class JWTAuthenticator:
         self.environment = environment or os.environ.get("ENVIRONMENT", "local")
         self.region = region or os.environ.get("AWS_REGION", "eu-west-2")
         self.custom_secret_name = secret_name
-        # Cache for bearer token and expiration
-        self._cached_token: Optional[str] = None
-        self._token_expires_at: Optional[float] = None
+        self.cached_token: Optional[str] = None
+        self.token_expires_at: Optional[float] = None
 
     def get_jwt_credentials(self) -> Dict[str, str]:
         if self.environment == "local":
@@ -90,24 +89,18 @@ class JWTAuthenticator:
         return token
 
     def get_bearer_token(self) -> str:
-        """
-        Get the bearer token. Uses cached token if available and not expired.
-
-        Returns:
-            str: Bearer token for API authentication
-        """
         current_time = time()
 
         # Check if we have a cached token that hasn't expired
         if (
-            self._cached_token
-            and self._token_expires_at
-            and current_time < self._token_expires_at
+            self.cached_token
+            and self.token_expires_at
+            and current_time < self.token_expires_at
         ):
-            print("Using cached JWT token")
-            return self._cached_token
+            # Use cached token
+            return self.cached_token
 
-        print("Generating new JWT token")
+        # Generate a new token
         creds = self.get_jwt_credentials()
         jwt_assertion = self.generate_assertion()
 
@@ -129,8 +122,8 @@ class JWTAuthenticator:
                 raise JWTTokenError("no_access_token", body)
             else:
                 # Cache the token with 5-minute expiration
-                self._cached_token = token
-                self._token_expires_at = current_time + 300  # 5 minutes
+                self.cached_token = token
+                self.token_expires_at = current_time + 300  # 5 minutes
                 return token
         except requests.exceptions.RequestException as e:
             raise JWTTokenError("request_failed", original_error=e) from e

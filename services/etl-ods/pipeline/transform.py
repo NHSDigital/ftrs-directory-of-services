@@ -12,7 +12,7 @@ def transform_to_payload(ods_fhir: dict) -> FhirOrganisation:
     """
     organisation = OrganizationMapper().from_ods_fhir_to_fhir(ods_fhir)
     ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_026,
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_026,
         ods_code=organisation.identifier[0].value,
     )
     return organisation

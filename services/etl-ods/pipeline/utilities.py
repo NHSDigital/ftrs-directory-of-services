@@ -20,7 +20,6 @@ ods_utils_logger = Logger.get(service="ods_utils")
 
 TIMEOUT_SECONDS = 20
 
-# Global cache for JWT authenticator instance
 _jwt_authenticator: JWTAuthenticator = None
 
 

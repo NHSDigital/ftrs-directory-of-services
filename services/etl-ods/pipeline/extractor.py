@@ -18,7 +18,7 @@ from .extract import (
 )
 
 MAX_DAYS_PAST = 185
-ods_processor_logger = Logger.get(service="ods_processor")
+ods_extractor_logger = Logger.get(service="ods_extractor")
 
 
 def processor(date: str) -> None:
@@ -32,14 +32,14 @@ def processor(date: str) -> None:
         _send_organisations_to_queue(organisations)
 
     except requests.exceptions.RequestException as e:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_022,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_022,
             error_message=str(e),
         )
         raise
     except Exception as e:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_023,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_023,
             error_message=str(e),
         )
         raise
@@ -77,7 +77,7 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             context_id=getattr(context, "aws_request_id", None) if context else None,
             header_id=event.get("headers", {}).get("X-Request-ID"),
         )
-        ods_processor_logger.append_keys(
+        ods_extractor_logger.append_keys(
             correlation_id=correlation_id, request_id=request_id
         )
 
@@ -101,8 +101,8 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             }
 
     except Exception as e:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_023,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_023,
             error_message=str(e),
         )
         return _error_response(500, f"Unexpected error: {e}")
@@ -123,8 +123,8 @@ def _validate_date(date_str: str) -> tuple[bool, str | None]:
 
 
 def _error_response(status_code: int, message: str) -> dict:
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_029,
+    ods_extractor_logger.log(
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_029,
         status_code=status_code,
         error_message=str(message),
     )

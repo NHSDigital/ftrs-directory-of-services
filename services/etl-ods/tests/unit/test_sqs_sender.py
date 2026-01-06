@@ -199,7 +199,7 @@ def test_load_data_successful(
             )
 
             expected_try_log = (
-                OdsETLPipelineLogBase.ETL_PROCESSOR_014.value.message.format(number=1)
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_014.value.message.format(number=1)
             )
             assert expected_try_log in caplog.text
 
