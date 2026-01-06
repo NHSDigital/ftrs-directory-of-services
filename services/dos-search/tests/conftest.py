@@ -139,15 +139,6 @@ def create_fhir_organization():
                         "value": ods_code,
                     }
                 ],
-                "telecom": [{"system": "phone", "value": telecom}],
-                "address": [
-                    {
-                        "line": ["Dummy Medical Practice", "Dummy Street"],
-                        "city": "Dummy City",
-                        "postalCode": "DU00 0MY",
-                        "country": "ENGLAND",
-                    }
-                ],
             }
         )
 
