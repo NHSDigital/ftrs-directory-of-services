@@ -69,3 +69,9 @@ variable "include_github_runner_principal" {
   type        = bool
   default     = false
 }
+
+variable "opensearch_collection_name" {
+  description = "Optional existing OpenSearch collection name to use; leave empty to let modules create or lookup a collection."
+  type        = string
+  default     = ""
+}
