@@ -107,7 +107,7 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
 
 def process_message_and_send_request(record: dict) -> None:
     if isinstance(record.get("body"), str):
-        body_content = json.loads(json.loads(record.get("body")))
+        body_content = json.loads(record.get("body"))
         path = body_content.get("path")
         body = body_content.get("body")
         correlation_id = body_content.get("correlation_id")
