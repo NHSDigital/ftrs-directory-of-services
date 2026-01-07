@@ -121,7 +121,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
         },
         {
           ResourceType = "index"
-          Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${local.opensearch_index_name}${local.workspace_suffix}"]
+          Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${local.opensearch_index_name}"]
           Permission = [
             "aoss:CreateIndex",
             "aoss:UpdateIndex",
