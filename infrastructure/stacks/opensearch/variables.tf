@@ -58,8 +58,3 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   type        = string
 }
 
-variable "include_github_runner_principal" {
-  description = "Whether to include the GitHub runner role ARN in access policy Principals"
-  type        = bool
-  default     = false
-}
