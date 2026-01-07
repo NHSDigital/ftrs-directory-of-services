@@ -84,7 +84,6 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
     },
     {
       Description     = "Workspace network access for collection"
-      AllowFromPublic = false
       Rules = [
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
@@ -117,8 +116,8 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
       ],
       Principal = concat(
         [
-          aws_iam_role.osis_pipelines_role.arn,
-          local.github_runner_arn
+          data.aws_caller_identity.current.arn,
+          aws_iam_role.osis_pipelines_role.arn
         ],
         local.env_sso_roles
       )
