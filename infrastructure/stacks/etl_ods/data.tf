@@ -26,6 +26,10 @@ data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = local.kms_aliases.secrets_manager
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"

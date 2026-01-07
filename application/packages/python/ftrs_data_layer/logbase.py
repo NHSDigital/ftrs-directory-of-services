@@ -491,7 +491,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_UTILS_010 = LogReference(
         level=INFO,
-        message="Recieving API key for ODS Terminology API",
+        message="Receiving API key for ODS Terminology API",
     )
     ETL_UTILS_011 = LogReference(
         level=INFO,
