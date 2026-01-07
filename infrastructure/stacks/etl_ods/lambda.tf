@@ -73,7 +73,7 @@ module "transformer_lambda" {
   ignore_source_code_hash        = false
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 2
 
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -138,7 +138,7 @@ module "consumer_lambda" {
   ignore_source_code_hash        = false
   timeout                        = var.consumer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 2
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
