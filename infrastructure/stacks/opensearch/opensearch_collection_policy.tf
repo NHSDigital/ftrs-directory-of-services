@@ -83,7 +83,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
       ]
     },
     {
-      Description     = "Workspace network access for collection"
+      Description = "Workspace network access for collection"
       Rules = [
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
