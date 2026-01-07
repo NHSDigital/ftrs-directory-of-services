@@ -53,15 +53,11 @@ DEFAULT_SCHEMA_CONFIG: dict[str, Any] = {
     "primary_key_template": PRIMARY_KEY_TEMPLATE,
     "doc_id_fields": DOC_ID_FIELDS,
     "top_level": {
-        "primary_key": ["primary_key"]
+        "primary_key": ["primary_key", "id"]
     },
     "nested": {
         NESTED_COLLECTION_FIELD: {
-            "source_attributes": [
-                "symptomGroupSymptomDiscriminators",
-                "symptomGroupSymptomDiscriminator",
-                "symptomGroup_symptomDiscriminators"
-            ],
+            "source_attributes": ["symptomGroupSymptomDiscriminators"],
             "items": {
                 "sg": "sg",
                 "sd": "sd"
@@ -484,7 +480,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     try:
         log.info('Scanning DynamoDB table...')
-        raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['primary_key', 'symptomGroupSymptomDiscriminators', 'symptomGroupSymptomDiscriminator', 'symptomGroup_symptomDiscriminators'])
+        raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['id', 'primary_key', 'symptomGroupSymptomDiscriminators'])
         log.info('Transforming records...')
         transformed = transform_records(raw_items, schema_config)
         if transformed:
