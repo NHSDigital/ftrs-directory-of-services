@@ -19,6 +19,7 @@ resource "aws_ssm_parameter" "ods_mock_api_url" {
   description = "ODS Mock API endpoint URL for ETL testing"
   type        = "SecureString"
   value       = module.ods_mock_api[0].ods_endpoint_url
+  key_id      = data.aws_kms_key.ssm_kms_key.arn
 }
 
 resource "aws_secretsmanager_secret" "ods_mock_api_key" {
@@ -27,6 +28,7 @@ resource "aws_secretsmanager_secret" "ods_mock_api_key" {
 
   name        = "/${local.project_prefix}/mock-api/api-key${local.workspace_suffix}"
   description = "API key for ODS Mock API in dev and test environments"
+  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key.arn
 }
 
 resource "aws_secretsmanager_secret_version" "ods_mock_api_key" {

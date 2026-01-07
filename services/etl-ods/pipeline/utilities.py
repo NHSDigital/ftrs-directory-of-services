@@ -70,11 +70,7 @@ def _is_mock_testing_mode() -> bool:
     Mock testing scenarios can only be enabled in dev and test environments
     for security reasons to prevent accidental use in production.
     """
-    mock_testing_enabled = (
-        os.environ.get("MOCK_TESTING_SCENARIOS", "").lower() == "true"
-    )
-
-    if not mock_testing_enabled:
+    if os.environ.get("MOCK_TESTING_SCENARIOS", "").lower() != "true":
         return False
 
     # Validate that mock testing is only enabled in authorized environments
