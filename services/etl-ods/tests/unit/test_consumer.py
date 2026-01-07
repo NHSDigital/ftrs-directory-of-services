@@ -191,7 +191,7 @@ def test_process_message_and_send_request_success(
 
     record = {
         "messageId": "1",
-        "body": '"{\\"path\\": \\"uuid\\", \\"body\\": {\\"name\\": \\"Organization Name\\"}}"',
+        "body": '{"path": "uuid", "body": {"name": "Organization Name"}}',
     }
 
     process_message_and_send_request(record)
@@ -337,10 +337,10 @@ def test_process_message_and_send_request_with_string_body_and_correlation_id(
         json=mock_response,
     )
 
-    # Simulate SQS message format with double-encoded JSON and correlation_id
+    # Simulate SQS message format with single-encoded JSON and correlation_id
     record = {
         "messageId": "msg-123",
-        "body": '"{\\"path\\": \\"test-uuid-123\\", \\"body\\": {\\"name\\": \\"Test Org\\"}, \\"correlation_id\\": \\"corr-id-456\\"}"',
+        "body": '{"path": "test-uuid-123", "body": {"name": "Test Org"}, "correlation_id": "corr-id-456"}',
     }
 
     process_message_and_send_request(record)
