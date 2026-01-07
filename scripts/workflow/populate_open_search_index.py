@@ -36,9 +36,8 @@ log = logging.getLogger("populate_open_search_index")
 _DESERIALIZER = TypeDeserializer()
 EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 _DEFAULT_DDB_TABLE_BASE = "ftrs-dos-local-database-healthcare-service"
-_WS_ENV = (os.environ.get('WORKSPACE') or '').strip()
-_WS_NORMALIZED = _WS_ENV.lstrip('-') if _WS_ENV else ''
-DEFAULT_DDB_TABLE = _DEFAULT_DDB_TABLE_BASE + (f"-{_WS_NORMALIZED}" if _WS_NORMALIZED else "")
+DEFAULT_DDB_TABLE = _DEFAULT_DDB_TABLE_BASE
+DDB_IGNORE_WORKSPACE_DEFAULT = True
 INDEXING_TIMEOUT_SECONDS = 60
 INDEX_PROPERTIES = MAPPINGS_PAYLOAD.get('mappings', {}).get('properties', {})
 PRIMARY_KEY_NAME = 'primary_key' if 'primary_key' in INDEX_PROPERTIES else None
@@ -81,6 +80,8 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", dest="batch_size", type=int, default=1, help="Number of records to send in one bulk request (1 = per-document PUT)")
     parser.add_argument("--log-level", dest="log_level", default=os.environ.get('LOG_LEVEL', 'INFO'))
     parser.add_argument("--schema-config", dest="schema_config", help="Path to JSON schema config that maps DynamoDB attributes to OpenSearch fields")
+    parser.add_argument("--dynamodb-table-ignore-workspace", dest="ddb_ignore_workspace", default=str(DDB_IGNORE_WORKSPACE_DEFAULT),
+                        help="true|false - when true do NOT append workspace to the DynamoDB table name (default: true)")
     return parser.parse_args(argv)
 
 def validate_inputs(open_search_domain: Optional[str], index: Optional[str]) -> None:
@@ -460,9 +461,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     ddb_table = args.ddb_table
     workspace = args.workspace or os.environ.get('WORKSPACE', '')
 
-    final_table = build_name_with_workspace(ddb_table, workspace) if ddb_table else ddb_table
+    ddb_ignore_workspace = str(args.ddb_ignore_workspace).strip().lower() in ("1", "true", "yes")
+
+    final_table = ddb_table if ddb_ignore_workspace or not ddb_table else build_name_with_workspace(ddb_table, workspace)
+
     ws_raw = (workspace or "").strip()
-    # determine final index, defaulting to triage_code when workspace not set
     if not ws_raw:
         final_index = args.final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
     else:
