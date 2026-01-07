@@ -204,6 +204,18 @@ def create_fhir_endpoint():
     return _create_fhir_endpoint
 
 
+def _load_workflow_module(module_name: str, rel_path: str) -> Any:
+    repo_root = Path(__file__).resolve().parents[3]
+    mod_path = repo_root / rel_path
+    spec = importlib.util.spec_from_file_location(module_name, str(mod_path))
+    if not spec or not spec.loader:
+        raise RuntimeError()
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 @pytest.fixture
 def create_module() -> Any:
     """Load and return the create_open_search_index workflow module for tests.
@@ -211,17 +223,9 @@ def create_module() -> Any:
     This keeps tests decoupled from import mechanics and mirrors how the
     module is used in workflows (file-based scripts).
     """
-    repo_root = Path(__file__).resolve().parents[3]
-    mod_path = repo_root / "scripts" / "workflow" / "create_open_search_index.py"
-    name = "create_open_search_index"
-    spec = importlib.util.spec_from_file_location(name, str(mod_path))
-    if not spec or not spec.loader:
-        raise RuntimeError()
-    module = importlib.util.module_from_spec(spec)  # type: ignore
-    # Make the module importable by name so tests and patch() can target it
-    sys.modules[name] = module
-    spec.loader.exec_module(module)  # type: ignore
-    return module
+    return _load_workflow_module(
+        "create_open_search_index", "scripts/workflow/create_open_search_index.py"
+    )
 
 
 @pytest.fixture
@@ -231,16 +235,9 @@ def create_populate_module() -> Any:
     Registered under the name 'populate_open_search_index' so tests and patch()
     can reference it directly.
     """
-    repo_root = Path(__file__).resolve().parents[3]
-    mod_path = repo_root / "scripts" / "workflow" / "populate_open_search_index.py"
-    name = "populate_open_search_index"
-    spec = importlib.util.spec_from_file_location(name, str(mod_path))
-    if not spec or not spec.loader:
-        raise RuntimeError()
-    module = importlib.util.module_from_spec(spec)  # type: ignore
-    sys.modules[name] = module
-    spec.loader.exec_module(module)  # type: ignore
-    return module
+    return _load_workflow_module(
+        "populate_open_search_index", "scripts/workflow/populate_open_search_index.py"
+    )
 
 
 # Add missing fixtures required by open_search_index tests
