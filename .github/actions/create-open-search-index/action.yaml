@@ -16,7 +16,7 @@ inputs:
   index:
     description: 'The OpenSearch index name to create'
     required: true
-    default: 'triage_code*'
+    default: 'triage_code'
   aws_region:
     description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
     required: true
