@@ -311,6 +311,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
     )
+    ETL_EXTRACTOR_003 = LogReference(
+        level=INFO,
+        message="Processing message id: {message_id} from ODS ETL queue.",
+    )
     ETL_EXTRACTOR_007 = LogReference(
         level=WARNING, message="Organisation not found in database."
     )
@@ -422,7 +426,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_CONSUMER_010 = LogReference(
         level=ERROR,
-        message="Returning {retry_count} messages to queue due to failure out of {total_records} processed records.",
+        message="Returning {retry_count} messages to queue due to failure out of {total_records} records.",
     )
     ETL_UTILS_001 = LogReference(
         level=INFO,

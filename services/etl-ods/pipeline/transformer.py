@@ -153,7 +153,7 @@ def _process_single_record(
             )
 
             ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_CONSUMER_003,
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_003,
                 message_id=message_id,
                 receive_count=receive_count,
             )
@@ -211,8 +211,5 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
             retry_count=len(batch_item_failures),
             total_records=len(records),
         )
-
-    print("Messages to retry")
-    print(len(batch_item_failures))
 
     return {"batchItemFailures": batch_item_failures}
