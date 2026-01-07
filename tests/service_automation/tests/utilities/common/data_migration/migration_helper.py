@@ -1,4 +1,5 @@
 """Helper utilities for running data migration in tests."""
+
 from datetime import datetime
 import os
 from contextlib import contextmanager
@@ -11,11 +12,15 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
-from reference_data_load.application import ReferenceDataLoadApplication, ReferenceDataLoadConfig, ReferenceDataLoadEvent
-from service_migration.application import DataMigrationApplication, DMSEvent
+from reference_data_load.application import (
+    ReferenceDataLoadApplication,
+    ReferenceDataLoadConfig,
+    ReferenceDataLoadEvent,
+)
+from service_migration.application import ServiceMigrationApplication, DMSEvent
 
-from service_migration.config import DataMigrationConfig
-from service_migration.processor import DataMigrationMetrics
+from service_migration.config import ServiceMigrationConfig
+from service_migration.processor import ServiceMigrationMetrics
 from common.config import DatabaseConfig
 
 # Constants
@@ -24,7 +29,7 @@ TEST_SQS_QUEUE_NAME = "test-queue"
 
 # Type aliases
 DbParams = Dict[str, str]
-MigrationExecutor = Callable[[DataMigrationApplication], None]
+MigrationExecutor = Callable[[ServiceMigrationApplication], None]
 
 
 @dataclass
@@ -33,8 +38,10 @@ class MigrationRunResult:
 
     success: bool
     error: Optional[str] = None
-    application: Optional[DataMigrationApplication | ReferenceDataLoadApplication] = None
-    metrics: Optional[DataMigrationMetrics] = None
+    application: Optional[
+        ServiceMigrationApplication | ReferenceDataLoadApplication
+    ] = None
+    metrics: Optional[ServiceMigrationMetrics] = None
     mock_logger: Optional[MockLogger] = None
 
 
@@ -117,7 +124,7 @@ class MigrationHelper:
 
             logger.debug("Restored original AWS credentials and region")
 
-    def create_migration_config(self) -> DataMigrationConfig:
+    def create_migration_config(self) -> ServiceMigrationConfig:
         """
         Create a DataMigrationConfig for testing.
 
@@ -134,7 +141,7 @@ class MigrationHelper:
             password=db_params["password"],
         )
 
-        config = DataMigrationConfig.model_construct(
+        config = ServiceMigrationConfig.model_construct(
             db_config=db_config,
             env=self.environment,
             workspace=self.workspace,
@@ -144,8 +151,8 @@ class MigrationHelper:
         return config
 
     def _get_metrics_from_app(
-        self, app: Optional[DataMigrationApplication]
-    ) -> Optional[DataMigrationMetrics]:
+        self, app: Optional[ServiceMigrationApplication]
+    ) -> Optional[ServiceMigrationMetrics]:
         """
         Safely retrieve metrics from application.
 
@@ -256,7 +263,7 @@ class MigrationHelper:
                 config = self.create_migration_config()
 
                 with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
-                    app = DataMigrationApplication(config=config)
+                    app = ServiceMigrationApplication(config=config)
                     migration_fn(app)
 
             metrics = self._get_metrics_from_app(app)
@@ -286,47 +293,47 @@ class MigrationHelper:
                 mock_logger=mock_logger,
             )
 
-    def run_single_service_migration(self, service_id: int) -> MigrationRunResult:
-        """
-        Run migration for a single service.
+    # def run_single_service_migration(self, service_id: int) -> MigrationRunResult:
+    #     """
+    #     Run migration for a single service.
 
-        Args:
-            service_id: The ID of the service to migrate
+    #     Args:
+    #         service_id: The ID of the service to migrate
 
-        Returns:
-            MigrationRunResult with success status, error, and metrics
-        """
+    #     Returns:
+    #         MigrationRunResult with success status, error, and metrics
+    #     """
 
-        def execute(app: DataMigrationApplication) -> None:
-            dms_event = DMSEvent(
-                type="dms_event",
-                record_id=service_id,
-                service_id=service_id,
-                table_name="services",
-                method="insert",
-            )
+    #     def execute(app: ServiceMigrationApplication) -> None:
+    #         dms_event = DMSEvent(
+    #             record_id=service_id,
+    #             service_id=service_id,
+    #             table_name="services",
+    #             method="insert",
+    #         )
 
-            sqs_record = self._create_sqs_record_from_dms_event(dms_event)
+    #         sqs_record = self._create_sqs_record_from_dms_event(dms_event)
 
-            logger.info(f"Running single service migration for service ID: {service_id}")
-            app.handle_sqs_record(sqs_record)
+    #         logger.info(
+    #             f"Running single service migration for service ID: {service_id}"
+    #         )
+    #         app.handle_sqs_record(sqs_record)
 
-        return self._execute_migration(execute, f"single service (ID: {service_id})")
+    #     return self._execute_migration(execute, f"single service (ID: {service_id})")
 
-    def run_full_service_migration(self) -> MigrationRunResult:
-        """
-        Run full service migration.
+    # def run_full_service_migration(self) -> MigrationRunResult:
+    #     """
+    #     Run full service migration.
 
-        Returns:
-            MigrationRunResult with success status, error, and metrics
-        """
+    #     Returns:
+    #         MigrationRunResult with success status, error, and metrics
+    #     """
 
-        def execute(app: DataMigrationApplication) -> None:
-            logger.info("Running full service migration")
-            app.handle_full_sync_event()
+    #     def execute(app: ServiceMigrationApplication) -> None:
+    #         logger.info("Running full service migration")
+    #         app.handle_full_sync_event()
 
-        return self._execute_migration(execute, "full service")
-
+    #     return self._execute_migration(execute, "full service")
 
     def run_triage_code_migration_only(self):
         """
@@ -359,7 +366,7 @@ class MigrationHelper:
 
                 with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
                     app = ReferenceDataLoadApplication(config)
-                    app.handle(ReferenceDataLoadEvent(type = "triagecode"))
+                    app.handle(ReferenceDataLoadEvent(type="triagecode"))
 
             metrics = self._get_metrics_from_app(app)
             self._log_mock_logger_stats(mock_logger)
@@ -385,7 +392,6 @@ class MigrationHelper:
                 mock_logger=mock_logger,
             )
 
-
     def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
         """
         Run migration with an SQS event.
@@ -397,11 +403,12 @@ class MigrationHelper:
             MigrationRunResult with success status, error, and metrics
         """
 
-        def execute(app: DataMigrationApplication) -> None:
+        def execute(app: ServiceMigrationApplication) -> None:
             record_count = len(sqs_event.get("Records", []))
             logger.info(f"Running SQS event migration with {record_count} record(s)")
 
             mock_context = self._create_mock_lambda_context()
+
             app.handle_sqs_event(sqs_event, mock_context)
 
         return self._execute_migration(execute, "SQS event")

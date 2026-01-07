@@ -1,8 +1,9 @@
 """Seed database with GP organisation test data."""
-from ftrs_data_layer.domain import legacy
+
+from ftrs_data_layer.domain.legacy.db_models import Service
 
 gp_service = [
-    legacy.Service(
+    Service(
         id=1,
         uid="service-1",  # Add the required uid field
         name="Greenway Medical Centre",
@@ -16,7 +17,7 @@ gp_service = [
         email="enquiries@greenwaymedical.nhs.uk",
         publicphone="020 7946 0958",
     ),
-    legacy.Service(
+    Service(
         id=2,
         uid="service-2",  # Add the required uid field
         name="Riverside Health Centre",
@@ -30,7 +31,7 @@ gp_service = [
         email="reception@riversidehealth.nhs.uk",
         publicphone="0161 496 0123",
     ),
-    legacy.Service(
+    Service(
         id=3,
         uid="service-3",  # Add the required uid field
         name="Hillside Surgery",
@@ -43,5 +44,5 @@ gp_service = [
         web="https://hillsidesurgery.nhs.uk",
         email="admin@hillsidesurgery.nhs.uk",
         publicphone="0121 496 0789",
-    )
+    ),
 ]

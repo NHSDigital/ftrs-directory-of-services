@@ -2,31 +2,31 @@ from aws_lambda_powertools.utilities.data_classes import SQSEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pytest_mock import MockerFixture
 
-from service_migration.application import DataMigrationApplication
-from service_migration.config import DataMigrationConfig
+from service_migration.application import ServiceMigrationApplication
+from service_migration.config import ServiceMigrationConfig
 from service_migration.lambda_handler import lambda_handler
 
 
 def test_lambda_handler(
     mocker: MockerFixture,
     mock_lambda_context: LambdaContext,
-    mock_config: DataMigrationConfig,
+    mock_config: ServiceMigrationConfig,
 ) -> None:
-    app = DataMigrationApplication(config=mock_config)
+    app = ServiceMigrationApplication(config=mock_config)
     app.handle_sqs_record = mocker.MagicMock()
 
     mocker.patch(
-        "service_migration.lambda_handler.DataMigrationApplication", return_value=app
+        "service_migration.lambda_handler.ServiceMigrationApplication", return_value=app
     )
 
     event = SQSEvent(
         data={
             "Records": [
                 {
-                    "body": '{"type": "dms_event", "record_id": 1,"service_id":1, "table_name": "test_table", "method": "insert"}'
+                    "body": '{"record_id": 1,"service_id":1, "table_name": "test_table", "method": "insert"}'
                 },
                 {
-                    "body": '{"type": "dms_event", "record_id": 2,"service_id":2, "table_name": "test_table", "method": "update"}'
+                    "body": '{"record_id": 2,"service_id":2, "table_name": "test_table", "method": "update"}'
                 },
             ]
         }
@@ -42,7 +42,6 @@ def test_lambda_handler(
     first_call, second_call = app.handle_sqs_record.call_args_list
 
     assert first_call.kwargs["record"].json_body == {
-        "type": "dms_event",
         "record_id": 1,
         "service_id": 1,
         "table_name": "test_table",
@@ -50,7 +49,6 @@ def test_lambda_handler(
     }
 
     assert second_call.kwargs["record"].json_body == {
-        "type": "dms_event",
         "record_id": 2,
         "service_id": 2,
         "table_name": "test_table",
@@ -61,27 +59,27 @@ def test_lambda_handler(
 def test_lambda_handler_no_app(
     mocker: MockerFixture,
     mock_lambda_context: LambdaContext,
-    mock_config: DataMigrationConfig,
+    mock_config: ServiceMigrationConfig,
 ) -> None:
     """
-    Test that the lambda_handler initializes the DataMigrationApplication if it is None.
+    Test that the lambda_handler initializes the ServiceMigrationApplication if it is None.
     """
     mocker.patch(
-        "service_migration.application.DataMigrationConfig",
+        "service_migration.application.ServiceMigrationConfig",
         return_value=mock_config,
     )
     mocker.patch("service_migration.lambda_handler.APP", None)
 
-    app_init_spy = mocker.spy(DataMigrationApplication, "__init__")
+    app_init_spy = mocker.spy(ServiceMigrationApplication, "__init__")
     mock_handle_sqs_event = mocker.patch.object(
-        DataMigrationApplication, "handle_sqs_event"
+        ServiceMigrationApplication, "handle_sqs_event"
     )
     mock_handle_sqs_event.return_value = {"batchItemFailures": []}
 
     event = {
         "Records": [
             {
-                "body": '{"type": "dms_event", "record_id": 12345,"service_id": 12345, "table_name": "services", "method": "insert"}'
+                "body": '{"record_id": 12345,"service_id": 12345, "table_name": "services", "method": "insert"}'
             }
         ]
     }
@@ -96,16 +94,18 @@ def test_lambda_handler_no_app(
 def test_lambda_handler_existing_app(
     mocker: MockerFixture,
     mock_lambda_context: LambdaContext,
-    mock_config: DataMigrationConfig,
+    mock_config: ServiceMigrationConfig,
 ) -> None:
     """
-    Test that the lambda_handler uses the existing DataMigrationApplication if it is already initialized.
+    Test that the lambda_handler uses the existing ServiceMigrationApplication if it is already initialized.
     """
     mocker.patch(
-        "service_migration.application.DataMigrationConfig",
+        "service_migration.application.ServiceMigrationConfig",
         return_value=mock_config,
     )
-    mock_app = mocker.patch("service_migration.lambda_handler.DataMigrationApplication")
+    mock_app = mocker.patch(
+        "service_migration.lambda_handler.ServiceMigrationApplication"
+    )
 
     mocker.patch("service_migration.lambda_handler.APP", mock_app.return_value)
     mock_app.return_value.handle_sqs_event = mocker.Mock(
@@ -115,7 +115,7 @@ def test_lambda_handler_existing_app(
     event = {
         "Records": [
             {
-                "body": '{"type": "dms_event", "record_id": 12345, "table_name": "services", "method": "insert"}'
+                "body": '{"record_id": 12345, "table_name": "services", "method": "insert"}'
             }
         ]
     }

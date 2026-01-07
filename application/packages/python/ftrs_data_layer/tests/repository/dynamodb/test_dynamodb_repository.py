@@ -60,7 +60,6 @@ def test_dynamodb_repository_init(mock_logger: MockLogger) -> None:
     assert mock_logger.get_log("DDB_CORE_001", "DEBUG") == [
         {
             "msg": "Initialised DynamoDB repository",
-            "reference": "DDB_CORE_001",
             "detail": {
                 "table_name": "test_table",
                 "endpoint_url": None,
@@ -95,7 +94,6 @@ def test_dynamodb_put_item(
 
     assert mock_logger.get_log("DDB_CORE_002", "DEBUG") == [
         {
-            "reference": "DDB_CORE_002",
             "msg": "Putting item into DynamoDB table",
             "detail": {
                 "request": {
@@ -116,7 +114,6 @@ def test_dynamodb_put_item(
 
     assert mock_logger.get_log("DDB_CORE_003", "INFO") == [
         {
-            "reference": "DDB_CORE_003",
             "msg": "Item put into DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -161,7 +158,6 @@ def test_dynamodb_put_item_error(
     assert mock_logger.was_logged("DDB_CORE_003", "INFO") is False
     assert mock_logger.get_log("DDB_CORE_004", "ERROR") == [
         {
-            "reference": "DDB_CORE_004",
             "msg": "Error putting item into DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -203,7 +199,6 @@ def test_dynamodb_get_item(mock_logger: MockLogger) -> None:
 
     assert mock_logger.get_log("DDB_CORE_005", "DEBUG") == [
         {
-            "reference": "DDB_CORE_005",
             "msg": "Getting item from DynamoDB table",
             "detail": {
                 "request": {
@@ -221,7 +216,6 @@ def test_dynamodb_get_item(mock_logger: MockLogger) -> None:
 
     assert mock_logger.get_log("DDB_CORE_006", "INFO") == [
         {
-            "reference": "DDB_CORE_006",
             "msg": "Item retrieved from DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -264,7 +258,6 @@ def test_dynamodb_get_item_error(
     assert mock_logger.was_logged("DDB_CORE_006", "INFO") is False
     assert mock_logger.get_log("DDB_CORE_007", "ERROR") == [
         {
-            "reference": "DDB_CORE_007",
             "msg": "Error retrieving item from DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -306,7 +299,6 @@ def test_dynamodb_get_item_no_result(
 
     assert mock_logger.get_log("DDB_CORE_008", "WARNING") == [
         {
-            "reference": "DDB_CORE_008",
             "msg": "Item not found in DynamoDB table",
             "detail": {
                 "request": {
@@ -352,7 +344,6 @@ def test_dynamodb_query(
 
     assert mock_logger.get_log("DDB_CORE_009", "DEBUG") == [
         {
-            "reference": "DDB_CORE_009",
             "msg": "Querying DynamoDB table",
             "detail": {
                 "request": {
@@ -372,7 +363,6 @@ def test_dynamodb_query(
     )
     assert mock_logger.get_log("DDB_CORE_010", "INFO") == [
         {
-            "reference": "DDB_CORE_010",
             "msg": "Completed query on DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -416,7 +406,6 @@ def test_dynamodb_query_error(
     assert mock_logger.was_logged("DDB_CORE_010", "INFO") is False
     assert mock_logger.get_log("DDB_CORE_011", "ERROR") == [
         {
-            "reference": "DDB_CORE_011",
             "msg": "Error querying DynamoDB table",
             "detail": {
                 "table": "test_table",
@@ -469,7 +458,6 @@ def test_dynamodb_batch_write(
 
     assert mock_logger.get_log("DDB_CORE_012", "DEBUG") == [
         {
-            "reference": "DDB_CORE_012",
             "msg": "Perfoming batch write to DynamoDB",
             "detail": {
                 "request": {
@@ -492,7 +480,6 @@ def test_dynamodb_batch_write(
 
     assert mock_logger.get_log("DDB_CORE_013", "INFO") == [
         {
-            "reference": "DDB_CORE_013",
             "msg": "Completed batch write to DynamoDB",
             "detail": {
                 "table": "test_table",
@@ -538,7 +525,6 @@ def test_dynamodb_batch_write_error(
     assert mock_logger.was_logged("DDB_CORE_013", "INFO") is False
     assert mock_logger.get_log("DDB_CORE_014", "ERROR") == [
         {
-            "reference": "DDB_CORE_014",
             "msg": "Error performing batch write",
             "detail": {
                 "table": "test_table",
@@ -596,7 +582,6 @@ def test_dynamodb_batch_write_unprocessed_items(
 
     assert mock_logger.get_log("DDB_CORE_015", "ERROR") == [
         {
-            "reference": "DDB_CORE_015",
             "msg": "Unprocessed items in batch write",
             "detail": {
                 "table": "test_table",

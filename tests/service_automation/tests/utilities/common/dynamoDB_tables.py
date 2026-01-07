@@ -1,9 +1,10 @@
 """DynamoDB table configurations for testing."""
+
 import os
 from typing import Any
 
 
-def get_table_name(resource: str) -> str:
+def get_table_name(resource: str, stack_name: str = "database") -> str:
     """
     Generate DynamoDB table name using environment variables.
 
@@ -19,7 +20,7 @@ def get_table_name(resource: str) -> str:
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
 
-    return f"{project_name}-{environment}-database-{resource}-{workspace}"
+    return f"{project_name}-{environment}-{stack_name}-{resource}-{workspace}"
 
 
 def get_dynamodb_tables() -> list[dict[str, Any]]:
@@ -47,30 +48,36 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
     ]
 
     triage_code_table = {
-        "TableName": get_table_name('triage-code'),
+        "TableName": get_table_name("triage-code"),
         "KeySchema": [
             {"AttributeName": "id", "KeyType": "HASH"},
-            {"AttributeName": "field", "KeyType": "RANGE"}
+            {"AttributeName": "field", "KeyType": "RANGE"},
         ],
         "AttributeDefinitions": [
             {"AttributeName": "id", "AttributeType": "S"},
             {"AttributeName": "field", "AttributeType": "S"},
-            {"AttributeName": "codeType", "AttributeType": "S"}
+            {"AttributeName": "codeType", "AttributeType": "S"},
         ],
         "GlobalSecondaryIndexes": [
             {
-                'IndexName': 'CodeTypeIndex',
-                'KeySchema': [
-                    {'AttributeName': 'codeType', 'KeyType': 'HASH'},
-                    {'AttributeName': 'id', 'KeyType': 'RANGE'},
+                "IndexName": "CodeTypeIndex",
+                "KeySchema": [
+                    {"AttributeName": "codeType", "KeyType": "HASH"},
+                    {"AttributeName": "id", "KeyType": "RANGE"},
                 ],
-                'Projection': {
-                    'ProjectionType': 'ALL'
-                }
+                "Projection": {"ProjectionType": "ALL"},
             }
         ],
-        "BillingMode": "PAY_PER_REQUEST"
+        "BillingMode": "PAY_PER_REQUEST",
     }
 
+    state_table = {
+        "TableName": get_table_name("state-table", stack_name="data-migration"),
+        "KeySchema": [{"AttributeName": "source_record_id", "KeyType": "HASH"}],
+        "AttributeDefinitions": [
+            {"AttributeName": "source_record_id", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    }
 
-    return [*tables, triage_code_table]
+    return [*tables, triage_code_table, state_table]

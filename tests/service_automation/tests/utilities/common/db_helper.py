@@ -1,12 +1,12 @@
 """Database helper utilities for testing."""
+
 from sqlalchemy import text
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 import pytest
 
 
 def verify_service_exists(
-    session: Session,
-    service_id: int
+    session: Session, service_id: int
 ) -> tuple[int, int, str, int]:
     """
     Verify service exists in database and return key attributes.
@@ -22,10 +22,9 @@ def verify_service_exists(
         pytest.fail: If service not found
     """
     stmt = text(
-        "SELECT id, typeid, odscode, statusid FROM pathwaysdos.services "
-        "WHERE id = :id"
+        "SELECT id, typeid, odscode, statusid FROM pathwaysdos.services WHERE id = :id"
     )
-    result = session.exec(stmt.bindparams(id=service_id)).fetchone()
+    result = session.execute(stmt.bindparams(id=service_id)).fetchone()
 
     if not result:
         pytest.fail(f"Service {service_id} not found in database")
@@ -42,4 +41,4 @@ def delete_service_if_exists(session: Session, service_id: int) -> None:
         service_id: Service ID to delete
     """
     stmt = text("DELETE FROM pathwaysdos.services WHERE id = :id")
-    session.exec(stmt.bindparams(id=service_id))
+    session.execute(stmt.bindparams(id=service_id))

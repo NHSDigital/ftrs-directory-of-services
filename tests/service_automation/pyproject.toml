@@ -45,6 +45,10 @@ testcontainers-localstack = "^0.0.1rc1"
 pipeline = { path = "../../services/data-migration", develop = true }
 
 
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.10"
+
 [tool.pytest.ini_options]
 testpaths = "tests"
 addopts = "-p no:allure_pytest_bdd -p no:allure_pytest"

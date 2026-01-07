@@ -1,12 +1,10 @@
 import re
 
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
-from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.legacy.data_models import ServiceData
 
-from service_migration.transformer.base import (
-    ServiceTransformer,
-    ServiceTransformOutput,
-)
+from service_migration.models import TransformResult
+from service_migration.transformer.base import ServiceTransformer
 from service_migration.validation.service import GPPracticeValidator
 
 
@@ -29,34 +27,28 @@ class GPPracticeTransformer(ServiceTransformer):
     - The service must be active
     """
 
-    def transform(
-        self, service: legacy_model.Service, validation_issues: list[str]
-    ) -> ServiceTransformOutput:
+    def transform(self, service: ServiceData) -> TransformResult:
         """
         Transform the given GP practice service into the new data model format.
         """
-        organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
-        location = self.build_location(service, organisation.id)
-        healthcare_service = self.build_healthcare_service(
+        organisation = self.mappers.organisation.map(service)
+        location = self.mappers.location.map(service, organisation.id)
+        healthcare_service = self.mappers.healthcare_service.map(
             service,
             organisation.id,
             location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
-            validation_issues=validation_issues,
         )
 
-        return ServiceTransformOutput(
-            organisation=[organisation],
-            healthcare_service=[healthcare_service],
-            location=[location],
+        return TransformResult(
+            organisation=organisation,
+            healthcare_service=healthcare_service,
+            location=location,
         )
 
     @classmethod
-    def is_service_supported(
-        cls, service: legacy_model.Service
-    ) -> tuple[bool, str | None]:
+    def is_service_supported(cls, service: ServiceData) -> tuple[bool, str | None]:
         """
         Check if the service is a GP practice.
         """
@@ -72,9 +64,7 @@ class GPPracticeTransformer(ServiceTransformer):
         return True, None
 
     @classmethod
-    def should_include_service(
-        cls, service: legacy_model.Service
-    ) -> tuple[bool, str | None]:
+    def should_include_service(cls, service: ServiceData) -> tuple[bool, str | None]:
         """
         Check if the service is active.
         """
@@ -82,9 +72,3 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")

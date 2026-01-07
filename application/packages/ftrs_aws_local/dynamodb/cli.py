@@ -2,6 +2,8 @@ import logging
 
 from typer import Typer
 
+from dynamodb.constants import ALL_ENTITY_TYPES, ClearableEntityType, TargetEnvironment
+from dynamodb.init import init_tables
 from dynamodb.reset import reset
 
 logging.basicConfig(
@@ -17,5 +19,22 @@ typer_app = Typer(
     help="AWS Local CLI for managing local AWS services",
 )
 
-typer_app.command("start")(lambda: logging.info("Starting AWS Local services"))
 typer_app.command("reset")(reset)
+
+
+@typer_app.command("init")
+def init_tables_command(
+    endpoint_url: str | None = None,
+    env: TargetEnvironment = TargetEnvironment.local,
+    workspace: str | None = None,
+    entity_type: list[ClearableEntityType] | None = None,
+) -> None:
+    if entity_type is None:
+        entity_type = list(ALL_ENTITY_TYPES)
+
+    init_tables(
+        endpoint_url=endpoint_url,
+        env=env,
+        workspace=workspace,
+        entity_type=entity_type,
+    )

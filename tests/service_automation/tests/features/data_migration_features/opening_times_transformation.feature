@@ -1,10 +1,10 @@
 @data-migration
 Feature: Data Migration
 
-  Background:
-    Given the test environment is configured
-    And the DoS database has test data
-    And DynamoDB tables are ready
+  # Background:
+  #   Given the test environment is configured
+  #   And the DoS database has test data
+  #   And DynamoDB tables are ready
 
   Scenario: Opening times for service with service opening times
     Given a "Service" exists in DoS with attributes
@@ -100,47 +100,48 @@ Feature: Data Migration
       | endtime             | 23:59:00 | all day? |
       | servicedayopeningid | 3000003  |          |
 
-    When the data migration process is run for table 'services', ID '10615752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '10615752' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id 'e494ad1a-d8b5-5734-b46a-85cba1a28c24' has content:
       """
       {
-          "openingTime": [
-              {
-                  "allDay": false,
-                  "startTime": "08:00:00",
-                  "dayOfWeek": "mon",
-                  "endTime": "12:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "13:00:00",
-                  "dayOfWeek": "mon",
-                  "endTime": "19:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "08:00:00",
-                  "dayOfWeek": "tue",
-                  "endTime": "19:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "category": "availableTimePublicHolidays",
-                  "startTime": "09:00:00",
-                  "endTime": "15:00:00"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "00:00:00",
-                  "dayOfWeek": "sat",
-                  "endTime": "23:59:00",
-                  "category": "availableTime"
-              }
-          ]
+        "openingTime": [
+          {
+            "allDay": false,
+            "startTime": "08:00:00",
+            "dayOfWeek": "mon",
+            "endTime": "12:00:00",
+            "category": "availableTime"
+          },
+          {
+            "allDay": false,
+            "startTime": "13:00:00",
+            "dayOfWeek": "mon",
+            "endTime": "19:00:00",
+            "category": "availableTime"
+          },
+          {
+            "allDay": false,
+            "startTime": "08:00:00",
+            "dayOfWeek": "tue",
+            "endTime": "19:00:00",
+            "category": "availableTime"
+          },
+          {
+            "category": "availableTimePublicHolidays",
+            "startTime": "09:00:00",
+            "endTime": "15:00:00"
+          },
+          {
+            "allDay": false,
+            "startTime": "00:00:00",
+            "dayOfWeek": "sat",
+            "endTime": "23:59:00",
+            "category": "availableTime"
+          }
+        ]
       }
       """
 
@@ -248,12 +249,12 @@ Feature: Data Migration
       | date      | 2025-12-02 | also a tuesday |
       | serviceid | 10625752   |                |
     And a "ServiceSpecifiedOpeningTime" exists in DoS with attributes
-      | key                          | value      |
-      | id                           | 8000000    |
-      | starttime                    | 10:00:00   |
-      | endtime                      | 15:00:00   |
-      | isclosed                     | false      |
-      | servicespecifiedopeningdateid| 9000000    |
+      | key                           | value    |
+      | id                            | 8000000  |
+      | starttime                     | 10:00:00 |
+      | endtime                       | 15:00:00 |
+      | isclosed                      | false    |
+      | servicespecifiedopeningdateid | 9000000  |
 
 
     And a "ServiceSpecifiedOpeningDate" exists in DoS with attributes
@@ -262,12 +263,12 @@ Feature: Data Migration
       | date      | 2025-12-03 |           |
       | serviceid | 10625752   | wednesday |
     And a "ServiceSpecifiedOpeningTime" exists in DoS with attributes
-      | key                          | value      |
-      | id                           | 8000001    |
-      | starttime                    | 06:00:00   |
-      | endtime                      | 18:00:00   |
-      | isclosed                     | false      |
-      | servicespecifiedopeningdateid| 9000001    |
+      | key                           | value    |
+      | id                            | 8000001  |
+      | starttime                     | 06:00:00 |
+      | endtime                       | 18:00:00 |
+      | isclosed                      | false    |
+      | servicespecifiedopeningdateid | 9000001  |
 
     And a "ServiceSpecifiedOpeningDate" exists in DoS with attributes
       | key       | value      | comment               |
@@ -275,73 +276,74 @@ Feature: Data Migration
       | date      | 2025-12-26 |                       |
       | serviceid | 10625752   | specific bank holiday |
     And a "ServiceSpecifiedOpeningTime" exists in DoS with attributes
-      | key                          | value      |
-      | id                           | 8000002    |
-      | starttime                    | 00:00:00   |
-      | endtime                      | 00:00:00   |
-      | isclosed                     | true       |
-      | servicespecifiedopeningdateid| 9000002    |
+      | key                           | value    |
+      | id                            | 8000002  |
+      | starttime                     | 00:00:00 |
+      | endtime                       | 00:00:00 |
+      | isclosed                      | true     |
+      | servicespecifiedopeningdateid | 9000002  |
 
 
-    When the data migration process is run for table 'services', ID '10625752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '10625752' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id 'fd7d4681-abde-5de6-8742-375a4e2eea00' has content:
       """
       {
-          "openingTime": [
-              {
-                  "allDay": false,
-                  "startTime": "08:00:00",
-                  "dayOfWeek": "mon",
-                  "endTime": "12:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "13:00:00",
-                  "dayOfWeek": "mon",
-                  "endTime": "19:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "08:00:00",
-                  "dayOfWeek": "tue",
-                  "endTime": "19:00:00",
-                  "category": "availableTime"
-              },
-              {
-                  "category": "availableTimePublicHolidays",
-                  "startTime": "09:00:00",
-                  "endTime": "15:00:00"
-              },
-              {
-                  "allDay": false,
-                  "startTime": "00:00:00",
-                  "dayOfWeek": "sat",
-                  "endTime": "23:59:00",
-                  "category": "availableTime"
-              },
-              {
-                  "description": null,
-                  "startTime": "2025-12-02T10:00:00",
-                  "endTime": "2025-12-02T15:00:00",
-                  "category": "availableTimeVariations"
-              },
-              {
-                  "description": null,
-                  "startTime": "2025-12-03T06:00:00",
-                  "endTime": "2025-12-03T18:00:00",
-                  "category": "availableTimeVariations"
-              },
-              {
-                  "description": null,
-                  "startTime": "2025-12-26T00:00:00",
-                  "endTime": "2025-12-26T00:00:00",
-                  "category": "notAvailable"
-              }
-          ]
+        "openingTime": [
+          {
+            "allDay": false,
+            "startTime": "08:00:00",
+            "dayOfWeek": "mon",
+            "endTime": "12:00:00",
+            "category": "availableTime"
+          },
+          {
+            "allDay": false,
+            "startTime": "13:00:00",
+            "dayOfWeek": "mon",
+            "endTime": "19:00:00",
+            "category": "availableTime"
+          },
+          {
+            "allDay": false,
+            "startTime": "08:00:00",
+            "dayOfWeek": "tue",
+            "endTime": "19:00:00",
+            "category": "availableTime"
+          },
+          {
+            "category": "availableTimePublicHolidays",
+            "startTime": "09:00:00",
+            "endTime": "15:00:00"
+          },
+          {
+            "allDay": false,
+            "startTime": "00:00:00",
+            "dayOfWeek": "sat",
+            "endTime": "23:59:00",
+            "category": "availableTime"
+          },
+          {
+            "description": null,
+            "startTime": "2025-12-02T10:00:00",
+            "endTime": "2025-12-02T15:00:00",
+            "category": "availableTimeVariations"
+          },
+          {
+            "description": null,
+            "startTime": "2025-12-03T06:00:00",
+            "endTime": "2025-12-03T18:00:00",
+            "category": "availableTimeVariations"
+          },
+          {
+            "description": null,
+            "startTime": "2025-12-26T00:00:00",
+            "endTime": "2025-12-26T00:00:00",
+            "category": "notAvailable"
+          }
+        ]
       }
       """
 
@@ -389,13 +391,14 @@ Feature: Data Migration
       | key       | value    | comment |
       | id        | 3000100  |         |
       | serviceid | 10695752 |         |
-      | dayid     |    1      |        |
-    When the data migration process is run for table 'services', ID '10695752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+      | dayid     | 1        |         |
+    When the service migration process is run for table 'services', ID '10695752' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id '8bfe926e-f3fb-5d4a-800a-d8bb96c67bd9' has content:
       """
       {
-          "openingTime": []
+        "openingTime": []
       }
       """

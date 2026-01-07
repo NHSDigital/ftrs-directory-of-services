@@ -1,3 +1,7 @@
+LOGGER_SERVICE_NAME = "data-migration"
+SERVICE_MIGRATION_USER = "DATA_MIGRATION"
+DATA_MIGRATION_USER_DISPLAY = "Data Migration"
+
 UK_COUNTIES: dict[str, str] = {
     "bedfordshire": "Bedfordshire",
     "berkshire": "Berkshire",
@@ -48,3 +52,12 @@ UK_COUNTIES: dict[str, str] = {
     "worcestershire": "Worcestershire",
     "city of london": "City of London",
 }
+
+METHOD_INSERT = "insert"
+METHOD_UPDATE = "update"
+METHOD_DELETE = "delete"
+
+
+class SourceDBTables:
+    SERVICES = "services"
+    SERVICE_ENDPOINTS = "serviceendpoints"

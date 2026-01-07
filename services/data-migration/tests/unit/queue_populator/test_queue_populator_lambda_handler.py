@@ -138,7 +138,7 @@ def test_get_dms_event_batches(
         "Entries": [
             {
                 "Id": str(record_id),
-                "MessageBody": '{"type":"dms_event","record_id":'
+                "MessageBody": '{"record_id":'
                 + str(record_id)
                 + ',"service_id":'
                 + str(record_id)
@@ -152,7 +152,7 @@ def test_get_dms_event_batches(
         "Entries": [
             {
                 "Id": str(record_id),
-                "MessageBody": '{"type":"dms_event","record_id":'
+                "MessageBody": '{"record_id":'
                 + str(record_id)
                 + ',"service_id":'
                 + str(record_id)
@@ -183,11 +183,11 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
         ],
     }
@@ -208,7 +208,6 @@ def test_send_message_batch(mocker: MockerFixture, mock_logger: MockLogger) -> N
                 "record_ids": ["1", "2"],
             },
             "msg": "Successfully sent 2 messages to SQS queue",
-            "reference": "DM_QP_004",
         }
     ]
 
@@ -235,11 +234,11 @@ def test_send_message_batch_with_failed_messages(
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
         ],
     }
@@ -262,7 +261,6 @@ def test_send_message_batch_with_failed_messages(
                 "queue_url": "http://localhost:4566/000000000000/test-queue",
             },
             "msg": "Failed to send 2 messages to SQS queue",
-            "reference": "DM_QP_003",
         }
     ]
     assert mock_logger.was_logged("DM_QP_004") is False
@@ -290,15 +288,15 @@ def test_send_message_batch_mixed_results(
         "Entries": [
             {
                 "Id": "1",
-                "MessageBody": '{"type":"dms_event","record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":1,"service_id":1,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "2",
-                "MessageBody": '{"type":"dms_event","record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":2,"service_id":2,"table_name":"services","method":"insert"}',
             },
             {
                 "Id": "3",
-                "MessageBody": '{"type":"dms_event","record_id":3,"service_id":3,"table_name":"services","method":"insert"}',
+                "MessageBody": '{"record_id":3,"service_id":3,"table_name":"services","method":"insert"}',
             },
         ],
     }
@@ -321,7 +319,6 @@ def test_send_message_batch_mixed_results(
                 "queue_url": "http://localhost:4566/000000000000/test-queue",
             },
             "msg": "Failed to send 2 messages to SQS queue",
-            "reference": "DM_QP_003",
         }
     ]
     assert mock_logger.get_log("DM_QP_004") == [
@@ -332,7 +329,6 @@ def test_send_message_batch_mixed_results(
                 "record_ids": ["1"],
             },
             "msg": ("Successfully sent 1 messages to SQS queue"),
-            "reference": "DM_QP_004",
         }
     ]
 
@@ -363,13 +359,11 @@ def test_populate_sqs_queue(
                 "status_ids": None,
             },
             "msg": "Starting Data Migration Queue Populator for type_ids=None and status_ids=None",
-            "reference": "DM_QP_000",
         }
     ]
     assert mock_logger.get_log("DM_QP_999") == [
         {
             "msg": "Data Migration Queue Populator completed",
-            "reference": "DM_QP_999",
         }
     ]
 
@@ -442,7 +436,6 @@ def test_populate_sqs_queue_single_service(
                 "status_ids": None,
             },
             "msg": "Starting Data Migration Queue Populator for type_ids=None and status_ids=None",
-            "reference": "DM_QP_000",
         }
     ]
     assert mock_logger.get_log("DM_QP_005") == [
@@ -452,12 +445,10 @@ def test_populate_sqs_queue_single_service(
                 "record_id": 456,
             },
             "msg": "Populating SQS queue with 1 message in single service sync for service_id=123 and record_id=456",
-            "reference": "DM_QP_005",
         }
     ]
     assert mock_logger.get_log("DM_QP_999") == [
         {
             "msg": "Data Migration Queue Populator completed",
-            "reference": "DM_QP_999",
         }
     ]

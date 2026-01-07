@@ -1,11 +1,8 @@
 import asyncio
-from contextlib import contextmanager
 from enum import StrEnum
-from pathlib import Path
-from typing import Annotated, Generator, List
+from typing import Annotated, List
 
 import rich
-from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from typer import Option, Typer
 
 from common.config import DatabaseConfig
@@ -13,11 +10,10 @@ from queue_populator.config import QueuePopulatorConfig
 from queue_populator.lambda_handler import populate_sqs_queue
 from seeding.export_to_s3 import run_s3_export
 from seeding.restore import run_s3_restore
-from service_migration.application import DataMigrationApplication, DMSEvent
+from service_migration.application import DMSEvent, ServiceMigrationApplication
 from service_migration.config import (
-    DataMigrationConfig,
+    ServiceMigrationConfig,
 )
-from service_migration.processor import ServiceTransformOutput
 
 CONSOLE = rich.get_console()
 
@@ -52,16 +48,13 @@ def migrate_handler(  # noqa: PLR0913
     service_id: Annotated[
         str | None, Option(help="Service ID to migrate (for single record sync)")
     ] = None,
-    output_dir: Annotated[
-        Path | None, Option(help="Directory to save transformed records (dry run only)")
-    ] = None,
 ) -> None:
     """
     Local entrypoint for testing the data migration.
     This function can be used to run the full or single sync process locally.
     """
-    app = DataMigrationApplication(
-        config=DataMigrationConfig(
+    app = ServiceMigrationApplication(
+        config=ServiceMigrationConfig(
             db_config=DatabaseConfig.from_uri(db_uri),
             ENVIRONMENT=env,
             WORKSPACE=workspace,
@@ -69,24 +62,22 @@ def migrate_handler(  # noqa: PLR0913
         ),
     )
 
-    with patch_local_save_method(app, output_dir):
-        if service_id:
-            event = DMSEvent(
-                type="dms_event",
-                record_id=int(service_id),
-                service_id=int(service_id),
-                method="insert",
-                table_name="services",
-            )
-            record = SQSRecord(
-                data={
-                    "messageId": f"service-{service_id}",
-                    "body": event.model_dump_json(),
-                }
-            )
-            app.handle_sqs_record(record)
-        else:
-            app.handle_full_sync_event()
+    dms_event = DMSEvent(
+        record_id=int(service_id),
+        service_id=int(service_id),
+        method="insert",
+        table_name="services",
+    )
+
+    sqs_event = {
+        "Records": [
+            {
+                "messageId": f"service-{service_id}",
+                "body": dms_event.model_dump_json(),
+            }
+        ]
+    }
+    app.handle_sqs_event(sqs_event, context={})
 
 
 @typer_app.command("populate-queue")
@@ -117,46 +108,6 @@ def populate_queue_handler(
         table_name="services",
     )
     populate_sqs_queue(config)
-
-
-@contextmanager
-def patch_local_save_method(
-    app: DataMigrationApplication, output_dir: Path | None
-) -> Generator:
-    """
-    Patch the application to save transformed records to a local directory.
-    This is useful for testing without affecting the database.
-    """
-    if output_dir is None:
-        yield
-        return
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    organisation_path = output_dir / "organisation.jsonl"
-    location_path = output_dir / "location.jsonl"
-    healthcare_path = output_dir / "healthcare-service.jsonl"
-
-    organisation_file = open(organisation_path, "w")
-    location_file = open(location_path, "w")
-    healthcare_file = open(healthcare_path, "w")
-
-    def _mock_save(result: ServiceTransformOutput) -> None:
-        organisation_file.writelines(
-            org.model_dump_json() + "\n" for org in result.organisation
-        )
-        location_file.writelines(
-            loc.model_dump_json() + "\n" for loc in result.location
-        )
-        healthcare_file.writelines(
-            hc.model_dump_json() + "\n" for hc in result.healthcare_service
-        )
-
-    app.processor._save = _mock_save
-    yield
-
-    organisation_file.close()
-    location_file.close()
-    healthcare_file.close()
 
 
 @typer_app.command("export-to-s3")

@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 from ftrs_common.logger import Logger
+from time import time_ns
 
 
 class MockLogger(Logger):
@@ -32,6 +33,7 @@ class MockLogger(Logger):
         def _store_log(**kwargs: dict) -> None:
             assert level in self.logs, f"Invalid log level: {level}"
             log_dict = {
+                "_timestamp": time_ns(),
                 "reference": kwargs.get("reference"),
                 "msg": kwargs.get("msg"),
             }
@@ -48,8 +50,14 @@ class MockLogger(Logger):
         """
         if level:
             assert level in self.logs, f"Invalid log level: {level}"
-            return self.logs.get(level, [])
-        return [log for level_logs in self.logs.values() for log in level_logs]
+            logs = sorted(self.logs.get(level, []), key=lambda x: x["_timestamp"])
+        else:
+            logs = sorted(
+                [log for level_logs in self.logs.values() for log in level_logs],
+                key=lambda x: x["_timestamp"],
+            )
+
+        return [self._format_log_for_checks(log) for log in logs]
 
     def get_log_count(self, level: str | None = None) -> int:
         """
@@ -63,7 +71,13 @@ class MockLogger(Logger):
         """
         Clear the stored logs.
         """
-        self.logs.clear()
+        self.logs = {
+            "DEBUG": [],
+            "INFO": [],
+            "WARNING": [],
+            "ERROR": [],
+            "CRITICAL": [],
+        }
 
     def get_log(self, log_reference: str, level: str | None = None) -> list[dict]:
         """
@@ -71,19 +85,47 @@ class MockLogger(Logger):
         """
         if level:
             assert level in self.logs, f"Invalid log level: {level}"
-            return [
-                log for log in self.logs[level] if log["reference"] == log_reference
-            ]
+            logs = sorted(self.logs[level], key=lambda x: x["_timestamp"])
+            logs = [log for log in logs if log["reference"] == log_reference]
 
-        return [
-            log
-            for level_logs in self.logs.values()
-            for log in level_logs
-            if log["reference"] == log_reference
-        ]
+        else:
+            logs = sorted(
+                [
+                    log
+                    for level_logs in self.logs.values()
+                    for log in level_logs
+                    if log["reference"] == log_reference
+                ],
+                key=lambda x: x["_timestamp"],
+            )
+
+        return [self._format_log_for_checks(log) for log in logs]
 
     def was_logged(self, log_reference: str, level: str | None = None) -> bool:
         """
         Check if a specific log reference was logged.
         """
         return bool(self.get_log(log_reference, level))
+
+    def format_logs_for_print(self) -> str:
+        """
+        Format logs for printing.
+        """
+        formatted_logs = []
+        for level, level_logs in self.logs.items():
+            for log in level_logs:
+                detail_str = f" | Detail: {log['detail']}" if log.get("detail") else ""
+                formatted_logs.append(
+                    f"[{level}] Reference: {log['reference']} | Msg: {log['msg']}{detail_str}"
+                )
+        return "\n".join(formatted_logs)
+
+    def _format_log_for_checks(self, log: dict) -> dict:
+        """
+        Format a specific log for checks.
+        """
+        formatted_log = {"msg": log["msg"]}
+        if log.get("detail"):
+            formatted_log["detail"] = log["detail"]
+
+        return formatted_log

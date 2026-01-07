@@ -7,7 +7,7 @@ from pydantic_core import core_schema
 from tests.util.fixtures import *  # noqa: F403
 
 os.environ["ENVIRONMENT"] = "local"
-os.environ["WORKSPACE"] = "test_workspace"
+os.environ["WORKSPACE"] = "test-workspace"
 os.environ["ENDPOINT_URL"] = "http://localhost:8000"
 os.environ["PROJECT_NAME"] = "ftrs-directory-of-services"
 

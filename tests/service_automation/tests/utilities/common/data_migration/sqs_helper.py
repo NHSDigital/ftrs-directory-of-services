@@ -1,4 +1,5 @@
 """Helper utilities for constructing SQS events in tests."""
+
 from datetime import datetime
 from typing import Any, Dict, Literal
 
@@ -46,7 +47,6 @@ def build_sqs_event(
     timestamp_ms = str(int(datetime.now().timestamp() * 1000))
 
     dms_event = DMSEvent(
-        type="dms_event",
         record_id=record_id,
         service_id=service_id,
         table_name=table_name,

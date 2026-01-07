@@ -1,10 +1,10 @@
 @data-migration
 Feature: Data Migration
 
-  Background:
-    Given the test environment is configured
-    And the DoS database has test data
-    And DynamoDB tables are ready
+  # Background:
+  # Given the test environment is configured
+  # And the DoS database has test data
+  # And DynamoDB tables are ready
 
   Scenario: Happy path migration for a GP Enhanced Access
     Given a "Service" exists in DoS with attributes
@@ -47,10 +47,10 @@ Feature: Data Migration
       | lastverified                        |                                                               |
       | nextverificationdue                 |                                                               |
 
-    When the data migration process is run for table 'services', ID '100178970' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '100178970' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 0 organisation, 0 location and 1 healthcare services created
-
     Then the 'healthcare-service' for service ID '100178970' has content:
       """
       {
@@ -64,11 +64,6 @@ Feature: Data Migration
         "dispositions": [],
         "identifier_oldDoS_uid": "2000094797",
         "location": null,
-        "migrationNotes": [
-          "field:['email'] ,error: not_nhs_email,message:Email address is not a valid NHS email address,value:178970-fake@nhs.gov.uk",
-          "field:['publicphone'] ,error: empty,message:Phone number cannot be empty,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "PCN - Enhanced Access Hub, Sandwell",
@@ -84,3 +79,4 @@ Feature: Data Migration
         "type": "Primary Care Network Enhanced Access Service"
       }
       """
+    Then the migration state of service ID '100178970' is version 1

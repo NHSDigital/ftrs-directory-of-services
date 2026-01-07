@@ -13,7 +13,7 @@ class BaseClinicalCode(BaseModel):
     id: UUID
     source: ClinicalCodeSource | None = None
     codeType: ClinicalCodeType
-    codeID: int | str = None
+    codeID: int | str | None = None
     codeValue: str | None = None
 
 

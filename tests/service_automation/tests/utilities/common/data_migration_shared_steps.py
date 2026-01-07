@@ -1,11 +1,12 @@
 """Shared step definitions for data migration BDD tests."""
+
 import os
 from typing import Any, Dict, List, Literal
 
 import pytest
 from loguru import logger
 from sqlalchemy import text
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from tests.service_automation.tests.utilities.common.data_migration.migration_context_helper import (
     build_supported_records_context,
@@ -23,9 +24,9 @@ from utilities.common.constants import (
 )
 from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
     verify_all_metrics,
 )
+from service_migration.models import ServiceMigrationMetrics
 from utilities.common.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
@@ -61,16 +62,18 @@ def run_test_environment_configured(
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
     logger.info("Environment configuration verified")
 
 
 def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
     """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+    result = dos_db_with_migration.execute(
+        text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}")
+    )
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
     logger.info(f"DoS database ready with {count} services")
@@ -130,7 +133,7 @@ def run_full_service_migration(
         "Full service migration completed",
         extra={
             "success": result.success,
-            "total_records": result.metrics.total_records if result.metrics else 0,
+            "total_records": result.metrics.total if result.metrics else 0,
         },
     )
 
@@ -177,9 +180,7 @@ def run_sqs_event_migration_with_params(
         "SQS event migration completed",
         extra={
             "success": result.success,
-            "migrated_records": (
-                result.metrics.migrated_records if result.metrics else 0
-            ),
+            "migrated_records": (result.metrics.inserted if result.metrics else 0),
             "table_name": table_name,
             "record_id": record_id,
             "method": method,
@@ -208,7 +209,7 @@ def run_verify_migration_metrics_inline(
     migration_type = get_migration_type_description(migration_context)
     additional_context = build_supported_records_context(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -253,7 +254,7 @@ def run_verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -350,7 +351,6 @@ def run_verify_transformation_output(
 
     verify_transformation_log(
         mock_logger=mock_logger,
-        service_id=service_id,
         organisation_count=org_count,
         location_count=location_count,
         healthcare_service_count=service_count,

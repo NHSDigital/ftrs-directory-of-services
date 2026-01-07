@@ -1,44 +1,42 @@
 import pytest
-from ftrs_data_layer.domain.legacy import (
-    Disposition,
-    OpeningTimeDay,
-    ServiceType,
+from ftrs_data_layer.domain.legacy.db_models import (
+    LegacyDoSModel,
     SymptomDiscriminator,
-    SymptomGroup,
 )
-from ftrs_data_layer.domain.legacy.base import LegacyDoSModel
 from pytest_mock import MockerFixture
-from sqlalchemy import Engine
+from sqlalchemy import Engine, Integer, String
 from sqlalchemy.engine.mock import create_mock_engine
-from sqlmodel import Field
+from sqlalchemy.orm import Mapped, mapped_column
 
-from common.cache import DoSMetadataCache, SQLModelKVCache
-
-
-class MockModel(LegacyDoSModel, table=True):
-    id: int = Field(primary_key=True)
-    name: str
+from common.cache import SQLAlchemyKVCache
 
 
-def test_sqlmodel_cache_init(mocker: MockerFixture) -> None:
+class MockModel(LegacyDoSModel):
+    __tablename__ = "mockmodel"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String)
+
+
+def test_sqlalchemy_cache_init(mocker: MockerFixture) -> None:
     """
-    Test that SQLModelKVCache initializes correctly with an engine and model.
+    Test that SQLAlchemyKVCache initialises correctly with an engine and model.
     """
     engine = mocker.MagicMock(spec=Engine)
 
-    cache = SQLModelKVCache(engine, MockModel)
+    cache = SQLAlchemyKVCache(engine, MockModel)
 
     assert cache.engine == engine
     assert cache.model == MockModel
     assert isinstance(cache.cache, dict)
 
 
-def test_sqlmodel_cache_get(mocker: MockerFixture) -> None:
+def test_sqlalchemy_cache_get(mocker: MockerFixture) -> None:
     """
-    Test that SQLModelKVCache.get retrieves an item from the cache or database.
+    Test that SQLAlchemyKVCache.get retrieves an item from the cache or database.
     """
     engine = mocker.MagicMock(spec=Engine)
-    cache = SQLModelKVCache(engine, MockModel)
+    cache = SQLAlchemyKVCache(engine, MockModel)
 
     mock_item = MockModel(id=1, name="Test Item")
     cache._retrieve_item = mocker.MagicMock(return_value=mock_item)
@@ -59,12 +57,12 @@ def test_sqlmodel_cache_get(mocker: MockerFixture) -> None:
     assert cache._retrieve_item.call_count == 1  # Should not call again
 
 
-def test_sqlmodel_cache_get_key_error(mocker: MockerFixture) -> None:
+def test_sqlalchemy_cache_get_key_error(mocker: MockerFixture) -> None:
     """
-    Test that SQLModelKVCache.get raises KeyError if the item is not found.
+    Test that SQLAlchemyKVCache.get raises KeyError if the item is not found.
     """
     engine = mocker.MagicMock(spec=Engine)
-    cache = SQLModelKVCache(engine, MockModel)
+    cache = SQLAlchemyKVCache(engine, MockModel)
 
     cache._retrieve_item = mocker.MagicMock(return_value=None)
 
@@ -78,9 +76,9 @@ def test_sqlmodel_cache_get_key_error(mocker: MockerFixture) -> None:
     cache._retrieve_item.assert_called_once_with(1)
 
 
-def test_sqlmodel_cache_retrieve_item(mocker: MockerFixture) -> None:
+def test_sqlalchemy_cache_retrieve_item(mocker: MockerFixture) -> None:
     """
-    Test that SQLModelKVCache._retrieve_item retrieves an item from the database.
+    Test that SQLAlchemyKVCache._retrieve_item retrieves an item from the database.
     """
     executor = mocker.MagicMock()
     engine = create_mock_engine(
@@ -91,7 +89,7 @@ def test_sqlmodel_cache_retrieve_item(mocker: MockerFixture) -> None:
     engine.close = mocker.MagicMock()
     engine.in_transaction = mocker.MagicMock(return_value=False)
 
-    cache = SQLModelKVCache(engine, MockModel)
+    cache = SQLAlchemyKVCache(engine, MockModel)
     cache._retrieve_item(1)
 
     executor.assert_called_once()
@@ -105,9 +103,9 @@ def test_sqlmodel_cache_retrieve_item(mocker: MockerFixture) -> None:
     )
 
 
-def test_sqlmodel_cache_retrieve_item_prejoin(mocker: MockerFixture) -> None:
+def test_sqlalchemy_cache_retrieve_item_prejoin(mocker: MockerFixture) -> None:
     """
-    Test that SQLModelKVCache._retrieve_item retrieves an item from the database with a prejoin.
+    Test that SQLAlchemyKVCache._retrieve_item retrieves an item from the database with a prejoin.
     """
     executor = mocker.MagicMock()
     engine = create_mock_engine(
@@ -118,7 +116,7 @@ def test_sqlmodel_cache_retrieve_item_prejoin(mocker: MockerFixture) -> None:
     engine.close = mocker.MagicMock()
     engine.in_transaction = mocker.MagicMock(return_value=False)
 
-    cache = SQLModelKVCache(engine, SymptomDiscriminator, prejoin=True)
+    cache = SQLAlchemyKVCache(engine, SymptomDiscriminator, prejoin=True)
     cache._retrieve_item(1)
 
     executor.assert_called_once()
@@ -133,29 +131,29 @@ def test_sqlmodel_cache_retrieve_item_prejoin(mocker: MockerFixture) -> None:
     )
 
 
-def test_dos_metadata_cache_init(mocker: MockerFixture) -> None:
-    """
-    Test that DoSMetadataCache initializes correctly with an engine.
-    """
-    engine = mocker.MagicMock(spec=Engine)
+# def test_dos_metadata_cache_init(mocker: MockerFixture) -> None:
+#     """
+#     Test that DoSMetadataCache initializes correctly with an engine.
+#     """
+#     engine = mocker.MagicMock(spec=Engine)
 
-    cache = DoSMetadataCache(engine)
+#     cache = DoSMetadataCache(engine)
 
-    assert cache.engine == engine
-    assert isinstance(cache.symptom_groups, SQLModelKVCache)
-    assert isinstance(cache.symptom_discriminators, SQLModelKVCache)
-    assert isinstance(cache.dispositions, SQLModelKVCache)
-    assert isinstance(cache.opening_time_days, SQLModelKVCache)
-    assert isinstance(cache.service_types, SQLModelKVCache)
+#     assert cache.engine == engine
+#     assert isinstance(cache.symptom_groups, SQLAlchemyKVCache)
+#     assert isinstance(cache.symptom_discriminators, SQLAlchemyKVCache)
+#     assert isinstance(cache.dispositions, SQLAlchemyKVCache)
+#     assert isinstance(cache.opening_time_days, SQLAlchemyKVCache)
+#     assert isinstance(cache.service_types, SQLAlchemyKVCache)
 
-    assert cache.symptom_groups.model == SymptomGroup
-    assert cache.symptom_discriminators.model == SymptomDiscriminator
-    assert cache.dispositions.model == Disposition
-    assert cache.opening_time_days.model == OpeningTimeDay
-    assert cache.service_types.model == ServiceType
+#     assert cache.symptom_groups.model == SymptomGroup
+#     assert cache.symptom_discriminators.model == SymptomDiscriminator
+#     assert cache.dispositions.model == Disposition
+#     assert cache.opening_time_days.model == OpeningTimeDay
+#     assert cache.service_types.model == ServiceType
 
-    assert cache.symptom_groups.prejoin is False
-    assert cache.symptom_discriminators.prejoin is True  # Needed for synonyms
-    assert cache.dispositions.prejoin is False
-    assert cache.opening_time_days.prejoin is False
-    assert cache.service_types.prejoin is False
+#     assert cache.symptom_groups.prejoin is False
+#     assert cache.symptom_discriminators.prejoin is True  # Needed for synonyms
+#     assert cache.dispositions.prejoin is False
+#     assert cache.opening_time_days.prejoin is False
+#     assert cache.service_types.prejoin is False

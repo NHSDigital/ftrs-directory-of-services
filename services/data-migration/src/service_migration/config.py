@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from common.config import DatabaseConfig
 
 
-class DataMigrationConfig(BaseSettings):
+class ServiceMigrationConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )

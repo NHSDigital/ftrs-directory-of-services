@@ -4,8 +4,9 @@ from typing import Any, Dict, Literal
 import pytest
 from pytest_bdd import given, parsers, then, when
 from sqlalchemy import text
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
+from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
@@ -15,9 +16,9 @@ from utilities.common.data_migration.migration_context_helper import (
 )
 from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
     verify_all_metrics,
 )
+from service_migration.models import ServiceMigrationMetrics
 from utilities.common.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
@@ -29,6 +30,8 @@ from utilities.common.constants import (
     ENV_WORKSPACE,
     SERVICES_TABLE,
 )
+import json
+from datetime import datetime
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
@@ -38,60 +41,89 @@ from utilities.common.log_helper import (
     verify_transformation_log,
     verify_transformer_selected_log,
 )
+from boto3.dynamodb.types import TypeDeserializer
+from deepdiff import DeepDiff
+from common.uuid_utils import generate_uuid
+from decimal import Decimal
+import re
+from ftrs_data_layer.domain import Organisation, Location, HealthcareService
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
+    parse_datatable_value,
+)
+
+META_TIME_FIELDS = ["createdDateTime", "modifiedDateTime"]
+NESTED_PATHS_WITH_META_FIELDS = ["endpoints"]
+
+IGNORED_PATHS = [
+    "field",
+    *META_TIME_FIELDS,
+    *[
+        re.compile(r"root\['{nested}']\[\d+]\['{field}']")
+        for nested in NESTED_PATHS_WITH_META_FIELDS
+        for field in META_TIME_FIELDS
+    ],
+]
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return int(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 # ============================================================
 # Setup Steps (Background)
 # ============================================================
 
+# TODO: Integrate these steps into the fixture setup process
+# @given("the test environment is configured")
+# def environment_configured(
+#     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
+# ) -> None:
+#     """Verify test environment is properly configured."""
+#     try:
+#         response = dynamodb[DYNAMODB_CLIENT].list_tables()
+#         table_names = response.get("TableNames", [])
+#         assert "TableNames" in response, "DynamoDB should be accessible"
+#     except Exception as e:
+#         pytest.fail(f"Failed to access DynamoDB: {e}")
 
-@given("the test environment is configured")
-def environment_configured(
-    migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
-) -> None:
-    """Verify test environment is properly configured."""
-    try:
-        response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
-        assert "TableNames" in response, "DynamoDB should be accessible"
-    except Exception as e:
-        pytest.fail(f"Failed to access DynamoDB: {e}")
-
-    assert migration_helper is not None, "Migration helper should be configured"
-    assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
-
-
-@given("the DoS database has test data")
-def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
-    """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
-    count = result.fetchone()[0]
-    assert count >= 0, "Should be able to query services table"
+#     assert migration_helper is not None, "Migration helper should be configured"
+#     assert migration_helper.db_uri is not None, "Database URI should be set"
+#     assert migration_helper.dynamodb_endpoint is not None, (
+#         "DynamoDB endpoint should be set"
+#     )
 
 
-@given("DynamoDB tables are ready")
-def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
-    """Verify DynamoDB tables exist and are accessible."""
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.list_tables()
-    table_names = response.get("TableNames", [])
+# @given("the DoS database has test data")
+# def dos_database_has_test_data(dos_db: Session) -> None:
+#     """Verify DoS database is accessible and has tables."""
+#     result = dos_db.execute(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+#     count = result.fetchone()[0]
+#     assert count >= 0, "Should be able to query services table"
 
-    expected_tables = get_expected_dynamodb_table_names()
-    missing_tables = [table for table in expected_tables if table not in table_names]
 
-    if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
-        environment = os.getenv(ENV_ENVIRONMENT)
-        workspace = os.getenv(ENV_WORKSPACE)
+# @given("DynamoDB tables are ready")
+# def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
+#     """Verify DynamoDB tables exist and are accessible."""
+#     client = dynamodb[DYNAMODB_CLIENT]
+#     response = client.list_tables()
+#     table_names = response.get("TableNames", [])
 
-        pytest.fail(
-            f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
-            f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
-        )
+#     expected_tables = get_expected_dynamodb_table_names()
+#     missing_tables = [table for table in expected_tables if table not in table_names]
+
+#     if missing_tables:
+#         project_name = os.getenv(ENV_PROJECT_NAME)
+#         environment = os.getenv(ENV_ENVIRONMENT)
+#         workspace = os.getenv(ENV_WORKSPACE)
+
+#         pytest.fail(
+#             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
+#             f"Found tables: {', '.join(table_names)}\n"
+#             f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+#         )
 
 
 # ============================================================
@@ -106,7 +138,7 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     target_fixture="service_created",
 )
 def create_service_with_attributes(
-    dos_db_with_migration: Session,
+    dos_db: Session,
     migration_context: Dict[str, Any],
     entity_type: str,
     entity_name: str,
@@ -114,7 +146,7 @@ def create_service_with_attributes(
 ) -> Dict[str, Any]:
     """Create a service in DoS database with attributes from Gherkin table."""
     return parse_and_create_service(
-        dos_db_with_migration,
+        dos_db,
         migration_context,
         entity_type,
         entity_name,
@@ -126,19 +158,14 @@ def create_service_with_attributes(
 # Migration Execution Steps (When)
 # ============================================================
 
+
 @when("triage code full migration is executed")
-def triage_code_full_migration(migration_helper: MigrationHelper, dynamodb):
-    migration_helper.run_triage_code_migration_only()
-
-
-@when("the data migration process is run")
-def full_service_migration(
-    migration_helper: MigrationHelper,
-    migration_context: Dict[str, Any],
-) -> None:
-    """Execute full service migration."""
-    result = migration_helper.run_full_service_migration()
-    store_migration_result(migration_context, result)
+def triage_code_full_migration(
+    migration_context: Dict[str, Any], migration_helper: MigrationHelper, dynamodb
+):
+    result = migration_helper.run_triage_code_migration_only()
+    migration_context["result"] = result
+    migration_context["mock_logger"] = result.mock_logger
 
 
 @when(
@@ -151,13 +178,21 @@ def single_service_migration(
     service_id: int,
 ) -> None:
     """Execute migration for a single service."""
-    result = migration_helper.run_single_service_migration(service_id)
-    store_migration_result(migration_context, result, service_id)
+    event = build_sqs_event(
+        table_name="services",
+        record_id=service_id,
+        service_id=service_id,
+        method="insert",
+    )
+
+    result = migration_helper.run_sqs_event_migration(event)
+    store_sqs_result(migration_context, result, event, service_id)
+    return {"event": event, "result": result}
 
 
 @when(
     parsers.parse(
-        "the data migration process is run for table '{table_name}', "
+        "the service migration process is run for table '{table_name}', "
         "ID '{record_id:d}' and method '{method}'"
     ),
     target_fixture="sqs_event_processed",
@@ -186,6 +221,35 @@ def sqs_event_migration_with_params(
 # ============================================================
 # Verification Steps (Then)
 # ============================================================
+@then("the service migration process completes successfully")
+def verify_pipeline_completed_successfully(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that the migration pipeline completed successfully."""
+    result = migration_context.get("result")
+
+    assert result is not None, "Migration result should exist"
+    assert result.success is True, (
+        "Migration process should complete successfully\nLog output:\n"
+        + migration_context["mock_logger"].format_logs_for_print()
+    )
+
+    mock_logger = get_mock_logger_from_context(migration_context)
+    verify_migration_completed_log(mock_logger)
+
+
+@then("the triage code migration process completes successfully")
+def verify_triage_code_completed_successfully(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that the triage code migration pipeline completed successfully."""
+    result = migration_context.get("result")
+
+    assert result is not None, "Migration result should exist"
+    assert result.success is True, (
+        "Triage code migration process should complete successfully\nLog output:\n"
+        + migration_context["mock_logger"].format_logs_for_print()
+    )
 
 
 @then(
@@ -195,58 +259,11 @@ def sqs_event_migration_with_params(
         "{supported:d} supported, "
         "{unsupported:d} unsupported, "
         "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
-        "{skipped:d} skipped and "
-        "{errors:d} errors"
-    )
-)
-def verify_migration_metrics(
-    migration_context: Dict[str, Any],
-    total: int,
-    supported: int,
-    unsupported: int,
-    transformed: int,
-    migrated: int,
-    skipped: int,
-    errors: int,
-) -> None:
-    """Verify migration metrics match expected values."""
-    result = migration_context["result"]
-
-    assert result is not None, "Migration result should exist"
-    assert result.metrics is not None, "Migration metrics should exist"
-
-    migration_type = get_migration_type_description(migration_context)
-    additional_context = build_supported_records_context(migration_context)
-
-    expected = ExpectedMetrics(
-        total=total,
-        supported=supported,
-        unsupported=unsupported,
-        transformed=transformed,
-        migrated=migrated,
-        skipped=skipped,
-        errors=errors,
-    )
-
-    verify_all_metrics(
-        actual_metrics=result.metrics,
-        expected=expected,
-        migration_type=migration_type,
-        additional_context=additional_context,
-    )
-
-
-@then(
-    parsers.parse(
-        "the SQS event metrics should be "
-        "{total:d} total, "
-        "{supported:d} supported, "
-        "{unsupported:d} unsupported, "
-        "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
-        "{skipped:d} skipped and "
-        "{errors:d} errors"
+        "{inserted:d} inserted, "
+        "{updated:d} updated, "
+        "{skipped:d} skipped, "
+        "{invalid:d} invalid and"
+        "{errored:d} errored"
     )
 )
 def verify_sqs_event_metrics(
@@ -255,9 +272,11 @@ def verify_sqs_event_metrics(
     supported: int,
     unsupported: int,
     transformed: int,
-    migrated: int,
+    inserted: int,
+    updated: int,
+    invalid: int,
     skipped: int,
-    errors: int,
+    errored: int,
 ) -> None:
     """Verify SQS event migration metrics match expected values."""
     result = migration_context.get("result")
@@ -267,14 +286,16 @@ def verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
         transformed=transformed,
-        migrated=migrated,
+        invalid=invalid,
+        inserted=inserted,
+        updated=updated,
         skipped=skipped,
-        errors=errors,
+        errored=errored,
     )
 
     verify_all_metrics(
@@ -282,9 +303,6 @@ def verify_sqs_event_metrics(
         expected=expected,
         migration_type=migration_type,
     )
-
-    mock_logger = get_mock_logger_from_context(migration_context)
-    verify_migration_completed_log(mock_logger)
 
 
 @then(
@@ -309,7 +327,7 @@ def verify_transformer_selected(
 
 @then(
     parsers.parse(
-        "service ID '{service_id:d}' was transformed into "
+        "the service was transformed into "
         "{org_count:d} organisation, "
         "{location_count:d} location and "
         "{service_count:d} healthcare service"
@@ -317,7 +335,6 @@ def verify_transformer_selected(
 )
 def verify_transformation_output(
     migration_context: Dict[str, Any],
-    service_id: int,
     org_count: int,
     location_count: int,
     service_count: int,
@@ -327,7 +344,6 @@ def verify_transformation_output(
 
     verify_transformation_log(
         mock_logger=mock_logger,
-        service_id=service_id,
         organisation_count=org_count,
         location_count=location_count,
         healthcare_service_count=service_count,
@@ -374,7 +390,9 @@ def verify_service_skipped(
     )
 
 
-@then(parsers.parse("error log containing message: '{error_message_fragment}' was found"))
+@then(
+    parsers.parse("error log containing message: '{error_message_fragment}' was found")
+)
 def verify_error_level_log(
     migration_context: Dict[str, Any],
     error_message_fragment: str,
@@ -385,4 +403,648 @@ def verify_error_level_log(
     verify_error_log_present(
         mock_logger=mock_logger,
         error_fragment=error_message_fragment,
+    )
+
+
+def _get_migration_state(
+    dynamodb: Dict[str, Any],
+    service_id: str,
+) -> Dict[str, Any] | None:
+    """Retrieve migration state for a service from DynamoDB."""
+    deserialiser = TypeDeserializer()
+
+    table_name = get_table_name("state-table", stack_name="data-migration")
+    result = dynamodb["client"].get_item(
+        TableName=table_name,
+        Key={"source_record_id": {"S": f"services#{service_id}"}},
+    )
+
+    if not result.get("Item"):
+        return None
+
+    deserialised_item = {
+        k: deserialiser.deserialize(v) for k, v in result["Item"].items()
+    }
+    return deserialised_item
+
+
+@then(
+    parsers.parse(
+        "the migration state of service ID '{service_id}' is version {version:d}"
+    )
+)
+def verify_migration_state_version(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+    version: int,
+) -> None:
+    """Verify that the migration state version for a service matches expected."""
+    if (
+        not migration_context.get("state")
+        or service_id not in migration_context["state"]["source_record_id"]
+    ):
+        migration_context["state"] = _get_migration_state(dynamodb, service_id)
+
+    assert migration_context.get("state") is not None, (
+        f"No migration state found for service ID '{service_id}'"
+    )
+
+    actual_version = migration_context["state"].get("version")
+    assert actual_version == version, (
+        f"Expected migration state version {version} for service ID '{service_id}', "
+        f"but found {actual_version}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the migration state of service ID '{service_id}' contains {issue_count:d} validation issues"
+    )
+)
+def verify_migration_state_validation_issues(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+    issue_count: int,
+) -> None:
+    """Verify that the migration state validation issues count matches expected."""
+    if (
+        not migration_context.get("state")
+        or service_id not in migration_context["state"]["source_record_id"]
+    ):
+        migration_context["state"] = _get_migration_state(dynamodb, service_id)
+
+    assert migration_context.get("state") is not None, (
+        f"No migration state found for service ID '{service_id}'"
+    )
+
+    validation_issues = migration_context["state"].get("validation_issues", [])
+    actual_issue_count = len(validation_issues)
+    assert actual_issue_count == issue_count, (
+        f"Expected {issue_count} validation issues for service ID '{service_id}', "
+        f"but found {actual_issue_count}\nValidation Issues: {json.dumps(validation_issues, indent=2)}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the migration state of service ID '{service_id}' has the following validation issues:"
+    )
+)
+def verify_migration_state_validation_issues_content(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+    datatable: list[list[str]],
+) -> None:
+    """Verify that the migration state validation issues count matches expected."""
+    if (
+        not migration_context.get("state")
+        or service_id not in migration_context["state"]["source_record_id"]
+    ):
+        migration_context["state"] = _get_migration_state(dynamodb, service_id)
+
+    assert migration_context.get("state") is not None, (
+        f"No migration state found for service ID '{service_id}'"
+    )
+
+    validation_issues = migration_context["state"].get("validation_issues", [])
+
+    first_row = next(iter(datatable), None)
+    if not first_row or set(first_row) != {
+        "expression",
+        "severity",
+        "code",
+        "diagnostics",
+        "value",
+    }:
+        pytest.fail(
+            "Validation issues table must have columns in order: "
+            "'expression', 'severity', 'code', 'diagnostics', 'value'"
+        )
+
+    # Turn datatable into list of dicts
+    expected_issues = []
+    for row in datatable[1:]:
+        expected_issues.append(
+            {
+                "expression": [row[0]],
+                "severity": row[1],
+                "code": row[2],
+                "diagnostics": row[3],
+                "value": parse_datatable_value(row[4]),
+            }
+        )
+
+    diff = DeepDiff(
+        expected_issues,
+        validation_issues,
+        ignore_order=True,
+    )
+    assert not diff, (
+        f"Validation issues for service ID '{service_id}' do not match expected.\nDiff: {diff}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the migration state of service ID '{service_id}' contains a '{entity_type}' with ID '{entity_id}'"
+    )
+)
+def verify_migration_state_location_content(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+    entity_type: str,
+    entity_id: str,
+) -> None:
+    """Verify that the migration state location content matches expected."""
+    if (
+        not migration_context.get("state")
+        or service_id not in migration_context["state"]["source_record_id"]
+    ):
+        migration_context["state"] = _get_migration_state(dynamodb, service_id)
+
+    state = migration_context.get("state")
+
+    assert state is not None, f"No migration state found for service ID '{service_id}'"
+
+    entity = state.get(entity_type, None)
+    assert entity is not None, (
+        f"No {entity_type} found in migration state for service ID '{service_id}'"
+    )
+
+    actual_entity_id = entity.get("id", None)
+    assert actual_entity_id == entity_id, (
+        f"Expected {entity_type} ID '{entity_id}' in migration state for service ID '{service_id}', "
+        f"but found '{actual_entity_id}'"
+    )
+
+    assert state.get(f"{entity_type}_id") == entity_id, (
+        f"Expected {entity_type}_id '{entity_id}' in migration state for service ID '{service_id}', "
+        f"but found '{state.get(f'{entity_type}_id')}'"
+    )
+
+
+@then(
+    parsers.parse(
+        "the migration state of service ID '{service_id}' matches the stored records"
+    )
+)
+def verify_migration_state_matches_expected(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+) -> None:
+    """Verify that the migration state matches the expected state."""
+    if (
+        not migration_context.get("state")
+        or service_id not in migration_context["state"]["source_record_id"]
+    ):
+        migration_context["state"] = _get_migration_state(dynamodb, service_id)
+
+    actual_state = migration_context.get("state")
+    assert actual_state is not None, (
+        f"No migration state found for service ID '{service_id}'"
+    )
+
+    if org := actual_state.get("organisation"):
+        state_organisation = Organisation.model_validate(org)
+        retrieved_item = Organisation.model_validate(
+            get_by_id_and_sort_key(
+                dynamodb,
+                "organisation",
+                str(state_organisation.id),
+            ),
+        )
+        assert retrieved_item.model_dump() == state_organisation.model_dump(), (
+            f"Organisation data does not match state for service ID '{service_id}'"
+        )
+
+    if loc := actual_state.get("location"):
+        state_location = Location.model_validate(loc)
+        retrieved_item = Location.model_validate(
+            get_by_id_and_sort_key(
+                dynamodb,
+                "location",
+                str(state_location.id),
+            ),
+        )
+        assert retrieved_item.model_dump() == state_location.model_dump(), (
+            f"Location data does not match state for service ID '{service_id}'"
+        )
+
+    if hs := actual_state.get("healthcare_service"):
+        state_healthcare_service = HealthcareService.model_validate(hs)
+        retrieved_item = HealthcareService.model_validate(
+            get_by_id_and_sort_key(
+                dynamodb,
+                "healthcare-service",
+                str(state_healthcare_service.id),
+            ),
+        )
+        assert retrieved_item.model_dump() == state_healthcare_service.model_dump(), (
+            f"HealthcareService data does not match state for service ID '{service_id}'"
+        )
+
+
+@then(
+    parsers.parse(
+        "the validated source record has the following changes before migration for service ID '{service_id}':"
+    )
+)
+def verify_validated_source_record_changes(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    service_id: str,
+    datatable: list[list[str]],
+) -> None:
+    """Verify that the migration state matches the expected state."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_VAL_003"), (
+        f"No validated source record changes found for service ID '{service_id}'"
+    )
+
+    expected_changes = [row[0] for row in datatable[1:]]  # Skip header row
+
+    actual_change_logs = mock_logger.get_log("SM_VAL_003")
+    assert len(actual_change_logs) == 1, (
+        f"Expected one validated source record changes log for service ID '{service_id}', "
+        f"but found {len(actual_change_logs)}"
+    )
+
+    actual_changes = actual_change_logs[0]["detail"].get("changes", [])
+    diff = DeepDiff(
+        expected_changes,
+        actual_changes,
+        ignore_order=True,
+    )
+    assert not diff, (
+        f"Validated source record changes for service ID '{service_id}' do not match expected.\nDiff: {diff}"
+    )
+
+
+@given("the mock logger is reset")
+def reset_mock_logger(migration_context: Dict[str, Any]) -> None:
+    """Reset the mock logger in the migration context."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+    mock_logger.clear_logs()
+
+
+@then(
+    parsers.parse(
+        "there is {org_count_expected:d} organisation, {location_count_expected:d} location and {healthcare_service_count_expected:d} healthcare services created"
+    )
+)
+def check_expected_table_counts(
+    org_count_expected: int,
+    location_count_expected: int,
+    healthcare_service_count_expected: int,
+    dynamodb,
+):
+    """
+    Performs a complete table scan - consider a different option for large tables
+    """
+    dynamodb_resource = dynamodb["resource"]
+
+    def check_table(table_name, count_expected):
+        table = dynamodb_resource.Table(table_name)
+        table_scan = table.scan()
+        actual_count = len(table_scan["Items"])
+        assert count_expected == actual_count, (
+            f"Expected {table_name} count does not match actual"
+        )
+
+    check_table(get_table_name("organisation"), org_count_expected)
+    check_table(get_table_name("location"), location_count_expected)
+    check_table(get_table_name("healthcare-service"), healthcare_service_count_expected)
+
+
+@then(parsers.parse("The '{table_name}' for service ID '{service_id}' has content:"))
+def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
+    namespace = table_name.replace("-", "_")
+    generated_uuid = str(generate_uuid(service_id, namespace))
+    _check_by_id_and_sort_key(table_name, generated_uuid, docstring, dynamodb)
+
+
+@then(
+    parsers.re(
+        r"field '(?P<field_name>[\w-]*)' on table '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' has content:"
+    )
+)
+def check_field_on_a_table_by_id(
+    field_name, table_name, primary_id, docstring, dynamodb
+):
+    _check_by_id_and_sort_key(
+        table_name, primary_id, docstring, dynamodb, filtered_by_field=field_name
+    )
+
+
+@then(
+    parsers.re(
+        r"field '(?P<field_name>[\w-]*)' on table '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' and field sort key '(?P<field_sort_key>[\w-]+)' has content:"
+    )
+)
+def check_field_on_a_table_by_id_and_sort_key(
+    field_name, table_name, primary_id, docstring, dynamodb, field_sort_key
+):
+    _check_by_id_and_sort_key(
+        table_name,
+        primary_id,
+        docstring,
+        dynamodb,
+        field_sort_key=field_sort_key,
+        filtered_by_field=field_name,
+    )
+
+
+@then(
+    parsers.re(
+        r"the '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' has content:"
+    )
+)
+def check_row_on_table_by_id(table_name, primary_id, docstring, dynamodb):
+    _check_by_id_and_sort_key(table_name, primary_id, docstring, dynamodb)
+
+
+@then(
+    parsers.re(
+        r"the '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' and field sort key '(?P<field_sort_key>[\w-]+)' has content:"
+    )
+)
+def check_row_on_table_by_id_and_sort_key(
+    table_name, primary_id, docstring, field_sort_key, dynamodb
+):
+    _check_by_id_and_sort_key(
+        table_name, primary_id, docstring, dynamodb, field_sort_key
+    )
+
+
+def _check_by_id_and_sort_key(
+    table_name,
+    primary_id,
+    docstring,
+    dynamodb,
+    field_sort_key="document",
+    filtered_by_field=None,
+):
+    retrieved_item = json.loads(
+        json.dumps(
+            get_by_id_and_sort_key(
+                dynamodb, table_name, primary_id, field_sort_key_value=field_sort_key
+            ),
+            cls=DecimalEncoder,
+        )
+    )
+    expected = json.loads(docstring)
+    actual = (
+        {k: v for k, v in retrieved_item.items() if k == filtered_by_field}
+        if filtered_by_field
+        else retrieved_item
+    )
+    validate_diff(expected, actual)
+
+    if not filtered_by_field:
+        validate_dynamic_fields(actual)
+
+
+def validate_diff(expected, retrieved_item):
+    diff = DeepDiff(
+        expected, retrieved_item, ignore_order=True, exclude_regex_paths=IGNORED_PATHS
+    )
+
+    assert diff == {}, f"Differences found: {pprint(diff, indent=2)}"
+
+
+def validate_dynamic_fields(retrieved_item):
+    def validate_metas(obj, root_path="$"):
+        for field in META_TIME_FIELDS:
+            assert field in obj, f"Expected field '{field}' not found in item"
+            validate_timestamp_format(f"{root_path}.{field}", obj[field])
+
+        relevant_fields = {
+            k: v for k, v in obj.items() if k in NESTED_PATHS_WITH_META_FIELDS
+        }
+        for key, value in relevant_fields.items():
+            if isinstance(value, dict):
+                validate_metas(value, f"{root_path}.{key}")
+            elif isinstance(value, list):
+                for i, item in enumerate(value):
+                    if isinstance(item, dict):
+                        validate_metas(item, f"{root_path}.{key}[{i}]")
+
+    validate_metas(retrieved_item)
+
+
+def validate_timestamp_format(path_to_field, date_text):
+    try:
+        datetime.fromisoformat(date_text)
+    except ValueError:
+        assert False, (
+            f"Text under {path_to_field}: {date_text} not recognised as valid datetime"
+        )
+
+
+def get_by_id(dynamodb, table_name, service_id):
+    dynamodb_resource = dynamodb["resource"]
+    target_table = dynamodb_resource.Table(get_table_name(table_name))
+    response = target_table.get_item(Key={"id": service_id, "field": "document"})
+
+    assert "Item" in response, f"No item found under {service_id}"
+    item = response["Item"]
+
+    return item
+
+
+def get_by_id_and_sort_key(
+    dynamodb, table_name, id_value, field_sort_key_value="document"
+):
+    dynamodb_resource = dynamodb["resource"]
+    target_table = dynamodb_resource.Table(get_table_name(table_name))
+    response = target_table.get_item(
+        Key={"id": id_value, "field": field_sort_key_value}
+    )
+
+    assert "Item" in response, (
+        f"No item found under id: {id_value}, field sort key: {field_sort_key_value}"
+    )
+    item = response["Item"]
+
+    return item
+
+
+@then(parsers.parse("no organisation was created for service '{service_id:d}'"))
+def verify_no_organisation_created(service_id: int, dynamodb):
+    """Verify that no organisation was created for the given service."""
+    organisation_uuid = str(generate_uuid(service_id, "organisation"))
+
+    dynamodb_resource = dynamodb["resource"]
+    org_table = dynamodb_resource.Table(get_table_name("organisation"))
+
+    response = org_table.get_item(Key={"id": organisation_uuid, "field": "document"})
+    assert "Item" not in response, (
+        f"Organisation with id {organisation_uuid} should not exist for service {service_id}"
+    )
+
+
+@then(parsers.parse("no location was created for service '{service_id:d}'"))
+def verify_no_location_created(service_id: int, dynamodb):
+    """Verify that no location was created for the given service."""
+    location_uuid = str(generate_uuid(service_id, "location"))
+
+    dynamodb_resource = dynamodb["resource"]
+    location_table = dynamodb_resource.Table(get_table_name("location"))
+
+    response = location_table.get_item(Key={"id": location_uuid, "field": "document"})
+    assert "Item" not in response, (
+        f"Location with id {location_uuid} should not exist for service {service_id}"
+    )
+
+
+@then(parsers.parse("no healthcare service was created for service '{service_id:d}'"))
+def verify_no_healthcare_service_created(service_id: int, dynamodb):
+    """Verify that no healthcare service was created for the given service."""
+    healthcare_service_uuid = str(generate_uuid(service_id, "healthcare_service"))
+
+    dynamodb_resource = dynamodb["resource"]
+    service_table = dynamodb_resource.Table(get_table_name("healthcare-service"))
+
+    response = service_table.get_item(
+        Key={"id": healthcare_service_uuid, "field": "document"}
+    )
+    assert "Item" not in response, (
+        f"Healthcare service with id {healthcare_service_uuid} should not exist for service {service_id}"
+    )
+
+
+@then("there is no Organisation update")
+def verify_no_organisation_update(migration_context: Dict[str, Any]) -> None:
+    """Verify that no organisation updates were made in the migration."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_017") is True, (
+        "Expected organisation update log 'SM_PROC_017' not found"
+    )
+
+    assert mock_logger.was_logged("SM_PROC_018") is False, (
+        "Unexpected organisation update log 'SM_PROC_018' found"
+    )
+
+
+@then("there is no Location update")
+def verify_no_location_update(migration_context: Dict[str, Any]) -> None:
+    """Verify that no location updates were made in the migration."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_019") is True, (
+        "Expected location update log 'SM_PROC_019' not found"
+    )
+
+    assert mock_logger.was_logged("SM_PROC_020") is False, (
+        "Unexpected location update log 'SM_PROC_020' found"
+    )
+
+
+@then("there is no Healthcare Service update")
+def verify_no_healthcare_service_update(migration_context: Dict[str, Any]) -> None:
+    """Verify that no healthcare service updates were made in the migration."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_021") is True, (
+        "Expected healthcare service update log 'SM_PROC_021' not found"
+    )
+
+    assert mock_logger.was_logged("SM_PROC_022") is False, (
+        "Unexpected healthcare service update log 'SM_PROC_022' found"
+    )
+
+
+@then("there is an Organisation update with changes:")
+def verify_organisation_update_with_changes(
+    migration_context: Dict[str, Any],
+    datatable: list[list[str]],
+) -> None:
+    """Verify that organisation updates were made with expected changes."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_018") is True, (
+        f"Expected organisation update log 'SM_PROC_018' not found\nLogs:\n{mock_logger.format_logs_for_print()}"
+    )
+
+    expected_changes = [row[0] for row in datatable[1:]]  # Skip header row
+
+    actual_change_logs = mock_logger.get_log("SM_PROC_018")
+    assert len(actual_change_logs) == 1, (
+        f"Expected one organisation update log 'SM_PROC_018', "
+        f"but found {len(actual_change_logs)}"
+    )
+
+    actual_changes = actual_change_logs[0]["detail"].get("changes", [])
+    diff = DeepDiff(
+        expected_changes,
+        actual_changes,
+        ignore_order=True,
+    )
+    assert not diff, f"Organisation update changes do not match expected.\nDiff: {diff}"
+
+
+@then("there is a Location update with changes:")
+def verify_location_update_with_changes(
+    migration_context: Dict[str, Any],
+    datatable: list[list[str]],
+) -> None:
+    """Verify that location updates were made with expected changes."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_020") is True, (
+        "Expected location update log 'SM_PROC_020' not found"
+    )
+
+    expected_changes = [row[0] for row in datatable[1:]]  # Skip header row
+
+    actual_change_logs = mock_logger.get_log("SM_PROC_020")
+    assert len(actual_change_logs) == 1, (
+        f"Expected one location update log 'SM_PROC_020', "
+        f"but found {len(actual_change_logs)}"
+    )
+
+    actual_changes = actual_change_logs[0]["detail"].get("changes", [])
+    diff = DeepDiff(
+        expected_changes,
+        actual_changes,
+        ignore_order=True,
+    )
+    assert not diff, f"Location update changes do not match expected.\nDiff: {diff}"
+
+
+@then("there is a Healthcare Service update with changes:")
+def verify_healthcare_service_update_with_changes(
+    migration_context: Dict[str, Any],
+    datatable: list[list[str]],
+) -> None:
+    """Verify that healthcare service updates were made with expected changes."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    assert mock_logger.was_logged("SM_PROC_022") is True, (
+        "Expected healthcare service update log 'SM_PROC_022' not found"
+    )
+
+    expected_changes = [row[0] for row in datatable[1:]]  # Skip header row
+
+    actual_change_logs = mock_logger.get_log("SM_PROC_022")
+    assert len(actual_change_logs) == 1, (
+        f"Expected one healthcare service update log 'SM_PROC_022', "
+        f"but found {len(actual_change_logs)}"
+    )
+
+    actual_changes = actual_change_logs[0]["detail"].get("changes", [])
+    diff = DeepDiff(
+        expected_changes,
+        actual_changes,
+        ignore_order=True,
+    )
+    assert not diff, (
+        f"Healthcare service update changes do not match expected.\nDiff: {diff}"
     )

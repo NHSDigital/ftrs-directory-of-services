@@ -18,9 +18,9 @@ def test_settings_env_variable_override_environment() -> None:
 
 
 def test_settings_env_variable_override_workspace() -> None:
-    with patch.dict(os.environ, {"WORKSPACE": "test_workspace"}):
+    with patch.dict(os.environ, {"WORKSPACE": "test-workspace"}):
         settings = Settings()
-        assert settings.workspace == "test_workspace"
+        assert settings.workspace == "test-workspace"
 
 
 def test_settings_env_variable_override_endpoint_url() -> None:

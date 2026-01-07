@@ -73,6 +73,7 @@ def format_table_name(entity_name: str, env: str, workspace: str | None = None) 
 
     if workspace:
         table_name = f"{table_name}-{workspace}"
+
     return table_name
 
 

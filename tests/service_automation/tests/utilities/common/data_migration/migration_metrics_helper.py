@@ -1,21 +1,10 @@
 """Helper utilities for verifying migration metrics."""
+
 from dataclasses import dataclass
 from typing import Any
+from service_migration.models import ServiceMigrationMetrics
 
 from loguru import logger
-
-
-@dataclass
-class ExpectedMetrics:
-    """Expected values for migration metrics."""
-
-    total: int
-    supported: int
-    unsupported: int
-    transformed: int
-    migrated: int
-    skipped: int
-    errors: int
 
 
 def assert_metric_matches(
@@ -39,55 +28,68 @@ def assert_metric_matches(
 
 
 def verify_all_metrics(
-    actual_metrics: Any,
-    expected: ExpectedMetrics,
+    actual_metrics: ServiceMigrationMetrics,
+    expected: ServiceMigrationMetrics,
     migration_type: str,
     additional_context: str = "",
 ) -> None:
     """Verify all migration metrics match expected values."""
-    assert_metric_matches(
-        actual_metrics.total_records,
-        expected.total,
-        "total records",
-        migration_type,
+    assert actual_metrics == expected, (
+        f"Metrics do not match for {migration_type}.\n"
+        f"Expected: {expected.model_dump()}\n"
+        f"Got: {actual_metrics.model_dump()}\n"
+        f"{additional_context}"
     )
-    assert_metric_matches(
-        actual_metrics.supported_records,
-        expected.supported,
-        "supported records",
-        migration_type,
-        additional_context,
-    )
-    assert_metric_matches(
-        actual_metrics.unsupported_records,
-        expected.unsupported,
-        "unsupported records",
-        migration_type,
-    )
-    assert_metric_matches(
-        actual_metrics.transformed_records,
-        expected.transformed,
-        "transformed records",
-        migration_type,
-    )
-    assert_metric_matches(
-        actual_metrics.migrated_records,
-        expected.migrated,
-        "migrated records",
-        migration_type,
-    )
-    assert_metric_matches(
-        actual_metrics.skipped_records,
-        expected.skipped,
-        "skipped records",
-        migration_type,
-    )
-    assert_metric_matches(
-        actual_metrics.errors,
-        expected.errors,
-        "errors",
-        migration_type,
-    )
+
+    # assert_metric_matches(
+    #     actual_metrics.total,
+    #     expected.total,
+    #     "total records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.supported,
+    #     expected.supported,
+    #     "supported records",
+    #     migration_type,
+    #     additional_context,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.unsupported,
+    #     expected.unsupported,
+    #     "unsupported records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.transformed,
+    #     expected.transformed,
+    #     "transformed records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.inserted,
+    #     expected.inserted,
+    #     "inserted records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.updated,
+    #     expected.updated,
+    #     "updated records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.skipped,
+    #     expected.skipped,
+    #     "skipped records",
+    #     migration_type,
+    # )
+    # assert_metric_matches(
+    #     actual_metrics.errored,
+    #     expected.errored,
+    #     "errored records",
+    #     migration_type,
+    # )
 
     logger.debug(
         f"All metrics verified for {migration_type}",
@@ -96,8 +98,9 @@ def verify_all_metrics(
             "supported": expected.supported,
             "unsupported": expected.unsupported,
             "transformed": expected.transformed,
-            "migrated": expected.migrated,
+            "inserted": expected.inserted,
+            "updated": expected.updated,
             "skipped": expected.skipped,
-            "errors": expected.errors,
+            "errored": expected.errored,
         },
     )

@@ -1,5 +1,5 @@
 from ftrs_data_layer.domain import ClinicalCodeSource, ClinicalCodeType
-from ftrs_data_layer.domain.legacy import (
+from ftrs_data_layer.domain.legacy.db_models import (
     Disposition,
     SymptomDiscriminator,
     SymptomGroup,

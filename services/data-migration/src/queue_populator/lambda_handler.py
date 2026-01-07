@@ -5,13 +5,14 @@ from typing import Any, Dict, Iterable, List, Optional
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
-from ftrs_data_layer.domain.legacy import Service
-from ftrs_data_layer.logbase import DataMigrationLogBase
+from ftrs_data_layer.domain.legacy.db_models import Service
 from pydantic import BaseModel
-from sqlmodel import Session, create_engine, select
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 from common.config import DatabaseConfig
 from common.events import DMSEvent
+from common.logbase import ServiceMigrationLogBase
 from queue_populator.config import QueuePopulatorConfig
 
 SQS_BATCH_SIZE_LIMIT = 10
@@ -42,7 +43,7 @@ def get_record_ids(config: QueuePopulatorConfig) -> List[int]:
         if config.status_ids is not None:
             stmt = stmt.where(Service.statusid.in_(config.status_ids))
 
-        result = session.exec(stmt).all()
+        result = session.execute(stmt).all()
         return [int(r) for r in result]
 
 
@@ -53,7 +54,7 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[Dict[str, An
     record_ids = get_record_ids(config)
 
     LOGGER.log(
-        DataMigrationLogBase.DM_QP_001,
+        ServiceMigrationLogBase.DM_QP_001,
         count=len(record_ids),
         queue_url=config.sqs_queue_url,
     )
@@ -63,7 +64,6 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[Dict[str, An
             {
                 "Id": str(record_id),
                 "MessageBody": DMSEvent(
-                    type="dms_event",
                     record_id=record_id,
                     service_id=record_id,
                     table_name="services",
@@ -81,7 +81,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     Send a batch of messages to the SQS queue.
     """
     LOGGER.log(
-        DataMigrationLogBase.DM_QP_002,
+        ServiceMigrationLogBase.DM_QP_002,
         count=len(batch["Entries"]),
         queue_url=batch["QueueUrl"],
     )
@@ -94,7 +94,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     failed = response.get("Failed")
     if failed:
         LOGGER.log(
-            DataMigrationLogBase.DM_QP_003,
+            ServiceMigrationLogBase.DM_QP_003,
             count=len(failed),
             queue_url=batch["QueueUrl"],
             failed=failed,
@@ -103,7 +103,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     successful = response.get("Successful")
     if successful:
         LOGGER.log(
-            DataMigrationLogBase.DM_QP_004,
+            ServiceMigrationLogBase.DM_QP_004,
             count=len(successful),
             record_ids=[entry["Id"] for entry in successful],
             queue_url=batch["QueueUrl"],
@@ -115,7 +115,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
     Populate the SQS queue with DMS events for legacy services.
     """
     LOGGER.log(
-        DataMigrationLogBase.DM_QP_000,
+        ServiceMigrationLogBase.DM_QP_000,
         type_ids=config.type_ids,
         status_ids=config.status_ids,
     )
@@ -127,7 +127,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
             )
     else:
         LOGGER.log(
-            DataMigrationLogBase.DM_QP_005,
+            ServiceMigrationLogBase.DM_QP_005,
             service_id=config.service_id,
             record_id=config.record_id,
         )
@@ -137,7 +137,6 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
         message = {
             "Id": str(record_or_service_id),
             "MessageBody": DMSEvent(
-                type="dms_event",
                 record_id=record_or_service_id if record_or_service_id else 0,
                 service_id=record_or_service_id if record_or_service_id else 0,
                 table_name=config.table_name,
@@ -146,7 +145,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
         }
         send_message_batch({"QueueUrl": config.sqs_queue_url, "Entries": [message]})
 
-    LOGGER.log(DataMigrationLogBase.DM_QP_999)
+    LOGGER.log(ServiceMigrationLogBase.DM_QP_999)
 
 
 @LOGGER.inject_lambda_context

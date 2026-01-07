@@ -1,11 +1,6 @@
 @data-migration
 Feature: Data Migration
 
-  Background:
-    Given the test environment is configured
-    And the DoS database has test data
-    And DynamoDB tables are ready
-
   Scenario: Latitude and longitude is migrated
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                       |
@@ -45,8 +40,9 @@ Feature: Data Migration
       | professionalreferralinfo            | Nope                                                        |
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
-    When the data migration process is run for table 'services', ID '10105752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '10105752' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id 'a9fc6829-23bd-5bbe-83cb-32be4a50eaa2' has content:
       """
@@ -98,8 +94,9 @@ Feature: Data Migration
       | professionalreferralinfo            | Nope                                                        |
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
-    When the data migration process is run for table 'services', ID '10105752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '10105752' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id 'a9fc6829-23bd-5bbe-83cb-32be4a50eaa2' has content:
       """
@@ -148,8 +145,9 @@ Feature: Data Migration
       | professionalreferralinfo            | Nope                                                        |
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
-    When the data migration process is run for table 'services', ID '10105753' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    When the service migration process is run for table 'services', ID '10105753' and method 'insert'
+    Then the service migration process completes successfully
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id '9042741e-5d30-5b5c-ac22-475215b3f96a' has content:
       """

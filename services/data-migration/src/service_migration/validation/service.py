@@ -1,5 +1,6 @@
-from ftrs_data_layer.domain.legacy import Service
+from ftrs_data_layer.domain.legacy.data_models import ServiceData
 
+from common.logbase import ServiceMigrationLogBase
 from service_migration.formatting.address_formatter import format_address
 from service_migration.validation.base import (
     FieldValidationResult,
@@ -9,13 +10,13 @@ from service_migration.validation.base import (
 from service_migration.validation.types import ValidationIssue
 
 
-class ServiceValidator(Validator[Service]):
+class ServiceValidator(Validator[ServiceData]):
     """
     Generic service validator for all service records
     Should be expanded/subclassed if required for specific service types
     """
 
-    def validate(self, data: Service) -> ValidationResult[Service]:
+    def validate(self, data: ServiceData) -> ValidationResult[ServiceData]:
         """
         Run validation over the service.
 
@@ -23,42 +24,63 @@ class ServiceValidator(Validator[Service]):
         - Email validation
         - Phone number validation (publicphone)
         """
-        validation_result = ValidationResult[Service](
+        self.deps.logger.log(
+            ServiceMigrationLogBase.SM_VAL_001,
+            validator_name=self.__class__.__name__,
+        )
+
+        validation_result = ValidationResult[ServiceData](
             origin_record_id=data.id,
             issues=[],
-            sanitised=data,
+            sanitised=data.model_copy(deep=True),
         )
 
         if email_result := self.validate_email(data.email):
-            data.email = email_result.sanitised
-            validation_result.issues.extend(email_result.issues)
+            validation_result.sanitised.email = email_result.sanitised
+            self.add_issues(validation_result, email_result.issues)
 
         if publicphone_result := self.validate_phone_number(data.publicphone):
-            data.publicphone = publicphone_result.sanitised
-            validation_result.issues.extend(publicphone_result.issues)
+            validation_result.sanitised.publicphone = publicphone_result.sanitised
+            self.add_issues(validation_result, publicphone_result.issues)
 
         if nonpublicphone_result := self.validate_phone_number(
             data.nonpublicphone,
             expression="nonpublicphone",
         ):
-            data.nonpublicphone = nonpublicphone_result.sanitised
-            validation_result.issues.extend(nonpublicphone_result.issues)
+            validation_result.sanitised.nonpublicphone = nonpublicphone_result.sanitised
+            self.add_issues(validation_result, nonpublicphone_result.issues)
 
         return validation_result
 
+    def add_issues(
+        self,
+        validation_result: ValidationResult[ServiceData],
+        issues: list[ValidationIssue],
+    ) -> None:
+        """
+        Add issues to a validation result
+        """
+        for issue in issues:
+            self.deps.logger.log(
+                ServiceMigrationLogBase.SM_VAL_002,
+                **issue.model_dump(mode="json"),
+            )
+            validation_result.issues.append(issue)
+
 
 class GPPracticeValidator(ServiceValidator):
-    def validate(self, data: Service) -> ValidationResult[Service]:
+    def validate(self, data: ServiceData) -> ValidationResult[ServiceData]:
         result = super().validate(data)
 
         if name_result := self.validate_name(data.publicname):
-            data.publicname = name_result.sanitised
-            result.issues.extend(name_result.issues)
+            result.sanitised.publicname = name_result.sanitised
+            self.add_issues(result, name_result.issues)
 
         if location_result := self.validate_location(
             data.address, data.town, data.postcode
         ):
-            result.issues.extend(location_result.issues)
+            result.sanitised.address = location_result.sanitised
+            self.add_issues(result, location_result.issues)
 
         return result
 
@@ -72,7 +94,8 @@ class GPPracticeValidator(ServiceValidator):
         if not name or not name.strip():
             result.issues.append(
                 ValidationIssue(
-                    severity="error",
+                    value=name,
+                    severity="fatal",
                     code="publicname_required",
                     diagnostics="Public name is required for GP practices",
                     expression=["publicname"],

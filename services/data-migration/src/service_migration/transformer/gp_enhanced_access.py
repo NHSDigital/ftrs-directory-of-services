@@ -1,12 +1,10 @@
 import re
 
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
-from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.legacy.data_models import ServiceData
 
-from service_migration.transformer.base import (
-    ServiceTransformer,
-    ServiceTransformOutput,
-)
+from service_migration.models import TransformResult
+from service_migration.transformer.base import ServiceTransformer
 
 
 class GPEnhancedAccessTransformer(ServiceTransformer):
@@ -36,34 +34,29 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
     - Service name must not contain excluded patterns: "GP Protected Learning Time (PLT)", "ARI - ", "Primary Care CAS - "
     """
 
-    def transform(
-        self, service: legacy_model.Service, validation_issues: list[str]
-    ) -> ServiceTransformOutput:
+    def transform(self, service: ServiceData) -> TransformResult:
         """
         Transform the given GP Enhanced Access service into the new data model format.
 
         For GP Enhanced Access services, organisation linkage is not required
         Create only the healthcare service without organisation and location entities
         """
-        healthcare_service = self.build_healthcare_service(
+        healthcare_service = self.mappers.healthcare_service.map(
             service,
             None,
             None,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.PCN_SERVICE,
-            validation_issues=validation_issues,
         )
 
-        return ServiceTransformOutput(
-            organisation=[],
-            healthcare_service=[healthcare_service],
-            location=[],
+        return TransformResult(
+            organisation=None,
+            location=None,
+            healthcare_service=healthcare_service,
         )
 
     @classmethod
-    def is_service_supported(
-        cls, service: legacy_model.Service
-    ) -> tuple[bool, str | None]:
+    def is_service_supported(cls, service: ServiceData) -> tuple[bool, str | None]:
         """
         Check if the service is a GP Enhanced Access service.
         """
@@ -91,9 +84,7 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
         return True, None
 
     @classmethod
-    def should_include_service(
-        cls, service: legacy_model.Service
-    ) -> tuple[bool, str | None]:
+    def should_include_service(cls, service: ServiceData) -> tuple[bool, str | None]:
         """
         Check if the service should be included based on status and name criteria.
         """

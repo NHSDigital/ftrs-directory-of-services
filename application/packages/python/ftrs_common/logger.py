@@ -6,6 +6,7 @@ from functools import cache
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 from ftrs_common.utils.correlation_id import get_correlation_id
 from ftrs_common.utils.request_id import get_request_id
+from pydantic import BaseModel
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,7 @@ class LogReference:
 
     message: str
     level: int = logging.NOTSET
+    capture_exception: bool = False
 
     def format(self, **kwargs: dict) -> str:
         return self.message.format(**kwargs)
@@ -27,6 +29,13 @@ class LogBase(Enum):
     The log reference will be the name of the enum member.
     The details of the log are held in the value of the enum member.
     """
+
+
+class LogEntry(BaseModel):
+    msg: str
+    reference: str
+    stacklevel: int
+    detail: dict | None = None
 
 
 class Logger(PowertoolsLogger):
@@ -41,14 +50,22 @@ class Logger(PowertoolsLogger):
         """
         if correlation_id := get_correlation_id():
             self.append_keys(correlation_id=correlation_id)
+
         if request_id := get_request_id():
             self.append_keys(request_id=request_id)
-        log_key = log_reference.name
+
         log_details = log_reference.value
-        formatted_message = self.format_message(log_reference, **detail)
-        log_dict = {"msg": formatted_message, "reference": log_key, "stacklevel": 3}
-        if detail:
-            log_dict["detail"] = detail
+        log_entry = LogEntry(
+            msg=self.format_message(log_reference, **detail),
+            reference=log_reference.name,
+            stacklevel=3,
+            detail=detail if detail else None,
+        )
+        log_dict = log_entry.model_dump(mode="json", fallback=str)
+
+        if log_details.capture_exception:
+            log_dict["exc_info"] = True
+            log_dict["stack_info"] = True
 
         match log_details.level:
             case logging.DEBUG:
@@ -73,7 +90,7 @@ class Logger(PowertoolsLogger):
                 )
                 raise ValueError(error_msg)
 
-        return formatted_message
+        return log_entry.msg
 
     def format_message(self, log_details: LogBase, **kwargs: dict) -> str:
         """

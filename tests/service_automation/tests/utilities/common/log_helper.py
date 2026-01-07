@@ -1,4 +1,5 @@
 """Helper utilities for verifying log output in tests."""
+
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
@@ -106,7 +107,6 @@ def assert_log_detail_matches(
 
 def verify_transformation_log(
     mock_logger: MockLogger,
-    service_id: int,
     organisation_count: int,
     location_count: int,
     healthcare_service_count: int,
@@ -124,17 +124,52 @@ def verify_transformation_log(
     Raises:
         AssertionError: If log not found or counts don't match
     """
-    assert_log_exists(mock_logger, "DM_ETL_007", level="INFO", service_id=service_id)
+    assert_log_exists(mock_logger, "SM_PROC_007a", level="DEBUG")
 
-    expected_detail = {
-        "organisation_count": organisation_count,
-        "location_count": location_count,
-        "healthcare_service_count": healthcare_service_count,
-    }
-
-    assert_log_detail_matches(
-        mock_logger, "DM_ETL_007", expected_detail, level="INFO", service_id=service_id
+    log_detail = get_log_detail(
+        mock_logger,
+        "SM_PROC_007a",
+        level="DEBUG",
     )
+
+    assert organisation_count in [0, 1], "Organisation count should be 0 or 1"
+    assert location_count in [0, 1], "Location count should be 0 or 1"
+    assert healthcare_service_count in [0, 1], (
+        "Healthcare service count should be 0 or 1"
+    )
+
+    organisation = log_detail["transformed_record"].get("organisation")
+    location = log_detail["transformed_record"].get("location")
+    healthcare_service = log_detail["transformed_record"].get("healthcare_service")
+
+    if organisation_count == 0:
+        assert organisation is None, "Expected no organisation in transformed record"
+    else:
+        assert organisation is not None, "Expected organisation in transformed record"
+
+    if location_count == 0:
+        assert location is None, "Expected no location in transformed record"
+    else:
+        assert location is not None, "Expected location in transformed record"
+
+    if healthcare_service_count == 0:
+        assert healthcare_service is None, (
+            "Expected no healthcare service in transformed record"
+        )
+    else:
+        assert healthcare_service is not None, (
+            "Expected healthcare service in transformed record"
+        )
+
+    # expected_detail = {
+    #     "organisation_count": organisation_count,
+    #     "location_count": location_count,
+    #     "healthcare_service_count": healthcare_service_count,
+    # }
+
+    # assert_log_detail_matches(
+    #     mock_logger, "DM_ETL_007", expected_detail, level="INFO", service_id=service_id
+    # )
 
 
 def verify_service_not_migrated_log(
@@ -170,7 +205,7 @@ def verify_service_skipped_log(
     expected_reason: str,
 ) -> None:
     """
-    Verify DM_ETL_005 skipped log with expected reason.
+    Verify SM_PROC_006 skipped log with expected reason.
 
     Args:
         mock_logger: MockLogger instance
@@ -180,11 +215,11 @@ def verify_service_skipped_log(
     Raises:
         AssertionError: If log not found or reason doesn't match
     """
-    assert_log_exists(mock_logger, "DM_ETL_005", level="INFO", service_id=service_id)
+    assert_log_exists(mock_logger, "SM_PROC_006", level="INFO", service_id=service_id)
 
     assert_log_detail_matches(
         mock_logger,
-        "DM_ETL_005",
+        "SM_PROC_006",
         {"reason": expected_reason},
         level="INFO",
         service_id=service_id,
@@ -240,7 +275,7 @@ def verify_migration_completed_log(
     mock_logger: MockLogger,
 ) -> None:
     """
-    Verify DM_ETL_999 migration completion log exists.
+    Verify SM_APP_004 migration completion log exists.
 
     This log is emitted at the end of the data migration pipeline,
     indicating successful completion of the migration process.
@@ -251,28 +286,27 @@ def verify_migration_completed_log(
     Raises:
         AssertionError: If completion log not found
     """
-    assert_log_exists(mock_logger, "DM_ETL_999", level="INFO")
+    assert_log_exists(mock_logger, "SM_APP_004", level="INFO")
 
     # Get the completion log
-    completion_logs = mock_logger.get_log("DM_ETL_999", level="INFO")
+    completion_logs = mock_logger.get_log("SM_APP_004", level="INFO")
 
-    assert len(completion_logs) > 0, (
-        "DM_ETL_999 completion log not found\n"
-        f"Expected: Data Migration ETL Pipeline completed successfully\n"
-        f"Total INFO logs: {mock_logger.get_log_count('INFO')}"
+    assert len(completion_logs) == 1, (
+        "SM_APP_004 completion log not found\n"
+        f"Expected: Completed handling of SQS event\n"
+        f"Log output: {mock_logger.format_logs_for_print()}"
     )
 
     # Verify the log message
     log_entry = completion_logs[0]
     assert "msg" in log_entry, f"Log entry missing 'msg' field: {log_entry}"
 
-    expected_message = "Data Migration ETL Pipeline completed successfully"
+    expected_message = "Completed handling of SQS event"
     assert expected_message in log_entry["msg"], (
         f"Unexpected completion message:\n"
         f"  Expected: '{expected_message}'\n"
         f"  Actual: '{log_entry['msg']}'"
     )
-
 
 
 def verify_error_log_present(
@@ -292,9 +326,14 @@ def verify_error_log_present(
     assert_log_exists(mock_logger, "DM_ETL_008", level="ERROR")
     logs = mock_logger.get_log("DM_ETL_008", level="ERROR")
 
-    matched = [log_line for log_line in logs if error_fragment in log_line["detail"].get("error", "")]
-    assert matched, f"Error level log with err containing fragment '{error_fragment}' not found"
-
+    matched = [
+        log_line
+        for log_line in logs
+        if error_fragment in log_line["detail"].get("error", "")
+    ]
+    assert matched, (
+        f"Error level log with err containing fragment '{error_fragment}' not found"
+    )
 
 
 def get_mock_logger_from_context(

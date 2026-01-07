@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 import pytest
-from pytest_bdd import given, parsers, then, when
+from pytest_bdd import parsers, then
 
 
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403

@@ -25,8 +25,8 @@ def test_get_s3_bucket_name() -> None:
 
 
 def test_get_s3_bucket_name_workspace() -> None:
-    result = get_migration_store_bucket_name(env="dev", workspace="test_workspace")
-    assert result == "ftrs-dos-dev-data-migration-pipeline-store-test_workspace"
+    result = get_migration_store_bucket_name(env="dev", workspace="test-workspace")
+    assert result == "ftrs-dos-dev-data-migration-pipeline-store-test-workspace"
 
 
 def test_trigger_table_export(mocker: MockerFixture) -> None:

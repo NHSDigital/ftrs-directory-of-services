@@ -1,9 +1,8 @@
 import pytest
-from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
-from ftrs_data_layer.domain.legacy import Service
+from ftrs_data_layer.domain.legacy.data_models import ServiceData
 
-from common.cache import DoSMetadataCache
+from service_migration.dependencies import ServiceMigrationDependencies
 from service_migration.transformer.gp_enhanced_access import GPEnhancedAccessTransformer
 
 
@@ -75,7 +74,7 @@ from service_migration.transformer.gp_enhanced_access import GPEnhancedAccessTra
     ],
 )
 def test_is_service_supported(
-    mock_legacy_service: Service,
+    mock_legacy_service: ServiceData,
     service_type_id: int,
     ods_code: str | None,
     expected_result: bool,
@@ -150,7 +149,7 @@ def test_is_service_supported(
     ],
 )
 def test_should_include_service(
-    mock_legacy_service: Service,
+    mock_legacy_service: ServiceData,
     status_id: int,
     service_name: str | None,
     expected_result: bool,
@@ -192,8 +191,8 @@ def test_should_include_service(
     ],
 )
 def test_transform_services(
-    mock_legacy_service: Service,
-    mock_metadata_cache: DoSMetadataCache,
+    mock_legacy_service: ServiceData,
+    mock_dependencies: ServiceMigrationDependencies,
     test_data: dict,
 ) -> None:
     """
@@ -205,23 +204,24 @@ def test_transform_services(
     mock_legacy_service.name = test_data["service_name"]
 
     # When creating the transformer in the test:
-    validation_issues = []
-    transformer = GPEnhancedAccessTransformer(MockLogger(), mock_metadata_cache)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    transformer = GPEnhancedAccessTransformer(mock_dependencies)
+
+    validation_result = transformer.validator.validate(mock_legacy_service)
+    result = transformer.transform(validation_result.sanitised)
 
     # Verify basic transformation - only healthcare service is created
-    assert len(result.organisation) == 0  # Empty list
-    assert len(result.location) == 0  # Empty list
-    assert len(result.healthcare_service) == 1
+    assert result.organisation is None
+    assert result.location is None
+    assert result.healthcare_service is not None
 
     # Verify healthcare service properties
-    assert result.healthcare_service[0].category == test_data["expected_category"]
-    assert result.healthcare_service[0].type == test_data["expected_type"]
-    assert result.healthcare_service[0].id is not None
+    assert result.healthcare_service.category == test_data["expected_category"]
+    assert result.healthcare_service.type == test_data["expected_type"]
+    assert result.healthcare_service.id is not None
 
     # Verify no organisation or location linkage
-    assert result.healthcare_service[0].providedBy is None
-    assert result.healthcare_service[0].location is None
+    assert result.healthcare_service.providedBy is None
+    assert result.healthcare_service.location is None
 
 
 @pytest.mark.parametrize(
