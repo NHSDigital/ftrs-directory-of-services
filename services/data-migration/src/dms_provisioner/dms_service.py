@@ -1,5 +1,6 @@
+import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List
 
 import chevron
 from ftrs_common.logger import Logger
@@ -8,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
 TEMPLATE_DIR = Path(__file__).parent / "templates"
+SCHEMA_FILE = TEMPLATE_DIR / "pathwaysdos_schema.sql"
 RELATED_TABLES = ["serviceendpoints"]
 INDEXES_TABLES = [
     "services",
@@ -112,108 +114,120 @@ def create_rds_triggers(
         )
 
 
-def get_indexes_for_tables(
-    engine: Engine, schema_name: str, table_names: Optional[List[str]] = None
-) -> Dict[str, List[str]]:
-    if table_names is None:
-        table_names = INDEXES_TABLES
+def extract_indexes_from_sql_file(sql_file_path: Path = SCHEMA_FILE) -> List[str]:
+    """
+    Extract CREATE INDEX statements from a SQL schema file.
+    Returns a list of CREATE INDEX statements.
+    """
+    if not sql_file_path.exists():
+        raise FileNotFoundError(f"Schema file not found: {sql_file_path}")
 
-    if not table_names:
-        LOGGER.warning("No table names provided to get indexes for.")
-        return {}
+    content = sql_file_path.read_text()
 
-    indexes = {}
-    query = text("""
-                SELECT tablename,
-                    indexname,
-                    indexdef
-                FROM pg_indexes
-                WHERE schemaname = :schema_name
-                AND tablename = ANY (:table_names)
-                ORDER BY tablename, indexname
-                """)
+    # Regex to match CREATE INDEX and CREATE UNIQUE INDEX statements
+    # Matches multi-line statements ending with semicolon
+    index_pattern = re.compile(
+        r"CREATE\s+(?:UNIQUE\s+)?INDEX\s+[^;]+;",
+        re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
 
-    with engine.connect() as connection:
-        # PostgreSQL requires special handling for array parameters
-        result = connection.execute(
-            query, {"schema_name": schema_name, "table_names": table_names}
-        )
+    indexes = index_pattern.findall(content)
 
-        for row in result:
-            table = row.tablename
-            index = row.indexname
-
-            if table not in indexes:
-                indexes[table] = []
-
-            # Skip primary key indexes (they already exist)
-            if not index.endswith("_pkey") and not index.endswith("_pk"):
-                indexes[table].append({"name": index, "definition": row.indexdef})
-
-    LOGGER.info(f"Retrieved indexes for {len(indexes)} tables.")
-    return indexes
-
-
-def create_indexes_for_tables(
-    engine: Engine,
-    indexes: Dict[str, List[Dict[str, str]]],
-    schema_name: str,
-    skip_existing: bool = True,
-) -> Dict[str, List[str]]:
-    created_indexes = {}
-    skipped_indexes = {}
-
-    try:
-        with (
-            engine.begin() as connection
-        ):  # Use begin() for automatic transaction management
-            for table_name, index_list in indexes.items():
-                created_indexes[table_name] = []
-                skipped_indexes[table_name] = []
-
-                for index_info in index_list:
-                    index_name = index_info["name"]
-                    index_def = index_info["definition"]
-                    # Build CREATE INDEX statement
-                    if skip_existing:
-                        create_stmt = f"""
-                                    DO $$
-                                    BEGIN
-                                        IF NOT EXISTS (
-                                            SELECT 1
-                                            FROM pg_indexes
-                                            WHERE schemaname = '{schema_name}'
-                                            AND tablename = '{table_name}'
-                                            AND indexname = '{index_name}'
-                                        ) THEN
-                                            EXECUTE '{index_def.replace("'", "''")}';
-                                        END IF;
-                                    END $$;
-                                    """
-                    else:
-                        create_stmt = index_def
-                    try:
-                        connection.execute(text(create_stmt))
-                        created_indexes[table_name].append(index_name)
-                        LOGGER.debug(
-                            f"Created index {index_name} on {schema_name}.{table_name}"
-                        )
-
-                    except SQLAlchemyError as e:
-                        if "already exists" in str(e) or "duplicate key" in str(e):
-                            skipped_indexes[table_name].append(index_name)
-                            LOGGER.debug(
-                                f"Index {index_name} already exists on {table_name}"
-                            )
-                        else:
-                            LOGGER.warning(
-                                f"Failed to create index {index_name} on {table_name}: {str(e)}"
-                            )
-
-            LOGGER.info(
-                f"Index creation completed. Created: {sum(len(v) for v in created_indexes.values())}, "
-                f"Skipped: {sum(len(v) for v in skipped_indexes.values())}"
+    # Clean up whitespace and normalize
+    cleaned_indexes = []
+    for idx in indexes:
+        # Normalize whitespace
+        cleaned = " ".join(idx.split())
+        # Add IF NOT EXISTS if not present
+        if "IF NOT EXISTS" not in cleaned.upper():
+            cleaned = cleaned.replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS", 1)
+            cleaned = cleaned.replace(
+                "CREATE UNIQUE INDEX", "CREATE UNIQUE INDEX IF NOT EXISTS", 1
             )
-    except SQLAlchemyError:
-        LOGGER.exception("Error creating indexes")
-        raise
+        cleaned_indexes.append(cleaned)
+
+    LOGGER.info(
+        f"Extracted {len(cleaned_indexes)} index statements from {sql_file_path}"
+    )
+    return cleaned_indexes
+
+
+def _extract_index_name(stmt: str) -> str:
+    """
+    Extract index name from CREATE INDEX statement.
+    """
+    # Match index name after CREATE [UNIQUE] INDEX [IF NOT EXISTS]
+    match = re.search(
+        r"CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)",
+        stmt,
+        re.IGNORECASE,
+    )
+    return match.group(1) if match else None
+
+
+def _index_exists(engine: Engine, index_name: str, schema: str = "pathwaysdos") -> bool:
+    """
+    Check if an index already exists in the database.
+    """
+    query = text("""
+        SELECT 1 FROM pg_indexes
+        WHERE schemaname = :schema AND indexname = :index_name
+        LIMIT 1
+    """)
+    with engine.connect() as connection:
+        result = connection.execute(query, {"schema": schema, "index_name": index_name})
+        return result.fetchone() is not None
+
+
+def create_indexes_from_sql_file(
+    engine: Engine,
+    sql_file_path: Path = SCHEMA_FILE,
+    tables: List[str] = None,
+) -> None:
+    """
+    Extract indexes from SQL schema file and create them in the database.
+    Optionally filter by table names. Only creates indexes that don't already exist.
+    """
+    if tables is None:
+        tables = INDEXES_TABLES
+
+    indexes = extract_indexes_from_sql_file(sql_file_path)
+
+    if tables:
+        # Filter indexes to only include those for specified tables
+        filtered_indexes = []
+        for idx in indexes:
+            for table in tables:
+                if (
+                    f"ON {table}" in idx.lower()
+                    or f"on pathwaysdos.{table}" in idx.lower()
+                ):
+                    filtered_indexes.append(idx)
+                    break
+        indexes = filtered_indexes
+
+    created_count = 0
+    skipped_count = 0
+    failed_count = 0
+
+    for stmt in indexes:
+        index_name = _extract_index_name(stmt)
+
+        if index_name and _index_exists(engine, index_name):
+            LOGGER.debug(f"Index already exists, skipping: {index_name}")
+            skipped_count += 1
+            continue
+
+        try:
+            with engine.connect() as connection:
+                connection.execute(text(stmt))
+                connection.commit()
+            LOGGER.debug(f"Created index: {stmt[:80]}...")
+            created_count += 1
+        except SQLAlchemyError as e:
+            LOGGER.warning(f"Failed to create index: {str(e)}")
+            failed_count += 1
+
+    LOGGER.info(
+        f"Index creation complete: {created_count} created, {skipped_count} skipped, {failed_count} failed"
+    )

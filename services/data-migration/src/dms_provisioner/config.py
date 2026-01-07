@@ -11,8 +11,6 @@ class DmsDatabaseConfig(BaseSettings):
     target_rds_details: str = Field(..., alias="TARGET_RDS_DETAILS")
     dms_user_details: str = Field(..., alias="DMS_USER_DETAILS")
     trigger_lambda_arn: str = Field(..., alias="TRIGGER_LAMBDA_ARN")
-    source_rds_details: str = Field(..., alias="SOURCE_RDS_DETAILS")
-    schema_name: str | None = "pathwaysdos"
 
     def get_target_rds_config(self) -> DatabaseConfig:
         """Get target RDS details using the existing DatabaseConfig infrastructure."""
@@ -20,13 +18,6 @@ class DmsDatabaseConfig(BaseSettings):
             self.target_rds_details, transform="json"
         )
         return DatabaseConfig(**target_rds_details_secret)
-
-    def get_source_rds_config(self) -> DatabaseConfig:
-        """Get source RDS details using the existing DatabaseConfig infrastructure."""
-        source_rds_details_secret = get_secret(
-            self.source_rds_details, transform="json"
-        )
-        return DatabaseConfig(**source_rds_details_secret)
 
     def get_dms_user_details(self) -> tuple[str, SecretStr]:
         """Get DMS user details using existing secret retrieval methods."""

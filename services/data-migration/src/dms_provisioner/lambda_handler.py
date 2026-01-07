@@ -5,9 +5,8 @@ from common.sql_utils import get_sqlalchemy_engine_from_config
 from dms_provisioner.config import DmsDatabaseConfig
 from dms_provisioner.dms_service import (
     create_dms_user,
-    create_indexes_for_tables,
+    create_indexes_from_sql_file,
     create_rds_triggers,
-    get_indexes_for_tables,
 )
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
@@ -23,7 +22,6 @@ def lambda_handler(event: dict, context: dict) -> None:
     # Use the optimized DatabaseConfig object
     dms_config = DmsDatabaseConfig()
     target_db_config = dms_config.get_target_rds_config()
-    source_db_config = dms_config.get_source_rds_config()
     rds_username, rds_password = dms_config.get_dms_user_details()
 
     # Connect to the RDS instance using the optimized engine creation
@@ -32,13 +30,8 @@ def lambda_handler(event: dict, context: dict) -> None:
     # Create a user if not exists
     create_dms_user(engine, rds_username, rds_password)
 
-    source_rds_engine = get_sqlalchemy_engine_from_config(source_db_config)
-
-    create_indexes_for_tables(
-        engine,
-        get_indexes_for_tables(source_rds_engine, dms_config.schema_name),
-        dms_config.schema_name,
-    )
+    # Create indexes for performance optimization
+    create_indexes_from_sql_file(engine)
 
     # Create triggers for services and related tables
     create_rds_triggers(
