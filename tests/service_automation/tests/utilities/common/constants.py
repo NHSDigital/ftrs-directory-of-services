@@ -12,32 +12,38 @@ ENDPOINTS = {
 """Constants and configuration for data migration tests."""
 
 # Fields that should always remain as strings even if they look like numbers
-STRING_FIELDS = frozenset({
-    "uid",
-    "publicphone",
-    "web",
-    "email",
-    "address",
-    "postcode",
-    "fax",
-    "nonpublicphone",
-})
+STRING_FIELDS = frozenset(
+    {
+        "uid",
+        "publicphone",
+        "web",
+        "email",
+        "address",
+        "postcode",
+        "fax",
+        "nonpublicphone",
+    }
+)
 
 # Fields that contain datetime values
-DATETIME_FIELDS = frozenset({
-    "createdtime",
-    "modifiedtime",
-    "lastupdated",
-    "effectivedate",
-})
+DATETIME_FIELDS = frozenset(
+    {
+        "createdtime",
+        "modifiedtime",
+        "lastupdated",
+        "effectivedate",
+    }
+)
 
 # Boolean fields
-BOOLEAN_FIELDS = frozenset({
-    "openallhours",
-    "restricttoreferrals",
-    "active",
-    "isactive",
-})
+BOOLEAN_FIELDS = frozenset(
+    {
+        "openallhours",
+        "restricttoreferrals",
+        "active",
+        "isactive",
+    }
+)
 
 # DynamoDB Configuration
 DYNAMODB_CLIENT = "client"
@@ -69,3 +75,5 @@ EXPECTED_DYNAMODB_RESOURCES: List[str] = [
     "location",
     "healthcare-service",
 ]
+S3_DEV_MIGRATION_STORE_BUCKET = "ftrs-dos-dev-data-migration-pipeline-store"
+S3_INTEGRATION_TEST_DATA_PATH = "test-data/integration-tests/"

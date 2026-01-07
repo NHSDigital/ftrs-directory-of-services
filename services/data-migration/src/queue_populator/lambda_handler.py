@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from common.config import DatabaseConfig
 from common.events import DMSEvent
-from common.logbase import ServiceMigrationLogBase
+from common.logbase import QueuePopulatorLogBase
 from queue_populator.config import QueuePopulatorConfig
 
 SQS_BATCH_SIZE_LIMIT = 10
@@ -54,7 +54,7 @@ def get_dms_event_batches(config: QueuePopulatorConfig) -> Iterable[Dict[str, An
     record_ids = get_record_ids(config)
 
     LOGGER.log(
-        ServiceMigrationLogBase.DM_QP_001,
+        QueuePopulatorLogBase.DM_QP_001,
         count=len(record_ids),
         queue_url=config.sqs_queue_url,
     )
@@ -81,7 +81,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     Send a batch of messages to the SQS queue.
     """
     LOGGER.log(
-        ServiceMigrationLogBase.DM_QP_002,
+        QueuePopulatorLogBase.DM_QP_002,
         count=len(batch["Entries"]),
         queue_url=batch["QueueUrl"],
     )
@@ -94,7 +94,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     failed = response.get("Failed")
     if failed:
         LOGGER.log(
-            ServiceMigrationLogBase.DM_QP_003,
+            QueuePopulatorLogBase.DM_QP_003,
             count=len(failed),
             queue_url=batch["QueueUrl"],
             failed=failed,
@@ -103,7 +103,7 @@ def send_message_batch(batch: Dict[str, Any]) -> None:
     successful = response.get("Successful")
     if successful:
         LOGGER.log(
-            ServiceMigrationLogBase.DM_QP_004,
+            QueuePopulatorLogBase.DM_QP_004,
             count=len(successful),
             record_ids=[entry["Id"] for entry in successful],
             queue_url=batch["QueueUrl"],
@@ -115,7 +115,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
     Populate the SQS queue with DMS events for legacy services.
     """
     LOGGER.log(
-        ServiceMigrationLogBase.DM_QP_000,
+        QueuePopulatorLogBase.DM_QP_000,
         type_ids=config.type_ids,
         status_ids=config.status_ids,
     )
@@ -127,7 +127,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
             )
     else:
         LOGGER.log(
-            ServiceMigrationLogBase.DM_QP_005,
+            QueuePopulatorLogBase.DM_QP_005,
             service_id=config.service_id,
             record_id=config.record_id,
         )
@@ -145,7 +145,7 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
         }
         send_message_batch({"QueueUrl": config.sqs_queue_url, "Entries": [message]})
 
-    LOGGER.log(ServiceMigrationLogBase.DM_QP_999)
+    LOGGER.log(QueuePopulatorLogBase.DM_QP_999)
 
 
 @LOGGER.inject_lambda_context

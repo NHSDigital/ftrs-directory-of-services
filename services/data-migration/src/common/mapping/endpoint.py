@@ -13,8 +13,6 @@ from service_migration.constants import SERVICE_MIGRATION_USER
 
 
 class EndpointMapper(BaseMapper[ServiceEndpointData, Endpoint]):
-    MIGRATION_USER = "data-migration"
-
     def map(
         self,
         endpoint: ServiceEndpointData,

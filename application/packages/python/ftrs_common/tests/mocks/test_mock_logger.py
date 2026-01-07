@@ -52,26 +52,14 @@ def test_mock_logger_fixture(mock_logger: MockLogger) -> None:
     assert mock_logger.get_log_count() == total_log_count
 
     assert mock_logger.get_logs(level="DEBUG") == [
-        {
-            "reference": "EXAMPLE_LOG",
-            "msg": "Example log message",
-        }
+        {"reference": "EXAMPLE_LOG", "msg": "Example log message"}
     ]
     assert mock_logger.get_logs(level="WARNING") == [
-        {
-            "reference": "WARNING_LOG",
-            "msg": "Warning log message",
-        }
+        {"reference": "WARNING_LOG", "msg": "Warning log message"}
     ]
     assert mock_logger.get_logs() == [
-        {
-            "reference": "EXAMPLE_LOG",
-            "msg": "Example log message",
-        },
-        {
-            "reference": "WARNING_LOG",
-            "msg": "Warning log message",
-        },
+        {"reference": "EXAMPLE_LOG", "msg": "Example log message"},
+        {"reference": "WARNING_LOG", "msg": "Warning log message"},
     ]
 
     mock_logger.clear_logs()

@@ -89,7 +89,7 @@ class ServiceMigrationProcessor:
         """
         Retrieve a legacy service record by its ID.
         """
-        with Session(self.deps.engine, autoflush=False, autocommit=False) as session:
+        with Session(self.deps.engine, autocommit=False) as session:
             stmt = (
                 select(Service).options(joinedload("*")).where(Service.id == service_id)
             )
@@ -113,6 +113,7 @@ class ServiceMigrationProcessor:
                 service_name=data.name,
                 last_updated=data.modifiedtime,
             )
+
             return data
 
     def transform_service(self, service: ServiceData) -> TransformResult:

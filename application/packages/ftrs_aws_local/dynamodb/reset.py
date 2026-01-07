@@ -11,7 +11,7 @@ from dynamodb.constants import ALL_ENTITY_TYPES, ClearableEntityType, TargetEnvi
 from dynamodb.logger import LOGGER, ResetLogBase
 
 
-def reset(
+def reset_command(
     env: Annotated[
         TargetEnvironment, Option(help="Environment to clear the data from")
     ],
@@ -45,11 +45,14 @@ def reset(
     session = Session()
 
     for entity_name in entity_type:
+        stack_name = "database" if entity_name != "state-table" else "data-migration"
         table_name = format_table_name(
-            entity_name, TargetEnvironment(env).value, workspace
+            entity_name,
+            env.value,
+            workspace,
+            stack_name=stack_name,
         )
-        count = delete_all_table_items(table_name, session, endpoint_url)
-
+        count = delete_all_table_items(session, table_name, endpoint_url)
         LOGGER.log(ResetLogBase.ETL_RESET_006, count=count, table_name=table_name)
 
 

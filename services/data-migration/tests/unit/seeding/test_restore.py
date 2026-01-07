@@ -122,7 +122,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
             "healthcare-service": "s3://test-store/healthcare-service.parquet",
             "organisation": "s3://test-store/organisation.parquet",
             "location": "s3://test-store/location.parquet",
-            "data-migration-state": "s3://test-store/data-migration-state.parquet",
+            "state-table": "s3://test-store/state-table.parquet",
         },
     )
 
@@ -132,7 +132,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
             pd.DataFrame(data=[["healthcare-service"]], columns=["data"]),
             pd.DataFrame(data=[["organisation"]], columns=["data"]),
             pd.DataFrame(data=[["location"]], columns=["data"]),
-            pd.DataFrame(data=[["data-migration-state"]], columns=["data"]),
+            pd.DataFrame(data=[["state-table"]], columns=["data"]),
         ],
     )
 
@@ -148,7 +148,7 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
             mocker.call(path="s3://test-store/healthcare-service.parquet"),
             mocker.call(path="s3://test-store/organisation.parquet"),
             mocker.call(path="s3://test-store/location.parquet"),
-            mocker.call(path="s3://test-store/data-migration-state.parquet"),
+            mocker.call(path="s3://test-store/state-table.parquet"),
         ]
     )
 
@@ -167,8 +167,8 @@ async def test_run_s3_restore(mocker: MockerFixture) -> None:
                 ["location"],
             ),
             mocker.call(
-                "ftrs-dos-local-data-migration-state-fdos-000",
-                ["data-migration-state"],
+                "ftrs-dos-local-data-migration-state-table-fdos-000",
+                ["state-table"],
             ),
         ]
     )

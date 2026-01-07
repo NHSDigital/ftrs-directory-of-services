@@ -18,8 +18,6 @@ from service_migration.processor import (
 from service_migration.transformer.gp_practice import GPPracticeTransformer
 from service_migration.validation.types import ValidationIssue
 
-# TODO: Add more assertions for metrics
-
 
 def test_processor_init(
     mock_dependencies: ServiceMigrationDependencies,
@@ -112,6 +110,19 @@ def test_sync_service_no_existing_state(
         }
     ]
 
+    # Verify metrics are updated correctly
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 1,
+        "updated": 0,
+        "supported": 1,
+        "total": 1,
+        "transformed": 1,
+        "unsupported": 0,
+        "invalid": 0,
+    }
+
 
 def test_sync_service_existing_state_no_change(
     mock_logger: MockLogger,
@@ -156,6 +167,19 @@ def test_sync_service_existing_state_no_change(
             "msg": "Skipping DynamoDB transaction as no items to write",
         }
     ]
+
+    # Verify metrics are updated correctly (after two sync_service calls)
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 1,
+        "updated": 1,
+        "supported": 2,
+        "total": 2,
+        "transformed": 2,
+        "unsupported": 0,
+        "invalid": 0,
+    }
 
 
 def test_sync_service_existing_state_org_change(
@@ -222,6 +246,19 @@ def test_sync_service_existing_state_org_change(
     assert mock_logger.get_log("SM_PROC_026") == [
         {"msg": "Skipping DynamoDB transaction as no items to write"}
     ]
+
+    # Verify metrics are updated correctly (after two sync_service calls)
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 1,
+        "updated": 1,
+        "supported": 2,
+        "total": 2,
+        "transformed": 2,
+        "unsupported": 0,
+        "invalid": 0,
+    }
 
 
 def test_sync_service_existing_state_location_change(
@@ -295,6 +332,19 @@ def test_sync_service_existing_state_location_change(
             "msg": "Skipping DynamoDB transaction as no items to write",
         }
     ]
+
+    # Verify metrics are updated correctly (after two sync_service calls)
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 1,
+        "updated": 1,
+        "supported": 2,
+        "total": 2,
+        "transformed": 2,
+        "unsupported": 0,
+        "invalid": 0,
+    }
 
 
 def test_sync_service_existing_state_healthcare_service_change(
@@ -370,6 +420,19 @@ def test_sync_service_existing_state_healthcare_service_change(
     assert mock_logger.get_log("SM_PROC_026") == [
         {"msg": "Skipping DynamoDB transaction as no items to write"}
     ]
+
+    # Verify metrics are updated correctly (after two sync_service calls)
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 1,
+        "updated": 1,
+        "supported": 2,
+        "total": 2,
+        "transformed": 2,
+        "unsupported": 0,
+        "invalid": 0,
+    }
 
 
 def test_get_source_service(
@@ -538,6 +601,19 @@ def test_transform_service(
         }
     ]
 
+    # Verify metrics are updated correctly for transform_service
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 0,
+        "updated": 0,
+        "supported": 1,
+        "total": 0,
+        "transformed": 1,
+        "unsupported": 0,
+        "invalid": 0,
+    }
+
 
 def test_transform_service_should_not_include(
     mock_dependencies: ServiceMigrationDependencies,
@@ -569,6 +645,20 @@ def test_transform_service_should_not_include(
         }
     ]
 
+    # Verify metrics - supported is incremented before should_include check,
+    # but transformed is not incremented since the service was skipped
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 0,
+        "updated": 0,
+        "supported": 1,
+        "total": 0,
+        "transformed": 0,
+        "unsupported": 0,
+        "invalid": 0,
+    }
+
 
 def test_transform_service_fatal_validation_errors(
     mock_dependencies: ServiceMigrationDependencies,
@@ -594,7 +684,7 @@ def test_transform_service_fatal_validation_errors(
         ValidationIssue(
             value=None,
             severity="fatal",
-            code="required",
+            code="publicname_required",
             diagnostics="Public name is required for GP practices",
             expression=["publicname"],
         )
@@ -605,7 +695,7 @@ def test_transform_service_fatal_validation_errors(
         {
             "msg": "Service validation issue identified",
             "detail": {
-                "code": "required",
+                "code": "publicname_required",
                 "diagnostics": "Public name is required for GP practices",
                 "expression": ["publicname"],
                 "severity": "fatal",
@@ -613,6 +703,20 @@ def test_transform_service_fatal_validation_errors(
             },
         }
     ]
+
+    # Verify metrics - supported is incremented before validation,
+    # but transformed is not incremented since validation failed
+    assert processor.metrics.model_dump() == {
+        "errored": 0,
+        "skipped": 0,
+        "inserted": 0,
+        "updated": 0,
+        "supported": 1,
+        "total": 0,
+        "transformed": 0,
+        "unsupported": 0,
+        "invalid": 0,
+    }
 
 
 def test_get_transformer_supported_service(

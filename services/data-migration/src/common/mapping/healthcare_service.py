@@ -171,7 +171,7 @@ class HealthcareServiceMapper(BaseMapper[ServiceData, HealthcareService]):
         disposition = self.metadata.dispositions.get(code.dispositionid)
         if disposition is None:
             self.logger.log(
-                ServiceMigrationLogBase.DM_ETL_018,
+                ServiceMigrationLogBase.SM_MAP_004,
                 service_id=service_id,
                 disposition_id=code.dispositionid,
             )
@@ -190,7 +190,7 @@ class HealthcareServiceMapper(BaseMapper[ServiceData, HealthcareService]):
         * Tolerance of 1 day is used to determine if ranges are consecutive.
         """
         if not service.age_range:
-            self.logger.log(ServiceMigrationLogBase.DM_ETL_017, service_id=service.id)
+            self.logger.log(ServiceMigrationLogBase.SM_MAP_003, service_id=service.id)
             return None
 
         TOLERANCE = Decimal(1)

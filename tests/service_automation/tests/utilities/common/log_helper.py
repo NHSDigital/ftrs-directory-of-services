@@ -27,7 +27,7 @@ def assert_log_exists(
 
     Args:
         mock_logger: MockLogger instance to check
-        reference: Log reference code (e.g., "DM_ETL_003")
+        reference: Log reference code (e.g., "SM_PROC_003")
         level: Log level to check (default: "INFO")
         service_id: Optional service ID for context in error messages
 
@@ -112,7 +112,7 @@ def verify_transformation_log(
     healthcare_service_count: int,
 ) -> None:
     """
-    Verify DM_ETL_007 transformation log with expected counts.
+    Verify SM_PROC_007a transformation log with expected counts.
 
     Args:
         mock_logger: MockLogger instance
@@ -161,16 +161,6 @@ def verify_transformation_log(
             "Expected healthcare service in transformed record"
         )
 
-    # expected_detail = {
-    #     "organisation_count": organisation_count,
-    #     "location_count": location_count,
-    #     "healthcare_service_count": healthcare_service_count,
-    # }
-
-    # assert_log_detail_matches(
-    #     mock_logger, "DM_ETL_007", expected_detail, level="INFO", service_id=service_id
-    # )
-
 
 def verify_service_not_migrated_log(
     mock_logger: MockLogger,
@@ -178,7 +168,7 @@ def verify_service_not_migrated_log(
     expected_reason: str,
 ) -> None:
     """
-    Verify DM_ETL_004 not migrated log with expected reason.
+    Verify SM_PROC_006 not migrated log with expected reason.
 
     Args:
         mock_logger: MockLogger instance
@@ -188,11 +178,11 @@ def verify_service_not_migrated_log(
     Raises:
         AssertionError: If log not found or reason doesn't match
     """
-    assert_log_exists(mock_logger, "DM_ETL_004", level="INFO", service_id=service_id)
+    assert_log_exists(mock_logger, "SM_PROC_006", level="INFO", service_id=service_id)
 
     assert_log_detail_matches(
         mock_logger,
-        "DM_ETL_004",
+        "SM_PROC_006",
         {"reason": expected_reason},
         level="INFO",
         service_id=service_id,
@@ -232,7 +222,7 @@ def verify_transformer_selected_log(
     service_id: int,
 ) -> None:
     """
-    Verify DM_ETL_003 transformer selection log with expected transformer name.
+    Verify SM_PROC_003 transformer selection log with expected transformer name.
 
     Args:
         mock_logger: MockLogger instance
@@ -242,23 +232,23 @@ def verify_transformer_selected_log(
     Raises:
         AssertionError: If log not found or wrong transformer name
     """
-    assert_log_exists(mock_logger, "DM_ETL_003", level="INFO", service_id=service_id)
+    assert_log_exists(mock_logger, "SM_PROC_003", level="INFO", service_id=service_id)
 
-    # Get all DM_ETL_003 logs
-    etl_003_logs = mock_logger.get_log("DM_ETL_003", level="INFO")
+    # Get all SM_PROC_003 logs
+    logs = mock_logger.get_log("SM_PROC_003", level="INFO")
 
     # Find the log entry for this specific transformer
     matching_logs = [
         log
-        for log in etl_003_logs
+        for log in logs
         if log.get("detail", {}).get("transformer_name") == transformer_name
     ]
 
     assert len(matching_logs) > 0, (
-        f"DM_ETL_003 log not found for transformer '{transformer_name}'\n"
-        f"Expected: Transformer {transformer_name} selected for record\n"
-        f"Found {len(etl_003_logs)} DM_ETL_003 logs\n"
-        f"Found transformer names: {[log.get('detail', {}).get('transformer_name') for log in etl_003_logs]}"
+        f"SM_PROC_003 log not found for transformer '{transformer_name}'\n"
+        f"Expected: Transformer {transformer_name} selected for service\n"
+        f"Found {len(logs)} SM_PROC_003 logs\n"
+        f"Found transformer names: {[log.get('detail', {}).get('transformer_name') for log in logs]}"
     )
 
     # Verify the log message format
@@ -314,17 +304,19 @@ def verify_error_log_present(
     error_fragment: str,
 ) -> None:
     """
-    Verify DM_ETL_008 event with its details is present in error level logs
+    Verify SM_APP_009 error log with error details is present.
+
+    SM_APP_009 is the general error log for unexpected exceptions during processing.
 
     Args:
         mock_logger: MockLogger instance
         error_fragment: Fragment of the error message expected
 
     Raises:
-        AssertionError: If log not found
+        AssertionError: If log not found or error fragment not matched
     """
-    assert_log_exists(mock_logger, "DM_ETL_008", level="ERROR")
-    logs = mock_logger.get_log("DM_ETL_008", level="ERROR")
+    assert_log_exists(mock_logger, "SM_APP_009", level="ERROR")
+    logs = mock_logger.get_log("SM_APP_009", level="ERROR")
 
     matched = [
         log_line
@@ -332,7 +324,8 @@ def verify_error_log_present(
         if error_fragment in log_line["detail"].get("error", "")
     ]
     assert matched, (
-        f"Error level log with err containing fragment '{error_fragment}' not found"
+        f"Error level log (SM_APP_009) with error containing fragment '{error_fragment}' not found\n"
+        f"Available ERROR logs: {mock_logger.get_logs('ERROR')}"
     )
 
 

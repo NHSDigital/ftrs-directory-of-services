@@ -22,10 +22,12 @@ class LocationMapper(BaseMapper[ServiceData, Location]):
         )
         if service.address and service.address != "Not Available":
             formatted_address = format_address(
-                service.address, service.town, service.postcode
+                service.address,
+                service.town,
+                service.postcode,
             )
             self.logger.log(
-                ServiceMigrationLogBase.DM_ETL_015,
+                ServiceMigrationLogBase.SM_MAP_001,
                 organisation=organisation_id,
                 address=formatted_address,
             )
@@ -33,7 +35,7 @@ class LocationMapper(BaseMapper[ServiceData, Location]):
         else:
             formatted_address = None
             self.logger.log(
-                ServiceMigrationLogBase.DM_ETL_016, organisation=organisation_id
+                ServiceMigrationLogBase.SM_MAP_002, organisation=organisation_id
             )
 
         return Location(

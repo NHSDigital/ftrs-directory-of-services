@@ -252,3 +252,178 @@ Feature: Service Migration - Address Transformation
       | 700027     | 400027 | GP_CountyLeadingSeparators  | Y22222   | County Leading Separators  | SO1 1AA  | $123 Main St$Hampshire           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
       | 700028     | 400028 | GP_CountyTrailingSeparators | A22222   | County Trailing Separators | SO1 1AA  | 123 Main St$Hampshire$           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
       | 700029     | 400029 | GP_CountyMiddleSeparators   | B33333   | County Middle Separators   | SO1 1AA  | 123 Main St$Hampshire$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
+
+  Scenario: Service with duplicate address segments
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+      | key                 | value                                       |
+      | id                  | 900040                                      |
+      | uid                 | 200040                                      |
+      | name                | TestGPPractice                              |
+      | publicname          | Duplicate Segment Surgery                   |
+      | typeid              | 100                                         |
+      | statusid            | 1                                           |
+      | odscode             | K12345                                      |
+      | createdtime         | 2024-01-01 10:00:00                         |
+      | modifiedtime        | 2024-01-01 10:00:00                         |
+      | openallhours        | false                                       |
+      | restricttoreferrals | false                                       |
+      | postcode            | TE1 1ST                                     |
+      | address             | Test Street$Test Street$Test City$Test City |
+      | town                | Test City                                   |
+      | web                 | https://www.nhs.uk/                         |
+      | email               | duplicate@nhs.net                           |
+      | publicphone         | 0300 311 22 33                              |
+    When a single service migration is run for ID '900040'
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And the service has the address
+    And the service address for ID '900040' should be:
+      | key      | value       |
+      | county   | None        |
+      | line1    | Test Street |
+      | line2    | None        |
+      | postcode | TE1 1ST     |
+      | town     | Test City   |
+
+  Scenario: Service with empty address segments
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+      | key                 | value                             |
+      | id                  | 900050                            |
+      | uid                 | 200050                            |
+      | name                | TestGPPractice                    |
+      | publicname          | Empty Segments Surgery            |
+      | typeid              | 100                               |
+      | statusid            | 1                                 |
+      | odscode             | L12345                            |
+      | createdtime         | 2024-01-01 10:00:00               |
+      | modifiedtime        | 2024-01-01 10:00:00               |
+      | openallhours        | false                             |
+      | restricttoreferrals | false                             |
+      | postcode            | TE2 2ST                           |
+      | address             | Test Building$Test Road$Test City |
+      | town                | Test City                         |
+      | web                 | https://www.nhs.uk/               |
+      | email               | empty@nhs.net                     |
+      | publicphone         | 0300 311 22 33                    |
+    When a single service migration is run for ID '900050'
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And the service has the address
+    And the service address for ID '900050' should be:
+      | key      | value         |
+      | county   | None          |
+      | line1    | Test Building |
+      | line2    | Test Road     |
+      | postcode | TE2 2ST       |
+      | town     | Test City     |
+
+  Scenario: Service with invalid address marker "Not Available"
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+      | key                 | value                   |
+      | id                  | 900051                  |
+      | uid                 | 200051                  |
+      | name                | TestGPPractice          |
+      | publicname          | Invalid Address Surgery |
+      | typeid              | 100                     |
+      | statusid            | 1                       |
+      | odscode             | M12345                  |
+      | createdtime         | 2024-01-01 10:00:00     |
+      | modifiedtime        | 2024-01-01 10:00:00     |
+      | openallhours        | false                   |
+      | restricttoreferrals | false                   |
+      | postcode            | TE3 3ST                 |
+      | address             | Not Available           |
+      | town                | Test City               |
+      | web                 | https://www.nhs.uk/     |
+      | email               | invalid@nhs.net         |
+      | publicphone         | 0300 311 22 33          |
+    When a single service migration is run for ID '900051'
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+    Then there is 1 organisation, 1 location and 1 healthcare services created
+    Then the 'location' for service ID '900051' has content:
+      """
+      {
+        "id": "903a51d7-435f-5519-b6ec-233a726af8a4",
+        "identifier_oldDoS_uid": "200051",
+        "field": "document",
+        "active": true,
+        "address": null,
+        "createdBy": "DATA_MIGRATION",
+        "createdDateTime": "2025-11-13T15:39:53.539806Z",
+        "managingOrganisation": "293e3830-519d-5915-a846-f8696a8ebd7c",
+        "modifiedBy": "DATA_MIGRATION",
+        "modifiedDateTime": "2025-11-13T15:39:53.539806Z",
+        "name": null,
+        "partOf": null,
+        "positionGCS": null,
+        "positionReferenceNumber_UBRN": null,
+        "positionReferenceNumber_UPRN": null,
+        "primaryAddress": true
+      }
+      """
+
+
+  Scenario: Service with all whitespace in address segments
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+      | key                 | value               |
+      | id                  | 900052              |
+      | uid                 | 200052              |
+      | name                | TestGPPractice      |
+      | publicname          | Whitespace Surgery  |
+      | typeid              | 100                 |
+      | statusid            | 1                   |
+      | odscode             | N12345              |
+      | createdtime         | 2024-01-01 10:00:00 |
+      | modifiedtime        | 2024-01-01 10:00:00 |
+      | openallhours        | false               |
+      | restricttoreferrals | false               |
+      | postcode            | TE4 4ST             |
+      | address             | $  $   $ Test Road  |
+      | town                | Test City           |
+      | web                 | https://www.nhs.uk/ |
+      | email               | whitespace@nhs.net  |
+      | publicphone         | 0300 311 22 33      |
+    When a single service migration is run for ID '900052'
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And the service has the address
+    And the service address for ID '900052' should be:
+      | key      | value     |
+      | county   | None      |
+      | line1    | Test Road |
+      | line2    | None      |
+      | postcode | TE4 4ST   |
+      | town     | Test City |
+
+  Scenario: Service with town appearing multiple times in address
+    Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
+      | key                 | value                                         |
+      | id                  | 900053                                        |
+      | uid                 | 200053                                        |
+      | name                | TestGPPractice                                |
+      | publicname          | Town Duplicate Surgery                        |
+      | typeid              | 100                                           |
+      | statusid            | 1                                             |
+      | odscode             | P12345                                        |
+      | createdtime         | 2024-01-01 10:00:00                           |
+      | modifiedtime        | 2024-01-01 10:00:00                           |
+      | openallhours        | false                                         |
+      | restricttoreferrals | false                                         |
+      | postcode            | TE5 5ST                                       |
+      | address             | Test Building$Test Road$London$Greater London |
+      | town                | London                                        |
+      | web                 | https://www.nhs.uk/                           |
+      | email               | towndup@nhs.net                               |
+      | publicphone         | 0300 311 22 33                                |
+    When a single service migration is run for ID '900053'
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And the service has the address
+    And the service address for ID '900053' should be:
+      | key      | value          |
+      | county   | Greater London |
+      | line1    | Test Building  |
+      | line2    | Test Road      |
+      | postcode | TE5 5ST        |
+      | town     | London         |
+

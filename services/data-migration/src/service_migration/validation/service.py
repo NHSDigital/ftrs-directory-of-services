@@ -79,7 +79,6 @@ class GPPracticeValidator(ServiceValidator):
         if location_result := self.validate_location(
             data.address, data.town, data.postcode
         ):
-            result.sanitised.address = location_result.sanitised
             self.add_issues(result, location_result.issues)
 
         return result
@@ -117,7 +116,7 @@ class GPPracticeValidator(ServiceValidator):
         even if address field is missing or invalid.
         """
         result = FieldValidationResult(
-            original=address,
+            original=(address, town, postcode),
             sanitised=None,
             issues=[],
         )
@@ -149,5 +148,4 @@ class GPPracticeValidator(ServiceValidator):
             )
             return result
 
-        result.sanitised = formatted_address
         return result

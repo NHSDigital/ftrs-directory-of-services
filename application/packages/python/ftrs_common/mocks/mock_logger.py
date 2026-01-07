@@ -1,7 +1,7 @@
+from time import time_ns
 from unittest.mock import Mock
 
 from ftrs_common.logger import Logger
-from time import time_ns
 
 
 class MockLogger(Logger):
@@ -57,7 +57,9 @@ class MockLogger(Logger):
                 key=lambda x: x["_timestamp"],
             )
 
-        return [self._format_log_for_checks(log) for log in logs]
+        return [
+            self._format_log_for_checks(log, include_reference=True) for log in logs
+        ]
 
     def get_log_count(self, level: str | None = None) -> int:
         """
@@ -120,12 +122,17 @@ class MockLogger(Logger):
                 )
         return "\n".join(formatted_logs)
 
-    def _format_log_for_checks(self, log: dict) -> dict:
+    def _format_log_for_checks(
+        self, log: dict, include_reference: bool = False
+    ) -> dict:
         """
         Format a specific log for checks.
         """
         formatted_log = {"msg": log["msg"]}
         if log.get("detail"):
             formatted_log["detail"] = log["detail"]
+
+        if include_reference:
+            formatted_log["reference"] = log["reference"]
 
         return formatted_log

@@ -1,21 +1,27 @@
+from unittest.mock import MagicMock
+
 import pytest
+from boto3 import Session
+from boto3.dynamodb.types import TypeSerializer
 from pytest_mock import MockerFixture
 from typer import Abort
 
 from dynamodb.constants import ALL_ENTITY_TYPES, ClearableEntityType, TargetEnvironment
-from dynamodb.reset import delete_all_table_items, iter_record_keys, reset
+from dynamodb.reset import delete_all_table_items, iter_record_keys, reset_command
 
 
 def test_reset_invalid_environment() -> None:
+    """Test that reset rejects production environment."""
     with pytest.raises(ValueError):
-        reset(env="prod")  # type: ignore
+        reset_command(env="prod")  # type: ignore
 
 
 def test_reset_user_aborts(mocker: MockerFixture) -> None:
+    """Test that reset handles user aborting the confirmation prompt."""
     mock_confirm = mocker.patch("dynamodb.reset.confirm", side_effect=Abort)
 
     with pytest.raises(Abort):
-        reset(env=TargetEnvironment.dev, workspace="test-workspace")
+        reset_command(env=TargetEnvironment.dev, workspace="test-workspace")
 
     mock_confirm.assert_called_once_with(
         "Are you sure you want to reset the dev environment (workspace: test-workspace)? This action cannot be undone.",
@@ -23,83 +29,90 @@ def test_reset_user_aborts(mocker: MockerFixture) -> None:
     )
 
 
-def test_reset_user_aborts_with_exception(mocker: MockerFixture) -> None:
-    mocker.patch("dynamodb.reset.confirm", side_effect=Abort())
+def test_reset_user_aborts_default_workspace(mocker: MockerFixture) -> None:
+    """Test that reset shows 'default' when no workspace specified."""
+    mock_confirm = mocker.patch("dynamodb.reset.confirm", side_effect=Abort())
 
     with pytest.raises(Abort):
-        reset(env=TargetEnvironment.dev)
+        reset_command(env=TargetEnvironment.dev)
+
+    # Verify the confirmation message includes 'default'
+    args = mock_confirm.call_args[0][0]
+    assert "default" in args
 
 
-def test_reset_success(mocker: MockerFixture) -> None:
+def test_reset_processes_all_entity_types(mocker: MockerFixture) -> None:
+    """Test that reset processes all entity types by default."""
     mocker.patch("dynamodb.reset.confirm")
-    mock_session_cls = mocker.patch("dynamodb.reset.Session")
-    mock_session = mock_session_cls.return_value
-    mock_delete = mocker.patch("dynamodb.reset.delete_all_table_items", return_value=10)
-    mocker.patch(
-        "dynamodb.reset.format_table_name",
-        side_effect=lambda e, env, w: f"table-{e}-{env}-{w}",
-    )
     mock_logger = mocker.patch("dynamodb.reset.LOGGER")
 
-    reset(env=TargetEnvironment.dev, workspace="test-ws")
+    # Track which tables were deleted
+    deleted_tables = []
 
-    assert mock_delete.call_count == len(ALL_ENTITY_TYPES)
+    def capture_table_name(
+        session: Session, table_name: str, endpoint_url: str | None
+    ) -> int:
+        deleted_tables.append(table_name)
+        return 5
+
+    mocker.patch(
+        "dynamodb.reset.delete_all_table_items", side_effect=capture_table_name
+    )
+
+    reset_command(env=TargetEnvironment.dev, workspace="test-ws")
+
+    # Verify all entity types were processed
+    assert len(deleted_tables) == len(ALL_ENTITY_TYPES)
+
+    # Verify correct table names were generated for each entity
     for entity in ALL_ENTITY_TYPES:
-        expected_table = f"table-{entity}-dev-test-ws"
-        mock_delete.assert_any_call(expected_table, mock_session, None)
+        assert any(entity.value in table_name for table_name in deleted_tables)
 
+    # Verify logging occurred for each table
     assert mock_logger.log.call_count == len(ALL_ENTITY_TYPES)
 
 
-def test_reset_success_specific_entities(mocker: MockerFixture) -> None:
+def test_reset_processes_specific_entity_types(mocker: MockerFixture) -> None:
+    """Test that reset processes only specified entity types."""
     mocker.patch("dynamodb.reset.confirm")
-    mock_session = mocker.patch("dynamodb.reset.Session").return_value
-    mock_delete = mocker.patch("dynamodb.reset.delete_all_table_items", return_value=5)
-    mocker.patch("dynamodb.reset.format_table_name", return_value="some-table")
+    mocker.patch("dynamodb.reset.LOGGER")
 
-    env = TargetEnvironment.local
+    deleted_tables = []
+
+    def capture_table_name(
+        session: Session, table_name: str, endpoint_url: str | None
+    ) -> int:
+        deleted_tables.append(table_name)
+        return 3
+
+    mocker.patch(
+        "dynamodb.reset.delete_all_table_items", side_effect=capture_table_name
+    )
+
     entities = [ClearableEntityType.organisation, ClearableEntityType.location]
+    reset_command(env=TargetEnvironment.local, entity_type=entities)
 
-    reset(env=env, entity_type=entities)
-
-    assert mock_delete.call_count == len(entities)
-    mock_delete.assert_called_with("some-table", mock_session, None)
+    # Should only process the two specified entities
+    expected_entity_count = 2
+    assert len(deleted_tables) == expected_entity_count
+    assert any("organisation" in table for table in deleted_tables)
+    assert any("location" in table for table in deleted_tables)
 
 
 def test_delete_all_table_items(mocker: MockerFixture) -> None:
-    mock_session = mocker.Mock()
-    mock_resource = mock_session.resource.return_value
-    mock_table = mock_resource.Table.return_value
+    """Test deleting items using actual iter_record_keys logic."""
+    # Create a real session mock with proper structure
+    mock_session = MagicMock()
+    mock_resource = MagicMock()
+    mock_client = MagicMock()
+    mock_table = MagicMock()
 
-    # keys generator
-    keys = [{"pk": "1"}, {"pk": "2"}]
-    mocker.patch("dynamodb.reset.iter_record_keys", return_value=iter(keys))
+    mock_session.resource.return_value = mock_resource
+    mock_session.client.return_value = mock_client
+    mock_resource.Table.return_value = mock_table
 
-    # Mock track to just return the iterable
-    mocker.patch("dynamodb.reset.track", side_effect=lambda x, description: x)
-
-    count = delete_all_table_items(mock_session, "my-table", "http://localhost:8000")
-
-    mock_session.resource.assert_called_with(
-        "dynamodb", endpoint_url="http://localhost:8000"
-    )
-    mock_session.client.assert_called_with(
-        "dynamodb", endpoint_url="http://localhost:8000"
-    )
-    mock_resource.Table.assert_called_with("my-table")
-
-    expected_result_count = 2
-
-    assert count == expected_result_count
-    mock_table.delete_item.assert_has_calls(
-        [mocker.call(Key={"pk": "1"}), mocker.call(Key={"pk": "2"})]
-    )
-
-
-def test_iter_record_keys(mocker: MockerFixture) -> None:
-    mock_client = mocker.Mock()
-
-    # describe_table
+    # Setup the client responses for iter_record_keys
+    serializer = TypeSerializer()
     mock_client.describe_table.return_value = {
         "Table": {
             "KeySchema": [
@@ -109,32 +122,244 @@ def test_iter_record_keys(mocker: MockerFixture) -> None:
         }
     }
 
-    # get_paginator
-    mock_paginator = mock_client.get_paginator.return_value
+    # Create paginator with realistic DynamoDB response format
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
 
-    # Simulated items from DynamoDB (in Low-Level format as getting from scan)
-    # The code uses TypeDeserializer on attributes.
-    # scan returns items in DynamoDB JSON format: {"pk": {"S": "val"}}
+    mock_paginator.paginate.return_value = [
+        {
+            "Items": [
+                {
+                    "pk": serializer.serialize("org-1"),
+                    "sk": serializer.serialize("metadata"),
+                    "name": serializer.serialize("Organization 1"),
+                },
+                {
+                    "pk": serializer.serialize("org-2"),
+                    "sk": serializer.serialize("metadata"),
+                    "name": serializer.serialize("Organization 2"),
+                },
+            ]
+        }
+    ]
 
-    page1 = {
-        "Items": [
-            {"pk": {"S": "p1"}, "sk": {"S": "s1"}, "other": {"S": "o1"}},
-            {"pk": {"S": "p2"}, "sk": {"S": "s2"}, "other": {"S": "o2"}},
-        ]
+    # Mock track to passthrough
+    mocker.patch("dynamodb.reset.track", side_effect=lambda x, description: x)
+
+    # Execute the function
+    count = delete_all_table_items(mock_session, "test-table", "http://localhost:8000")
+
+    # Verify correct AWS SDK calls
+    mock_session.resource.assert_called_once_with(
+        "dynamodb", endpoint_url="http://localhost:8000"
+    )
+    mock_session.client.assert_called_once_with(
+        "dynamodb", endpoint_url="http://localhost:8000"
+    )
+    mock_resource.Table.assert_called_once_with("test-table")
+
+    # Verify deletion count
+    expected_item_count = 2
+    assert count == expected_item_count
+
+    # Verify delete_item was called for each item with only keys
+    assert mock_table.delete_item.call_count == expected_item_count
+
+    # Verify that only keys were passed (not the 'name' attribute)
+    for call in mock_table.delete_item.call_args_list:
+        keys = call.kwargs["Key"]
+        assert set(keys.keys()) == {"pk", "sk"}
+        assert "name" not in keys
+
+
+def test_delete_all_table_items_empty_table(mocker: MockerFixture) -> None:
+    """Test deleting from an empty table returns 0."""
+    mock_session = MagicMock()
+    mock_resource = MagicMock()
+    mock_client = MagicMock()
+    mock_table = MagicMock()
+
+    mock_session.resource.return_value = mock_resource
+    mock_session.client.return_value = mock_client
+    mock_resource.Table.return_value = mock_table
+
+    # Setup empty table response
+    mock_client.describe_table.return_value = {
+        "Table": {
+            "KeySchema": [
+                {"AttributeName": "pk", "KeyType": "HASH"},
+            ]
+        }
     }
 
-    mock_paginator.paginate.return_value = [page1]
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
+    mock_paginator.paginate.return_value = [{"Items": []}]
 
-    generator = iter_record_keys(mock_client, "my-table")
-    results = list(generator)
+    mocker.patch("dynamodb.reset.track", side_effect=lambda x, description: x)
 
-    mock_client.get_paginator.assert_called_with("scan")
-    mock_paginator.paginate.assert_called_with(
-        TableName="my-table", ProjectionExpression="pk, sk"
+    count = delete_all_table_items(mock_session, "empty-table")
+
+    assert count == 0
+    mock_table.delete_item.assert_not_called()
+
+
+def test_iter_record_keys() -> None:
+    """Test iterating record keys extracts only key attributes."""
+    mock_client = MagicMock()
+
+    # Setup table schema
+    mock_client.describe_table.return_value = {
+        "Table": {
+            "KeySchema": [
+                {"AttributeName": "pk", "KeyType": "HASH"},
+                {"AttributeName": "sk", "KeyType": "RANGE"},
+            ]
+        }
+    }
+
+    # Setup paginator with DynamoDB-formatted items
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
+
+    serializer = TypeSerializer()
+    mock_paginator.paginate.return_value = [
+        {
+            "Items": [
+                {
+                    "pk": serializer.serialize("item-1"),
+                    "sk": serializer.serialize("sort-a"),
+                    "data": serializer.serialize("some data"),
+                    "count": serializer.serialize(42),
+                },
+                {
+                    "pk": serializer.serialize("item-2"),
+                    "sk": serializer.serialize("sort-b"),
+                    "data": serializer.serialize("more data"),
+                },
+            ]
+        }
+    ]
+
+    # Execute
+    keys = list(iter_record_keys(mock_client, "test-table"))
+
+    # Verify
+    expected_key_count = 2
+    assert len(keys) == expected_key_count
+
+    # Each result should only have key attributes
+    assert keys[0] == {"pk": "item-1", "sk": "sort-a"}
+    assert keys[1] == {"pk": "item-2", "sk": "sort-b"}
+
+    # Verify correct SDK calls
+    mock_client.describe_table.assert_called_once_with(TableName="test-table")
+    mock_client.get_paginator.assert_called_once_with("scan")
+    mock_paginator.paginate.assert_called_once_with(
+        TableName="test-table",
+        ProjectionExpression="pk, sk",
     )
 
-    expected_result_count = 2
 
-    assert len(results) == expected_result_count
-    assert results[0] == {"pk": "p1", "sk": "s1"}
-    assert results[1] == {"pk": "p2", "sk": "s2"}
+def test_iter_record_keys_single_key() -> None:
+    """Test iterating record keys with single partition key."""
+    mock_client = MagicMock()
+
+    mock_client.describe_table.return_value = {
+        "Table": {
+            "KeySchema": [
+                {"AttributeName": "id", "KeyType": "HASH"},
+            ]
+        }
+    }
+
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
+
+    serializer = TypeSerializer()
+    mock_paginator.paginate.return_value = [
+        {
+            "Items": [
+                {
+                    "id": serializer.serialize("user-123"),
+                    "name": serializer.serialize("John Doe"),
+                },
+            ]
+        }
+    ]
+
+    keys = list(iter_record_keys(mock_client, "users-table"))
+
+    assert len(keys) == 1
+    assert keys[0] == {"id": "user-123"}
+
+    # Verify projection expression only includes the key
+    mock_paginator.paginate.assert_called_once_with(
+        TableName="users-table",
+        ProjectionExpression="id",
+    )
+
+
+def test_iter_record_keys_multiple_pages() -> None:
+    """Test iterating record keys handles pagination correctly."""
+    mock_client = MagicMock()
+
+    mock_client.describe_table.return_value = {
+        "Table": {
+            "KeySchema": [
+                {"AttributeName": "pk", "KeyType": "HASH"},
+            ]
+        }
+    }
+
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
+
+    serializer = TypeSerializer()
+    # Simulate multiple pages
+    mock_paginator.paginate.return_value = [
+        {
+            "Items": [
+                {"pk": serializer.serialize("item-1")},
+                {"pk": serializer.serialize("item-2")},
+            ]
+        },
+        {
+            "Items": [
+                {"pk": serializer.serialize("item-3")},
+                {"pk": serializer.serialize("item-4")},
+            ]
+        },
+    ]
+
+    keys = list(iter_record_keys(mock_client, "test-table"))
+
+    expected_item_count = 4
+    assert len(keys) == expected_item_count
+    assert keys == [
+        {"pk": "item-1"},
+        {"pk": "item-2"},
+        {"pk": "item-3"},
+        {"pk": "item-4"},
+    ]
+
+
+def test_iter_record_keys_empty_table() -> None:
+    """Test iterating keys from an empty table."""
+    mock_client = MagicMock()
+
+    mock_client.describe_table.return_value = {
+        "Table": {
+            "KeySchema": [
+                {"AttributeName": "pk", "KeyType": "HASH"},
+            ]
+        }
+    }
+
+    mock_paginator = MagicMock()
+    mock_client.get_paginator.return_value = mock_paginator
+    mock_paginator.paginate.return_value = [{"Items": []}]
+
+    keys = list(iter_record_keys(mock_client, "empty-table"))
+
+    assert keys == []

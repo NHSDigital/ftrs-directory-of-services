@@ -170,95 +170,25 @@ class ServiceMigrationLogBase(LogBase):
         level=INFO, message="Some fields were changed before transformation"
     )
 
-    DM_ETL_001 = LogReference(level=DEBUG, message="Starting to process DMS event")
-    DM_ETL_002 = LogReference(
-        level=DEBUG,
-        message="Transformer {transformer_name} is not valid for record: {reason}",
-    )
-    DM_ETL_003 = LogReference(
-        level=INFO, message="Transformer {transformer_name} selected for record"
-    )
-    DM_ETL_004 = LogReference(
-        level=INFO,
-        message="Record was not migrated due to reason: {reason}",
-    )
-    DM_ETL_005 = LogReference(
-        level=INFO,
-        message="Record skipped due to condition: {reason}",
-    )
-    DM_ETL_006 = LogReference(
-        level=DEBUG,
-        message="Record successfully transformed into future data model",
-    )
-    DM_ETL_007 = LogReference(
-        level=INFO,
-        message="Record successfully migrated",
-    )
-    DM_ETL_008 = LogReference(
-        level=ERROR,
-        message="Error processing record: {error}",
-    )
-    DM_ETL_009 = LogReference(
-        level=ERROR,
-        message="Error parsing event: {error}",
-    )
-    DM_ETL_010 = LogReference(
-        level=WARNING, message="Unsupported event method: {method}"
-    )
-    DM_ETL_011 = LogReference(
-        level=WARNING,
-        message="Table {table_name} not supported for event method: {method}",
-    )
-    DM_ETL_012 = LogReference(
-        level=WARNING,
-        message="No symptom discriminators found for Symptom Group ID: {sg_id}",
-    )
-
-    DM_ETL_014 = LogReference(
-        level=WARNING,
-        message="Record {record_id} failed validation and was not migrated",
-    )
-    DM_ETL_015 = LogReference(
+    SM_MAP_001 = LogReference(
         level=INFO,
         message="Address for Organisation ID {organisation} is {address}",
     )
-    DM_ETL_016 = LogReference(
+    SM_MAP_002 = LogReference(
         level=WARNING,
         message="No address found for Organisation ID {organisation}, setting address to None",
     )
-    DM_ETL_017 = LogReference(
+    SM_MAP_003 = LogReference(
         level=INFO,
         message="No ageEligibilityCriteria created for Service ID {service_id} as no age range found",
     )
-
-    DM_ETL_018 = LogReference(
+    SM_MAP_004 = LogReference(
         level=WARNING,
         message="Disposition ID {disposition_id} not found in metadata for Service ID {service_id}, skipping disposition",
     )
 
-    DM_ETL_019 = LogReference(
-        level=INFO,
-        message="State record found for Service ID {record_id}, Skipping now...",
-    )
-    DM_ETL_020 = LogReference(
-        level=INFO,
-        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
-    )
 
-    DM_ETL_021 = LogReference(
-        level=INFO,
-        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
-    )
-
-    DM_ETL_022 = LogReference(
-        level=ERROR,
-        message="One or more items exist for  Service ID {record_id}",
-    )
-
-    DM_ETL_999 = LogReference(
-        level=INFO, message="Data Migration ETL Pipeline completed successfully."
-    )
-
+class QueuePopulatorLogBase(LogBase):
     DM_QP_000 = LogReference(
         level=INFO,
         message="Starting Data Migration Queue Populator for type_ids={type_ids} and status_ids={status_ids}",

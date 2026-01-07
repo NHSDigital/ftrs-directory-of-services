@@ -298,6 +298,7 @@ def mock_legacy_service() -> Generator[ServiceData, None, None]:
                 dispositionid=10,
             ),
         ],
+        age_range=[],
     )
 
 
@@ -371,18 +372,14 @@ def mock_db_engine(
         compiled = sql.compile(compile_kwargs={"literal_binds": True})
         if match := SERVICE_BY_ID_REGEX.match(compiled.string):
             service_id = int(match.group(1))
+            service = stub_test_services.get(service_id)
+
             mock_result = mocker.MagicMock()
-            mock_result.mappings = mocker.MagicMock(
-                return_value=mocker.MagicMock(
-                    one_or_none=mocker.MagicMock(
-                        return_value=stub_test_services.get(service_id)
-                    )
-                )
-            )
+            mock_result.scalars.return_value.unique.return_value.one_or_none.return_value = service
 
             return mock_result
 
-        # raise ValueError(f"Unrecognized SQL: {compiled.string}")
+        raise ValueError(f"Unrecognized SQL: {compiled.string}")
 
     engine = create_mock_engine("sqlite://", executor=mock_executor)
 
@@ -393,6 +390,8 @@ def mock_db_engine(
     engine.begin = begin
     engine.close = lambda: None
 
+    session_mock = mocker.patch("service_migration.processor.Session")
+    session_mock.return_value.__enter__.return_value.execute.side_effect = mock_executor
     yield engine
 
 

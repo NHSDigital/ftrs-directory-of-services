@@ -122,7 +122,13 @@ async def run_s3_restore(env: str, workspace: str | None) -> None:
     CONSOLE.print("Restoring data to DynamoDB", style="bright_black")
     tasks = [
         bulk_load_table(
-            format_table_name(entity_type, env, workspace), df["data"].tolist()
+            format_table_name(
+                entity_type,
+                env,
+                workspace,
+                stack_name=get_stack_name(entity_type),
+            ),
+            df["data"].tolist(),
         )
         for entity_type, df in data.items()
     ]
@@ -133,3 +139,10 @@ async def run_s3_restore(env: str, workspace: str | None) -> None:
         f"Data restoration complete to [bright_blue]{env}[/bright_blue] and workspace [bright_blue]{workspace}[/bright_blue]",
         style="bright_green",
     )
+
+
+def get_stack_name(entity_type: str) -> str:
+    """
+    Get the stack name based on the entity type
+    """
+    return "data-migration" if entity_type == "state-table" else "database"

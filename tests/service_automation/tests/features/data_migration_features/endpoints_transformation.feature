@@ -297,5 +297,6 @@ Feature: Data Migration for endpoints
       | serviceid     | 10305752 |        |
     When the service migration process is run for table 'services', ID '10305752' and method 'insert'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 0 invalid and 1 errored
-# Then error log containing message: '3 validation errors for Endpoint' was found
-# Then there is 0 organisation, 0 location and 0 healthcare services created
+    Then error log containing message: '3 validation errors for Endpoint' was found
+    Then there is 0 organisation, 0 location and 0 healthcare services created
+

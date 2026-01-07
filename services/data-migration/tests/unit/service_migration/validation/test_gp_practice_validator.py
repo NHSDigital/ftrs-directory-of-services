@@ -400,12 +400,6 @@ def test_valid_location_full_address(
     result = gp_practice_validator.validate_location(address, town, postcode)
 
     assert result is not None
-    assert result.sanitised is not None
-    assert result.sanitised.line1 == "123 Main Street"
-    assert result.sanitised.line2 == "Building A"
-    assert result.sanitised.county == "Hampshire"
-    assert result.sanitised.town == "Southampton"
-    assert result.sanitised.postcode == "SO1 1AA"
     assert len(result.issues) == 0
 
 
@@ -486,10 +480,6 @@ def test_valid_location_multipart_address(
     result = gp_practice_validator.validate_location(address, town, postcode)
 
     assert result is not None
-    assert result.sanitised is not None
-    assert result.sanitised.line1 == "123 Main St"
-    assert result.sanitised.line2 == "Building A"
-    assert result.sanitised.county == "Hampshire"
     assert len(result.issues) == 0
 
 
@@ -605,8 +595,6 @@ def test_location_validation_with_combinations(
 
     assert result is not None
     if should_pass:
-        assert result.sanitised is not None
         assert len(result.issues) == 0
     else:
-        assert result.sanitised is None
         assert len(result.issues) >= 1

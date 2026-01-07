@@ -156,7 +156,6 @@ class ServiceTransactionBuilder:
             previous=self.migration_state.organisation,
             current=organisation,
         )
-        print(diff)
         if not diff:
             self.logger.log(ServiceMigrationLogBase.SM_PROC_017)
             return self
@@ -167,7 +166,7 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: Add update logic here
+        # TODO: FTRS-1371 Add update logic here
 
         return self
 
@@ -235,7 +234,7 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: Add update logic here
+        # TODO: FTRS-1371 Add update logic here
 
         return self
 
@@ -306,6 +305,8 @@ class ServiceTransactionBuilder:
             changes=diff.pretty().splitlines(),
             diff=diff.to_dict(view_override="text"),
         )
+
+        # TODO: FTRS-1371 Add update logic here
 
         return self
 

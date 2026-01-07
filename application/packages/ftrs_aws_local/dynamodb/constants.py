@@ -6,12 +6,17 @@ class ClearableEntityType(StrEnum):
     healthcare_service = "healthcare-service"
     location = "location"
     triage_code = "triage-code"
-    state = "data-migration-state"
+    state = "state-table"
 
 
 class RepositoryTypes(StrEnum):
     document = "document"
     field = "field"
+
+
+class TargetEnvironment(StrEnum):
+    local = "local"
+    dev = "dev"
 
 
 ALL_ENTITY_TYPES = [
@@ -21,8 +26,3 @@ ALL_ENTITY_TYPES = [
     ClearableEntityType.triage_code,
     ClearableEntityType.state,
 ]
-
-
-class TargetEnvironment(StrEnum):
-    local = "local"
-    dev = "dev"

@@ -39,11 +39,10 @@ packages = [{ include = "tests" }]
 
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = { path = "../../application/packages/python", develop = true }
+pipeline = { path = "../../services/data-migration", develop = true }
 testcontainers = "^3.7.1"
 testcontainers-postgres = "^0.0.1rc1"
 testcontainers-localstack = "^0.0.1rc1"
-pipeline = { path = "../../services/data-migration", develop = true }
-
 
 
 [tool.poetry.group.dev.dependencies]

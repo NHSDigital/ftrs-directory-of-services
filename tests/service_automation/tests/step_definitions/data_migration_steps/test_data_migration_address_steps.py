@@ -4,7 +4,6 @@ import pytest
 from pytest_bdd import parsers, then
 
 
-from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from common.uuid_utils import generate_uuid
 from utilities.common.dynamoDB_tables import get_table_name
 
@@ -17,7 +16,7 @@ def service_has_address(dynamodb: Dict[str, Any]) -> None:
     at the top level or nested under 'document'.
     """
     dynamodb_resource = dynamodb["resource"]
-    table = dynamodb_resource.Table(get_table_name('location'))
+    table = dynamodb_resource.Table(get_table_name("location"))
     scan = table.scan()
     items = scan.get("Items", [])
     assert items, "No items found in 'location' table after migration"
@@ -25,7 +24,11 @@ def service_has_address(dynamodb: Dict[str, Any]) -> None:
     def extract_address(item: Dict[str, Any]) -> Any:
         if "address" in item:
             return item["address"]
-        if "document" in item and isinstance(item["document"], dict) and "address" in item["document"]:
+        if (
+            "document" in item
+            and isinstance(item["document"], dict)
+            and "address" in item["document"]
+        ):
             return item["document"]["address"]
         return None
 
@@ -38,7 +41,9 @@ def service_has_address(dynamodb: Dict[str, Any]) -> None:
 
 
 @then(parsers.parse("the service address for ID '{service_id:d}' should be:"))
-def service_address_should_be(service_id: int, datatable: list[list[str]], dynamodb: Dict[str, Any]) -> None:
+def service_address_should_be(
+    service_id: int, datatable: list[list[str]], dynamodb: Dict[str, Any]
+) -> None:
     """Validate the address for a specific service ID matches expected key/value pairs.
     Uses generate_uuid() to compute the location UUID from the service ID,
     fetches the location record from DynamoDB, and validates address fields.
@@ -51,8 +56,7 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
     location_uuid = str(generate_uuid(service_id, "location"))
 
     dynamodb_resource = dynamodb["resource"]
-    table = dynamodb_resource.Table(get_table_name('location'))
-
+    table = dynamodb_resource.Table(get_table_name("location"))
 
     response = table.get_item(Key={"id": location_uuid, "field": "document"})
     item = response.get("Item")
@@ -65,15 +69,23 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
                 item = candidate
                 break
 
-    assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
+    assert item is not None, (
+        f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
+    )
 
     address: Dict[str, Any]
     if "address" in item and isinstance(item["address"], dict):
         address = item["address"]
-    elif "document" in item and isinstance(item["document"], dict) and "address" in item["document"]:
+    elif (
+        "document" in item
+        and isinstance(item["document"], dict)
+        and "address" in item["document"]
+    ):
         address = item["document"]["address"]
     else:
-        pytest.fail(f"No address field present for location UUID {location_uuid} (service ID {service_id})")
+        pytest.fail(
+            f"No address field present for location UUID {location_uuid} (service ID {service_id})"
+        )
 
     # Build expected mapping from datatable (skip header row)
     expected: Dict[str, Any] = {}
@@ -100,5 +112,3 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
             assert actual == expected_value, (
                 f"Mismatch for address field '{key}': expected '{expected_value}' got '{actual}'"
             )
-
-

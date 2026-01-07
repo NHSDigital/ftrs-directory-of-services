@@ -1,7 +1,10 @@
+from typing import Annotated
+
 from ftrs_common.utils.db_service import format_table_name, get_dynamodb_client
 from mypy_boto3_dynamodb import DynamoDBClient
+from typer import Option
 
-from dynamodb.constants import ClearableEntityType, TargetEnvironment
+from dynamodb.constants import ALL_ENTITY_TYPES, ClearableEntityType, TargetEnvironment
 from dynamodb.logger import LOGGER, ResetLogBase
 
 
@@ -30,6 +33,7 @@ def init_tables(
     env: TargetEnvironment,
     workspace: str | None,
     entity_type: list[ClearableEntityType],
+    delete_existing: bool = False,
 ) -> None:
     LOGGER.log(ResetLogBase.ETL_RESET_001)
 
@@ -39,9 +43,19 @@ def init_tables(
 
     client = get_dynamodb_client(endpoint_url)
     for entity_name in entity_type:
-        table_name = format_table_name(entity_name, env.value, workspace)
+        stack_name = "database" if entity_name != "state-table" else "data-migration"
+        table_name = format_table_name(
+            entity_name,
+            env.value,
+            workspace,
+            stack_name=stack_name,
+        )
+
         entity_config = get_entity_config(entity_name)
         try:
+            if delete_existing:
+                delete_table(client=client, table_name=table_name)
+
             create_table(
                 client=client,
                 table_name=table_name,
@@ -166,7 +180,7 @@ def get_entity_config(entity_name: ClearableEntityType) -> dict:
                 }
             ],
         },
-        "data-migration-state": {
+        "state-table": {
             "key_schema": [
                 {"AttributeName": "source_record_id", "KeyType": "HASH"},
             ],
@@ -188,3 +202,34 @@ def get_entity_config(entity_name: ClearableEntityType) -> dict:
         },
     }
     return table_entity.get(entity_name, table_entity["default"])
+
+
+def delete_table(
+    client: DynamoDBClient,
+    table_name: str,
+) -> None:
+    table_exists = client.list_tables()["TableNames"]
+    if table_name in table_exists:
+        client.delete_table(TableName=table_name)
+
+
+def init_command(
+    endpoint_url: Annotated[str, Option(help="URL to connect to local DynamoDB")],
+    workspace: Annotated[str | None, Option(help="Workspace name")] = None,
+    entity_type: Annotated[
+        list[ClearableEntityType] | None, Option(help="Entity types to clear")
+    ] = None,
+    delete_existing: Annotated[
+        bool, Option(help="Whether to delete existing tables before initialization")
+    ] = False,
+) -> None:
+    if entity_type is None:
+        entity_type = list(ALL_ENTITY_TYPES)
+
+    init_tables(
+        endpoint_url=endpoint_url,
+        env=TargetEnvironment.local,
+        workspace=workspace,
+        entity_type=entity_type,
+        delete_existing=delete_existing,
+    )

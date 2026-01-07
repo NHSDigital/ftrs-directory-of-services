@@ -58,7 +58,7 @@ IGNORED_PATHS = [
     "field",
     *META_TIME_FIELDS,
     *[
-        re.compile(r"root\['{nested}']\[\d+]\['{field}']")
+        re.compile(f"root\['{nested}']\[\d+]\['{field}']")
         for nested in NESTED_PATHS_WITH_META_FIELDS
         for field in META_TIME_FIELDS
     ],
@@ -70,60 +70,6 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(obj, Decimal):
             return int(obj)
         return json.JSONEncoder.default(self, obj)
-
-
-# ============================================================
-# Setup Steps (Background)
-# ============================================================
-
-# TODO: Integrate these steps into the fixture setup process
-# @given("the test environment is configured")
-# def environment_configured(
-#     migration_helper: MigrationHelper, dynamodb: Dict[str, Any]
-# ) -> None:
-#     """Verify test environment is properly configured."""
-#     try:
-#         response = dynamodb[DYNAMODB_CLIENT].list_tables()
-#         table_names = response.get("TableNames", [])
-#         assert "TableNames" in response, "DynamoDB should be accessible"
-#     except Exception as e:
-#         pytest.fail(f"Failed to access DynamoDB: {e}")
-
-#     assert migration_helper is not None, "Migration helper should be configured"
-#     assert migration_helper.db_uri is not None, "Database URI should be set"
-#     assert migration_helper.dynamodb_endpoint is not None, (
-#         "DynamoDB endpoint should be set"
-#     )
-
-
-# @given("the DoS database has test data")
-# def dos_database_has_test_data(dos_db: Session) -> None:
-#     """Verify DoS database is accessible and has tables."""
-#     result = dos_db.execute(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
-#     count = result.fetchone()[0]
-#     assert count >= 0, "Should be able to query services table"
-
-
-# @given("DynamoDB tables are ready")
-# def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
-#     """Verify DynamoDB tables exist and are accessible."""
-#     client = dynamodb[DYNAMODB_CLIENT]
-#     response = client.list_tables()
-#     table_names = response.get("TableNames", [])
-
-#     expected_tables = get_expected_dynamodb_table_names()
-#     missing_tables = [table for table in expected_tables if table not in table_names]
-
-#     if missing_tables:
-#         project_name = os.getenv(ENV_PROJECT_NAME)
-#         environment = os.getenv(ENV_ENVIRONMENT)
-#         workspace = os.getenv(ENV_WORKSPACE)
-
-#         pytest.fail(
-#             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
-#             f"Found tables: {', '.join(table_names)}\n"
-#             f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
-#         )
 
 
 # ============================================================

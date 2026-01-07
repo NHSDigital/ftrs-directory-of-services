@@ -97,21 +97,3 @@ def test_transform(
     )
 
     assert result.validation_issues == validation_result.issues
-
-
-# TODO: Replace with equivalent fatal validation test
-# def test_transform_with_empty_publicname(
-#     mock_legacy_service: ServiceData,
-#     mock_metadata_cache: DoSMetadataCache,
-# ) -> None:
-#     """
-#     Test that transform method raises and exception when it transforms a GP practice service without a publicname.
-#     """
-#         mock_legacy_service.name = "GP - Text Not Removed"  # GP Name
-#         mock_legacy_service.publicname = None
-#         mock_legacy_service.typeid = 100  # GP Practice type ID
-#         mock_legacy_service.odscode = "A12345"  # Valid ODS code
-#         mock_legacy_service.statusid = 1  # Active status
-#         validation_issues = []
-#         transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
-#         transformer.transform(mock_legacy_service, validation_issues)

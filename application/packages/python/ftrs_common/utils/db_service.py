@@ -53,7 +53,12 @@ def get_table_name(entity_name: str) -> str:
     )
 
 
-def format_table_name(entity_name: str, env: str, workspace: str | None = None) -> str:
+def format_table_name(
+    entity_name: str,
+    env: str,
+    workspace: str | None = None,
+    stack_name: str = "database",
+) -> str:
     """
     Format the DynamoDB table name based on the entity name, environment, and optional workspace.
     Data migration state tables don't use the -database- prefix
@@ -66,11 +71,7 @@ def format_table_name(entity_name: str, env: str, workspace: str | None = None) 
     Returns:
         str: The formatted table name
     """
-    if entity_name.startswith("data-migration-"):
-        table_name = f"ftrs-dos-{env}-{entity_name}"
-    else:
-        table_name = f"ftrs-dos-{env}-database-{entity_name}"
-
+    table_name = f"ftrs-dos-{env}-{stack_name}-{entity_name}"
     if workspace:
         table_name = f"{table_name}-{workspace}"
 

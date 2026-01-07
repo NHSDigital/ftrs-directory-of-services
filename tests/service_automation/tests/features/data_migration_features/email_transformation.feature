@@ -108,14 +108,10 @@ Feature: Email Transformation
     When the service migration process is run for table 'services', ID '<service_id>' and method 'insert'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
-    # Then field 'migrationNotes' on table 'healthcare-service' for id '<uuid>' has content:
-    #   """
-    #   {
-    #     "migrationNotes": [
-    #       "<migration_note>"
-    #     ]
-    #   }
-    #   """
+    And the migration state of service ID '<service_id>' contains 1 validation issues
+    And the migration state of service ID '<service_id>' has the following validation issues:
+      | expression | severity | code         | diagnostics     | value         |
+      | email      | error    | <error_code> | <error_message> | <error_value> |
     Then field 'telecom' on table 'healthcare-service' for id '<uuid>' has content:
       """
       {
@@ -129,7 +125,7 @@ Feature: Email Transformation
       """
 
     Examples:
-      | service_id | uid    | odscode | description       | email             | uuid                                 | migration_note                                                                                  |
-      | 2102001    | 210201 | B23456  | Empty Email       |                   | f0e0264a-7cbd-5f1e-afda-ccc02da9aea3 | field:['email'] ,error: email_not_string,message:Email must be a string,value:None              |
-      | 2102002    | 210202 | B23457  | Invalid Format    | invalidemail      | 275eea01-a750-5b7a-a5ec-92663dbf3d49 | field:['email'] ,error: invalid_format,message:Email address is invalid,value:invalidemail      |
-      | 2102003    | 210203 | B23458  | Invalid Structure | user name@nhs.net | 45d7daf4-ec5a-560e-87ba-456aaceca3eb | field:['email'] ,error: invalid_format,message:Email address is invalid,value:user name@nhs.net |
+      | service_id | uid    | odscode | description       | email             | uuid                                 | error_code       | error_message            | error_value       |
+      | 2102001    | 210201 | B23456  | Empty Email       |                   | f0e0264a-7cbd-5f1e-afda-ccc02da9aea3 | email_not_string | Email must be a string   | None              |
+      | 2102002    | 210202 | B23457  | Invalid Format    | invalidemail      | 275eea01-a750-5b7a-a5ec-92663dbf3d49 | invalid_format   | Email address is invalid | invalidemail      |
+      | 2102003    | 210203 | B23458  | Invalid Structure | user name@nhs.net | 45d7daf4-ec5a-560e-87ba-456aaceca3eb | invalid_format   | Email address is invalid | user name@nhs.net |

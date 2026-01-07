@@ -87,7 +87,8 @@ async def export_table(
     """
     Export a DynamoDB table to S3.
     """
-    table_name = format_table_name(entity_name, env, workspace)
+    stack_name = "database" if entity_name != "state-table" else "data-migration"
+    table_name = format_table_name(entity_name, env, workspace, stack_name=stack_name)
     s3_bucket = get_migration_store_bucket_name(env, workspace)
 
     response = trigger_table_export(table_name, s3_bucket)
@@ -208,8 +209,8 @@ async def run_s3_export(env: str, workspace: str | None) -> list:
     export_tasks = [
         export_table("location", env, workspace),
         export_table("organisation", env, workspace),
-        # export_table("healthcare-service", env, workspace), TODO: FDOS-547 - Uncomment when enabling seeding of HealthcareService records
-        export_table("data-migration-state", env, workspace),
+        export_table("healthcare-service", env, workspace),
+        export_table("state-table", env, workspace),
     ]
     table_uris = {}
 

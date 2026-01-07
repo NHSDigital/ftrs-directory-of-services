@@ -41,56 +41,6 @@ def verify_all_metrics(
         f"{additional_context}"
     )
 
-    # assert_metric_matches(
-    #     actual_metrics.total,
-    #     expected.total,
-    #     "total records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.supported,
-    #     expected.supported,
-    #     "supported records",
-    #     migration_type,
-    #     additional_context,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.unsupported,
-    #     expected.unsupported,
-    #     "unsupported records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.transformed,
-    #     expected.transformed,
-    #     "transformed records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.inserted,
-    #     expected.inserted,
-    #     "inserted records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.updated,
-    #     expected.updated,
-    #     "updated records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.skipped,
-    #     expected.skipped,
-    #     "skipped records",
-    #     migration_type,
-    # )
-    # assert_metric_matches(
-    #     actual_metrics.errored,
-    #     expected.errored,
-    #     "errored records",
-    #     migration_type,
-    # )
-
     logger.debug(
         f"All metrics verified for {migration_type}",
         extra={

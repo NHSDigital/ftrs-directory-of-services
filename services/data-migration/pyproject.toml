@@ -55,7 +55,8 @@ select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
 ignore = [
   "TRY003", # Avoid specifying long exception names inside of exception
   "TRY300" , # Use else block after try block
-  "PLR0913" # Too many arguments (6/5)
+  "PLR0913", # Too many arguments (6/5)
+  "PLR2004" # Magic value used in comparison - test files use literal values for clarity
 ]
 
 [tool.ruff.format]
