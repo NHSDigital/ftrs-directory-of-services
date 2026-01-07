@@ -260,13 +260,11 @@ def test_transform_records_template_keyerror_handled(
     create_populate_module: Any,
 ) -> None:
     mod = create_populate_module
-    raw_items = [
-        {"primary_key": {"S": "pk1"}, "symptomGroupSymptomDiscriminators": {"L": []}}
-    ]
+    raw_items = [{"id": {"S": "pk1"}, "symptomGroupSymptomDiscriminators": {"L": []}}]
     schema = {
         "primary_key_template": "{primary_key}-{missing}",
         "doc_id_fields": ["primary_key"],
-        "top_level": {"primary_key": ["primary_key"]},
+        "top_level": {"primary_key": ["primary_key", "id"]},
         "nested": {},
     }
     out = mod.transform_records(raw_items, schema)
@@ -475,3 +473,60 @@ def test_index_records_chunk_partial_failure_logs(
     assert total == 4
     assert success == 0
     assert any("Bulk chunk had" in r.message for r in caplog.records)
+
+
+def test_main_passes_projection_to_scan(create_populate_module: Any) -> None:
+    mod = create_populate_module
+    called = {}
+
+    def fake_scan(_client, table, attrs):
+        called["table"] = table
+        called["attrs"] = attrs
+        return []
+
+    with (
+        patch(
+            "populate_open_search_index.prepare_dynamodb_client",
+            return_value=MagicMock(),
+        ),
+        patch("populate_open_search_index.scan_dynamodb_table", side_effect=fake_scan),
+        patch(
+            "populate_open_search_index.SignedRequestsSession", return_value=MagicMock()
+        ),
+    ):
+        rc = mod.main(["--endpoint", "https://example", "--final-index", "triage_code"])
+        assert rc == 0
+
+    assert "attrs" in called
+    assert "id" in called["attrs"]
+    assert "symptomGroupSymptomDiscriminators" in called["attrs"]
+
+
+def test_transform_full_item_maps_id_and_nested(create_populate_module: Any) -> None:
+    """Use a representative DynamoDB item and verify transform_records produces the expected document shape."""
+    mod = create_populate_module
+    sample = {
+        "id": {"S": "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2"},
+        "field": {"S": "document"},
+        "active": {"BOOL": True},
+        "symptomGroupSymptomDiscriminators": {
+            "L": [
+                {"M": {"sd": {"N": "4052"}, "sg": {"N": "1006"}}},
+                {"M": {"sd": {"N": "4052"}, "sg": {"N": "1004"}}},
+            ]
+        },
+    }
+
+    out = mod.transform_records([sample])
+    assert isinstance(out, list)
+    assert len(out) == 1
+    doc = out[0]
+    # primary_key should be built from id alias
+    assert "primary_key" in doc
+    assert doc["primary_key"] == "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2"
+    # nested field name determined by mapping; expect list with two items
+    nested = doc.get(mod.NESTED_COLLECTION_FIELD)
+    assert isinstance(nested, list)
+    assert len(nested) == 2
+    assert nested[0]["sg"] == 1006
+    assert nested[0]["sd"] == 4052

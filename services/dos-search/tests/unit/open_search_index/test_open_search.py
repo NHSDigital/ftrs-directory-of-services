@@ -406,11 +406,9 @@ def test_transform_records_missing_nested_logs(
         else "primary_key",
         mod.DEFAULT_SCHEMA_CONFIG,
     )
-    # construct a raw record with primary_key present but no nested source attributes
-    raw_items = [{"primary_key": {"S": "p1"}}]
+    raw_items = [{"id": {"S": "p1"}}]
     caplog.set_level("DEBUG")
     out = mod.transform_records(raw_items, None)
-    # expect a result list and debug may have noted missing nested
     assert isinstance(out, list)
 
 
@@ -433,7 +431,7 @@ def test_main_success_full_flow(create_populate_module: Any) -> None:
         ),
         patch(
             "populate_open_search_index.scan_dynamodb_table",
-            return_value=[{"primary_key": {"S": "1"}}],
+            return_value=[{"id": {"S": "1"}}],
         ),
         patch(
             "populate_open_search_index.transform_records",
