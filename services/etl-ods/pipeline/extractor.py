@@ -88,7 +88,7 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             # if triggered by EventBridge Scheduler, use the scheduled time minus one day
             date = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
         if not date:
-            return _error_response(400, "Missing required parameter: date")
+            return _error_response(400, "Date parameter is required")
 
         valid, error_message = _validate_date(date)
         if not valid:

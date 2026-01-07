@@ -122,7 +122,7 @@ def test_extractor_lambda_handler_missing_date() -> None:
 
     assert result["statusCode"] == HTTPStatus.BAD_REQUEST
     error_body = result["body"]
-    assert "Missing required parameter: date" in error_body
+    assert "Date parameter is required" in error_body
 
 
 def test_extractor_lambda_handler_invalid_date_format() -> None:
