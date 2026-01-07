@@ -150,7 +150,7 @@ def process_message_and_send_request(record: dict) -> None:
                 return
             elif http_error.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
                 ods_consumer_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_011,
+                    OdsETLPipelineLogBase.ETL_CONSUMER_009,
                     message_id=message_id,
                     status_code=HTTPStatus.TOO_MANY_REQUESTS,
                     error_message=f"Rate limit exceeded: {str(http_error)}",

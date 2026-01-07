@@ -91,7 +91,7 @@ def _handle_rate_limit_error(
     max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
     if receive_count >= max_receive_count:
         ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_007,
+            OdsETLPipelineLogBase.ETL_CONSUMER_009,
             message_id=message_id,
             receive_count=receive_count,
             error_message=f"Rate limit exceeded - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
@@ -99,7 +99,7 @@ def _handle_rate_limit_error(
         )
     else:
         ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_007,
+            OdsETLPipelineLogBase.ETL_CONSUMER_009,
             message_id=message_id,
             receive_count=receive_count,
             error_message=f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})",
