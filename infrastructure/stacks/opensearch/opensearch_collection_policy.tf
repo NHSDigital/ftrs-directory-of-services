@@ -65,6 +65,10 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
   ])
 }
 
+// NOTE: Collection and dashboards are currently public (AllowFromPublic = true) for ease of testing.
+// To make the collection private later, create VPCE(s) in the account-wide stack and supply their IDs
+// to this stack, then set AllowFromPublic = false and set SourceVPCEs.
+
 resource "aws_opensearchserverless_security_policy" "opensearch_serverless_workspace_network_access_policy" {
   count       = local.workspace_suffix == "" ? 0 : 1
   name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-nap"
@@ -84,9 +88,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
     },
     {
       Description     = "Workspace network access for collection"
-      AllowFromPublic = false
-      SourceVPCEs     = []
-      SourceServices  = []
+      AllowFromPublic = true
       Rules = [
         {
           Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}"]
@@ -98,10 +100,11 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
 }
 
 resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspace_data_access_policy" {
-  count       = local.workspace_suffix == "" ? 0 : 1
+  count = local.workspace_suffix == "" ? 0 : 1
+
   name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
   type        = "data"
-  description = "Workspace-level data access for collection (allows ingestion by pipeline/runner)"
+  description = "Collection-level data access policy for OpenSearch collection ${local.opensearch_collection_name} (grants collection & index ops)"
 
   policy = jsonencode([
     {
@@ -114,6 +117,18 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
             "aoss:UpdateCollectionItems",
             "aoss:DescribeCollectionItems",
             "aoss:DeleteCollectionItems"
+          ]
+        },
+        {
+          ResourceType = "index"
+          Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name}/${local.opensearch_index_name}${local.workspace_suffix}"]
+          Permission = [
+            "aoss:CreateIndex",
+            "aoss:UpdateIndex",
+            "aoss:DescribeIndex",
+            "aoss:DeleteIndex",
+            "aoss:ReadDocument",
+            "aoss:WriteDocument"
           ]
         }
       ],
