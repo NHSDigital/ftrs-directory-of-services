@@ -9,13 +9,14 @@ from uuid import UUID, uuid4
 import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-from ftrs_data_layer.domain import Endpoint, Organisation
+from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
 from ftrs_data_layer.domain.enums import (
     EndpointConnectionType,
     EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
+    TelecomType,
 )
 
 
@@ -81,7 +82,9 @@ def create_organisation():
         identifier_ods_code: str = "123456",
         active: bool = True,
         name: str = "Test Organisation",
-        telecom: str = "123456789",
+        telecom: list[Telecom] = [
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         org_type: str = "GP Practice",
         created_by: str = "test_user",
         created_date_time: datetime = datetime(2023, 10, 1),

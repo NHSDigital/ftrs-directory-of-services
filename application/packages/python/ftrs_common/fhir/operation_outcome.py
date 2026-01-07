@@ -1,6 +1,21 @@
 from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
 from pydantic import ValidationError
 
+OPERATION_OUTCOME_SYSTEM = "http://terminology.hl7.org/CodeSystem/operation-outcome"
+
+FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
+    "invalid": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
+    "not-found": ("MSG_NO_EXIST", "Resource does not exist"),
+    "exception": ("MSG_ERROR_PARSING", "Error processing request"),
+    "structure": ("MSG_BAD_SYNTAX", "Bad Syntax"),
+    "required": ("MSG_RESOURCE_REQUIRED", "A resource is required"),
+    "value": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
+    "processing": ("MSG_ERROR_PARSING", "Error processing request"),
+    "duplicate": ("MSG_DUPLICATE_ID", "Duplicate Id for resource"),
+    "informational": ("MSG_UPDATED", "Existing resource updated"),
+    "success": ("MSG_UPDATED", "Existing resource updated"),
+}
+
 
 class OperationOutcomeException(Exception):
     def __init__(self, outcome: dict) -> None:
@@ -18,21 +33,47 @@ class OperationOutcomeHandler:
     """
 
     @staticmethod
-    def build(
+    def _build_details(code: str, text: str) -> dict:
+        fhir_code, display = FHIR_OPERATION_OUTCOME_CODES.get(
+            code, ("MSG_ERROR_PARSING", "Error processing request")
+        )
+        return {
+            "coding": [
+                {
+                    "system": OPERATION_OUTCOME_SYSTEM,
+                    "code": fhir_code,
+                    "display": display,
+                }
+            ],
+            "text": text,
+        }
+
+    @staticmethod
+    def build(  # noqa: PLR0913
         diagnostics: str,
         code: str = "invalid",
         severity: str = "error",
+        details_text: str | None = None,
         details: dict | None = None,
+        expression: list[str] | None = None,
         issues: list | None = None,
     ) -> dict:
         if issues is None:
-            issue_dict = {
+            if details is None:
+                details = OperationOutcomeHandler._build_details(
+                    code, details_text or diagnostics
+                )
+
+            issue_dict: dict = {
                 "severity": severity,
                 "code": code,
+                "details": details,
                 "diagnostics": diagnostics,
             }
-            if details:
-                issue_dict["details"] = details
+
+            if expression:
+                issue_dict["expression"] = expression
+
             issues = [issue_dict]
 
         fhir_issues = [OperationOutcomeIssue(**issue) for issue in issues]
@@ -48,42 +89,20 @@ class OperationOutcomeHandler:
         """
         Build an OperationOutcome from an exception.
         """
-        details = {
-            "coding": [
-                {
-                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                    "code": "exception",
-                    "display": "Exception",
-                }
-            ],
-            "text": f"An unexpected error occurred: {str(exc)}",
-        }
-
         return OperationOutcomeHandler.build(
             diagnostics=str(exc),
             code=code,
             severity=severity,
-            details=details,
+            details_text=f"An unexpected error occurred: {exc}",
         )
 
     @staticmethod
     def from_validation_error(
         e: ValidationError,
     ) -> dict:
-        details = {
-            "coding": [
-                {
-                    "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
-                    "code": "invalid",
-                    "display": "Invalid Resource",
-                }
-            ],
-            "text": str(e),
-        }
-
         return OperationOutcomeHandler.build(
             diagnostics="Validation failed for resource.",
             code="invalid",
             severity="error",
-            details=details,
+            details_text=str(e),
         )

@@ -177,7 +177,7 @@ exports[`ErrorComponent > should display session and request IDs when provided >
             class="nhsuk-footer__copyright"
           >
             © 
-            2025
+            2026
              NHS England
           </p>
         </div>
@@ -336,7 +336,7 @@ exports[`ErrorComponent > should render the error component > ErrorComponent 1`]
             class="nhsuk-footer__copyright"
           >
             © 
-            2025
+            2026
              NHS England
           </p>
         </div>

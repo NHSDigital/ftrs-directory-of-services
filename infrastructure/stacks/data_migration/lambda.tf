@@ -41,8 +41,7 @@ module "processor_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {
@@ -110,8 +109,7 @@ module "queue_populator_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {
@@ -154,7 +152,7 @@ module "rds_event_listener_lambda" {
   environment_variables = {
     "ENVIRONMENT"  = var.environment
     "PROJECT_NAME" = var.project
-    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/ftrs-dos-${var.environment}-data-migration-sqs-param"
+    "SQS_SSM_PATH" = "${var.sqs_ssm_path_for_ids}${var.environment}/${local.resource_prefix}-sqs-param"
   }
 
   account_id     = data.aws_caller_identity.current.account_id
@@ -231,8 +229,7 @@ module "reference_data_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.data_layer.arn]
   )
 
   environment_variables = {

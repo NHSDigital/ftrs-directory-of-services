@@ -44,7 +44,7 @@ def generate_sqs_body(org_id: str, ods_code: str) -> dict:
             "resourceType": "Organization",
             "id": org_id,
             "meta": {
-                "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                "profile": ["https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"]
             },
             "identifier": [{
                 "use": "official",

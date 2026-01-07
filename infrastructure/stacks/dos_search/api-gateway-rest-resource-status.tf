@@ -4,7 +4,7 @@ resource "aws_api_gateway_resource" "status" {
   path_part   = "_status"
 }
 
-# Method request / response and integration request / response
+# Method request / integration request configuration
 
 resource "aws_api_gateway_method" "status" {
   # checkov:skip=CKV_AWS_59: False positive; all the endpoints will be authenticated via mTLS
@@ -23,23 +23,4 @@ resource "aws_api_gateway_integration" "status" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = module.health_check_lambda.lambda_function_invoke_arn
-}
-
-resource "aws_api_gateway_method_response" "status" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  resource_id = aws_api_gateway_resource.status.id
-  http_method = aws_api_gateway_method.status.http_method
-  status_code = "200"
-}
-
-resource "aws_api_gateway_integration_response" "status" {
-  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  resource_id = aws_api_gateway_resource.status.id
-  http_method = aws_api_gateway_method.status.http_method
-  status_code = aws_api_gateway_method_response.status.status_code
-
-  depends_on = [
-    aws_api_gateway_method.status,
-    aws_api_gateway_integration.status
-  ]
 }

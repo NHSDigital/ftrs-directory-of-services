@@ -34,9 +34,16 @@ class TestDataMigrationProcessor(unittest.TestCase):
         self.save_patch = patch.object(self.processor, "_save")
         self.mock_save = self.save_patch.start()
 
+        # Mock verify_state_record_exist to return False (state doesn't exist)
+        self.verify_state_patch = patch.object(
+            self.processor, "verify_state_record_exist", return_value=False
+        )
+        self.mock_verify_state = self.verify_state_patch.start()
+
     def tearDown(self) -> None:
         self.get_transformer_patch.stop()
         self.save_patch.stop()
+        self.verify_state_patch.stop()
 
     def test_validation_process_valid(self) -> None:
         # Set up the transformer mock to return a valid validation result
