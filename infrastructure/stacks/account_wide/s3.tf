@@ -110,7 +110,7 @@ module "trust_store_s3_bucket" {
   source                = "../../modules/s3"
   bucket_name           = local.s3_trust_store_bucket_name
   s3_logging_bucket     = local.s3_logging_bucket
-  s3_encryption_key_arn = module.s3_encryption_key.s3_bucket_arn
+  s3_encryption_key_arn = module.s3_encryption_key.arn
 }
 
 # IS Performance S3 Bucket
