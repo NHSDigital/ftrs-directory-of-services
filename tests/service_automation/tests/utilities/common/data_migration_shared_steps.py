@@ -1,4 +1,5 @@
 """Shared step definitions for data migration BDD tests."""
+
 import os
 from typing import Any, Dict, List, Literal
 
@@ -7,7 +8,7 @@ from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
 
-from tests.service_automation.tests.utilities.common.data_migration.migration_context_helper import (
+from tests.service_automation.tests.utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
@@ -21,15 +22,15 @@ from utilities.common.constants import (
     ENV_WORKSPACE,
     SERVICES_TABLE,
 )
-from utilities.common.data_migration.migration_helper import MigrationHelper
-from utilities.common.data_migration.migration_metrics_helper import (
+from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.migration_metrics_helper import (
     ExpectedMetrics,
     verify_all_metrics,
 )
-from utilities.common.data_migration.migration_service_helper import (
+from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import build_sqs_event
+from utilities.data_migration.sqs_helper import build_sqs_event
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
@@ -61,16 +62,16 @@ def run_test_environment_configured(
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
     logger.info("Environment configuration verified")
 
 
-def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def run_dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+    result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
     logger.info(f"DoS database ready with {count} services")

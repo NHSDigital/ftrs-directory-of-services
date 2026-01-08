@@ -64,11 +64,6 @@ Feature: Data Migration
         "dispositions": [],
         "identifier_oldDoS_uid": "2000094797",
         "location": null,
-        "migrationNotes": [
-          "field:['email'] ,error: not_nhs_email,message:Email address is not a valid NHS email address,value:178970-fake@nhs.gov.uk",
-          "field:['publicphone'] ,error: empty,message:Phone number cannot be empty,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "PCN - Enhanced Access Hub, Sandwell",

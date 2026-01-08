@@ -37,7 +37,7 @@ Feature: Data Migration
       | parentid                            | 150013                                                                                                                                                                                                                                  |
       | subregionid                         | 150013                                                                                                                                                                                                                                  |
       | statusid                            | 1                                                                                                                                                                                                                                       |
-      | organisationid                      |                                                                                                                                                                                                   |
+      | organisationid                      |                                                                                                                                                                                                                                         |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
       | publicname                          | Abbey Medical Practice                                                                                                                                                                                                                  |
       | latitude                            | 52.0910543                                                                                                                                                                                                                              |
@@ -63,9 +63,11 @@ Feature: Data Migration
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice",
-        "telecom": null,
+        "telecom": [],
         "type": "GP Practice",
-        "legalDates": null
+        "legalDates": null,
+        "primary_role_code": null,
+        "non_primary_role_codes": []
       }
       """
     Then the 'healthcare-service' for service ID '10005752' has content:
@@ -81,10 +83,6 @@ Feature: Data Migration
         "dispositions": [],
         "identifier_oldDoS_uid": "138179",
         "location": "fbb2340b-53e0-56f9-ada3-ef5728ca8f98",
-        "migrationNotes": [
-          "field:['email'] ,error: email_not_string,message:Email must be a string,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice, Evesham, Worcestershire",

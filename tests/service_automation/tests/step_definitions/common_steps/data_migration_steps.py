@@ -6,28 +6,28 @@ from pytest_bdd import given, parsers, then, when
 from sqlalchemy import text
 from sqlmodel import Session
 
-from utilities.common.data_migration.migration_context_helper import (
+from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
     store_migration_result,
     store_sqs_result,
 )
-from utilities.common.data_migration.migration_helper import MigrationHelper
-from utilities.common.data_migration.migration_metrics_helper import (
+from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.migration_metrics_helper import (
     ExpectedMetrics,
     verify_all_metrics,
 )
-from utilities.common.data_migration.migration_service_helper import (
+from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import build_sqs_event
+from utilities.data_migration.sqs_helper import build_sqs_event
 from utilities.common.constants import (
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
     ENV_PROJECT_NAME,
     ENV_WORKSPACE,
-    SERVICES_TABLE,
+    SERVICETYPES_TABLE,
 )
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
@@ -59,15 +59,15 @@ def environment_configured(
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
 
 @given("the DoS database has test data")
-def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+    result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICETYPES_TABLE}"))
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
 
@@ -106,7 +106,7 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     target_fixture="service_created",
 )
 def create_service_with_attributes(
-    dos_db_with_migration: Session,
+    dos_db: Session,
     migration_context: Dict[str, Any],
     entity_type: str,
     entity_name: str,
@@ -114,7 +114,7 @@ def create_service_with_attributes(
 ) -> Dict[str, Any]:
     """Create a service in DoS database with attributes from Gherkin table."""
     return parse_and_create_service(
-        dos_db_with_migration,
+        dos_db,
         migration_context,
         entity_type,
         entity_name,
@@ -125,6 +125,7 @@ def create_service_with_attributes(
 # ============================================================
 # Migration Execution Steps (When)
 # ============================================================
+
 
 @when("triage code full migration is executed")
 def triage_code_full_migration(migration_helper: MigrationHelper, dynamodb):
@@ -374,7 +375,9 @@ def verify_service_skipped(
     )
 
 
-@then(parsers.parse("error log containing message: '{error_message_fragment}' was found"))
+@then(
+    parsers.parse("error log containing message: '{error_message_fragment}' was found")
+)
 def verify_error_level_log(
     migration_context: Dict[str, Any],
     error_message_fragment: str,
