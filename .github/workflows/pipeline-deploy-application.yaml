@@ -311,6 +311,7 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
+    if: always()
     steps:
       - name: "Fail if application infrastructure deployment failed"
         if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
