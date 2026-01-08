@@ -113,7 +113,9 @@ async def export_table(
         style="green",
     )
     client = get_dynamodb_client()
-    return client.describe_export(ExportArn=export_arn)["ExportDescription"]
+    return entity_name, client.describe_export(ExportArn=export_arn)[
+        "ExportDescription"
+    ]
 
 
 async def process_export(description: ExportDescriptionTypeDef) -> None:
@@ -215,7 +217,7 @@ async def run_s3_export(env: str, workspace: str | None) -> list:
     table_uris = {}
 
     for task in asyncio.as_completed(export_tasks):
-        export_description = await task
+        entity_name, export_description = await task
         table_name = export_description["TableArn"].rsplit("/")[-1]
         records_df = await process_export(export_description)
 
@@ -232,7 +234,7 @@ async def run_s3_export(env: str, workspace: str | None) -> list:
             style="green",
         )
 
-        table_uris[table_name] = out_uri
+        table_uris[entity_name] = out_uri
 
     set_parameter(
         name=f"/ftrs-dos/{env}/dynamodb-backup-arns",

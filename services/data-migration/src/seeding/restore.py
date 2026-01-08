@@ -63,6 +63,14 @@ def write_item_batch(
             sleep(backoff)
             return write_item_batch(table_name, batch, backoff * 2, start_time)
 
+        elif e.response["Error"]["Code"] == "ReadTimeoutError":
+            CONSOLE.print(
+                f"Read timeout occurred when writing to [bright_blue]{table_name}[/bright_blue]. Retrying after {backoff} seconds...",
+                style="yellow",
+            )
+            sleep(backoff)
+            return write_item_batch(table_name, batch, backoff * 2, start_time)
+
         CONSOLE.print(
             f"Error writing items to [bright_blue]{table_name}[/bright_blue]: {e}",
             style="bright_red",

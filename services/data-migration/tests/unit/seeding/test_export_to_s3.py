@@ -181,10 +181,13 @@ async def test_export_table(mocker: MockerFixture) -> None:
     mock_sleep.return_value = None
 
     response = await export_table("organisation", "local", "test-workspace")
-    assert response == {
-        "ExportArn": "arn:aws:dynamodb:region:account-id:table/test_table/export",
-        "ExportStatus": "COMPLETED",
-    }
+    assert response == (
+        "organisation",
+        {
+            "ExportArn": "arn:aws:dynamodb:region:account-id:table/test_table/export",
+            "ExportStatus": "COMPLETED",
+        },
+    )
 
     mock_trigger.assert_called_once_with(
         "ftrs-dos-local-database-organisation-test-workspace",
@@ -319,22 +322,34 @@ async def test_run_s3_export(mocker: MockerFixture) -> None:
     mock_set_parameter = mocker.patch("seeding.export_to_s3.set_parameter")
 
     export_task_mock.side_effect = [
-        {
-            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_1",
-            "S3Bucket": "test_s3_bucket_name",
-        },
-        {
-            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
-            "S3Bucket": "test_s3_bucket_name",
-        },
-        {
-            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
-            "S3Bucket": "test_s3_bucket_name",
-        },
-        {
-            "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_4",
-            "S3Bucket": "test_s3_bucket_name",
-        },
+        (
+            "test_table_1",
+            {
+                "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_1",
+                "S3Bucket": "test_s3_bucket_name",
+            },
+        ),
+        (
+            "test_table_2",
+            {
+                "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_2",
+                "S3Bucket": "test_s3_bucket_name",
+            },
+        ),
+        (
+            "test_table_3",
+            {
+                "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_3",
+                "S3Bucket": "test_s3_bucket_name",
+            },
+        ),
+        (
+            "test_table_4",
+            {
+                "TableArn": "arn:aws:dynamodb:region:account-id:table/test_table_4",
+                "S3Bucket": "test_s3_bucket_name",
+            },
+        ),
     ]
     mock_processed_exports = [
         mocker.Mock(shape=[1]),
