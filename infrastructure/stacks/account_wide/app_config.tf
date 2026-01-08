@@ -11,8 +11,8 @@ module "app_config" {
 
   environments = {
     dev = {
-      name        = trimspace(coalesce(local.workspace_suffix, "")) != "" ? local.workspace_suffix : var.environment
-      description = "Environment for ${trimspace(coalesce(local.workspace_suffix, "")) != "" ? local.workspace_suffix : var.environment} deployments."
+      name        = local.workspace_suffix != "" ? terraform.workspace : var.environment
+      description = "Environment for ${local.workspace_suffix != "" ? terraform.workspace : var.environment} deployments."
     }
   }
 }

@@ -57,3 +57,9 @@ variable "iam_policy_description" {
   type        = string
   default     = null
 }
+
+variable "aws_region" {
+  description = "The AWS region where resources will be created."
+  type        = string
+  default     = "eu-west-2"
+}
