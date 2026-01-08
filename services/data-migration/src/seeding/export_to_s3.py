@@ -232,14 +232,7 @@ async def run_s3_export(env: str, workspace: str | None) -> list:
             style="green",
         )
 
-        if "database-" in table_name:
-            entity_key = table_name.split("database-")[-1]
-        elif "data-migration-" in table_name:
-            entity_key = table_name.split("data-migration-")[-1]
-        else:
-            entity_key = table_name
-
-        table_uris[entity_key] = out_uri
+        table_uris[table_name] = out_uri
 
     set_parameter(
         name=f"/ftrs-dos/{env}/dynamodb-backup-arns",

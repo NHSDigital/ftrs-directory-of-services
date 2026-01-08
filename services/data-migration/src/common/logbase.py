@@ -161,6 +161,17 @@ class ServiceMigrationLogBase(LogBase):
         level=ERROR,
         message="DynamoDB transaction failed: {error}",
     )
+    SM_PROC_031 = LogReference(
+        level=INFO,
+        message="Service migration exiting early due to one or more fatal validation issues",
+    )
+    SM_PROC_032 = LogReference(
+        level=INFO, message="Service migration not supported for service: {reason}"
+    )
+    SM_PROC_033 = LogReference(
+        level=INFO,
+        message="Service migration skipped for service due to: {reason}",
+    )
 
     SM_VAL_001 = LogReference(
         level=INFO, message="Starting validation of service data using {validator_name}"

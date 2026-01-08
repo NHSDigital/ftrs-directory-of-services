@@ -66,17 +66,26 @@ class ServiceMigrationProcessor:
             else:
                 self.metrics.updated += 1
 
-        except FatalValidationException:
+        except FatalValidationException as exc:
             self.metrics.invalid += 1
-            raise
+            self.deps.logger.log(
+                ServiceMigrationLogBase.SM_PROC_031,
+                issues=exc.issues,
+            )
 
-        except ServiceNotSupportedException:
+        except ServiceNotSupportedException as exc:
             self.metrics.unsupported += 1
-            raise
+            self.deps.logger.log(
+                ServiceMigrationLogBase.SM_PROC_032,
+                reason=str(exc),
+            )
 
-        except ServiceSkippedException:
+        except ServiceSkippedException as exc:
             self.metrics.skipped += 1
-            raise
+            self.deps.logger.log(
+                ServiceMigrationLogBase.SM_PROC_033,
+                reason=str(exc),
+            )
 
         except Exception:
             self.metrics.errored += 1
