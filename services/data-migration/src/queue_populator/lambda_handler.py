@@ -43,7 +43,7 @@ def get_record_ids(config: QueuePopulatorConfig) -> List[int]:
         if config.status_ids is not None:
             stmt = stmt.where(Service.statusid.in_(config.status_ids))
 
-        result = session.execute(stmt).all()
+        result = session.execute(stmt).scalars().all()
         return [int(r) for r in result]
 
 

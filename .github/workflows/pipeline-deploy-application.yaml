@@ -252,6 +252,7 @@ jobs:
   service-automation-tests:
     name: "Run ${{ matrix.test_tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
     strategy:
+      fail-fast: false
       matrix:
         include:
           - test_tag: "ftrs-pipeline"
