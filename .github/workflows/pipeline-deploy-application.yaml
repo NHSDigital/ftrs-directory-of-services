@@ -132,6 +132,18 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
+  check-application-deployment:
+    name: "Check Application Infrastructure Deployment"
+    needs:
+      - deploy-application-infrastructure
+    if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Fail if application infrastructure deployment failed"
+        run: |
+          echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
+          exit 1
+
   deploy-proxy-to-apim:
     name: "Deploy ${{ matrix.api_name }} API to Proxygen"
     needs:
