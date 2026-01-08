@@ -464,8 +464,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         validate_inputs(args.endpoint or os.environ.get('OS_ENDPOINT'),
                         args.final_index or os.environ.get('OS_FINAL_INDEX'))
-    except SystemExit as e:
-        return int(e.code)
+    except SystemExit:
+        raise
 
     endpoint_input = args.endpoint or os.environ.get('OS_ENDPOINT')
     endpoint = build_endpoint(endpoint_input) if endpoint_input else None
