@@ -98,7 +98,7 @@ class ServiceData(LegacyDoSDataModel):
     uid: str
     name: str
     odscode: str | None = None
-    isnational: bool | None = None
+    isnational: str | None = None
     openallhours: bool
     publicreferralinstructions: str | None = None
     telephonetriagereferralinstructions: str | None = None

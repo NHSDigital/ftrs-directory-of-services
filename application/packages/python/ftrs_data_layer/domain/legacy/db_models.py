@@ -26,7 +26,7 @@ class Service(LegacyDoSModel):
     uid: Mapped[str] = mapped_column(String, index=True, unique=True)
     name: Mapped[str] = mapped_column(String)
     odscode: Mapped[str | None] = mapped_column(String, nullable=True)
-    isnational: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    isnational: Mapped[str | None] = mapped_column(Boolean, nullable=True)
     openallhours: Mapped[bool] = mapped_column(Boolean)
     publicreferralinstructions: Mapped[str | None] = mapped_column(
         String, nullable=True
