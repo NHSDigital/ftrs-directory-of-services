@@ -183,55 +183,63 @@ def convert_dynamodb_format(items: list[dict]) -> list[dict[str, Any]]:
         return []
     return [parsed for parsed in (_parse(item) for item in items) if parsed]
 
+def extract_field(record: dict, aliases: tuple[str, ...]) -> Optional[str]:
+    for k in aliases:
+        v = record.get(k)
+        if v is None:
+            continue
+        val = parse_dynamo_string(v) or (str(v) if not isinstance(v, dict) else None)
+        if val is not None:
+            return val
+    return None
+
+def extract_nested_from_record(record: dict, schema_config: dict[str, Any]) -> list[dict[str, Any]]:
+    nested_cfg = _get_nested_config(schema_config)
+    for attr_name in nested_cfg.get('source_attributes', []):
+        value = record.get(attr_name)
+        items = convert_nested_items(value, nested_cfg)
+        if items:
+            return items
+    return []
+
+def parse_record_to_doc(record: dict, schema_config: dict[str, Any]) -> Optional[dict[str, Any]]:
+    try:
+        doc: dict[str, Any] = {}
+        if TOP_LEVEL_OUTPUT_FIELDS:
+            top_fields = TOP_LEVEL_OUTPUT_FIELDS
+        elif PRIMARY_KEY_NAME:
+            top_fields = [PRIMARY_KEY_NAME]
+        else:
+            top_fields = []
+        for field_name in top_fields:
+            aliases = _get_aliases(field_name, schema_config)
+            value = extract_field(record, aliases)
+            if value is None:
+                return None
+            doc[field_name] = value
+
+        doc[NESTED_COLLECTION_FIELD] = extract_nested_from_record(record, schema_config)
+        if not doc[NESTED_COLLECTION_FIELD]:
+            log.debug('Record %s missing %s data', doc.get(PRIMARY_KEY_NAME, '<missing>'), NESTED_COLLECTION_FIELD)
+
+        if PRIMARY_KEY_NAME:
+            try:
+                template = schema_config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
+                doc_id = template.format(**{k: doc.get(k, '') for k in schema_config.get('doc_id_fields', DOC_ID_FIELDS)})
+                doc[PRIMARY_KEY_NAME] = doc_id
+            except KeyError:
+                log.debug('Failed to build primary key for record=%s', doc)
+
+        return doc
+    except (TypeError, ValueError, KeyError):
+        log.exception('Error parsing record into document; re-raising')
+        raise
+
 def transform_records(raw_items: list[dict], schema_config: Optional[dict[str, Any]] = None) -> list[dict]:
     config = schema_config or DEFAULT_SCHEMA_CONFIG
-
-    def _extract_field(record: dict, aliases: tuple[str, ...]) -> Optional[str]:
-        def _try_key(k: str) -> Optional[str]:
-            v = record.get(k)
-            if v is None:
-                return None
-            return parse_dynamo_string(v) or (str(v) if not isinstance(v, dict) else None)
-
-        return next((res for res in (_try_key(k) for k in aliases) if res is not None), None)
-
-    def _extract_nested(record: dict) -> list[dict[str, Any]]:
-        nested_cfg = _get_nested_config(config)
-        for attr_name in nested_cfg.get('source_attributes', []):
-            value = record.get(attr_name)
-            items = convert_nested_items(value, nested_cfg)
-            if items:
-                return items
-        return []
-
     if not isinstance(raw_items, list):
         return []
-
-    def _parse_item(record: dict) -> Optional[dict]:
-        try:
-            doc: dict[str, Any] = {}
-            top_fields = TOP_LEVEL_OUTPUT_FIELDS if TOP_LEVEL_OUTPUT_FIELDS else ([PRIMARY_KEY_NAME] if PRIMARY_KEY_NAME else [])
-            for field_name in top_fields:
-                aliases = _get_aliases(field_name, config)
-                value = _extract_field(record, aliases)
-                if value is None:
-                    return None
-                doc[field_name] = value
-            doc[NESTED_COLLECTION_FIELD] = _extract_nested(record)
-            if not doc[NESTED_COLLECTION_FIELD]:
-                log.debug('Record %s missing %s data', doc.get(PRIMARY_KEY_NAME, '<missing>'), NESTED_COLLECTION_FIELD)
-            if PRIMARY_KEY_NAME:
-                try:
-                    template = config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
-                    doc_id = template.format(**{k: doc.get(k, '') for k in config.get('doc_id_fields', DOC_ID_FIELDS)})
-                    doc[PRIMARY_KEY_NAME] = doc_id
-                except KeyError:
-                    log.debug('Failed to build primary key for record=%s', doc)
-            return doc
-        except (TypeError, ValueError, KeyError):
-            return None
-
-    return [r for r in map(_parse_item, raw_items) if r]
+    return [r for r in (parse_record_to_doc(item, config) for item in raw_items) if r]
 
 def build_doc_id(record: dict, schema_config: Optional[dict[str, Any]] = None) -> str:
     config = schema_config or DEFAULT_SCHEMA_CONFIG
@@ -299,56 +307,60 @@ def index_bulk(session: SignedRequestsSession, endpoint: str, index_name: str, r
             items = body.get('items', [])
             success = sum(1 for it in items if 'index' in it and 200 <= it['index'].get('status', 500) < 300)
             return success, len(records)
-        except (ValueError, json.JSONDecodeError):
+        except ValueError:
             log.debug('Could not parse bulk response JSON; treating as failures')
             return 0, len(records)
     return 0, len(records)
+
+# Helpers extracted from inside index_records to reduce cognitive complexity
+def _attempt_index_record(record: dict, session: SignedRequestsSession, endpoint: str, index_name: str) -> int:
+    try:
+        _ = build_doc_id(record)
+    except KeyError:
+        log.debug('Skipping record with missing document id fields: %s', record)
+        return 0
+    key_display = record.get(PRIMARY_KEY_NAME, '<missing>')
+    log.info('Indexing record ID: %s', key_display)
+    try:
+        ok, status, body = index_single_record(session, endpoint, index_name, record)
+        if ok:
+            return 1
+        log.error('Failed to index id=%s status=%s body=%s', key_display, status, body)
+        return 0
+    except requests.RequestException as exc:
+        log.error('Request exception indexing record id=%s: %s', key_display, exc)
+        return 0
+    except Exception as exc:
+        log.error('Unexpected exception indexing record id=%s: %s', key_display, exc)
+        return 0
+
+
+def _process_bulk_chunk(chunk: list[dict], idx: int, total_chunks: int, session: SignedRequestsSession, endpoint: str, index_name: str) -> tuple[int, int]:
+    attempted = len(chunk)
+    log.info('Bulk indexing %d records (chunk %d/%d)', attempted, idx + 1, total_chunks)
+    ok, attempted_returned = index_bulk(session, endpoint, index_name, chunk)
+    if ok < attempted_returned:
+        log.error('Bulk chunk had %d failures out of %d', attempted_returned - ok, attempted_returned)
+    return ok, attempted_returned
 
 def index_records(session: SignedRequestsSession, endpoint: str, index_name: str, records: list[dict], batch_size: int = 1) -> tuple[int, int]:
     success_count = 0
     total = 0
     if batch_size <= 1:
         total = len(records)
-
-        def _attempt_index(record: dict) -> int:
-            try:
-                _ = build_doc_id(record)
-            except KeyError:
-                log.debug('Skipping record with missing document id fields: %s', record)
-                return 0
-            key_display = record.get(PRIMARY_KEY_NAME, '<missing>')
-            log.info('Indexing record ID: %s', key_display)
-            try:
-                ok, status, body = index_single_record(session, endpoint, index_name, record)
-                if ok:
-                    return 1
-                log.error('Failed to index id=%s status=%s body=%s', key_display, status, body)
-                return 0
-            except requests.RequestException as exc:
-                log.error('Request exception indexing record id=%s: %s', key_display, exc)
-                return 0
-            except Exception as exc:
-                log.error('Unexpected exception indexing record id=%s: %s', key_display, exc)
-                return 0
-
-        success_count = sum(map(_attempt_index, records))
+        success_count = sum(_attempt_index_record(rec, session, endpoint, index_name) for rec in records)
         return success_count, total
-    if records:
-        chunks = [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
-        total_chunks = len(chunks)
-
-        def _process_chunk(args: tuple[list[dict], int]) -> tuple[int, int]:
-            chunk, idx = args
-            attempted = len(chunk)
-            log.info('Bulk indexing %d records (chunk %d/%d)', attempted, idx + 1, total_chunks)
-            ok, attempted_returned = index_bulk(session, endpoint, index_name, chunk)
-            if ok < attempted_returned:
-                log.error('Bulk chunk had %d failures out of %d', attempted_returned - ok, attempted_returned)
-            return ok, attempted_returned
-
-        results = list(map(_process_chunk, ((chunk, idx) for idx, chunk in enumerate(chunks))))
-        success_count += sum(r[0] for r in results)
-        total += sum(r[1] for r in results)
+    # bulk path
+    if not records:
+        return 0, 0
+    chunks = [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
+    total_chunks = len(chunks)
+    results = [
+        _process_bulk_chunk(chunk, idx, total_chunks, session, endpoint, index_name)
+        for idx, chunk in enumerate(chunks)
+    ]
+    success_count += sum(r[0] for r in results)
+    total += sum(r[1] for r in results)
     return success_count, total
 
 def load_schema_config(path: Optional[str]) -> dict[str, Any]:
@@ -357,7 +369,7 @@ def load_schema_config(path: Optional[str]) -> dict[str, Any]:
     try:
         with open(path, 'r', encoding='utf-8') as fh:
             loaded = json.load(fh)
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+    except (OSError, ValueError) as exc:
         log.error('Failed to read or parse schema config %s: %s; falling back to defaults', path, exc)
         return DEFAULT_SCHEMA_CONFIG.copy()
     return loaded
@@ -394,6 +406,32 @@ def _resolve_attr_path(data: Any, path: str) -> Any:
             return None
     return current
 
+def _coerce_str_value(value: str) -> Any:
+    try:
+        if value.isdigit():
+            return int(value)
+        f = float(value)
+        return int(f) if f.is_integer() else f
+    except (ValueError, TypeError):
+        return value
+
+def _map_non_dict_item(deserialized: Any, nested_config: dict[str, Any]) -> dict[str, Any]:
+    mapped: dict[str, Any] = {}
+    for target_field in nested_config.get('items', {}).keys():
+        mapped[target_field] = deserialized
+    return mapped
+
+def _map_dict_item(deserialized: dict, nested_config: dict[str, Any]) -> dict[str, Any]:
+    mapped: dict[str, Any] = {}
+    for target_field, source_path in nested_config.get('items', {}).items():
+        value = _resolve_attr_path(deserialized, source_path)
+        if value is None:
+            continue
+        if isinstance(value, str):
+            value = _coerce_str_value(value)
+        mapped[target_field] = value
+    return mapped
+
 def convert_nested_items(attr: Any, nested_config: dict[str, Any]) -> list[dict[str, Any]]:
     if not attr:
         return []
@@ -403,41 +441,20 @@ def convert_nested_items(attr: Any, nested_config: dict[str, Any]) -> list[dict[
         items = attr
     else:
         return []
+
     results: list[dict[str, Any]] = []
     for entry in items:
         deserialized = _normalize(_deserialize_attr(entry))
         if not isinstance(deserialized, dict):
-            mapped: dict[str, Any] = {}
-            for target_field in nested_config.get('items', {}).keys():
-                mapped[target_field] = deserialized
+            mapped = _map_non_dict_item(deserialized, nested_config)
             if mapped:
                 results.append(mapped)
             continue
-        mapped: dict[str, Any] = {}
-        for target_field, source_path in nested_config.get('items', {}).items():
-            value = _resolve_attr_path(deserialized, source_path)
-            if value is None:
-                continue
-            if isinstance(value, str):
-                if value.isdigit():
-                    try:
-                        value = int(value)
-                    except (ValueError, TypeError):
-                        # non-numeric strings shouldn't raise further
-                        pass
-                else:
-                    try:
-                        f = float(value)
-                        if f.is_integer():
-                            value = int(f)
-                        else:
-                            value = f
-                    except (ValueError, TypeError):
-                        # leave as original string when conversion fails
-                        pass
-            mapped[target_field] = value
+
+        mapped = _map_dict_item(deserialized, nested_config)
         if mapped:
             results.append(mapped)
+
     return results
 
 def main(argv: Optional[list[str]] = None) -> int:

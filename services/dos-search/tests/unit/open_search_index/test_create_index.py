@@ -40,7 +40,6 @@ def test_resolve_collection_endpoint_failure_returns_none(create_module: Any) ->
 def test_write_github_output_writes_file(
     tmp_path: Any, create_module: Any, monkeypatch: Any
 ) -> None:
-    """Ensure write_github_output writes key=value lines to the path from GITHUB_OUTPUT without touching real env."""
     cio = create_module
     out = tmp_path / "ghout"
     monkeypatch.setenv("GITHUB_OUTPUT", str(out))
