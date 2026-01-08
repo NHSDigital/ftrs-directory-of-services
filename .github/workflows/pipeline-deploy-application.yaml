@@ -136,10 +136,11 @@ jobs:
     name: "Check Application Infrastructure Deployment"
     needs:
       - deploy-application-infrastructure
-    if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: "Fail if application infrastructure deployment failed"
+        if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
         run: |
           echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
           exit 1
