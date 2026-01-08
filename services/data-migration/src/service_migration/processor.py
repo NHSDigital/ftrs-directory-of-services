@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 from ftrs_data_layer.domain.legacy.data_models import ServiceData
 from ftrs_data_layer.domain.legacy.db_models import Service
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from common.logbase import ServiceMigrationLogBase
 from service_migration.dependencies import ServiceMigrationDependencies
@@ -90,9 +90,7 @@ class ServiceMigrationProcessor:
         Retrieve a legacy service record by its ID.
         """
         with Session(self.deps.engine, autocommit=False) as session:
-            stmt = (
-                select(Service).options(joinedload("*")).where(Service.id == service_id)
-            )
+            stmt = select(Service).where(Service.id == service_id)
 
             self.deps.logger.log(
                 ServiceMigrationLogBase.SM_PROC_001,

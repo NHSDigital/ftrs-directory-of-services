@@ -293,48 +293,6 @@ class MigrationHelper:
                 mock_logger=mock_logger,
             )
 
-    # def run_single_service_migration(self, service_id: int) -> MigrationRunResult:
-    #     """
-    #     Run migration for a single service.
-
-    #     Args:
-    #         service_id: The ID of the service to migrate
-
-    #     Returns:
-    #         MigrationRunResult with success status, error, and metrics
-    #     """
-
-    #     def execute(app: ServiceMigrationApplication) -> None:
-    #         dms_event = DMSEvent(
-    #             record_id=service_id,
-    #             service_id=service_id,
-    #             table_name="services",
-    #             method="insert",
-    #         )
-
-    #         sqs_record = self._create_sqs_record_from_dms_event(dms_event)
-
-    #         logger.info(
-    #             f"Running single service migration for service ID: {service_id}"
-    #         )
-    #         app.handle_sqs_record(sqs_record)
-
-    #     return self._execute_migration(execute, f"single service (ID: {service_id})")
-
-    # def run_full_service_migration(self) -> MigrationRunResult:
-    #     """
-    #     Run full service migration.
-
-    #     Returns:
-    #         MigrationRunResult with success status, error, and metrics
-    #     """
-
-    #     def execute(app: ServiceMigrationApplication) -> None:
-    #         logger.info("Running full service migration")
-    #         app.handle_full_sync_event()
-
-    #     return self._execute_migration(execute, "full service")
-
     def run_triage_code_migration_only(self):
         """
         Run migration for only triage-code table.
