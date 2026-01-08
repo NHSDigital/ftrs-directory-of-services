@@ -205,16 +205,7 @@ def verify_state_record_structure(
     state_key: str,
 ) -> None:
     """Verify that the state record has all required fields."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -249,16 +240,7 @@ def verify_state_record_organisation_id(
     state_key: str,
 ) -> None:
     """Verify that the state record has a valid organisation_id (UUID format)."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -288,16 +270,7 @@ def verify_state_record_location_id(
     state_key: str,
 ) -> None:
     """Verify that the state record has a valid location_id (UUID format)."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -327,16 +300,7 @@ def verify_state_record_healthcare_service_id(
     state_key: str,
 ) -> None:
     """Verify that the state record has a valid healthcare_service_id (UUID format)."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
