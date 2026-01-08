@@ -308,6 +308,7 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
+      - check-application-deployment
       - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
