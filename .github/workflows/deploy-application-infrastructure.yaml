@@ -143,7 +143,6 @@ jobs:
                 else
                   echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
                   echo "deploy_status=Failed" >> $GITHUB_OUTPUT
-                  exit 1
                 fi
               else
                 echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
