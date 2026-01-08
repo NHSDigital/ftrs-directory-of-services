@@ -8,7 +8,7 @@ TEST_TYPE ?= non-ui
 
 # ==============================================================================
 
-.PHONY: clean install config test report
+.PHONY: clean install config lint lint-fix pre-commit test report _install-dependency _install-dependencies
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
@@ -25,6 +25,14 @@ config:
 	make _install-dependencies
 	poetry install --no-root --no-interaction --with shared
 	poetry run playwright install chromium
+
+lint:
+	poetry run ruff check
+	poetry run ruff format --check
+
+lint-fix:
+	poetry run ruff check --fix
+	poetry run ruff format
 
 test:
 	@for marker in $(MARKERS); do \
