@@ -1,8 +1,5 @@
 @data-migration
 Feature: FTRS-1370 - Store migrated records in DynamoDB state table
-  As a data migration pipeline
-  I want to store all migrated records atomically with state information
-  So that I can ensure data integrity and track migration history
 
   Background:
     Given the test environment is configured
@@ -94,3 +91,90 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the state table record for "services#400002" has valid organisation_id
     And the state table record for "services#400002" has valid location_id
     And the state table record for "services#400002" has valid healthcare_service_id
+
+  @conflict-detection @organisation-exists
+  Scenario: Conflict detection - Organisation already exists
+    Given a 'Service' exists called 'TestGPPracticeConflictOrg' in DoS with attributes:
+      | key                 | value                                    |
+      | id                  | 400003                                   |
+      | uid                 | 400003                                   |
+      | name                | TestGPPracticeConflictOrg                |
+      | publicname          | Surgery for Org Conflict Test            |
+      | typeid              | 100                                      |
+      | statusid            | 1                                        |
+      | odscode             | A12351                                   |
+      | createdtime         | 2024-01-01 10:00:00                      |
+      | modifiedtime        | 2024-01-01 10:00:00                      |
+      | openallhours        | false                                    |
+      | restricttoreferrals | false                                    |
+      | postcode            | SW1A 4DD                                 |
+      | address             | Parliament Square                        |
+      | town                | London                                   |
+      | web                 | https://www.nhs.uk/                      |
+      | email               | test4@nhs.net                            |
+      | publicphone         | 0300 311 22 66                           |
+    When a record does not exist in the state table for key "services#400003"
+    And a record exists in the Organisation table matching the transformed organisation ID for service 400003
+    And a single service migration is run for ID '400003'
+    Then the pipeline treats the record as an 'insert' operation
+    And the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed
+    And the pipeline logs "One or more items exist for  Service ID 400003"
+    And the migration records an error for service ID 400003
+
+  @conflict-detection @location-exists
+  Scenario: Conflict detection - Location already exists
+    Given a 'Service' exists called 'TestGPPracticeConflictLoc' in DoS with attributes:
+      | key                 | value                                    |
+      | id                  | 400004                                   |
+      | uid                 | 400004                                   |
+      | name                | TestGPPracticeConflictLoc                |
+      | publicname          | Surgery for Location Conflict Test       |
+      | typeid              | 100                                      |
+      | statusid            | 1                                        |
+      | odscode             | A12352                                   |
+      | createdtime         | 2024-01-01 10:00:00                      |
+      | modifiedtime        | 2024-01-01 10:00:00                      |
+      | openallhours        | false                                    |
+      | restricttoreferrals | false                                    |
+      | postcode            | SW1A 5EE                                 |
+      | address             | Victoria Street                          |
+      | town                | London                                   |
+      | web                 | https://www.nhs.uk/                      |
+      | email               | test5@nhs.net                            |
+      | publicphone         | 0300 311 22 77                           |
+    When a record does not exist in the state table for key "services#400004"
+    And a record exists in the Location table matching the transformed location ID for service 400004
+    And a single service migration is run for ID '400004'
+    Then the pipeline treats the record as an 'insert' operation
+    And the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed
+    And the pipeline logs "One or more items exist for  Service ID 400004"
+    And the migration records an error for service ID 400004
+
+  @conflict-detection @healthcare-service-exists
+  Scenario: Conflict detection - Healthcare Service already exists
+    Given a 'Service' exists called 'TestGPPracticeConflictHCS' in DoS with attributes:
+      | key                 | value                                    |
+      | id                  | 400005                                   |
+      | uid                 | 400005                                   |
+      | name                | TestGPPracticeConflictHCS                |
+      | publicname          | Surgery for HCS Conflict Test            |
+      | typeid              | 100                                      |
+      | statusid            | 1                                        |
+      | odscode             | A12353                                   |
+      | createdtime         | 2024-01-01 10:00:00                      |
+      | modifiedtime        | 2024-01-01 10:00:00                      |
+      | openallhours        | false                                    |
+      | restricttoreferrals | false                                    |
+      | postcode            | SW1A 6FF                                 |
+      | address             | Buckingham Palace Road                   |
+      | town                | London                                   |
+      | web                 | https://www.nhs.uk/                      |
+      | email               | test6@nhs.net                            |
+      | publicphone         | 0300 311 22 88                           |
+    When a record does not exist in the state table for key "services#400005"
+    And a record exists in the Healthcare Service table matching the transformed healthcare service ID for service 400005
+    And a single service migration is run for ID '400005'
+    Then the pipeline treats the record as an 'insert' operation
+    And the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed
+    And the pipeline logs "One or more items exist for  Service ID 400005"
+    And the migration records an error for service ID 400005

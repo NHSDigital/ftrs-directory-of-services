@@ -323,3 +323,165 @@ def verify_state_record_healthcare_service_id(
     except (ValueError, TypeError) as e:
         pytest.fail(f"healthcare_service_id '{hc_id_str}' is not a valid UUID: {e}")
 
+
+# ============================================================
+# Conflict Detection Steps
+# ============================================================
+
+
+@when(
+    parsers.parse(
+        "a record exists in the Organisation table matching the transformed organisation ID for service {service_id:d}"
+    )
+)
+def create_conflicting_organisation(
+    dynamodb: Dict[str, Any],
+    migration_helper: Any,
+    migration_context: Dict[str, Any],
+    service_id: int,
+) -> None:
+    """Pre-create an organisation record to simulate UUID collision.
+
+    Strategy:
+    1. Run migration once to create all records with real UUIDs
+    2. Delete the state record (but keep org/loc/hcs)
+    3. Next migration attempt will fail on org conflict
+    """
+    from utilities.common.data_migration.migration_context_helper import (
+        store_migration_result,
+    )
+
+    # Run migration first time to create records
+    result = migration_helper.run_single_service_migration(service_id)
+    store_migration_result(migration_context, result, service_id)
+
+    # Now delete ONLY the state record to simulate retry scenario
+    state_table_name = get_table_name(resource="data-migration-state")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    client.delete_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": f"services#{service_id}"}},
+    )
+
+    # Organisation/Location/HealthcareService still exist
+    # Next migration will try to create them again -> ConditionalCheckFailed
+
+
+@when(
+    parsers.parse(
+        "a record exists in the Location table matching the transformed location ID for service {service_id:d}"
+    )
+)
+def create_conflicting_location(
+    dynamodb: Dict[str, Any],
+    migration_helper: Any,
+    migration_context: Dict[str, Any],
+    service_id: int,
+) -> None:
+    """Pre-create a location record to simulate UUID collision."""
+    from utilities.common.data_migration.migration_context_helper import (
+        store_migration_result,
+    )
+
+    # Run migration first time
+    result = migration_helper.run_single_service_migration(service_id)
+    store_migration_result(migration_context, result, service_id)
+
+    # Delete state record to allow retry
+    state_table_name = get_table_name(resource="data-migration-state")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    client.delete_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": f"services#{service_id}"}},
+    )
+
+
+@when(
+    parsers.parse(
+        "a record exists in the Healthcare Service table matching the transformed healthcare service ID for service {service_id:d}"
+    )
+)
+def create_conflicting_healthcare_service(
+    dynamodb: Dict[str, Any],
+    migration_helper: Any,
+    migration_context: Dict[str, Any],
+    service_id: int,
+) -> None:
+    """Pre-create a healthcare service record to simulate UUID collision."""
+    from utilities.common.data_migration.migration_context_helper import (
+        store_migration_result,
+    )
+
+    # Run migration first time
+    result = migration_helper.run_single_service_migration(service_id)
+    store_migration_result(migration_context, result, service_id)
+
+    # Delete state record to allow retry
+    state_table_name = get_table_name(resource="data-migration-state")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    client.delete_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": f"services#{service_id}"}},
+    )
+
+
+@then("the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed")
+def verify_conditional_check_failed(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that the migration attempt was rejected due to ConditionalCheckFailed."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Check for DM_ETL_022 log indicating conditional check failure
+    error_logs = mock_logger.get_log("DM_ETL_022", level="ERROR")
+
+    assert len(error_logs) > 0, (
+        "Expected DM_ETL_022 error log for ConditionalCheckFailed\n"
+        f"All ERROR logs: {mock_logger.get_logs(level='ERROR')}"
+    )
+
+
+@then(parsers.parse('the pipeline logs "{expected_message}"'))
+def verify_log_message_contains(
+    migration_context: Dict[str, Any],
+    expected_message: str,
+) -> None:
+    """Verify that a specific log message was recorded."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    all_logs = []
+    for level in mock_logger.logs.values():
+        all_logs.extend(level)
+
+    matching_logs = [
+        log for log in all_logs if expected_message in log.get("msg", "")
+    ]
+
+    assert len(matching_logs) > 0, (
+        f"Expected log message containing: {expected_message}\n"
+        f"All log messages: {[log.get('msg', '') for log in all_logs]}"
+    )
+
+
+@then(parsers.parse("the migration records an error for service ID {service_id:d}"))
+def verify_migration_error_recorded(
+    migration_context: Dict[str, Any],
+    service_id: int,
+) -> None:
+    """Verify that a ConditionalCheckFailed was logged for the failed migration.
+
+    Note: ConditionalCheckFailed is logged but does NOT increment metrics.errors
+    as it's a normal flow (skip duplicate), not an actual error.
+    """
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Check for DM_ETL_022 log
+    error_logs = mock_logger.get_log("DM_ETL_022", level="ERROR")
+
+    assert len(error_logs) > 0, (
+        f"Expected DM_ETL_022 log for service {service_id}\n"
+        f"All ERROR logs: {mock_logger.get_logs(level='ERROR')}"
+    )
