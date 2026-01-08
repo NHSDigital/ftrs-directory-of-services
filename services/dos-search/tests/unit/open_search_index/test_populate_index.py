@@ -503,7 +503,6 @@ def test_main_passes_projection_to_scan(create_populate_module: Any) -> None:
 
 
 def test_transform_full_item_maps_id_and_nested(create_populate_module: Any) -> None:
-    """Use a representative DynamoDB item and verify transform_records produces the expected document shape."""
     mod = create_populate_module
     sample = {
         "id": {"S": "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2"},
@@ -521,10 +520,8 @@ def test_transform_full_item_maps_id_and_nested(create_populate_module: Any) -> 
     assert isinstance(out, list)
     assert len(out) == 1
     doc = out[0]
-    # primary_key should be built from id alias
     assert "primary_key" in doc
     assert doc["primary_key"] == "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2"
-    # nested field name determined by mapping; expect list with two items
     nested = doc.get(mod.NESTED_COLLECTION_FIELD)
     assert isinstance(nested, list)
     assert len(nested) == 2

@@ -344,7 +344,6 @@ def test_index_records_chunk_partial_failure_logs(
         {"primary_key": "4"},
     ]
 
-    # make index_bulk report fewer successes than attempted to trigger the log.error
     def fake_bulk(_session, _endpoint, _index_name, chunk):
         return 0, len(chunk)
 
