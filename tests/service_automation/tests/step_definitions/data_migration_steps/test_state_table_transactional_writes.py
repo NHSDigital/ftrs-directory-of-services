@@ -302,23 +302,27 @@ def verify_state_record_healthcare_service_id(
 # ============================================================
 
 
-@when(
-    parsers.parse(
-        "a record exists in the Organisation table matching the transformed organisation ID for service {service_id:d}"
-    )
-)
-def create_conflicting_organisation(
+def create_conflicting_record(
     dynamodb: Dict[str, Any],
     migration_helper: Any,
     migration_context: Dict[str, Any],
     service_id: int,
 ) -> None:
-    """Pre-create an organisation record to simulate UUID collision.
+    """Pre-create records to simulate UUID collision.
 
     Strategy:
-    1. Run migration once to create all records with real UUIDs
-    2. Delete the state record (but keep org/loc/hcs)
-    3. Next migration attempt will fail on org conflict
+    1. Run migration once to create all records (org/loc/hcs/state) with real UUIDs
+    2. Delete ONLY the state record (but keep org/loc/hcs)
+    3. Next migration attempt will fail on ConditionalCheckFailed
+
+    This simulates a retry scenario where the migration was partially successful
+    before crashing, leaving orphaned records in DynamoDB.
+
+    Args:
+        dynamodb: DynamoDB client connection
+        migration_helper: Helper for running migrations
+        migration_context: Migration context to store results
+        service_id: Service ID to migrate
     """
     from utilities.common.data_migration.migration_context_helper import (
         store_migration_result,
@@ -343,6 +347,21 @@ def create_conflicting_organisation(
 
 @when(
     parsers.parse(
+        "a record exists in the Organisation table matching the transformed organisation ID for service {service_id:d}"
+    )
+)
+def create_conflicting_organisation(
+    dynamodb: Dict[str, Any],
+    migration_helper: Any,
+    migration_context: Dict[str, Any],
+    service_id: int,
+) -> None:
+    """Pre-create an organisation record to simulate UUID collision."""
+    create_conflicting_record(dynamodb, migration_helper, migration_context, service_id)
+
+
+@when(
+    parsers.parse(
         "a record exists in the Location table matching the transformed location ID for service {service_id:d}"
     )
 )
@@ -353,22 +372,7 @@ def create_conflicting_location(
     service_id: int,
 ) -> None:
     """Pre-create a location record to simulate UUID collision."""
-    from utilities.common.data_migration.migration_context_helper import (
-        store_migration_result,
-    )
-
-    # Run migration first time
-    result = migration_helper.run_single_service_migration(service_id)
-    store_migration_result(migration_context, result, service_id)
-
-    # Delete state record to allow retry
-    state_table_name = get_table_name(resource="data-migration-state")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    client.delete_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": f"services#{service_id}"}},
-    )
+    create_conflicting_record(dynamodb, migration_helper, migration_context, service_id)
 
 
 @when(
@@ -383,22 +387,7 @@ def create_conflicting_healthcare_service(
     service_id: int,
 ) -> None:
     """Pre-create a healthcare service record to simulate UUID collision."""
-    from utilities.common.data_migration.migration_context_helper import (
-        store_migration_result,
-    )
-
-    # Run migration first time
-    result = migration_helper.run_single_service_migration(service_id)
-    store_migration_result(migration_context, result, service_id)
-
-    # Delete state record to allow retry
-    state_table_name = get_table_name(resource="data-migration-state")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    client.delete_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": f"services#{service_id}"}},
-    )
+    create_conflicting_record(dynamodb, migration_helper, migration_context, service_id)
 
 
 @then("the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed")
