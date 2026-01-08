@@ -461,12 +461,8 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     final_table = ddb_table if ddb_ignore_workspace or not ddb_table else build_name_with_workspace(ddb_table, workspace)
 
-    ws_raw = (workspace or "").strip()
-    if not ws_raw:
-        final_index = args.final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
-    else:
-        ws_normalized = ws_raw.lstrip('-')
-        final_index = f"triage_code_{ws_normalized}"
+    base_index = args.final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
+    final_index = build_name_with_workspace(base_index, workspace)
 
     log.info('Using configuration:')
     log.info('  Endpoint: %s', endpoint)

@@ -68,6 +68,8 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_ac
 // NOTE: Collection and dashboards are currently public (AllowFromPublic = true) for ease of testing.
 // To make the collection private later, create VPCE(s) in the account-wide stack and supply their IDs
 // to this stack, then set AllowFromPublic = false and set SourceVPCEs.
+// This should be done once a Lambda (or any other compute running inside a VPC) needs to read or write
+// indexes in the collection, so that access occurs over PrivateLink instead of the public endpoint.
 
 resource "aws_opensearchserverless_security_policy" "opensearch_serverless_workspace_network_access_policy" {
   count       = local.workspace_suffix == "" ? 0 : 1
