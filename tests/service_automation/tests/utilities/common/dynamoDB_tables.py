@@ -72,5 +72,15 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST"
     }
 
+    state_table = {
+        "TableName": get_table_name('data-migration-state'),
+        "KeySchema": [
+            {"AttributeName": "source_record_id", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "source_record_id", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
 
-    return [*tables, triage_code_table]
+    return [*tables, triage_code_table, state_table]
