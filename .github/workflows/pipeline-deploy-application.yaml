@@ -153,23 +153,22 @@ jobs:
       AWS_REGION: ${{ vars.AWS_REGION }}
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
-  # TODO : FTRS-1899 Re-enable data migration step once ETL process is stable
-  # migrate-data:
-  #   name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
-  #   if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
-  #   concurrency:
-  #     group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
-  #     cancel-in-progress: false
-  #   needs:
-  #     - metadata
-  #     - deploy-application-infrastructure
-  #   uses: ./.github/workflows/migrate-data.yaml
-  #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
-  #     queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
-  #     type: app
-  #   secrets: inherit
+  migrate-data:
+    name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
+    if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/migrate-data.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
+      queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
+      type: app
+    secrets: inherit
 
   export-dynamodb-to-s3:
     name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
@@ -180,7 +179,7 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
-      # - migrate-data
+      - migrate-data
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -252,9 +251,18 @@ jobs:
 
   service-automation-tests:
     name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    strategy:
+      matrix:
+        include:
+          - test_tag: "ftrs-pipeline"
+            test_type: "api"
+          - test_tag: "data-migration"
+            test_type: "data-migration"
+
     needs:
       - metadata
       - deploy-application-infrastructure
+      - deploy-data-migration-service
       - restore-dynamodb-from-s3
       - export-dynamodb-to-s3
     if: |
@@ -273,8 +281,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       tag: ${{ inputs.tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
+      test_tag: ${{ matrix.test_tag }}
+      test_type: ${{ matrix.test_type }}
       type: app
     secrets: inherit
 
@@ -309,7 +317,7 @@ jobs:
       - quality-checks
       - build-services
       - deploy-application-infrastructure
-      # - migrate-data
+      - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
       - deploy-frontend-services
