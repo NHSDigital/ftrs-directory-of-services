@@ -1,6 +1,5 @@
 """Step definitions for FTRS-1370 - State table transactional writes tests."""
 
-import os
 from typing import Any, Dict
 from uuid import UUID
 
@@ -9,7 +8,7 @@ from boto3.dynamodb.types import TypeDeserializer
 from pytest_bdd import parsers, scenarios, then, when
 
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
-from utilities.common.constants import DYNAMODB_CLIENT, ENV_ENVIRONMENT, ENV_PROJECT_NAME, ENV_WORKSPACE
+from utilities.common.constants import DYNAMODB_CLIENT
 from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.log_helper import get_mock_logger_from_context
 
@@ -31,16 +30,7 @@ def verify_no_state_record(
     state_key: str,
 ) -> None:
     """Verify that no state record exists for the given key."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -111,10 +101,6 @@ def verify_all_records_created(
     migration_context: Dict[str, Any],
 ) -> None:
     """Verify that all records (org, location, HC service, and state) were created."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
     client = dynamodb[DYNAMODB_CLIENT]
     result = migration_context.get("result")
 
@@ -123,12 +109,7 @@ def verify_all_records_created(
 
     # Verify state record exists
     service_id = migration_context.get("service_id")
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     state_response = client.get_item(
         TableName=state_table_name,
@@ -155,16 +136,7 @@ def verify_state_record_details(
     version: int,
 ) -> None:
     """Verify state record exists with correct version."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    state_table_name = get_table_name(
-        project_name=project_name,
-        environment=environment,
-        resource="data-migration-state",
-        workspace=workspace,
-    )
+    state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
