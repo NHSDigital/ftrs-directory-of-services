@@ -32,7 +32,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     Then the pipeline treats the record as an 'insert' operation
     And the pipeline sends a single TransactWriteItems operation
     And the organisation, location, healthcare service and state record is created
-    And the state table contains a record for key "services#400000" with version 1
+    And the state table creates a record for key "services#400000" with version 1
     And the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
 
   @update-operation @skip-existing
