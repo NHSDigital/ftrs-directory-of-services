@@ -55,10 +55,15 @@ def verify_operation_type(
     """Verify the pipeline treated the record as insert or update."""
     mock_logger = get_mock_logger_from_context(migration_context)
 
+    # Get all logs from all levels
+    all_logs = []
+    for level in mock_logger.logs.values():
+        all_logs.extend(level)
+
     if operation == "insert":
         # For insert, we should NOT see the "State record found" log
         skip_logs = [
-            log for log in mock_logger.logs if "State record found" in log.message
+            log for log in all_logs if "State record found" in log.get("msg", "")
         ]
         assert (
             len(skip_logs) == 0
@@ -67,7 +72,7 @@ def verify_operation_type(
     elif operation == "update":
         # For update, we SHOULD see the "State record found" log
         skip_logs = [
-            log for log in mock_logger.logs if "State record found" in log.message
+            log for log in all_logs if "State record found" in log.get("msg", "")
         ]
         assert (
             len(skip_logs) > 0
@@ -83,16 +88,21 @@ def verify_transact_write_items(
     # TransactWriteItems was used. We can verify this through logs.
     mock_logger = get_mock_logger_from_context(migration_context)
 
+    # Get all logs from all levels
+    all_logs = []
+    for level in mock_logger.logs.values():
+        all_logs.extend(level)
+
     # Look for successful transact write log
     transact_logs = [
         log
-        for log in mock_logger.logs
-        if "Successfully wrote" in log.message and "items transactionally" in log.message
+        for log in all_logs
+        if "Successfully wrote" in log.get("msg", "") and "items transactionally" in log.get("msg", "")
     ]
 
     assert (
         len(transact_logs) > 0
-    ), f"Should find transaction success log. All logs: {[log.message for log in mock_logger.logs]}"
+    ), f"Should find transaction success log. All logs: {[log.get('msg', '') for log in all_logs]}"
 
 
 @then("the organisation, location, healthcare service and state record is created")
@@ -163,11 +173,16 @@ def verify_specific_log_message(
     """Verify that a specific log message was recorded."""
     mock_logger = get_mock_logger_from_context(migration_context)
 
-    matching_logs = [log for log in mock_logger.logs if log_message in log.message]
+    # Get all logs from all levels
+    all_logs = []
+    for level in mock_logger.logs.values():
+        all_logs.extend(level)
+
+    matching_logs = [log for log in all_logs if log_message in log.get("msg", "")]
 
     assert (
         len(matching_logs) > 0
-    ), f"Should find log containing '{log_message}'. All logs: {[log.message for log in mock_logger.logs]}"
+    ), f"Should find log containing '{log_message}'. All logs: {[log.get('msg', '') for log in all_logs]}"
 
 
 @then("the metrics should show 0 migrated records for the second run")
