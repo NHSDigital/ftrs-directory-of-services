@@ -461,11 +461,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     args = parse_args(argv)
     log.setLevel(getattr(logging, args.log_level.upper(), logging.INFO))
 
-    try:
-        validate_inputs(args.endpoint or os.environ.get('OS_ENDPOINT'),
-                        args.final_index or os.environ.get('OS_FINAL_INDEX'))
-    except SystemExit:
-        raise
+    validate_inputs(args.endpoint or os.environ.get('OS_ENDPOINT'),
+                    args.final_index or os.environ.get('OS_FINAL_INDEX'))
 
     endpoint_input = args.endpoint or os.environ.get('OS_ENDPOINT')
     endpoint = build_endpoint(endpoint_input) if endpoint_input else None
