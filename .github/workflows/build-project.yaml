@@ -63,7 +63,7 @@ jobs:
 
 
       - name: "Install bz2 development libraries"
-        run: sudo apt-get install -y libbz2-dev bzip2-devel
+        run: sudo apt-get install -y libbz2-dev
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1
