@@ -22,7 +22,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                                          |
     When a single service migration is run for ID '900020'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    Then there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900020' should be:
       | key      | value                   |
@@ -54,7 +54,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                                                      |
     When a single service migration is run for ID '900060'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900060' should be:
       | key      | value                               |
@@ -86,7 +86,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                                                                          |
     When a single service migration is run for ID '900090'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900090' should be:
       | key      | value                                 |
@@ -118,7 +118,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                                                                         |
     When a single service migration is run for ID '24165'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '24165' should be:
       | key      | value                      |
@@ -150,7 +150,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                           |
     When a single service migration is run for ID '900030'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900030' should be:
       | key      | value               |
@@ -181,8 +181,8 @@ Feature: Service Migration - Address Transformation
       | email               | england.contactus@nhs.net |
       | publicphone         | 0300 311 22 33            |
     When a single service migration is run for ID '<service_id>'
-    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped, 0 invalid and <expected_errors> errored
-    And service ID '<service_id>' was transformed into 1 organisation, 1 location and 1 healthcare service
+    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped, 0 invalid and <expected_errored> errored
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service address for ID '<service_id>' should be:
       | key      | value             |
       | county   | <expected_county> |
@@ -192,22 +192,22 @@ Feature: Service Migration - Address Transformation
       | town     | <town>            |
 
     Examples: County in Last Segment (Standard Format)
-      | service_id | uid    | service_name               | ods_code | public_name                | postcode | address                                    | town         | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1          | expected_line2 |
-      | 700001     | 400001 | GP_CountyLastStandard      | A11111   | County Last Standard       | HA8 0AD  | Cleator Moor Health Ctr$Birks Road$Cumbria | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
-      | 700002     | 400002 | GP_CountyLastHampshire     | B11111   | County Last Hampshire      | SO1 1AA  | 123 Main St$Building A$Hampshire           | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St             | Building A     |
-      | 700003     | 400003 | GP_CountyLastGreaterLondon | C11111   | County Last Greater London | SW1A 1AA | Parliament St$Westminster$Greater London   | London       | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Greater London  | Parliament St           | Westminster    |
-      | 700004     | 400004 | GP_CountyLastWestYorkshire | D11111   | County Last West Yorkshire | LS1 1AB  | City Square$Leeds Centre$West Yorkshire    | Leeds        | 1                  | 0                    | 1                    | 1                 | 0                | 0               | West Yorkshire  | City Square             | Leeds Centre   |
+      | service_id | uid    | service_name               | ods_code | public_name                | postcode | address                                    | town         | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1          | expected_line2 |
+      | 700001     | 400001 | GP_CountyLastStandard      | A11111   | County Last Standard       | HA8 0AD  | Cleator Moor Health Ctr$Birks Road$Cumbria | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
+      | 700002     | 400002 | GP_CountyLastHampshire     | B11111   | County Last Hampshire      | SO1 1AA  | 123 Main St$Building A$Hampshire           | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St             | Building A     |
+      | 700003     | 400003 | GP_CountyLastGreaterLondon | C11111   | County Last Greater London | SW1A 1AA | Parliament St$Westminster$Greater London   | London       | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Greater London  | Parliament St           | Westminster    |
+      | 700004     | 400004 | GP_CountyLastWestYorkshire | D11111   | County Last West Yorkshire | LS1 1AB  | City Square$Leeds Centre$West Yorkshire    | Leeds        | 1                  | 0                    | 1                    | 1                 | 0                | 0                | West Yorkshire  | City Square             | Leeds Centre   |
 
     Examples: County in First Segment
-      | service_id | uid    | service_name            | ods_code | public_name            | postcode | address                                    | town         | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1          | expected_line2 |
-      | 700005     | 400005 | GP_CountyFirstCumbria   | E11111   | County First Cumbria   | HA8 0AD  | Cumbria$Cleator Moor Health Ctr$Birks Road | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
-      | 700006     | 400006 | GP_CountyFirstHampshire | F11111   | County First Hampshire | SO1 1AA  | Hampshire$123 Main St$Building A           | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St             | Building A     |
+      | service_id | uid    | service_name            | ods_code | public_name            | postcode | address                                    | town         | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1          | expected_line2 |
+      | 700005     | 400005 | GP_CountyFirstCumbria   | E11111   | County First Cumbria   | HA8 0AD  | Cumbria$Cleator Moor Health Ctr$Birks Road | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
+      | 700006     | 400006 | GP_CountyFirstHampshire | F11111   | County First Hampshire | SO1 1AA  | Hampshire$123 Main St$Building A           | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St             | Building A     |
 
     Examples: County in Middle Segment
-      | service_id | uid    | service_name                | ods_code | public_name                 | postcode | address                                     | town         | expected_supported | expected_unsupported | expected_transformed | expected_migrated | expected_skipped | expected_errors | expected_county | expected_line1          | expected_line2 |
-      | 700007     | 400007 | GP_CountyMiddleCumbria      | H11111   | County Middle Cumbria       | HA8 0AD  | Cleator Moor Health Ctr$Cumbria$Birks Road  | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
-      | 700008     | 400008 | GP_CountyMiddleHampshire    | J11111   | County Middle Hampshire     | SO1 1AA  | 123 Main St$Hampshire$Building A            | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St             | Building A     |
-      | 700009     | 400009 | GP_CountyMiddleMultiSegment | K11111   | County Middle Multi Segment | SW1A 1AA | First Line$Greater London$Second Line$Third | London       | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Greater London  | First Line              | Second Line    |
+      | service_id | uid    | service_name                | ods_code | public_name                 | postcode | address                                     | town         | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1          | expected_line2 |
+      | 700007     | 400007 | GP_CountyMiddleCumbria      | H11111   | County Middle Cumbria       | HA8 0AD  | Cleator Moor Health Ctr$Cumbria$Birks Road  | Cleator Moor | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Cumbria         | Cleator Moor Health Ctr | Birks Road     |
+      | 700008     | 400008 | GP_CountyMiddleHampshire    | J11111   | County Middle Hampshire     | SO1 1AA  | 123 Main St$Hampshire$Building A            | Southampton  | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St             | Building A     |
+      | 700009     | 400009 | GP_CountyMiddleMultiSegment | K11111   | County Middle Multi Segment | SW1A 1AA | First Line$Greater London$Second Line$Third | London       | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Greater London  | First Line              | Second Line    |
 
     Examples: County Only (Single Segment)
       | service_id | uid    | service_name           | ods_code | public_name           | postcode | address   | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
@@ -220,38 +220,38 @@ Feature: Service Migration - Address Transformation
       | 700013     | 400013 | GP_NoCountyManySegments | W11111   | No County Many Segments | HA8 0AD  | Line 1$Line 2$Line 3$Line 4 | Edgware     | 1                  | 0                    | 1                    | 1                 | 0                | 0                |                 | Line 1         | Line 2         |
 
     Examples: Multiple Counties (Last to First Priority)
-      | service_id | uid    | service_name                | ods_code | public_name                 | postcode | address                              | town   | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700014     | 400014 | GP_MultiCountyLastWins      | Y11111   | Multi County Last Wins      | SW1A 1AA | Hampshire$123 Main St$Greater London | London | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Greater London  | Hampshire      | 123 Main St    |
-      | 700015     | 400015 | GP_MultiCountyThreeCounties | A11111   | Multi County Three Counties | LS1 1AB  | Hampshire$Cumbria$West Yorkshire     | Leeds  | 1                  | 0                    | 1                    | 1                 | 0                | 0               | West Yorkshire  | Hampshire      | Cumbria        |
+      | service_id | uid    | service_name                | ods_code | public_name                 | postcode | address                              | town   | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700014     | 400014 | GP_MultiCountyLastWins      | Y11111   | Multi County Last Wins      | SW1A 1AA | Hampshire$123 Main St$Greater London | London | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Greater London  | Hampshire      | 123 Main St    |
+      | 700015     | 400015 | GP_MultiCountyThreeCounties | A11111   | Multi County Three Counties | LS1 1AB  | Hampshire$Cumbria$West Yorkshire     | Leeds  | 1                  | 0                    | 1                    | 1                 | 0                | 0                | West Yorkshire  | Hampshire      | Cumbria        |
 
     Examples: County with Whitespace Variations
-      | service_id | uid    | service_name                | ods_code | public_name                | postcode | address                              | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700016     | 400016 | GP_CountyLeadingWhitespace  | A22222   | County Leading Whitespace  | SO1 1AA  | 123 Main St$  Hampshire              | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
-      | 700017     | 400017 | GP_CountyTrailingWhitespace | B22222   | County Trailing Whitespace | SO1 1AA  | 123 Main St$Hampshire  $Building A   | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
-      | 700018     | 400018 | GP_CountyBothWhitespace     | C22222   | County Both Whitespace     | SO1 1AA  | 123 Main St$  Hampshire  $Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
+      | service_id | uid    | service_name                | ods_code | public_name                | postcode | address                              | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700016     | 400016 | GP_CountyLeadingWhitespace  | A22222   | County Leading Whitespace  | SO1 1AA  | 123 Main St$  Hampshire              | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    |                |
+      | 700017     | 400017 | GP_CountyTrailingWhitespace | B22222   | County Trailing Whitespace | SO1 1AA  | 123 Main St$Hampshire  $Building A   | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
+      | 700018     | 400018 | GP_CountyBothWhitespace     | C22222   | County Both Whitespace     | SO1 1AA  | 123 Main St$  Hampshire  $Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
 
     Examples: County Case Variations
-      | service_id | uid    | service_name       | ods_code | public_name       | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700019     | 400019 | GP_CountyLowercase | D22222   | County Lowercase  | SO1 1AA  | 123 Main St$hampshire$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
-      | 700020     | 400020 | GP_CountyUppercase | E22222   | County Uppercase  | SO1 1AA  | 123 Main St$HAMPSHIRE$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
-      | 700021     | 400021 | GP_CountyMixedCase | F22222   | County Mixed Case | SO1 1AA  | 123 Main St$HaMpShIrE$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
+      | service_id | uid    | service_name       | ods_code | public_name       | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700019     | 400019 | GP_CountyLowercase | D22222   | County Lowercase  | SO1 1AA  | 123 Main St$hampshire$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
+      | 700020     | 400020 | GP_CountyUppercase | E22222   | County Uppercase  | SO1 1AA  | 123 Main St$HAMPSHIRE$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
+      | 700021     | 400021 | GP_CountyMixedCase | F22222   | County Mixed Case | SO1 1AA  | 123 Main St$HaMpShIrE$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
 
     Examples: County with Town Matching in Address
-      | service_id | uid    | service_name              | ods_code | public_name               | postcode | address                             | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700022     | 400022 | GP_CountyTownInAddress    | G22222   | County Town In Address    | SO1 1AA  | 123 Main St$Southampton$Hampshire   | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
-      | 700023     | 400023 | GP_CountyTownBeforeCounty | H22222   | County Town Before County | LS1 1AB  | Leeds$City Centre$West Yorkshire    | Leeds       | 1                  | 0                    | 1                    | 1                 | 0                | 0               | West Yorkshire  | City Centre    |                |
-      | 700024     | 400024 | GP_CountyTownAfterCounty  | J22222   | County Town After County  | SW1A 1AA | Greater London$London$Parliament St | London      | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Greater London  | Parliament St  |                |
+      | service_id | uid    | service_name              | ods_code | public_name               | postcode | address                             | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700022     | 400022 | GP_CountyTownInAddress    | G22222   | County Town In Address    | SO1 1AA  | 123 Main St$Southampton$Hampshire   | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    |                |
+      | 700023     | 400023 | GP_CountyTownBeforeCounty | H22222   | County Town Before County | LS1 1AB  | Leeds$City Centre$West Yorkshire    | Leeds       | 1                  | 0                    | 1                    | 1                 | 0                | 0                | West Yorkshire  | City Centre    |                |
+      | 700024     | 400024 | GP_CountyTownAfterCounty  | J22222   | County Town After County  | SW1A 1AA | Greater London$London$Parliament St | London      | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Greater London  | Parliament St  |                |
 
     Examples: County with Duplicate Segments
-      | service_id | uid    | service_name               | ods_code | public_name               | postcode | address                                     | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700025     | 400025 | GP_CountyDuplicateSegments | K22222   | County Duplicate Segments | SO1 1AA  | 123 Main St$123 main st$Hampshire           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
-      | 700026     | 400026 | GP_CountyDuplicateAfter    | L22222   | County Duplicate After    | SO1 1AA  | 123 Main St$Hampshire$Building A$building a | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
+      | service_id | uid    | service_name               | ods_code | public_name               | postcode | address                                     | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700025     | 400025 | GP_CountyDuplicateSegments | K22222   | County Duplicate Segments | SO1 1AA  | 123 Main St$123 main st$Hampshire           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    |                |
+      | 700026     | 400026 | GP_CountyDuplicateAfter    | L22222   | County Duplicate After    | SO1 1AA  | 123 Main St$Hampshire$Building A$building a | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
 
     Examples: Edge Cases - Empty and Separator Handling
-      | service_id | uid    | service_name                | ods_code | public_name                | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errors | expected_county | expected_line1 | expected_line2 |
-      | 700027     | 400027 | GP_CountyLeadingSeparators  | Y22222   | County Leading Separators  | SO1 1AA  | $123 Main St$Hampshire           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
-      | 700028     | 400028 | GP_CountyTrailingSeparators | A22222   | County Trailing Separators | SO1 1AA  | 123 Main St$Hampshire$           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    |                |
-      | 700029     | 400029 | GP_CountyMiddleSeparators   | B33333   | County Middle Separators   | SO1 1AA  | 123 Main St$Hampshire$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0               | Hampshire       | 123 Main St    | Building A     |
+      | service_id | uid    | service_name                | ods_code | public_name                | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_errored | expected_county | expected_line1 | expected_line2 |
+      | 700027     | 400027 | GP_CountyLeadingSeparators  | Y22222   | County Leading Separators  | SO1 1AA  | $123 Main St$Hampshire           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    |                |
+      | 700028     | 400028 | GP_CountyTrailingSeparators | A22222   | County Trailing Separators | SO1 1AA  | 123 Main St$Hampshire$           | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    |                |
+      | 700029     | 400029 | GP_CountyMiddleSeparators   | B33333   | County Middle Separators   | SO1 1AA  | 123 Main St$Hampshire$Building A | Southampton | 1                  | 0                    | 1                    | 1                 | 0                | 0                | Hampshire       | 123 Main St    | Building A     |
 
   Scenario: Service with duplicate address segments
     Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
@@ -275,7 +275,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                              |
     When a single service migration is run for ID '900040'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900040' should be:
       | key      | value       |
@@ -307,7 +307,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                    |
     When a single service migration is run for ID '900050'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900050' should be:
       | key      | value         |
@@ -338,30 +338,7 @@ Feature: Service Migration - Address Transformation
       | email               | invalid@nhs.net         |
       | publicphone         | 0300 311 22 33          |
     When a single service migration is run for ID '900051'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    Then there is 1 organisation, 1 location and 1 healthcare services created
-    Then the 'location' for service ID '900051' has content:
-      """
-      {
-        "id": "903a51d7-435f-5519-b6ec-233a726af8a4",
-        "identifier_oldDoS_uid": "200051",
-        "field": "document",
-        "active": true,
-        "address": null,
-        "createdBy": "DATA_MIGRATION",
-        "createdDateTime": "2025-11-13T15:39:53.539806Z",
-        "managingOrganisation": "293e3830-519d-5915-a846-f8696a8ebd7c",
-        "modifiedBy": "DATA_MIGRATION",
-        "modifiedDateTime": "2025-11-13T15:39:53.539806Z",
-        "name": null,
-        "partOf": null,
-        "positionGCS": null,
-        "positionReferenceNumber_UBRN": null,
-        "positionReferenceNumber_UPRN": null,
-        "primaryAddress": true
-      }
-      """
-
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 1 invalid and 0 errored
 
   Scenario: Service with all whitespace in address segments
     Given a 'Service' exists called 'TestGPPractice' in DoS with attributes:
@@ -385,7 +362,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33      |
     When a single service migration is run for ID '900052'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900052' should be:
       | key      | value     |
@@ -417,7 +394,7 @@ Feature: Service Migration - Address Transformation
       | publicphone         | 0300 311 22 33                                |
     When a single service migration is run for ID '900053'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
-    And the service was transformed into 1 organisation, 1 location and 1 healthcare service
+    And there is 1 organisation, 1 location and 1 healthcare services created
     And the service has the address
     And the service address for ID '900053' should be:
       | key      | value          |

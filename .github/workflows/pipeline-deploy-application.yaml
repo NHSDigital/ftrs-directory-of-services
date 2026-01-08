@@ -250,7 +250,7 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run ${{ matrix.test_tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
     strategy:
       matrix:
         include:
