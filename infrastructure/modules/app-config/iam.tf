@@ -1,14 +1,3 @@
-data "aws_iam_policy_document" "appconfig_data_read" {
-  statement {
-    sid = "AppConfigDataRead"
-    actions = [
-      "appconfig:GetLatestConfiguration",
-      "appconfig:StartConfigurationSession",
-    ]
-    resources = ["*"]
-  }
-}
-
 resource "aws_iam_policy" "appconfig_data_read" {
   count = var.create_iam_policy ? 1 : 0
 
