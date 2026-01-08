@@ -234,12 +234,18 @@ def verify_state_record_structure(
         ), f"State record should contain field '{field}'. Found fields: {list(deserialized_item.keys())}"
 
 
-@then(parsers.parse('the state table record for "{state_key}" has valid organisation_id'))
-def verify_state_record_organisation_id(
+def verify_state_record_field(
     dynamodb: Dict[str, Any],
     state_key: str,
+    field_name: str,
 ) -> None:
-    """Verify that the state record has a valid organisation_id (UUID format)."""
+    """Verify that the state record has a valid field value (UUID format).
+
+    Args:
+        dynamodb: DynamoDB client connection
+        state_key: The state table key to look up
+        field_name: The field name to verify (e.g. 'organisation_id', 'location_id')
+    """
     state_table_name = get_table_name(resource="data-migration-state")
 
     client = dynamodb[DYNAMODB_CLIENT]
@@ -254,14 +260,23 @@ def verify_state_record_organisation_id(
     deserializer = TypeDeserializer()
     deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
 
-    # Verify organisation_id is a valid UUID
-    org_id_str = deserialized_item.get("organisation_id")
-    assert org_id_str is not None, "organisation_id should exist"
+    # Verify field is a valid UUID
+    field_value = deserialized_item.get(field_name)
+    assert field_value is not None, f"{field_name} should exist"
 
     try:
-        UUID(org_id_str)
+        UUID(field_value)
     except (ValueError, TypeError) as e:
-        pytest.fail(f"organisation_id '{org_id_str}' is not a valid UUID: {e}")
+        pytest.fail(f"{field_name} '{field_value}' is not a valid UUID: {e}")
+
+
+@then(parsers.parse('the state table record for "{state_key}" has valid organisation_id'))
+def verify_state_record_organisation_id(
+    dynamodb: Dict[str, Any],
+    state_key: str,
+) -> None:
+    """Verify that the state record has a valid organisation_id (UUID format)."""
+    verify_state_record_field(dynamodb, state_key, "organisation_id")
 
 
 @then(parsers.parse('the state table record for "{state_key}" has valid location_id'))
@@ -270,28 +285,7 @@ def verify_state_record_location_id(
     state_key: str,
 ) -> None:
     """Verify that the state record has a valid location_id (UUID format)."""
-    state_table_name = get_table_name(resource="data-migration-state")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    # Verify location_id is a valid UUID
-    loc_id_str = deserialized_item.get("location_id")
-    assert loc_id_str is not None, "location_id should exist"
-
-    try:
-        UUID(loc_id_str)
-    except (ValueError, TypeError) as e:
-        pytest.fail(f"location_id '{loc_id_str}' is not a valid UUID: {e}")
+    verify_state_record_field(dynamodb, state_key, "location_id")
 
 
 @then(parsers.parse('the state table record for "{state_key}" has valid healthcare_service_id'))
@@ -300,28 +294,7 @@ def verify_state_record_healthcare_service_id(
     state_key: str,
 ) -> None:
     """Verify that the state record has a valid healthcare_service_id (UUID format)."""
-    state_table_name = get_table_name(resource="data-migration-state")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    # Verify healthcare_service_id is a valid UUID
-    hc_id_str = deserialized_item.get("healthcare_service_id")
-    assert hc_id_str is not None, "healthcare_service_id should exist"
-
-    try:
-        UUID(hc_id_str)
-    except (ValueError, TypeError) as e:
-        pytest.fail(f"healthcare_service_id '{hc_id_str}' is not a valid UUID: {e}")
+    verify_state_record_field(dynamodb, state_key, "healthcare_service_id")
 
 
 # ============================================================
