@@ -255,6 +255,14 @@
                 "iam:AWSServiceName": "inspector2.amazonaws.com"
                 }
             }
+        },
+        {
+            "Sid": "AppConfigFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "appconfig:*"
+            ]
+            "Resource": "*"
         }
     ]
 }
