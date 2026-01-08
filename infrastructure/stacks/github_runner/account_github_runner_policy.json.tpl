@@ -261,7 +261,7 @@
             "Effect": "Allow",
             "Action": [
                 "appconfig:*"
-            ]
+            ],
             "Resource": "*"
         }
     ]
