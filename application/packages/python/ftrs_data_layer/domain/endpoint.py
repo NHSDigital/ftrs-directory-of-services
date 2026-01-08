@@ -33,3 +33,4 @@ class Endpoint(DBModel):
     service: UUID | None
     order: int
     isCompressionEnabled: bool
+    comment: str | None

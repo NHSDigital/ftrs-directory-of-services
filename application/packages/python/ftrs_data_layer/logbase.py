@@ -179,6 +179,12 @@ class DataMigrationLogBase(LogBase):
         level=ERROR,
         message="One or more items exist for  Service ID {record_id}",
     )
+    DM_ETL_023 = LogReference(
+        level=DEBUG,
+        message="State record found for service ID:{record_id}")
+    DM_ETL_024 = LogReference(
+        level=DEBUG,
+        message="No state record found for service ID:{record_id}")
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
