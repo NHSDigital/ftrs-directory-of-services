@@ -311,12 +311,18 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
+      - service-automation-tests
     if: always()
     steps:
-      - name: "Fail if application infrastructure deployment failed"
-        if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+      # - name: "Fail if application infrastructure deployment failed"
+      #   if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+      #   run: |
+      #     echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
+      #     exit 1
+      - name: "Fail if service automation tests failed"
+        if: needs.service-automation-tests.outputs.result != 'Success'
         run: |
-          echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
+          echo "Service Automation Tests failed in the ${{ needs.metadata.outputs.environment }} environment."
           exit 1
   slack-notifications:
     name: "Send Notification to Slack"
