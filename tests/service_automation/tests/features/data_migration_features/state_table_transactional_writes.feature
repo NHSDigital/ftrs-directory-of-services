@@ -19,7 +19,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | publicname          | New Surgery for Insert Test              |
       | typeid              | 100                                      |
       | statusid            | 1                                        |
-      | odscode             | X12345                                   |
+      | odscode             | A12348                                   |
       | createdtime         | 2024-01-01 10:00:00                      |
       | modifiedtime        | 2024-01-01 10:00:00                      |
       | openallhours        | false                                    |
@@ -48,7 +48,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | publicname          | Existing Surgery for Update Test         |
       | typeid              | 100                                      |
       | statusid            | 1                                        |
-      | odscode             | X12346                                   |
+      | odscode             | A12349                                   |
       | createdtime         | 2024-01-01 10:00:00                      |
       | modifiedtime        | 2024-01-01 10:00:00                      |
       | openallhours        | false                                    |
@@ -77,7 +77,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | publicname          | Surgery for Structure Test               |
       | typeid              | 100                                      |
       | statusid            | 1                                        |
-      | odscode             | X12347                                   |
+      | odscode             | A12350                                   |
       | createdtime         | 2024-01-01 10:00:00                      |
       | modifiedtime        | 2024-01-01 10:00:00                      |
       | openallhours        | false                                    |
