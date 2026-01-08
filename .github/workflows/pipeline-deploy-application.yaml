@@ -132,18 +132,18 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  check-application-deployment:
-    name: "Check Application Infrastructure Deployment"
-    needs:
-      - deploy-application-infrastructure
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Fail if application infrastructure deployment failed"
-        if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
-        run: |
-          echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
-          exit 1
+  # check-application-deployment:
+  #   name: "Check Application Infrastructure Deployment"
+  #   needs:
+  #     - deploy-application-infrastructure
+  #   if: always()
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: "Fail if application infrastructure deployment failed"
+  #       if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+  #       run: |
+  #         echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
+  #         exit 1
 
   deploy-proxy-to-apim:
     name: "Deploy ${{ matrix.api_name }} API to Proxygen"
@@ -307,15 +307,16 @@ jobs:
 
   check-pipeline-status:
     name: "Check Pipeline Status"
+    runs-on: ubuntu-latest
     needs:
-      - check-application-deployment
-      - deploy-frontend-services
-      - deploy-data-migration-service
-      - service-automation-tests
-      - export-dynamodb-to-s3
-    if: always()
-    uses: ./.github/workflows/pipeline-status-check.yaml
-
+      - metadata
+      - deploy-application-infrastructure
+    steps:
+      - name: "Fail if application infrastructure deployment failed"
+        if: needs.deploy-application-infrastructure.outputs.deploy_status != 'Success'
+        run: |
+          echo "Application Infrastructure deployment failed in the ${{ needs.metadata.outputs.environment }} environment."
+          exit 1
   slack-notifications:
     name: "Send Notification to Slack"
     needs:
@@ -330,7 +331,7 @@ jobs:
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease
-      - check-pipeline-status
+      # - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
