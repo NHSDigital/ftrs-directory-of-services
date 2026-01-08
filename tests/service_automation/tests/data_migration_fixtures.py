@@ -1,4 +1,5 @@
 """Pytest fixtures for data migration testing."""
+
 import os
 import subprocess
 import tempfile
@@ -13,15 +14,14 @@ from sqlalchemy import text
 from sqlmodel import Session, create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
+from utilities.data_migration.dos_db_utils import get_test_data_script
 
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from utilities.common.constants import ENV_ENVIRONMENT, ENV_SOURCE_DB_HOST, ENV_SOURCE_DB_NAME, ENV_SOURCE_DB_PASSWORD, ENV_SOURCE_DB_PORT, ENV_SOURCE_DB_USER, ENV_WORKSPACE
+from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
-from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
-from utilities.common.data_migration.migration_helper import MigrationHelper
-from utilities.common.rds_data import gp_service
+from utilities.data_migration.migration_helper import MigrationHelper
 
 
 @pytest.fixture(scope="session")
@@ -36,233 +36,6 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
     """LocalStack container with DynamoDB for testing."""
     with LocalStackContainer(image="localstack/localstack:3.0") as localstack:
         yield localstack
-
-
-def _get_source_db_config() -> Dict[str, str]:
-    """Get source database configuration from environment variables."""
-    return {
-        "host": os.getenv(ENV_SOURCE_DB_HOST),
-        "port": os.getenv(ENV_SOURCE_DB_PORT),
-        "database": os.getenv(ENV_SOURCE_DB_NAME),
-        "username": os.getenv(ENV_SOURCE_DB_USER),
-        "password": os.getenv(ENV_SOURCE_DB_PASSWORD),
-    }
-
-
-def _dump_schema_and_data(
-    source_config: Dict[str, str], schema_file: str, data_file: str
-) -> None:
-    """Dump database schema and data for selected tables using pg_dump."""
-
-    # First dump the schema only
-    schema_cmd = [
-        "pg_dump",
-        f"--host={source_config['host']}",
-        f"--port={source_config['port']}",
-        f"--username={source_config['username']}",
-        f"--dbname={source_config['database']}",
-        "--schema-only",
-        "--no-privileges",
-        "--no-owner",
-        "--no-security-labels",
-        "--no-tablespaces",
-        "--schema=pathwaysdos",
-        f"--file={schema_file}",
-    ]
-
-    # Then dump data for specific tables only
-    table_args = []
-    for table in LEGACY_DOS_TABLES:
-        table_args.extend(["--table", f"pathwaysdos.{table}"])
-
-    data_cmd = [
-        "pg_dump",
-        f"--host={source_config['host']}",
-        f"--port={source_config['port']}",
-        f"--username={source_config['username']}",
-        f"--dbname={source_config['database']}",
-        "--data-only",
-        "--disable-triggers",
-        "--no-privileges",
-        "--no-owner",
-        "--no-security-labels",
-        "--no-tablespaces",
-        f"--file={data_file}",
-    ] + table_args
-
-    env = os.environ.copy()
-    env["PGPASSWORD"] = source_config["password"]
-
-    logger.info(f"Dumping schema to: {schema_file}")
-    schema_result = subprocess.run(schema_cmd, env=env, capture_output=True, text=True)
-
-    if schema_result.returncode != 0:
-        raise RuntimeError(f"Schema dump failed: {schema_result.stderr}")
-
-    logger.info(f"Dumping data for tables: {', '.join(LEGACY_DOS_TABLES)}")
-    data_result = subprocess.run(data_cmd, env=env, capture_output=True, text=True)
-
-    if data_result.returncode != 0:
-        raise RuntimeError(f"Data dump failed: {data_result.stderr}")
-
-    logger.info("Schema and data dump completed successfully")
-
-
-def _load_schema_and_data(
-    container_config: Dict[str, str], schema_file: str, data_file: str
-) -> None:
-    """Load schema and data into the test container."""
-
-    # Load schema first
-    schema_cmd = [
-        "psql",
-        f"--host={container_config['host']}",
-        f"--port={container_config['port']}",
-        f"--username={container_config['username']}",
-        f"--dbname={container_config['database']}",
-        f"--file={schema_file}",
-    ]
-
-    # Then load data
-    data_cmd = [
-        "psql",
-        f"--host={container_config['host']}",
-        f"--port={container_config['port']}",
-        f"--username={container_config['username']}",
-        f"--dbname={container_config['database']}",
-        f"--file={data_file}",
-    ]
-
-    env = os.environ.copy()
-    env["PGPASSWORD"] = container_config["password"]
-
-    logger.info("Loading schema into test container")
-    schema_result = subprocess.run(schema_cmd, env=env, capture_output=True, text=True)
-
-    if schema_result.returncode != 0:
-        logger.warning(f"Schema load had warnings: {schema_result.stderr}")
-
-    logger.info("Loading data into test container")
-    data_result = subprocess.run(data_cmd, env=env, capture_output=True, text=True)
-
-    if data_result.returncode != 0:
-        logger.warning(f"Data load had warnings: {data_result.stderr}")
-
-    logger.info("Schema and data loaded successfully")
-
-
-def _init_database(engine: Any) -> None:
-    """Initialize database with schema and tables."""
-    # First, clean up any existing database to ensure we start fresh
-    _cleanup_database(engine)
-
-    with engine.connect() as conn:
-        # Create schema first
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS pathwaysdos"))
-        conn.commit()
-
-    # Create tables with the proper metadata that includes the schema
-    # The legacy models have schema="pathwaysdos" in their metadata
-    legacy.LegacyDoSModel.metadata.create_all(engine)
-
-
-def _init_database_with_migration(postgres_container: PostgresContainer) -> None:
-    """Initialize database with schema and data from source database."""
-    # Get container connection details
-    connection_string = postgres_container.get_connection_url()
-    engine = create_engine(connection_string, echo=False)
-
-    # First, clean up any existing database to ensure we start fresh
-    _cleanup_database(engine)
-
-    # Get source database configuration
-    source_config = _get_source_db_config()
-
-    # Parse connection URL to get individual components for psql commands
-    parsed = urlparse(connection_string)
-
-    container_config = {
-        "host": parsed.hostname,
-        "port": str(parsed.port),
-        "database": parsed.path.lstrip("/"),
-        "username": parsed.username,
-        "password": parsed.password,
-    }
-
-    # Create temporary files for schema and data dumps
-    with (
-        tempfile.NamedTemporaryFile(
-            mode="w", suffix=".sql", delete=False
-        ) as schema_file,
-        tempfile.NamedTemporaryFile(mode="w", suffix=".sql", delete=False) as data_file,
-    ):
-        schema_path = schema_file.name
-        data_path = data_file.name
-
-    try:
-        # Dump schema and data from source
-        _dump_schema_and_data(source_config, schema_path, data_path)
-
-        # Load schema and data into test container
-        _load_schema_and_data(container_config, schema_path, data_path)
-
-    finally:
-        # Clean up temporary files
-        try:
-            Path(schema_path).unlink(missing_ok=True)
-            Path(data_path).unlink(missing_ok=True)
-        except Exception as e:
-            logger.warning(f"Failed to clean up temporary files: {e}")
-
-
-def _cleanup_database(engine) -> None:
-    """Clean up a database by dropping all tables and schema."""
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(
-                text(
-                    "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'pathwaysdos'"
-                )
-            )
-            schema_exists = result.fetchone() is not None
-
-            if schema_exists:
-                # Drop all tables in the schema
-                conn.execute(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
-                conn.commit()
-                logger.info("Database schema 'pathwaysdos' dropped successfully")
-            else:
-                logger.info(
-                    "Database schema 'pathwaysdos' does not exist, no cleanup needed"
-                )
-
-            # Also check for any tables in public schema (just to be thorough)
-            result = conn.execute(
-                text(
-                    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-                )
-            )
-            tables = [row[0] for row in result]
-
-            if tables:
-                logger.info(f"Dropping {len(tables)} tables from 'public' schema")
-                for table in tables:
-                    conn.execute(
-                        text(f'DROP TABLE IF EXISTS "public"."{table}" CASCADE')
-                    )
-                conn.commit()
-                logger.debug(f"Dropped {len(tables)} tables from public schema")
-
-    except Exception as e:
-        # Log error but don't fail the test
-        logger.error(f"Warning: Failed to cleanup database: {e}")
-
-
-def _seed_gp_organisations(session: Session) -> None:
-    """Seed the database with GP organisations for testing."""
-    for org in gp_service:
-        session.add(org)
-    session.commit()
 
 
 def _create_dynamodb_tables(client: Any) -> None:
@@ -319,37 +92,18 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
         logger.error(f"DynamoDB cleanup failed: {e}")
 
 
+@pytest.fixture(scope="session")
+def dos_db_setup_scripts() -> list[str]:
+    schema_sql = get_test_data_script("schema.sql")
+    metadata_sql = get_test_data_script("metadata.sql")
+    clinical_sql = get_test_data_script("clinical.sql")
+    return [schema_sql, metadata_sql, clinical_sql]
+
+
 @pytest.fixture(name="dos_db", scope="function")
 def fixture_dos_db(
     postgres_container: PostgresContainer,
-) -> Generator[Session, None, None]:
-    """
-    DoS database fixture for BDD tests with clean schema for each test.
-
-    Args:
-        postgres_container: PostgreSQL container fixture
-
-    Yields:
-        Database session with initialized schema
-    """
-    connection_string = postgres_container.get_connection_url()
-    engine = create_engine(connection_string, echo=False)
-
-    try:
-        _init_database(engine)
-        session = Session(engine)
-        _seed_gp_organisations(session)
-        yield session
-    finally:
-        if "session" in locals():
-            session.close()
-        _cleanup_database(engine)
-        engine.dispose()
-
-
-@pytest.fixture(name="dos_db_with_migration", scope="function")
-def fixture_dos_db_with_migration(
-    postgres_container: PostgresContainer,
+    dos_db_setup_scripts: list[str],
 ) -> Generator[Session, None, None]:
     """
     DoS database fixture with migrated data from source database.
@@ -365,13 +119,22 @@ def fixture_dos_db_with_migration(
 
     try:
         logger.debug("Initializing database with migrated data")
-        _init_database_with_migration(postgres_container)
+
         session = Session(engine)
+
+        for script in dos_db_setup_scripts:
+            session.exec(text(script))
+        session.commit()
+
         yield session
+
+        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
+        session.commit()
+
     finally:
         if "session" in locals():
             session.close()
-        _cleanup_database(engine)
+
         engine.dispose()
 
 
@@ -416,22 +179,14 @@ def fixture_dynamodb(
 
 
 @pytest.fixture(scope="function")
-def dos_search_context() -> Dict[str, Any]:
-    """
-    Context for storing test data during BDD scenarios.
-
-    Returns:
-        Empty dictionary for test state
-    """
-    return {}
-
-
-@pytest.fixture(scope="function")
-def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
+def model_repos_local(
+    dynamodb,
+) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
     def prep_local_repo(table_name, model_cls, dynamodb):
         model_repo = get_service_repository(model_cls, table_name)
         model_repo.resource = dynamodb[
-            "resource"]  # fake credentials aligned with localstack set in the injected dynamodb client
+            "resource"
+        ]  # fake credentials aligned with localstack set in the injected dynamodb client
         model_repo.table = dynamodb["resource"].Table(table_name)
         return model_repo
 
@@ -488,7 +243,7 @@ def migration_helper(
 
 
 @pytest.fixture(scope="function")
-def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
+def migration_context(dos_db: Session) -> Dict[str, Any]:
     """
     Context to store migration test data across BDD steps.
 
@@ -504,7 +259,7 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
         db_session (Session): Active database session
 
     Args:
-        dos_db_with_migration: DoS database session fixture
+        dos_db: DoS database session fixture
 
     Returns:
         Dictionary context for storing test state
@@ -518,5 +273,5 @@ def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
         "sqs_service_ids": [],
         "sqs_service_id": None,
         "mock_logger": None,
-        "db_session": dos_db_with_migration,
+        "db_session": dos_db,
     }

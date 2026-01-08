@@ -255,7 +255,6 @@ def test_process_service(
         type="GP Consultation Service",
         providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
-        migrationNotes=[],
         name="Test Service",
         telecom=HealthcareServiceTelecom(
             phone_public="01234567890",
@@ -636,11 +635,10 @@ def test_save(
     # Mock verify_state_record_exist to return False (not exists)
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
-    processor._save(result, mock_legacy_service.id)
+    processor._save(result, mock_legacy_service.id, [])
 
     # Verify transact_write_items was called once
     assert mock_dynamodb_client.transact_write_items.call_count == 1
@@ -708,12 +706,11 @@ def test_save_handles_transaction_cancelled_with_conditional_check_failed(
     # Mock verify_state_record_exist to return False
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
     # Should not raise exception, should return gracefully
-    processor._save(result, mock_legacy_service.id)
+    processor._save(result, mock_legacy_service.id, [])
 
     # Verify DM_ETL_022 was logged
     logs = mock_logger.get_log("DM_ETL_022")
@@ -762,13 +759,12 @@ def test_save_handles_transaction_cancelled_without_conditional_check_failed(
     # Mock verify_state_record_exist to return False
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
     # Should raise the exception since it's not ConditionalCheckFailed
     with pytest.raises(Exception):
-        processor._save(result, mock_legacy_service.id)
+        processor._save(result, mock_legacy_service.id, [])
 
 
 def test_save_handles_other_exceptions(
@@ -799,13 +795,12 @@ def test_save_handles_other_exceptions(
     # Mock verify_state_record_exist to return False
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
     # Should raise the exception
     with pytest.raises(Exception, match="Some other DynamoDB error"):
-        processor._save(result, mock_legacy_service.id)
+        processor._save(result, mock_legacy_service.id, [])
 
 
 def test_save_checks_exception_via_response_code(
@@ -843,12 +838,11 @@ def test_save_checks_exception_via_response_code(
     # Mock verify_state_record_exist to return False
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
     # Should not raise exception, should return gracefully
-    processor._save(result, mock_legacy_service.id)
+    processor._save(result, mock_legacy_service.id, [])
 
     # Verify DM_ETL_022 was logged
     logs = mock_logger.get_log("DM_ETL_022")
@@ -882,9 +876,8 @@ def test_save_skips_when_state_exists(
     # Mock verify_state_record_exist to return True (exists)
     processor.verify_state_record_exist = mocker.MagicMock(return_value=True)
 
-    validation_issues = []
     transformer = processor.get_transformer(mock_legacy_service)
-    transformer.transform(mock_legacy_service, validation_issues)
+    transformer.transform(mock_legacy_service)
 
     # Call _save - but first need to call through _process_service
     processor._process_service(mock_legacy_service)
@@ -922,12 +915,11 @@ def test_save_logs_success_on_successful_write(
     # Mock verify_state_record_exist to return False
     processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    validation_issues = []
     item_count = 4
     transformer = processor.get_transformer(mock_legacy_service)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
-    processor._save(result, mock_legacy_service.id)
+    processor._save(result, mock_legacy_service.id, [])
 
     # Verify DM_ETL_021 was logged with correct parameters
     assert mock_logger.was_logged("DM_ETL_021") is True
@@ -936,3 +928,57 @@ def test_save_logs_success_on_successful_write(
     assert (
         log_entry["detail"]["item_count"] == item_count
     )  # org, location, service, state
+
+
+def test_save_handles_validation_issues(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save can handle validation issues passed to it."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock DynamoDB client
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items = mocker.MagicMock()
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service)
+
+    # Create some mock validation issues
+    issues = [
+        ValidationIssue(
+            severity="warning",
+            code="TEST_WARNING",
+            diagnostics="This is a test warning",
+            value=None,
+            expression=["some.field"],
+        ),
+        ValidationIssue(
+            severity="error",
+            code="TEST_ERROR",
+            diagnostics="This is a test error",
+            value=None,
+            expression=["another.field"],
+        ),
+    ]
+
+    # Call _save with validation issues
+    processor._save(result, mock_legacy_service.id, issues)
+
+    # Verify transact_write_items was called once
+    assert mock_dynamodb_client.transact_write_items.call_count == 1

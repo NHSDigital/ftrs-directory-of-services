@@ -7,7 +7,6 @@ from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import format_table_name
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import legacy
-from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 from sqlalchemy import Engine
@@ -15,6 +14,7 @@ from sqlmodel import Session, create_engine, select
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
+from service_migration.models import DataMigrationState
 from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
@@ -144,8 +144,7 @@ class DataMigrationProcessor:
                 )
                 return
 
-            issues = self._convert_validation_issues(validation_result.issues)
-            result = transformer.transform(validation_result.sanitised, issues)
+            result = transformer.transform(validation_result.sanitised)
             self.metrics.transformed_records += 1
 
             self.logger.log(
@@ -167,7 +166,7 @@ class DataMigrationProcessor:
                     record_id=service.id,
                 )
                 return
-            self._save(result, service.id)
+            self._save(result, service.id, validation_result.issues)
             self.metrics.migrated_records += 1
 
             elapsed_time = perf_counter() - start_time
@@ -241,7 +240,12 @@ class DataMigrationProcessor:
         }
         return put_item
 
-    def _save(self, result: ServiceTransformOutput, service_id: int) -> None:
+    def _save(
+        self,
+        result: ServiceTransformOutput,
+        service_id: int,
+        validation_issues: list[ValidationIssue],
+    ) -> None:
         """
         Save the transformed result to DynamoDB using transact_write_items for atomic writes.
         """
@@ -295,17 +299,24 @@ class DataMigrationProcessor:
             for hc in result.healthcare_service
         )
 
+        organisation = result.organisation[0] if result.organisation else None
+        location = result.location[0] if result.location else None
+        healthcare_service = (
+            result.healthcare_service[0] if result.healthcare_service else None
+        )
+
         # Add DataMigrationState record
         state_data = DataMigrationState(
             id=uuid4(),
             source_record_id=f"services#{service_id}",
             version=1,
-            organisation_id=result.organisation[0].id,
-            organisation=result.organisation[0],
-            location_id=result.location[0].id,
-            location=result.location[0],
-            healthcare_service_id=result.healthcare_service[0].id,
-            healthcare_service=result.healthcare_service[0],
+            organisation_id=getattr(organisation, "id", None),
+            organisation=organisation,
+            location_id=getattr(location, "id", None),
+            location=location,
+            healthcare_service_id=getattr(healthcare_service, "id", None),
+            healthcare_service=healthcare_service,
+            validation_issues=validation_issues,
         )
         transact_items.append(
             self._create_put_item(
@@ -355,15 +366,6 @@ class DataMigrationProcessor:
             )
             raise
 
-    def _convert_validation_issues(self, issues: list[ValidationIssue]) -> list[str]:
-        """
-        Convert validation issues to a list of strings.
-        """
-        return [
-            f"field:{issue.expression} ,error: {issue.code},message:{issue.diagnostics},value:{issue.value}"
-            for issue in issues
-        ]
-
     def create_db_engine(self) -> Engine:
         # Validate the presence of a real connection string to avoid confusing errors when given mocks
         connection_string = getattr(
@@ -400,15 +402,4 @@ class DataMigrationProcessor:
         )
 
         exists = "Item" in response
-
-        if exists:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_023,
-                record_id=record_id,
-            )
-        else:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_024,
-                record_id=record_id,
-            )
         return exists
