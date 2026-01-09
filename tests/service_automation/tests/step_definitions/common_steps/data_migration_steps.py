@@ -194,7 +194,8 @@ def sqs_event_migration_with_params(
         "{supported:d} supported, "
         "{unsupported:d} unsupported, "
         "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
+        "{inserted:d} inserted, "
+        "{updated:d} updated, "
         "{skipped:d} skipped and "
         "{errors:d} errors"
     )
@@ -205,7 +206,8 @@ def verify_migration_metrics(
     supported: int,
     unsupported: int,
     transformed: int,
-    migrated: int,
+    inserted: int,
+    updated: int,
     skipped: int,
     errors: int,
 ) -> None:
@@ -223,7 +225,8 @@ def verify_migration_metrics(
         supported=supported,
         unsupported=unsupported,
         transformed=transformed,
-        migrated=migrated,
+        inserted=inserted,
+        updated=updated,
         skipped=skipped,
         errors=errors,
     )
@@ -243,7 +246,8 @@ def verify_migration_metrics(
         "{supported:d} supported, "
         "{unsupported:d} unsupported, "
         "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
+        "{inserted:d} inserted, "
+        "{updated:d} updated, "
         "{skipped:d} skipped and "
         "{errors:d} errors"
     )
@@ -254,7 +258,8 @@ def verify_sqs_event_metrics(
     supported: int,
     unsupported: int,
     transformed: int,
-    migrated: int,
+    inserted: int,
+    updated: int,
     skipped: int,
     errors: int,
 ) -> None:
@@ -271,7 +276,8 @@ def verify_sqs_event_metrics(
         supported=supported,
         unsupported=unsupported,
         transformed=transformed,
-        migrated=migrated,
+        inserted=inserted,
+        updated=updated,
         skipped=skipped,
         errors=errors,
     )

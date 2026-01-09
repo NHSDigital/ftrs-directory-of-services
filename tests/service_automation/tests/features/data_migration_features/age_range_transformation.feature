@@ -79,7 +79,7 @@ Feature: Data Migration
       | serviceid | 1001533 |
 
     When the data migration process is run for table 'services', ID '1001533' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '1001533' has content:
@@ -185,7 +185,7 @@ Feature: Data Migration
       | serviceid | 2001533 |
 
     When the data migration process is run for table 'services', ID '2001533' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '2001533' has content:
@@ -285,7 +285,7 @@ Feature: Data Migration
       | serviceid | 3001533 |
 
     When the data migration process is run for table 'services', ID '3001533' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then the 'healthcare-service' for service ID '3001533' has content:
       """
@@ -389,7 +389,7 @@ Feature: Data Migration
       | serviceid | 4001533 |
 
     When the data migration process is run for table 'services', ID '4001533' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '4001533' has content:

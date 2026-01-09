@@ -301,7 +301,7 @@ Feature: Data Migration for endpoints
       | endpointorder | 1        |        |
       | serviceid     | 10305752 |        |
     When the data migration process is run for table 'services', ID '10305752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 1 errors
     Then error log containing message: '3 validation errors for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created
 

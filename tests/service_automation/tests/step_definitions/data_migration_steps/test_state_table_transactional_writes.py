@@ -11,6 +11,7 @@ from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from utilities.common.constants import DYNAMODB_CLIENT
 from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.log_helper import get_mock_logger_from_context
+from utilities.data_migration.migration_context_helper import store_migration_result
 
 scenarios(
     "../../tests/features/data_migration_features/state_table_transactional_writes.feature"
@@ -22,15 +23,13 @@ scenarios(
 # ============================================================
 
 
-@when(
-    parsers.parse('a record does not exist in the state table for key "{state_key}"')
-)
+@when(parsers.parse('a record does not exist in the state table for key "{state_key}"'))
 def verify_no_state_record(
     dynamodb: Dict[str, Any],
     state_key: str,
 ) -> None:
     """Verify that no state record exists for the given key."""
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -55,54 +54,43 @@ def verify_operation_type(
     """Verify the pipeline treated the record as insert or update."""
     mock_logger = get_mock_logger_from_context(migration_context)
 
-    # Get all logs from all levels
-    all_logs = []
-    for level in mock_logger.logs.values():
-        all_logs.extend(level)
-
-    if operation == "insert":
-        # For insert, we should NOT see the "State record found" log
-        skip_logs = [
-            log for log in all_logs if "State record found" in log.get("msg", "")
-        ]
-        assert (
-            len(skip_logs) == 0
-        ), f"Should not find 'State record found' log for insert operation. Found: {skip_logs}"
-
-    elif operation == "update":
-        # For update, we SHOULD see the "State record found" log
-        skip_logs = [
-            log for log in all_logs if "State record found" in log.get("msg", "")
-        ]
-        assert (
-            len(skip_logs) > 0
-        ), "Should find 'State record found' log for update operation"
+    match operation:
+        case "insert":
+            assert mock_logger.was_logged("DM_ETL_020"), (
+                "Should log DM_ETL_020 for insert operation"
+            )
+        case "update":
+            assert mock_logger.was_logged("DM_ETL_019"), (
+                "Should log DM_ETL_019 for update operation"
+            )
+        case _:
+            pytest.fail(f"Unknown operation type: {operation}")
 
 
-@then("the pipeline sends a single TransactWriteItems operation")
+@then(
+    parsers.parse(
+        "the pipeline sends a single TransactWriteItems operation with {item_count:d} items"
+    )
+)
 def verify_transact_write_items(
     migration_context: Dict[str, Any],
+    item_count: int,
 ) -> None:
     """Verify that TransactWriteItems was used for atomic writes."""
     # This is implicitly tested by the code path - if migration succeeded,
     # TransactWriteItems was used. We can verify this through logs.
     mock_logger = get_mock_logger_from_context(migration_context)
 
-    # Get all logs from all levels
-    all_logs = []
-    for level in mock_logger.logs.values():
-        all_logs.extend(level)
+    transaction_success_logs = mock_logger.get_log("DM_ETL_021")
+    assert len(transaction_success_logs) == 1, (
+        "Should find exactly one transaction success log (DM_ETL_021)."
+    )
 
-    # Look for successful transact write log
-    transact_logs = [
-        log
-        for log in all_logs
-        if "Successfully wrote" in log.get("msg", "") and "items transactionally" in log.get("msg", "")
-    ]
-
-    assert (
-        len(transact_logs) > 0
-    ), f"Should find transaction success log. All logs: {[log.get('msg', '') for log in all_logs]}"
+    log = transaction_success_logs[0]
+    logged_item_count = log["detail"].get("item_count")
+    assert logged_item_count == item_count, (
+        f"Expected {item_count} items in TransactWriteItems, got {logged_item_count}"
+    )
 
 
 @then("the organisation, location, healthcare service and state record is created")
@@ -119,20 +107,20 @@ def verify_all_records_created(
 
     # Verify state record exists
     service_id = migration_context.get("service_id")
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name("state", stack_name="data-migration")
 
     state_response = client.get_item(
         TableName=state_table_name,
         Key={"source_record_id": {"S": f"services#{service_id}"}},
     )
 
-    assert (
-        "Item" in state_response
-    ), f"State record should exist for services#{service_id}"
+    assert "Item" in state_response, (
+        f"State record should exist for services#{service_id}"
+    )
 
     # Verify organisation, location, and healthcare service exist
     # (these are verified through successful migration and metrics)
-    assert result.metrics.migrated_records == 1, "Should have migrated 1 record"
+    assert result.metrics.inserted_records == 1, "Should have inserted 1 record"
 
 
 @then(
@@ -146,7 +134,7 @@ def verify_state_record_details(
     version: int,
 ) -> None:
     """Verify state record exists with correct version."""
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -160,9 +148,9 @@ def verify_state_record_details(
     deserializer = TypeDeserializer()
     deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
 
-    assert (
-        deserialized_item["version"] == version
-    ), f"Version should be {version}, got {deserialized_item['version']}"
+    assert deserialized_item["version"] == version, (
+        f"Version should be {version}, got {deserialized_item['version']}"
+    )
 
 
 @then(parsers.parse('the pipeline logs "{log_message}"'))
@@ -180,32 +168,45 @@ def verify_specific_log_message(
 
     matching_logs = [log for log in all_logs if log_message in log.get("msg", "")]
 
-    assert (
-        len(matching_logs) > 0
-    ), f"Should find log containing '{log_message}'. All logs: {[log.get('msg', '') for log in all_logs]}"
+    assert len(matching_logs) > 0, (
+        f"Should find log containing '{log_message}'. All logs: {[log.get('msg', '') for log in all_logs]}"
+    )
 
 
-@then("the metrics should show 0 migrated records for the second run")
+@then(
+    parsers.parse(
+        "the metrics should show {expected_inserted:d} inserted, {expected_updated:d} updated records for the second run"
+    )
+)
 def verify_no_migration_on_second_run(
     migration_context: Dict[str, Any],
+    expected_inserted: int,
+    expected_updated: int,
 ) -> None:
-    """Verify that the second migration run resulted in 0 migrated records."""
+    """Verify that the second migration run resulted in 0 inserted records."""
     result = migration_context.get("result")
 
     assert result is not None, "Migration result should exist"
     assert result.metrics is not None, "Migration metrics should exist"
-    assert (
-        result.metrics.migrated_records == 0
-    ), f"Should have 0 migrated records on second run, got {result.metrics.migrated_records}"
+    assert result.metrics.inserted_records == expected_inserted, (
+        f"Should have {expected_inserted} inserted records on second run, got {result.metrics.inserted_records}"
+    )
+    assert result.metrics.updated_records == expected_updated, (
+        f"Should have {expected_updated} updated records on second run, got {result.metrics.updated_records}"
+    )
 
 
-@then(parsers.parse('the state table record for "{state_key}" contains all required fields'))
+@then(
+    parsers.parse(
+        'the state table record for "{state_key}" contains all required fields'
+    )
+)
 def verify_state_record_structure(
     dynamodb: Dict[str, Any],
     state_key: str,
 ) -> None:
     """Verify that the state record has all required fields."""
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -229,9 +230,9 @@ def verify_state_record_structure(
     ]
 
     for field in required_fields:
-        assert (
-            field in deserialized_item
-        ), f"State record should contain field '{field}'. Found fields: {list(deserialized_item.keys())}"
+        assert field in deserialized_item, (
+            f"State record should contain field '{field}'. Found fields: {list(deserialized_item.keys())}"
+        )
 
 
 def verify_state_record_field(
@@ -246,7 +247,7 @@ def verify_state_record_field(
         state_key: The state table key to look up
         field_name: The field name to verify (e.g. 'organisation_id', 'location_id')
     """
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
 
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.get_item(
@@ -270,7 +271,9 @@ def verify_state_record_field(
         pytest.fail(f"{field_name} '{field_value}' is not a valid UUID: {e}")
 
 
-@then(parsers.parse('the state table record for "{state_key}" has valid organisation_id'))
+@then(
+    parsers.parse('the state table record for "{state_key}" has valid organisation_id')
+)
 def verify_state_record_organisation_id(
     dynamodb: Dict[str, Any],
     state_key: str,
@@ -288,7 +291,11 @@ def verify_state_record_location_id(
     verify_state_record_field(dynamodb, state_key, "location_id")
 
 
-@then(parsers.parse('the state table record for "{state_key}" has valid healthcare_service_id'))
+@then(
+    parsers.parse(
+        'the state table record for "{state_key}" has valid healthcare_service_id'
+    )
+)
 def verify_state_record_healthcare_service_id(
     dynamodb: Dict[str, Any],
     state_key: str,
@@ -324,16 +331,13 @@ def create_conflicting_record(
         migration_context: Migration context to store results
         service_id: Service ID to migrate
     """
-    from utilities.common.data_migration.migration_context_helper import (
-        store_migration_result,
-    )
 
     # Run migration first time to create records
     result = migration_helper.run_single_service_migration(service_id)
     store_migration_result(migration_context, result, service_id)
 
     # Now delete ONLY the state record to simulate retry scenario
-    state_table_name = get_table_name(resource="data-migration-state")
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
     client = dynamodb[DYNAMODB_CLIENT]
 
     client.delete_item(
@@ -390,7 +394,9 @@ def create_conflicting_healthcare_service(
     create_conflicting_record(dynamodb, migration_helper, migration_context, service_id)
 
 
-@then("the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed")
+@then(
+    "the DynamoDB TransactWriteItems request is rejected due to ConditionalCheckFailed"
+)
 def verify_conditional_check_failed(
     migration_context: Dict[str, Any],
 ) -> None:
@@ -418,9 +424,7 @@ def verify_log_message_contains(
     for level in mock_logger.logs.values():
         all_logs.extend(level)
 
-    matching_logs = [
-        log for log in all_logs if expected_message in log.get("msg", "")
-    ]
+    matching_logs = [log for log in all_logs if expected_message in log.get("msg", "")]
 
     assert len(matching_logs) > 0, (
         f"Expected log message containing: {expected_message}\n"
