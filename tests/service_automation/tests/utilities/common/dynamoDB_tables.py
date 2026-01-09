@@ -7,10 +7,11 @@ def get_table_name(resource: str) -> str:
     """
     Generate DynamoDB table name using environment variables.
 
-    Pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
+    Pattern for data-migration tables: {PROJECT_NAME}-{ENVIRONMENT}-{resource}-{WORKSPACE}
+    Pattern for other tables: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
 
     Args:
-        resource: Resource type (e.g., 'organisation', 'location', 'healthcare-service')
+        resource: Resource type (e.g., 'organisation', 'location', 'healthcare-service', 'data-migration-state')
 
     Returns:
         Full table name following project naming convention
@@ -19,7 +20,10 @@ def get_table_name(resource: str) -> str:
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
 
-    return f"{project_name}-{environment}-database-{resource}-{workspace}"
+    if resource.startswith("data-migration-"):
+        return f"{project_name}-{environment}-{resource}-{workspace}"
+    else:
+        return f"{project_name}-{environment}-database-{resource}-{workspace}"
 
 
 def get_dynamodb_tables() -> list[dict[str, Any]]:
@@ -72,5 +76,15 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST"
     }
 
+    state_table = {
+        "TableName": get_table_name('data-migration-state'),
+        "KeySchema": [
+            {"AttributeName": "source_record_id", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "source_record_id", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
 
-    return [*tables, triage_code_table]
+    return [*tables, triage_code_table, state_table]

@@ -26,7 +26,7 @@ dependencies = [
   "python.dotenv>=1.1.1",
   "requests>=2.32.4",
   "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
-  "authlib (>=1.6.5,<2.0.0)",
+  "authlib (>=1.6.6,<2.0.0)",
   "deepdiff==8.6.1",
 ]
 
@@ -68,6 +68,15 @@ markers = [
   "etl-ods: marks test as ETL ODS related",
   "ftrs-pipeline: marks test to be run in the FTRS pipeline",
   "data-migration: marks test as data migration related",
+  "transactional-writes: marks test as state table transactional writes related",
+  "insert-operation: marks test as insert operation related",
+  "update-operation: marks test as update operation related",
+  "skip-existing: marks test as skip existing records related",
+  "state-table-structure: marks test as state table structure validation related",
+  "conflict-detection: marks test as conflict detection related",
+  "organisation-exists: marks test as organisation exists conflict related",
+  "location-exists: marks test as location exists conflict related",
+  "healthcare-service-exists: marks test as healthcare service exists conflict related",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
