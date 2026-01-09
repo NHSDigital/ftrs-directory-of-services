@@ -1,12 +1,12 @@
 """Database helper utilities for testing."""
+
+import pytest
 from sqlalchemy import text
 from sqlmodel import Session
-import pytest
 
 
 def verify_service_exists(
-    session: Session,
-    service_id: int
+    session: Session, service_id: int
 ) -> tuple[int, int, str, int]:
     """
     Verify service exists in database and return key attributes.
@@ -22,8 +22,7 @@ def verify_service_exists(
         pytest.fail: If service not found
     """
     stmt = text(
-        "SELECT id, typeid, odscode, statusid FROM pathwaysdos.services "
-        "WHERE id = :id"
+        "SELECT id, typeid, odscode, statusid FROM pathwaysdos.services WHERE id = :id"
     )
     result = session.exec(stmt.bindparams(id=service_id)).fetchone()
 

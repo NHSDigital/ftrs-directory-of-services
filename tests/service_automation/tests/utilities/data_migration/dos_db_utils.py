@@ -2,10 +2,11 @@
 Utility functions for DoS DB data migration tests
 """
 
-import boto3
 import os
-from utilities.common.constants import ENV_ENVIRONMENT
+
+import boto3
 import pytest
+from utilities.common.constants import ENV_ENVIRONMENT
 
 
 def get_test_data_script(filename: str) -> str:

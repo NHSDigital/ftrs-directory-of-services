@@ -1,11 +1,11 @@
-import pytest
 import subprocess
-from pytest_bdd import scenarios, given, when, then, parsers
-from loguru import logger
-from utilities.infra.s3_util import S3Utils
-from utilities.common import directories, csv_reader
-from utilities.common.resource_name import get_resource_name
 
+import pytest
+from loguru import logger
+from pytest_bdd import given, parsers, scenarios, then, when
+from utilities.common import csv_reader, directories
+from utilities.common.resource_name import get_resource_name
+from utilities.infra.s3_util import S3Utils
 
 # Load feature file
 scenarios("./infra_features/s3.feature")
@@ -29,34 +29,50 @@ def fetch_s3_buckets(aws_s3_client):
 def check_aws_access():
     """Ensure AWS CLI authentication works"""
     result = subprocess.run(
-        ["aws", "sts", "get-caller-identity"], capture_output=True, text=True
+        ["aws", "sts", "get-caller-identity"],
+        check=False,
+        capture_output=True,
+        text=True,
     )
     logger.debug("AWS CLI Authenticate", result.returncode)
     assert result.returncode == 0, (
         f"Failed to authenticate with AWS CLI: {result.stderr}"
     )
 
-@given(parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'), target_fixture='fbucket_name')
+
+@given(
+    parsers.parse('I can see the S3 bucket "{bucket}" for stack "{stack}"'),
+    target_fixture="fbucket_name",
+)
 def confirm_s3_bucket_exists(aws_s3_client, project, bucket, stack, workspace, env):
     bucket_name = get_resource_name(project, workspace, env, stack, bucket)
     response = aws_s3_client.check_bucket_exists(bucket_name)
-    assert response == True
+    assert response
     return bucket_name
 
-@given(parsers.parse('I upload the file "{file_name}" to the s3 bucket'), target_fixture='ffile_name')
+
+@given(
+    parsers.parse('I upload the file "{file_name}" to the s3 bucket'),
+    target_fixture="ffile_name",
+)
 def put_s3_file(aws_s3_client, fbucket_name, file_name):
     file_name = file_name + ".csv"
-    filepath = "tests/csv_files/"+file_name
+    filepath = "tests/csv_files/" + file_name
     bucket_name = fbucket_name
     aws_s3_client.put_object(bucket_name, filepath, file_name)
     return file_name
+
 
 @when("I fetch the list of S3 buckets")
 def fetch_buckets(aws_s3_client):
     """Retrieve list of S3 buckets"""
     return aws_s3_client.list_buckets()
 
-@then(parsers.parse('I can download the file from the s3 bucket'), target_fixture='fdownload_file')
+
+@then(
+    parsers.parse("I can download the file from the s3 bucket"),
+    target_fixture="fdownload_file",
+)
 def download_s3_file(aws_s3_client, fbucket_name, ffile_name):
     downloadfile = ffile_name
     directories.create_folder("downloads")
@@ -66,17 +82,19 @@ def download_s3_file(aws_s3_client, fbucket_name, ffile_name):
     return file_name
 
 
-@then(parsers.parse('I can delete the file from the s3 bucket'))
+@then(parsers.parse("I can delete the file from the s3 bucket"))
 def delete_s3_file(aws_s3_client, fbucket_name, ffile_name):
     file_name = ffile_name
     bucket_name = fbucket_name
     aws_s3_client.delete_object(bucket_name, file_name)
+
 
 @then(parsers.parse("the file contains {rowcount} rows"))
 def count_csv_rows(fdownload_file, rowcount):
     file_name = fdownload_file
     row_count = str(csv_reader.csv_row_count(file_name))
     assert row_count == rowcount
+
 
 @then("the bucket names should be valid")
 def validate_bucket_names(fetch_s3_buckets):
@@ -88,9 +106,8 @@ def validate_bucket_names(fetch_s3_buckets):
         logger.debug("Valid Bucket Names: {}", bucket)
         assert 3 <= len(bucket) <= 63, f"Invalid length for bucket {bucket}"
         assert bucket.islower(), f"Bucket {bucket} must be lowercase"
-        assert bucket[0].isalnum() and bucket[-1].isalnum(), (
-            f"Bucket {bucket} must start & end with letter/number"
-        )
+        assert bucket[0].isalnum(), f"Bucket {bucket} must start with letter/number"
+        assert bucket[-1].isalnum(), f"Bucket {bucket} must end with letter/number"
         assert ".." not in bucket, f"Bucket {bucket} contains consecutive dots"
         assert not bucket.startswith("xn--"), (
             f"Bucket {bucket} cannot start with 'xn--'"

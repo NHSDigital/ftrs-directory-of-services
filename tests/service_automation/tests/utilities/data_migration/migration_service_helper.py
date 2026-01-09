@@ -1,11 +1,11 @@
 """Helper utilities for service creation and database operations."""
+
 from typing import Any, Dict, List
 
 import pytest
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
-
 from utilities.common.constants import REQUIRED_SERVICE_FIELDS, SERVICES_TABLE
 from utilities.common.db_helper import delete_service_if_exists, verify_service_exists
 from utilities.common.gherkin_helper import parse_gherkin_table
@@ -37,8 +37,8 @@ def create_service_in_database(
 
         insert_sql = text(
             f"""
-            INSERT INTO {SERVICES_TABLE} ({', '.join(columns)})
-            VALUES ({', '.join(placeholders)})
+            INSERT INTO {SERVICES_TABLE} ({", ".join(columns)})
+            VALUES ({", ".join(placeholders)})
             """
         )
 

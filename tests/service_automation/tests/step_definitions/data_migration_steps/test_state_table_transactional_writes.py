@@ -6,7 +6,6 @@ from uuid import UUID
 import pytest
 from boto3.dynamodb.types import TypeDeserializer
 from pytest_bdd import parsers, scenarios, then, when
-
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from utilities.common.constants import DYNAMODB_CLIENT
 from utilities.common.dynamoDB_tables import get_table_name
