@@ -24,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">3700</longProp>
@@ -38,11 +38,11 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Authentication Setup" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -108,7 +108,7 @@ try {
 </stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
             <stringProp name="cacheKey">false</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -153,9 +153,7 @@ public static String readFileContent(Path filePath) throws IOException {
 
     String apim_env = vars.get(&quot;Apim_Env&quot;);
     String apim_domain = vars.get(&quot;Apim_Domain&quot;);
-    // String fullendpoint = &quot;https://&quot;+apim_env+apim_domain+&quot;/oauth2/token&quot;;
     String fullendpoint = vars.get(&quot;token_url&quot;);
-    log.info(fullendpoint);
     String subject = apikey;
     String issuer = apikey;
     String audience = fullendpoint;
@@ -181,7 +179,6 @@ public static String readFileContent(Path filePath) throws IOException {
 
     //Save the JWT in the compact string in the jmeter variables
     vars.put(&quot;JWT_Token&quot;, JWT_Token);
-    log.info(JWT_Token);
 </stringProp>
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223PreProcessor>
@@ -228,7 +225,7 @@ public static String readFileContent(Path filePath) throws IOException {
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Bearer Token" enabled="true">
               <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
@@ -243,15 +240,11 @@ public static String readFileContent(Path filePath) throws IOException {
 def bearerToken = vars.get(&quot;varBearer&quot;)
 def iteration = vars.getIteration()
 
-log.info(&quot;Iteration ${iteration}: Attempting to set bearer token as property&quot;)
-log.info(&quot;Iteration ${iteration}: varBearer value = ${bearerToken}&quot;)
-
 if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken != &quot;TOKEN_NOT_FOUND&quot;) {
     props.put(&quot;varBearer&quot;, bearerToken)
-    log.info(&quot;Iteration ${iteration}: Bearer token successfully set as property for cross-thread group access&quot;)
+    log.info(&quot;Iteration ${iteration}: Bearer token successfully set&quot;)
 } else {
-    log.error(&quot;Iteration ${iteration}: Bearer token is null, empty, or extraction failed!&quot;)
-    log.error(&quot;Iteration ${iteration}: Previous response: ${prev.getResponseDataAsString()}&quot;)
+    log.error(&quot;Iteration ${iteration}: Bearer token is null!&quot;)
 }
 </stringProp>
               <stringProp name="scriptLanguage">groovy</stringProp>
@@ -288,11 +281,11 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">/dos-search-ftrs-1380/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -328,9 +321,28 @@ if (iteration == 1) {
               <collectionProp name="Arguments.arguments"/>
             </Arguments>
             <hashTree/>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - HTTP 200" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="49586">200</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message"></stringProp>
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">1</intProp>
+            </ResponseAssertion>
+            <hashTree/>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assertion - Check response that resourceType is Organization">
+              <stringProp name="JSON_PATH">$.entry[0].resource.resourceType</stringProp>
+              <stringProp name="EXPECTED_VALUE">Organizationß</stringProp>
+              <boolProp name="JSONVALIDATION">true</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">false</boolProp>
+            </JSONPathAssertion>
+            <hashTree/>
           </hashTree>
           <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-            <stringProp name="ConstantTimer.delay">3000</stringProp>
+            <stringProp name="ConstantTimer.delay">60000</stringProp>
           </ConstantTimer>
           <hashTree/>
         </hashTree>
@@ -345,7 +357,7 @@ if (iteration == 1) {
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -382,7 +394,7 @@ if (iteration == 1) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor" enabled="true">
         <stringProp name="scriptLanguage">groovy</stringProp>
         <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
