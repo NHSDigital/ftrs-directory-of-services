@@ -28,8 +28,8 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Access-Control-Allow-Methods": "GET",
     "Access-Control-Allow-Headers": (
         "Authorization, Content-Type, NHSD-Correlation-ID, NHSD-Request-ID, X-Correlation-ID, X-Request-ID, "
-        "NHSD-Message-Id, NHSD-Api-Version, NHSD-End-User-Role, NHSD-Client-Id, "
-        "NHSD-Connecting-Party-App-Name, Accept, Accept-Encoding, Accept-Language, "
+        "NHSD-Message-Id, version, end-user-role, application-id, "
+        "connecting-party-app-name, Accept, Accept-Encoding, Accept-Language, "
         "User-Agent, Host, X-Amzn-Trace-Id, X-Forwarded-For, X-Forwarded-Port, "
         "X-Forwarded-Proto"
     ),

@@ -77,10 +77,10 @@ class TestLambdaHandler:
             "NHSD-Request-ID",
             "nhsd-request-id",
             "NHSD-Message-Id",
-            "NHSD-Api-Version",
-            "NHSD-End-User-Role",
-            "NHSD-Client-Id",
-            "NHSD-Connecting-Party-App-Name",
+            "version",
+            "end-user-role",
+            "application-id",
+            "connecting-party-app-name",
             "Accept",
             "Accept-Encoding",
             "Accept-Language",
@@ -268,6 +268,7 @@ class TestLambdaHandler:
 
         # Act
         response = lambda_handler(event, lambda_context)
+        print("easy search", response)
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
