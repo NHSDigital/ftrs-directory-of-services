@@ -57,14 +57,14 @@ Feature: Data Migration
       | serviceid     | 10175752 |                                                             |
       | dispositionid | 5        | To contact a Primary Care Service within 6 hours, DX06, 360 |
     When the data migration process is run for table 'services', ID '10175752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'dispositions' on table 'healthcare-service' for id 'a50c907c-56d8-541b-946f-58f5e0b2f090' has content:
       """
       {
         "dispositions": [
-            "DX05",
-            "DX06"
+          "DX05",
+          "DX06"
         ]
       }
       """
@@ -120,12 +120,11 @@ Feature: Data Migration
       | serviceid     | 10275752 |         |
       | dispositionid | 1000     |         |
     When the data migration process is run for table 'services', ID '10275752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'dispositions' on table 'healthcare-service' for id '70bfeb90-7d79-5d1f-bbf0-0b1faaf6ffe2' has content:
       """
       {
-        "dispositions": [
-        ]
+        "dispositions": []
       }
       """

@@ -75,6 +75,26 @@ def write_item_batch(
         )
 
 
+def existing_items_in_table(table_name: str) -> bool:
+    """
+    Check if a DynamoDB table has existing items
+    """
+    try:
+        response = DDB_CLIENT.scan(
+            TableName=table_name,
+            Select="COUNT",
+            Limit=1,
+        )
+        return response.get("Count", 0) > 0
+
+    except ClientError as e:
+        CONSOLE.print(
+            f"Error checking items in [bright_blue]{table_name}[/bright_blue]: {e}",
+            style="bright_red",
+        )
+        return False
+
+
 async def bulk_load_table(table_name: str, items: list[dict]) -> None:
     """
     Bulk load items into a DynamoDB table
@@ -84,6 +104,13 @@ async def bulk_load_table(table_name: str, items: list[dict]) -> None:
         f"Bulk loading {len(items)} items into table [bright_blue]{table_name}[/bright_blue] using {workers} workers"
     )
     loop = asyncio.get_running_loop()
+
+    if existing_items_in_table(table_name):
+        CONSOLE.print(
+            f"Table [bright_blue]{table_name}[/bright_blue] already has data. Skipping bulk load.",
+            style="yellow",
+        )
+        return
 
     with ThreadPoolExecutor(max_workers=workers) as executor:
         tasks = []

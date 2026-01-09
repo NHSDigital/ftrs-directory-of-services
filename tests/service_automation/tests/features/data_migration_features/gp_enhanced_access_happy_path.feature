@@ -48,7 +48,7 @@ Feature: Data Migration
       | nextverificationdue                 |                                                               |
 
     When the data migration process is run for table 'services', ID '100178970' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 0 organisation, 0 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '100178970' has content:

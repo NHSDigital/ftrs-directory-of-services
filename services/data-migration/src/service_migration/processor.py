@@ -26,7 +26,8 @@ class DataMigrationMetrics(BaseModel):
     supported_records: int = 0
     unsupported_records: int = 0
     transformed_records: int = 0
-    migrated_records: int = 0
+    inserted_records: int = 0
+    updated_records: int = 0
     skipped_records: int = 0
     invalid_records: int = 0
     errors: int = 0
@@ -39,7 +40,8 @@ class DataMigrationMetrics(BaseModel):
         self.supported_records = 0
         self.unsupported_records = 0
         self.transformed_records = 0
-        self.migrated_records = 0
+        self.inserted_records = 0
+        self.updated_records = 0
         self.skipped_records = 0
         self.invalid_records = 0
         self.errors = 0
@@ -178,8 +180,11 @@ class DataMigrationProcessor:
 
             if transaction_items:
                 self._execute_transaction(transaction_items)
+                if state_record is None:
+                    self.metrics.inserted_records += 1
+                else:
+                    self.metrics.updated_records += 1
 
-            self.metrics.migrated_records += 1
             elapsed_time = perf_counter() - start_time
 
             self.logger.log(

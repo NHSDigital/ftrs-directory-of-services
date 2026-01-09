@@ -31,7 +31,8 @@ def test_processor_init(
     assert isinstance(processor.engine, Engine)
     assert processor.metrics.model_dump() == {
         "errors": 0,
-        "migrated_records": 0,
+        "inserted_records": 0,
+        "updated_records": 0,
         "skipped_records": 0,
         "supported_records": 0,
         "total_records": 0,
@@ -145,7 +146,8 @@ def test_process_service(
         supported_records=0,
         unsupported_records=0,
         transformed_records=0,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -158,7 +160,8 @@ def test_process_service(
         supported_records=1,
         unsupported_records=0,
         transformed_records=1,
-        migrated_records=1,
+        inserted_records=1,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -404,7 +407,8 @@ def test_process_service_unsupported_service(
         supported_records=0,
         unsupported_records=1,
         transformed_records=0,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         errors=0,
     )
@@ -439,7 +443,8 @@ def test_process_service_skipped_service(
         supported_records=1,
         unsupported_records=0,
         transformed_records=0,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=1,
         errors=0,
     )
@@ -496,7 +501,8 @@ def test_handles_invalid_service(
         supported_records=0,
         unsupported_records=0,
         transformed_records=0,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -509,7 +515,8 @@ def test_handles_invalid_service(
         supported_records=1,
         unsupported_records=0,
         transformed_records=0,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         invalid_records=1,
         errors=0,
@@ -557,7 +564,7 @@ def test_validation_warning_continues_processing(
     mock_builder.add_organisation.return_value = mock_builder
     mock_builder.add_location.return_value = mock_builder
     mock_builder.add_healthcare_service.return_value = mock_builder
-    mock_builder.build.return_value = []
+    mock_builder.build.return_value = [{}]
     mocker.patch(
         "service_migration.processor.ServiceTransactionBuilder",
         return_value=mock_builder,
@@ -577,7 +584,8 @@ def test_validation_warning_continues_processing(
         supported_records=1,
         unsupported_records=0,
         transformed_records=1,
-        migrated_records=1,
+        inserted_records=1,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -617,7 +625,7 @@ def test_validation_no_issues(
     mock_builder.add_organisation.return_value = mock_builder
     mock_builder.add_location.return_value = mock_builder
     mock_builder.add_healthcare_service.return_value = mock_builder
-    mock_builder.build.return_value = []
+    mock_builder.build.return_value = [{}]
     mocker.patch(
         "service_migration.processor.ServiceTransactionBuilder",
         return_value=mock_builder,
@@ -637,7 +645,8 @@ def test_validation_no_issues(
         supported_records=1,
         unsupported_records=0,
         transformed_records=1,
-        migrated_records=1,
+        inserted_records=1,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -706,7 +715,8 @@ def test_validation_error_severity_continues_processing(
         supported_records=1,
         unsupported_records=0,
         transformed_records=1,
-        migrated_records=1,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         invalid_records=0,
         errors=0,
@@ -738,7 +748,8 @@ def test_process_service_error(
         supported_records=1,
         unsupported_records=0,
         transformed_records=1,
-        migrated_records=0,
+        inserted_records=0,
+        updated_records=0,
         skipped_records=0,
         errors=1,
     )

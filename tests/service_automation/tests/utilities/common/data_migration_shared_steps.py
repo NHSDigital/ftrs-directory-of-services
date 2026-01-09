@@ -176,8 +176,11 @@ def run_sqs_event_migration_with_params(
         "SQS event migration completed",
         extra={
             "success": result.success,
-            "migrated_records": (
-                result.metrics.migrated_records if result.metrics else 0
+            "inserted_records": (
+                result.metrics.inserted_records if result.metrics else 0
+            ),
+            "updated_records": (
+                result.metrics.updated_records if result.metrics else 0
             ),
             "table_name": table_name,
             "record_id": record_id,
