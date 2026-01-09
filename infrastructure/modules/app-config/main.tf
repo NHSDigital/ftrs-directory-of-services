@@ -4,10 +4,11 @@ module "app_config" {
   name        = var.name
   description = var.description
 
-  use_hosted_configuration           = var.use_hosted_configuration
   config_profile_type                = var.config_profile_type
   hosted_config_version_content_type = var.hosted_config_version_content_type
   hosted_config_version_content      = file(var.hosted_config_version_content)
+  deployment_configuration_version   = local.deployment_configuration_version
+  use_hosted_configuration           = local.use_hosted_configuration
 
   environments = var.environments
 }

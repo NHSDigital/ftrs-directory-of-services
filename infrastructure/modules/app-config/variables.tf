@@ -8,12 +8,6 @@ variable "description" {
   type        = string
 }
 
-variable "use_hosted_configuration" {
-  description = "Whether to use hosted configuration in AppConfig."
-  type        = bool
-  default     = true
-}
-
 variable "config_profile_type" {
   description = "The type of the configuration profile."
   type        = string
