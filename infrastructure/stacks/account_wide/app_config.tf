@@ -15,3 +15,23 @@ module "app_config" {
     }
   }
 }
+
+output "appconfig_read_policy_arn" {
+  value = module.app_config.appconfig_read_policy_arn
+}
+
+output "application_id" {
+  value = module.app_config.application_id
+}
+
+output "environment_ids" {
+  value = module.app_config.environment_ids
+}
+
+output "configuration_profile_id" {
+  value = module.app_config.configuration_profile_id
+}
+
+output "appconfig_extension_layer_arn" {
+  value = module.app_config.appconfig_extension_layer_arn
+}
