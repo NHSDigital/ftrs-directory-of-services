@@ -34,6 +34,8 @@ lint-fix:
 	poetry run ruff check --fix
 	poetry run ruff format
 
+pre-commit: lint
+
 test:
 	@for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
