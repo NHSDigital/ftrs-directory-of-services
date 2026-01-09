@@ -12,9 +12,9 @@ This page is auto-generated; do not hand-edit.
 
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
-| Security | [SEC-002](#Infrastructure–SecurityNFRs&Controls-SEC-002) | WAF security pillar checklist completed & gaps tracked | Complete the AWS/WAF security pillar checklist and track remediation actions for any gaps. | [FTRS-364](https://nhsd-jira.digital.nhs.uk/browse/FTRS-364) |
+| Security | [SEC-002](#Infrastructure–SecurityNFRs&Controls-SEC-002) | WAF security pillar checklist completed & gaps tracked | Complete the AWS/WAF security pillar checklist and track remediation actions for any gaps. | [FTRS-356](https://nhsd-jira.digital.nhs.uk/browse/FTRS-356) |
 | Security | [SEC-003](#Infrastructure–SecurityNFRs&Controls-SEC-003) | All endpoints TLS only; storage encryption enabled | All service endpoints enforce TLS and all stored data (databases, buckets) is encrypted at rest. | [FTRS-1563](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1563) |
-| Security | [SEC-004](#Infrastructure–SecurityNFRs&Controls-SEC-004) | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | (none) |
+| Security | [SEC-004](#Infrastructure–SecurityNFRs&Controls-SEC-004) | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | [FTRS-1611](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1611), [FTRS-1681](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1681), [FTRS-1587](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1587) |
 | Security | [SEC-005](#Infrastructure–SecurityNFRs&Controls-SEC-005) | Cross-environment data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | [FTRS-1494](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1494) |
 | Security | [SEC-006](#Infrastructure–SecurityNFRs&Controls-SEC-006) | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | (none) |
 | Security | [SEC-007](#Infrastructure–SecurityNFRs&Controls-SEC-007) | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | (none) |
@@ -22,7 +22,7 @@ This page is auto-generated; do not hand-edit.
 | Security | [SEC-009](#Infrastructure–SecurityNFRs&Controls-SEC-009) | ASVS & CIS benchmark automation reports pass thresholds | Automated ASVS and CIS benchmark scans meet pass thresholds; failures trigger remediation. | (none) |
 | Security | [SEC-010](#Infrastructure–SecurityNFRs&Controls-SEC-010) | Annual pen test executed; remediation tickets raised & closed | Annual penetration test completed; identified issues tracked and closed. | [FTRS-1440](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1440), [FTRS-1455](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1455), [FTRS-1462](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1462), [FTRS-2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2) |
 | Security | [SEC-011](#Infrastructure–SecurityNFRs&Controls-SEC-011) | Security features enabled latency within SLA | Enabling security controls does not push latency beyond defined SLAs. | (none) |
-| Security | [SEC-012](#Infrastructure–SecurityNFRs&Controls-SEC-012) | IAM policy review confirms least privilege for system roles | IAM roles and policies grant least privilege; periodic reviews confirm minimal access. | [FTRS-1274](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1274) |
+| Security | [SEC-012](#Infrastructure–SecurityNFRs&Controls-SEC-012) | IAM policy review confirms least privilege for system roles | IAM roles and policies grant least privilege; periodic reviews confirm minimal access. | [FTRS-359](https://nhsd-jira.digital.nhs.uk/browse/FTRS-359) |
 | Security | [SEC-013](#Infrastructure–SecurityNFRs&Controls-SEC-013) | Key rotation events logged; unauthorized access denied | Cryptographic keys rotate on schedule and unauthorized access attempts are rejected and logged. | (none) |
 | Security | [SEC-014](#Infrastructure–SecurityNFRs&Controls-SEC-014) | mTLS handshake succeeds between designated services | Mutual TLS (mTLS) succeeds between designated internal services to protect sensitive flows. | [FTRS-1600](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1600) |
 | Security | [SEC-015](#Infrastructure–SecurityNFRs&Controls-SEC-015) | Expiry alert fired in advance; renewal executed seamlessly | Certificate expiry is detected in advance; renewal occurs without downtime. | [FTRS-1604](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1604) |
@@ -37,8 +37,8 @@ This page is auto-generated; do not hand-edit.
 | Security | [SEC-024](#Infrastructure–SecurityNFRs&Controls-SEC-024) | Code/data transfer logs show integrity & secure channels | Transfer of code or data maintains integrity and uses secure channels; events are logged. | (none) |
 | Security | [SEC-025](#Infrastructure–SecurityNFRs&Controls-SEC-025) | PID requests enforce mTLS; plain text blocked | Requests containing identifiable patient data enforce mTLS; plaintext attempts are blocked. | (none) |
 | Security | [SEC-026](#Infrastructure–SecurityNFRs&Controls-SEC-026) | API responses contain no unencrypted PID fields | API responses never include unencrypted patient identifiable data (PID) fields. | (none) |
-| Security | [SEC-027](#Infrastructure–SecurityNFRs&Controls-SEC-027) | Build fails on high CVE; report archived | Build pipeline blocks release when critical CVEs exceed threshold; reports archived. | (none) |
-| Security | [SEC-028](#Infrastructure–SecurityNFRs&Controls-SEC-028) | Release pipeline blocks on critical unresolved findings | Releases are halted if critical unresolved security findings remain. | (none) |
+| Security | [SEC-027](#Infrastructure–SecurityNFRs&Controls-SEC-027) | Build fails on high CVE; report archived | Build pipeline blocks release when critical CVEs exceed threshold; reports archived. | [FTRS-1783](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1783), [FTRS-1779](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1779)|
+| Security | [SEC-028](#Infrastructure–SecurityNFRs&Controls-SEC-028) | Release pipeline blocks on critical unresolved findings | Releases are halted if critical unresolved security findings remain. | [FTRS-1783](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1783), [FTRS-1779](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1779)|
 | Security | [SEC-030](#Infrastructure–SecurityNFRs&Controls-SEC-030) | Certificates and private keys stored only in approved encrypted secret stores; zero plain text exposure | Certificates and private keys are stored only in approved encrypted secret stores (e.g., Secrets Manager/KMS) with zero plaintext exposure across repositories, images, logs, or build artifacts; continuous scanning enforces compliance. | [FTRS-1602](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1602) |
 
 ## Controls
@@ -73,7 +73,7 @@ See explanation: [SEC-004](../../explanations.md#Explanations-SEC-004)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | Continuous + CI enforcement | dev,int,ref,prod | Infrastructure | draft | (none) | Guardrails ensure encryption at rest across services |
+| storage-encryption-enabled | Storage services show encryption enabled | 100% storage resources encrypted at rest | Continuous + CI enforcement | dev,int,ref,prod | Infrastructure | draft | [FTRS-1611](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1611), [FTRS-1681](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1681), [FTRS-1587](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1587) | Guardrails ensure encryption at rest across services |
 
 ### SEC-005
 
