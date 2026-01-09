@@ -3,7 +3,6 @@ from loguru import logger
 
 
 class GetSecretWrapper:
-
     def __init__(self):
         self.client = boto3.client("secretsmanager")
 

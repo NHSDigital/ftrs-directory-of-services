@@ -1,5 +1,6 @@
 import socket
 import time
+
 from loguru import logger
 
 
@@ -13,5 +14,7 @@ def wait_for_dns(hostname, timeout=180, interval=5):
             return True
         except socket.error:
             time.sleep(interval)
-            logger.error(f"DNS for {hostname} is not resolvable after {time.time()} seconds.")
+            logger.error(
+                f"DNS for {hostname} is not resolvable after {time.time()} seconds."
+            )
     return False

@@ -1,4 +1,5 @@
 """Shared step definitions for data migration BDD tests."""
+
 import os
 from typing import Any, Dict, List, Literal
 
@@ -6,7 +7,6 @@ import pytest
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
-
 from tests.service_automation.tests.utilities.common.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
@@ -33,7 +33,6 @@ from utilities.common.data_migration.sqs_helper import build_sqs_event
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
-    verify_error_log_present,
     verify_service_not_migrated_log,
     verify_service_skipped_log,
     verify_transformation_log,
@@ -61,9 +60,9 @@ def run_test_environment_configured(
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
     logger.info("Environment configuration verified")
 

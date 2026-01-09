@@ -1,6 +1,5 @@
 from sqlalchemy import text
 from sqlmodel import Session
-
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
 
 
@@ -23,7 +22,7 @@ class TestDoSDbWithMigrationFixture:
 
         # Query for all tables in the pathwaysdos schema
         result = dos_db_with_migration.exec(
-                    text("""
+            text("""
                         SELECT table_name
                         FROM information_schema.tables
                         WHERE table_schema = 'pathwaysdos'

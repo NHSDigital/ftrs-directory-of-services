@@ -1,10 +1,9 @@
 import pytest
-from pytest_bdd import given, when, then, scenarios
+from pytest_bdd import given, scenarios, then
 from sqlalchemy import text
 
-
 # Load all scenarios from the feature file
-scenarios('./data_migration_features/database_dynamodb.feature')
+scenarios("./data_migration_features/database_dynamodb.feature")
 
 
 @given("the DoS database fixture is available")
@@ -46,7 +45,7 @@ def then_can_access_dynamodb_tables(dynamodb):
 
     # Verify our test tables exist
     table_names = response["TableNames"]
-    expected_tables = ["organisation", "location", "healthcare-service","triage-code"]
+    expected_tables = ["organisation", "location", "healthcare-service", "triage-code"]
 
     for table_name in expected_tables:
         assert table_name in table_names, f"Expected table '{table_name}' should exist"
@@ -68,9 +67,9 @@ def then_both_connections_work(dos_db, dynamodb):
 
 
 # Optional: Add a cleanup step that can be used in BDD scenarios
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture(autouse=True)
 def cleanup_after_scenario():
     """Automatically cleanup after each scenario."""
-    yield
+    return
     # Any additional cleanup logic can go here
     # The fixture cleanup will handle DB connections automatically

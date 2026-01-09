@@ -1,4 +1,5 @@
 import json
+
 from botocore.exceptions import ClientError
 from loguru import logger
 
@@ -8,7 +9,6 @@ class LambdaWrapper:
         self.lambda_client = lambda_client
         self.iam_resource = iam_resource
 
-
     def get_function(self, function_name):
         response = None
         try:
@@ -17,27 +17,26 @@ class LambdaWrapper:
             if err.response["Error"]["Code"] == "ResourceNotFoundException":
                 logger.debug("Function {} does not exist.", function_name)
             else:
-                logger.debug("Couldn't get function {} Here's why: {}: {}",
+                logger.debug(
+                    "Couldn't get function {} Here's why: {}: {}",
                     function_name,
                     err.response["Error"]["Code"],
-                    err.response["Error"]["Message"],)
+                    err.response["Error"]["Message"],
+                )
                 raise
         return response
-
 
     def invoke_function(self, function_name, function_params, get_log=False):
         try:
             response = self.lambda_client.invoke(
-                FunctionName=function_name,
-                Payload=json.dumps(function_params)
+                FunctionName=function_name, Payload=json.dumps(function_params)
             )
             logger.debug("Invoked function {}.", function_name)
-            payload = json.loads(response['Payload'].read().decode())
+            payload = json.loads(response["Payload"].read().decode())
         except ClientError:
             logger.debug("Couldn't invoke function {}.", function_name)
             raise
         return payload
-
 
     def check_function_exists(self, lambda_name):
         try:

@@ -1,4 +1,5 @@
 """Pytest fixtures for data migration testing."""
+
 import os
 import subprocess
 import tempfile
@@ -8,19 +9,26 @@ from urllib.parse import urlparse
 
 import boto3
 import pytest
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session, create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
-
-from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from utilities.common.constants import ENV_ENVIRONMENT, ENV_SOURCE_DB_HOST, ENV_SOURCE_DB_NAME, ENV_SOURCE_DB_PASSWORD, ENV_SOURCE_DB_PORT, ENV_SOURCE_DB_USER, ENV_WORKSPACE
+from utilities.common.constants import (
+    ENV_ENVIRONMENT,
+    ENV_SOURCE_DB_HOST,
+    ENV_SOURCE_DB_NAME,
+    ENV_SOURCE_DB_PASSWORD,
+    ENV_SOURCE_DB_PORT,
+    ENV_SOURCE_DB_USER,
+    ENV_WORKSPACE,
+)
+from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.common.legacy_dos_rds_tables import LEGACY_DOS_TABLES
-from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.rds_data import gp_service
 
 
@@ -94,13 +102,17 @@ def _dump_schema_and_data(
     env["PGPASSWORD"] = source_config["password"]
 
     logger.info(f"Dumping schema to: {schema_file}")
-    schema_result = subprocess.run(schema_cmd, env=env, capture_output=True, text=True)
+    schema_result = subprocess.run(
+        schema_cmd, check=False, env=env, capture_output=True, text=True
+    )
 
     if schema_result.returncode != 0:
         raise RuntimeError(f"Schema dump failed: {schema_result.stderr}")
 
     logger.info(f"Dumping data for tables: {', '.join(LEGACY_DOS_TABLES)}")
-    data_result = subprocess.run(data_cmd, env=env, capture_output=True, text=True)
+    data_result = subprocess.run(
+        data_cmd, check=False, env=env, capture_output=True, text=True
+    )
 
     if data_result.returncode != 0:
         raise RuntimeError(f"Data dump failed: {data_result.stderr}")
@@ -137,13 +149,17 @@ def _load_schema_and_data(
     env["PGPASSWORD"] = container_config["password"]
 
     logger.info("Loading schema into test container")
-    schema_result = subprocess.run(schema_cmd, env=env, capture_output=True, text=True)
+    schema_result = subprocess.run(
+        schema_cmd, check=False, env=env, capture_output=True, text=True
+    )
 
     if schema_result.returncode != 0:
         logger.warning(f"Schema load had warnings: {schema_result.stderr}")
 
     logger.info("Loading data into test container")
-    data_result = subprocess.run(data_cmd, env=env, capture_output=True, text=True)
+    data_result = subprocess.run(
+        data_cmd, check=False, env=env, capture_output=True, text=True
+    )
 
     if data_result.returncode != 0:
         logger.warning(f"Data load had warnings: {data_result.stderr}")
@@ -319,7 +335,7 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
         logger.error(f"DynamoDB cleanup failed: {e}")
 
 
-@pytest.fixture(name="dos_db", scope="function")
+@pytest.fixture(name="dos_db")
 def fixture_dos_db(
     postgres_container: PostgresContainer,
 ) -> Generator[Session, None, None]:
@@ -347,7 +363,7 @@ def fixture_dos_db(
         engine.dispose()
 
 
-@pytest.fixture(name="dos_db_with_migration", scope="function")
+@pytest.fixture(name="dos_db_with_migration")
 def fixture_dos_db_with_migration(
     postgres_container: PostgresContainer,
 ) -> Generator[Session, None, None]:
@@ -375,7 +391,7 @@ def fixture_dos_db_with_migration(
         engine.dispose()
 
 
-@pytest.fixture(name="dynamodb", scope="function")
+@pytest.fixture(name="dynamodb")
 def fixture_dynamodb(
     localstack_container: LocalStackContainer,
 ) -> Generator[Dict[str, Any], None, None]:
@@ -415,7 +431,7 @@ def fixture_dynamodb(
         _cleanup_dynamodb_tables(client)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def dos_search_context() -> Dict[str, Any]:
     """
     Context for storing test data during BDD scenarios.
@@ -426,12 +442,15 @@ def dos_search_context() -> Dict[str, Any]:
     return {}
 
 
-@pytest.fixture(scope="function")
-def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
+@pytest.fixture
+def model_repos_local(
+    dynamodb,
+) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
     def prep_local_repo(table_name, model_cls, dynamodb):
         model_repo = get_service_repository(model_cls, table_name)
         model_repo.resource = dynamodb[
-            "resource"]  # fake credentials aligned with localstack set in the injected dynamodb client
+            "resource"
+        ]  # fake credentials aligned with localstack set in the injected dynamodb client
         model_repo.table = dynamodb["resource"].Table(table_name)
         return model_repo
 
@@ -444,7 +463,7 @@ def model_repos_local(dynamodb) -> dict[str, AttributeLevelRepository[Organisati
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_helper(
     postgres_container: PostgresContainer,
     dynamodb: Dict[str, Any],
@@ -487,7 +506,7 @@ def migration_helper(
     )
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
     """
     Context to store migration test data across BDD steps.

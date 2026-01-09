@@ -1,4 +1,5 @@
 """Helper utilities for working with migration test context."""
+
 import os
 from typing import Any, Dict, Optional, Tuple
 

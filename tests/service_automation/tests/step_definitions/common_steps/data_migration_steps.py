@@ -5,7 +5,13 @@ import pytest
 from pytest_bdd import given, parsers, then, when
 from sqlalchemy import text
 from sqlmodel import Session
-
+from utilities.common.constants import (
+    DYNAMODB_CLIENT,
+    ENV_ENVIRONMENT,
+    ENV_PROJECT_NAME,
+    ENV_WORKSPACE,
+    SERVICES_TABLE,
+)
 from utilities.common.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
@@ -22,23 +28,15 @@ from utilities.common.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
 from utilities.common.data_migration.sqs_helper import build_sqs_event
-from utilities.common.constants import (
-    DYNAMODB_CLIENT,
-    ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
-    ENV_WORKSPACE,
-    SERVICES_TABLE,
-)
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
-    verify_migration_completed_log,
     verify_error_log_present,
+    verify_migration_completed_log,
     verify_service_not_migrated_log,
     verify_service_skipped_log,
     verify_transformation_log,
     verify_transformer_selected_log,
 )
-
 
 # ============================================================
 # Setup Steps (Background)
@@ -52,16 +50,16 @@ def environment_configured(
     """Verify test environment is properly configured."""
     try:
         response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
+        response.get("TableNames", [])
         assert "TableNames" in response, "DynamoDB should be accessible"
     except Exception as e:
         pytest.fail(f"Failed to access DynamoDB: {e}")
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
 
 @given("the DoS database has test data")
@@ -125,6 +123,7 @@ def create_service_with_attributes(
 # ============================================================
 # Migration Execution Steps (When)
 # ============================================================
+
 
 @when("triage code full migration is executed")
 def triage_code_full_migration(migration_helper: MigrationHelper, dynamodb):
@@ -374,7 +373,9 @@ def verify_service_skipped(
     )
 
 
-@then(parsers.parse("error log containing message: '{error_message_fragment}' was found"))
+@then(
+    parsers.parse("error log containing message: '{error_message_fragment}' was found")
+)
 def verify_error_level_log(
     migration_context: Dict[str, Any],
     error_message_fragment: str,
