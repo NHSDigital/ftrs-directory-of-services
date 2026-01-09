@@ -12,11 +12,8 @@ from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
-from service_migration.processor import (
-    DataMigrationMetrics,
-    DataMigrationProcessor,
-    ServiceTransformOutput,
-)
+from service_migration.processor import DataMigrationMetrics, DataMigrationProcessor
+from service_migration.transformer.base import ServiceTransformOutput
 from service_migration.validation.types import ValidationIssue, ValidationResult
 
 
