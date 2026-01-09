@@ -24,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <longProp name="ThreadGroup.duration">3700</longProp>
@@ -285,7 +285,7 @@ if (iteration == 1) {
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
             <stringProp name="HTTPSampler.path">/dos-search-ftrs-1380/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -333,7 +333,7 @@ if (iteration == 1) {
             <hashTree/>
             <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assertion - Check response that resourceType is Organization">
               <stringProp name="JSON_PATH">$.entry[0].resource.resourceType</stringProp>
-              <stringProp name="EXPECTED_VALUE">Organizationß</stringProp>
+              <stringProp name="EXPECTED_VALUE">Organization</stringProp>
               <boolProp name="JSONVALIDATION">true</boolProp>
               <boolProp name="EXPECT_NULL">false</boolProp>
               <boolProp name="INVERT">false</boolProp>
