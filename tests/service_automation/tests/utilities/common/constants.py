@@ -68,4 +68,5 @@ EXPECTED_DYNAMODB_RESOURCES: List[str] = [
     "organisation",
     "location",
     "healthcare-service",
+    "data-migration-state",
 ]
