@@ -101,7 +101,13 @@ def get_expected_dynamodb_table_names() -> list[str]:
     environment = os.getenv(ENV_ENVIRONMENT)
     workspace = os.getenv(ENV_WORKSPACE)
 
-    return [
-        f"{project_name}-{environment}-database-{resource}-{workspace}"
-        for resource in EXPECTED_DYNAMODB_RESOURCES
-    ]
+    table_names = []
+    for resource in EXPECTED_DYNAMODB_RESOURCES:
+        # data-migration-* tables don't use "database" prefix
+        if resource.startswith("data-migration-"):
+            table_name = f"{project_name}-{environment}-{resource}-{workspace}"
+        else:
+            table_name = f"{project_name}-{environment}-database-{resource}-{workspace}"
+        table_names.append(table_name)
+
+    return table_names
