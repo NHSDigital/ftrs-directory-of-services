@@ -29,16 +29,18 @@ runs:
     - name: Run Authentication Script
       id: authenticate
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        ENV: ${{ inputs.environment }}
+        AWS_REGION: ${{ inputs.aws_region }}
       run: |
-        export API_NAME=${{ inputs.api_name }}
-        export ENV=${{ inputs.environment }}
-        export AWS_REGION=${{ inputs.aws_region }}
+        set -euo pipefail
 
         chmod +x ./scripts/workflow/get-apim-token.sh
         ACCESS_TOKEN=$(/bin/bash ./scripts/workflow/get-apim-token.sh)
 
-        if [ -z "$ACCESS_TOKEN" ]; then
-          echo "Failed to retrieve access token"
+        if [ -z "${ACCESS_TOKEN:-}" ]; then
+          echo "Failed to retrieve access token" >&2
           exit 1
         fi
 
@@ -46,6 +48,6 @@ runs:
         echo "::add-mask::$ACCESS_TOKEN"
 
         # Set as output
-        echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+        printf 'access_token=%s\n' "$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
 
         echo "✓ Access token retrieved successfully"
