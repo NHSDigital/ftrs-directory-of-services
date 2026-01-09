@@ -105,10 +105,10 @@ class TestDosLogger:
 
         modified_event = deepcopy(event)
 
-        modified_event["headers"].pop("NHSD-Api-Version")
-        modified_event["headers"].pop("NHSD-End-User-Role")
-        modified_event["headers"].pop("NHSD-Client-Id")
-        modified_event["headers"].pop("NHSD-Connecting-Party-App-Name")
+        modified_event["headers"].pop("version")
+        modified_event["headers"].pop("end-user-role")
+        modified_event["headers"].pop("application-id")
+        modified_event["headers"].pop("connecting-party-app-name")
         modified_event["queryStringParameters"] = {}
         modified_event["pathParameters"] = None
         modified_event["requestContext"] = {}
@@ -122,7 +122,7 @@ class TestDosLogger:
 
         placeholder_details["opt_dos_api_version"] = placeholder
         placeholder_details["opt_dos_end_user_role"] = placeholder
-        placeholder_details["opt_dos_client_id"] = placeholder
+        placeholder_details["opt_dos_application_id"] = placeholder
         placeholder_details["opt_dos_application_name"] = placeholder
         for key in placeholder_details["opt_dos_request_params"]:
             placeholder_details["opt_dos_request_params"][key] = {}

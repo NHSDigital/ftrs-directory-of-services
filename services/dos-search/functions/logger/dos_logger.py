@@ -138,16 +138,16 @@ class DosLogger:
         # One-time fields added to "details" to separate
         details = {}
 
-        api_version = self._get_header("NHSD-Api-Version") or placeholder
+        api_version = self._get_header("version") or placeholder
         details["opt_dos_api_version"] = api_version
 
-        end_user_role = self._get_header("NHSD-End-User-Role") or placeholder
+        end_user_role = self._get_header("end-user-role") or placeholder
         details["opt_dos_end_user_role"] = end_user_role
 
-        client_id = self._get_header("NHSD-Client-Id") or placeholder
-        details["opt_dos_client_id"] = client_id
+        client_id = self._get_header("application-id") or placeholder
+        details["opt_dos_application_id"] = client_id
 
-        app_name = self._get_header("NHSD-Connecting-Party-App-Name") or placeholder
+        app_name = self._get_header("connecting-party-app-name") or placeholder
         details["opt_dos_application_name"] = app_name
 
         # Request params

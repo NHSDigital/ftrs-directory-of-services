@@ -38,10 +38,10 @@ def event(ods_code):
             "NHSD-Correlation-ID": "request_id.correlation_id.message_id",
             "NHSD-Request-ID": "request_id",
             # One-time log field headers
-            "NHSD-Api-Version": "v0.0.0",
-            "NHSD-End-User-Role": "Clinician",
-            "NHSD-Client-Id": "client_id",
-            "NHSD-Connecting-Party-App-Name": "111-online",
+            "version": 1,
+            "end-user-role": "Clinician",
+            "application-id": "application_id",
+            "connecting-party-app-name": "dos_unit_tests",
         },
         "path": "/Organization",
         "httpMethod": "GET",
@@ -72,11 +72,11 @@ def log_data():
 def details(event):
     return {
         "opt_dos_environment": "Development",
-        "opt_dos_api_version": "v0.0.0",
+        "opt_dos_api_version": 1,
         "opt_dos_lambda_version": "0.0.1",
         "opt_dos_end_user_role": "Clinician",
-        "opt_dos_client_id": "client_id",
-        "opt_dos_application_name": "111-online",
+        "opt_dos_application_id": "application_id",
+        "opt_dos_application_name": "dos_unit_tests",
         "opt_dos_request_params": {
             "query_params": event.get("queryStringParameters") or {},
             "path_params": event.get("pathParameters") or {},
