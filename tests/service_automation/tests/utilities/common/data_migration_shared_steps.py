@@ -18,7 +18,6 @@ from tests.service_automation.tests.utilities.data_migration.migration_context_h
 from utilities.common.constants import (
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
     ENV_WORKSPACE,
     SERVICES_TABLE,
 )
@@ -89,14 +88,13 @@ def run_dynamodb_tables_ready(dynamodb: DynamoDBFixture) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
         environment = os.getenv(ENV_ENVIRONMENT)
         workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+            f"Expected pattern: ftrs-dos-{environment}-database-{{resource}}-{workspace}"
         )
 
     logger.info("All required DynamoDB tables are ready")

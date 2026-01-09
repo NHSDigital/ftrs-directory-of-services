@@ -64,9 +64,9 @@ SERVICETYPES_TABLE = f"{PATHWAYSDOS_SCHEMA}.servicetypes"
 REQUIRED_SERVICE_FIELDS: List[str] = ["id", "typeid", "statusid"]
 
 # DynamoDB Resources
-EXPECTED_DYNAMODB_RESOURCES: List[str] = [
-    "organisation",
-    "location",
-    "healthcare-service",
-    "data-migration-state",
+EXPECTED_DYNAMODB_RESOURCES: List[tuple[str, str]] = [
+    ("database", "organisation"),
+    ("database", "location"),
+    ("database", "healthcare-service"),
+    ("data-migration", "state"),
 ]
