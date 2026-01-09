@@ -13,7 +13,7 @@ This page is auto-generated; do not hand-edit.
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
 | Reliability | [REL-001](#Infrastructure–ReliabilityNFRs&Controls-REL-001) | Health checks, multi-AZ deployment documented | Service remains healthy across multiple availability zones with verified health checks. | (none) |
-| Reliability | [REL-002](#Infrastructure–ReliabilityNFRs&Controls-REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | (none) |
+| Reliability | [REL-002](#Infrastructure–ReliabilityNFRs&Controls-REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | [FTRS-343](https://nhsd-jira.digital.nhs.uk/browse/FTRS-343) |
 | Reliability | [REL-003](#Infrastructure–ReliabilityNFRs&Controls-REL-003) | Lifecycle reliability checklist completed | Lifecycle reliability checklist is completed for the service components. | (none) |
 | Reliability | [REL-004](#Infrastructure–ReliabilityNFRs&Controls-REL-004) | DoS simulation mitigated; service responsive | Denial-of-service (DoS) simulation shows successful mitigation and continued responsiveness. | (none) |
 | Reliability | [REL-005](#Infrastructure–ReliabilityNFRs&Controls-REL-005) | Injection attempt blocked; no code execution | Injection attacks are blocked, preventing arbitrary code execution attempts. | (none) |
@@ -42,7 +42,7 @@ See explanation: [REL-002](../../explanations.md#Explanations-REL-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Quarterly exercise | int,ref | Infrastructure | draft | (none) | Validates resilience to Availability Zone failures |
+| az-failure-simulation | AZ failure simulation maintains service | Successful failover with sustained service availability; no data loss | Quarterly exercise | int,ref | Infrastructure | draft | [FTRS-343](https://nhsd-jira.digital.nhs.uk/browse/FTRS-343) | Validates resilience to Availability Zone failures |
 
 ### REL-003
 
