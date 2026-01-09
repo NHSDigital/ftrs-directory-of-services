@@ -167,7 +167,7 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_020 = LogReference(
         level=INFO,
-        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+        message="No state record found for Service ID {record_id}",
     )
 
     DM_ETL_021 = LogReference(
@@ -178,6 +178,10 @@ class DataMigrationLogBase(LogBase):
     DM_ETL_022 = LogReference(
         level=ERROR,
         message="One or more items exist for  Service ID {record_id}",
+    )
+    DM_ETL_023 = LogReference(
+        level=INFO,
+        message="Retrieving state record for service ID: {record_id}",
     )
 
     DM_ETL_999 = LogReference(

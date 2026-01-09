@@ -96,6 +96,12 @@ class DataMigrationProcessor:
     def _process_service(self, service: legacy.Service) -> None:
         """
         Process a single record by transforming it using the appropriate transformer.
+
+        Pipeline workflow:
+        1. Validate the service can be migrated
+        2. Transform to future data model
+        3. Check state table to determine if insert or update operation
+        4. Save to future system tables (insert only, update logic pending)
         """
 
         self.logger.append_keys(record_id=service.id)
@@ -159,14 +165,14 @@ class DataMigrationProcessor:
                 ),
             )
 
-            state_exists = self.verify_state_record_exist(service.id)
+            # Check if service has been previously migrated
+            state = self.verify_state_record_exist(service.id)
 
-            if state_exists:
-                self.logger.log(
-                    DataMigrationLogBase.DM_ETL_019,
-                    record_id=service.id,
-                )
+            if state is not None:
+                # Update scenario: state exists, exit early (update logic not yet implemented)
                 return
+
+            # Insert scenario: new service, continue with save
             self._save(result, service.id)
             self.metrics.migrated_records += 1
 
@@ -244,6 +250,8 @@ class DataMigrationProcessor:
     def _save(self, result: ServiceTransformOutput, service_id: int) -> None:
         """
         Save the transformed result to DynamoDB using transact_write_items for atomic writes.
+
+        Creates organisation, location, healthcare service, and state records atomically.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
 
@@ -298,7 +306,7 @@ class DataMigrationProcessor:
         # Add DataMigrationState record
         state_data = DataMigrationState(
             id=uuid4(),
-            source_record_id=f"services#{service_id}",
+            source_record_id=DataMigrationState.make_source_record_id(service_id),
             version=1,
             organisation_id=result.organisation[0].id,
             organisation=result.organisation[0],
@@ -378,32 +386,47 @@ class DataMigrationProcessor:
             postgresql_readonly=True
         )
 
-    def verify_state_record_exist(self, record_id: int) -> bool:
+    def verify_state_record_exist(self, record_id: int) -> DataMigrationState | None:
         """
         Check if a data migration state record exists for the given service ID.
-        Returns True if the state record exists.
-        Uses get_item with the source_record_id as the key.
+
+        Uses direct DynamoDB client access due to state table's different key structure
+        (source_record_id vs standard id+field pattern).
+
+        Args:
+            record_id: The DoS service ID to lookup
+
+        Returns:
+            DataMigrationState object if record exists (update operation), None otherwise (insert operation)
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-
         state_table = format_table_name(
             "data-migration-state", self.config.env, self.config.workspace
         )
-
-        source_record_id = "services#" + str(record_id)
+        source_record_id = DataMigrationState.make_source_record_id(record_id)
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_023,
+            record_id=record_id,
+        )
 
         response = dynamodb_client.get_item(
             TableName=state_table,
-            Key={
-                "source_record_id": {"S": source_record_id},
-            },
+            Key={"source_record_id": {"S": source_record_id}},
+            ConsistentRead=True,
         )
 
-        exists = "Item" in response
+        if "Item" in response:
+            state = DataMigrationState.from_dynamodb_item(response["Item"])
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_019,
+                record_id=record_id,
+                version=state.version,
+                message="State record found - treating as update operation",
+            )
+            return state
 
-        if exists:
-            self.logger.debug(f"State record found for service ID: {record_id}")
-        else:
-            self.logger.debug(f"No state record found for service ID: {record_id}")
-
-        return exists
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_020,
+            record_id=record_id,
+        )
+        return None
