@@ -25,7 +25,6 @@ from utilities.data_migration.sqs_helper import build_sqs_event
 from utilities.common.constants import (
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
     ENV_WORKSPACE,
     SERVICETYPES_TABLE,
 )
@@ -83,14 +82,13 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
         environment = os.getenv(ENV_ENVIRONMENT)
         workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+            f"Expected pattern: ftrs-dos-{environment}-database-{{resource}}-{workspace}"
         )
 
 

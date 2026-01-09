@@ -58,6 +58,7 @@ jobs:
       - metadata
       - quality-checks
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "python"
@@ -139,6 +140,7 @@ jobs:
       - deploy-application-infrastructure
     uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
     strategy:
+      fail-fast: false
       matrix:
         api_name:
           - dos-search
@@ -211,6 +213,7 @@ jobs:
       - metadata
       - deploy-application-infrastructure
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "dos-ui"
@@ -253,6 +256,7 @@ jobs:
   service-automation-tests:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
     strategy:
+      fail-fast: false
       matrix:
         include:
           - tag: "ftrs-pipeline"
