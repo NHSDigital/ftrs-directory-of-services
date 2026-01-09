@@ -1,10 +1,9 @@
 from time import perf_counter
 from typing import Any, Iterable
-from uuid import uuid4
 
-from boto3.dynamodb.types import TypeSerializer
+from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from ftrs_common.logger import Logger
-from ftrs_common.utils.db_service import format_table_name
+from ftrs_common.utils.db_service import get_table_name
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
@@ -14,13 +13,12 @@ from sqlmodel import Session, create_engine, select
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
-from service_migration.models import DataMigrationState
+from service_migration.ddb_transactions import ServiceTransactionBuilder
+from service_migration.models import ServiceMigrationState
 from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
-    ServiceTransformOutput,
 )
-from service_migration.validation.types import ValidationIssue
 
 
 class DataMigrationMetrics(BaseModel):
@@ -54,6 +52,7 @@ class DataMigrationProcessor:
     """
 
     serializer: TypeSerializer = TypeSerializer()
+    deserializer: TypeDeserializer = TypeDeserializer()
 
     def __init__(
         self,
@@ -158,17 +157,29 @@ class DataMigrationProcessor:
                 ),
             )
 
-            state_exists = self.verify_state_record_exist(service.id)
+            state_record = self.get_state_record(service.id)
 
-            if state_exists:
-                self.logger.log(
-                    DataMigrationLogBase.DM_ETL_019,
-                    record_id=service.id,
+            transaction_items = (
+                ServiceTransactionBuilder(
+                    service_id=service.id,
+                    logger=self.logger,
+                    migration_state=state_record,
+                    validation_issues=validation_result.issues,
                 )
-                return
-            self._save(result, service.id, validation_result.issues)
-            self.metrics.migrated_records += 1
+                .add_organisation(
+                    result.organisation[0] if result.organisation else None
+                )
+                .add_location(result.location[0] if result.location else None)
+                .add_healthcare_service(
+                    result.healthcare_service[0] if result.healthcare_service else None
+                )
+                .build()
+            )
 
+            if transaction_items:
+                self._execute_transaction(transaction_items)
+
+            self.metrics.migrated_records += 1
             elapsed_time = perf_counter() - start_time
 
             self.logger.log(
@@ -223,115 +234,17 @@ class DataMigrationProcessor:
         with Session(self.engine) as session:
             yield from session.scalars(stmt)
 
-    def _create_put_item(
-        self, model: BaseModel, table_name: str, **kwargs: dict[str, Any]
-    ) -> dict:
-        """Helper method to create DynamoDB Put item with proper serialization."""
-        data = model.model_dump(mode="json")
-        data["id"] = str(model.id)
-        data["field"] = "document"
-
-        put_item = {
-            "Put": {
-                "TableName": table_name,
-                "Item": {k: self.serializer.serialize(v) for k, v in data.items()},
-                **kwargs,
-            },
-        }
-        return put_item
-
-    def _save(
-        self,
-        result: ServiceTransformOutput,
-        service_id: int,
-        validation_issues: list[ValidationIssue],
-    ) -> None:
+    def _execute_transaction(self, transact_items: list[dict[str, Any]]) -> None:
         """
         Save the transformed result to DynamoDB using transact_write_items for atomic writes.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-
-        # Cache table names
-        env = self.config.env
-        workspace = self.config.workspace
-        tables = {
-            "organisation": format_table_name("organisation", env, workspace),
-            "location": format_table_name("location", env, workspace),
-            "healthcare_service": format_table_name(
-                "healthcare-service", env, workspace
-            ),
-            "state": format_table_name("data-migration-state", env, workspace),
-        }
-
-        # Build transaction items
-        transact_items = []
-
-        # Add all organisations
-        transact_items.extend(
-            self._create_put_item(
-                org,
-                tables["organisation"],
-                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
-                ExpressionAttributeNames={"#field": "field"},
-            )
-            for org in result.organisation
-        )
-
-        # Add all locations
-        transact_items.extend(
-            self._create_put_item(
-                loc,
-                tables["location"],
-                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
-                ExpressionAttributeNames={"#field": "field"},
-            )
-            for loc in result.location
-        )
-
-        # Add all healthcare services
-        transact_items.extend(
-            self._create_put_item(
-                hc,
-                tables["healthcare_service"],
-                ConditionExpression="attribute_not_exists(id) AND attribute_not_exists(#field)",
-                ExpressionAttributeNames={"#field": "field"},
-            )
-            for hc in result.healthcare_service
-        )
-
-        organisation = result.organisation[0] if result.organisation else None
-        location = result.location[0] if result.location else None
-        healthcare_service = (
-            result.healthcare_service[0] if result.healthcare_service else None
-        )
-
-        # Add DataMigrationState record
-        state_data = DataMigrationState(
-            id=uuid4(),
-            source_record_id=f"services#{service_id}",
-            version=1,
-            organisation_id=getattr(organisation, "id", None),
-            organisation=organisation,
-            location_id=getattr(location, "id", None),
-            location=location,
-            healthcare_service_id=getattr(healthcare_service, "id", None),
-            healthcare_service=healthcare_service,
-            validation_issues=validation_issues,
-        )
-        transact_items.append(
-            self._create_put_item(
-                state_data,
-                tables["state"],
-                ConditionExpression="attribute_not_exists(source_record_id)",
-            )
-        )
 
         # Execute atomic transaction
         try:
             dynamodb_client.transact_write_items(TransactItems=transact_items)
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_021,
-                record_id=service_id,
                 item_count=len(transact_items),
             )
         except Exception as e:
@@ -355,16 +268,11 @@ class DataMigrationProcessor:
                     for reason in cancellation_reasons
                 ):
                     self.logger.log(
-                        DataMigrationLogBase.DM_ETL_022,
-                        record_id=service_id,
+                        DataMigrationLogBase.DM_ETL_022, response=e.response
                     )
                     return
 
-            # For all other exceptions, log and re-raise
-            self.logger.exception(
-                f"Failed to write items transactionally for service {service_id}"
-            )
-            raise
+            raise  # Reraise other exceptions
 
     def create_db_engine(self) -> Engine:
         # Validate the presence of a real connection string to avoid confusing errors when given mocks
@@ -380,26 +288,37 @@ class DataMigrationProcessor:
             postgresql_readonly=True
         )
 
-    def verify_state_record_exist(self, record_id: int) -> bool:
+    def get_state_record(self, service_id: int) -> ServiceMigrationState | None:
         """
         Check if a data migration state record exists for the given service ID.
         Returns True if the state record exists.
         Uses get_item with the source_record_id as the key.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
+        state_table = get_table_name("data-migration-state")
 
-        state_table = format_table_name(
-            "data-migration-state", self.config.env, self.config.workspace
-        )
-
-        source_record_id = "services#" + str(record_id)
+        source_record_id = ServiceMigrationState.format_source_record_id(service_id)
 
         response = dynamodb_client.get_item(
             TableName=state_table,
-            Key={
-                "source_record_id": {"S": source_record_id},
-            },
+            Key={"source_record_id": {"S": source_record_id}},
         )
 
-        exists = "Item" in response
-        return exists
+        item = response.get("Item")
+        if not item:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_020,
+                record_id=service_id,
+            )
+            return None
+
+        # Deserialize the item back into a ServiceMigrationState
+        deserialized_data = {
+            k: self.deserializer.deserialize(v) for k, v in item.items()
+        }
+
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_019,
+            record_id=service_id,
+        )
+        return ServiceMigrationState.model_validate(deserialized_data)
