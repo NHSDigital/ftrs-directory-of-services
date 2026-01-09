@@ -23,7 +23,7 @@ scenarios(
 # ============================================================
 
 
-@when(parsers.parse('a record does not exist in the state table for key "{state_key}"'))
+@when(parsers.parse("a record does not exist in the state table for key '{state_key}'"))
 def verify_no_state_record(
     dynamodb: Dict[str, Any],
     state_key: str,
@@ -121,36 +121,6 @@ def verify_all_records_created(
     # Verify organisation, location, and healthcare service exist
     # (these are verified through successful migration and metrics)
     assert result.metrics.inserted_records == 1, "Should have inserted 1 record"
-
-
-@then(
-    parsers.parse(
-        'the state table contains a record for key "{state_key}" with version {version:d}'
-    )
-)
-def verify_state_record_details(
-    dynamodb: Dict[str, Any],
-    state_key: str,
-    version: int,
-) -> None:
-    """Verify state record exists with correct version."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    assert deserialized_item["version"] == version, (
-        f"Version should be {version}, got {deserialized_item['version']}"
-    )
 
 
 @then(parsers.parse('the pipeline logs "{log_message}"'))

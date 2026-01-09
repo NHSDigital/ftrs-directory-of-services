@@ -307,6 +307,7 @@ class DataMigrationProcessor:
         response = dynamodb_client.get_item(
             TableName=state_table,
             Key={"source_record_id": {"S": source_record_id}},
+            ConsistentRead=True,
         )
 
         item = response.get("Item")

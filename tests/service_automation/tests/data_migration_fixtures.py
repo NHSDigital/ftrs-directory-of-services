@@ -256,6 +256,7 @@ def migration_context(dos_db: Session) -> Dict[str, Any]:
         sqs_service_ids (list[int]): Service IDs extracted from SQS event
         sqs_service_id (int|None): Primary service ID from SQS event
         mock_logger (MockLogger|None): MockLogger instance with captured logs
+        migration_state (dict|None): State record from DynamoDB state table
         db_session (Session): Active database session
 
     Args:
@@ -273,5 +274,6 @@ def migration_context(dos_db: Session) -> Dict[str, Any]:
         "sqs_service_ids": [],
         "sqs_service_id": None,
         "mock_logger": None,
+        "migration_state": None,
         "db_session": dos_db,
     }
