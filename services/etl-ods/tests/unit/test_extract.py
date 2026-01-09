@@ -277,7 +277,7 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         ("ABC123", True),
         ("ABC123456789", True),
         ("12345", True),
-        ("ABC", False),  # Too short
+        ("", False),  # Empty string
         ("ABC1234567890", False),  # Too long
         ("ABC-123", False),  # Invalid characters
         (123456, False),  # Not a string
