@@ -31,7 +31,7 @@ nfrs:
   explanation: Complete the AWS/WAF security pillar checklist and track remediation
     actions for any gaps.
   stories:
-  - FTRS-364
+  - FTRS-356
   controls:
   - control_id: waf-pillar-checklist
     measure: WAF security pillar checklist completed & gaps tracked
@@ -46,7 +46,7 @@ nfrs:
     status: draft
     rationale: Formalizes WAF security governance; gaps tracked to closure
     stories:
-    - FTRS-364
+    - FTRS-356
   teams:
   - infrastructure
 - code: SEC-003
@@ -76,7 +76,10 @@ nfrs:
   requirement: Storage services show encryption enabled
   explanation: Every storage service (S3, RDS, etc.) shows encryption enabled with
     managed or customer keys.
-  stories: []
+  stories:
+  - FTRS-1611
+  - FTRS-1681
+  - FTRS-1587
   controls:
   - control_id: storage-encryption-enabled
     measure: Storage services show encryption enabled
@@ -243,7 +246,7 @@ nfrs:
   explanation: IAM roles and policies grant least privilege; periodic reviews confirm
     minimal access.
   stories:
-  - FTRS-1274
+  - FTRS-359
   controls:
   - control_id: iam-least-privilege
     measure: IAM policy review confirms least privilege for system roles

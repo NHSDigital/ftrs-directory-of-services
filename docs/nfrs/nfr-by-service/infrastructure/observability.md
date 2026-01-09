@@ -13,7 +13,7 @@ This page is auto-generated; do not hand-edit.
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
 | Observability | [OBS-001](#Infrastructure–ObservabilityNFRs&Controls-OBS-001) | App & infra health panels show green | Application and infrastructure health panels display green status during normal operation. | [FTRS-1015](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1015) |
-| Observability | [OBS-002](#Infrastructure–ObservabilityNFRs&Controls-OBS-002) | Authenticated remote health dashboard accessible | Authenticated remote health dashboard is accessible to support teams. | (none) |
+| Observability | [OBS-002](#Infrastructure–ObservabilityNFRs&Controls-OBS-002) | Authenticated remote health dashboard accessible | Authenticated remote health dashboard is accessible to support teams. | [FTRS-2074](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2074) |
 | Observability | [OBS-003](#Infrastructure–ObservabilityNFRs&Controls-OBS-003) | Health event visible ≤60s after failure | Health events appear on dashboards shortly after failures (within target freshness). | [FTRS-1003](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1003) |
 | Observability | [OBS-004](#Infrastructure–ObservabilityNFRs&Controls-OBS-004) | Automated maintenance tasks executed; zero manual interventions | Automated maintenance tasks run successfully with no manual intervention required. | (none) |
 | Observability | [OBS-005](#Infrastructure–ObservabilityNFRs&Controls-OBS-005) | Performance metrics per layer present | Layered performance metrics (app, DB, cache) are visible. | [FTRS-1016](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1016) |
@@ -58,6 +58,17 @@ See explanation: [OBS-001](../../explanations.md#Explanations-OBS-001)
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
 | health-panels-green | App & infra health panels show green | All critical panels green; no stale data | Continuous + CI verification on change | int,ref,prod | Infrastructure | draft | [FTRS-1015](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1015) | Ensures at-a-glance service health visibility |
+
+### OBS-002
+
+Authenticated remote health dashboard accessible
+
+See explanation: [OBS-002](../../explanations.md#Explanations-OBS-002)
+
+| Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
+|----------|-------|---------|-------|----|--------|------|-------|---------|
+| remote-health-dashboard-auth | Authenticated remote health dashboard accessible | Dashboard accessible to authorised support staff; MFA enabled | Continuous | int,ref,prod | Infrastructure | draft | [FTRS-2074](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2074) | Ensures secure access for support teams |
+
 
 ### OBS-007
 

@@ -11,7 +11,7 @@ This page is auto-generated; do not hand-edit.
 | Code | Requirement | Explanation | Stories |
 |------|-------------|-------------|---------|
 | [GOV-001](../explanations.md#Explanations-GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
-| [GOV-002](../explanations.md#Explanations-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
+| [GOV-002](../explanations.md#Explanations-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | [FTRS-356](https://nhsd-jira.digital.nhs.uk/browse/FTRS-356) |
 | [GOV-003](../explanations.md#Explanations-GOV-003) | Solution Architecture Framework assessment approved | Solution Architecture Framework assessment is approved. | (none) |
 | [GOV-004](../explanations.md#Explanations-GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
 | [GOV-005](../explanations.md#Explanations-GOV-005) | GDPR compliance assessment signed by IG | GDPR compliance assessment signed by Information Governance. | (none) |

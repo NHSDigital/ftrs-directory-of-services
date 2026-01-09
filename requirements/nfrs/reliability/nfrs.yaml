@@ -11,7 +11,8 @@ nfrs:
 - code: REL-002
   requirement: AZ failure simulation maintains service
   explanation: Simulated AZ failure does not interrupt service delivery.
-  stories: []
+  stories:
+  - FTRS-343
   controls:
   - control_id: az-failure-simulation
     measure: AZ failure simulation maintains service

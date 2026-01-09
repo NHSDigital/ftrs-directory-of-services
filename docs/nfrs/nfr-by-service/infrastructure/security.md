@@ -53,7 +53,7 @@ See explanation: [SEC-002](../../explanations.md#Explanations-SEC-002)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | Quarterly + on change | dev,int,ref,prod | Infrastructure | draft | [FTRS-364](https://nhsd-jira.digital.nhs.uk/browse/FTRS-364) | Formalizes WAF security governance; gaps tracked to closure |
+| waf-pillar-checklist | WAF security pillar checklist completed & gaps tracked | Checklist complete; 100% actions tracked; 0 open critical gaps | Quarterly + on change | dev,int,ref,prod | Infrastructure | draft | [FTRS-356](https://nhsd-jira.digital.nhs.uk/browse/FTRS-356) | Formalizes WAF security governance; gaps tracked to closure |
 
 ### SEC-003
 
@@ -153,7 +153,7 @@ See explanation: [SEC-012](../../explanations.md#Explanations-SEC-012)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | CI per change + quarterly audit | dev,int,ref,prod | Infrastructure | draft | [FTRS-1274](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1274) | Continuous analysis prevents privilege creep; periodic review catches drift |
+| iam-least-privilege | IAM policy review confirms least privilege for system roles | >= 95% policies compliant; no wildcard resource; explicit actions only | CI per change + quarterly audit | dev,int,ref,prod | Infrastructure | draft | [FTRS-359](https://nhsd-jira.digital.nhs.uk/browse/FTRS-359) | Continuous analysis prevents privilege creep; periodic review catches drift |
 
 ### SEC-013
 

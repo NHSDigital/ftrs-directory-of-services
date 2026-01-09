@@ -11,7 +11,7 @@ This page is auto-generated; do not hand-edit.
 | Code | Requirement | Explanation | Stories |
 |------|-------------|-------------|---------|
 | [REL-001](../explanations.md#Explanations-REL-001) | Health checks, multi-AZ deployment documented | Service remains healthy across multiple availability zones with verified health checks. | (none) |
-| [REL-002](../explanations.md#Explanations-REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | (none) |
+| [REL-002](../explanations.md#Explanations-REL-002) | AZ failure simulation maintains service | Simulated AZ failure does not interrupt service delivery. | [FTRS-343](https://nhsd-jira.digital.nhs.uk/browse/FTRS-343) |
 | [REL-003](../explanations.md#Explanations-REL-003) | Lifecycle reliability checklist completed | Lifecycle reliability checklist is completed for the service components. | (none) |
 | [REL-004](../explanations.md#Explanations-REL-004) | DoS simulation mitigated; service responsive | Denial-of-service (DoS) simulation shows successful mitigation and continued responsiveness. | (none) |
 | [REL-005](../explanations.md#Explanations-REL-005) | Injection attempt blocked; no code execution | Injection attacks are blocked, preventing arbitrary code execution attempts. | (none) |

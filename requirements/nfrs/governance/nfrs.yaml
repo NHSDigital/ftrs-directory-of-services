@@ -22,7 +22,8 @@ nfrs:
 - code: GOV-002
   requirement: Well-Architected review completed & actions closed
   explanation: Well-Architected review completed; remediation actions closed.
-  stories: []
+  stories:
+  - FTRS-356
   controls:
   - control_id: well-architected-review
     measure: Well-Architected review completed & actions closed

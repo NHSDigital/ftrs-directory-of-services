@@ -30,6 +30,7 @@ nfrs:
     explanation: Disaster recovery (DR) simulation meets documented objectives.
     stories:
       - FTRS-11
+      - FTRS-407
     controls:
       - control_id: region-dr-simulation
         measure: Region DR simulation meets plan objectives

@@ -13,7 +13,7 @@ This page is auto-generated; do not hand-edit.
 | Domain | Code | Requirement | Explanation | Stories |
 |--------|------|-------------|-------------|---------|
 | Governance | [GOV-001](#Infrastructure–GovernanceNFRs&Controls-GOV-001) | Service Management pre-live acceptance signed | Service Management pre-live acceptance is signed off before go-live. | (none) |
-| Governance | [GOV-002](#Infrastructure–GovernanceNFRs&Controls-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | (none) |
+| Governance | [GOV-002](#Infrastructure–GovernanceNFRs&Controls-GOV-002) | Well-Architected review completed & actions closed | Well-Architected review completed; remediation actions closed. | [FTRS-356](https://nhsd-jira.digital.nhs.uk/browse/FTRS-356) |
 | Governance | [GOV-004](#Infrastructure–GovernanceNFRs&Controls-GOV-004) | Engineering Red-lines compliance checklist signed | Engineering red-lines compliance checklist is signed. | (none) |
 
 ## Controls
