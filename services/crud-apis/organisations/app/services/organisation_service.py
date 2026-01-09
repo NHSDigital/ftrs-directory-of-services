@@ -246,11 +246,10 @@ class OrganisationService:
         new = {field: getattr(payload, field) for field in allowed_fields}
 
         outdated_fields = {}
-        payload_data = payload.model_dump()
 
         for field in allowed_fields:
             if self._field_has_changed(current[field], new[field], field):
-                outdated_fields[field] = payload_data[field]
+                outdated_fields[field] = getattr(payload, field)
 
         if outdated_fields:
             self.logger.log(

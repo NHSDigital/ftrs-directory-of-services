@@ -140,7 +140,9 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
 
         # Extract legalDates from result for separate comparison
         result_legal_dates = result.pop("legalDates", None)
-        expected_legal_dates = {"start": date(2021, 1, 1), "end": date(2026, 12, 31)}
+        expected_legal_dates = LegalDates(
+            start=date(2021, 1, 1), end=date(2026, 12, 31)
+        )
 
         # Compare legalDates separately
         assert result_legal_dates == expected_legal_dates
@@ -149,7 +151,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "active": False,
             "name": "Updated Organisation",
             "telecom": [
-                {"type": TelecomType.EMAIL, "value": "test@nhs.net", "isPublic": True}
+                Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)
             ],
             "modified_by": "ETL_ODS_PIPELINE",
             "modifiedDateTime": FIXED_MODIFIED_TIME,
