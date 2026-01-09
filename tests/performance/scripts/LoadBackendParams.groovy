@@ -21,10 +21,9 @@ if (file.exists()) {
 }
 
 // Set ServiceEndpoint
-def pp_endpoint = vars.get("param_0_0")
-
 def serviceendpoint = props.get("serviceendpoint")
 if (serviceendpoint == null || serviceendpoint == "") {
-    serviceendpoint = pp_endpoint
+    serviceendpoint = vars.get("param_0_0")
 }
 vars.put("ServiceEndpoint", serviceendpoint)
+

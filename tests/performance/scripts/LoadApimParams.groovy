@@ -11,7 +11,6 @@ if (file.exists()) {
     // For each line, split by comma and set variables
     lines.eachWithIndex { line, idx ->
         def values = line.split(",")
-        log.info("here1")
 
         // Set each value as a variable, e.g. param_0_0, param_0_1, ...
         values.eachWithIndex { val, col ->
