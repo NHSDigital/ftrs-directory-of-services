@@ -877,6 +877,42 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
     )
 
 
+@pytest.mark.parametrize("invalid_active_value", ["true", "false", 1, 0, "1", "0"])
+def test_update_organisation_active_invalid_types_rejected(
+    invalid_active_value: str | int,
+) -> None:
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {
+                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "value": "ABC123",
+            }
+        ],
+        "name": "Test Organization",
+        "active": invalid_active_value,
+        "telecom": [],
+    }
+
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    body = response.json()
+    assert "detail" in body
+    active_errors = [
+        error for error in body["detail"] if error.get("loc") == ["body", "active"]
+    ]
+    assert len(active_errors) > 0
+    assert active_errors[0]["type"] == "bool_type"
+    assert "Input should be a valid boolean" in active_errors[0]["msg"]
+
+
 def test_update_organisation_identifier_empty_list() -> None:
     """Test that empty identifier list is rejected."""
     fhir_payload = {

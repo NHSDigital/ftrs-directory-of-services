@@ -13,7 +13,14 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Telecom
 from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.logbase import CrudApisLogBase
-from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    StrictBool,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 # Constants
 IDENTIFIER_SYSTEM = "odsOrganisationCode"
@@ -112,7 +119,7 @@ class Organisation(BaseModel):
     """Internal organization model - simplified for database storage"""
 
     name: str = Field(..., example="GP Practice Name")
-    active: bool = Field(..., example=True)
+    active: StrictBool = Field(..., example=True)
     telecom: list[Telecom] | None = Field(
         default=[],
         example=[
@@ -140,7 +147,7 @@ class OrganisationUpdatePayload(BaseModel):
     )
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
-    active: bool = Field(..., example=True)
+    active: StrictBool = Field(..., example=True)
     telecom: list[ContactPoint]
     extension: list[Extension] | None = None
 

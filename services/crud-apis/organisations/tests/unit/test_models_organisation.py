@@ -218,6 +218,25 @@ def test_active_field_null_fails() -> None:
     assert "Active field is required and cannot be null" in str(e.value)
 
 
+@pytest.mark.parametrize(
+    "invalid_value", ["true", "false", 1, 0, "1", "0", "True", "False"]
+)
+def test_active_field_invalid_types_fail(invalid_value: str | int) -> None:
+    payload = _build_base_payload()
+    payload["active"] = invalid_value
+    with pytest.raises(ValidationError) as e:
+        OrganisationUpdatePayload(**payload)
+    assert "Input should be a valid boolean" in str(e.value)
+
+
+@pytest.mark.parametrize("valid_value", [True, False])
+def test_active_field_valid_booleans_pass(valid_value: bool) -> None:
+    payload = _build_base_payload()
+    payload["active"] = valid_value
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.active is valid_value
+
+
 # Tests for legal date extension validation
 
 

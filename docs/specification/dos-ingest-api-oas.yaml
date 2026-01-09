@@ -1138,6 +1138,8 @@ components:
                         end: "2025-12-31"
         active:
           type: boolean
+          nullable: false
+          description: "Organization active status. Must be true or false - null values are not permitted."
           example: true
         name:
           type: string
