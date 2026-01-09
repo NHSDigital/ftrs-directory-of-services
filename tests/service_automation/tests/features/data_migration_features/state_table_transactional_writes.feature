@@ -27,12 +27,12 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | web                 | https://www.nhs.uk/         |
       | email               | test@nhs.net                |
       | publicphone         | 0300 311 22 33              |
-    When a record does not exist in the state table for key "services#400000"
+    When a record does not exist in the state table for key 'services#400000'
     And a single service migration is run for ID '400000'
     Then the pipeline treats the record as an 'insert' operation
     And the pipeline sends a single TransactWriteItems operation with 4 items
     And the organisation, location, healthcare service and state record is created
-    And the state table contains a record for key "services#400000" with version 1
+    And the state table contains a record for key 'services#400000' with version 1
     And the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
 
   @update-operation @skip-existing
@@ -58,7 +58,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | publicphone         | 0300 311 22 44                   |
     When a single service migration is run for ID '400001'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the state table contains a record for key "services#400001" with version 1
+    And the state table contains a record for key 'services#400001' with version 1
     When a single service migration is run for ID '400001'
     Then the pipeline treats the record as an 'update' operation
     And the metrics should show 0 inserted, 0 updated records for the second run
@@ -112,7 +112,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | web                 | https://www.nhs.uk/           |
       | email               | test4@nhs.net                 |
       | publicphone         | 0300 311 22 66                |
-    When a record does not exist in the state table for key "services#400003"
+    When a record does not exist in the state table for key 'services#400003'
     And a record exists in the Organisation table matching the transformed organisation ID for service 400003
     And a single service migration is run for ID '400003'
     Then the pipeline treats the record as an 'insert' operation
@@ -141,7 +141,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | web                 | https://www.nhs.uk/                |
       | email               | test5@nhs.net                      |
       | publicphone         | 0300 311 22 77                     |
-    When a record does not exist in the state table for key "services#400004"
+    When a record does not exist in the state table for key 'services#400004'
     And a record exists in the Location table matching the transformed location ID for service 400004
     And a single service migration is run for ID '400004'
     Then the pipeline treats the record as an 'insert' operation
@@ -170,7 +170,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | web                 | https://www.nhs.uk/           |
       | email               | test6@nhs.net                 |
       | publicphone         | 0300 311 22 88                |
-    When a record does not exist in the state table for key "services#400005"
+    When a record does not exist in the state table for key 'services#400005'
     And a record exists in the Healthcare Service table matching the transformed healthcare service ID for service 400005
     And a single service migration is run for ID '400005'
     Then the pipeline treats the record as an 'insert' operation

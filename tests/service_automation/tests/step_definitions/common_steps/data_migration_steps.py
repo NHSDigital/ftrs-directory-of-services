@@ -37,7 +37,11 @@ from utilities.common.log_helper import (
     verify_transformation_log,
     verify_transformer_selected_log,
 )
-
+from utilities.common.dynamoDB_tables import get_table_name
+from boto3.dynamodb.types import TypeDeserializer
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
+    parse_datatable_value,
+)
 
 # ============================================================
 # Setup Steps (Background)
@@ -68,7 +72,7 @@ def dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
     result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICETYPES_TABLE}"))
     count = result.fetchone()[0]
-    assert count >= 0, "Should be able to query services table"
+    assert count >= 0, "Should be able to query servicetypes table"
 
 
 @given("DynamoDB tables are ready")
@@ -392,4 +396,100 @@ def verify_error_level_log(
     verify_error_log_present(
         mock_logger=mock_logger,
         error_fragment=error_message_fragment,
+    )
+
+
+@then(
+    parsers.parse(
+        "the state table contains a record for key '{state_key}' with version {version:d}"
+    )
+)
+def verify_state_record_details(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    state_key: str,
+    version: int,
+) -> None:
+    """Verify state record exists with correct version."""
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+
+    client = dynamodb[DYNAMODB_CLIENT]
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record should exist for key {state_key}"
+
+    item = response["Item"]
+    deserializer = TypeDeserializer()
+    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+
+    assert deserialized_item["version"] == version, (
+        f"Version should be {version}, got {deserialized_item['version']}"
+    )
+
+    migration_context["migration_state"] = deserialized_item
+
+
+@then(
+    parsers.parse(
+        "the state table contains the following validation issues for key '{state_key}':"
+    )
+)
+def verify_state_record_validation_issues_details(
+    migration_context: Dict[str, Any],
+    state_key: str,
+    datatable: Any,
+) -> None:
+    """Verify state record has expected validation issues."""
+    migration_state = migration_context.get("migration_state")
+
+    assert migration_state is not None, "Migration state should exist in context"
+    assert migration_state["source_record_id"] == state_key, (
+        f"State record key should be {state_key}, got {migration_state['source_record_id']}"
+    )
+
+    actual_issues = migration_state.get("validation_issues", [])
+
+    expected_issues = []
+    header_row = datatable[0]
+    for row in datatable[1:]:
+        issue = {header_row[i]: row[i] for i in range(len(header_row))}
+        if "expression" in issue:
+            issue["expression"] = [issue["expression"]]
+        if "value" in issue:
+            issue["value"] = parse_datatable_value(issue["value"])
+
+        expected_issues.append(issue)
+
+    assert len(actual_issues) == len(expected_issues), (
+        f"Expected {len(expected_issues)} validation issues, got {len(actual_issues)}"
+    )
+    assert actual_issues == expected_issues, (
+        f"Validation issues do not match.\nExpected: {expected_issues}\nGot: {actual_issues}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the state table contains {expected_issue_count:d} validation issue(s) for key '{state_key}'"
+    )
+)
+def verify_state_record_validation_issues(
+    migration_context: Dict[str, Any],
+    expected_issue_count: int,
+    state_key: str,
+) -> None:
+    """Verify state record has expected number of validation issues."""
+    migration_state = migration_context.get("migration_state")
+
+    assert migration_state is not None, "Migration state should exist in context"
+    assert migration_state["source_record_id"] == state_key, (
+        f"State record key should be {state_key}, got {migration_state['source_record_id']}"
+    )
+
+    actual_issues = migration_state.get("validation_issues", [])
+    assert len(actual_issues) == expected_issue_count, (
+        f"Expected {expected_issue_count} validation issues, got {len(actual_issues)}"
     )
