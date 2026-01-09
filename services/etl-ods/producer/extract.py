@@ -19,7 +19,7 @@ MAX_PAGES = 100  # Safety limit to prevent infinite loops
 RESOURCE_TYPE_BUNDLE = "Bundle"
 RESOURCE_TYPE_ORGANIZATION = "Organization"
 LINK_RELATION_NEXT = "next"
-ODS_CODE_PATTERN = r"^[A-Za-z0-9]{5,12}$"
+ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -153,12 +153,12 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
 
 
 def validate_ods_code(ods_code: str) -> None:
-    if not isinstance(ods_code, str) or not re.match(r"^[A-Za-z0-9]{5,12}$", ods_code):
+    if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_012,
             e=f"Invalid ODS code: {ods_code}",
         )
-        err_message = f"Invalid ODS code: '{ods_code}' must match ^[A-Za-z0-9]{{5,12}}$"
+        err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
         raise ValueError(err_message)
 
 
