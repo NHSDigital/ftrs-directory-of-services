@@ -117,7 +117,7 @@ jobs:
         id: upload_allure_report
         uses: actions/upload-artifact@v6
         with:
-          name: allure-report
+          name: allure-report-${{ inputs.test_tag }}
           path: tests/service_automation/allure-reports/index.html
           retention-days: ${{ inputs.allure_report_retention }}
 
@@ -136,5 +136,6 @@ jobs:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+          TEST_TAG: ${{ inputs.test_tag }}
         run: |
           ./scripts/workflow/upload-allure-report.sh

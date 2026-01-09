@@ -251,7 +251,14 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
+    strategy:
+      matrix:
+        include:
+          - tag: "ftrs-pipeline"
+            type: "api"
+          - tag: "data-migration"
+            type: "data-migration"
     needs:
       - metadata
       - deploy-application-infrastructure
@@ -273,8 +280,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       tag: ${{ inputs.tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
+      test_tag: ${{ matrix.tag }}
+      test_type: ${{ matrix.type }}
       type: app
     secrets: inherit
 
