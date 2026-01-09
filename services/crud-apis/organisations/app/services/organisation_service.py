@@ -12,7 +12,6 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pydantic import ValidationError
@@ -264,11 +263,4 @@ class OrganisationService:
     def _field_has_changed(
         self, current_value: object, new_value: object, field_name: str
     ) -> bool:
-        if field_name == "legalDates":
-            return self._legal_dates_differ(current_value, new_value)
         return current_value != new_value
-
-    def _legal_dates_differ(
-        self, existing: LegalDates | None, new: LegalDates | None
-    ) -> bool:
-        return existing != new
