@@ -1,4 +1,3 @@
-import time
 import boto3
 from botocore.exceptions import ClientError
 from loguru import logger
@@ -7,8 +6,8 @@ from loguru import logger
 class CloudWatchLogsWrapper:
     def __init__(self):
         try:
-            self.logs_client = boto3.client('logs')
-        except (ClientError) as e:
+            self.logs_client = boto3.client("logs")
+        except ClientError as e:
             logger.error(f"Error initializing CloudWatch Logs client: {e}")
             raise
 
@@ -30,44 +29,46 @@ class CloudWatchLogsWrapper:
 
             streams_response = self.logs_client.describe_log_streams(
                 logGroupName=log_group_name,
-                orderBy='LastEventTime',
+                orderBy="LastEventTime",
                 descending=True,
-                limit=5
+                limit=5,
             )
 
             log_events = []
 
+            for stream in streams_response.get("logStreams", []):
+                stream_name = stream["logStreamName"]
 
-            for stream in streams_response.get('logStreams', []):
-                stream_name = stream['logStreamName']
-
-                start_time = stream['firstEventTimestamp'] - (30 * 1000)  # 1 minute before first event
-                end_time = stream['lastEventTimestamp'] + (30 * 1000)     # 1 minute after last event
+                start_time = stream["firstEventTimestamp"] - (
+                    30 * 1000
+                )  # 1 minute before first event
+                end_time = stream["lastEventTimestamp"] + (
+                    30 * 1000
+                )  # 1 minute after last event
 
                 params = {
-                    'logGroupName': log_group_name,
-                    'logStreamName': stream_name,
-                    'startTime': start_time,
-                    'endTime': end_time,
-                    'limit': 100
+                    "logGroupName": log_group_name,
+                    "logStreamName": stream_name,
+                    "startTime": start_time,
+                    "endTime": end_time,
+                    "limit": 100,
                 }
 
                 if filter_pattern:
                     params = {
-                        'logGroupName': log_group_name,
-                        'filterPattern': filter_pattern,
-                        'startTime': start_time,
-                        'endTime': end_time,
-                        'limit': 100
+                        "logGroupName": log_group_name,
+                        "filterPattern": filter_pattern,
+                        "startTime": start_time,
+                        "endTime": end_time,
+                        "limit": 100,
                     }
 
                     events_response = self.logs_client.filter_log_events(**params)
 
-                    log_events.extend(events_response.get('events', []))
+                    log_events.extend(events_response.get("events", []))
                 else:
                     events_response = self.logs_client.get_log_events(**params)
-                    log_events.extend(events_response.get('events', []))
-
+                    log_events.extend(events_response.get("events", []))
 
             return log_events
 
@@ -88,9 +89,6 @@ class CloudWatchLogsWrapper:
         Returns:
             True if message pattern is found, False otherwise
         """
-        log_events = self.get_lambda_logs(
-            lambda_name,
-            filter_pattern=message_pattern
-        )
+        log_events = self.get_lambda_logs(lambda_name, filter_pattern=message_pattern)
 
         return len(log_events) > 0

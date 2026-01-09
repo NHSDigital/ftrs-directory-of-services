@@ -1,16 +1,17 @@
 import json
 import re
-
+from datetime import datetime
 from decimal import Decimal
-from deepdiff import DeepDiff
 from pprint import pprint
-from pytest_bdd import scenarios, given, when, then, parsers, scenario
-from step_definitions.common_steps.data_steps import *  # noqa: F403
+
+import pytest
+from common.uuid_utils import generate_uuid
+from deepdiff import DeepDiff
+from pytest_bdd import parsers, scenarios, then
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
+from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
-from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
-from common.uuid_utils import generate_uuid
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -20,27 +21,15 @@ class DecimalEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-META_TIME_FIELDS = [
-    'createdTime',
-    'lastUpdated'
-]
+META_TIME_FIELDS = ["createdTime", "lastUpdated"]
 
 # Audit event fields that should be ignored in comparisons
-AUDIT_FIELDS = [
-    'createdBy',
-    'lastUpdatedBy'
-]
+AUDIT_FIELDS = ["createdBy", "lastUpdatedBy"]
 
 # Fields that may have dynamic or optional values
-DYNAMIC_FIELDS = [
-    'primary_role_code',
-    'non_primary_role_codes',
-    'telecom'
-]
+DYNAMIC_FIELDS = ["primary_role_code", "non_primary_role_codes", "telecom"]
 
-NESTED_PATHS_WITH_META_FIELDS = [
-    "endpoints"
-]
+NESTED_PATHS_WITH_META_FIELDS = ["endpoints"]
 
 IGNORED_PATHS = [
     "field",
@@ -226,7 +215,7 @@ def validate_timestamp_format(path_to_field, date_text):
     try:
         datetime.fromisoformat(date_text)
     except ValueError:
-        assert False, (
+        pytest.fail(
             f"Text under {path_to_field}: {date_text} not recognised as valid datetime"
         )
 

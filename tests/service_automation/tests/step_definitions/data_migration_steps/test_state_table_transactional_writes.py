@@ -6,7 +6,6 @@ from uuid import UUID
 import pytest
 from boto3.dynamodb.types import TypeDeserializer
 from pytest_bdd import parsers, scenarios, then, when
-
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.constants import DYNAMODB_CLIENT
@@ -477,12 +476,12 @@ def verify_endpoint_difference_found(
     # Check if endpoints were modified (in diff or changes)
     # Endpoints can be referenced as "endpoints", "telecom", or specific endpoint fields
     has_endpoint_changes = (
-        "endpoints" in str(diff_info).lower() or
-        "telecom" in str(diff_info).lower() or
-        any("endpoints" in str(change).lower() or "telecom" in str(change).lower()
-            for change in changes_info)
+        "endpoints" in str(diff_info).lower()
+        or "telecom" in str(diff_info).lower()
+        or any(
+            "endpoints" in str(change).lower() or "telecom" in str(change).lower()
+            for change in changes_info
+        )
     )
 
-    assert has_endpoint_changes, (
-        "DM_ETL_034 log should contain endpoint changes"
-    )
+    assert has_endpoint_changes, "DM_ETL_034 log should contain endpoint changes"

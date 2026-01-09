@@ -1,16 +1,17 @@
-import pytest
 from typing import Dict, List
 
+import pytest
+
 SCENARIO_DATE_MAP: Dict[str, str] = {
-    "happy_path": "2025-12-08",              # Returns valid Organization with proper structure
-    "empty_payload": "2025-12-09",           # Returns bundle with total: 0, no entries
-    "invalid_data_types": "2025-12-10",      # Returns Organization with wrong data types in required fields
-    "missing_required_fields": "2025-12-11", # Returns Organization with missing required fields
+    "happy_path": "2025-12-08",  # Returns valid Organization with proper structure
+    "empty_payload": "2025-12-09",  # Returns bundle with total: 0, no entries
+    "invalid_data_types": "2025-12-10",  # Returns Organization with wrong data types in required fields
+    "missing_required_fields": "2025-12-11",  # Returns Organization with missing required fields
     "extra_unexpected_field": "2025-12-12",  # Returns Organization with unexpected fields
-    "request_too_old": "2025-12-14",         # Returns empty bundle (total: 0)
-    "unauthorized": "2025-12-15",            # Returns 401 unauthorized response
-    "server_error": "2025-12-16",            # Returns 500 internal server error
-    "unknown_resource_type": "2025-12-17",   # Returns wrong resourceType (Location)
+    "request_too_old": "2025-12-14",  # Returns empty bundle (total: 0)
+    "unauthorized": "2025-12-15",  # Returns 401 unauthorized response
+    "server_error": "2025-12-16",  # Returns 500 internal server error
+    "unknown_resource_type": "2025-12-17",  # Returns wrong resourceType (Location)
 }
 
 
@@ -24,7 +25,9 @@ class ScenarioManager:
         """
         if scenario_name not in SCENARIO_DATE_MAP:
             available = ", ".join(SCENARIO_DATE_MAP.keys())
-            raise KeyError(f"Unknown scenario '{scenario_name}'. Available: {available}")
+            raise KeyError(
+                f"Unknown scenario '{scenario_name}'. Available: {available}"
+            )
 
         return SCENARIO_DATE_MAP[scenario_name]
 
@@ -72,7 +75,6 @@ def ods_unauthorized_scenario() -> str:
 @pytest.fixture
 def ods_unknown_resource_type_scenario() -> str:
     return ScenarioManager.get_scenario_date("unknown_resource_type")
-
 
 
 @pytest.fixture

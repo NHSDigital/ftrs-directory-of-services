@@ -1,14 +1,10 @@
 """Helper utilities for working with migration test context."""
 
-import os
 from typing import Any, Dict, Optional, Tuple
 
 from utilities.common.constants import (
-    ENV_ENVIRONMENT,
-    ENV_WORKSPACE,
     EXPECTED_DYNAMODB_RESOURCES,
 )
-
 from utilities.common.dynamoDB_tables import get_table_name
 
 

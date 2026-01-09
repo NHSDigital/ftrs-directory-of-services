@@ -1,4 +1,5 @@
 from json import dumps
+
 from boto3 import client
 from loguru import logger
 
@@ -18,8 +19,7 @@ def send_message_to_sqs(queue_url: str, message_body: dict) -> dict:
     """
     try:
         response = SQS_CLIENT.send_message(
-            QueueUrl=queue_url,
-            MessageBody=dumps(message_body)
+            QueueUrl=queue_url, MessageBody=dumps(message_body)
         )
         logger.info(f"Sent message to SQS: MessageId={response.get('MessageId')}")
         return response
@@ -44,27 +44,31 @@ def generate_sqs_body(org_id: str, ods_code: str) -> dict:
             "resourceType": "Organization",
             "id": org_id,
             "meta": {
-                "profile": ["https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"]
+                "profile": [
+                    "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+                ]
             },
-            "identifier": [{
-                "use": "official",
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": ods_code
-            }],
+            "identifier": [
+                {
+                    "use": "official",
+                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                    "value": ods_code,
+                }
+            ],
             "active": True,
-            "type": [{
-                "coding": [{
-                    "system": "TO-DO",
-                    "code": "PRESCRIBING COST CENTRE",
-                    "display": "PRESCRIBING COST CENTRE"
-                }],
-                "text": "PRESCRIBING COST CENTRE"
-            }],
+            "type": [
+                {
+                    "coding": [
+                        {
+                            "system": "TO-DO",
+                            "code": "PRESCRIBING COST CENTRE",
+                            "display": "PRESCRIBING COST CENTRE",
+                        }
+                    ],
+                    "text": "PRESCRIBING COST CENTRE",
+                }
+            ],
             "name": "ADAM HOUSE MEDICAL CENTRE",
-            "telecom": [{
-                "system": "phone",
-                "value": "0115 9496911"
-            }]
-        }
+            "telecom": [{"system": "phone", "value": "0115 9496911"}],
+        },
     }
-
