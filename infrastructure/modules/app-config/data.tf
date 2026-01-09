@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "appconfig_data_read" {
       "appconfig:StartConfigurationSession",
     ]
     resources = [
-      "arn:aws:appconfig:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:application/${module.app_config.application_id}/environment/*/configuration/*"
+      "arn:aws:appconfig:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:application/${module.app_config.application_id}/environment/*/configuration/*"
     ]
   }
 }
