@@ -1,9 +1,6 @@
 name: Build sandbox images workflow
 run-name: Build ${{ inputs.name }}
 
-permissions:
-  id-token: write
-  contents: read
 on:
   workflow_call:
     inputs:
@@ -33,10 +30,14 @@ on:
 
 jobs:
   build-sandbox-images:
+    permissions:
+      id-token: write
+      contents: read
     name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
+      WORKFLOW_DISPLAY_NAME: ${{ inputs.name }}
       ENVIRONMENT: ${{ inputs.environment }}
       AWS_REGION: ${{ vars.AWS_REGION }}
       COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
@@ -44,10 +45,14 @@ jobs:
 
     steps:
       - name: "Normalize API name"
+        shell: bash
+        env:
+          INPUT_NAME: ${{ inputs.name }}
         run: |
-          CLEAN_NAME="${{ inputs.name }}"
+          set -euo pipefail
+          CLEAN_NAME="$INPUT_NAME"
           CLEAN_NAME="${CLEAN_NAME#sandbox-}"
-          echo "API_NAME=$CLEAN_NAME" >> "$GITHUB_ENV"
+          printf 'API_NAME=%s\n' "$CLEAN_NAME" >> "$GITHUB_ENV"
 
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -80,9 +85,13 @@ jobs:
 
       - name: "Get directories"
         id: get-directories
+        shell: bash
+        env:
+          INPUT_NAME: ${{ inputs.name }}
         run: |
-          echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          printf 'working_directory=services/%s\n' "$INPUT_NAME" >> "$GITHUB_OUTPUT"
+          printf 'build_directory=build/services/%s\n' "$INPUT_NAME" >> "$GITHUB_OUTPUT"
 
       - name: "Install docker"
         run: make install

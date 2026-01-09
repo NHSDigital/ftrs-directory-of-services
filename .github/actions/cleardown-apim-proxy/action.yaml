@@ -40,22 +40,36 @@ runs:
     - name: Cleardown API Proxy from APIM environment
       id: cleardown
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        WORKSPACE: ${{ inputs.workspace }}
+        PROXY_ENV: ${{ inputs.apim_env }}
+        ACCESS_TOKEN: ${{ steps.get-token.outputs.access_token }}
+        PROXYGEN_URL: ${{ inputs.proxygen_url }}
       run: |
-        export API_NAME="${{ inputs.api_name }}"
-        export WORKSPACE="${{ inputs.workspace }}"
-        export PROXY_ENV="${{ inputs.apim_env }}"
-        export ACCESS_TOKEN="${{ steps.get-token.outputs.access_token }}"
-        export PROXYGEN_URL="${{ inputs.proxygen_url }}"
+        set -euo pipefail
 
         STATUS=$(./scripts/workflow/cleardown-apim-proxy.sh | tail -n1)
-        echo "status=$STATUS" >> $GITHUB_OUTPUT
+        if [ -z "${STATUS:-}" ]; then
+          echo "Cleardown script returned no status" >&2
+          exit 1
+        fi
+
+        printf 'status=%s\n' "$STATUS" >> "$GITHUB_OUTPUT"
 
     - name: Output cleardown details
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        APIM_ENV: ${{ inputs.apim_env }}
+        STATUS: ${{ steps.cleardown.outputs.status }}
       run: |
+        set -euo pipefail
         echo "Cleardown Summary:"
-        echo "- API Name: ${{ inputs.api_name }}"
-        echo "- Workspace: ${{ inputs.workspace }}"
-        echo "- Environment: ${{ inputs.environment }}"
-        echo "- APIM Environment: ${{ inputs.apim_env }}"
-        echo "- Status: ${{ steps.cleardown.outputs.status }}"
+        echo "- API Name: $API_NAME"
+        echo "- Workspace: $WORKSPACE"
+        echo "- Environment: $ENVIRONMENT"
+        echo "- APIM Environment: $APIM_ENV"
+        echo "- Status: $STATUS"
