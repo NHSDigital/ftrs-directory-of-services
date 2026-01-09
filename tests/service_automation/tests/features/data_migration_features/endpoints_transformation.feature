@@ -304,3 +304,122 @@ Feature: Data Migration for endpoints
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
     Then error log containing message: '3 validation errors for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created
+
+  Scenario: Comment field is migrated for endpoints
+    Given a "Service" exists in DoS with attributes
+      | key                    | value                          |
+      | id                     | 10405752                       |
+      | uid                    | 138180                         |
+      | name                   | Test Service for Comment Field |
+      | odscode                | M81095                         |
+      | openallhours           | FALSE                          |
+      | restricttoreferrals    | FALSE                          |
+      | address                | Test Address$Test Street       |
+      | town                   | TestTown                       |
+      | postcode               | TE1 1ST                        |
+      | publicname             | Test Service Comment           |
+      | typeid                 | 100                            |
+      | statusid               | 1                              |
+
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key                  | value                                                       |
+      | id                   | 600001                                                      |
+      | endpointorder        | 1                                                           |
+      | transport            | email                                                       |
+      | format               | PDF                                                         |
+      | interaction          | urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0 |
+      | businessscenario     | Copy                                                        |
+      | address              | test-endpoint@nhs.net                                       |
+      | comment              | This is a test comment for FTRS-2011                        |
+      | iscompressionenabled | uncompressed                                                |
+      | serviceid            | 10405752                                                    |
+
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key                  | value                                                                             |
+      | id                   | 600002                                                                            |
+      | endpointorder        | 2                                                                                 |
+      | transport            | itk                                                                               |
+      | format               | CDA                                                                               |
+      | interaction          | urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0 |
+      | businessscenario     | Primary                                                                           |
+      | address              | https://test-endpoint.nhs.uk                                                      |
+      | comment              |                                                                                   |
+      | iscompressionenabled | uncompressed                                                                      |
+      | serviceid            | 10405752                                                                          |
+
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key                  | value                                                       |
+      | id                   | 600003                                                      |
+      | endpointorder        | 3                                                           |
+      | transport            | email                                                       |
+      | format               | PDF                                                         |
+      | interaction          | urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0 |
+      | businessscenario     | Copy                                                        |
+      | address              | another-test@nhs.net                                        |
+      | iscompressionenabled | uncompressed                                                |
+      | serviceid            | 10405752                                                    |
+
+    When the data migration process is run for table 'services', ID '10405752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then there is 1 organisation, 1 location and 1 healthcare services created
+    Then field 'endpoints' on table 'organisation' for id '98af3729-aed2-57e5-b65e-d569aa70784e' has content:
+      """
+      {
+          "endpoints": [
+              {
+                  "id": "a94b1367-ac5b-591e-b8f1-a26bb8713f6a",
+                  "identifier_oldDoS_id": 600001,
+                  "status": "active",
+                  "connectionType": "email",
+                  "name": null,
+                  "payloadMimeType": "application/pdf",
+                  "description": "Copy",
+                  "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+                  "address": "test-endpoint@nhs.net",
+                  "managedByOrganisation": "98af3729-aed2-57e5-b65e-d569aa70784e",
+                  "service": null,
+                  "order": 1,
+                  "isCompressionEnabled": false,
+                  "createdBy": "DATA_MIGRATION",
+                  "modifiedBy": "DATA_MIGRATION",
+                  "comment": "This is a test comment for FTRS-2011"
+              },
+              {
+                  "id": "6f919c04-86aa-584d-87d1-15ba1a10653d",
+                  "identifier_oldDoS_id": 600002,
+                  "status": "active",
+                  "connectionType": "itk",
+                  "name": null,
+                  "payloadMimeType": "application/hl7-cda+xml",
+                  "description": "Primary",
+                  "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
+                  "address": "https://test-endpoint.nhs.uk",
+                  "managedByOrganisation": "98af3729-aed2-57e5-b65e-d569aa70784e",
+                  "service": null,
+                  "order": 2,
+                  "isCompressionEnabled": false,
+                  "createdBy": "DATA_MIGRATION",
+                  "modifiedBy": "DATA_MIGRATION",
+                  "comment": null
+              },
+              {
+                  "id": "702a49a1-6e1a-588d-9976-9577bffcc382",
+                  "identifier_oldDoS_id": 600003,
+                  "status": "active",
+                  "connectionType": "email",
+                  "name": null,
+                  "payloadMimeType": "application/pdf",
+                  "description": "Copy",
+                  "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+                  "address": "another-test@nhs.net",
+                  "managedByOrganisation": "98af3729-aed2-57e5-b65e-d569aa70784e",
+                  "service": null,
+                  "order": 3,
+                  "isCompressionEnabled": false,
+                  "createdBy": "DATA_MIGRATION",
+                  "modifiedBy": "DATA_MIGRATION",
+                  "comment": null
+              }
+          ]
+      }
+      """

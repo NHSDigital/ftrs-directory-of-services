@@ -77,6 +77,7 @@ markers = [
   "organisation-exists: marks test as organisation exists conflict related",
   "location-exists: marks test as location exists conflict related",
   "healthcare-service-exists: marks test as healthcare service exists conflict related",
+  "FTRS-2011: marks test as FTRS-2011 endpoint comment field migration test",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]
