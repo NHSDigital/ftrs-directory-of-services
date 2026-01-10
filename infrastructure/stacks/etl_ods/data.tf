@@ -26,6 +26,10 @@ data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = local.kms_aliases.secrets_manager
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -103,6 +107,20 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
     ]
     resources = [
       data.aws_kms_key.secrets_manager_kms_key.arn
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "ods_mock_api_access_policy" {
+  count = var.environment == "dev" ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.project_prefix}/mock-api/api-key${local.workspace_suffix}*"
     ]
   }
 }
