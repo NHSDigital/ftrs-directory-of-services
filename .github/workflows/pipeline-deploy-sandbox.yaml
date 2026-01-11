@@ -7,11 +7,12 @@ on:
       - "*-*-*-*-*-*"
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   metadata:
     name: "Get CI/CD metadata"
-    permissions:
-      contents: read
     uses: ./.github/workflows/metadata.yaml
 
   validate-sandbox-tag:
@@ -19,8 +20,6 @@ jobs:
     needs:
       - metadata
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       sandbox_environment: ${{ steps.parse.outputs.sandbox_environment }}
       sandbox_service: ${{ steps.parse.outputs.service }}

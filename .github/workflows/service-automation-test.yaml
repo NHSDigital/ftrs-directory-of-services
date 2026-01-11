@@ -44,6 +44,9 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   service-automation-tests:
     name: "Run service automation tests"
@@ -52,7 +55,6 @@ jobs:
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write
-      contents: read
 
     steps:
       - name: "Checkout code"
