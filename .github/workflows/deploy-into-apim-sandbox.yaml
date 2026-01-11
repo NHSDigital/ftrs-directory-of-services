@@ -63,9 +63,6 @@ on:
         description: 'Flag indicating if sandbox deploy should run'
         value: ${{ jobs.authenticate-and-deploy.outputs.should_deploy }}
 
-permissions:
-  contents: read
-
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM sandbox proxy
@@ -82,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

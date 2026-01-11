@@ -28,9 +28,6 @@ on:
         description: "Proxygen API base URL"
         required: false
 
-permissions:
-  contents: read
-
 jobs:
   build-sandbox-images:
     permissions:
