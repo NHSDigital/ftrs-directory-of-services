@@ -30,9 +30,6 @@ on:
         description: 'Proxygen API URL'
         required: true
 
-permissions:
-  contents: read
-
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM environment - ${{ inputs.api_name }}

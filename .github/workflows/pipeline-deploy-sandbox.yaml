@@ -7,14 +7,10 @@ on:
       - "*-*-*-*-*-*"
   workflow_dispatch: {}
 
-permissions:
-  contents: read
-
 jobs:
   metadata:
     name: "Get CI/CD metadata"
     permissions:
-      id-token: write
       contents: read
     uses: ./.github/workflows/metadata.yaml
 
