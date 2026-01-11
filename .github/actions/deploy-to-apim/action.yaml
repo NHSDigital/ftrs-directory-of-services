@@ -35,6 +35,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        set -euo pipefail
         python -m pip install --upgrade pip
         pip install pyyaml
 
@@ -48,12 +49,12 @@ runs:
         set -euo pipefail
         # Skip validation if workspace is not provided or is 'default' (e.g., for int environment)
         if [ -z "${WORKSPACE:-}" ] || [ "$WORKSPACE" == "default" ]; then
-          echo "No workspace provided or default workspace - skipping validation (environment: $ENVIRONMENT)"
+          printf 'No workspace provided or default workspace - skipping validation (environment: %s)\n' "${ENVIRONMENT:-}"
         elif [[ ! "$WORKSPACE" =~ ^ftrs-[0-9]+$ ]]; then
           echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)" >&2
           exit 1
         else
-          echo "Workspace format validated: $WORKSPACE"
+          printf 'Workspace format validated: %s\n' "$WORKSPACE"
         fi
 
     - name: Modify OAS Specification
@@ -129,7 +130,7 @@ runs:
         chmod +x ./scripts/workflow/deploy-to-apim.sh
         ./scripts/workflow/deploy-to-apim.sh
 
-        echo "$API_NAME deployed successfully to APIM $PROXY_ENV environment"
+        printf '%s deployed successfully to APIM %s environment\n' "$API_NAME" "$PROXY_ENV"
         printf 'status=%s\n' "success" >> "$GITHUB_OUTPUT"
 
     - name: Output deployment details
@@ -144,11 +145,11 @@ runs:
       run: |
         set -euo pipefail
         echo "Deployment Summary:"
-        echo "- API Name: $API_NAME"
-        echo "- Workspace: $WORKSPACE"
-        echo "- Environment: $ENVIRONMENT"
-        echo "- APIM Environment: $APIM_ENV"
+        printf -- '- API Name: %s\n' "$API_NAME"
+        printf -- '- Workspace: %s\n' "${WORKSPACE:-}"
+        printf -- '- Environment: %s\n' "$ENVIRONMENT"
+        printf -- '- APIM Environment: %s\n' "$APIM_ENV"
         if [ -n "${VERSION_TAG:-}" ]; then
-          echo "- Version Tag: $VERSION_TAG"
+          printf -- '- Version Tag: %s\n' "$VERSION_TAG"
         fi
-        echo "- Status: $STATUS"
+        printf -- '- Status: %s\n' "$STATUS"
