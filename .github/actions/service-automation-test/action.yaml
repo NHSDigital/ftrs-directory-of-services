@@ -30,12 +30,14 @@ runs:
     - name: Run service automation tests script
       id: run-service-automation-tests-script
       shell: bash
+      env:
+        AWS_REGION: ${{ inputs.aws_region }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        TEST_TAG: ${{ inputs.test_tag }}
+        TEST_TYPE: ${{ inputs.test_type }}
+        COMMIT_HASH: ${{ inputs.commit_hash }}
+        TAG: ${{ inputs.tag }}
       run: |
-        export AWS_REGION=${{ inputs.aws_region }}
-        export WORKSPACE=${{ inputs.workspace }}
-        export ENVIRONMENT=${{ inputs.environment }}
-        export TEST_TAG=${{ inputs.test_tag }}
-        export TEST_TYPE=${{ inputs.test_type }}
-        export COMMIT_HASH=${{ inputs.commit_hash }}
-        export TAG=${{ inputs.tag }}
+        set -euo pipefail
         /bin/bash ./scripts/workflow/service-automation-tests.sh
