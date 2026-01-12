@@ -101,7 +101,7 @@ class TestEndpointUpdates:
     ) -> None:
         endpoint2 = base_endpoint.model_copy(
             update={
-                "id": UUID("55555555-5555-5555-5555-555555555555"),
+                "id": UUID("a66cafc4-eee0-403e-bdcb-46d4c079f6ac"),
                 "order": 2,
                 "description": EndpointDescription.COPY,
             }
@@ -129,8 +129,8 @@ class TestEndpointUpdates:
         assert val["L"][0]["M"]["order"] == {"N": "1"}
         assert val["L"][1]["M"]["order"] == {"N": "2"}
 
-        assert val["L"][0]["M"]["id"] == {"S": "44444444-4444-4444-4444-444444444444"}
-        assert val["L"][1]["M"]["id"] == {"S": "55555555-5555-5555-5555-555555555555"}
+        assert val["L"][0]["M"]["id"] == {"S": "aaceeace-0cb7-46df-89d9-ca8cd3cbc843"}
+        assert val["L"][1]["M"]["id"] == {"S": "a66cafc4-eee0-403e-bdcb-46d4c079f6ac"}
 
     def test_reorder_identical_endpoints_detects_no_changes(
         self,
