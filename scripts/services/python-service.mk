@@ -20,13 +20,13 @@ BUILD_INFO_FILE := $(BUILD_DIR)/build-info.json
 # Determine the correct artefact path based on branch
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 ifeq ($(BRANCH),main)
-ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_PATH)/development/latest
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
 else
-ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_PATH)/development/$(WORKSPACE)
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
-ARTEFACT_STAGING_PATH := $(ARTEFACT_PATH)/staging/$(PRERELEASE_TAG)
-ARTEFACT_RELEASE_CANDIDATE_PATH := $(ARTEFACT_PATH)/release-candidates/$(RELEASE_TAG)
+ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
+ARTEFACT_RELEASE_CANDIDATE_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
 
 # ==============================================================================
 # Common Targets
@@ -129,7 +129,7 @@ promote-rc: set-prerelease-version
 
 promote-release:
 	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
-	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_PATH)/releases/$(RELEASE_VERSION_CLEAN))
+	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
 	@echo "Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN)..."
 	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_RELEASE_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_RELEASE_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)

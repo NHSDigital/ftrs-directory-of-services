@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-search
+POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := dos_search-$(POETRY_VERSION)-py3-none-any.whl
 
 # ==============================================================================
