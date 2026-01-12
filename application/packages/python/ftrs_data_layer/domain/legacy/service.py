@@ -46,12 +46,24 @@ class Service(LegacyDoSModel, table=True):
     lastverified: str | None
     nextverificationdue: str | None
 
-    endpoints: list["ServiceEndpoint"] = Relationship()
-    scheduled_opening_times: list["ServiceDayOpening"] = Relationship()
-    specified_opening_times: list["ServiceSpecifiedOpeningDate"] = Relationship()
-    sgsds: list["ServiceSGSD"] = Relationship()
-    dispositions: list["ServiceDisposition"] = Relationship()
-    age_range: list["ServiceAgeRange"] = Relationship()
+    endpoints: list["ServiceEndpoint"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceEndpoint.id"}
+    )
+    scheduled_opening_times: list["ServiceDayOpening"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceDayOpening.id"}
+    )
+    specified_opening_times: list["ServiceSpecifiedOpeningDate"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceSpecifiedOpeningDate.id"}
+    )
+    sgsds: list["ServiceSGSD"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceSGSD.id"}
+    )
+    dispositions: list["ServiceDisposition"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceDisposition.id"}
+    )
+    age_range: list["ServiceAgeRange"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceAgeRange.id"}
+    )
 
 
 class ServiceType(LegacyDoSModel, table=True):
@@ -95,7 +107,9 @@ class ServiceSpecifiedOpeningDate(LegacyDoSModel, table=True):
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
     date: date
-    times: list["ServiceSpecifiedOpeningTime"] = Relationship()
+    times: list["ServiceSpecifiedOpeningTime"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceSpecifiedOpeningTime.id"}
+    )
 
 
 class ServiceSpecifiedOpeningTime(LegacyDoSModel, table=True):
@@ -123,7 +137,9 @@ class ServiceDayOpening(LegacyDoSModel, table=True):
     id: int = Field(primary_key=True)
     serviceid: int = Field(foreign_key="services.id")
     dayid: int
-    times: list["ServiceDayOpeningTime"] = Relationship()
+    times: list["ServiceDayOpeningTime"] = Relationship(
+        sa_relationship_kwargs={"order_by": "ServiceDayOpeningTime.id"}
+    )
 
 
 class ServiceSGSD(LegacyDoSModel, table=True):

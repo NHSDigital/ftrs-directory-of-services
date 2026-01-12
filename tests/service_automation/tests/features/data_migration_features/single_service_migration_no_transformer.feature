@@ -30,5 +30,5 @@ Feature: Single Service Migration - Unsupported Service Type
       | email               | england.contactus@nhs.net                |
       | publicphone         | 0300 311 22 33                           |
     When a single service migration is run for ID '300001'
-    Then the metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And service ID '300001' was not migrated due to reason 'No suitable transformer found'

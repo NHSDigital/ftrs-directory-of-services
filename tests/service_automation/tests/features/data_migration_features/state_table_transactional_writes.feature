@@ -33,7 +33,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the pipeline sends a single TransactWriteItems operation with 4 items
     And the organisation, location, healthcare service and state record is created
     And the state table contains a record for key 'services#400000' with version 1
-    And the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    And the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
 
   @update-operation @skip-existing
   Scenario: Update operation - Skip when state record exists
@@ -57,7 +57,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | test2@nhs.net                    |
       | publicphone         | 0300 311 22 44                   |
     When a single service migration is run for ID '400001'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table contains a record for key 'services#400001' with version 1
     When a single service migration is run for ID '400001'
     Then the pipeline treats the record as an 'update' operation
@@ -85,7 +85,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | test3@nhs.net              |
       | publicphone         | 0300 311 22 55             |
     When a single service migration is run for ID '400002'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table record for "services#400002" contains all required fields
     And the state table record for "services#400002" has valid organisation_id
     And the state table record for "services#400002" has valid location_id

@@ -30,6 +30,6 @@ Feature: Single Service Migration - Successful Transformation
       | email               | england.contactus@nhs.net                |
       | publicphone         | 0300 311 22 33                           |
     When a single service migration is run for ID '300000'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the 'GPPracticeTransformer' was selected for service ID '300000'
     And service ID '300000' was transformed into 1 organisation, 1 location and 1 healthcare service

@@ -8,6 +8,7 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
 from common.diff_utils import (
+    deepdiff_to_dynamodb_expressions,
     get_healthcare_service_diff,
     get_location_diff,
     get_organisation_diff,
@@ -164,7 +165,26 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        # Convert diff to DynamoDB update expression
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if not expressions.is_empty():
+            update_item: dict = {
+                "TableName": get_table_name("organisation"),
+                "Key": {
+                    "id": {"S": str(organisation.id)},
+                    "field": {"S": "document"},
+                },
+                "UpdateExpression": expressions.update_expression,
+                "ExpressionAttributeNames": expressions.expression_attribute_names,
+            }
+            # Only include ExpressionAttributeValues if non-empty (REMOVE-only updates have no values)
+            if (
+                expression_values
+                := expressions.get_expression_attribute_values_or_none()
+            ):
+                update_item["ExpressionAttributeValues"] = expression_values
+            self.items.append({"Update": update_item})
+        self.migration_state.organisation = organisation
 
         return self
 
@@ -232,7 +252,26 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        # Convert diff to DynamoDB update expression
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if not expressions.is_empty():
+            update_item: dict = {
+                "TableName": get_table_name("location"),
+                "Key": {
+                    "id": {"S": str(location.id)},
+                    "field": {"S": "document"},
+                },
+                "UpdateExpression": expressions.update_expression,
+                "ExpressionAttributeNames": expressions.expression_attribute_names,
+            }
+            # Only include ExpressionAttributeValues if non-empty (REMOVE-only updates have no values)
+            if (
+                expression_values
+                := expressions.get_expression_attribute_values_or_none()
+            ):
+                update_item["ExpressionAttributeValues"] = expression_values
+            self.items.append({"Update": update_item})
+        self.migration_state.location = location
 
         return self
 
@@ -304,7 +343,26 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        # Convert diff to DynamoDB update expression
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if not expressions.is_empty():
+            update_item: dict = {
+                "TableName": get_table_name("healthcare-service"),
+                "Key": {
+                    "id": {"S": str(healthcare_service.id)},
+                    "field": {"S": "document"},
+                },
+                "UpdateExpression": expressions.update_expression,
+                "ExpressionAttributeNames": expressions.expression_attribute_names,
+            }
+            # Only include ExpressionAttributeValues if non-empty (REMOVE-only updates have no values)
+            if (
+                expression_values
+                := expressions.get_expression_attribute_values_or_none()
+            ):
+                update_item["ExpressionAttributeValues"] = expression_values
+            self.items.append({"Update": update_item})
+        self.migration_state.healthcare_service = healthcare_service
 
         return self
 

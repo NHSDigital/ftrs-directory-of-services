@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 import boto3
 import pytest
 from loguru import logger
-from sqlalchemy import text
+from sqlalchemy import Engine, text
 from sqlmodel import Session, create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
@@ -100,9 +100,26 @@ def dos_db_setup_scripts() -> list[str]:
     return [schema_sql, metadata_sql, clinical_sql]
 
 
+@pytest.fixture(scope="session")
+def dos_db_engine(postgres_container: PostgresContainer) -> create_engine:
+    """
+    DoS database engine with schema and initial data setup.
+
+    Args:
+        postgres_container: PostgreSQL container fixture
+
+    Returns:
+        SQLAlchemy engine connected to the DoS database
+    """
+    connection_string = postgres_container.get_connection_url()
+    engine = create_engine(connection_string, echo=False)
+    yield engine
+    engine.dispose()
+
+
 @pytest.fixture(name="dos_db", scope="function")
 def fixture_dos_db(
-    postgres_container: PostgresContainer,
+    dos_db_engine: Engine,
     dos_db_setup_scripts: list[str],
 ) -> Generator[Session, None, None]:
     """
@@ -114,13 +131,10 @@ def fixture_dos_db(
     Yields:
         Database session with schema and data from source DB
     """
-    connection_string = postgres_container.get_connection_url()
-    engine = create_engine(connection_string, echo=False)
 
     try:
         logger.debug("Initializing database with migrated data")
-
-        session = Session(engine)
+        session = Session(dos_db_engine)
 
         for script in dos_db_setup_scripts:
             session.exec(text(script))
@@ -128,14 +142,10 @@ def fixture_dos_db(
 
         yield session
 
+    finally:
         session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
         session.commit()
-
-    finally:
-        if "session" in locals():
-            session.close()
-
-        engine.dispose()
+        session.close()
 
 
 @pytest.fixture(name="dynamodb", scope="function")

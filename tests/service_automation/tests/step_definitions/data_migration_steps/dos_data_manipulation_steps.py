@@ -253,6 +253,54 @@ def dos_data_insert_step(
 
 
 @given(
+    parsers.parse('the "{entity_name}" with id "{entity_id}" is deleted from DoS'),
+    target_fixture="deleted_dos_entity",
+)
+def dos_data_delete_step(
+    migration_context: dict,
+    dos_db: Session,
+    entity_name: str,
+    entity_id: str,
+) -> None:
+    """
+    Delete an existing record from the DoS source database.
+
+    This step deletes a record based on its ID.
+
+    Args:
+        migration_context: Shared context for storing test data
+        dos_db: Database session fixture
+        entity_name: Name of the legacy model class
+        entity_id: ID of the entity to delete
+
+    Raises:
+        AssertionError: If entity not found
+
+    Example:
+        Given the "ServiceEndpoint" with id "500001" is deleted from DoS
+    """
+    entity_cls = get_entity_class(entity_name)
+
+    # Parse entity_id and fetch existing entity
+    parsed_id = parse_datatable_value(entity_id)
+    model_obj = dos_db.get(entity_cls, parsed_id)
+
+    assert model_obj is not None, (
+        f"{entity_name} with id '{entity_id}' not found in database"
+    )
+
+    # Delete the entity
+    dos_db.delete(model_obj)
+    dos_db.commit()
+
+    # Store in context
+    if "deleted_entities" not in migration_context:
+        migration_context["deleted_entities"] = []
+
+    migration_context["deleted_entities"].append({"type": entity_name, "id": entity_id})
+
+
+@given(
     parsers.parse(
         'the "{entity_name}" with id "{entity_id}" is updated with attributes'
     ),

@@ -2,11 +2,30 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Generator
 from unittest.mock import patch
+from uuid import UUID
 
 import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.domain import (
+    HealthcareService,
+    HealthcareServiceTelecom,
+    Location,
+    Organisation,
+)
+from ftrs_data_layer.domain.endpoint import Endpoint
+from ftrs_data_layer.domain.enums import (
+    EndpointConnectionType,
+    EndpointDescription,
+    EndpointPayloadMimeType,
+    EndpointPayloadType,
+    EndpointStatus,
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+    OrganisationType,
+    TelecomType,
+)
 from ftrs_data_layer.domain.legacy import (
     Disposition,
     OpeningTimeDay,
@@ -23,6 +42,8 @@ from ftrs_data_layer.domain.legacy import (
     SymptomDiscriminatorSynonym,
     SymptomGroup,
 )
+from ftrs_data_layer.domain.location import Address, PositionGCS
+from ftrs_data_layer.domain.telecom import Telecom
 
 from common.cache import DoSMetadataCache
 from common.config import DatabaseConfig
@@ -439,3 +460,99 @@ def mock_lambda_context() -> LambdaContext:
     context._log_stream_name = "log-stream-name"
     context._memory_limit_in_mb = 1024
     return context
+
+
+@pytest.fixture
+def base_organisation() -> Organisation:
+    return Organisation(
+        id=UUID("4ebead71-69d6-4571-8cff-982c54047903"),
+        identifier_oldDoS_uid="UID123",
+        identifier_ODS_ODSCode="ODS001",
+        active=True,
+        name="Test Organisation",
+        type=OrganisationType.GP_PRACTICE,
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
+        ],
+        endpoints=[],
+        createdBy="test_user",
+        createdDateTime=datetime(2023, 1, 1),
+        modifiedBy="test_user",
+        modifiedDateTime=datetime(2023, 1, 1),
+    )
+
+
+@pytest.fixture
+def base_location() -> Location:
+    return Location(
+        id=UUID("34316f80-0b96-48f3-ae07-f70288637fb5"),
+        identifier_oldDoS_uid="LOC123",
+        active=True,
+        address=Address(
+            line1="123 Test Street",
+            line2="Test Area",
+            county="Test County",
+            town="Test Town",
+            postcode="TE1 1ST",
+        ),
+        managingOrganisation=UUID("4ebead71-69d6-4571-8cff-982c54047903"),
+        name="Test Location",
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
+        primaryAddress=True,
+        createdBy="test_user",
+        createdDateTime=datetime(2023, 1, 1),
+        modifiedBy="test_user",
+        modifiedDateTime=datetime(2023, 1, 1),
+    )
+
+
+@pytest.fixture
+def base_healthcare_service() -> HealthcareService:
+    return HealthcareService(
+        id=UUID("43f8c8c0-2272-4371-966a-f2db6d338e58"),
+        identifier_oldDoS_uid="HS123",
+        active=True,
+        category=HealthcareServiceCategory.GP_SERVICES,
+        type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
+        providedBy=UUID("4ebead71-69d6-4571-8cff-982c54047903"),
+        location=UUID("34316f80-0b96-48f3-ae07-f70288637fb5"),
+        name="Test Healthcare Service",
+        telecom=HealthcareServiceTelecom(
+            phone_public="0123456789",
+            phone_private="9876543210",
+            email="test@example.com",
+            web="https://www.example.com",
+        ),
+        openingTime=[],
+        symptomGroupSymptomDiscriminators=[],
+        dispositions=[],
+        createdBy="test_user",
+        createdDateTime=datetime(2023, 1, 1),
+        modifiedBy="test_user",
+        modifiedDateTime=datetime(2023, 1, 1),
+    )
+
+
+@pytest.fixture
+def base_endpoint() -> Endpoint:
+    return Endpoint(
+        id=UUID("aaceeace-0cb7-46df-89d9-ca8cd3cbc843"),
+        identifier_oldDoS_id=123,
+        status=EndpointStatus.ACTIVE,
+        connectionType=EndpointConnectionType.ITK,
+        name="Test Endpoint",
+        description=EndpointDescription.PRIMARY,
+        payloadType=EndpointPayloadType.GP_PRIMARY,
+        payloadMimeType=EndpointPayloadMimeType.CDA,
+        address="https://test.endpoint.com",
+        managedByOrganisation=UUID("4ebead71-69d6-4571-8cff-982c54047903"),
+        service=UUID("43f8c8c0-2272-4371-966a-f2db6d338e58"),
+        order=1,
+        isCompressionEnabled=False,
+        createdBy="test_user",
+        createdDateTime=datetime(2023, 1, 1),
+        modifiedBy="test_user",
+        modifiedDateTime=datetime(2023, 1, 1),
+    )

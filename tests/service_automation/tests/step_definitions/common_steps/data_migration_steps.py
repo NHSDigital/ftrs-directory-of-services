@@ -14,10 +14,7 @@ from utilities.data_migration.migration_context_helper import (
     store_sqs_result,
 )
 from utilities.data_migration.migration_helper import MigrationHelper
-from utilities.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
-    verify_all_metrics,
-)
+from utilities.data_migration.migration_metrics_helper import verify_all_metrics
 from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
@@ -42,6 +39,7 @@ from boto3.dynamodb.types import TypeDeserializer
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
     parse_datatable_value,
 )
+from service_migration.models import ServiceMigrationMetrics
 
 # ============================================================
 # Setup Steps (Background)
@@ -200,7 +198,8 @@ def sqs_event_migration_with_params(
         "{transformed:d} transformed, "
         "{inserted:d} inserted, "
         "{updated:d} updated, "
-        "{skipped:d} skipped and "
+        "{skipped:d} skipped, "
+        "{invalid:d} invalid and "
         "{errors:d} errors"
     )
 )
@@ -213,6 +212,7 @@ def verify_migration_metrics(
     inserted: int,
     updated: int,
     skipped: int,
+    invalid: int,
     errors: int,
 ) -> None:
     """Verify migration metrics match expected values."""
@@ -224,7 +224,7 @@ def verify_migration_metrics(
     migration_type = get_migration_type_description(migration_context)
     additional_context = build_supported_records_context(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -232,12 +232,13 @@ def verify_migration_metrics(
         inserted=inserted,
         updated=updated,
         skipped=skipped,
+        invalid=invalid,
         errors=errors,
     )
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
         additional_context=additional_context,
     )
@@ -275,7 +276,7 @@ def verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -288,7 +289,7 @@ def verify_sqs_event_metrics(
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
     )
 
