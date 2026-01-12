@@ -41,7 +41,7 @@ def event(ods_code):
             "version": 1,
             "end-user-role": "Clinician",
             "application-id": "application_id",
-            "connecting-party-app-name": "dos_unit_tests",
+            "application-name": "dos_unit_tests",
         },
         "path": "/Organization",
         "httpMethod": "GET",
