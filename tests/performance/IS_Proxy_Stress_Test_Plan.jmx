@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -22,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -37,7 +39,7 @@
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -102,7 +104,7 @@ try {
 </stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -210,7 +212,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">content-type</stringProp>
@@ -245,9 +247,24 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
             </JSR223PostProcessor>
             <hashTree/>
           </hashTree>
+          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 5 Minutes (Skip First Iteration)">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">// Only wait on iterations after the first one
+def iteration = vars.getIteration()
+if (iteration == 1) {
+    return 0  // No delay on first iteration
+} else {
+    return 290000  // 5 minutes (300000 ms) on subsequent iterations
+}
+</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+          </JSR223Timer>
+          <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests" enabled="true">
         <intProp name="ThreadGroup.num_threads">140</intProp>
         <intProp name="ThreadGroup.ramp_time">60</intProp>
         <longProp name="ThreadGroup.duration">3600</longProp>
@@ -260,67 +277,67 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
+        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
           <collectionProp name="load_profile">
-            <collectionProp name="-611716527">
-              <stringProp name="48">0</stringProp>
-              <stringProp name="1572">15</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="656718665">
+              <stringProp name="start">0</stringProp>
+              <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1571431052">
-              <stringProp name="1598">20</stringProp>
-              <stringProp name="1598">20</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="1797909186">
+              <stringProp name="start">${__P(throughput_step,50)}</stringProp>
+              <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1596284620">
-              <stringProp name="1603">25</stringProp>
-              <stringProp name="1603">25</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2024461214">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1598806284">
-              <stringProp name="1629">30</stringProp>
-              <stringProp name="1629">30</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2023507902">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1599765548">
-              <stringProp name="1634">35</stringProp>
-              <stringProp name="1634">35</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2022554590">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1603057996">
-              <stringProp name="1660">40</stringProp>
-              <stringProp name="1660">40</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2021601278">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1603246476">
-              <stringProp name="1665">45</stringProp>
-              <stringProp name="1665">45</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2020647966">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1606538924">
-              <stringProp name="1691">50</stringProp>
-              <stringProp name="1691">50</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2019694654">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1606727404">
-              <stringProp name="1696">55</stringProp>
-              <stringProp name="1696">55</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2018741342">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1633914156">
-              <stringProp name="1722">60</stringProp>
-              <stringProp name="1722">60</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-2017788030">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1634102636">
-              <stringProp name="1727">65</stringProp>
-              <stringProp name="1727">65</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-1437579198">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
-            <collectionProp name="1637395084">
-              <stringProp name="1753">70</stringProp>
-              <stringProp name="1753">70</stringProp>
-              <stringProp name="50547">300</stringProp>
+            <collectionProp name="-1436625886">
+              <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+              <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+              <stringProp name="duration">${__P(step_duration,300)}</stringProp>
             </collectionProp>
           </collectionProp>
         </kg.apc.jmeter.timers.VariableThroughputTimer>
@@ -340,7 +357,7 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -352,7 +369,7 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Authorization</stringProp>
@@ -374,7 +391,7 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor" enabled="true">
         <stringProp name="scriptLanguage">groovy</stringProp>
         <stringProp name="parameters"></stringProp>
         <stringProp name="filename"></stringProp>
