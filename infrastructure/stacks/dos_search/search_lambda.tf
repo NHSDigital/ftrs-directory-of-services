@@ -28,9 +28,15 @@ module "lambda" {
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
-  policy_jsons           = var.organization_use_internal_workers ? [data.aws_iam_policy_document.dynamodb_access_policy.json, data.aws_iam_policy_document.org_worker_invoke_policy.json] : [data.aws_iam_policy_document.dynamodb_access_policy.json]
-  timeout                = var.lambda_timeout
-  memory_size            = var.lambda_memory_size
+  policy_jsons = var.organization_use_internal_workers ? [
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy_document.org_worker_invoke_policy.json,
+    ] : [
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+  ]
+
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -40,14 +46,17 @@ module "lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
 
-  environment_variables = merge({
-    "ENVIRONMENT"  = var.environment
-    "PROJECT_NAME" = var.project
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-  }, var.organization_use_internal_workers ? {
-    "DOS_SEARCH_ORCHESTRATION_MODE"      = "inline"
-    "DOS_SEARCH_ORG_WORKER_LAMBDA_NAMES" = "${local.resource_prefix}-${var.lambda_name}-org-worker${local.workspace_suffix},${local.resource_prefix}-${var.lambda_name}-org-worker-2${local.workspace_suffix},${local.resource_prefix}-${var.lambda_name}-org-worker-3${local.workspace_suffix}"
-  } : {})
+  environment_variables = merge(
+    {
+      "ENVIRONMENT"  = var.environment
+      "PROJECT_NAME" = var.project
+      "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    },
+    var.organization_use_internal_workers ? {
+      "DOS_SEARCH_ORCHESTRATION_MODE"      = "inline"
+      "DOS_SEARCH_ORG_WORKER_LAMBDA_NAMES" = "${local.resource_prefix}-${var.lambda_name}-org-worker${local.workspace_suffix},${local.resource_prefix}-${var.lambda_name}-org-worker-2${local.workspace_suffix},${local.resource_prefix}-${var.lambda_name}-org-worker-3${local.workspace_suffix}"
+    } : {},
+  )
 
   allowed_triggers = {
     AllowExecutionFromAPIGateway = {
