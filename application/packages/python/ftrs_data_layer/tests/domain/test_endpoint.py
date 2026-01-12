@@ -21,6 +21,7 @@ def test_endpoint() -> None:
         service=None,
         address="https://example.com/endpoint",
         order=1,
+        comment="Test Endpoint",
     )
 
     assert endpoint.model_dump(mode="json") == {
@@ -39,4 +40,5 @@ def test_endpoint() -> None:
         "service": None,
         "address": "https://example.com/endpoint",
         "order": 1,
+        "comment": "Test Endpoint",
     }
