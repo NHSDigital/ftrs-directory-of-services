@@ -59,9 +59,9 @@ These fields are extracted from API Gateway Event via the `extract` method and/o
 
 | Field                     | Source                                   | Placeholder           |
 | ------------------------- | ---------------------------------------- | --------------------- |
-| `dos_nhsd_correlation_id` | `NHSD-Correlation-ID` header             | `DOS_LOG_PLACEHOLDER` |
-| `dos_nhsd_request_id`     | `NHSD-Request-ID` header                 | `DOS_LOG_PLACEHOLDER` |
-| `dos_message_id`          | `NHSD-Message-Id` header                 | `DOS_LOG_PLACEHOLDER` |
+| `dos_nhsd_correlation_id` | `NHSD-Correlation-ID` header             | `Value not found. Please check if this value was provided in the request.` |
+| `dos_nhsd_request_id`     | `NHSD-Request-ID` header                 | `Value not found. Please check if this value was provided in the request.` |
+| `dos_message_id`          | `NHSD-Message-Id` header                 | `Value not found. Please check if this value was provided in the request.` |
 | `dos_message_category`    | Default: `"LOGGING"` (can be overridden) | N/A                   |
 | `logger`                  | Identifier: `"dos_logger"`               | N/A                   |
 
@@ -71,13 +71,13 @@ These optional fields are extracted from the API Gateway Event and/or Lambda Exe
 
 | Field                      | Source                                  | Placeholder           |
 | -------------------------- | --------------------------------------- | --------------------- |
-| `opt_dos_api_version`      | `NHSD-Api-Version` header               | `DOS_LOG_PLACEHOLDER` |
-| `opt_dos_end_user_role`    | `NHSD-End-User-Role` header             | `DOS_LOG_PLACEHOLDER` |
-| `opt_dos_client_id`        | `NHSD-Client-Id` header                 | `DOS_LOG_PLACEHOLDER` |
-| `opt_dos_application_name` | `NHSD-Connecting-Party-App-Name` header | `DOS_LOG_PLACEHOLDER` |
+| `opt_dos_api_version`      | `NHSD-Api-Version` header               | `Value not found. Please check if this value was provided in the request.` |
+| `opt_dos_end_user_role`    | `NHSD-End-User-Role` header             | `Value not found. Please check if this value was provided in the request.` |
+| `opt_dos_client_id`        | `NHSD-Client-Id` header                 | `Value not found. Please check if this value was provided in the request.` |
+| `opt_dos_application_name` | `NHSD-Connecting-Party-App-Name` header | `Value not found. Please check if this value was provided in the request.` |
 | `opt_dos_request_params`   | Query, path, and request context        | `{}`                  |
-| `opt_dos_environment`      | `ENVIRONMENT` environment var                   | `DOS_LOG_PLACEHOLDER` |
-| `opt_dos_lambda_version`   | `AWS_LAMBDA_FUNCTION_VERSION` environment var   | `DOS_LOG_PLACEHOLDER` |
+| `opt_dos_environment`      | `ENVIRONMENT` environment var                   | `Value not found. Please check if this value was provided in the request.` |
+| `opt_dos_lambda_version`   | `AWS_LAMBDA_FUNCTION_VERSION` environment var   | `Value not found. Please check if this value was provided in the request.` |
 
 ### Custom Message Categories
 

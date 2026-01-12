@@ -21,7 +21,9 @@ class DosLogger:
 
     def __init__(self, service: str = "dos", debug: bool = False) -> None:
         self.logger = PowertoolsLogger(service=service)
-        self.placeholder = "DOS_LOG_PLACEHOLDER"
+        self.placeholder = (
+            "Value not found. Please check if this value was provided in the request."
+        )
         self.headers = dict()
 
     # Initialise method handles processing of event details - this should be called at the start of Lambda execution
@@ -89,14 +91,11 @@ class DosLogger:
         # Client's will provide this header as X-CORRELATION-ID, which will get mapped by the APIM Proxy into the format:
         # <Request-ID>.<Correlation-ID>.<Message-ID>
         # We will therefore extract Correlation ID & Message ID both from the header NHSD-Correlation-ID (Request ID still comes through independently so we will use the separate header for that)
-        corr_header = (
-            self._get_header(
-                "NHSD-Correlation-ID",
-            )
-            or self.placeholder
+        corr_header = self._get_header(
+            "NHSD-Correlation-ID",
         )
         header_length = 3
-        reqid_corr_msgid = corr_header.split(".")
+        reqid_corr_msgid = corr_header.split(".") if corr_header else []
         corr = (
             reqid_corr_msgid[1]
             if len(reqid_corr_msgid) == header_length
