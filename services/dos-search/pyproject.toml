@@ -27,7 +27,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 packages = [
   { include = "functions" },
-  { include = "health_check" }
+  { include = "health_check" },
+  { include = "lambdas" }
 ]
 
 [tool.poetry.group.shared.dependencies]

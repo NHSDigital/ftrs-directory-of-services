@@ -125,3 +125,10 @@ variable "gateway_responses" {
   # Use null default so we can compute from locals (file() not allowed in var defaults)
   default = null
 }
+
+variable "organization_use_internal_workers" {
+  description = "If true, /Organization is implemented as a router lambda delegating to internal worker lambdas. If false, /Organization uses a single lambda directly."
+  type        = bool
+  default     = false
+}
+

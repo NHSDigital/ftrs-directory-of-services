@@ -64,6 +64,12 @@ build-dependency-layer: clean
 	-r $(DEPENDENCY_DIR)/requirements.txt
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
 
+build-endpoint-lambdas: ensure-build-dir
+	poetry run python scripts/package_endpoint_lambdas.py --out $(BUILD_DIR) --application-tag $(APPLICATION_TAG)
+
+# Convenience alias for the spike so CI can opt-in without changing the existing `build` target.
+build-endpoints: build-endpoint-lambdas
+
 publish:
 	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
 		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\

@@ -68,3 +68,17 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+data "aws_iam_policy_document" "org_worker_invoke_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:InvokeFunction",
+    ]
+    resources = var.organization_use_internal_workers ? [
+      module.organization_get_worker_lambda[0].lambda_function_arn,
+      module.organization_get_worker_lambda_2[0].lambda_function_arn,
+      module.organization_get_worker_lambda_3[0].lambda_function_arn,
+    ] : []
+  }
+}
