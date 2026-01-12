@@ -18,14 +18,14 @@ DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-
 # Determine artefact path based on branch/workspace
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 ifeq ($(BRANCH),main)
-ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_PATH)/development/latest
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
 else
-ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_PATH)/development/$(WORKSPACE)
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
-ARTEFACT_STAGING_PATH := $(ARTEFACT_PATH)/staging/$(RELEASE_TAG)
-ARTEFACT_RC_PATH := $(ARTEFACT_PATH)/release-candidates/$(RELEASE_TAG)
-ARTEFACT_RELEASE_PATH := $(ARTEFACT_PATH)/releases/$(RELEASE_TAG)
+ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(RELEASE_TAG)
+ARTEFACT_RC_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
+ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_TAG)
 
 # ==============================================================================
 # Common Targets
