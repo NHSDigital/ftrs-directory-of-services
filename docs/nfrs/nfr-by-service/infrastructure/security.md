@@ -16,8 +16,8 @@ This page is auto-generated; do not hand-edit.
 | Security | [SEC-003](#Infrastructure–SecurityNFRs&Controls-SEC-003) | All endpoints TLS only; storage encryption enabled | All service endpoints enforce TLS and all stored data (databases, buckets) is encrypted at rest. | [FTRS-1563](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1563) |
 | Security | [SEC-004](#Infrastructure–SecurityNFRs&Controls-SEC-004) | Storage services show encryption enabled | Every storage service (S3, RDS, etc.) shows encryption enabled with managed or customer keys. | [FTRS-1611](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1611), [FTRS-1681](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1681), [FTRS-1587](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1587) |
 | Security | [SEC-005](#Infrastructure–SecurityNFRs&Controls-SEC-005) | Cross-environment data access attempts denied | Strict environment isolation: data access from one environment to another is prevented. | [FTRS-1494](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1494) |
-| Security | [SEC-006](#Infrastructure–SecurityNFRs&Controls-SEC-006) | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | (none) |
-| Security | [SEC-007](#Infrastructure–SecurityNFRs&Controls-SEC-007) | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | (none) |
+| Security | [SEC-006](#Infrastructure–SecurityNFRs&Controls-SEC-006) | No direct prod console queries detected in audit period | No direct production console queries by engineers outside approved, audited break-glass processes. | [FTRS-1771](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1771) |
+| Security | [SEC-007](#Infrastructure–SecurityNFRs&Controls-SEC-007) | SG rules audited; attempt broad ingress denied | Network security groups allow only narrowly scoped inbound rules; broad ingress is denied. | [FTRS-386](https://nhsd-jira.digital.nhs.uk/browse/FTRS-386) |
 | Security | [SEC-008](#Infrastructure–SecurityNFRs&Controls-SEC-008) | Perimeter scan shows no broad whitelist & secure channels | Perimeter scans show secure transport, no open broad whitelists, and hardened edge configuration. | (none) |
 | Security | [SEC-009](#Infrastructure–SecurityNFRs&Controls-SEC-009) | ASVS & CIS benchmark automation reports pass thresholds | Automated ASVS and CIS benchmark scans meet pass thresholds; failures trigger remediation. | (none) |
 | Security | [SEC-010](#Infrastructure–SecurityNFRs&Controls-SEC-010) | Annual pen test executed; remediation tickets raised & closed | Annual penetration test completed; identified issues tracked and closed. | [FTRS-1440](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1440), [FTRS-1455](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1455), [FTRS-1462](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1462), [FTRS-2](https://nhsd-jira.digital.nhs.uk/browse/FTRS-2) |
@@ -93,7 +93,7 @@ See explanation: [SEC-006](../../explanations.md#Explanations-SEC-006)
 
 | Control ID | Measure | Threshold | Cadence | Envs | Services | Status | Stories | Rationale |
 |----------|-------|---------|-------|----|--------|------|-------|---------|
-| prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | Weekly audit + alerting | prod | Infrastructure | draft | (none) | Detects improper direct access to production consoles |
+| prod-console-access-audit | No direct prod console queries detected in audit period | 0 non-approved console queries in audit period | Weekly audit + alerting | prod | Infrastructure | draft | [FTRS-1771](https://nhsd-jira.digital.nhs.uk/browse/FTRS-1771) | Detects improper direct access to production consoles |
 
 ### SEC-007
 
