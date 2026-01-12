@@ -109,10 +109,3 @@ invoke-replication-task:
 	fi
 
 	@echo "Continuing with remaining steps..."
-	@echo "Waiting for $(WAIT_SECONDS) seconds after replication task check..."
-	@sleep $(WAIT_SECONDS)
-
-invoke-lambda:
-	aws lambda invoke \
-	--function-name $(DMS_DB_LAMBDA_NAME) \
-	/dev/null
