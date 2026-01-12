@@ -36,7 +36,12 @@ class GPPracticeTransformer(ServiceTransformer):
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
+        # Temporarily commented out clean_name() until confirmed if needed.
+        # The method splits on "-" which incorrectly truncates names like "Abbey-Dale Medical Centre".
+        # All name sanitization logic (GP prefix removal, hyphen splitting on " - ", HTML decoding)
+        # is already implemented in GPPracticeValidator.validate_name().
+        # organisation.name = self.clean_name(service.publicname)
+        organisation.name = service.publicname
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -83,8 +88,11 @@ class GPPracticeTransformer(ServiceTransformer):
 
         return True, None
 
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")
+    # Temporarily commented out - see explanation in transform() method above.
+    # This method splits on "-" (any hyphen) instead of " - " (space-dash-space),
+    # which incorrectly truncates valid practice names containing hyphens.
+    # @classmethod
+    # def clean_name(cls, publicname: str) -> str:
+    #     if publicname:
+    #         return publicname.split("-", maxsplit=1)[0].rstrip()
+    #     raise ValueError("publicname is not set")

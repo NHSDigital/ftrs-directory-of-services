@@ -130,3 +130,106 @@ Feature: Data Migration
         "primaryAddress": true
       }
       """
+
+  @FTRS-1961
+  Scenario: GP practice names are truncated on " - " separator
+    Given a "Service" exists in DoS with attributes
+      | key                  | value                                   |
+      | id                   | 10015752                                |
+      | uid                  | 145771                                  |
+      | name                 | Lockside Medical Centre - T+G           |
+      | odscode              | A83001                                  |
+      | openallhours         | FALSE                                   |
+      | restricttoreferrals  | FALSE                                   |
+      | address              | 123 Test Street                         |
+      | town                 | TestTown                                |
+      | postcode             | TE1 1ST                                 |
+      | publicname           | Lockside Medical Centre - T+G           |
+      | typeid               | 100                                     |
+      | statusid             | 1                                       |
+      | createdtime          | 2024-01-01 10:00:00                     |
+      | modifiedtime         | 2024-01-01 10:00:00                     |
+
+    And a "Service" exists in DoS with attributes
+      | key                  | value                                        |
+      | id                   | 10025752                                     |
+      | uid                  | 112433                                       |
+      | name                 | Abbey-Dale Medical Centre                    |
+      | odscode              | A83002                                       |
+      | openallhours         | FALSE                                        |
+      | restricttoreferrals  | FALSE                                        |
+      | address              | 456 Abbey Dale Road                          |
+      | town                 | Sheffield                                    |
+      | postcode             | S17 1AB                                      |
+      | publicname           | Abbey-Dale Medical Centre                    |
+      | typeid               | 100                                          |
+      | statusid             | 1                                            |
+      | createdtime          | 2024-01-01 10:00:00                          |
+      | modifiedtime         | 2024-01-01 10:00:00                          |
+
+    And a "Service" exists in DoS with attributes
+      | key                  | value                                                |
+      | id                   | 10035752                                             |
+      | uid                  | 1336055953                                           |
+      | name                 | GP - Nene Valley and Hodgson - Peterborough          |
+      | odscode              | A83003                                               |
+      | openallhours         | FALSE                                                |
+      | restricttoreferrals  | FALSE                                                |
+      | address              | Nene Valley Surgery                                  |
+      | town                 | Peterborough                                         |
+      | postcode             | PE1 1AA                                              |
+      | publicname           | GP - Nene Valley and Hodgson - Peterborough          |
+      | typeid               | 100                                                  |
+      | statusid             | 1                                                    |
+      | createdtime          | 2024-01-01 10:00:00                                  |
+      | modifiedtime         | 2024-01-01 10:00:00                                  |
+
+    When the data migration process is run for table 'services', ID '10015752' and method 'insert'
+    And the data migration process is run for table 'services', ID '10025752' and method 'insert'
+    And the data migration process is run for table 'services', ID '10035752' and method 'insert'
+    Then there is 3 organisation, 3 location and 3 healthcare services created
+    Then the organisation for service ID 10015752 has name Lockside Medical Centre
+    Then the organisation for service ID 10025752 has name Abbey-Dale Medical Centre
+    Then the organisation for service ID 10035752 has name Nene Valley and Hodgson
+
+  @FTRS-1964
+  Scenario: HTML-encoded characters are decoded in GP practice names
+    Given a "Service" exists in DoS with attributes
+      | key                  | value                                          |
+      | id                   | 10045752                                       |
+      | uid                  | 150001                                         |
+      | name                 | St Peters Health Centre (Dr S&#39;Souza)       |
+      | odscode              | A84001                                         |
+      | openallhours         | FALSE                                          |
+      | restricttoreferrals  | FALSE                                          |
+      | address              | St Peters Road                                 |
+      | town                 | Birmingham                                     |
+      | postcode             | B1 1AA                                         |
+      | publicname           | St Peters Health Centre (Dr S&#39;Souza)       |
+      | typeid               | 100                                            |
+      | statusid             | 1                                              |
+      | createdtime          | 2024-01-01 10:00:00                            |
+      | modifiedtime         | 2024-01-01 10:00:00                            |
+
+    And a "Service" exists in DoS with attributes
+      | key                  | value                                          |
+      | id                   | 10055752                                       |
+      | uid                  | 150002                                         |
+      | name                 | The Surgery &amp; Medical Centre               |
+      | odscode              | A84002                                         |
+      | openallhours         | FALSE                                          |
+      | restricttoreferrals  | FALSE                                          |
+      | address              | High Street                                    |
+      | town                 | Manchester                                     |
+      | postcode             | M1 1AA                                         |
+      | publicname           | The Surgery &amp; Medical Centre               |
+      | typeid               | 100                                            |
+      | statusid             | 1                                              |
+      | createdtime          | 2024-01-01 10:00:00                            |
+      | modifiedtime         | 2024-01-01 10:00:00                            |
+
+    When the data migration process is run for table 'services', ID '10045752' and method 'insert'
+    And the data migration process is run for table 'services', ID '10055752' and method 'insert'
+    Then there is 2 organisation, 2 location and 2 healthcare services created
+    Then the organisation for service ID 10045752 has name St Peters Health Centre (Dr S'Souza)
+    Then the organisation for service ID 10055752 has name The Surgery & Medical Centre

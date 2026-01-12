@@ -224,3 +224,19 @@ def verify_no_healthcare_service_created(service_id: int, dynamodb):
 
     response = service_table.get_item(Key={'id': healthcare_service_uuid, 'field': 'document'})
     assert 'Item' not in response, f"Healthcare service with id {healthcare_service_uuid} should not exist for service {service_id}"
+
+
+@then(parsers.parse("the {table_name} for service ID {service_id} has name {expected_name}"))
+def check_name_field_for_service(table_name: str, service_id: str, expected_name: str, dynamodb):
+    """Verify that the name field in the table matches the expected value."""
+    namespace = table_name.replace("-", "_")
+    generated_uuid = str(generate_uuid(service_id, namespace))
+
+    dynamodb_resource = dynamodb["resource"]
+    table = dynamodb_resource.Table(get_table_name(table_name))
+
+    response = table.get_item(Key={'id': generated_uuid, 'field': 'document'})
+    assert 'Item' in response, f"{table_name} with id {generated_uuid} not found for service {service_id}"
+
+    actual_name = response['Item'].get('name')
+    assert actual_name == expected_name, f"Expected name '{expected_name}' but got '{actual_name}' for service {service_id}"
