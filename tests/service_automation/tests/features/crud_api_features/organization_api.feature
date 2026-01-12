@@ -198,9 +198,9 @@ Feature: Organization API Endpoint
     And the data in the database matches the inserted payload
 
     Examples:
-      | identifier_data                                                                                 |
-      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081047"}]              |
-      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081047", "use": null}] |
+      | identifier_data                                                                             |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W"}]              |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M2T8W", "use": null}] |
 
   Scenario Outline: Reject Organization update with invalid identifier
     Given that the stack is "organisation"
@@ -486,7 +486,7 @@ Feature: Organization API Endpoint
       | 1234567890   |
       | TEST123456   |
       | CODE2025     |
-      | M2T8Z        |
+      | M2T8W        |
       | 01234        |
 
 
