@@ -1,5 +1,12 @@
+import dataclasses
 import json
 import re
+import time
+from datetime import timedelta, datetime
+from typing import Callable
+from faker import Faker
+
+import boto3
 
 from decimal import Decimal
 from deepdiff import DeepDiff
@@ -11,6 +18,25 @@ from step_definitions.data_migration_steps.dos_data_manipulation_steps import * 
 from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from common.uuid_utils import generate_uuid
+
+from sqlmodel import Session
+from sqlalchemy import Engine, select
+from sqlalchemy.sql import text
+
+from ftrs_data_layer.domain.legacy.service import Service
+
+@dataclasses.dataclass
+class ExpectedMigratedValue:
+    targetEntityType: str
+    id: str
+    field: str
+    value: str | int | bool | None
+
+
+@dataclasses.dataclass
+class ExpectedMigratedValues:
+    fields: list[ExpectedMigratedValue]
+
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -35,18 +61,20 @@ IGNORED_PATHS = [
 ]
 
 scenarios(
-    "../features/data_migration_features/gp_practice_migration_happy_path.feature",
-    "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
-    "../features/data_migration_features/age_range_transformation.feature",
-    "../features/data_migration_features/sgsd_transformation.feature",
-    "../features/data_migration_features/position_gcs_transformation.feature",
-    "../features/data_migration_features/triage_code_migration.feature",
-    "../features/data_migration_features/endpoints_transformation.feature",
-    "../features/data_migration_features/dispositions_transformation.feature",
-    "../features/data_migration_features/opening_times_transformation.feature",
-    "../features/data_migration_features/phone_transformation.feature",
-    "../features/data_migration_features/email_transformation.feature",
-    "../features/data_migration_features/service_migration_validation_failures.feature",
+    # "../features/data_migration_features/gp_practice_migration_happy_path.feature",
+    # "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
+    # "../features/data_migration_features/age_range_transformation.feature",
+    # "../features/data_migration_features/sgsd_transformation.feature",
+    # "../features/data_migration_features/position_gcs_transformation.feature",
+    # "../features/data_migration_features/triage_code_migration.feature",
+    # "../features/data_migration_features/endpoints_transformation.feature",
+    # "../features/data_migration_features/dispositions_transformation.feature",
+    # "../features/data_migration_features/opening_times_transformation.feature",
+    # "../features/data_migration_features/phone_transformation.feature",
+    # "../features/data_migration_features/email_transformation.feature",
+    # "../features/data_migration_features/service_migration_validation_failures.feature",
+    "../features/data_migration_features/smoke_test.feature",
+
 )
 
 
@@ -224,3 +252,157 @@ def verify_no_healthcare_service_created(service_id: int, dynamodb):
 
     response = service_table.get_item(Key={'id': healthcare_service_uuid, 'field': 'document'})
     assert 'Item' not in response, f"Healthcare service with id {healthcare_service_uuid} should not exist for service {service_id}"
+
+
+@given(parsers.parse("service is created"), target_fixture="expected_migrated_values")
+def service_is_created(
+    legacy_dos_db_connection: Engine,
+    faker: Faker
+) -> list[ExpectedMigratedValue]:
+    service_id = 999000001
+    service = generate_random_service(faker, service_id)
+
+    table_name = "organisation"
+    namespace = table_name.replace("-", "_")
+    generated_uuid = str(generate_uuid(service_id, namespace))
+    expected_migrated_values = [
+        ExpectedMigratedValue("organisation", generated_uuid, "name", service.publicname)
+    ]
+
+    with Session(legacy_dos_db_connection) as session:
+        session.add(service)
+        session.commit()
+
+    return expected_migrated_values
+
+
+@given(parsers.parse("service is updated"))
+def service_is_updated(legacy_dos_db_connection: Engine):
+    service_id = 999000001
+
+    with Session(legacy_dos_db_connection) as session:
+        service_found = session.get(Service, service_id)
+        service_found.publicname = "AUTOMATED TEST GP PRACTICE UPDATED"
+        session.commit()
+
+
+@given(parsers.parse("clear out service by id"))
+def service_is_cleared_out(
+    legacy_dos_db_connection: Engine,
+    request: pytest.FixtureRequest
+):
+    service_id = 999000001
+
+    with Session(legacy_dos_db_connection) as session:
+        service_found = session.get(Service, service_id)
+        if service_found:
+            session.delete(service_found)
+            session.commit()
+
+    organisation_repo = request.getfixturevalue("organisation_repo")
+    org_id = str(generate_uuid(service_id, "organisation"))
+    if not check_record_in_repo(organisation_repo, org_id):
+        organisation_repo.delete(org_id)
+
+    location_repo = request.getfixturevalue("location_repo")
+    location_id = str(generate_uuid(service_id, "location"))
+    if not check_record_in_repo(location_repo, location_id):
+        location_repo.delete(location_id)
+
+    healthcare_service_repo = request.getfixturevalue("healthcare_service_repo")
+    hs_id = str(generate_uuid(service_id, "healthcare_service"))
+    if not check_record_in_repo(healthcare_service_repo, hs_id):
+        healthcare_service_repo.delete(hs_id)
+
+    state_table = boto3.resource("dynamodb").Table(get_table_name("data-migration-state"))
+    state_row_id = "services#" + str(service_id)
+    response = state_table.get_item(Key={"source_record_id": state_row_id})
+
+    if 'Item' in response:
+        state_table.delete_item(Key={"source_record_id": state_row_id})
+
+
+@then(parsers.parse("dynamo update happens"))
+def dynamo_update_happens(
+    organisation_repo: AttributeLevelRepository[Organisation],
+    expected_migrated_values: list[ExpectedMigratedValue]
+):
+    for update in expected_migrated_values:
+        # add repo selection
+        await_for(
+            predicate = lambda: organisation_field_has_expected_value(organisation_repo, update.id, update.field, update.value),
+            timeout = timedelta(seconds=45),
+            polling_interval=timedelta(seconds=2),
+            message = "Organisation name updated in time"
+        )
+
+
+def organisation_field_has_expected_value(organisation_repo, org_id, field, new_value):
+    found = organisation_repo.get(org_id)
+    if not found:
+        return False
+
+    return found.__getattribute__(field) == new_value
+
+
+def await_for(
+    predicate: Callable[[], bool],
+    timeout: timedelta,
+    polling_interval: timedelta = timedelta(seconds=5),
+    message: str = ""
+):
+    start_time = datetime.now()
+    while True:
+        if predicate():
+            return
+        if datetime.now() - start_time > timeout:
+            raise Exception(f"Timeout reached: {message}")
+
+        time.sleep(polling_interval.seconds)
+
+
+def generate_random_service(faker: Faker, service_id: int) -> Service:
+    created_at = faker.date_time_between(start_date="-20y", end_date="-10y")
+    city = faker.city()
+
+    return Service(
+        id=service_id,
+        uid=str(faker.random_int(min=100000, max=999999)),
+        name=faker.company(),
+        odscode="V90001", #matching expected format
+        isnational=faker.boolean(),
+        openallhours=faker.boolean(),
+        publicreferralinstructions=f"STUB Public Referral Instruction Text Field {service_id}",
+        telephonetriagereferralinstructions=f"STUB Telephone Triage Referral Instructions Text Field {service_id}",
+        restricttoreferrals=faker.boolean(),
+        address=f"{faker.street_address()}${city}${faker.county()}",
+        town=city,
+        postcode=faker.postcode(),
+        easting=faker.random_int(min=100000, max=999999),
+        northing=faker.random_int(min=100000, max=999999),
+        publicphone=faker.phone_number(),
+        nonpublicphone=faker.phone_number(),
+        fax=faker.phone_number(),
+        email=faker.email(),
+        web=faker.url(),
+        createdby="HUMAN",
+        createdtime=created_at,
+        modifiedby="HUMAN",
+        modifiedtime=created_at,
+        lasttemplatename=f"Midlands template R46 Append PC ",
+        lasttemplateid=244764,
+        typeid=100, #gp pracitce
+        parentid=None,
+        subregionid=None,
+        statusid=1, # active
+        organisationid=None,
+        returnifopenminutes=None,
+        publicname="AUTOMATED TEST GP PRACTICE",
+        latitude=Decimal(faker.latitude()),
+        longitude=Decimal(faker.longitude()),
+        professionalreferralinfo="AUTOMATED TEST",
+        lastverified=None,
+        nextverificationdue=None,
+    )
+
+

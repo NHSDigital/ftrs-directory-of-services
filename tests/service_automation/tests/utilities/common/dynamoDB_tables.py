@@ -21,9 +21,14 @@ def get_table_name(resource: str) -> str:
     workspace = os.getenv("WORKSPACE", "test")
 
     if resource.startswith("data-migration-"):
-        return f"{project_name}-{environment}-{resource}-{workspace}"
+        table_name = f"{project_name}-{environment}-{resource}"
     else:
-        return f"{project_name}-{environment}-database-{resource}-{workspace}"
+        table_name = f"{project_name}-{environment}-database-{resource}"
+
+    if workspace:
+        table_name = f"{table_name}-{workspace}"
+
+    return table_name
 
 
 def get_dynamodb_tables() -> list[dict[str, Any]]:

@@ -1,11 +1,10 @@
 import ast
 import os
-from typing import Callable, cast, Dict, Any
+from typing import Callable, cast, Dict, Any, Generator
 
 import boto3
 import pytest
 from dotenv import load_dotenv
-from sqlmodel import Session
 
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
@@ -14,6 +13,8 @@ from loguru import logger
 from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
+from sqlmodel import Session, create_engine
+from sqlalchemy import Engine
 from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
 from utilities.common.file_helper import delete_download_files
 from utilities.infra.api_util import get_url
@@ -21,6 +22,7 @@ from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
 import json
 from utilities.common.context import Context
+from faker import Faker
 
 pytest_plugins = ["data_migration_fixtures"]
 
@@ -367,3 +369,23 @@ def regular_context(dos_db: Session) -> Dict[str, Any]:
         "results": {},
     }
     return context
+
+
+@pytest.fixture(scope="session")
+def legacy_dos_db_connection() -> Generator[Engine, Any, None]:
+    db_host = os.getenv("DOS_DB_HOST")
+    port = os.getenv("DOS_DB_PORT", "5432")
+    db_name = os.getenv("DOS_DB_NAME", "dos")
+    username = os.getenv("DOS_DB_USERNAME")
+    password = os.getenv("DOS_DB_PASSWORD")
+
+    connection_string = f"postgresql://{username}:{password}@{db_host}:{port}/{db_name}"
+    engine = create_engine(connection_string, echo=False)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture(scope="session")
+def faker() -> Faker:
+    faker = Faker("en_UK")
+    return faker
