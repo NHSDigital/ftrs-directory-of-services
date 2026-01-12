@@ -104,8 +104,8 @@ jobs:
         if: ${{ inputs.download_appconfig_artifact == true }}
         uses: actions/download-artifact@v7
         with:
-          name: ${{ endsWith(inputs.appconfig_artifact_name, format('_{0}', inputs.environment)) && inputs.appconfig_artifact_name || format('{0}_{1}', inputs.appconfig_artifact_name, inputs.environment) }}
-          path: ./
+          name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: infrastructure/toggles
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v7
