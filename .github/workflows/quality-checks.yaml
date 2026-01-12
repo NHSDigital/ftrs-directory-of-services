@@ -212,6 +212,40 @@ jobs:
           path: "checkov.sarif/"
           if-no-files-found: ignore
 
+  lint-service-automation-tests:
+    name: "Lint service automation tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.1
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.1
+
+      - name: "Install project"
+        run: make install
+        working-directory: "tests/service_automation"
+
+      - name: "Run linting"
+        run: make lint
+        working-directory: "tests/service_automation"
+
   trivy-scan:
     name: "Trivy scan"
     runs-on: ubuntu-latest
