@@ -232,6 +232,14 @@
                 "shield:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AppConfigFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "appconfig:*"
+            ],
+            "Resource": "*"
         }
     ]
 }
