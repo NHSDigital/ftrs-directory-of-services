@@ -1,8 +1,3 @@
-variable "application_tag" {
-  description = "The version or tag of the etl_ode_code application"
-  type        = string
-}
-
 variable "lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }

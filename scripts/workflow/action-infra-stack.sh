@@ -110,6 +110,9 @@ function terraform-initialise {
           -backend-config="key=$STACK/terraform.state" \
           -backend-config="region=$AWS_REGION"
     fi
+    terraform state rm aws_vpc_security_group_ingress_rule.rds_allow_ingress_from_processor_lambda 2>/dev/null || true
+    terraform state rm aws_vpc_security_group_ingress_rule.rds_allow_ingress_from_reference_data_lambda 2>/dev/null || true
+    terraform state rm aws_vpc_security_group_ingress_rule.rds_allow_ingress_from_queue_populator_lambda 2>/dev/null || true
 }
 
 COMMON_TF_VARS_FILE="common.tfvars"

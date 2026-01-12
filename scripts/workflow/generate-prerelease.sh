@@ -56,4 +56,5 @@ echo "Next prerelease tag: ${next_tag}"
 git tag "$next_tag"
 git push origin "$next_tag"
 
+export PRERELESE_TAG="$next_tag"
 echo "Prerelease generation complete."

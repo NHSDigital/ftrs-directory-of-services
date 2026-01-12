@@ -1,8 +1,3 @@
-variable "application_tag" {
-  description = "The version or tag of the data migration application"
-  type        = string
-}
-
 variable "migration_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the data migration pipeline"
 }

@@ -5,15 +5,22 @@ permissions:
   contents: write
 
 on:
-  workflow_call: {}
+  workflow_call:
+    outputs:
+      prerelease_tag:
+        description: "The generated prerelease tag"
+        value: ${{ jobs.generate-prerelease.outputs.prerelease_tag }}
 
 jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
     runs-on: ubuntu-latest
+    outputs:
+      prerelease_tag: ${{ steps.generate-prerelease.outputs.prerelease_tag }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
 
       - name: "Generate prerelease tag"
+        id: generate-prerelease
         uses: ./.github/actions/generate-prerelease

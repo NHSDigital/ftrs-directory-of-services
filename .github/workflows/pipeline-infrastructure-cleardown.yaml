@@ -15,11 +15,6 @@ on:
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
-      application_tag:
-        description: "Specify the application tag to cleardown"
-        required: true
-        default: "latest"
-        type: string
       environment:
         description: "Specify the environment to cleardown"
         required: true
@@ -48,8 +43,8 @@ jobs:
       environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      application_tag: ${{ inputs.application_tag || github.event.client_payload.application_tag  || 'latest' }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      release_tag: ${{ github.event.client_payload.environment || '' }}
       workflow_timeout: 30
       type: app
     secrets: inherit

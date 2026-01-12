@@ -28,12 +28,6 @@ variable "lambda_timeout" {
   type        = number
 }
 
-variable "application_tag" {
-  description = "The version or tag of the gp search application"
-  type        = string
-  default     = "latest"
-}
-
 #####################################################
 
 # API Gateway

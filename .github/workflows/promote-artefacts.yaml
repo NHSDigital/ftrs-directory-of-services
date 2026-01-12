@@ -1,5 +1,6 @@
-name: Deploy data migration project workflow
-run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
+name: Promote artefacts workflow
+run-name: Promote ${{ inputs.type }} - ${{ inputs.name }} artefacts
+
 permissions:
   id-token: write
   contents: read
@@ -10,50 +11,45 @@ on:
         description: "The type of project to build (service, package)"
         required: true
         type: string
-      name:
-        description: "The name of the package to build"
-        required: true
-        type: string
-      python_version:
-        description: "The version of Python"
-        required: true
-        type: string
-      commit_hash:
-        description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: false
-        type: string
       environment:
         description: "The deployment environment"
+        required: true
+        type: string
+        default: "mgmt"
+      name:
+        description: "The name of the package to build"
         required: true
         type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
         type: string
-      workspace:
-        description: "The name of the workspace to deploy the infrastructure into"
+      artefact_promotion_type:
+        description: "The type of artefact promotion to perform"
         required: true
         type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
-      tag:
-        description: "The tag identifying the release version to checkout and deploy"
+      release_tag:
+        description: "The release tag for the artefact"
+        required: false
+        type: string
+      prerelease_tag:
+        description: "The prerelease tag for the artefact"
         required: false
         type: string
 
 jobs:
-  deploy-project:
-    name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
+  promote-artefacts:
+    name: "Promote ${{ inputs.type }} - ${{ inputs.name }} artefacts"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
@@ -77,26 +73,12 @@ jobs:
             exit 1
           fi
 
-      - name: "Invoke DMS Replication Tasks"
-        run: make invoke-replication-task
+      - name: "Promote artefacts"
+        run: make ${{ inputs.artefact_promotion_type }}
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
-          WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
-
-      - name: "Invoke DMS Set Up Lambda"
-        run: make invoke-lambda
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
-        env:
-          SERVICE: ${{ inputs.name }}
-          PACKAGE: ${{ inputs.name }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
-          ENVIRONMENT: ${{ inputs.environment }}
-          REPO_NAME: ${{ inputs.repo_name }}
-          WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          PRERELEASE_TAG: ${{ inputs.prerelease_tag }}

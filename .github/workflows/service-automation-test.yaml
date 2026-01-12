@@ -46,6 +46,10 @@ on:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
         type: string
+      deployment_type:
+        description: "The type of deployment (e.g., release-candidate, development)"
+        required: false
+        type: string
 
 jobs:
   service-automation-tests:
@@ -136,5 +140,7 @@ jobs:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+          DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           ./scripts/workflow/upload-allure-report.sh

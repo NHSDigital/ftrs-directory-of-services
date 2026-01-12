@@ -1,6 +1,11 @@
 name: "Generate prerelease tag action"
 description: "Generate a prerelease tag for the repository."
 
+outputs:
+  prerelease_tag:
+    description: "The generated prerelease tag"
+    value: ${{ steps.generate_prerelease.outputs.prerelease_tag }}
+
 runs:
   using: composite
   steps:
@@ -9,3 +14,5 @@ runs:
       shell: bash
       run: |
         ./scripts/workflow/generate-prerelease.sh
+        echo "Prerelease tag: ${PRERELESE_TAG}"
+        echo "prerelease_tag=${PRERELESE_TAG}" >> $GITHUB_OUTPUT

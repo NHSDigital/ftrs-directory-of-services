@@ -38,10 +38,6 @@ on:
         description: "The git tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
-        required: false
-        type: string
       release_tag:
         description: "The release tag identifying the timeline in the repository to deploy from"
         required: false
@@ -106,7 +102,6 @@ jobs:
           stack: ${{ matrix.stack }}
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
-          application_tag: ${{ inputs.application_tag }}
           release_tag: ${{ inputs.release_tag }}
           commit_hash: ${{ inputs.commit_hash }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
