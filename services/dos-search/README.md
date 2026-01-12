@@ -255,12 +255,14 @@ When an endpoint grows beyond a single Lambda, there are two common serverless p
 **Shape:** API Gateway r router Lambda r N internal worker lambdas (sync invokes)
 
 Use this when:
+
 - You need a **synchronous HTTP response** (request/response).
 - The flow is mostly **linear** (A r B r C).
 - Each step is fast and you remain within API Gateway + Lambda timeouts.
 - You mainly want **deployment separation** (change one step without touching others).
 
 Trade-offs:
+
 - Orchestration logic (retries, branching) lives in code.
 - More lambdas usually means more latency (multiple sync invokes).
 
@@ -269,11 +271,13 @@ Trade-offs:
 **Shape:** API Gateway r Lambda r Step Function execution r N tasks (Lambdas)
 
 Use this when:
+
 - You need **retries/backoff**, **branches**, **compensation**, or **fan-out/fan-in**.
 - You need better **operational visibility** (one execution view of all steps).
 - Steps may be long-running or you want async patterns.
 
 Trade-offs:
+
 - Extra infrastructure and state-machine definitions to maintain.
 - For a strictly synchronous endpoint, Step Functions can add complexity.
 

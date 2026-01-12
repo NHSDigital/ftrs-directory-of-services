@@ -15,6 +15,7 @@ future orchestration).
 - API Gateway integrates directly with a single Lambda.
 
 Examples:
+
 - `GET /_status` -> `lambdas/status_get/handler.py`
 - `GET /Organization` -> `functions/dos_search_ods_code_function.lambda_handler`
 
