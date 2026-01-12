@@ -1192,6 +1192,9 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
 def test_from_fhir_no_legal_dates_when_no_extension() -> None:
     """Test from_fhir sets legal dates to None when no extension."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     fhir_org = FhirOrganisation(
         id="00000000-0000-0000-0000-00000000000a",
         identifier=[
