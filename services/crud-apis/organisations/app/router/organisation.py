@@ -22,6 +22,7 @@ from organisations.app.services.validators import (
 
 ERROR_MESSAGE_404 = "Organisation not found"
 FHIR_MEDIA_TYPE = "application/fhir+json"
+ORGANISATION_ID_DESCRIPTION = "The internal id of the organisation"
 
 router = APIRouter()
 org_repository = get_service_repository(Organisation, "organisation")
@@ -96,7 +97,7 @@ def get_organisation_by_id(
     organisation_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
-        description="The internal id of the organisation",
+        description=ORGANISATION_ID_DESCRIPTION,
     ),
 ) -> Organisation:
     crud_organisation_logger.log(
@@ -124,7 +125,7 @@ def update_organisation(
     organisation_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
-        description="The internal id of the organisation",
+        description=ORGANISATION_ID_DESCRIPTION,
     ),
     update_payload_validator: UpdatePayloadValidator = Body(
         ..., media_type=FHIR_MEDIA_TYPE
@@ -224,7 +225,7 @@ def delete_organisation(
     organisation_id: UUID = Path(
         ...,
         examples=["00000000-0000-0000-0000-11111111111"],
-        description="The internal id of the organisation",
+        description=ORGANISATION_ID_DESCRIPTION,
     ),
 ) -> Response:
     crud_organisation_logger.log(
