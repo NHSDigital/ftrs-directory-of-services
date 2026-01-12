@@ -1,5 +1,9 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
+from ftrs_data_layer.domain.audit_event import (
+    AuditEvent,
+    default_data_migration_audit_event,
+)
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType, OrganisationTypeCode
@@ -13,6 +17,14 @@ class LegalDates(BaseModel):
 
 
 class Organisation(DBModel):
+    createdBy: AuditEvent = Field(default_factory=default_data_migration_audit_event)
+    createdTime: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    modifiedBy: AuditEvent = Field(default_factory=default_data_migration_audit_event)
+    modifiedTime: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    lastUpdated: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    lastUpdatedBy: AuditEvent = Field(
+        default_factory=default_data_migration_audit_event
+    )
     identifier_oldDoS_uid: str | None = None
     identifier_ODS_ODSCode: str
     active: bool
@@ -23,6 +35,5 @@ class Organisation(DBModel):
         default_factory=list
     )
     telecom: list[Telecom] | str | None
-    type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
     legalDates: LegalDates | None = None
