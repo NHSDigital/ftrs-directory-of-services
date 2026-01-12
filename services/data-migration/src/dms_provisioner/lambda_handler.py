@@ -3,7 +3,11 @@ from ftrs_common.logger import Logger
 
 from common.sql_utils import get_sqlalchemy_engine_from_config
 from dms_provisioner.config import DmsDatabaseConfig
-from dms_provisioner.dms_service import create_dms_user, create_rds_triggers
+from dms_provisioner.dms_service import (
+    create_dms_user,
+    create_indexes_from_sql_file,
+    create_rds_triggers,
+)
 
 LOGGER = Logger.get(service="DMS-Lambda-handler")
 
@@ -25,6 +29,9 @@ def lambda_handler(event: dict, context: dict) -> None:
 
     # Create a user if not exists
     create_dms_user(engine, rds_username, rds_password)
+
+    # Create indexes for performance optimization
+    create_indexes_from_sql_file(engine)
 
     # Create triggers for services and related tables
     create_rds_triggers(

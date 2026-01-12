@@ -217,6 +217,7 @@ def test_process_service(
                 service=None,
                 order=1,
                 isCompressionEnabled=True,
+                comment="Test Endpoint",
             ),
             Endpoint(
                 id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
@@ -236,6 +237,7 @@ def test_process_service(
                 service=None,
                 order=2,
                 isCompressionEnabled=False,
+                comment="Test Email Endpoint",
             ),
         ],
     )

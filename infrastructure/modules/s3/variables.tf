@@ -42,3 +42,9 @@ variable "s3_logging_bucket" {
   type        = string
   default     = ""
 }
+
+variable "s3_encryption_key_arn" {
+  description = "The ARN of the KMS key to use for server-side encryption if required"
+  type        = string
+  default     = null
+}

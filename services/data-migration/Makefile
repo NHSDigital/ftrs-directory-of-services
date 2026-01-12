@@ -64,28 +64,3 @@ invoke-lambda:
 	aws lambda invoke \
 	--function-name $(DMS_DB_LAMBDA_NAME) \
 	/dev/null
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help:
-	@echo "Data Migration Service Targets:"
-	@echo ""
-	@echo "Build & Test:"
-	@echo "  make install                  - Install dependencies"
-	@echo "  make lint                     - Run linting checks"
-	@echo "  make test                     - Run tests"
-	@echo "  make build                    - Build Lambda package"
-	@echo ""
-	@echo "Data Operations:"
-	@echo "  make export-to-s3             - Export data to S3"
-	@echo "  make restore-from-s3          - Restore data from S3"
-	@echo "  make invoke-replication-task  - Start DMS replication task"
-	@echo ""
-	@echo "Deployment:"
-	@echo "  make publish                  - Publish to development"
-	@echo "  make stage-release            - Stage release"
-	@echo ""
-	@echo "Cleanup:"
-	@echo "  make clean                    - Clean build artifacts"

@@ -14,8 +14,10 @@ def get_table_name(entity_type: str, env: str, workspace: str | None = None) -> 
     """
     if not entity_type or not env:
         raise ValueError(MISSING_PARAMETERS)
-
-    table_name = f"ftrs-dos-{env}-database-{entity_type}"
+    if entity_type.startswith("data-migration-"):
+        table_name = f"ftrs-dos-{env}-{entity_type}"
+    else:
+        table_name = f"ftrs-dos-{env}-database-{entity_type}"
     if workspace:
         table_name = f"{table_name}-{workspace}"
 

@@ -402,8 +402,13 @@ class DataMigrationProcessor:
         exists = "Item" in response
 
         if exists:
-            self.logger.debug(f"State record found for service ID: {record_id}")
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_023,
+                record_id=record_id,
+            )
         else:
-            self.logger.debug(f"No state record found for service ID: {record_id}")
-
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_024,
+                record_id=record_id,
+            )
         return exists

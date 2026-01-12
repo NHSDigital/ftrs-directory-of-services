@@ -138,8 +138,28 @@ make test MARKERS="is-api"
 
 ### Running Data Migration tests
 
+Run all data migration tests:
+
 ```shell
 make test MARKERS="data-migration"
+```
+
+Run specific data migration test categories:
+
+```shell
+# Run only transactional writes tests
+make test MARKERS="transactional-writes"
+
+# Run only insert operation tests
+make test MARKERS="insert-operation"
+
+# Run only conflict detection tests
+make test MARKERS="conflict-detection"
+
+# Run specific conflict type tests
+make test MARKERS="organisation-exists"
+make test MARKERS="location-exists"
+make test MARKERS="healthcare-service-exists"
 ```
 
 ### Running ETL-ODS tests

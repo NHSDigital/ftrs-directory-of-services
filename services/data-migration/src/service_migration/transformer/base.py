@@ -169,6 +169,7 @@ class ServiceTransformer(ABC):
             createdDateTime=self.start_time,
             modifiedBy=self.MIGRATION_USER,
             modifiedDateTime=self.start_time,
+            comment=endpoint.comment,
         )
 
     def build_location(
