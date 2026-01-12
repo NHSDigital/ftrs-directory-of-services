@@ -107,11 +107,11 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
 module "trust_store_s3_bucket" {
   # This module creates an S3 bucket for the trust store used for MTLS Certificates.
-  source            = "../../modules/s3"
-  bucket_name       = local.s3_trust_store_bucket_name
-  s3_logging_bucket = local.s3_logging_bucket
+  source                = "../../modules/s3"
+  bucket_name           = local.s3_trust_store_bucket_name
+  s3_logging_bucket     = local.s3_logging_bucket
+  s3_encryption_key_arn = module.s3_encryption_key.arn
 }
-
 
 # IS Performance S3 Bucket
 module "performance_s3" {
