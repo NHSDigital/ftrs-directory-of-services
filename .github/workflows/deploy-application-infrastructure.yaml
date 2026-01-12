@@ -79,14 +79,14 @@ jobs:
 
       - name: "Generate feature flags JSON"
         env:
-          ENVIRONMENT: ${{ inputs.environment }}
+          ENVIRONMENT: ${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
         run: |
           /bin/bash ./scripts/workflow/generate-feature-flags.sh
 
       - name: "Upload AppConfig feature flags"
         uses: actions/upload-artifact@v6
         with:
-          name: appconfig_feature_flags_${{ inputs.environment }}
+          name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
           path: infrastructure/toggles/feature_flags.json
 
   plan-application-infrastructure:
@@ -109,7 +109,7 @@ jobs:
       type: ${{ inputs.type }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
       download_appconfig_artifact: true
-      appconfig_artifact_name: appconfig_feature_flags_${{ inputs.environment }}
+      appconfig_artifact_name: "appconfig_feature_flags"
     secrets: inherit
 
   manual-approval-application-infra:
