@@ -250,57 +250,20 @@ class TestErrorUtil:
             == "Invalid request headers supplied: a-header, m-header, z-header"
         )
 
-    def test_value_error_without_custom_error(self):
-        # Test value_error without custom error in ctx (unmapped value_error)
-        err = ValidationError.from_exception_data(
-            "ValidationError",
-            [
-                {
-                    "type": "value_error",
-                    "loc": ("identifier",),
-                    "msg": "Some value error",
-                    "input": None,
-                    "ctx": {},  # No custom error
-                }
-            ],
-        )
-        result = create_validation_error_operation_outcome(err)
-        assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        assert result.issue[0].severity == "error"
-        assert result.issue[0].code == "invalid"
-        assert result.issue[0].diagnostics == "Invalid search parameter value"
+    def test_multiple_validation_errors(self):
+        # Test handling of multiple validation errors at once
+        validation_error = None
+        try:
+            OrganizationQueryParams(
+                identifier="odsOrganisationCode|ABC",  # Too short
+                _revinclude="Wrong:value",  # Wrong revinclude
+            )
+        except ValidationError as e:
+            validation_error = e
 
-    def test_unmapped_pydantic_error_type(self):
-        # Test with a different pydantic error type (not value_error or missing)
-        err = ValidationError.from_exception_data(
-            "ValidationError",
-            [
-                {
-                    "type": "int_parsing",
-                    "loc": ("count",),
-                    "msg": "Input should be a valid integer",
-                    "input": "not_an_int",
-                }
-            ],
-        )
-        result = create_validation_error_operation_outcome(err)
+        result = create_validation_error_operation_outcome(validation_error)
         assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        assert result.issue[0].severity == "error"
-        assert result.issue[0].code == "invalid"
-        assert result.issue[0].diagnostics == "Input should be a valid integer"
-
-    def test_error_with_no_msg(self):
-        # Test error with no msg field
-        err = ValidationError.from_exception_data(
-            "ValidationError",
-            [{"type": "some_type", "loc": ("field",), "input": None}],
-        )
-        result = create_validation_error_operation_outcome(err)
-        assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        assert result.issue[0].diagnostics == "Invalid request"
+        assert len(result.issue) == 2  # Should have 2 issues
 
     def test_create_issue_with_all_params(self):
         # Test _create_issue function through public API

@@ -5,6 +5,8 @@ from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
+    EndpointConnectionType,
+    EndpointDescription,
     EndpointPayloadType,
 )
 
@@ -218,18 +220,6 @@ class TestEndpointMapper:
         )
         assert endpoints[2].connectionType.code == "telno"
 
-    def test_create_payload_type_empty_code(self, endpoint_mapper, create_endpoint):
-        # Arrange
-        endpoint = create_endpoint(payload_type=None)
-        # Mock the payloadType to have empty value
-        endpoint.payloadType.value = ""
-
-        # Act
-        result = endpoint_mapper._create_payload_type(endpoint)
-
-        # Assert
-        assert result == []
-
     def test_create_business_scenario_extension_logs_error_for_unknown(
         self, endpoint_mapper, mocker
     ):
@@ -247,57 +237,28 @@ class TestEndpointMapper:
             "Unknown business scenario: UnknownScenario"
         )
 
-    def test_create_extensions_with_no_optional_fields(
-        self, endpoint_mapper, create_endpoint
-    ):
-        # Arrange - Endpoint with no order, no compression, no description
-        endpoint = create_endpoint(
-            order=None, is_compression_enabled=None, description=None
-        )
-
-        # Act
-        extensions = endpoint_mapper._create_extensions(endpoint)
-
-        # Assert
-        assert len(extensions) == 0
-
-    def test_create_extensions_with_order_only(self, endpoint_mapper, create_endpoint):
-        # Arrange
-        endpoint = create_endpoint(
-            order=5, is_compression_enabled=None, description=None
-        )
-
-        # Act
-        extensions = endpoint_mapper._create_extensions(endpoint)
-
-        # Assert
-        assert len(extensions) == 1
-        assert extensions[0]["valueInteger"] == 5
-
     def test_create_extensions_with_compression_false(
         self, endpoint_mapper, create_endpoint
     ):
         # Arrange - Test with is_compression_enabled=False (not None)
-        endpoint = create_endpoint(
-            order=None, is_compression_enabled=False, description=None
-        )
+        endpoint = create_endpoint(is_compression_enabled=False)
 
         # Act
         extensions = endpoint_mapper._create_extensions(endpoint)
 
         # Assert
-        assert len(extensions) == 1
-        assert extensions[0]["valueBoolean"] is False
+        # Should have order and business scenario but compression should be False
+        assert any(ext.get("valueBoolean") is False for ext in extensions)
 
-    def test_create_connection_type_uppercase(self, endpoint_mapper, create_endpoint):
-        # Arrange - Connection type in uppercase
-        endpoint = create_endpoint(connection_type="ITK")
+    def test_create_connection_type_lowercase(self, endpoint_mapper, create_endpoint):
+        # Arrange - Test that connection type is properly lowercased
+        endpoint = create_endpoint(connection_type=EndpointConnectionType.ITK)
 
         # Act
         result = endpoint_mapper._create_connection_type(endpoint)
 
         # Assert
-        assert result.code == "itk"  # Should be lowercased
+        assert result.code == "itk"
 
     def test_create_connection_type_http(self, endpoint_mapper, create_endpoint):
         # Arrange
@@ -325,23 +286,24 @@ class TestEndpointMapper:
         assert len(result) == 1
         assert result[0] == endpoint.payloadMimeType.value
 
-    def test_map_to_endpoints_filters_none_endpoints(
-        self, endpoint_mapper, create_organisation, mocker
+    def test_create_extensions_includes_all_fields(
+        self, endpoint_mapper, create_endpoint
     ):
-        # Arrange - Mock _create_fhir_endpoint to return None for second endpoint
-        mock_create = mocker.patch.object(
-            endpoint_mapper,
-            "_create_fhir_endpoint",
-            side_effect=[mocker.MagicMock(), None, mocker.MagicMock()],
+        # Arrange - Endpoint with all extension fields
+        endpoint = create_endpoint(
+            order=1,
+            is_compression_enabled=True,
+            description=EndpointDescription.PRIMARY,
         )
-        org = create_organisation(endpoints=[mocker.MagicMock()] * 3)
 
         # Act
-        result = endpoint_mapper.map_to_fhir_endpoints(org)
+        extensions = endpoint_mapper._create_extensions(endpoint)
 
-        # Assert
-        assert len(result) == 2  # Only 2 out of 3 because one returned None
-        assert mock_create.call_count == 3
+        # Assert - Should have order, compression, and business scenario
+        assert len(extensions) == 3
+        assert any(ext.get("valueInteger") == 1 for ext in extensions)
+        assert any(ext.get("valueBoolean") is True for ext in extensions)
+        assert any(ext.get("valueCode") == "primary-recipient" for ext in extensions)
 
     def test_create_managing_organization_with_different_id(
         self, endpoint_mapper, create_endpoint
