@@ -64,6 +64,7 @@ def get_organisation() -> dict:
                 "service": None,
                 "address": "https://example.com/endpoint",
                 "order": 1,
+                "comment": None,
             }
         ],
     }

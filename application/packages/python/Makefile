@@ -49,6 +49,8 @@ lint-fix:
 unit-test:
 	poetry run pytest
 
+pre-commit: lint
+
 publish:
 	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
 		aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PACKAGES_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
