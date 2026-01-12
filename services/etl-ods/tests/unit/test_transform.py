@@ -17,13 +17,13 @@ def test_transform_to_payload_logs_and_returns_organization(
         "pipeline.transform.OrganizationMapper.from_ods_fhir_to_fhir",
         return_value=fake_organization,
     )
-    mock_logger = mocker.patch("pipeline.transform.ods_processor_logger.log")
+    mock_logger = mocker.patch("pipeline.transform.ods_transformer_logger.log")
 
     result = transform_to_payload(ods_fhir)
 
     mock_mapper.assert_called_once_with(ods_fhir)
     mock_logger.assert_called_once_with(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_026,
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_026,
         ods_code=ods_code,
     )
     assert result == fake_organization

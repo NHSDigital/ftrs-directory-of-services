@@ -10,6 +10,7 @@ from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
+import pipeline.utilities
 from pipeline.utilities import (
     _get_api_key_for_url,
     build_headers,
@@ -655,14 +656,17 @@ def test__get_api_key_for_url_client_error_non_resource_not_found(
     {
         "ENVIRONMENT": "local",
         "AWS_REGION": "eu-west-2",
-        "PROJECT_NAME": "ftrs",  # Add this if needed
+        "PROJECT_NAME": "ftrs",
     },
 )
 def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
     """
     Test that get_jwt_authenticator works with local environment.
     """
+    # Stop all existing mocks
     mocker.stopall()
+
+    pipeline.utilities._jwt_authenticator = None
 
     mock_jwt_authenticator_class = mocker.patch("pipeline.utilities.JWTAuthenticator")
     mock_instance = mocker.MagicMock()
@@ -670,11 +674,10 @@ def test_get_jwt_authenticator_local_environment(mocker: MockerFixture) -> None:
 
     result = get_jwt_authenticator()
 
-    # Check the actual call - it might be using a constructed secret path even for local
     mock_jwt_authenticator_class.assert_called_once_with(
         environment="local",
         region="eu-west-2",
-        secret_name="/ftrs/local/dos-ingest-jwt-credentials",  # Adjust based on actual implementation
+        secret_name="/ftrs/local/dos-ingest-jwt-credentials",
     )
 
     assert result == mock_instance

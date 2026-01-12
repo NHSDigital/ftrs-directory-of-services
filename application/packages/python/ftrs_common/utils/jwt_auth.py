@@ -20,6 +20,8 @@ class JWTAuthenticator:
         self.environment = environment or os.environ.get("ENVIRONMENT", "local")
         self.region = region or os.environ.get("AWS_REGION", "eu-west-2")
         self.custom_secret_name = secret_name
+        self.cached_token: Optional[str] = None
+        self.token_expires_at: Optional[float] = None
 
     def get_jwt_credentials(self) -> Dict[str, str]:
         if self.environment == "local":
@@ -87,6 +89,18 @@ class JWTAuthenticator:
         return token
 
     def get_bearer_token(self) -> str:
+        current_time = time()
+
+        # Check if we have a cached token that hasn't expired
+        if (
+            self.cached_token
+            and self.token_expires_at
+            and current_time < self.token_expires_at
+        ):
+            # Use cached token
+            return self.cached_token
+
+        # Generate a new token
         creds = self.get_jwt_credentials()
         jwt_assertion = self.generate_assertion()
 
@@ -107,6 +121,9 @@ class JWTAuthenticator:
             if not token:
                 raise JWTTokenError("no_access_token", body)
             else:
+                # Cache the token with 5-minute expiration
+                self.cached_token = token
+                self.token_expires_at = current_time + 300  # 5 minutes
                 return token
         except requests.exceptions.RequestException as e:
             raise JWTTokenError("request_failed", original_error=e) from e

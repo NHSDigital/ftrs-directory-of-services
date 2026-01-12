@@ -1,4 +1,5 @@
 import json
+import os
 from http import HTTPStatus
 
 import requests
@@ -13,6 +14,12 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pipeline.utilities import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
+
+
+class RateLimitExceededException(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(self.message)
 
 
 def consumer_lambda_handler(event: dict, context: any) -> dict:
@@ -39,6 +46,9 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
             total_records=len(records) if records else 0,
         )
         for record in records:
+            message_id = record["messageId"]
+            receive_count = int(record["attributes"]["ApproximateReceiveCount"])
+
             ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_003,
                 message_id=record["messageId"],
@@ -50,12 +60,46 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
                     OdsETLPipelineLogBase.ETL_CONSUMER_004,
                     message_id=record["messageId"],
                 )
-            except Exception:
-                ods_consumer_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_005,
-                    message_id=record["messageId"],
-                )
+            except RateLimitExceededException as rate_limit_error:
+                max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+                if receive_count >= max_receive_count:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                        message_id=message_id,
+                        receive_count=receive_count,
+                        error_message=f"Rate limit exceeded - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                        exception=rate_limit_error,
+                    )
+                else:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                        message_id=message_id,
+                        receive_count=receive_count,
+                        error_message=f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})",
+                    )
                 batch_item_failures.append({"itemIdentifier": record["messageId"]})
+            except Exception:
+                max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+                if receive_count >= max_receive_count:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                        message_id=record["messageId"],
+                        error_message=f"Processing failed - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                    )
+                else:
+                    ods_consumer_logger.log(
+                        OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                        message_id=record["messageId"],
+                        error_message=f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count})",
+                    )
+                batch_item_failures.append({"itemIdentifier": record["messageId"]})
+
+        if batch_item_failures:
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                retry_count=len(batch_item_failures),
+                total_records=len(records),
+            )
 
         sqs_batch_response["batchItemFailures"] = batch_item_failures
         return sqs_batch_response
@@ -63,7 +107,7 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
 
 def process_message_and_send_request(record: dict) -> None:
     if isinstance(record.get("body"), str):
-        body_content = json.loads(json.loads(record.get("body")))
+        body_content = json.loads(record.get("body"))
         path = body_content.get("path")
         body = body_content.get("body")
         correlation_id = body_content.get("correlation_id")
@@ -104,14 +148,24 @@ def process_message_and_send_request(record: dict) -> None:
                     OdsETLPipelineLogBase.ETL_CONSUMER_008, message_id=message_id
                 )
                 return
-            ods_consumer_logger.log(
-                OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
-            )
-            raise RequestProcessingError(
-                message_id=message_id,
-                status_code=(http_error.response.status_code),
-                response_text=str(http_error),
-            )
+            elif http_error.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_009,
+                    message_id=message_id,
+                    status_code=HTTPStatus.TOO_MANY_REQUESTS,
+                    error_message=f"Rate limit exceeded: {str(http_error)}",
+                )
+                raise RateLimitExceededException()
+            else:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_009,
+                    message_id=record["messageId"],
+                )
+                raise RequestProcessingError(
+                    message_id=message_id,
+                    status_code=(http_error.response.status_code),
+                    response_text=str(http_error),
+                )
 
 
 class RequestProcessingError(Exception):

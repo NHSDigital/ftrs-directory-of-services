@@ -310,110 +310,87 @@ class OdsETLPipelineLogBase(LogBase):
     LogBase for the ODS ETL Pipeline operations
     """
 
-    ETL_PROCESSOR_001 = LogReference(
+    ETL_EXTRACTOR_001 = LogReference(
         level=INFO, message="Fetching outdated organizations for date {date}."
     )
-    ETL_PROCESSOR_002 = LogReference(
+    ETL_EXTRACTOR_002 = LogReference(
         level=INFO,
         message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
     )
-    ETL_PROCESSOR_003 = LogReference(
-        level=INFO, message="Fetching organisation data for code: {ods_code}."
+    ETL_EXTRACTOR_003 = LogReference(
+        level=INFO,
+        message="Processing message id: {message_id} from ODS ETL queue.",
     )
-    ETL_PROCESSOR_004 = LogReference(
-        level=WARNING,
-        message="OperationOutcome retrieved when fetching Organisation FHIR data - issue code: {code}, issue diagnostics: {diagnostics}.",
-    )
-    ETL_PROCESSOR_007 = LogReference(
+    ETL_EXTRACTOR_007 = LogReference(
         level=WARNING, message="Organisation not found in database."
     )
-    ETL_PROCESSOR_012 = LogReference(
+    ETL_EXTRACTOR_012 = LogReference(
         level=WARNING, message="ODS code extraction failed: {e}."
     )
-    ETL_PROCESSOR_013 = LogReference(
+    ETL_EXTRACTOR_013 = LogReference(
         level=WARNING,
         message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
     )
-    ETL_PROCESSOR_014 = LogReference(
+    ETL_EXTRACTOR_014 = LogReference(
         level=INFO,
         message="Trying to send {number} messages to sqs queue.",
     )
-    ETL_PROCESSOR_015 = LogReference(
+    ETL_EXTRACTOR_015 = LogReference(
         level=WARNING,
         message="Failed to send {failed} messages in batch.",
     )
-    ETL_PROCESSOR_016 = LogReference(
+    ETL_EXTRACTOR_016 = LogReference(
         level=WARNING,
         message="Message {id}: {message} - {code}.",
     )
-    ETL_PROCESSOR_017 = LogReference(
+    ETL_EXTRACTOR_017 = LogReference(
         level=INFO,
         message="Succeeded to send {successful} messages in batch.",
     )
-    ETL_PROCESSOR_018 = LogReference(
+    ETL_EXTRACTOR_018 = LogReference(
         level=WARNING,
         message="Error sending data to queue with error: {error_message}.",
     )
-    ETL_PROCESSOR_019 = LogReference(
-        level=WARNING,
-        message="Payload validation failed: {error_message}.",
-    )
-    ETL_PROCESSOR_020 = LogReference(
+    ETL_EXTRACTOR_020 = LogReference(
         level=INFO,
         message="No organisations found for the given date: {date}.",
     )
-    ETL_PROCESSOR_021 = LogReference(
+    ETL_EXTRACTOR_021 = LogReference(
         level=WARNING,
         message="Invalid environment variable value '{invalid_value}' provided, using default value.",
     )
-    ETL_PROCESSOR_022 = LogReference(
+    ETL_EXTRACTOR_022 = LogReference(
         level=WARNING,
         message="Error fetching data: {error_message}.",
     )
-    ETL_PROCESSOR_023 = LogReference(
+    ETL_EXTRACTOR_023 = LogReference(
         level=WARNING,
         message="Unexpected error: {error_message}.",
     )
-    ETL_PROCESSOR_024 = LogReference(
-        level=INFO,
-        message="Successfully validated organisation data.",
-    )
-    ETL_PROCESSOR_026 = LogReference(
+    ETL_TRANSFORMER_026 = LogReference(
         level=INFO,
         message="Successfully transformed data for ods_code: {ods_code}.",
     )
-    ETL_PROCESSOR_027 = LogReference(
+    ETL_TRANSFORMER_027 = LogReference(
         level=WARNING,
         message="Error processing organisation with ods_code {ods_code}: {error_message}",
     )
-    ETL_PROCESSOR_028 = LogReference(
+    ETL_EXTRACTOR_028 = LogReference(
         level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",
     )
-    ETL_PROCESSOR_029 = LogReference(
+    ETL_EXTRACTOR_029 = LogReference(
         level=WARNING,
         message="Error processing date with code: {status_code} and message: {error_message}.",
     )
-    ETL_PROCESSOR_030 = LogReference(
+    ETL_EXTRACTOR_030 = LogReference(
         level=WARNING,
         message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
     )
-    ETL_PROCESSOR_031 = LogReference(
-        level=INFO,
-        message="Processing organisation {ods_code} as its is identified as {org_type}. {reason}",
-    )
-    ETL_PROCESSOR_032 = LogReference(
-        level=INFO,
-        message="Not processing organisation {ods_code} as it is not a permitted type. {reason}",
-    )
-    ETL_PROCESSOR_033 = LogReference(
-        level=INFO,
-        message="Checking if organisation is permitted type",
-    )
-    ETL_PROCESSOR_034 = LogReference(
+    ETL_EXTRACTOR_034 = LogReference(
         level=INFO, message="Processing page {page_num} for date {date}."
     )
-    ETL_PROCESSOR_035 = LogReference(
+    ETL_EXTRACTOR_035 = LogReference(
         level=INFO,
         message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
@@ -452,6 +429,10 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_CONSUMER_009 = LogReference(
         level=ERROR,
         message="Request failed for message id: {message_id}.",
+    )
+    ETL_CONSUMER_010 = LogReference(
+        level=ERROR,
+        message="Returning {retry_count} messages to queue due to failure out of {total_records} records.",
     )
     ETL_UTILS_001 = LogReference(
         level=INFO,

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 
 from pipeline.consumer import (
@@ -17,11 +18,23 @@ from pipeline.consumer import (
 def test_consumer_lambda_handler_success(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
         ]
     }
 
@@ -63,11 +76,23 @@ def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) 
 def test_consumer_lambda_handler_failure(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
         ]
     }
 
@@ -114,11 +139,14 @@ def test_consumer_lambda_handler_handle_missing_message_parameters(
     path: str,
     body: dict,
     caplog: pytest.LogCaptureFixture,
+    mocker: MockerFixture,
 ) -> None:
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
     event = {
         "Records": [
             {
                 "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
                 "path": path,
                 "body": body,
             }
@@ -163,7 +191,7 @@ def test_process_message_and_send_request_success(
 
     record = {
         "messageId": "1",
-        "body": '"{\\"path\\": \\"uuid\\", \\"body\\": {\\"name\\": \\"Organization Name\\"}}"',
+        "body": '{"path": "uuid", "body": {"name": "Organization Name"}}',
     }
 
     process_message_and_send_request(record)
@@ -309,10 +337,10 @@ def test_process_message_and_send_request_with_string_body_and_correlation_id(
         json=mock_response,
     )
 
-    # Simulate SQS message format with double-encoded JSON and correlation_id
+    # Simulate SQS message format with single-encoded JSON and correlation_id
     record = {
         "messageId": "msg-123",
-        "body": '"{\\"path\\": \\"test-uuid-123\\", \\"body\\": {\\"name\\": \\"Test Org\\"}, \\"correlation_id\\": \\"corr-id-456\\"}"',
+        "body": '{"path": "test-uuid-123", "body": {"name": "Test Org"}, "correlation_id": "corr-id-456"}',
     }
 
     process_message_and_send_request(record)

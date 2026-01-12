@@ -246,7 +246,7 @@ def invoke_lambda_generic(
     Stores the response in context.lambda_response and sets context.lambda_name.
     """
     lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+        project, workspace, env, "etl-ods-extractor", "lambda"
     )
 
     context.lambda_name = lambda_name
