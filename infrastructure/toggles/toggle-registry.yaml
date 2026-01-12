@@ -10,7 +10,7 @@ appconfig_flags:
     owner: "Data Migration Team"
     lifecycle: kill-switch
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: true
