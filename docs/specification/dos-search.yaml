@@ -624,3 +624,13 @@ x-nhsd-apim:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  target-attributes:
+    - name: nhsd-request-id
+      required: false
+      header: nhsd-request-id
+    - name: role
+      required: false
+      header: Role
+    - name: endpoints
+      required: false
+      header: AuthorisedEndpoints
