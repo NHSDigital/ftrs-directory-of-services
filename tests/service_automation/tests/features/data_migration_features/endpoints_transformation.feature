@@ -6,7 +6,6 @@ Feature: Data Migration for endpoints
     And the DoS database has test data
     And DynamoDB tables are ready
 
-  @FTRS-2011
   Scenario: Endpoints are migrated
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                       |
