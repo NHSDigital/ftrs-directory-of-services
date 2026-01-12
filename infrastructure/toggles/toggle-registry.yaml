@@ -9,7 +9,7 @@ appconfig_flags:
     service: data-migration
     owner: "Data Migration Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: true
