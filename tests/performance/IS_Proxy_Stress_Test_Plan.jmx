@@ -5,8 +5,6 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -24,89 +22,22 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests">
-        <intProp name="ThreadGroup.num_threads">140</intProp>
-        <intProp name="ThreadGroup.ramp_time">60</intProp>
-        <longProp name="ThreadGroup.duration">3600</longProp>
-        <longProp name="ThreadGroup.delay">0</longProp>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">1</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
-          <collectionProp name="load_profile">
-            <collectionProp name="1947752597">
-              <stringProp name="48">0</stringProp>
-              <stringProp name="1572">15</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867568524">
-              <stringProp name="1598">20</stringProp>
-              <stringProp name="1598">20</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867573484">
-              <stringProp name="1603">25</stringProp>
-              <stringProp name="1603">25</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867599276">
-              <stringProp name="1629">30</stringProp>
-              <stringProp name="1629">30</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867604236">
-              <stringProp name="1634">35</stringProp>
-              <stringProp name="1634">35</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867630028">
-              <stringProp name="1660">40</stringProp>
-              <stringProp name="1660">40</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867634988">
-              <stringProp name="1665">45</stringProp>
-              <stringProp name="1665">45</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867660780">
-              <stringProp name="1691">50</stringProp>
-              <stringProp name="1691">50</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867665740">
-              <stringProp name="1696">55</stringProp>
-              <stringProp name="1696">55</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867691532">
-              <stringProp name="1722">60</stringProp>
-              <stringProp name="1722">60</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867696492">
-              <stringProp name="1727">65</stringProp>
-              <stringProp name="1727">65</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-            <collectionProp name="1867722284">
-              <stringProp name="1753">70</stringProp>
-              <stringProp name="1753">70</stringProp>
-              <stringProp name="50547">300</stringProp>
-            </collectionProp>
-          </collectionProp>
-        </kg.apc.jmeter.timers.VariableThroughputTimer>
-        <hashTree/>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Request Transaction Controller" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -171,7 +102,7 @@ try {
 </stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -216,9 +147,7 @@ public static String readFileContent(Path filePath) throws IOException {
 
     String apim_env = vars.get(&quot;Apim_Env&quot;);
     String apim_domain = vars.get(&quot;Apim_Domain&quot;);
-    // String fullendpoint = &quot;https://&quot;+apim_env+apim_domain+&quot;/oauth2/token&quot;;
     String fullendpoint = vars.get(&quot;token_url&quot;);
-    log.info(fullendpoint);
     String subject = apikey;
     String issuer = apikey;
     String audience = fullendpoint;
@@ -248,7 +177,7 @@ public static String readFileContent(Path filePath) throws IOException {
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token">
             <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -281,7 +210,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">content-type</stringProp>
@@ -290,14 +219,117 @@ public static String readFileContent(Path filePath) throws IOException {
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Bearer Token">
               <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
             </JSONPostProcessor>
             <hashTree/>
+            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Set Bearer Token as Property">
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">// Set the bearer token as a JMeter property so it&apos;s available across all thread groups
+def bearerToken = vars.get(&quot;varBearer&quot;)
+def iteration = vars.getIteration()
+
+if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken != &quot;TOKEN_NOT_FOUND&quot;) {
+    props.put(&quot;varBearer&quot;, bearerToken)
+    log.info(&quot;Iteration ${iteration}: Bearer token successfully set&quot;)
+} else {
+    log.error(&quot;Iteration ${iteration}: Bearer token is null!&quot;)
+}
+</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PostProcessor>
+            <hashTree/>
           </hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests">
+        <intProp name="ThreadGroup.num_threads">140</intProp>
+        <intProp name="ThreadGroup.ramp_time">60</intProp>
+        <longProp name="ThreadGroup.duration">3600</longProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
+          <collectionProp name="load_profile">
+            <collectionProp name="-611716527">
+              <stringProp name="48">0</stringProp>
+              <stringProp name="1572">15</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1571431052">
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1596284620">
+              <stringProp name="1603">25</stringProp>
+              <stringProp name="1603">25</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1598806284">
+              <stringProp name="1629">30</stringProp>
+              <stringProp name="1629">30</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1599765548">
+              <stringProp name="1634">35</stringProp>
+              <stringProp name="1634">35</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1603057996">
+              <stringProp name="1660">40</stringProp>
+              <stringProp name="1660">40</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1603246476">
+              <stringProp name="1665">45</stringProp>
+              <stringProp name="1665">45</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1606538924">
+              <stringProp name="1691">50</stringProp>
+              <stringProp name="1691">50</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1606727404">
+              <stringProp name="1696">55</stringProp>
+              <stringProp name="1696">55</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1633914156">
+              <stringProp name="1722">60</stringProp>
+              <stringProp name="1722">60</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1634102636">
+              <stringProp name="1727">65</stringProp>
+              <stringProp name="1727">65</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+            <collectionProp name="1637395084">
+              <stringProp name="1753">70</stringProp>
+              <stringProp name="1753">70</stringProp>
+              <stringProp name="50547">300</stringProp>
+            </collectionProp>
+          </collectionProp>
+        </kg.apc.jmeter.timers.VariableThroughputTimer>
+        <hashTree/>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Request Transaction Controller" enabled="true">
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
             <stringProp name="HTTPSampler.path">/dos-search-ftrs-1380/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -308,7 +340,7 @@ public static String readFileContent(Path filePath) throws IOException {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -320,11 +352,11 @@ public static String readFileContent(Path filePath) throws IOException {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Authorization</stringProp>
-                  <stringProp name="Header.value">Bearer ${varBearer}</stringProp>
+                  <stringProp name="Header.value">Bearer ${__P(varBearer,${varBearer})}</stringProp>
                 </elementProp>
               </collectionProp>
             </HeaderManager>
