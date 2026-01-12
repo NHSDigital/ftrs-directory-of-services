@@ -1,4 +1,5 @@
 """Helper utilities for verifying migration metrics."""
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -13,7 +14,8 @@ class ExpectedMetrics:
     supported: int
     unsupported: int
     transformed: int
-    migrated: int
+    inserted: int
+    updated: int
     skipped: int
     errors: int
 
@@ -71,9 +73,15 @@ def verify_all_metrics(
         migration_type,
     )
     assert_metric_matches(
-        actual_metrics.migrated_records,
-        expected.migrated,
-        "migrated records",
+        actual_metrics.inserted_records,
+        expected.inserted,
+        "inserted records",
+        migration_type,
+    )
+    assert_metric_matches(
+        actual_metrics.updated_records,
+        expected.updated,
+        "updated records",
         migration_type,
     )
     assert_metric_matches(
@@ -96,7 +104,8 @@ def verify_all_metrics(
             "supported": expected.supported,
             "unsupported": expected.unsupported,
             "transformed": expected.transformed,
-            "migrated": expected.migrated,
+            "inserted": expected.inserted,
+            "updated": expected.updated,
             "skipped": expected.skipped,
             "errors": expected.errors,
         },
