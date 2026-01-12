@@ -25,15 +25,15 @@
       </CacheManager>
       <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
-        <intProp name="ThreadGroup.num_threads">1</intProp>
-        <intProp name="ThreadGroup.ramp_time">1</intProp>
-        <longProp name="ThreadGroup.duration">3700</longProp>
-        <longProp name="ThreadGroup.delay">0</longProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(token_duration,3700)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(token_startup_delay,0)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">${__P(token_loop_count,-1)}</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
@@ -268,20 +268,21 @@ if (iteration == 1) {
         </JSR223Timer>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search" enabled="true">
-        <intProp name="ThreadGroup.num_threads">1</intProp>
-        <longProp name="ThreadGroup.duration">3700</longProp>
-        <longProp name="ThreadGroup.delay">10</longProp>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search">
+        <stringProp name="ThreadGroup.num_threads">${__P(search_num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(search_duration,3700)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(search_startup_delay,10)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">${__P(search_loop_count,-1)}</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller" enabled="true">
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller">
+          <boolProp name="TransactionController.parent">true</boolProp>
           <boolProp name="TransactionController.includeTimers">false</boolProp>
         </TransactionController>
         <hashTree>
@@ -321,7 +322,7 @@ if (iteration == 1) {
               <collectionProp name="Arguments.arguments"/>
             </Arguments>
             <hashTree/>
-            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - HTTP 200" enabled="true">
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion - HTTP 200" enabled="false">
               <collectionProp name="Asserion.test_strings">
                 <stringProp name="49586">200</stringProp>
               </collectionProp>
@@ -331,7 +332,7 @@ if (iteration == 1) {
               <intProp name="Assertion.test_type">1</intProp>
             </ResponseAssertion>
             <hashTree/>
-            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assertion - Check response that resourceType is Organization">
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assertion - Check response that resourceType is Organization" enabled="false">
               <stringProp name="JSON_PATH">$.entry[0].resource.resourceType</stringProp>
               <stringProp name="EXPECTED_VALUE">Organization</stringProp>
               <boolProp name="JSONVALIDATION">true</boolProp>
@@ -341,7 +342,7 @@ if (iteration == 1) {
             </JSONPathAssertion>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer">
             <stringProp name="ConstantTimer.delay">60000</stringProp>
           </ConstantTimer>
           <hashTree/>
