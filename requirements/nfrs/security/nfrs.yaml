@@ -122,7 +122,8 @@ nfrs:
   requirement: No direct prod console queries detected in audit period
   explanation: No direct production console queries by engineers outside approved,
     audited break-glass processes.
-  stories: []
+  stories:
+  - FTRS-1771
   controls:
   - control_id: prod-console-access-audit
     measure: No direct prod console queries detected in audit period
@@ -140,7 +141,8 @@ nfrs:
   requirement: SG rules audited; attempt broad ingress denied
   explanation: Network security groups allow only narrowly scoped inbound rules; broad
     ingress is denied.
-  stories: []
+  stories:
+  - FTRS-386
   controls:
   - control_id: sg-broad-ingress-denied
     measure: SG rules audited; attempt broad ingress denied
