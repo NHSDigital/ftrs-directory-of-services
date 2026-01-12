@@ -22,10 +22,8 @@ from utilities.common.constants import (
     SERVICES_TABLE,
 )
 from utilities.data_migration.migration_helper import MigrationHelper
-from utilities.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
-    verify_all_metrics,
-)
+from utilities.data_migration.migration_metrics_helper import verify_all_metrics
+from service_migration.models import ServiceMigrationMetrics
 from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
@@ -129,7 +127,7 @@ def run_full_service_migration(
         "Full service migration completed",
         extra={
             "success": result.success,
-            "total_records": result.metrics.total_records if result.metrics else 0,
+            "total_records": result.metrics.total if result.metrics else 0,
         },
     )
 
@@ -176,12 +174,8 @@ def run_sqs_event_migration_with_params(
         "SQS event migration completed",
         extra={
             "success": result.success,
-            "inserted_records": (
-                result.metrics.inserted_records if result.metrics else 0
-            ),
-            "updated_records": (
-                result.metrics.updated_records if result.metrics else 0
-            ),
+            "inserted_records": (result.metrics.inserted if result.metrics else 0),
+            "updated_records": (result.metrics.updated if result.metrics else 0),
             "table_name": table_name,
             "record_id": record_id,
             "method": method,
@@ -210,7 +204,7 @@ def run_verify_migration_metrics_inline(
     migration_type = get_migration_type_description(migration_context)
     additional_context = build_supported_records_context(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -222,7 +216,7 @@ def run_verify_migration_metrics_inline(
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
         additional_context=additional_context,
     )
@@ -255,7 +249,7 @@ def run_verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -267,7 +261,7 @@ def run_verify_sqs_event_metrics(
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
     )
 
