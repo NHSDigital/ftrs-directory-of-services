@@ -199,8 +199,8 @@ Feature: Organization API Endpoint
 
     Examples:
       | identifier_data                                                                                 |
-      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081046"}]              |
-      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081046", "use": null}] |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081047"}]              |
+      | [{"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "M00081047", "use": null}] |
 
   Scenario Outline: Reject Organization update with invalid identifier
     Given that the stack is "organisation"
