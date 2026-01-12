@@ -12,23 +12,30 @@ from ftrs_data_layer.domain import (
     NotAvailable,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from pydantic import ValidationError
 
 
 def test_healthcare_service_round_trip_and_types() -> None:
     # Arrange
+    created_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+
     hs = HealthcareService(
         id=uuid4(),
         identifier_oldDoS_uid="123456",
         active=True,
         category="GP Services",
         type="GP Consultation Service",
-        createdBy="test_user",
-        createdDateTime="2023-10-01T00:00:00Z",
+        createdBy=created_by,
         providedBy=uuid4(),
         location=uuid4(),
-        modifiedBy="test_user",
-        modifiedDateTime="2023-10-01T00:00:00Z",
+        modifiedBy=modified_by,
+        migrationNotes=None,
         name="Test Healthcare Service",
         telecom=HealthcareServiceTelecom(
             phone_public="123456789",
@@ -102,12 +109,11 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
         "active": True,
         "category": "GP Services",
         "type": "GP Consultation Service",
-        "createdBy": "test_user",
-        "createdDateTime": "2023-10-01T00:00:00Z",
+        "createdBy": {"type": "user", "value": "test_user", "display": "Test User"},
         "providedBy": str(uuid4()),
         "location": str(uuid4()),
-        "modifiedBy": "test_user",
-        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "modifiedBy": {"type": "user", "value": "test_user", "display": "Test User"},
+        "migrationNotes": None,
         "name": "Test Healthcare Service",
         "telecom": {
             "phone_public": "123456789",

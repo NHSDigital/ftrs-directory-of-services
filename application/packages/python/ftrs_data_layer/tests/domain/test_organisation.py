@@ -1,11 +1,19 @@
 from uuid import uuid4
 
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.telecom import Telecom
 
 
 def test_organisation() -> None:
+    created_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+
     org = Organisation(
         id=uuid4(),
         identifier_ODS_ODSCode="123456",
@@ -21,9 +29,9 @@ def test_organisation() -> None:
             ),
         ],
         type="GP Practice",
-        createdBy="test_user",
+        createdBy=created_by,
         createdDateTime="2023-10-01T00:00:00Z",
-        modifiedBy="test_user",
+        modifiedBy=modified_by,
         modifiedDateTime="2023-10-01T00:00:00Z",
     )
 
@@ -32,9 +40,9 @@ def test_organisation() -> None:
         "identifier_ODS_ODSCode": "123456",
         "identifier_oldDoS_uid": "test_UUID",
         "active": True,
-        "createdBy": "test_user",
+        "createdBy": {"type": "user", "value": "test_user", "display": "Test User"},
+        "modifiedBy": {"type": "user", "value": "test_user", "display": "Test User"},
         "createdDateTime": "2023-10-01T00:00:00Z",
-        "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "non_primary_role_codes": [],
         "primary_role_code": None,
