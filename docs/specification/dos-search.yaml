@@ -628,9 +628,9 @@ x-nhsd-apim:
     - name: nhsd-request-id
       required: false
       header: nhsd-request-id
-    - name: role
+    - name: application-id
       required: false
-      header: Role
-    - name: endpoints
+      header: application-id
+    - name: application-name
       required: false
-      header: AuthorisedEndpoints
+      header: application-name
