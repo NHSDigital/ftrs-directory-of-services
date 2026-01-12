@@ -305,6 +305,7 @@ Feature: Data Migration for endpoints
     Then error log containing message: '3 validation errors for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created
 
+  @FTRS-2011
   Scenario: Comment field is migrated for endpoints
     Given a "Service" exists in DoS with attributes
       | key                    | value                          |

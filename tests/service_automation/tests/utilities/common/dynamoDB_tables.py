@@ -74,28 +74,17 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST"
     }
 
-<<<<<<< HEAD
-    state_table = {
-        "TableName": get_table_name('data-migration-state'),
-        "KeySchema": [
-            {"AttributeName": "source_record_id", "KeyType": "HASH"}
-=======
     data_migration_state_table = {
         "TableName": get_table_name('data-migration-state'),
 
         "KeySchema": [
             {"AttributeName": "source_record_id", "KeyType": "HASH"},
->>>>>>> 24d373fa (feat(data-processor): FTRS-2011 added the comment into the service endpoint)
         ],
         "AttributeDefinitions": [
             {"AttributeName": "source_record_id", "AttributeType": "S"}
         ],
         "BillingMode": "PAY_PER_REQUEST"
     }
-<<<<<<< HEAD
-=======
     tables.append(data_migration_state_table)
 
->>>>>>> 24d373fa (feat(data-processor): FTRS-2011 added the comment into the service endpoint)
-
-    return [*tables, triage_code_table, state_table]
+    return [*tables, triage_code_table]
