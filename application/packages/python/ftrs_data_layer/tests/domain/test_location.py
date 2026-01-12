@@ -3,9 +3,17 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from ftrs_data_layer.domain import Address, Location, PositionGCS
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 
 
 def test_location() -> None:
+    created_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+
     loc = Location(
         id=uuid4(),
         active=True,
@@ -16,11 +24,9 @@ def test_location() -> None:
             town="Test Town",
             postcode="AB12 3CD",
         ),
-        createdBy="test_user",
-        createdDateTime="2023-10-01T00:00:00Z",
+        createdBy=created_by,
         managingOrganisation=uuid4(),
-        modifiedBy="test_user",
-        modifiedDateTime="2023-10-01T00:00:00Z",
+        modifiedBy=modified_by,
         name="Test Location",
         positionGCS=PositionGCS(
             latitude=Decimal("51.5074"),
@@ -58,6 +64,16 @@ def test_location() -> None:
     UUID(dumped["managingOrganisation"])  # must be valid UUID string
     assert isinstance(dumped["active"], bool)
     assert isinstance(dumped["name"], str)
+
+    # --- AuditEvent checks ---
+    assert isinstance(dumped["createdBy"], dict)
+    assert dumped["createdBy"]["type"] == "user"
+    assert dumped["createdBy"]["value"] == "test_user"
+    assert dumped["createdBy"]["display"] == "Test User"
+    assert isinstance(dumped["modifiedBy"], dict)
+    assert dumped["modifiedBy"]["type"] == "user"
+    assert dumped["modifiedBy"]["value"] == "test_user"
+    assert dumped["modifiedBy"]["display"] == "Test User"
 
     # --- Address checks ---
     assert "county" in dumped["address"]

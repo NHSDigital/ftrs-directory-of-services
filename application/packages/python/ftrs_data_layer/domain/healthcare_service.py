@@ -1,6 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.availability import OpeningTime
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
@@ -41,3 +42,5 @@ class HealthcareService(DBModel):
     dispositions: list[str]
     migrationNotes: list[str] | None = None
     ageEligibilityCriteria: list[AgeRangeType] | None = None
+    createdBy: AuditEvent
+    modifiedBy: AuditEvent

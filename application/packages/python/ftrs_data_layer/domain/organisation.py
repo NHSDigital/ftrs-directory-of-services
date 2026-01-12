@@ -1,5 +1,6 @@
 from datetime import date
 
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType, OrganisationTypeCode
@@ -26,3 +27,5 @@ class Organisation(DBModel):
     type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
     legalDates: LegalDates | None = None
+    createdBy: AuditEvent | None = None
+    modifiedBy: AuditEvent | None = None
