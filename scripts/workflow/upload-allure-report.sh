@@ -81,9 +81,9 @@ BUILD_INFO_FILE="$ZIP_DIR/build-info.json"
 generate_build_info "$BUILD_INFO_FILE" "$REPORT_DIR"
 
 # Create zip with report and build info
-( cd "$ZIP_DIR" && zip -qr "$ZIP_FILE" build-info.json && cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" . )
+( cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" . )
 
-S3_KEY="${DEPLOYMENT_PATH}/service-automation/${$DEPLOYMENT_TYPE}/allure-report-${TIMESTAMP}.zip"
+S3_KEY="${DEPLOYMENT_PATH}/service-automation/${DEPLOYMENT_TYPE}/allure-report-${TIMESTAMP}.zip"
 
 aws s3 cp "$ZIP_FILE" "s3://${BUCKET_NAME}/${S3_KEY}"
 
