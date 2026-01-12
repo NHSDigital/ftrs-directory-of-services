@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from functions.error_util import (
     INVALID_SEARCH_DATA_CODING,
     REC_BAD_REQUEST_CODING,
+    _create_issue,
     create_invalid_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
@@ -215,3 +216,140 @@ class TestErrorUtil:
             issue.diagnostics
             == "Invalid request headers supplied: authorization, x-nhsd-z"
         )
+
+    def test_create_invalid_header_operation_outcome_empty_list(self):
+        # Test with empty list of headers
+        result = create_invalid_header_operation_outcome([])
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "value"
+        assert issue.diagnostics == "Invalid request headers supplied"
+
+    def test_create_invalid_header_operation_outcome_single_header(self):
+        # Test with single header
+        headers = ["X-Custom-Header"]
+
+        result = create_invalid_header_operation_outcome(headers)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert "x-custom-header" in result.issue[0].diagnostics
+
+    def test_create_invalid_header_operation_outcome_sorts_headers(self):
+        # Test that headers are sorted alphabetically
+        headers = ["Z-Header", "A-Header", "M-Header"]
+
+        result = create_invalid_header_operation_outcome(headers)
+
+        diagnostics = result.issue[0].diagnostics
+        assert (
+            diagnostics
+            == "Invalid request headers supplied: a-header, m-header, z-header"
+        )
+
+    def test_value_error_without_custom_error(self):
+        # Test value_error without custom error in ctx (unmapped value_error)
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("identifier",),
+                    "msg": "Some value error",
+                    "input": None,
+                    "ctx": {},  # No custom error
+                }
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "error"
+        assert result.issue[0].code == "invalid"
+        assert result.issue[0].diagnostics == "Invalid search parameter value"
+
+    def test_unmapped_pydantic_error_type(self):
+        # Test with a different pydantic error type (not value_error or missing)
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "int_parsing",
+                    "loc": ("count",),
+                    "msg": "Input should be a valid integer",
+                    "input": "not_an_int",
+                }
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "error"
+        assert result.issue[0].code == "invalid"
+        assert result.issue[0].diagnostics == "Input should be a valid integer"
+
+    def test_error_with_no_msg(self):
+        # Test error with no msg field
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [{"type": "some_type", "loc": ("field",), "input": None}],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].diagnostics == "Invalid request"
+
+    def test_create_issue_with_all_params(self):
+        # Test _create_issue function through public API
+        issue = _create_issue(
+            "test-code",
+            "warning",
+            details={"test": "details"},
+            diagnostics="Test diagnostics",
+        )
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "warning"
+        assert issue["details"] == {"test": "details"}
+        assert issue["diagnostics"] == "Test diagnostics"
+
+    def test_create_issue_without_optional_params(self):
+        # Test _create_issue without optional parameters
+        issue = _create_issue("test-code", "error")
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "error"
+        assert "details" not in issue
+        assert "diagnostics" not in issue
+
+    def test_create_issue_with_none_diagnostics(self):
+        # Test _create_issue with None diagnostics
+        issue = _create_issue("test-code", "error", diagnostics=None)
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "error"
+        assert "diagnostics" not in issue
+
+    def test_handle_custom_error_with_empty_message(self):
+        # Test custom ValueError with empty message
+        class CustomValueError(ValueError):
+            pass
+
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("field",),
+                    "msg": "value error",
+                    "input": None,
+                    "ctx": {"error": CustomValueError("")},
+                }
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert result.issue[0].diagnostics == "Invalid search parameter value"
