@@ -147,7 +147,7 @@ class DosLogger:
         client_id = self._get_header("application-id") or placeholder
         details["opt_dos_application_id"] = client_id
 
-        app_name = self._get_header("connecting-party-app-name") or placeholder
+        app_name = self._get_header("application-name") or placeholder
         details["opt_dos_application_name"] = app_name
 
         # Request params

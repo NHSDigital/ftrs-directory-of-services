@@ -80,7 +80,7 @@ class TestLambdaHandler:
             "version",
             "end-user-role",
             "application-id",
-            "connecting-party-app-name",
+            "application-name",
             "Accept",
             "Accept-Encoding",
             "Accept-Language",

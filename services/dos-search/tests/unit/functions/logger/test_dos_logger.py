@@ -108,7 +108,7 @@ class TestDosLogger:
         modified_event["headers"].pop("version")
         modified_event["headers"].pop("end-user-role")
         modified_event["headers"].pop("application-id")
-        modified_event["headers"].pop("connecting-party-app-name")
+        modified_event["headers"].pop("application-name")
         modified_event["queryStringParameters"] = {}
         modified_event["pathParameters"] = None
         modified_event["requestContext"] = {}
