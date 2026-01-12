@@ -2489,7 +2489,9 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
 def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
     """Test building extensions with only non-primary role codes."""
     mapper = OrganizationMapper()
-    modified_by = AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
