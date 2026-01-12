@@ -6,7 +6,7 @@ module "app_config" {
 
   config_profile_type                = "AWS.AppConfig.FeatureFlags"
   hosted_config_version_content_type = "application/json"
-  hosted_config_version_content      = "${path.module}/feature_flags.json"
+  hosted_config_version_content      = "${path.root}/feature_flags.json"
 
   environments = {
     dev = {
