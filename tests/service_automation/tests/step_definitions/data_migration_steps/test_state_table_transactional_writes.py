@@ -120,7 +120,7 @@ def verify_all_records_created(
 
     # Verify organisation, location, and healthcare service exist
     # (these are verified through successful migration and metrics)
-    assert result.metrics.inserted_records == 1, "Should have inserted 1 record"
+    assert result.metrics.inserted == 1, "Should have inserted 1 record"
 
 
 @then(parsers.parse('the pipeline logs "{log_message}"'))
@@ -158,11 +158,11 @@ def verify_no_migration_on_second_run(
 
     assert result is not None, "Migration result should exist"
     assert result.metrics is not None, "Migration metrics should exist"
-    assert result.metrics.inserted_records == expected_inserted, (
-        f"Should have {expected_inserted} inserted records on second run, got {result.metrics.inserted_records}"
+    assert result.metrics.inserted == expected_inserted, (
+        f"Should have {expected_inserted} inserted records on second run, got {result.metrics.inserted}"
     )
-    assert result.metrics.updated_records == expected_updated, (
-        f"Should have {expected_updated} updated records on second run, got {result.metrics.updated_records}"
+    assert result.metrics.updated == expected_updated, (
+        f"Should have {expected_updated} updated records on second run, got {result.metrics.updated}"
     )
 
 

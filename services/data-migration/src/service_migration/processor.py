@@ -7,44 +7,17 @@ from ftrs_common.utils.db_service import get_table_name
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import legacy
 from ftrs_data_layer.logbase import DataMigrationLogBase
-from pydantic import BaseModel
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine, select
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
 from service_migration.ddb_transactions import ServiceTransactionBuilder
-from service_migration.models import ServiceMigrationState
+from service_migration.models import ServiceMigrationMetrics, ServiceMigrationState
 from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
 )
-
-
-class DataMigrationMetrics(BaseModel):
-    total_records: int = 0
-    supported_records: int = 0
-    unsupported_records: int = 0
-    transformed_records: int = 0
-    inserted_records: int = 0
-    updated_records: int = 0
-    skipped_records: int = 0
-    invalid_records: int = 0
-    errors: int = 0
-
-    def reset(self) -> None:
-        """
-        Reset all metrics to zero.
-        """
-        self.total_records = 0
-        self.supported_records = 0
-        self.unsupported_records = 0
-        self.transformed_records = 0
-        self.inserted_records = 0
-        self.updated_records = 0
-        self.skipped_records = 0
-        self.invalid_records = 0
-        self.errors = 0
 
 
 class DataMigrationProcessor:
@@ -64,7 +37,7 @@ class DataMigrationProcessor:
         self.logger = logger
         self.config = config
         self.engine = self.create_db_engine()
-        self.metrics = DataMigrationMetrics()
+        self.metrics = ServiceMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
     def sync_all_services(self) -> None:
@@ -107,21 +80,21 @@ class DataMigrationProcessor:
 
         try:
             start_time = perf_counter()
-            self.metrics.total_records += 1
+            self.metrics.total += 1
 
             transformer = self.get_transformer(service)
             if not transformer:
-                self.metrics.unsupported_records += 1
+                self.metrics.unsupported += 1
                 self.logger.log(
                     DataMigrationLogBase.DM_ETL_004,
                     reason="No suitable transformer found",
                 )
                 return
 
-            self.metrics.supported_records += 1
+            self.metrics.supported += 1
             should_include, reason = transformer.should_include_service(service)
             if not should_include:
-                self.metrics.skipped_records += 1
+                self.metrics.skipped += 1
                 self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
                 return
 
@@ -138,7 +111,7 @@ class DataMigrationProcessor:
                 )
 
             if not validation_result.should_continue:
-                self.metrics.invalid_records += 1
+                self.metrics.invalid += 1
                 self.logger.log(
                     DataMigrationLogBase.DM_ETL_014,
                     record_id=service.id,
@@ -146,7 +119,7 @@ class DataMigrationProcessor:
                 return
 
             result = transformer.transform(validation_result.sanitised)
-            self.metrics.transformed_records += 1
+            self.metrics.transformed += 1
 
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_006,
@@ -181,9 +154,9 @@ class DataMigrationProcessor:
             if transaction_items:
                 self._execute_transaction(transaction_items)
                 if state_record is None:
-                    self.metrics.inserted_records += 1
+                    self.metrics.inserted += 1
                 else:
-                    self.metrics.updated_records += 1
+                    self.metrics.updated += 1
 
             elapsed_time = perf_counter() - start_time
 

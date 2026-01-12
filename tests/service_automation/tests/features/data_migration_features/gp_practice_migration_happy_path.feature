@@ -135,3 +135,140 @@ Feature: Data Migration
         "primaryAddress": true
       }
       """
+
+  @incremental-update
+  Scenario: Incremental update for a GP Practice with data changes
+    Given a "Service" exists in DoS with attributes
+      | key                                 | value                               |
+      | id                                  | 10005753                            |
+      | uid                                 | 138180                              |
+      | name                                | Test Update Surgery                 |
+      | odscode                             | M81095                              |
+      | openallhours                        | FALSE                               |
+      | publicreferralinstructions          | Original referral instructions      |
+      | telephonetriagereferralinstructions | Original triage instructions        |
+      | restricttoreferrals                 | FALSE                               |
+      | address                             | 123 Test Street$Test Lane           |
+      | town                                | TESTTOWN                            |
+      | postcode                            | TE1 1ST                             |
+      | easting                             | 400000                              |
+      | northing                            | 240000                              |
+      | publicphone                         | 01234 567890                        |
+      | nonpublicphone                      |                                     |
+      | fax                                 |                                     |
+      | email                               | test@surgery.nhs.uk                 |
+      | web                                 | www.testsurgery.com                 |
+      | createdby                           | HUMAN                               |
+      | createdtime                         | 2024-01-01 08:00:00.000             |
+      | modifiedby                          | HUMAN                               |
+      | modifiedtime                        | 2024-01-01 08:00:00.000             |
+      | lasttemplatename                    |                                     |
+      | lasttemplateid                      |                                     |
+      | typeid                              | 100                                 |
+      | parentid                            | 150013                              |
+      | subregionid                         | 150013                              |
+      | statusid                            | 1                                   |
+      | organisationid                      |                                     |
+      | returnifopenminutes                 |                                     |
+      | publicname                          | Test Update Surgery                 |
+      | latitude                            | 52.0000000                          |
+      | longitude                           | -1.5000000                          |
+      | professionalreferralinfo            | Original professional referral info |
+      | lastverified                        |                                     |
+      | nextverificationdue                 |                                     |
+
+    # Initial migration (INSERT)
+    When the data migration process is run for table 'services', ID '10005753' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    And there is 1 organisation, 1 location and 1 healthcare services created
+    And the state table contains a record for key 'services#10005753' with version 1
+
+    # Verify initial content
+    Then the 'organisation' for service ID '10005753' has content:
+      """
+      {
+        "id": "a04870eb-51ce-513f-9866-d4fde28496f8",
+        "identifier_oldDoS_uid": "138180",
+        "field": "document",
+        "active": true,
+        "createdBy": "DATA_MIGRATION",
+        "createdDateTime": "2025-10-07T08:38:57.679754Z",
+        "endpoints": [],
+        "identifier_ODS_ODSCode": "M81095",
+        "modifiedBy": "DATA_MIGRATION",
+        "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
+        "name": "Test Update Surgery",
+        "telecom": [],
+        "type": "GP Practice",
+        "legalDates": null,
+        "primary_role_code": null,
+        "non_primary_role_codes": []
+      }
+      """
+
+    # Update the DoS source data
+    Given the "Service" with id "10005753" is updated with attributes
+      | key          | value                       |
+      | name         | Test Update Surgery UPDATED |
+      | publicname   | Test Update Surgery UPDATED |
+      | publicphone  | 01234 999999                |
+      | web          | www.updatedsurgery.com      |
+      | modifiedtime | 2024-06-01 10:00:00.000     |
+
+    # Re-run migration (UPDATE with changes)
+    When the data migration process is run for table 'services', ID '10005753' and method 'update'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
+    And the state table contains a record for key 'services#10005753' with version 2
+
+    # Verify updated content - organisation name should be updated
+    Then the 'organisation' for service ID '10005753' has content:
+      """
+      {
+        "id": "a04870eb-51ce-513f-9866-d4fde28496f8",
+        "identifier_oldDoS_uid": "138180",
+        "field": "document",
+        "active": true,
+        "createdBy": "DATA_MIGRATION",
+        "createdDateTime": "2025-10-07T08:38:57.679754Z",
+        "endpoints": [],
+        "identifier_ODS_ODSCode": "M81095",
+        "modifiedBy": "DATA_MIGRATION",
+        "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
+        "name": "Test Update Surgery UPDATED",
+        "telecom": [],
+        "type": "GP Practice",
+        "legalDates": null,
+        "primary_role_code": null,
+        "non_primary_role_codes": []
+      }
+      """
+
+    # Verify updated content - healthcare-service name and telecom should be updated
+    Then the 'healthcare-service' for service ID '10005753' has content:
+      """
+      {
+        "id": "2477cbb9-e50f-5de5-b907-0db20cdb7819",
+        "field": "document",
+        "active": true,
+        "ageEligibilityCriteria": null,
+        "category": "GP Services",
+        "createdBy": "DATA_MIGRATION",
+        "createdDateTime": "2025-10-07T08:38:57.679754Z",
+        "dispositions": [],
+        "identifier_oldDoS_uid": "138180",
+        "location": "664ffec7-9b95-54d7-acb4-a5721c12bb24",
+        "modifiedBy": "DATA_MIGRATION",
+        "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
+        "name": "Test Update Surgery UPDATED",
+        "openingTime": [],
+        "providedBy": "a04870eb-51ce-513f-9866-d4fde28496f8",
+        "symptomGroupSymptomDiscriminators": [],
+        "telecom": {
+          "email": "test@surgery.nhs.uk",
+          "phone_private": null,
+          "phone_public": "01234999999",
+          "web": "www.updatedsurgery.com"
+        },
+        "type": "GP Consultation Service"
+      }
+      """
