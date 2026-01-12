@@ -6,6 +6,7 @@ This service provides FHIR-compliant API endpoints for healthcare system integra
 
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [One Lambda per endpoint (approach)](#one-lambda-per-endpoint-approach)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
   - [Initial Setup](#initial-setup)
@@ -41,6 +42,19 @@ The service uses:
 - **FHIR R4 resources** for healthcare data representation
 - **Pydantic** for data validation and serialization
 - **AWS Lambda Powertools** for logging and utilities
+
+## One Lambda per endpoint (approach)
+
+- In `dos-search`, we now treat **each API endpoint as its own Lambda** (example: `/Organization` and `/_status`).
+- Each endpoint has a tiny “entry” handler in `services/dos-search/lambdas/<endpoint>/handler.py`.
+- Those handlers mostly just **wire up routing** and reuse existing business logic.
+- The existing logic in `functions/` and `health_check/` stays as the “shared service code”.
+- We updated Terraform so each Lambda points to a **different S3 zip** (one zip per endpoint).
+- That means changing `/Organization` code doesn’t force a redeploy of `/_status`, and vice‑versa.
+- Dependencies are still handled via the existing **Lambda layers**, not bundled into each zip.
+- A small script `scripts/package_endpoint_lambdas.py` builds **two separate zip files** locally/CI.
+- The build system can now publish **per-endpoint artifacts** (better separation and safer releases).
+- Adding a new endpoint is basically: add a new folder under `lambdas/`, build a new zip, add a new Terraform lambda + API Gateway integration.
 
 ## Prerequisites
 
@@ -91,13 +105,17 @@ The service uses:
 ### Code Structure
 
 ```plain
-├── functions/                          # Lambda function code
+├── functions/                          # Shared service code used by endpoint Lambdas
 │   ├── ftrs_service/                   # FTRS service implementation
-│   │   ├── fhir_mapper/                # Mapping between data models and FHIR
-│   │   ├── repository/                 # Data access layer
-│   │   ├── config.py                   # Configuration handling
-│   │   └── ftrs_service.py             # Main service logic
-│   └── dos_search_ods_code_function.py # Lambda handler entry point
+│   ├── organization_query_params.py
+│   └── dos_search_ods_code_function.py # /Organization router (also keeps legacy handler)
+├── health_check/                       # Shared health check router (also keeps legacy handler)
+│   └── health_check_function.py
+├── lambdas/                            # Per-endpoint Lambda entrypoints (one folder per endpoint)
+│   ├── organization_get/handler.py     # GET /Organization
+│   └── status_get/handler.py           # GET /_status
+├── scripts/
+│   └── package_endpoint_lambdas.py     # Builds per-endpoint zip artifacts (spike tooling)
 ├── tests/                              # Test suite
 │   ├── unit/                           # Unit tests
 │   ├── conftest.py                     # Test configuration and fixtures

@@ -2,10 +2,10 @@ module "health_check_lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
   description            = "This lambda provides a health check for the search lambda"
-  handler                = "health_check/health_check_function.lambda_handler"
+  handler                = "lambdas/status_get/handler.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-status-get-lambda-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"

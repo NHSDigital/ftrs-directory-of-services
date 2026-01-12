@@ -16,7 +16,15 @@ class InvalidRequestHeadersError(ValueError):
 
 logger = Logger()
 tracer = Tracer()
-app = APIGatewayRestResolver()
+
+# NOTE:
+# Historically this module owned the entire Lambda (APIGatewayRestResolver + handler).
+# To support "one lambda per endpoint", the handler logic is now exposed as a router
+# that endpoint lambdas can `include_router()`.
+router = APIGatewayRestResolver()
+
+# Backwards compatibility: keep `app` as an alias so existing imports/tests keep working.
+app = router
 
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
@@ -50,13 +58,13 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
         raise InvalidRequestHeadersError(invalid_headers)
 
 
-@app.get("/Organization")
+@router.get("/Organization")
 @tracer.capture_method
 def get_organization() -> Response:
     try:
-        _validate_headers(app.current_event.headers)
+        _validate_headers(router.current_event.headers)
 
-        query_params = app.current_event.query_string_parameters or {}
+        query_params = router.current_event.query_string_parameters or {}
         validated_params = OrganizationQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code
@@ -106,4 +114,5 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
 )
 @tracer.capture_lambda_handler
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    return app.resolve(event, context)
+    # Legacy handler: resolves routes defined in this module.
+    return router.resolve(event, context)

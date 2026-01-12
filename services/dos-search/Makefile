@@ -73,6 +73,11 @@ publish:
 		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
 	fi
 
+build-endpoint-lambdas: ensure-build-dir
+	poetry run python scripts/package_endpoint_lambdas.py --out $(BUILD_DIR) --application-tag $(APPLICATION_TAG)
+
+# Convenience alias for the spike so CI can opt-in without breaking the existing `build` target.
+build-endpoints: build-endpoint-lambdas
 
 # ==============================================================================
 
