@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= crud-apis
+POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := crud_apis-$(POETRY_VERSION)-py3-none-any.whl
 
 # ==============================================================================

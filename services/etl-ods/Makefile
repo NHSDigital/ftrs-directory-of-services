@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE := etl-ods
+POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
 
 # ==============================================================================
