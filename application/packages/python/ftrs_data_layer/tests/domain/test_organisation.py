@@ -30,9 +30,9 @@ def test_organisation() -> None:
         ],
         type="GP Practice",
         createdBy=created_by,
-        createdTime="2023-10-01T00:00:00Z",
-        lastUpdatedBy=modified_by,
-        lastUpdated="2023-10-01T00:00:00Z",
+        createdDateTime="2023-10-01T00:00:00Z",
+        modifiedBy=modified_by,
+        modifiedDateTime="2023-10-01T00:00:00Z",
     )
 
     assert org.model_dump(mode="json") == {
@@ -41,9 +41,9 @@ def test_organisation() -> None:
         "identifier_oldDoS_uid": "test_UUID",
         "active": True,
         "createdBy": {"type": "user", "value": "test_user", "display": "Test User"},
-        "lastUpdatedBy": {"type": "user", "value": "test_user", "display": "Test User"},
-        "createdTime": "2023-10-01T00:00:00Z",
-        "lastUpdated": "2023-10-01T00:00:00Z",
+        "modifiedBy": {"type": "user", "value": "test_user", "display": "Test User"},
+        "createdDateTime": "2023-10-01T00:00:00Z",
+        "modifiedDateTime": "2023-10-01T00:00:00Z",
         "non_primary_role_codes": [],
         "primary_role_code": None,
         "name": "Test GP Organisation",

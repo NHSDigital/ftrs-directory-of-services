@@ -55,7 +55,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         primary_role_code="abc123",
         non_primary_role_codes=["bcd123"],
     )
@@ -88,7 +88,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
         name="Test Org 2",
         active=False,
         telecom=[],
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
     )
     fhir_org = mapper.to_fhir(org)
     assert isinstance(fhir_org, FhirOrganisation)
@@ -273,7 +273,7 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.telecom == [
         Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
     ]
-    assert internal_organisation.lastUpdatedBy.display == "API Management"
+    assert internal_organisation.modifiedBy.display == "API Management"
 
 
 @pytest.mark.parametrize(
@@ -457,7 +457,7 @@ def test_to_fhir_bundle_single_org() -> None:
         name="Test Org 1",
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
     )
     bundle_single = mapper.to_fhir_bundle([org1])
     assert bundle_single.__resource_type__ == "Bundle"
@@ -494,7 +494,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
     )
     org2 = Organisation(
         id="00000000-0000-0000-0000-00000000000b",
@@ -502,7 +502,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         name="Test Org 2",
         active=False,
         telecom=[],
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
     assert bundle_multi.__resource_type__ == "Bundle"
@@ -1017,7 +1017,7 @@ def test_to_fhir_with_legal_dates() -> None:
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         primary_role_code="RO182",
     )
 
@@ -1175,7 +1175,7 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         telecom=[],
     )
 
@@ -1192,6 +1192,9 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
 def test_from_fhir_no_legal_dates_when_no_extension() -> None:
     """Test from_fhir sets legal dates to None when no extension."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     fhir_org = FhirOrganisation(
         id="00000000-0000-0000-0000-00000000000a",
         identifier=[
@@ -1251,7 +1254,7 @@ def test_to_fhir_partial_dates_absent_not_null(
         name="Test Org",
         active=True,
         legalDates=legal_dates,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         primary_role_code="RO182",
         telecom=[],
     )
@@ -2473,7 +2476,7 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         primary_role_code="RO182",
         non_primary_role_codes=["RO198", "RO76"],
         telecom=[],
@@ -2489,15 +2492,13 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
 def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
     """Test building extensions with only non-primary role codes."""
     mapper = OrganizationMapper()
-    modified_by = AuditEvent(
-        type=AuditEventType.user, value="test_user", display="Test User"
-    )
+    modified_by = AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         non_primary_role_codes=["RO198", "RO76"],
         telecom=[],
     )
@@ -2518,7 +2519,7 @@ def test__build_organisation_extensions_with_legal_dates() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         primary_role_code="RO182",
         non_primary_role_codes=["RO198"],
         legalDates=LegalDates(start=date(2020, 1, 1), end=date(2025, 12, 31)),
@@ -2548,7 +2549,7 @@ def test__build_organisation_extensions_with_no_roles() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         telecom=[],
     )
 
@@ -2569,7 +2570,7 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         telecom=[],
         primary_role_code="RO182",  # To create valid Organisation
     )
@@ -2594,7 +2595,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         non_primary_role_codes=["RO198"],  # To create valid Organisation
         telecom=[],
     )

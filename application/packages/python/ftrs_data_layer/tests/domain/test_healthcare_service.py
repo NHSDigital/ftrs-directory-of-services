@@ -34,7 +34,7 @@ def test_healthcare_service_round_trip_and_types() -> None:
         createdBy=created_by,
         providedBy=uuid4(),
         location=uuid4(),
-        lastUpdatedBy=modified_by,
+        modifiedBy=modified_by,
         migrationNotes=None,
         name="Test Healthcare Service",
         telecom=HealthcareServiceTelecom(
