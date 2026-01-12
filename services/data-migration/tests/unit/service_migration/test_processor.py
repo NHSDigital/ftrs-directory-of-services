@@ -1,977 +1,938 @@
 from decimal import Decimal
 
 import pytest
-from botocore.exceptions import ClientError
+from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
-from ftrs_data_layer.domain.legacy.data_models import ServiceData
-from ftrs_data_layer.domain.legacy.db_models import Service
+from ftrs_data_layer.domain import (
+    Address,
+    AvailableTime,
+    AvailableTimePublicHolidays,
+    Endpoint,
+    HealthcareService,
+    HealthcareServiceTelecom,
+    Location,
+    Organisation,
+    PositionGCS,
+    SymptomGroupSymptomDiscriminatorPair,
+)
+from ftrs_data_layer.domain.legacy.service import (
+    Service,
+)
 from pytest_mock import MockerFixture
+from sqlalchemy import Engine
 
-from service_migration.dependencies import ServiceMigrationDependencies
-from service_migration.exceptions import (
-    FatalValidationException,
-    ServiceMigrationException,
-)
+from common.cache import DoSMetadataCache
+from service_migration.config import DataMigrationConfig
 from service_migration.processor import (
-    ServiceMigrationProcessor,
+    DataMigrationMetrics,
+    DataMigrationProcessor,
+    ServiceTransformOutput,
 )
-from service_migration.transformer.gp_practice import GPPracticeTransformer
-from service_migration.validation.types import ValidationIssue
+from service_migration.validation.types import ValidationIssue, ValidationResult
 
 
 def test_processor_init(
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
 ) -> None:
-    processor = ServiceMigrationProcessor(mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
 
-    assert processor.deps == mock_dependencies
+    assert processor.logger == mock_logger
+    assert processor.config == mock_config
+    assert isinstance(processor.engine, Engine)
     assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 0,
-        "updated": 0,
-        "supported": 0,
-        "total": 0,
-        "transformed": 0,
-        "unsupported": 0,
-        "invalid": 0,
+        "errors": 0,
+        "migrated_records": 0,
+        "skipped_records": 0,
+        "supported_records": 0,
+        "total_records": 0,
+        "transformed_records": 0,
+        "unsupported_records": 0,
+        "invalid_records": 0,
     }
 
 
-def test_sync_service_no_existing_state(
+def test_sync_all_services(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_legacy_service: Service,
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
 
-    service_id = 1
-    method = "insert"
+    processor._process_service = mocker.MagicMock()
 
-    assert processor.sync_service(service_id, method) is None
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.scalars = mocker.MagicMock(return_value=[mock_legacy_service])
 
-    assert mock_logger.was_logged("SM_PROC_028") is True
+    mocker.patch("service_migration.processor.Session", return_value=mock_session)
 
-    # GP Practice transformer selected
-    assert mock_logger.get_log("SM_PROC_005") == [
-        {
-            "msg": "Transformer GPPracticeTransformer selected for service",
-            "detail": {"transformer_name": "GPPracticeTransformer"},
-        }
-    ]
+    assert processor.sync_all_services() is None
 
-    # Record validated
-    assert mock_logger.get_log("SM_VAL_001") == [
-        {
-            "msg": "Starting validation of service data using GPPracticeValidator",
-            "detail": {"validator_name": "GPPracticeValidator"},
-        }
-    ]
-
-    # Field changes logged
-    assert mock_logger.get_log("SM_VAL_003") == [
-        {
-            "msg": "Some fields were changed before transformation",
-            "detail": {
-                "changes": [
-                    'Value of root[\'publicphone\'] changed from "01234 567890" to "01234567890".',
-                    'Value of root[\'nonpublicphone\'] changed from "09876 543210" to "09876543210".',
-                ],
-                "validator_name": "GPPracticeValidator",
-            },
-        }
-    ]
-
-    # No existing state
-    assert mock_logger.was_logged("SM_PROC_009") is True
-    assert mock_logger.was_logged("SM_PROC_010") is False
-
-    assert mock_logger.get_log("SM_PROC_012") == [
-        {
-            "detail": {"organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0"},
-            "msg": "Added organisation with ID 4539600c-e04e-5b35-a582-9fb36858d0e0 to migration items",
-        }
-    ]
-    assert mock_logger.get_log("SM_PROC_014") == [
-        {
-            "detail": {"location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060"},
-            "msg": "Added location with ID 6ef3317e-c6dc-5e27-b36d-577c375eb060 to migration items",
-        }
-    ]
-    assert mock_logger.get_log("SM_PROC_016") == [
-        {
-            "detail": {"healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d"},
-            "msg": "Added healthcare service with ID 903cd48b-5d0f-532f-94f4-937a4517b14d to migration items",
-        }
-    ]
-    assert mock_logger.get_log("SM_PROC_023") == [
-        {
-            "detail": {"source_record_id": "services#1"},
-            "msg": "Added migration state insert with source record ID services#1 to migration items",
-        }
-    ]
-
-    # Verify metrics are updated correctly
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 1,
-        "updated": 0,
-        "supported": 1,
-        "total": 1,
-        "transformed": 1,
-        "unsupported": 0,
-        "invalid": 0,
-    }
+    assert processor._process_service.call_count == 1
+    processor._process_service.assert_called_once_with(mock_legacy_service)
 
 
-def test_sync_service_existing_state_no_change(
+def test_sync_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_legacy_service: Service,
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
 
-    service_id = 1
-    method = "update"
+    processor._process_service = mocker.MagicMock()
 
-    # Run service migration once and check for success
-    assert processor.sync_service(service_id, method) is None
-    assert mock_logger.was_logged("SM_PROC_028") is True
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.get.return_value = mock_legacy_service
 
-    mock_logger.clear_logs()
+    mocker.patch("service_migration.processor.Session", return_value=mock_session)
 
-    # Run subsequent service migration with no changes
-    assert processor.sync_service(service_id, method) is None
+    record_id = 1
+    method = "test_method"
 
-    # Existing state found
-    assert mock_logger.was_logged("SM_PROC_009") is False
-    assert mock_logger.get_log("SM_PROC_010") == [
-        {
-            "msg": "Existing state found for service - proceeding with incremental migration",
-            "detail": {
-                "healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-                "location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-                "organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "state_version": 1,
-            },
-        }
-    ]
+    assert processor.sync_service(record_id, method) is None
 
-    # No changes detected
-    assert mock_logger.was_logged("SM_PROC_017") is True  # No org update
-    assert mock_logger.was_logged("SM_PROC_019") is True  # No location update
-    assert mock_logger.was_logged("SM_PROC_021") is True  # No healthcare service update
+    assert processor._process_service.call_count == 1
+    processor._process_service.assert_called_once_with(mock_legacy_service)
 
-    # No DynamoDB Update
-    assert mock_logger.get_log("SM_PROC_026") == [
-        {
-            "msg": "Skipping DynamoDB transaction as no items to write",
-        }
-    ]
-
-    # Verify metrics are updated correctly (after two sync_service calls)
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 1,
-        "updated": 1,
-        "supported": 2,
-        "total": 2,
-        "transformed": 2,
-        "unsupported": 0,
-        "invalid": 0,
-    }
+    assert mock_session.get.call_count == 1
+    mock_session.get.assert_called_once_with(Service, record_id)
 
 
-def test_sync_service_existing_state_org_change(
-    mock_dependencies: ServiceMigrationDependencies,
+def test_sync_service_record_not_found(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
 
-    service_id = 1
-    method = "update"
+    mock_session = mocker.MagicMock()
+    mock_session.__enter__.return_value = mock_session
+    mock_session.get.return_value = None
 
-    # Run service migration once and check for success
-    assert processor.sync_service(service_id, method) is None
-    assert mock_logger.was_logged("SM_PROC_028") is True
+    mocker.patch("service_migration.processor.Session", return_value=mock_session)
 
-    mock_logger.clear_logs()
+    record_id = 1
+    method = "test_method"
 
-    # Update the public name to simulate a change in organisation data
-    stub_test_services[service_id].publicname = "Updated Public Test Service"
-
-    # Run subsequent service migration with change to the public name
-    assert processor.sync_service(service_id, method) is None
-
-    # Existing state found
-    assert mock_logger.was_logged("SM_PROC_009") is False
-    assert mock_logger.get_log("SM_PROC_010") == [
-        {
-            "msg": "Existing state found for service - proceeding with incremental migration",
-            "detail": {
-                "healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-                "location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-                "organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "state_version": 1,
-            },
-        }
-    ]
-
-    # Organisation changes detected
-    assert mock_logger.was_logged("SM_PROC_017") is False
-    assert mock_logger.get_log("SM_PROC_018") == [
-        {
-            "msg": "Organisation changes detected - adding update to migration items",
-            "detail": {
-                "changes": [
-                    'Value of root[\'name\'] changed from "Public Test Service 1" to "Updated Public Test Service".',
-                ],
-                "diff": {
-                    "values_changed": {
-                        "root['name']": {
-                            "new_value": "Updated Public Test Service",
-                            "old_value": "Public Test Service 1",
-                        }
-                    }
-                },
-            },
-        }
-    ]
-
-    assert mock_logger.was_logged("SM_PROC_019") is True  # No location update
-    assert mock_logger.was_logged("SM_PROC_021") is True  # No healthcare service update
-
-    # No DynamoDB Update - TODO in next ticket
-    assert mock_logger.get_log("SM_PROC_026") == [
-        {"msg": "Skipping DynamoDB transaction as no items to write"}
-    ]
-
-    # Verify metrics are updated correctly (after two sync_service calls)
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 1,
-        "updated": 1,
-        "supported": 2,
-        "total": 2,
-        "transformed": 2,
-        "unsupported": 0,
-        "invalid": 0,
-    }
+    with pytest.raises(ValueError, match=f"Service with ID {record_id} not found"):
+        processor.sync_service(record_id, method)
 
 
-def test_sync_service_existing_state_location_change(
-    mock_dependencies: ServiceMigrationDependencies,
+@freeze_time("2025-07-25 12:00:00")
+def test_process_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    method = "update"
-
-    # Run service migration once and check for success
-    assert processor.sync_service(service_id, method) is None
-    assert mock_logger.was_logged("SM_PROC_028") is True
-
-    mock_logger.clear_logs()
-
-    # Update the coordinates to trigger location change
-    stub_test_services[service_id].latitude = Decimal("52.0000")
-    stub_test_services[service_id].longitude = Decimal("-1.0000")
-
-    # Run subsequent service migration with change to the public name
-    assert processor.sync_service(service_id, method) is None
-
-    # Existing state found
-    assert mock_logger.was_logged("SM_PROC_009") is False
-    assert mock_logger.get_log("SM_PROC_010") == [
-        {
-            "msg": "Existing state found for service - proceeding with incremental migration",
-            "detail": {
-                "healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-                "location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-                "organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "state_version": 1,
-            },
-        }
-    ]
-
-    assert mock_logger.was_logged("SM_PROC_017") is True  # No org update
-    assert mock_logger.was_logged("SM_PROC_019") is False  # Location update
-    assert mock_logger.was_logged("SM_PROC_021") is True  # No healthcare service update
-
-    assert mock_logger.get_log("SM_PROC_020") == [
-        {
-            "msg": "Location changes detected - adding update to migration items",
-            "detail": {
-                "changes": [
-                    "Value of root['positionGCS']['latitude'] changed from 51.5074 to 52.0000.",
-                    "Value of root['positionGCS']['longitude'] changed from -0.1278 to -1.0000.",
-                ],
-                "diff": {
-                    "values_changed": {
-                        "root['positionGCS']['latitude']": {
-                            "new_value": "52.0000",
-                            "old_value": "51.5074",
-                        },
-                        "root['positionGCS']['longitude']": {
-                            "new_value": "-1.0000",
-                            "old_value": "-0.1278",
-                        },
-                    },
-                },
-            },
-        }
-    ]
-
-    # No DynamoDB Update - TODO in next ticket
-    assert mock_logger.get_log("SM_PROC_026") == [
-        {
-            "msg": "Skipping DynamoDB transaction as no items to write",
-        }
-    ]
-
-    # Verify metrics are updated correctly (after two sync_service calls)
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 1,
-        "updated": 1,
-        "supported": 2,
-        "total": 2,
-        "transformed": 2,
-        "unsupported": 0,
-        "invalid": 0,
-    }
-
-
-def test_sync_service_existing_state_healthcare_service_change(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    method = "update"
-
-    # Run service migration once and check for success
-    assert processor.sync_service(service_id, method) is None
-    assert mock_logger.was_logged("SM_PROC_028") is True
-
-    mock_logger.clear_logs()
-
-    # Update the telecom details to trigger healthcare service change
-    stub_test_services[service_id].publicphone = "01432 999999"
-    stub_test_services[service_id].nonpublicphone = None
-
-    # Run subsequent service migration with change to the public name
-    assert processor.sync_service(service_id, method) is None
-
-    # Existing state found
-    assert mock_logger.was_logged("SM_PROC_009") is False
-    assert mock_logger.get_log("SM_PROC_010") == [
-        {
-            "msg": "Existing state found for service - proceeding with incremental migration",
-            "detail": {
-                "healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-                "location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-                "organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "state_version": 1,
-            },
-        }
-    ]
-
-    assert mock_logger.was_logged("SM_PROC_017") is True  # No org update
-    assert mock_logger.was_logged("SM_PROC_019") is True  # No location update
-    assert mock_logger.was_logged("SM_PROC_021") is False  # Healthcare service update
-
-    assert mock_logger.get_log("SM_PROC_022") == [
-        {
-            "msg": "Healthcare service changes detected - adding update to migration items",
-            "detail": {
-                "changes": [
-                    "Type of root['telecom']['phone_private'] changed from str to NoneType and value changed from \"09876543210\" to None.",
-                    "Value of root['telecom']['phone_public'] changed from \"01234567890\" to \"01432999999\".",
-                ],
-                "diff": {
-                    "type_changes": {
-                        "root['telecom']['phone_private']": {
-                            "new_type": "<class 'NoneType'>",
-                            "new_value": None,
-                            "old_type": "<class 'str'>",
-                            "old_value": "09876543210",
-                        },
-                    },
-                    "values_changed": {
-                        "root['telecom']['phone_public']": {
-                            "new_value": "01432999999",
-                            "old_value": "01234567890",
-                        },
-                    },
-                },
-            },
-        }
-    ]
-
-    # No DynamoDB Update - TODO in next ticket
-    assert mock_logger.get_log("SM_PROC_026") == [
-        {"msg": "Skipping DynamoDB transaction as no items to write"}
-    ]
-
-    # Verify metrics are updated correctly (after two sync_service calls)
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 1,
-        "updated": 1,
-        "supported": 2,
-        "total": 2,
-        "transformed": 2,
-        "unsupported": 0,
-        "invalid": 0,
-    }
-
-
-def test_get_source_service(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, Service],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    service = processor.get_source_service(service_id)
-
-    assert service == ServiceData.model_validate(stub_test_services[service_id])
-
-    assert mock_logger.get_log("SM_PROC_001", level="DEBUG") == [
-        {
-            "msg": "Querying legacy service data",
-            "detail": {
-                "statement": (
-                    "SELECT pathwaysdos.services.id, pathwaysdos.services.uid, "
-                    "pathwaysdos.services.name, pathwaysdos.services.odscode, "
-                    "pathwaysdos.services.isnational, "
-                    "pathwaysdos.services.openallhours, "
-                    "pathwaysdos.services.publicreferralinstructions, "
-                    "pathwaysdos.services.telephonetriagereferralinstructions, "
-                    "pathwaysdos.services.restricttoreferrals, "
-                    "pathwaysdos.services.address, pathwaysdos.services.town, "
-                    "pathwaysdos.services.postcode, pathwaysdos.services.easting, "
-                    "pathwaysdos.services.northing, pathwaysdos.services.publicphone, "
-                    "pathwaysdos.services.nonpublicphone, pathwaysdos.services.fax, "
-                    "pathwaysdos.services.email, pathwaysdos.services.web, "
-                    "pathwaysdos.services.createdby, pathwaysdos.services.createdtime, "
-                    "pathwaysdos.services.modifiedby, "
-                    "pathwaysdos.services.modifiedtime, "
-                    "pathwaysdos.services.lasttemplatename, "
-                    "pathwaysdos.services.lasttemplateid, pathwaysdos.services.typeid, "
-                    "pathwaysdos.services.parentid, pathwaysdos.services.subregionid, "
-                    "pathwaysdos.services.statusid, "
-                    "pathwaysdos.services.organisationid, "
-                    "pathwaysdos.services.returnifopenminutes, "
-                    "pathwaysdos.services.publicname, pathwaysdos.services.latitude, "
-                    "pathwaysdos.services.longitude, "
-                    "pathwaysdos.services.professionalreferralinfo, "
-                    "pathwaysdos.services.lastverified, "
-                    "pathwaysdos.services.nextverificationdue \n"
-                    "FROM pathwaysdos.services \n"
-                    "WHERE pathwaysdos.services.id = ?"
-                )
-            },
-        }
-    ]
-
-    assert mock_logger.get_log("SM_PROC_002", level="INFO") == [
-        {
-            "msg": "Legacy service data retrieved",
-            "detail": {
-                "service_name": "Test Service 1",
-                "service_uid": "2000000001",
-                "last_updated": "2023-01-02T00:00:00",
-            },
-        }
-    ]
-
-
-def test_get_source_service_not_found(
-    mock_dependencies: ServiceMigrationDependencies,
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    record_id = 9999
-
-    with pytest.raises(
-        ServiceMigrationException,
-        match="Service record with ID 9999 not found in source database",
-    ) as exc_info:
-        processor.get_source_service(record_id)
-
-    # Should not requeue as record does not exist
-    assert exc_info.value.should_requeue is False
-
-
-def test_transform_service(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    data = ServiceData.model_validate(stub_test_services[service_id])
-
-    transformed_items = processor.transform_service(data)
-
-    assert transformed_items.organisation is not None
-    assert transformed_items.organisation.name == "Public Test Service 1"
-
-    assert transformed_items.location is not None
-    assert transformed_items.location.address.postcode == "AB12 3CD"
-
-    assert transformed_items.healthcare_service is not None
-    assert transformed_items.healthcare_service.telecom.phone_public == "01234567890"
-
-    assert transformed_items.validation_issues is not None
-    assert transformed_items.validation_issues == []
-
-    assert mock_logger.was_logged("SM_PROC_007") is True
-    assert mock_logger.get_log("SM_PROC_007a", level="DEBUG") == [
-        {
-            "msg": "Service successfully transformed with content",
-            "detail": {
-                "transformed_record": transformed_items.model_dump(
-                    exclude_none=True, mode="json"
-                ),
-                "original_record": data.model_dump(exclude_none=True, mode="json"),
-            },
-        }
-    ]
-
-    # Verify metrics are updated correctly for transform_service
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 0,
-        "updated": 0,
-        "supported": 1,
-        "total": 0,
-        "transformed": 1,
-        "unsupported": 0,
-        "invalid": 0,
-    }
-
-
-def test_transform_service_should_not_include(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    service_id = 1
-
-    # Make service inactive (not eligible)
-    stub_test_services[service_id].statusid = 2  # Inactive status
-
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-    data = ServiceData.model_validate(stub_test_services[service_id])
-
-    with pytest.raises(
-        ServiceMigrationException,
-        match="Service skipped during migration: Service is not active",
-    ) as exc_info:
-        processor.transform_service(data)
-
-    # Should not requeue as service is ineligible
-    assert exc_info.value.should_requeue is False
-
-    # Details logged
-    assert mock_logger.get_log("SM_PROC_006") == [
-        {
-            "msg": "Service skipped migration due to reason: Service is not active",
-            "detail": {"reason": "Service is not active"},
-        }
-    ]
-
-    # Verify metrics - supported is incremented before should_include check,
-    # but transformed is not incremented since the service was skipped
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 0,
-        "updated": 0,
-        "supported": 1,
-        "total": 0,
-        "transformed": 0,
-        "unsupported": 0,
-        "invalid": 0,
-    }
-
-
-def test_transform_service_fatal_validation_errors(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    # Introduce fatal validation issue for GPs by removing public name
-    service_id = 1
-    stub_test_services[service_id].publicname = None
-    data = ServiceData.model_validate(stub_test_services[service_id])
-
-    with pytest.raises(
-        FatalValidationException,
-        match="Fatal validation error for service 1",
-    ) as exc_info:
-        processor.transform_service(data)
-
-    # Should not requeue as data is invalid
-    assert exc_info.value.should_requeue is False
-    assert exc_info.value.issues == [
-        ValidationIssue(
-            value=None,
-            severity="fatal",
-            code="publicname_required",
-            diagnostics="Public name is required for GP practices",
-            expression=["publicname"],
-        )
-    ]
-
-    # Details logged
-    assert mock_logger.get_log("SM_VAL_002") == [
-        {
-            "msg": "Service validation issue identified",
-            "detail": {
-                "code": "publicname_required",
-                "diagnostics": "Public name is required for GP practices",
-                "expression": ["publicname"],
-                "severity": "fatal",
-                "value": None,
-            },
-        }
-    ]
-
-    # Verify metrics - supported is incremented before validation,
-    # but transformed is not incremented since validation failed
-    assert processor.metrics.model_dump() == {
-        "errored": 0,
-        "skipped": 0,
-        "inserted": 0,
-        "updated": 0,
-        "supported": 1,
-        "total": 0,
-        "transformed": 0,
-        "unsupported": 0,
-        "invalid": 0,
-    }
-
-
-def test_get_transformer_supported_service(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    data = ServiceData.model_validate(stub_test_services[service_id])
-
-    transformer = processor.get_transformer(data)
-
-    assert transformer.__class__.__name__ == "GPPracticeTransformer"
-
-    assert mock_logger.get_log("SM_PROC_004", level="DEBUG") == [
-        {
-            "msg": "Transformer GPPracticeTransformer is valid for service",
-            "detail": {"transformer_name": "GPPracticeTransformer"},
-        }
-    ]
-    assert mock_logger.get_log("SM_PROC_005", level="INFO") == [
-        {
-            "msg": "Transformer GPPracticeTransformer selected for service",
-            "detail": {"transformer_name": "GPPracticeTransformer"},
-        }
-    ]
-
-
-def test_get_transformer_unsupported_service(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-    stub_test_services: dict[int, ServiceData],
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    expected_transformer_checks = 2
-
-    # Set unsupported typeid
-    stub_test_services[service_id].typeid = 1000
-    data = ServiceData.model_validate(stub_test_services[service_id])
-
-    with pytest.raises(
-        ServiceMigrationException,
-        match="No suitable transformer found for service ID 1",
-    ) as exc_info:
-        processor.get_transformer(data)
-
-    # Should not requeue as service is unsupported
-    assert exc_info.value.should_requeue is False
-
-    # Should have checked 2 transformers
-    assert (
-        len(mock_logger.get_log("SM_PROC_003", level="DEBUG"))
-        == expected_transformer_checks
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._save = mocker.MagicMock()
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=0,
+        supported_records=0,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        invalid_records=0,
+        errors=0,
+    )
+
+    processor._process_service(service=mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=1,
+        migrated_records=1,
+        skipped_records=0,
+        invalid_records=0,
+        errors=0,
+    )
+
+    assert mock_logger.was_logged("DM_ETL_004") is False
+    assert mock_logger.was_logged("DM_ETL_005") is False
+    assert mock_logger.was_logged("DM_ETL_006") is True
+
+    assert processor._save.call_count == 1
+
+    output = processor._save.call_args[0][0]
+    assert isinstance(output, ServiceTransformOutput)
+    assert len(output.organisation) == 1
+    assert output.organisation[0] == Organisation(
+        id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        identifier_ODS_ODSCode="A12345",
+        identifier_oldDoS_uid="test-uid",
+        active=True,
+        name="Public Test Service",
+        telecom=[],
+        type="GP Practice",
+        endpoints=[
+            Endpoint(
+                id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
+                createdBy="DATA_MIGRATION",
+                createdDateTime="2025-07-25T12:00:00+00:00",
+                modifiedBy="DATA_MIGRATION",
+                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=1,
+                status="active",
+                connectionType="http",
+                name=None,
+                payloadMimeType=None,
+                description="Primary",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="http://example.com/endpoint",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=1,
+                isCompressionEnabled=True,
+                comment="Test Endpoint",
+            ),
+            Endpoint(
+                id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
+                createdBy="DATA_MIGRATION",
+                createdDateTime="2025-07-25T12:00:00+00:00",
+                modifiedBy="DATA_MIGRATION",
+                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=2,
+                status="active",
+                connectionType="email",
+                name=None,
+                payloadMimeType=None,
+                description="Copy",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="mailto:test@example.com",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=2,
+                isCompressionEnabled=False,
+                comment="Test Email Endpoint",
+            ),
+        ],
+    )
+
+    assert len(output.healthcare_service) == 1
+    assert output.healthcare_service[0] == HealthcareService(
+        id="903cd48b-5d0f-532f-94f4-937a4517b14d",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        identifier_oldDoS_uid="test-uid",
+        active=True,
+        category="GP Services",
+        type="GP Consultation Service",
+        providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        migrationNotes=[],
+        name="Test Service",
+        telecom=HealthcareServiceTelecom(
+            phone_public="01234567890",
+            phone_private="09876543210",
+            email="firstname.lastname@nhs.net",
+            web="http://example.com",
+        ),
+        openingTime=[
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="mon",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="tue",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="09:00:00",
+                endTime="12:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="13:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="thu",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="fri",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="sat",
+                startTime="10:00:00",
+                endTime="14:00:00",
+                allDay=False,
+            ),
+            AvailableTimePublicHolidays(
+                category="availableTimePublicHolidays",
+                startTime="10:00:00",
+                endTime="14:00:00",
+            ),
+        ],
+        symptomGroupSymptomDiscriminators=[
+            SymptomGroupSymptomDiscriminatorPair(
+                sg=1035,
+                sd=4003,
+            ),
+            SymptomGroupSymptomDiscriminatorPair(
+                sg=360,
+                sd=14023,
+            ),
+        ],
+        dispositions=["DX115", "DX12"],
+    )
+
+    assert len(output.location) == 1
+    assert output.location[0] == Location(
+        id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        identifier_oldDoS_uid="test-uid",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-25T12:00:00+00:00",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        active=True,
+        address=Address(
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
+            postcode="AB12 3CD",
+        ),
+        managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        name=None,
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
+        positionReferenceNumber_UPRN=None,
+        positionReferenceNumber_UBRN=None,
+        primaryAddress=True,
+        partOf=None,
     )
 
 
-def test_get_transformer_multiple_suitable_transformers(
-    mock_dependencies: ServiceMigrationDependencies,
-    mocker: MockerFixture,
-    stub_test_services: dict[int, ServiceData],
+def test_process_service_unsupported_service(
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+    mock_legacy_service.typeid = 1000
 
-    service_id = 1
-    data = ServiceData.model_validate(stub_test_services[service_id])
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=0,
+        unsupported_records=1,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        errors=0,
+    )
+
+    assert mock_logger.get_log("DM_ETL_004") == [
+        {
+            "msg": "Record was not migrated due to reason: No suitable transformer found",
+            "detail": {"reason": "No suitable transformer found"},
+            "reference": "DM_ETL_004",
+        }
+    ]
+
+
+def test_process_service_skipped_service(
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    mock_legacy_service.statusid = 2  # Closed status
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=1,
+        errors=0,
+    )
+
+    assert mock_logger.get_log("DM_ETL_005") == [
+        {
+            "msg": "Record skipped due to condition: Service is not active",
+            "detail": {"reason": "Service is not active"},
+            "reference": "DM_ETL_005",
+        }
+    ]
+
+
+def test_handles_invalid_service(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    # Arrange transformer and patch lookup to return it
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.should_include_service.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
+    )
+
+    # A fatal issue => is_valid == False and should_continue == False
+    fatal_issue = ValidationIssue(
+        severity="fatal",
+        code="TEST_FATAL",
+        diagnostics="Invalid data encountered",
+        value=None,
+        expression=["some.field"],
+    )
+    validation_result = ValidationResult(
+        origin_record_id=mock_legacy_service.id,
+        issues=[fatal_issue],
+        sanitised=mock_legacy_service,  # pass the (sanitised) service, not metadata
+    )
+    mock_transformer.validator.validate.return_value = validation_result
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._save = mocker.MagicMock()
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=0,
+        supported_records=0,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        invalid_records=0,
+        errors=0,
+    )
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=0,
+        migrated_records=0,
+        skipped_records=0,
+        invalid_records=1,
+        errors=0,
+    )
+    mock_transformer.transform.assert_not_called()
+    processor._save.assert_not_called()
+
+
+def test_process_service_error(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    processor._save = mocker.MagicMock(side_effect=Exception("Test error"))
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics == DataMigrationMetrics(
+        total_records=1,
+        supported_records=1,
+        unsupported_records=0,
+        transformed_records=1,
+        migrated_records=0,
+        skipped_records=0,
+        errors=1,
+    )
+
+    assert mock_logger.get_log("DM_ETL_008") == [
+        {
+            "msg": "Error processing record: Test error",
+            "detail": {"error": "Test error"},
+            "reference": "DM_ETL_008",
+        }
+    ]
+
+
+def test_get_transformer(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
 
     mocker.patch(
-        "service_migration.processor.SUPPORTED_TRANSFORMERS",
-        [GPPracticeTransformer, GPPracticeTransformer],
-    )
-    with pytest.raises(
-        ServiceMigrationException,
-        match="Multiple suitable transformers found for service ID 1: \['GPPracticeTransformer', 'GPPracticeTransformer'\]",
-    ) as exc_info:
-        processor.get_transformer(data)
-
-    # Should not requeue as service is unsupported
-    assert exc_info.value.should_requeue is False
-
-
-def test_get_state_record_no_existing_record(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    service_id = 1
-    assert processor.get_state_record(service_id) is None
-
-    assert mock_logger.get_log("SM_PROC_008", level="DEBUG") == [
-        {
-            "msg": "Retrieving existing state from DynamoDB",
-            "detail": {
-                "table_name": "ftrs-dos-local-data-migration-state-table-test-workspace",
-                "key": {"source_record_id": {"S": "services#1"}},
-            },
-        }
-    ]
-    assert mock_logger.was_logged("SM_PROC_009") is True
-
-
-def test_get_state_record_existing_record(
-    mock_dependencies: ServiceMigrationDependencies,
-    mock_logger: MockLogger,
-) -> None:
-    service_id = 1
-
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-
-    # Run migration once to create state record
-    processor.sync_service(service_id, method="insert")
-    mock_logger.clear_logs()
-
-    state_record = processor.get_state_record(service_id)
-
-    assert state_record is not None
-    assert state_record.source_record_id == f"services#{service_id}"
-    assert state_record.version == 1
-    assert str(state_record.organisation_id) == "4539600c-e04e-5b35-a582-9fb36858d0e0"
-    assert str(state_record.location_id) == "6ef3317e-c6dc-5e27-b36d-577c375eb060"
-    assert (
-        str(state_record.healthcare_service_id)
-        == "903cd48b-5d0f-532f-94f4-937a4517b14d"
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
     )
 
-    assert mock_logger.get_log("SM_PROC_008", level="DEBUG") == [
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+
+    transformer = processor.get_transformer(mock_legacy_service)
+
+    assert transformer == mock_transformer
+
+    mock_transformer.assert_called_once_with(
+        logger=processor.logger,
+        metadata=processor.metadata,
+    )
+    assert mock_transformer.is_service_supported.call_count == 1
+    mock_transformer.is_service_supported.assert_called_once_with(mock_legacy_service)
+
+    assert mock_logger.was_logged("DM_ETL_002") is False
+    assert mock_logger.get_log("DM_ETL_003") == [
         {
-            "msg": "Retrieving existing state from DynamoDB",
-            "detail": {
-                "table_name": "ftrs-dos-local-data-migration-state-table-test-workspace",
-                "key": {"source_record_id": {"S": "services#1"}},
-            },
+            "msg": "Transformer MockTransformer selected for record",
+            "detail": {"transformer_name": "MockTransformer"},
+            "reference": "DM_ETL_003",
         }
     ]
-    assert mock_logger.was_logged("SM_PROC_009") is False
-
-    assert mock_logger.get_log("SM_PROC_010") == [
-        {
-            "msg": "Existing state found for service - proceeding with incremental migration",
-            "detail": {
-                "healthcare_service_id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-                "location_id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-                "organisation_id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "state_version": 1,
-            },
-        }
-    ]
 
 
-def test_execute_transaction(
+def test_get_transformer_not_supported(
     mocker: MockerFixture,
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
 ) -> None:
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
-    processor.deps.ddb_client = mocker.MagicMock()
-    processor.deps.ddb_client.transact_write_items = mocker.MagicMock(
-        return_value={"ConsumedCapacity": []}
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (False, "Unsupported type")
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
     )
 
-    transact_items = [
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "1"}}}},
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "2"}}}},
-    ]
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
 
-    assert processor.execute_transaction(transact_items) is None
+    transformer = processor.get_transformer(mock_legacy_service)
 
-    assert mock_logger.get_log("SM_PROC_027", level="DEBUG") == [
+    assert transformer is None
+
+    assert mock_transformer.is_service_supported.call_count == 1
+    mock_transformer.is_service_supported.assert_called_once_with(mock_legacy_service)
+
+    assert mock_logger.was_logged("DM_ETL_003") is False
+    assert mock_logger.get_log("DM_ETL_002") == [
         {
-            "msg": "Executing DynamoDB transaction with 2 items",
-            "detail": {"items": transact_items, "item_count": 2},
+            "msg": "Transformer MockTransformer is not valid for record: Unsupported type",
+            "detail": {
+                "transformer_name": "MockTransformer",
+                "reason": "Unsupported type",
+            },
+            "reference": "DM_ETL_002",
         }
     ]
 
-    processor.deps.ddb_client.transact_write_items.assert_called_once_with(
-        TransactItems=transact_items,
-        ReturnConsumedCapacity="INDEXES",
-    )
 
-    assert mock_logger.get_log("SM_PROC_028") == [
-        {
-            "msg": "DynamoDB transaction completed successfully",
-            "detail": {"consumed_capacity": []},
-        }
-    ]
-
-
-def test_execute_transaction_handles_conditional_check_failed(
+def test_save(
     mocker: MockerFixture,
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that execute_transaction handles TransactionCanceledException with ConditionalCheckFailed gracefully."""
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
 
-    processor.deps.ddb_client = mocker.MagicMock()
+    # Mock DynamoDB client
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items = mocker.MagicMock()
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False (not exists)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    processor._save(result, mock_legacy_service.id)
+
+    # Verify transact_write_items was called once
+    assert mock_dynamodb_client.transact_write_items.call_count == 1
+
+    # Verify the transaction contains items for:
+    # - 1 organisation
+    # - 1 location
+    # - 1 healthcare service
+    # - 1 data migration state
+    transact_items = mock_dynamodb_client.transact_write_items.call_args[1][
+        "TransactItems"
+    ]
+    noItems = 4
+    assert len(transact_items) == noItems
+
+    # Verify all items are Put operations
+    for item in transact_items:
+        assert "Put" in item
+        assert "TableName" in item["Put"]
+        assert "Item" in item["Put"]
+
+
+def test_save_handles_transaction_cancelled_with_conditional_check_failed(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save handles TransactionCanceledException with ConditionalCheckFailed gracefully."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Create a real exception (not a MagicMock) with proper attributes
+    class MockTransactionCanceledException(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                    {"Code": "ConditionalCheckFailed"},
+                ],
+            }
+
+    # Create an instance of the exception
+    mock_exception = MockTransactionCanceledException()
+    # Set the class name to match what the code checks
+    mock_exception.__class__.__name__ = "TransactionCanceledException"
 
     # Mock DynamoDB client to raise the exception
-    processor.deps.ddb_client.transact_write_items.side_effect = ClientError(
-        error_response={
-            "Error": {
-                "Code": "TransactionCanceledException",
-                "Message": "Transaction cancelled",
-            },
-            "CancellationReasons": [
-                {"Code": "ConditionalCheckFailed"},
-                {"Code": "ConditionalCheckFailed"},
-                {"Code": "None"},
-                {"Code": "ConditionalCheckFailed"},
-            ],
-        },
-        operation_name="TransactWriteItems",
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
     )
 
-    transact_items = [
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "1"}}}},
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "2"}}}},
-        {"Update": {"TableName": "TestTable", "Key": {"id": {"S": "3"}}}},
-        {"Delete": {"TableName": "TestTable", "Key": {"id": {"S": "4"}}}},
-    ]
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    with pytest.raises(
-        ServiceMigrationException,
-        match="DynamoDB transaction cancelled: see logs for details",
-    ) as exc_info:
-        processor.execute_transaction(transact_items)
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
-    # Should requeue as this should be a transient issue
-    assert exc_info.value.should_requeue is True
+    # Should not raise exception, should return gracefully
+    processor._save(result, mock_legacy_service.id)
 
-    assert mock_logger.get_log("SM_PROC_029") == [
-        {
-            "msg": "DynamoDB transaction cancelled due to conditional check failure: Transaction cancelled",
-            "detail": {
-                "error": "Transaction cancelled",
-                "items": transact_items,
-                "response": {
-                    "CancellationReasons": [
-                        {"Code": "ConditionalCheckFailed"},
-                        {"Code": "ConditionalCheckFailed"},
-                        {"Code": "None"},
-                        {"Code": "ConditionalCheckFailed"},
-                    ],
-                    "Error": {
-                        "Code": "TransactionCanceledException",
-                        "Message": "Transaction cancelled",
-                    },
-                },
-            },
-        }
-    ]
-    assert mock_logger.was_logged("SM_PROC_030") is False
+    # Verify DM_ETL_022 was logged
+    logs = mock_logger.get_log("DM_ETL_022")
+    assert len(logs) > 0, "DM_ETL_022 was not logged"
+    assert logs[0]["reference"] == "DM_ETL_022"
 
 
-def test_execute_transaction_handles_other_client_error(
+def test_save_handles_transaction_cancelled_without_conditional_check_failed(
     mocker: MockerFixture,
-    mock_dependencies: ServiceMigrationDependencies,
+    mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that execute_transaction handles other ClientError exceptions correctly."""
-    processor = ServiceMigrationProcessor(deps=mock_dependencies)
+    """Test that _save re-raises TransactionCanceledException if not due to ConditionalCheckFailed."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
 
-    processor.deps.ddb_client = mocker.MagicMock()
-
-    # Mock DynamoDB client to raise a generic ClientError
-    processor.deps.ddb_client.transact_write_items.side_effect = ClientError(
-        error_response={
-            "Error": {
-                "Code": "ProvisionedThroughputExceededException",
-                "Message": "Throughput exceeded",
+    # Create a real exception with different cancellation reasons
+    class MockTransactionCanceledException(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ValidationError"},
+                    {"Code": "ThrottlingError"},
+                ],
             }
-        },
-        operation_name="TransactWriteItems",
+
+    mock_exception = MockTransactionCanceledException()
+    mock_exception.__class__.__name__ = "TransactionCanceledException"
+
+    # Mock DynamoDB client to raise the exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
     )
 
-    transact_items = [
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "1"}}}},
-        {"Put": {"TableName": "TestTable", "Item": {"id": {"S": "2"}}}},
-    ]
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
 
-    with pytest.raises(
-        ServiceMigrationException,
-        match="DynamoDB transaction failed: Throughput exceeded",
-    ) as exc_info:
-        processor.execute_transaction(transact_items)
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
 
-    # Should requeue as this should be a transient issue
-    assert exc_info.value.should_requeue is True
+    # Should raise the exception since it's not ConditionalCheckFailed
+    with pytest.raises(Exception):
+        processor._save(result, mock_legacy_service.id)
 
-    assert mock_logger.get_log("SM_PROC_030") == [
-        {
-            "msg": "DynamoDB transaction failed: Throughput exceeded",
-            "detail": {
-                "error": "Throughput exceeded",
-                "items": transact_items,
-                "response": {
-                    "Error": {
-                        "Code": "ProvisionedThroughputExceededException",
-                        "Message": "Throughput exceeded",
-                    }
-                },
-            },
-        }
-    ]
+
+def test_save_handles_other_exceptions(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save re-raises non-TransactionCanceledException exceptions."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock DynamoDB client to raise a different exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = Exception(
+        "Some other DynamoDB error"
+    )
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should raise the exception
+    with pytest.raises(Exception, match="Some other DynamoDB error"):
+        processor._save(result, mock_legacy_service.id)
+
+
+def test_save_checks_exception_via_response_code(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save checks exception code via response attribute."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Create mock exception with response but different class name
+    mock_exception = Exception("Transaction cancelled")
+    mock_exception.response = {
+        "Error": {"Code": "TransactionCanceledException"},
+        "CancellationReasons": [
+            {"Code": "ConditionalCheckFailed"},
+        ],
+    }
+
+    # Mock DynamoDB client to raise the exception
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.side_effect = mock_exception
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    # Should not raise exception, should return gracefully
+    processor._save(result, mock_legacy_service.id)
+
+    # Verify DM_ETL_022 was logged
+    logs = mock_logger.get_log("DM_ETL_022")
+    assert len(logs) > 0, "DM_ETL_022 was not logged"
+    assert logs[0]["reference"] == "DM_ETL_022"
+
+
+def test_save_skips_when_state_exists(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save returns early when state record already exists."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock DynamoDB client
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items = mocker.MagicMock()
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return True (exists)
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=True)
+
+    validation_issues = []
+    transformer = processor.get_transformer(mock_legacy_service)
+    transformer.transform(mock_legacy_service, validation_issues)
+
+    # Call _save - but first need to call through _process_service
+    processor._process_service(mock_legacy_service)
+
+    # Verify transact_write_items was NOT called since state exists
+    assert mock_dynamodb_client.transact_write_items.call_count == 0
+
+    # Verify DM_ETL_019 was logged (state exists)
+    assert mock_logger.was_logged("DM_ETL_019") is True
+
+
+def test_save_logs_success_on_successful_write(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that _save logs DM_ETL_021 on successful transactional write."""
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+
+    # Mock DynamoDB client
+    mock_dynamodb_client = mocker.MagicMock()
+    mock_dynamodb_client.transact_write_items.return_value = {}
+
+    mocker.patch(
+        "service_migration.processor.get_dynamodb_client",
+        return_value=mock_dynamodb_client,
+    )
+
+    # Mock verify_state_record_exist to return False
+    processor.verify_state_record_exist = mocker.MagicMock(return_value=False)
+
+    validation_issues = []
+    item_count = 4
+    transformer = processor.get_transformer(mock_legacy_service)
+    result = transformer.transform(mock_legacy_service, validation_issues)
+
+    processor._save(result, mock_legacy_service.id)
+
+    # Verify DM_ETL_021 was logged with correct parameters
+    assert mock_logger.was_logged("DM_ETL_021") is True
+    log_entry = mock_logger.get_log("DM_ETL_021")[0]
+    assert "item_count" in log_entry["detail"]
+    assert (
+        log_entry["detail"]["item_count"] == item_count
+    )  # org, location, service, state
