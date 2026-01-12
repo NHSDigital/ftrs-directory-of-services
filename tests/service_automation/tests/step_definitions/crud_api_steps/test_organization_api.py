@@ -169,7 +169,7 @@ def get_db_item(model_repo, payload: dict):
     model_id = payload["id"]
     item = model_repo.get(model_id)
     logger.info(f"Retrieved DB item for model_id {model_id}: {item}")
-    assert item, f"No data found for ODS code {model_id}"
+    assert item, f"No data found for id {model_id}"
     return item
 
 
