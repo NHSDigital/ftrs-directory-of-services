@@ -257,7 +257,5 @@ class OrganisationService:
             outdated_fields["modifiedDateTime"] = datetime.now(UTC)
         return outdated_fields
 
-    def _field_has_changed(
-        self, current_value: object, new_value: object, field_name: str
-    ) -> bool:
+    def _field_has_changed(self, current_value: object, new_value: object) -> bool:
         return current_value != new_value
