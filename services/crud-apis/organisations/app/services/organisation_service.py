@@ -156,7 +156,11 @@ class OrganisationService:
             organisation_id=existing_organisation.id,
         )
         for field, value in outdated_fields.items():
-            setattr(existing_organisation, field, value)
+            if field == "modified_by":
+                setattr(existing_organisation, "modifiedBy", value)
+            else:
+                setattr(existing_organisation, field, value)
+        existing_organisation.lastUpdated = datetime.now(UTC)
 
     def _get_stored_organisation(
         self, organisation_id: str, ods_code: str

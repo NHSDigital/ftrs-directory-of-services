@@ -9,7 +9,7 @@ from uuid import UUID, uuid4
 import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-from ftrs_data_layer.domain import Endpoint, Organisation
+from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
 from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
