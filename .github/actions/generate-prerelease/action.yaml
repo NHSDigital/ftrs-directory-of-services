@@ -14,5 +14,3 @@ runs:
       shell: bash
       run: |
         ./scripts/workflow/generate-prerelease.sh
-        echo "Prerelease tag: ${PRERELEASE_TAG}"
-        echo "prerelease_tag=${PRERELEASE_TAG}" >> $GITHUB_OUTPUT

@@ -23,8 +23,8 @@ else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
-ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(RELEASE_TAG)
-ARTEFACT_RC_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
+ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
+ARTEFACT_RELEASE_CANDIDATE_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
 ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_TAG)
 
 # ==============================================================================
@@ -96,20 +96,40 @@ invalidate-cloudfront-cache:
 	aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths "/*"
 	@echo "Cache invalidation initiated"
 
-stage-release:
-	@echo "Staging release $(RELEASE_TAG) for $(SERVICE)..."
+set-prerelease-version:
+ifeq ($(strip $(PRERELEASE_TAG)),)
+	@echo "Finding latest prerelease version for $(SERVICE)..."
+	$(eval PRERELEASE_TAG := $(shell \
+		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
+		| awk '{print $$2}' \
+		| sed 's/\/$$//' \
+		| sort -V \
+		| tail -1 \
+	))
+	@if [ -z "$(PRERELEASE_TAG)" ]; then \
+		echo "Error: No staging versions found"; \
+		exit 1; \
+	fi
+else
+	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
+endif
+
+stage-release: set-prerelease-version
+	@echo "Staging release $(PRERELEASE_TAG) for $(SERVICE)..."
 	aws s3 sync s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
 promote-rc:
-	@echo "Promoting $(RELEASE_TAG) to release candidate for $(SERVICE)..."
+	@echo "Promoting $(PRERELEASE_TAG) to release candidate for $(SERVICE)..."
 	aws s3 sync s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RC_PATH)/ --region $(AWS_REGION)
-	@echo "Promoted to release candidate"
+	@echo "Promoted from staging/$(PRERELEASE_TAG) to release candidate"
 
 publish-release:
-	@echo "Publishing release $(RELEASE_TAG) for $(SERVICE)..."
-	aws s3 sync s3://$(ARTEFACT_RC_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --region $(AWS_REGION)
-	@echo "Release published successfully"
+$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
+	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
+	@echo "Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN)..."
+	aws s3 sync s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --region $(AWS_REGION)
+	@echo "Release published successfully to releases/$(RELEASE_VERSION_CLEAN)"
 
 pre-commit: lint
 
