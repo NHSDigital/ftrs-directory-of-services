@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from freezegun import freeze_time
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
@@ -41,9 +42,17 @@ def test_get_outdated_fields_no_changes() -> None:
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
         endpoints=[],
-        createdBy="ROBOT",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ROBOT",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
@@ -74,9 +83,17 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         name="Test Organisation",
         telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         endpoints=[],
-        createdBy="ROBOT",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ROBOT",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         legalDates={"start": "2020-01-15", "end": "2025-12-31"},
@@ -87,7 +104,11 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
             Telecom(type="phone", value="020 7972 3272", isPublic=True),
             Telecom(type="email", value="test@nhs.net", isPublic=True),
         ],
-        "modified_by": "UserX",
+        "lastUpdatedBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "legalDates": {
             "start": "2020-01-15",
         },
@@ -103,7 +124,11 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         Telecom(type="phone", value="020 7972 3272", isPublic=True),
         Telecom(type="email", value="test@nhs.net", isPublic=True),
     ]
-    assert organisation.lastUpdatedBy == "UserX"
+    assert organisation.lastUpdatedBy == {
+        "type": "user",
+        "value": "INGRESS_API_ID",
+        "display": "FtRS Ingress API",
+    }
     assert organisation.lastUpdated == FIXED_MODIFIED_TIME
 
 
@@ -117,9 +142,17 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
         endpoints=[],
-        createdBy="ROBOT",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ROBOT",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
@@ -129,7 +162,11 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         active=False,
         name="Updated Organisation",
         telecom=[Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)],
-        lastUpdatedBy="ETL_ODS_PIPELINE",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         legalDates=LegalDates(start=date(2021, 1, 1), end=date(2026, 12, 31)),
@@ -153,8 +190,12 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "telecom": [
                 Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)
             ],
-            "modified_by": "ETL_ODS_PIPELINE",
-            "modifiedDateTime": FIXED_MODIFIED_TIME,
+            "lastUpdatedBy": AuditEvent(
+                type=AuditEventType.user,
+                value="INGRESS_API_ID",
+                display="FtRS Ingress API",
+            ),
+            "lastUpdated": FIXED_MODIFIED_TIME,
             "primary_role_code": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
             "non_primary_role_codes": [OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         }
@@ -186,9 +227,17 @@ def test_creates_organisation_when_valid_data_provided() -> None:
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
         endpoints=[],
-        createdBy="ROBOT",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ROBOT",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
 
@@ -197,7 +246,11 @@ def test_creates_organisation_when_valid_data_provided() -> None:
 
     assert result == organisation
     org_repository.create.assert_called_once_with(organisation)
-    assert result.createdBy == "ROBOT"
+    assert result.createdBy == AuditEvent(
+        type=AuditEventType.user,
+        value="INGRESS_API_ID",
+        display="FtRS Ingress API",
+    )
     assert result.identifier_ODS_ODSCode == "ABC123"
     assert result.telecom == [
         Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
@@ -249,9 +302,17 @@ def test_generates_new_id_when_id_already_exists() -> None:
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
         endpoints=[],
-        createdBy="ROBOT",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ROBOT",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
 
@@ -292,9 +353,17 @@ def test_process_organisation_update_no_changes(
         ],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -332,9 +401,17 @@ def test_process_organisation_update_with_changes(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -423,9 +500,17 @@ def test_process_organisation_update_with_invalid_phone_number(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -466,9 +551,17 @@ def test_process_organisation_update_with_invalid_email_number(
         telecom=[Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -509,9 +602,17 @@ def test_process_organisation_update_with_invalid_url(
         telecom=[Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -552,9 +653,17 @@ def test_process_organisation_update_with_invalid_char_in_phone_number(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -636,9 +745,17 @@ def test_process_organisation_update_with_invalid_no_telecom_system(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -680,9 +797,17 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
@@ -704,9 +829,17 @@ def test_get_by_ods_code_success() -> None:
         telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository = MagicMock(spec=AttributeLevelRepository)
@@ -754,9 +887,17 @@ def test_get_all_organisations() -> None:
         telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org2 = Organisation(
@@ -766,9 +907,17 @@ def test_get_all_organisations() -> None:
         telecom=[Telecom(type="phone", value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdTime=FIXED_CREATED_TIME,
-        lastUpdatedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.iter_records.return_value = [org1, org2]
