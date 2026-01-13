@@ -314,6 +314,7 @@ Feature: Organization API Endpoint
       | phone | +61 4 1234 5678          | Validation failed for the following resources: Telecom value field contains an invalid phone number: +61 4 1234 5678           |
       | phone | +33 1 23 45 67 89        | Validation failed for the following resources: Telecom value field contains an invalid phone number: +33 1 23 45 67 89         |
       | phone | +91 9123456789           | Validation failed for the following resources: Telecom value field contains an invalid phone number: +91 9123456789            |
+      | phone | null                     | Validation failed for the following resources: Telecom value field contains an invalid phone number: null                      |
       | email | invalidemail.com         | Validation failed for the following resources: Telecom value field contains an invalid email address: invalidemail.com         |
       | email | plainaddress             | Validation failed for the following resources: Telecom value field contains an invalid email address: plainaddress             |
       | email | john..test@example.com   | Validation failed for the following resources: Telecom value field contains an invalid email address: john..test@example.com   |
@@ -322,9 +323,11 @@ Feature: Organization API Endpoint
       | email | user@invalid_domain.com  | Validation failed for the following resources: Telecom value field contains an invalid email address: user@invalid_domain.com  |
       | email | user@domain              | Validation failed for the following resources: Telecom value field contains an invalid email address: user@domain              |
       | email | user@domain.c            | Validation failed for the following resources: Telecom value field contains an invalid email address: user@domain.c            |
+      | email | null                     | Validation failed for the following resources: Telecom value field contains an invalid email address: null                     |
       | url   | htp://example.com        | Validation failed for the following resources: Telecom value field contains an invalid url: htp://example.com                  |
       | url   | http://exa mple.com      | Validation failed for the following resources: Telecom value field contains an invalid url: http://exa mple.com                |
       | url   | http://example.com:99999 | Validation failed for the following resources: Telecom value field contains an invalid url: http://example.com:99999           |
+      | url   | null                     | Validation failed for the following resources: Telecom value field contains an invalid url: null                               |
 
   Scenario: Reject modification of 'type' field in telecom after creation
     Given that the stack is "organisation"
@@ -499,6 +502,7 @@ Feature: Organization API Endpoint
       | CODE2025     |
       | M2T8W        |
       | 01234        |
+      | T2Y1         |
 
 
   Scenario Outline: Reject Organization update with invalid ods-code format
@@ -524,7 +528,6 @@ Feature: Organization API Endpoint
       | ABC 123       |
       | ABC-123       |
       | 123_456       |
-
 
   Scenario: Successfully update organization with empty telecom list
     Given that the stack is "organisation"
