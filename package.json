@@ -3,7 +3,7 @@
   "private": true,
   "release": {
     "branches": [
-      "main"
+      "task/ftrs-1667-refactor-pipelines-for-artefact-management"
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",
@@ -18,7 +18,7 @@
       [
         "@semantic-release/git",
         {
-          "assets": [ ],
+          "assets": [],
           "message": "chore(release): FTRS-000 ${nextRelease.version} release content [skip ci]\n\n${nextRelease.notes}"
         }
       ],
