@@ -356,8 +356,8 @@ def test_invalid_name_whitespace_only(
     assert result.sanitised is None
     assert len(result.issues) == 1
     assert result.issues[0].severity == "error"
-    assert result.issues[0].code == "publicname_required"
-    assert result.issues[0].diagnostics == "Public name is required for GP practices"
+    assert result.issues[0].code == "publicname_empty_after_sanitization"
+    assert result.issues[0].diagnostics == "Name is empty after removing suffix"
     assert result.issues[0].expression == ["publicname"]
 
 
@@ -366,11 +366,18 @@ def test_invalid_name_whitespace_only(
     [
         ("GP Practice", "GP Practice"),
         ("GP Practice - Branch", "GP Practice"),
-        ("GP Practice -", "GP Practice"),
-        ("GP Practice- Extra", "GP Practice"),
+        ("GP Practice -", "GP Practice -"),
+        ("GP Practice- Extra", "GP Practice- Extra"),
         ("GP Practice  - Extra  ", "GP Practice"),
         ("ABC", "ABC"),
-        ("A-B-C", "A"),
+        ("A-B-C", "A-B-C"),
+        # GP prefix removal tests
+        ("GP - Practice Name", "Practice Name"),
+        ("GP -Practice Name", "Practice Name"),
+        ("GP- Practice Name", "Practice Name"),
+        ("GP-Practice Name", "Practice Name"),
+        ("GP - Main Surgery", "Main Surgery"),
+        ("GP-Surgery", "Surgery"),
     ],
 )
 def test_validate_name_with_various_formats(
