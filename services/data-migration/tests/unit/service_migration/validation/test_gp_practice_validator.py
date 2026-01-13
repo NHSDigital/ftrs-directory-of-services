@@ -1,23 +1,27 @@
 import pytest
-from ftrs_data_layer.domain.legacy.data_models import ServiceData
+from ftrs_common.logger import Logger
+from ftrs_data_layer.domain.legacy import Service
 
-from service_migration.dependencies import ServiceMigrationDependencies
 from service_migration.validation.service import GPPracticeValidator
 from service_migration.validation.types import ValidationResult
 
 
 @pytest.fixture
-def gp_practice_validator(
-    mock_dependencies: ServiceMigrationDependencies,
-) -> GPPracticeValidator:
-    """Provide a GPPracticeValidator instance with logger."""
-    return GPPracticeValidator(deps=mock_dependencies)
+def mock_logger() -> Logger:
+    """Provide a mock logger for testing."""
+    return Logger.get(service="test-gp-practice-validator")
 
 
 @pytest.fixture
-def valid_service() -> ServiceData:
+def gp_practice_validator(mock_logger: Logger) -> GPPracticeValidator:
+    """Provide a GPPracticeValidator instance with logger."""
+    return GPPracticeValidator(logger=mock_logger)
+
+
+@pytest.fixture
+def valid_service() -> Service:
     """Provide a valid GP practice service."""
-    return ServiceData(
+    return Service(
         id=12345,
         uid="test-uid-12345",
         name="Test GP Practice",
@@ -30,8 +34,6 @@ def valid_service() -> ServiceData:
         nonpublicphone="01234567891",
         typeid=100,
         statusid=1,
-        openallhours=False,
-        restricttoreferrals=False,
     )
 
 
@@ -41,7 +43,7 @@ def valid_service() -> ServiceData:
 
 
 def test_validate_with_all_valid_fields(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation passes with all valid fields."""
     expected_id = 12345
@@ -58,7 +60,7 @@ def test_validate_with_all_valid_fields(
 
 
 def test_validate_with_invalid_name_and_all_address_fields_missing(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation captures multiple issues when all address fields missing."""
     valid_service.publicname = ""
@@ -76,7 +78,7 @@ def test_validate_with_invalid_name_and_all_address_fields_missing(
 
     # Check for publicname error
     name_issue = next(i for i in result.issues if i.code == "publicname_required")
-    assert name_issue.severity == "fatal"
+    assert name_issue.severity == "error"
     assert name_issue.expression == ["publicname"]
 
     # Check for address error fatal (as needed to create location)
@@ -86,7 +88,7 @@ def test_validate_with_invalid_name_and_all_address_fields_missing(
 
 
 def test_validate_with_fatal_address_issue(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation stops processing on fatal address issue."""
     valid_service.address = "Not Available"
@@ -110,7 +112,7 @@ def test_validate_with_fatal_address_issue(
 
 
 def test_validate_with_partial_address_town_only(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation passes when only town is provided."""
     valid_service.address = ""
@@ -134,7 +136,7 @@ def test_validate_with_partial_address_town_only(
 
 
 def test_validate_with_partial_address_postcode_only(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation passes when only postcode is provided."""
     valid_service.address = ""
@@ -158,7 +160,7 @@ def test_validate_with_partial_address_postcode_only(
 
 
 def test_validate_with_partial_address_town_and_postcode(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation passes when town and postcode are provided without address."""
     valid_service.address = ""
@@ -184,7 +186,7 @@ def test_validate_with_partial_address_town_and_postcode(
 
 
 def test_validate_with_partial_valid_data(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test validation with some valid and some invalid fields."""
     valid_service.publicname = "Valid Name"
@@ -208,7 +210,7 @@ def test_validate_with_partial_valid_data(
 
 
 def test_validate_collects_all_issues(
-    gp_practice_validator: GPPracticeValidator, valid_service: ServiceData
+    gp_practice_validator: GPPracticeValidator, valid_service: Service
 ) -> None:
     """Test that all validation issues are collected."""
     valid_service.publicname = ""
@@ -235,7 +237,7 @@ def test_validate_collects_all_issues(
     "name,address,town,postcode,expected_valid,expected_continue",
     [
         ("Valid Name", "123 Main St$Hampshire", "Town", "POST", True, True),
-        ("", "123 Main St$Hampshire", "Town", "POST", False, False),
+        ("", "123 Main St$Hampshire", "Town", "POST", False, True),
         ("Valid Name", "", "Town", "POST", False, False),
         ("Valid Name", "", "", "POST", False, False),
         ("Valid Name", "", "Town", "", False, False),
@@ -247,7 +249,7 @@ def test_validate_collects_all_issues(
 )
 def test_validate_is_valid_and_should_continue_logic(
     gp_practice_validator: GPPracticeValidator,
-    valid_service: ServiceData,
+    valid_service: Service,
     name: str,
     address: str,
     town: str,
@@ -325,7 +327,7 @@ def test_invalid_name_empty_string(gp_practice_validator: GPPracticeValidator) -
     assert result is not None
     assert result.sanitised is None
     assert len(result.issues) == 1
-    assert result.issues[0].severity == "fatal"
+    assert result.issues[0].severity == "error"
     assert result.issues[0].code == "publicname_required"
     assert result.issues[0].diagnostics == "Public name is required for GP practices"
     assert result.issues[0].expression == ["publicname"]
@@ -339,7 +341,7 @@ def test_invalid_name_none(gp_practice_validator: GPPracticeValidator) -> None:
     assert result is not None
     assert result.sanitised is None
     assert len(result.issues) == 1
-    assert result.issues[0].severity == "fatal"
+    assert result.issues[0].severity == "error"
     assert result.issues[0].code == "publicname_required"
 
 
@@ -353,9 +355,9 @@ def test_invalid_name_whitespace_only(
     assert result is not None
     assert result.sanitised is None
     assert len(result.issues) == 1
-    assert result.issues[0].severity == "fatal"
-    assert result.issues[0].code == "publicname_required"
-    assert result.issues[0].diagnostics == "Public name is required for GP practices"
+    assert result.issues[0].severity == "error"
+    assert result.issues[0].code == "publicname_empty_after_sanitization"
+    assert result.issues[0].diagnostics == "Name is empty after removing suffix"
     assert result.issues[0].expression == ["publicname"]
 
 
@@ -364,11 +366,18 @@ def test_invalid_name_whitespace_only(
     [
         ("GP Practice", "GP Practice"),
         ("GP Practice - Branch", "GP Practice"),
-        ("GP Practice -", "GP Practice"),
-        ("GP Practice- Extra", "GP Practice"),
+        ("GP Practice -", "GP Practice -"),
+        ("GP Practice- Extra", "GP Practice- Extra"),
         ("GP Practice  - Extra  ", "GP Practice"),
         ("ABC", "ABC"),
-        ("A-B-C", "A"),
+        ("A-B-C", "A-B-C"),
+        # GP prefix removal tests
+        ("GP - Practice Name", "Practice Name"),
+        ("GP -Practice Name", "Practice Name"),
+        ("GP- Practice Name", "Practice Name"),
+        ("GP-Practice Name", "Practice Name"),
+        ("GP - Main Surgery", "Main Surgery"),
+        ("GP-Surgery", "Surgery"),
     ],
 )
 def test_validate_name_with_various_formats(
@@ -400,6 +409,12 @@ def test_valid_location_full_address(
     result = gp_practice_validator.validate_location(address, town, postcode)
 
     assert result is not None
+    assert result.sanitised is not None
+    assert result.sanitised.line1 == "123 Main Street"
+    assert result.sanitised.line2 == "Building A"
+    assert result.sanitised.county == "Hampshire"
+    assert result.sanitised.town == "Southampton"
+    assert result.sanitised.postcode == "SO1 1AA"
     assert len(result.issues) == 0
 
 
@@ -480,6 +495,10 @@ def test_valid_location_multipart_address(
     result = gp_practice_validator.validate_location(address, town, postcode)
 
     assert result is not None
+    assert result.sanitised is not None
+    assert result.sanitised.line1 == "123 Main St"
+    assert result.sanitised.line2 == "Building A"
+    assert result.sanitised.county == "Hampshire"
     assert len(result.issues) == 0
 
 
@@ -595,6 +614,8 @@ def test_location_validation_with_combinations(
 
     assert result is not None
     if should_pass:
+        assert result.sanitised is not None
         assert len(result.issues) == 0
     else:
+        assert result.sanitised is None
         assert len(result.issues) >= 1
