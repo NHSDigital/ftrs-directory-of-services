@@ -30,9 +30,9 @@ def test_organisation() -> None:
         ],
         type="GP Practice",
         createdBy=created_by,
-        createdDateTime="2023-10-01T00:00:00Z",
-        modifiedBy=modified_by,
-        modifiedDateTime="2023-10-01T00:00:00Z",
+        createdTime="2023-10-01T00:00:00Z",
+        lastUpdatedBy=modified_by,
+        lastUpdated="2023-10-01T00:00:00Z",
     )
 
     assert org.model_dump(mode="json") == {

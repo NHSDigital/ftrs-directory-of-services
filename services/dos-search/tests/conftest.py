@@ -17,6 +17,7 @@ from ftrs_data_layer.domain.enums import (
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
+    TelecomType,
 )
 
 
@@ -90,6 +91,9 @@ def create_organisation():
         identifier_ods_code: str = "123456",
         active: bool = True,
         name: str = "Test Organisation",
+        telecom: list[Telecom] = [
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
         org_type: str = "GP Practice",
         created_by: AuditEvent = {
             "type": "user",
@@ -110,7 +114,7 @@ def create_organisation():
             identifier_ODS_ODSCode=identifier_ods_code,
             active=active,
             name=name,
-            telecom=[],
+            telecom=telecom,
             type=org_type,
             createdBy=created_by,
             createdTime=created_date_time,
