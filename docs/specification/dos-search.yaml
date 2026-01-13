@@ -54,6 +54,25 @@ info:
 
     There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
 
+    ## Data Dictionary
+
+    | Field Name | Type | Description |
+    |------------|------|-------------|
+    | `Organization.id` | `string` | Internal UUID identifying the Organization |
+    | `Organization.identifier` | `string` | Stores the ODS (Organisation Data Service) code identifying the Organization |
+    | `Organization.active` | `boolean` | Whether the Organization's record is still in active use |
+    | `Organization.name` | `string` | Name used for the Organization |
+    | `Endpoint.id` | `string` | Internal UUID identifying the Endpoint |
+    | `Endpoint.extension Extension-England-OrganizationEndpointOrder` | `integer` | When multiple endpoints are returned for a Organization, we need to know the order so that we communicate with the right system first. |
+    | `Endpoint.extension Extension-England-EndpointCompression` | `boolean` | Whether the Endpoint uses compression. Compression reduces bandwidth requirements and can reduce messaging delays and/or failure. |
+    | `Endpoint.extension Extension-England-EndpointBusinessScenario` | `enum` | Indicates the business scenario for which an endpoint is intended, particularly distinguishing between primary message recipients and copy recipients for NHS England messaging scenarios. Possible values: <ul><li>`primary-recipient`</li><li>`copy-recipient`</li></ul> |
+    | `Endpoint.status` | `enum` | The status of the Endpoint. This tells you if the endpoint is currently in use. Possible values: <ul><li>`active`</li><li>`off`</li></ul> |
+    | `Endpoint.connectionType` | `enum` | Protocol/Profile/Standard to be used with this endpoint connection. Values include: <ul><li>`itk` (NHS 111 Interoperability Specification)</li><li>`email`</li><li>`telno`</li><li>`http`</li></ul> |
+    | `Endpoint.managingOrganization` | `string` | A FHIR reference to the Organization that manages this Endpoint (might not be the Organization that exposes the Endpoint) |
+    | `Endpoint.payloadType` | `enum` | The type of content that may be used at this endpoint (e.g. XDS Discharge summaries). Values include: <ul><li>`urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0`</li></ul> |
+    | `Endpoint.payloadMimeType` | `enum` | The mime type of the payload to be delivered to this endpoint. Values include: <ul><li>`application/pdf`</li><li>`text/html`</li><li>`application/fhir+json`</li><li>`application/fhir+xml`</li><li>`message/rfc822` (email)</li><li>`text/vcard` (telno)</li><li>`application/hl7-cda+xml` (CDA)</li></ul> |
+    | `Endpoint.address` | `string` | The technical base address for connecting to this endpoint |
+
     ## Network access
     This API is available over the internet.
 
