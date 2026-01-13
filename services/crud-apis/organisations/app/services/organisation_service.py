@@ -12,12 +12,9 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
-from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pydantic import ValidationError
-
-from organisations.app.models.organisation import LegalDateField
 
 
 class OrganisationService:
@@ -87,8 +84,6 @@ class OrganisationService:
             )
             diagnostics = []
             for error in e.errors():
-                print("-----error-----")
-                print("error:", error)
                 if isinstance(error["input"], dict) and "type" in error["input"].keys():
                     if "phone" in error["input"]["type"]:
                         diagnostics.append(
@@ -99,7 +94,6 @@ class OrganisationService:
                             f"Telecom value field contains an invalid email address: {error['input']['value']}"
                         )
                 elif "url" in error["type"]:
-                    print("-----url error-----")
                     diagnostics.append(
                         f"Telecom value field contains an invalid url: {error['input']}"
                     )
@@ -232,9 +226,8 @@ class OrganisationService:
     ) -> dict:
         """
         Compare two Organisation objects and return a dict of fields that are outdated.
-        Containing which fields can be updated for now will dedpend on business validation definitions.
+        Containing which fields can be updated for now will depend on business validation definitions.
         """
-        serialized_organisation = organisation.model_dump()
         allowed_fields = {
             "name",
             "active",
@@ -244,20 +237,15 @@ class OrganisationService:
             "primary_role_code",
             "non_primary_role_codes",
         }
+
+        current = {field: getattr(organisation, field) for field in allowed_fields}
+        new = {field: getattr(payload, field) for field in allowed_fields}
+
         outdated_fields = {}
 
-        for field, value in payload.model_dump().items():
-            if field not in allowed_fields:
-                continue
-
-            existing_value = serialized_organisation[field]
-
-            # Special handling for legalDates to compare start and end values
-            if field == "legalDates":
-                if self._legal_dates_differ(existing_value, value):
-                    outdated_fields[field] = value
-            elif existing_value != value:
-                outdated_fields[field] = value
+        for field in allowed_fields:
+            if self._field_has_changed(current[field], new[field]):
+                outdated_fields[field] = getattr(payload, field)
 
         if outdated_fields:
             self.logger.log(
@@ -269,29 +257,5 @@ class OrganisationService:
             outdated_fields["modifiedDateTime"] = datetime.now(UTC)
         return outdated_fields
 
-    def _legal_dates_differ(self, existing: LegalDates, new: LegalDates) -> bool:
-        """Compare two legalDates to check if they differ."""
-        if existing is None and new is None:
-            return False
-        if existing is None or new is None:
-            return True
-
-        existing_start = self._extract_date_field(existing, LegalDateField.START)
-        existing_end = self._extract_date_field(existing, LegalDateField.END)
-        new_start = self._extract_date_field(new, LegalDateField.START)
-        new_end = self._extract_date_field(new, LegalDateField.END)
-
-        return existing_start != new_start or existing_end != new_end
-
-    def _extract_date_field(
-        self, legal_dates: LegalDates, field: LegalDateField
-    ) -> any:
-        if not isinstance(field, LegalDateField):
-            err_msg = "field must be a LegalDateField Enum value"
-            raise TypeError(err_msg)
-        key = field.value
-        if hasattr(legal_dates, key):
-            return getattr(legal_dates, key)
-        if isinstance(legal_dates, dict):
-            return legal_dates.get(key)
-        return None
+    def _field_has_changed(self, current_value: object, new_value: object) -> bool:
+        return current_value != new_value
