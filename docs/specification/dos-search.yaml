@@ -15,9 +15,6 @@ info:
     This API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before you go too far with your development.
     You must do this before you can go live (see 'Onboarding' below).
 
-    ## Existing API users
-    TBC
-
     ## Access modes
     This API supports the following access modes:
     - restricted access
