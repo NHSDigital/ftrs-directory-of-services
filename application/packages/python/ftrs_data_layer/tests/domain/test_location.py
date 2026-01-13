@@ -26,7 +26,7 @@ def test_location() -> None:
         ),
         createdBy=created_by,
         managingOrganisation=uuid4(),
-        modifiedBy=modified_by,
+        lastUpdatedBy=modified_by,
         name="Test Location",
         positionGCS=PositionGCS(
             latitude=Decimal("51.5074"),
@@ -46,10 +46,10 @@ def test_location() -> None:
         "active",
         "address",
         "createdBy",
-        "createdDateTime",
+        "createdTime",
         "managingOrganisation",
-        "modifiedBy",
-        "modifiedDateTime",
+        "lastUpdatedBy",
+        "lastUpdated",
         "name",
         "positionGCS",
         "positionReferenceNumber_UPRN",
@@ -70,10 +70,10 @@ def test_location() -> None:
     assert dumped["createdBy"]["type"] == "user"
     assert dumped["createdBy"]["value"] == "test_user"
     assert dumped["createdBy"]["display"] == "Test User"
-    assert isinstance(dumped["modifiedBy"], dict)
-    assert dumped["modifiedBy"]["type"] == "user"
-    assert dumped["modifiedBy"]["value"] == "test_user"
-    assert dumped["modifiedBy"]["display"] == "Test User"
+    assert isinstance(dumped["lastUpdatedBy"], dict)
+    assert dumped["lastUpdatedBy"]["type"] == "user"
+    assert dumped["lastUpdatedBy"]["value"] == "test_user"
+    assert dumped["lastUpdatedBy"]["display"] == "Test User"
 
     # --- Address checks ---
     assert "county" in dumped["address"]

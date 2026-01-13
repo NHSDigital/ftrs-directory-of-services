@@ -188,10 +188,14 @@ def test_process_service(
     assert len(output.organisation) == 1
     assert output.organisation[0] == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-25T12:00:00+00:00",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-25T12:00:00+00:00",
         identifier_ODS_ODSCode="A12345",
         identifier_oldDoS_uid="test-uid",
         active=True,
@@ -201,10 +205,18 @@ def test_process_service(
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
-                createdBy="DATA_MIGRATION",
-                createdDateTime="2025-07-25T12:00:00+00:00",
-                modifiedBy="DATA_MIGRATION",
-                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                createdBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                createdTime="2025-07-25T12:00:00+00:00",
+                lastUpdatedBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                lastUpdated="2025-07-25T12:00:00+00:00",
                 identifier_oldDoS_id=1,
                 status="active",
                 connectionType="http",
@@ -221,10 +233,18 @@ def test_process_service(
             ),
             Endpoint(
                 id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
-                createdBy="DATA_MIGRATION",
-                createdDateTime="2025-07-25T12:00:00+00:00",
-                modifiedBy="DATA_MIGRATION",
-                modifiedDateTime="2025-07-25T12:00:00+00:00",
+                createdBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                createdTime="2025-07-25T12:00:00+00:00",
+                lastUpdatedBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                lastUpdated="2025-07-25T12:00:00+00:00",
                 identifier_oldDoS_id=2,
                 status="active",
                 connectionType="email",
@@ -245,10 +265,14 @@ def test_process_service(
     assert len(output.healthcare_service) == 1
     assert output.healthcare_service[0] == HealthcareService(
         id="903cd48b-5d0f-532f-94f4-937a4517b14d",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-25T12:00:00+00:00",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
         category="GP Services",
@@ -336,10 +360,14 @@ def test_process_service(
     assert output.location[0] == Location(
         id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         identifier_oldDoS_uid="test-uid",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-25T12:00:00+00:00",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-25T12:00:00+00:00",
         active=True,
         address=Address(
             line1="123 Main St",
