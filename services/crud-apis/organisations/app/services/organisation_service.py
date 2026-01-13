@@ -244,7 +244,7 @@ class OrganisationService:
         outdated_fields = {}
 
         for field in allowed_fields:
-            if self._field_has_changed(current[field], new[field], field):
+            if self._field_has_changed(current[field], new[field]):
                 outdated_fields[field] = getattr(payload, field)
 
         if outdated_fields:
