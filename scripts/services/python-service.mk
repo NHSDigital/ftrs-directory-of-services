@@ -105,13 +105,22 @@ publish:
 	@echo "Published successfully"
 
 set-prerelease-version:
+ifeq ($(strip $(PRERELEASE_TAG)),)
+	@echo "Finding latest prerelease version for $(SERVICE)..."
+	$(eval PRERELEASE_TAG := $(shell \
+		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
+		| awk '{print $$2}' \
+		| sed 's/\/$$//' \
+		| sort -V \
+		| tail -1 \
+	))
 	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-		echo "Finding latest prerelease version for $(SERVICE)..."; \
-		$(eval PRERELEASE_TAG := $(shell aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V | tail -1)); \
-		if [ -z "$(PRERELEASE_TAG)" ]; then echo "Error: No staging versions found"; exit 1; fi; \
-	else \
-		echo "Using provided prerelease version: $(PRERELEASE_TAG)"; \
+		echo "Error: No staging versions found"; \
+		exit 1; \
 	fi
+else
+	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
+endif
 
 stage-release: set-prerelease-version
 	@echo "Staging release $(PRERELEASE_TAG) for $(SERVICE)..."
