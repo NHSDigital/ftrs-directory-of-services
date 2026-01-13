@@ -58,7 +58,9 @@ class ServiceTransformer(ABC):
     """
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
-    AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
+    MIGRATION_USER = AuditEvent(
+        type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
+    )
     VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
@@ -123,9 +125,9 @@ class ServiceTransformer(ABC):
             telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
-            createdDateTime=self.start_time,
-            modifiedBy=self.MIGRATION_USER,
-            modifiedDateTime=self.start_time,
+            createdTime=self.start_time,
+            lastUpdatedBy=self.MIGRATION_USER,
+            lastUpdated=self.start_time,
             endpoints=[
                 self.build_endpoint(endpoint, organisation_id)
                 for endpoint in service.endpoints
@@ -165,9 +167,9 @@ class ServiceTransformer(ABC):
             order=endpoint.endpointorder,
             isCompressionEnabled=endpoint.iscompressionenabled == "compressed",
             createdBy=self.MIGRATION_USER,
-            createdDateTime=self.start_time,
-            modifiedBy=self.MIGRATION_USER,
-            modifiedDateTime=self.start_time,
+            createdTime=self.start_time,
+            lastUpdatedBy=self.MIGRATION_USER,
+            lastUpdated=self.start_time,
             comment=endpoint.comment,
         )
 
@@ -206,9 +208,9 @@ class ServiceTransformer(ABC):
             #   but since this has the main ODSCode happy with this being set as True
             primaryAddress=True,
             createdBy=self.MIGRATION_USER,
-            createdDateTime=self.start_time,
-            modifiedBy=self.MIGRATION_USER,
-            modifiedDateTime=self.start_time,
+            createdTime=self.start_time,
+            lastUpdatedBy=self.MIGRATION_USER,
+            lastUpdated=self.start_time,
         )
 
     def build_healthcare_service(
@@ -239,9 +241,9 @@ class ServiceTransformer(ABC):
                 web=service.web,
             ),
             createdBy=self.MIGRATION_USER,
-            createdDateTime=self.start_time,
-            modifiedBy=self.MIGRATION_USER,
-            modifiedDateTime=self.start_time,
+            createdTime=self.start_time,
+            lastUpdatedBy=self.MIGRATION_USER,
+            lastUpdated=self.start_time,
             openingTime=self.build_opening_times(service),
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),

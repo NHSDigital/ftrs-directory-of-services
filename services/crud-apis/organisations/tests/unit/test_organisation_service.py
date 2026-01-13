@@ -42,9 +42,9 @@ def test_get_outdated_fields_no_changes() -> None:
         ],
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ROBOT",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ROBOT",
+        lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
@@ -75,9 +75,9 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         telecom=[Telecom(type="phone", value="0300 311 22 33", isPublic=True)],
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ROBOT",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ROBOT",
+        lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         legalDates={"start": "2020-01-15", "end": "2025-12-31"},
     )
@@ -103,8 +103,8 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
         Telecom(type="phone", value="020 7972 3272", isPublic=True),
         Telecom(type="email", value="test@nhs.net", isPublic=True),
     ]
-    assert organisation.modifiedBy == "UserX"
-    assert organisation.modifiedDateTime == FIXED_MODIFIED_TIME
+    assert organisation.lastUpdatedBy == "UserX"
+    assert organisation.lastUpdated == FIXED_MODIFIED_TIME
 
 
 @freeze_time(FIXED_MODIFIED_TIME)
@@ -118,9 +118,9 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         ],
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ROBOT",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ROBOT",
+        lastUpdated=FIXED_MODIFIED_TIME,
         id="d5a852ef-12c7-4014-b398-661716a63027",
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
@@ -129,7 +129,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
         active=False,
         name="Updated Organisation",
         telecom=[Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)],
-        modifiedBy="ETL_ODS_PIPELINE",
+        lastUpdatedBy="ETL_ODS_PIPELINE",
         primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         legalDates=LegalDates(start=date(2021, 1, 1), end=date(2026, 12, 31)),
@@ -187,9 +187,9 @@ def test_creates_organisation_when_valid_data_provided() -> None:
         ],
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ROBOT",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ROBOT",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
 
     service = make_service(org_repository=org_repository)
@@ -250,9 +250,9 @@ def test_generates_new_id_when_id_already_exists() -> None:
         ],
         endpoints=[],
         createdBy="ROBOT",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ROBOT",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ROBOT",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
 
     service = make_service(org_repository=org_repository)
@@ -293,9 +293,9 @@ def test_process_organisation_update_no_changes(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="ODS_ETL_PIPELINE",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="ODS_ETL_PIPELINE",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("INFO"):
@@ -333,9 +333,9 @@ def test_process_organisation_update_with_changes(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("INFO"):
@@ -424,9 +424,9 @@ def test_process_organisation_update_with_invalid_phone_number(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -467,9 +467,9 @@ def test_process_organisation_update_with_invalid_email_number(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -510,9 +510,9 @@ def test_process_organisation_update_with_invalid_url(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -553,9 +553,9 @@ def test_process_organisation_update_with_invalid_char_in_phone_number(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -637,9 +637,9 @@ def test_process_organisation_update_with_invalid_no_telecom_system(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -681,9 +681,9 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
         endpoints=[],
         id=organisation_id,
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
@@ -705,9 +705,9 @@ def test_get_by_ods_code_success() -> None:
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository = MagicMock(spec=AttributeLevelRepository)
     org_repository.get_by_ods_code.return_value = org
@@ -755,9 +755,9 @@ def test_get_all_organisations() -> None:
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org2 = Organisation(
         identifier_ODS_ODSCode="ODS12345",
@@ -767,9 +767,9 @@ def test_get_all_organisations() -> None:
         endpoints=[],
         id="00000000-0000-0000-0000-00000000000a",
         createdBy="test",
-        createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy="test",
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.iter_records.return_value = [org1, org2]
     service = make_service(org_repository=org_repository)
