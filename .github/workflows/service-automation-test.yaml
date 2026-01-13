@@ -142,5 +142,6 @@ jobs:
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
           DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
           RELEASE_TAG: ${{ inputs.tag }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
           ./scripts/workflow/upload-allure-report.sh

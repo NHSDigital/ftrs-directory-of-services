@@ -7,7 +7,7 @@ WORKSPACE_VALUE=${WORKSPACE:-}
 DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE:-"development"}
 RELEASE_TAG=${RELEASE_TAG:-}
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
-BUILD_TIMESTAMP=${BUILD_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+RUN_TIMESTAMP=${RUN_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 RELEASE_VERSION=${RELEASE_VERSION:-$([ -n "$RELEASE_TAG" ] && echo "$RELEASE_TAG" || echo "null")}
 
 # Function to generate build info JSON file
@@ -20,8 +20,9 @@ generate_build_info() {
   cat > "$build_info_file" <<EOF
 {
   "git_commit": "$COMMIT_HASH",
-  "build_timestamp": "$BUILD_TIMESTAMP",
+  "run_timestamp": "$RUN_TIMESTAMP",
   "release_version": "$RELEASE_VERSION",
+  "environment": "$ENVIRONMENT",
   "deployment_type": "$DEPLOYMENT_TYPE",
 }
 EOF
