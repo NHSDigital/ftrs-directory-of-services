@@ -149,12 +149,12 @@ paths:
       parameters:
         - name: identifier
           in: query
-          description: ODS code in the format "odsOrganizationCode|{CODE}"
+          description: ODS code in the format "odsOrganisationCode|{CODE}"
           required: true
           schema:
             type: string
-            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{5,12}$'
-            example: "odsOrganizationCode|ABC123"
+            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{5,12}$'
+            example: "odsOrganisationCode|ABC123"
         - name: _revinclude
           in: query
           description: Resources to include in the Bundle response
