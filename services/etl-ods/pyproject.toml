@@ -1,5 +1,5 @@
 [project]
-name = "pipeline"
+name = "etl-ods"
 version = "0.1.0"
 description = ""
 authors = [
@@ -18,6 +18,9 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+package-mode = false
+
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 
@@ -33,9 +36,6 @@ numpy = "^1.26.4"
 boto3-stubs = {extras = ["dynamodb", "s3", "sqs"], version = "^1.41.1"}
 pytest-mock = "^3.15.1"
 requests-mock = "^1.12.1"
-
-[tool.poetry.scripts]
-dos-etl = "pipeline.cli:typer_app"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
@@ -57,5 +57,5 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v --cov=pipeline --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
+addopts = "-v --cov=producer --cov=consumer --cov=common --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
