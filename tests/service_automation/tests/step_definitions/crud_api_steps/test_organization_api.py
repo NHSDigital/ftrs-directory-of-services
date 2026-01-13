@@ -62,7 +62,6 @@ def update_telecom(payload: dict, system: str, value: str):
         )
 
 
-
 def update_identifier(payload: dict, value: str):
     payload["identifier"][0]["value"] = value
 
@@ -167,9 +166,10 @@ def update_organisation(payload: dict, api_request_context_mtls_crud):
 
 
 def get_db_item(model_repo, payload: dict):
-    ods_code = payload["identifier"][0]["value"]
-    item = get_from_repo(model_repo, ods_code)
-    assert item, f"No data found for ODS code {ods_code}"
+    model_id = payload["id"]
+    item = model_repo.get(model_id)
+    logger.info(f"Retrieved DB item for model_id {model_id}: {item}")
+    assert item, f"No data found for id {model_id}"
     return item
 
 
@@ -345,6 +345,7 @@ def step_given_valid_payload_with_identifier(identifier_data):
     logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
     return payload
 
+
 def build_typed_period_extension(
     start_date: str = None, end_date: str = None, date_type_code: str = "Legal"
 ) -> dict:
@@ -387,7 +388,7 @@ def build_organisation_role_extension_with_typed_period(
                         {
                             "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
                             "code": "RO182",
-                            "display": "Pharmacy"
+                            "display": "Pharmacy",
                         }
                     ]
                 },
@@ -805,21 +806,15 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    }
+                    },
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     elif invalid_scenario == "missing role organisation url":
         return {
             # "url" is missing here
-            "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
-                typed_period
-            ]
+            "extension": [{"url": "instanceID", "valueInteger": 12345}, typed_period]
         }
     elif invalid_scenario == "empty organisation role extension url":
         return {
@@ -836,66 +831,51 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    }
+                    },
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     elif invalid_scenario == "missing roleCode extension":
         # OrganisationRole without any roleCode extension
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-            "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
-                typed_period
-            ]
+            "extension": [{"url": "instanceID", "valueInteger": 12345}, typed_period],
         }
     elif invalid_scenario == "roleCode missing valueCodeableConcept":
         # roleCode extension without valueCodeableConcept
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
+                {"url": "instanceID", "valueInteger": 12345},
                 {
                     "url": "roleCode"
                     # No valueCodeableConcept
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     elif invalid_scenario == "roleCode missing coding array":
         # roleCode with valueCodeableConcept but no coding array
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
+                {"url": "instanceID", "valueInteger": 12345},
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
                         # No coding array
-                    }
+                    },
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     elif invalid_scenario == "roleCode empty code value":
         # roleCode with empty code value
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
+                {"url": "instanceID", "valueInteger": 12345},
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
@@ -903,23 +883,20 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                             {
                                 "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
                                 "code": "",  # Empty code value
-                                "display": "GP PRACTICE"
+                                "display": "GP PRACTICE",
                             }
                         ]
-                    }
+                    },
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     elif invalid_scenario == "roleCode invalid enum value":
         # roleCode with invalid enum value
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
-                {
-                    "url": "instanceID",
-                    "valueInteger": 12345
-                },
+                {"url": "instanceID", "valueInteger": 12345},
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
@@ -927,13 +904,13 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                             {
                                 "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
                                 "code": "INVALID_CODE",  # Not a valid OrganisationTypeCode
-                                "display": "Invalid Code"
+                                "display": "Invalid Code",
                             }
                         ]
-                    }
+                    },
                 },
-                typed_period
-            ]
+                typed_period,
+            ],
         }
     else:
         raise ValueError(f"Unknown role extension invalid_scenario: {invalid_scenario}")
@@ -983,7 +960,7 @@ def step_update_with_invalid_extension(
         "roleCode missing valueCodeableConcept",
         "roleCode missing coding array",
         "roleCode empty code value",
-        "roleCode invalid enum value"
+        "roleCode invalid enum value",
     )
 
     if invalid_scenario in role_level_scenarios:
@@ -1173,10 +1150,15 @@ def step_validate_db_field(field: str, value: str, model_repo, fresponse):
             expected = [code.strip() for code in cleaned.split(",")] if cleaned else []
 
         # Convert actual values to strings for comparison if they are enums
-        actual_codes = [str(code.value) if hasattr(code, 'value') else str(code) for code in (actual or [])]
+        actual_codes = [
+            str(code.value) if hasattr(code, "value") else str(code)
+            for code in (actual or [])
+        ]
 
         logger.info(f"Validating {field}: expected={expected}, actual={actual_codes}")
-        assert actual_codes == expected, f"{field} mismatch: expected {expected}, got {actual_codes}"
+        assert actual_codes == expected, (
+            f"{field} mismatch: expected {expected}, got {actual_codes}"
+        )
         return
 
     # Convert string "None" to Python None for comparison
@@ -1266,6 +1248,7 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
 
+
 @when(
     parsers.parse(
         'I set the role extensions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
@@ -1295,11 +1278,13 @@ def step_set_role_extensions(
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
-                        "coding": [{
-                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": primary_role_code,
-                        }]
-                    }
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": primary_role_code,
+                            }
+                        ]
+                    },
                 },
                 {
                     "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
@@ -1309,19 +1294,16 @@ def step_set_role_extensions(
                             "valueCoding": {
                                 "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
                                 "code": "Legal",
-                                "display": "Legal"
-                            }
+                                "display": "Legal",
+                            },
                         },
                         {
                             "url": "period",
-                            "valuePeriod": {
-                                "start": "2020-01-15",
-                                "end": "2025-12-31"
-                            }
-                        }
-                    ]
-                }
-            ]
+                            "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"},
+                        },
+                    ],
+                },
+            ],
         }
         payload["extension"].append(primary_ext)
 
@@ -1342,11 +1324,13 @@ def step_set_role_extensions(
                 {
                     "url": "roleCode",
                     "valueCodeableConcept": {
-                        "coding": [{
-                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": code,
-                        }]
-                    }
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": code,
+                            }
+                        ]
+                    },
                 },
                 {
                     "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
@@ -1356,19 +1340,16 @@ def step_set_role_extensions(
                             "valueCoding": {
                                 "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
                                 "code": "Legal",
-                                "display": "Legal"
-                            }
+                                "display": "Legal",
+                            },
                         },
                         {
                             "url": "period",
-                            "valuePeriod": {
-                                "start": "2020-01-15",
-                                "end": "2025-12-31"
-                            }
-                        }
-                    ]
-                }
-            ]
+                            "valuePeriod": {"start": "2020-01-15", "end": "2025-12-31"},
+                        },
+                    ],
+                },
+            ],
         }
         payload["extension"].append(non_primary_ext)
 
@@ -1395,4 +1376,3 @@ def step_set_role_extensions(
     logger.debug(f"Response body: {response.text()}")
 
     return response
-
