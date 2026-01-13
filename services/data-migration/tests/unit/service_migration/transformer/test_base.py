@@ -232,7 +232,7 @@ def test_build_endpoint_no_comment(
         connectionType="itk",
         name=None,
         payloadMimeType="xml",
-        description="Primary",
+        businessScenario="Primary",
         payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         address="http://example.com/endpoint1",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
