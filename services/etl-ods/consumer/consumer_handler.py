@@ -29,6 +29,8 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
         )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
+            lambda_name="etl-ods-consumer",
+            etl_stage="consumer_start",
         )
         batch_item_failures = []
         sqs_batch_response = {}

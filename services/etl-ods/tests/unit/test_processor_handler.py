@@ -159,7 +159,7 @@ def test_processor_logs_and_raises_request_exception(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     mocker.patch(
-        "pipeline.producer.processor.fetch_outdated_organisations",
+        "producer.processor.fetch_outdated_organisations",
         side_effect=requests.exceptions.RequestException("network fail"),
     )
     date = datetime.now().strftime("%Y-%m-%d")
