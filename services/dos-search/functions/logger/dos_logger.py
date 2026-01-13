@@ -24,7 +24,7 @@ class DosLogger:
         self.placeholder = (
             "Value not found. Please check if this value was provided in the request."
         )
-        self.headers = dict()
+        self.headers = {}
 
     # Initialise method handles processing of event details - this should be called at the start of Lambda execution
     def init(self, event: Dict[str, Any]) -> None:
@@ -48,7 +48,7 @@ class DosLogger:
         return cls(service=service)
 
     # --- helper utilities -------------------------------------------------
-    def _get_header(self, *names: str) -> str:
+    def _get_header(self, *names: str) -> Optional[str]:
         # Loops over a list of header keys, returning the first non-empty value found
         for n in names:
             val = self.headers.get(n)
@@ -58,7 +58,7 @@ class DosLogger:
 
     def get_response_size_and_duration(
         self, fhir_resource: FHIRResourceModel, start_time: float
-    ) -> int:
+    ) -> tuple[int, int]:
         """Utility to calculate response size in bytes from FHIR resource."""
         duration_ms = int((time.time() - start_time) * 1000)
         try:
