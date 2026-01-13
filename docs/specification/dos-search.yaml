@@ -147,7 +147,7 @@ paths:
       security:
         - app-level3: [ ]
       parameters:
-        - name: organization.identifier
+        - name: identifier
           in: query
           description: ODS code in the format "odsOrganizationCode|{CODE}"
           required: true
