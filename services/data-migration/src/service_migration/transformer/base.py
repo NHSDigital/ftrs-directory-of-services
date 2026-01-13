@@ -23,6 +23,7 @@ from ftrs_data_layer.domain import (
     PositionGCS,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.clinical_code import (
     Disposition,
     SymptomGroupSymptomDiscriminatorPair,
@@ -57,7 +58,7 @@ class ServiceTransformer(ABC):
     """
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
-    MIGRATION_USER = "DATA_MIGRATION"
+    AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
     VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
