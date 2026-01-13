@@ -43,12 +43,24 @@ def update_name(payload: dict, value: str):
     payload["name"] = value
 
 
-def update_type(payload: dict, value: str):
-    payload["type"][0]["text"] = value
+def update_telecom(payload: dict, system: str, value: str):
+    if "telecom" not in payload:
+        payload["telecom"] = []
+    existing_telecom = next(
+        (item for item in payload["telecom"] if item["system"] == system), None
+    )
+    if existing_telecom:
+        existing_telecom["value"] = value
+    else:
+        # Append a new telecom entry
+        payload["telecom"].append(
+            {
+                "system": system,
+                "value": value,
+                "use": "work",
+            }
+        )
 
-
-def update_telecom(payload: dict, value: str):
-    payload["telecom"][0]["value"] = value
 
 
 def update_identifier(payload: dict, value: str):
@@ -61,7 +73,6 @@ def update_active(payload: dict, value: str):
 
 FIELD_UPDATERS = {
     "name": update_name,
-    "type": update_type,
     "telecom": update_telecom,
     "identifier": update_identifier,
     "active": update_active,
@@ -71,13 +82,14 @@ FIELD_UPDATERS = {
 def update_payload_field(field: str, value: str) -> dict:
     """Update a single field in the default organisation payload."""
     payload = _load_default_payload()
-    updater = FIELD_UPDATERS.get(field)
-    if not updater:
-        raise ValueError(f"Unknown field: {field}")
-    updater(payload, value)
-    logger.info(
-        f"Updated field '{field}' with '{value}':\n{json.dumps(payload, indent=2)}"
-    )
+    if field in ["phone", "email", "url"]:
+        system = field
+        update_telecom(payload, system, value)
+    else:
+        updater = FIELD_UPDATERS.get(field)
+        if updater is None:
+            raise ValueError(f"Unknown field: {field}")
+        updater(payload, value)
     return payload
 
 
@@ -96,6 +108,13 @@ def add_extra_field(payload: dict, field: str, value: str) -> dict:
 def set_nonexistent_id(payload: dict) -> dict:
     payload["id"] = str(uuid4())
     logger.info(f"Set non-existent ID:\n{json.dumps(payload, indent=2)}")
+    return payload
+
+
+def modify_telecom_type(payload, actual_type, update_type):
+    for entry in payload["telecom"]:
+        if entry["system"] == actual_type:
+            entry["system"] = update_type
     return payload
 
 
@@ -161,7 +180,6 @@ def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = Fals
     fields = [
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
-        ("type", payload["type"][0]["text"].title()),
         ("active", payload["active"]),
         ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
@@ -327,7 +345,6 @@ def step_given_valid_payload_with_identifier(identifier_data):
     logger.info(f"Prepared payload with identifier: {json.dumps(payload, indent=2)}")
     return payload
 
-
 def build_typed_period_extension(
     start_date: str = None, end_date: str = None, date_type_code: str = "Legal"
 ) -> dict:
@@ -369,8 +386,8 @@ def build_organisation_role_extension_with_typed_period(
                     "coding": [
                         {
                             "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": "RO76",
-                            "display": "GP PRACTICE",
+                            "code": "RO182",
+                            "display": "Pharmacy"
                         }
                     ]
                 },
@@ -379,6 +396,123 @@ def build_organisation_role_extension_with_typed_period(
             {"url": "active", "valueBoolean": True},
         ],
     }
+
+
+def validate_db_entry_against_payload(item, payload):
+    """
+    Validates that the database entry matches the inserted payload.
+
+    Args:
+        item: The database item to compare against.
+        payload: The payload that was inserted into the database.
+
+    Raises:
+        AssertionError: If any mismatch is found between the database item and the payload.
+    """
+
+    expected_fields = [
+        ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
+        ("name", payload["name"].title()),
+        ("active", payload["active"]),
+        ("modifiedBy", "ODS_ETL_PIPELINE"),
+    ]
+
+    for attr, expected_value in expected_fields:
+        actual_value = getattr(item, attr, None)
+        logger.info(
+            f"Validating {attr}: expected={expected_value}, actual={actual_value}"
+        )
+        assert actual_value == expected_value, (
+            f"Field '{attr}' mismatch: expected={expected_value}, actual={actual_value}"
+        )
+    # Validate legal start and end dates
+    validate_legal_dates(item, payload)
+
+    # Validate telecom field if present in the payload
+    validate_telecom_field(item, payload)
+
+
+def validate_telecom_field(item, payload):
+    """
+    Validates the telecom field of the database entry against the payload.
+
+    Args:
+        item: The database item to compare against.
+        payload: The payload containing the telecom details.
+
+    Raises:
+        AssertionError: If any mismatch is found in the telecom field.
+    """
+    payload_telecom = payload.get("telecom", [])
+    db_telecom = getattr(item, "telecom", [])
+    if payload_telecom:
+        assert len(payload_telecom) == len(db_telecom), "Telecom entries count mismatch"
+        for idx, payload_entry in enumerate(payload_telecom):
+            db_entry = db_telecom[idx]
+            logger.info(f"Validating telecom entry at index {idx}: {db_entry}")
+            if payload_entry["system"] == "url":
+                expected_system = "web"
+                db_system = (
+                    db_entry.type.value
+                    if hasattr(db_entry.type, "value")
+                    else db_entry.type
+                )
+                assert db_system == expected_system, (
+                    f"Telecom system mismatch at index {idx}: expected='web' (for URL), got={db_system}"
+                )
+            else:
+                assert payload_entry["system"].lower() == db_entry.type.value.lower(), (
+                    f"Telecom system mismatch at index {idx}: expected={payload_entry['system']}, got={db_entry.type.value}"
+                )
+            assert payload_entry["value"] == db_entry.value, (
+                f"Telecom value mismatch at index {idx}: expected={payload_entry['value']}, got={db_entry.value}"
+            )
+            # Validate that the isPublic field is set to True
+            assert db_entry.isPublic is True, (
+                f"Telecom isPublic mismatch at index {idx}: expected=True, got={db_entry.isPublic}"
+            )
+            logger.info(
+                f"Telecom entry {idx}: system={payload_entry['system']} - value={payload_entry['value']} - isPublic={db_entry.isPublic}"
+            )
+
+
+def validate_legal_dates(item, payload):
+    """
+    Validates the legal start and end dates of the database entry against the payload.
+
+    Args:
+        item: The database item to compare against.
+        payload: The payload containing the legal date information.
+
+    Raises:
+        AssertionError: If any mismatch is found between the database item and the payload.
+    """
+
+    # Extract legal start and end dates from the payload
+    legal_start, legal_end = extract_legal_dates_from_payload(payload)
+
+    if legal_start or legal_end:
+        # Validate the legal start date
+        actual_start = (
+            getattr(item.legalDates, "start", None) if item.legalDates else None
+        )
+        if actual_start and hasattr(actual_start, "isoformat"):
+            actual_start = actual_start.isoformat()
+        logger.info(
+            f"Validating legal start: expected={legal_start}, actual={actual_start}"
+        )
+        assert actual_start == legal_start, (
+            f"Legal start date mismatch: {actual_start} != {legal_start}"
+        )
+
+        # Validate the legal end date
+        actual_end = getattr(item.legalDates, "end", None) if item.legalDates else None
+        if actual_end and hasattr(actual_end, "isoformat"):
+            actual_end = actual_end.isoformat()
+        logger.info(f"Validating legal end: expected={legal_end}, actual={actual_end}")
+        assert actual_end == legal_end, (
+            f"Legal end date mismatch: {actual_end} != {legal_end}"
+        )
 
 
 @when(
@@ -399,17 +533,6 @@ def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
 )
 def step_update_crud(api_request_context_mtls_crud):
     payload = _load_default_payload()
-    return update_organisation(payload, api_request_context_mtls_crud)
-
-
-@when(
-    "I update the organization details for ODS Code with mandatory fields only",
-    target_fixture="fresponse",
-)
-def step_update_mandatory(api_request_context_mtls_crud):
-    payload = _load_default_payload()
-    payload.pop("telecom", None)
-    logger.info(f"Payload with mandatory fields only:\n{json.dumps(payload, indent=2)}")
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -481,6 +604,30 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
     try:
         logger.info(f"Response [{response.status}]: {response.json()}")
     except Exception:
+        logger.info(f"Response [{response.status}]: {response.text}")
+    return response
+
+
+@when(
+    parsers.parse(
+        'I attempt to update the "{actual_type}" in telecom with "{update_type}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_update_telecom_type(
+    actual_type: str, update_type: str, api_request_context_mtls_crud
+):
+    payload = _load_default_payload()
+    org_id = payload.get("id")
+    url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
+    modified_payload = modify_telecom_type(payload, actual_type, update_type)
+    logger.info(
+        f"Updating organisation at {url}\nPayload:\n{json.dumps(payload, indent=2)}"
+    )
+    response = api_request_context_mtls_crud.put(url, data=json.dumps(modified_payload))
+    try:
+        logger.info(f"Response [{response.status}]: {response.json()}")
+    except (ValueError, AttributeError):
         logger.info(f"Response [{response.status}]: {response.text}")
     return response
 
@@ -641,7 +788,9 @@ def _build_invalid_typed_period_extension(invalid_scenario: str) -> dict:
 
 def _build_invalid_role_extension(invalid_scenario: str) -> dict:
     """Build invalid OrganisationRole extensions for different test scenarios."""
-    if invalid_scenario == "invalid role extension url":
+    typed_period = build_typed_period_extension("2020-01-15", "2025-12-31", "Legal")
+
+    if invalid_scenario == "invalid organisation role extension url":
         return {
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID",
             "extension": [
@@ -656,16 +805,23 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    },
+                    }
                 },
-            ],
+                typed_period
+            ]
         }
-    elif invalid_scenario == "missing role extension url":
+    elif invalid_scenario == "missing role organisation url":
         return {
             # "url" is missing here
-            "extension": [{"url": "instanceID", "valueInteger": 12345}]
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                typed_period
+            ]
         }
-    elif invalid_scenario == "empty role extension url":
+    elif invalid_scenario == "empty organisation role extension url":
         return {
             "url": "",  # Empty string URL
             "extension": [
@@ -680,9 +836,104 @@ def _build_invalid_role_extension(invalid_scenario: str) -> dict:
                                 "display": "GP PRACTICE",
                             }
                         ]
-                    },
+                    }
                 },
-            ],
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "missing roleCode extension":
+        # OrganisationRole without any roleCode extension
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing valueCodeableConcept":
+        # roleCode extension without valueCodeableConcept
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode"
+                    # No valueCodeableConcept
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode missing coding array":
+        # roleCode with valueCodeableConcept but no coding array
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        # No coding array
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode empty code value":
+        # roleCode with empty code value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "",  # Empty code value
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                },
+                typed_period
+            ]
+        }
+    elif invalid_scenario == "roleCode invalid enum value":
+        # roleCode with invalid enum value
+        return {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12345
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "INVALID_CODE",  # Not a valid OrganisationTypeCode
+                                "display": "Invalid Code"
+                            }
+                        ]
+                    }
+                },
+                typed_period
+            ]
         }
     else:
         raise ValueError(f"Unknown role extension invalid_scenario: {invalid_scenario}")
@@ -723,12 +974,19 @@ def step_update_with_invalid_extension(
     """Update organization with various invalid extension scenarios."""
     payload = _load_default_payload()
 
-    # Handle role-level validation scenarios
-    if invalid_scenario in (
-        "invalid role extension url",
-        "missing role extension url",
-        "empty role extension url",
-    ):
+    # Handle role-level validation scenarios (URL and roleCode structure)
+    role_level_scenarios = (
+        "invalid organisation role extension url",
+        "missing role organisation url",
+        "empty organisation role extension url",
+        "missing roleCode extension",
+        "roleCode missing valueCodeableConcept",
+        "roleCode missing coding array",
+        "roleCode empty code value",
+        "roleCode invalid enum value"
+    )
+
+    if invalid_scenario in role_level_scenarios:
         invalid_role_extension = _build_invalid_role_extension(invalid_scenario)
         payload["extension"] = [invalid_role_extension]
     else:
@@ -808,20 +1066,64 @@ def step_check_operation_outcome_code(fresponse, code):
     )
 
 
+@when(
+    parsers.parse(
+        'I update the organization with an invalid telecom field "{invalid_scenario}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_update_invalid_telecom_field(
+    invalid_scenario: str, api_request_context_mtls_crud
+):
+    payload = _load_default_payload()
+    if invalid_scenario == "missing_type":
+        payload["telecom"] = [{"value": "0300 311 22 34", "use": "work"}]
+    elif invalid_scenario == "missing_value":
+        payload["telecom"] = [{"system": "phone", "use": "work"}]
+    elif invalid_scenario == "empty_type":
+        payload["telecom"] = [{"system": "", "value": "0300 311 22 34", "use": "work"}]
+    elif invalid_scenario == "empty_value":
+        payload["telecom"] = [{"system": "phone", "value": "", "use": "work"}]
+    elif invalid_scenario == "additional_field":
+        payload["telecom"] = [
+            {
+                "system": "phone",
+                "value": "0300 311 22 34",
+                "use": "work",
+                "extra_field": "unexpected",
+            }
+        ]
+    elif invalid_scenario == "mixed_valid_invalid":
+        payload["telecom"] = [
+            {"system": "phone", "value": "0300 311 22 34", "use": "work"},
+            {
+                "system": "email",
+                "value": "invalidemail",
+                "use": "work",
+            },
+            {"system": "url", "value": "http://validurl.com", "use": "work"},
+        ]
+    elif invalid_scenario == "empty_telecom":
+        payload["telecom"] = []
+    elif invalid_scenario == "unsupported_system":
+        payload["telecom"] = [
+            {"system": "test", "value": "0300 311 22 34", "use": "work"}
+        ]
+    else:
+        raise ValueError(f"Unknown invalid_scenario: {invalid_scenario}")
+    logger.info(
+        f"Payload with invalid telecom field for scenario {invalid_scenario}:\n{json.dumps(payload, indent=2)}"
+    )
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then("the data in the database matches the inserted payload")
 def step_validate_db(model_repo, fresponse):
     payload = fresponse.request_body
+    logger.info("Validating database entry against payload", payload)
     item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload)
-
-
-@then("the data in the database matches the inserted payload with telecom null")
-def step_validate_db_mandatory(model_repo, fresponse):
-    payload = fresponse.request_body
-    item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload, mandatory_only=True)
-    actual_telecom = getattr(item, "telecom", None)
-    assert actual_telecom is None, f"telecom expected to be null, got: {actual_telecom}"
+    logger.info("Validating database entry from DB", item)
+    validate_db_entry_against_payload(item, payload)
 
 
 @then(
@@ -845,9 +1147,10 @@ def step_save_modified(fresponse, model_repo):
 @then("the database matches the inserted payload with the same modifiedBy timestamp")
 def step_validate_modified_unchanged(saved_data, model_repo):
     payload = saved_data["payload"]
-    item = get_db_item(model_repo, payload)
-    assert_item_matches_payload(item, payload)
     saved_dt = saved_data["modifiedDateTime"]
+    item = get_db_item(model_repo, payload)
+    validate_db_entry_against_payload(item, payload)
+    # Compare the saved and current modifiedDateTime
     current_dt = getattr(item, "modifiedDateTime")
     logger.info(f"Comparing modifiedDateTime: saved={saved_dt}, current={current_dt}")
     assert current_dt == saved_dt, (
@@ -859,6 +1162,22 @@ def step_validate_modified_unchanged(saved_data, model_repo):
 def step_validate_db_field(field: str, value: str, model_repo, fresponse):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
+    actual = getattr(item, field, None)
+
+    if field == "non_primary_role_codes":
+        if value.strip() == "[]":
+            expected = []
+        else:
+            # Remove brackets and split by comma, stripping whitespace from each code
+            cleaned = value.strip().strip("[]")
+            expected = [code.strip() for code in cleaned.split(",")] if cleaned else []
+
+        # Convert actual values to strings for comparison if they are enums
+        actual_codes = [str(code.value) if hasattr(code, 'value') else str(code) for code in (actual or [])]
+
+        logger.info(f"Validating {field}: expected={expected}, actual={actual_codes}")
+        assert actual_codes == expected, f"{field} mismatch: expected {expected}, got {actual_codes}"
+        return
 
     # Convert string "None" to Python None for comparison
     expected = None if value == "None" else value
@@ -867,14 +1186,13 @@ def step_validate_db_field(field: str, value: str, model_repo, fresponse):
         actual = getattr(item.legalDates, "start", None) if item.legalDates else None
     elif field == "legalEndDate":
         actual = getattr(item.legalDates, "end", None) if item.legalDates else None
-    elif field == "telecom":
-        actual = getattr(item, "telecom", None)
     else:
         actual = getattr(item, field, None)
 
     if field in ("legalStartDate", "legalEndDate") and actual is not None:
         if hasattr(actual, "isoformat"):
             actual = actual.isoformat()
+    logger.info(f"Validating field '{field}': expected={expected}, actual={actual}")
     assert actual == expected, f"{field} mismatch: expected {expected}, got {actual}"
 
 
@@ -922,6 +1240,16 @@ def set_field_to_null(payload: dict, field: str) -> dict:
     return payload
 
 
+@when(
+    "I set the active field from the payload to null and update the organization",
+    target_fixture="fresponse",
+)
+def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
+    """Set active field to null in the payload and update via CRUD API."""
+    payload = set_field_to_null(_load_default_payload(), "active")
+    return update_organisation(payload, api_request_context_mtls_crud)
+
+
 @then(parsers.parse('the diagnostics message indicates the "{expected_message}"'))
 def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     """Verify that the diagnostics message contains the expected text."""
@@ -937,3 +1265,134 @@ def step_diagnostics_contains_message(fresponse, expected_message: str) -> None:
     )
 
     logger.info(f"Diagnostics correctly contains: {expected_message}")
+
+@when(
+    parsers.parse(
+        'I set the role extensions to contain "{primary_role_code}" and "{non_primary_role_codes}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_set_role_extensions(
+    api_request_context_mtls_crud: object,
+    primary_role_code: str,
+    non_primary_role_codes: str,
+) -> object:
+    """Set role extensions with primary and non-primary role codes and update organization."""
+    payload = _load_default_payload()
+
+    role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+    payload["extension"] = []
+
+    # Handle None primary role code
+    if primary_role_code.lower() == "none":
+        primary_role_code = None
+
+    # Build primary role extension if primary code exists
+    if primary_role_code:
+        primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": primary_role_code,
+                        }]
+                    }
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload["extension"].append(primary_ext)
+
+    role_codes_list = []
+    if non_primary_role_codes and non_primary_role_codes.strip():
+        cleaned = non_primary_role_codes.strip().strip("[]")
+        if cleaned and cleaned.lower() != "none":
+            role_codes_list = [code.strip() for code in cleaned.split(",")]
+
+    # Build non-primary role extensions
+    for code in role_codes_list:
+        if code.lower() == "none":
+            continue
+
+        non_primary_ext = {
+            "url": role_url,
+            "extension": [
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [{
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": code,
+                        }]
+                    }
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15",
+                                "end": "2025-12-31"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        payload["extension"].append(non_primary_ext)
+
+    logger.info(f"Extension count: {len(payload.get('extension', []))}")
+
+    organisation_id = payload.get("id")
+    url = get_url("crud") + f"/Organization/{organisation_id}"
+
+    logger.info(f"Updating organization {organisation_id} with role extensions")
+    logger.debug(f"Payload: {json.dumps(payload, indent=2)}")
+
+    response = api_request_context_mtls_crud.put(
+        url,
+        data=json.dumps(payload),
+        headers={
+            "Content-Type": "application/fhir+json",
+            "Accept": "application/fhir+json",
+        },
+    )
+
+    response.request_body = payload
+
+    logger.info(f"Response status: {response.status}")
+    logger.debug(f"Response body: {response.text()}")
+
+    return response
+

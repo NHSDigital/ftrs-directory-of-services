@@ -23,7 +23,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.processor_name}-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -42,8 +42,7 @@ module "processor_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.common_packages_layer.arn],
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {
@@ -70,7 +69,7 @@ module "consumer_lambda" {
   handler                 = var.consumer_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -89,8 +88,7 @@ module "consumer_lambda" {
 
   layers = concat(
     [aws_lambda_layer_version.common_packages_layer.arn],
-    [aws_lambda_layer_version.python_dependency_layer.arn],
-    var.aws_lambda_layers
+    [aws_lambda_layer_version.python_dependency_layer.arn]
   )
 
   environment_variables = {

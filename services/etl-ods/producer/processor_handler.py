@@ -10,7 +10,7 @@ from ftrs_common.utils.correlation_id import (
 from ftrs_common.utils.request_id import fetch_or_set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.producer.processor import processor
+from producer.processor import processor
 
 ods_processor_logger = Logger.get(service="ods_processor")
 

@@ -7,7 +7,7 @@
   "identifier_ODS_ODSCode": "P00083010",
   "active": true,
   "name": "GP: Monarch Medical Centre - Radcliffe - Bury",
-  "telecom": null,
+  "telecom": [],
   "type": "GP Practice",
   "endpoints": [
     {

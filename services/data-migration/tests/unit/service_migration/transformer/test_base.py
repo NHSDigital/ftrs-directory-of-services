@@ -12,12 +12,12 @@ from ftrs_data_layer.domain import (
     AvailableTimeVariation,
     Endpoint,
     HealthcareService,
+    HealthcareServiceTelecom,
     Location,
     NotAvailable,
     Organisation,
     PositionGCS,
     SymptomGroupSymptomDiscriminatorPair,
-    Telecom,
 )
 from ftrs_data_layer.domain.legacy import (
     OpeningTimeDay,
@@ -99,6 +99,7 @@ def test_service_transformer_build_organisation(
         modifiedBy="DATA_MIGRATION",
         modifiedDateTime="2025-07-17T12:00:00Z",
         identifier_ODS_ODSCode="A12345",
+        telecom=[],
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
@@ -118,6 +119,7 @@ def test_service_transformer_build_organisation(
                 service=None,
                 order=1,
                 isCompressionEnabled=True,
+                comment="Test Endpoint",
             ),
             Endpoint(
                 id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
@@ -137,6 +139,7 @@ def test_service_transformer_build_organisation(
                 service=None,
                 order=2,
                 isCompressionEnabled=False,
+                comment="Test Email Endpoint",
             ),
         ],
     )
@@ -189,6 +192,54 @@ def test_build_endpoint(
         service="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
         order=1,
         isCompressionEnabled=False,
+        comment="Test Endpoint 1",
+    )
+
+
+@freeze_time("2025-07-17T12:00:00")
+def test_build_endpoint_no_comment(
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+    mock_endpoint = ServiceEndpoint(
+        id=12345,
+        endpointorder=1,
+        transport="itk",
+        format="xml",
+        interaction="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
+        businessscenario="Primary",
+        address="http://example.com/endpoint1",
+        comment=None,
+        iscompressionenabled="uncompressed",
+    )
+    result = transformer.build_endpoint(
+        mock_endpoint,
+        "0fd917b6-608a-59a0-ba62-eba57ec06a0e",
+        "01d78de8-4e63-53b3-9b7d-107c39c23a8d",
+    )
+    assert isinstance(result, Endpoint)
+    assert result == Endpoint(
+        id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
+        createdBy="DATA_MIGRATION",
+        createdDateTime="2025-07-17T12:00:00Z",
+        modifiedBy="DATA_MIGRATION",
+        modifiedDateTime="2025-07-17T12:00:00Z",
+        identifier_oldDoS_id=12345,
+        status="active",
+        connectionType="itk",
+        name=None,
+        payloadMimeType="xml",
+        description="Primary",
+        payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
+        address="http://example.com/endpoint1",
+        managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
+        service="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
+        order=1,
+        isCompressionEnabled=False,
+        comment=None,
     )
 
 
@@ -238,6 +289,7 @@ def test_build_endpoint_telno(
         service="4f1a685e-15da-5324-b596-6090fc90dc49",
         order=2,
         isCompressionEnabled=False,
+        comment="Test Endpoint 2",
     )
 
 
@@ -359,7 +411,7 @@ def test_build_healthcare_service(
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
         name="Test Service",
-        telecom=Telecom(
+        telecom=HealthcareServiceTelecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
             email="firstname.lastname@nhs.net",

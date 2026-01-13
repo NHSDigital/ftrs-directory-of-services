@@ -8,13 +8,12 @@ from ftrs_common.utils.correlation_id import (
 from ftrs_common.utils.request_id import get_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.producer.extract import (
+from producer.extract import (
     fetch_organisation_uuid,
     fetch_outdated_organisations,
 )
-from pipeline.producer.load_data import load_data
-from pipeline.producer.transform import transform_to_payload
-from pipeline.producer.validation import get_permitted_org_type
+from producer.load_data import load_data
+from producer.transform import transform_to_payload
 
 BATCH_SIZE = 10
 ods_processor_logger = Logger.get(service="ods_processor")
@@ -63,14 +62,7 @@ def _batch_and_load_organisations(organisations: list[dict]) -> None:
 def _process_organisation(organisation: dict) -> str | None:
     ods_code = None
     try:
-        correlation_id = get_correlation_id()
-        request_id = get_request_id()
-
-        permitted_org_type = get_permitted_org_type(organisation)
-        if not permitted_org_type:
-            return None
-
-        fhir_organisation = transform_to_payload(organisation, permitted_org_type)
+        fhir_organisation = transform_to_payload(organisation)
         ods_code = fhir_organisation.identifier[0].value
 
         org_uuid = fetch_organisation_uuid(ods_code)
@@ -83,15 +75,8 @@ def _process_organisation(organisation: dict) -> str | None:
             return None
 
         fhir_organisation.id = org_uuid
+        return _build_sqs_message(org_uuid, fhir_organisation)
 
-        return json.dumps(
-            {
-                "path": org_uuid,
-                "body": fhir_organisation.model_dump(),
-                "correlation_id": correlation_id,
-                "request_id": request_id,
-            }
-        )
     except Exception as e:
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_027,
@@ -99,3 +84,17 @@ def _process_organisation(organisation: dict) -> str | None:
             error_message=str(e),
         )
         return None
+
+
+def _build_sqs_message(org_uuid: str, fhir_organisation: any) -> str:
+    correlation_id = get_correlation_id()
+    request_id = get_request_id()
+
+    return json.dumps(
+        {
+            "path": org_uuid,
+            "body": fhir_organisation.model_dump(),
+            "correlation_id": correlation_id,
+            "request_id": request_id,
+        }
+    )

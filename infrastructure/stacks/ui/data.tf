@@ -26,6 +26,10 @@ data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = local.kms_aliases.secrets_manager
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
@@ -71,6 +75,18 @@ data "aws_iam_policy_document" "ssm_access_policy" {
     resources = [
       "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${local.project_prefix}-crud-apis${local.workspace_suffix}/endpoint",
       "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.project}/${var.environment}/cis2-client-config"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GenerateDataKey"
+    ]
+    resources = [
+      data.aws_kms_key.ssm_kms_key.arn
     ]
   }
 }

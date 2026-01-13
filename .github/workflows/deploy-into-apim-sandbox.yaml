@@ -1,0 +1,162 @@
+name: Deploy API proxy to APIM sandbox environment
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      ref_name:
+        description: 'Git ref name used for deployment (tag)'
+        required: true
+        type: string
+      ref_type:
+        description: 'Type of git ref (e.g. tag)'
+        required: true
+        type: string
+      workspace:
+        description: 'Workspace identifier (e.g., FTRS-000)'
+        required: true
+        type: string
+      commit_hash:
+        description: 'Git commit hash associated with this deployment'
+        required: false
+        type: string
+      parsed_sandbox_environment:
+        description: 'Pre-parsed sandbox_environment'
+        required: true
+        type: string
+      parsed_service:
+        description: 'Pre-parsed service'
+        required: true
+        type: string
+      parsed_version:
+        description: 'Pre-parsed version'
+        required: true
+        type: string
+      parsed_should_deploy:
+        description: 'Pre-parsed should_deploy (true/false)'
+        required: true
+        type: string
+    secrets:
+      ACCOUNT_ID:
+        description: 'AWS Account ID'
+        required: true
+      AWS_REGION:
+        description: 'AWS Region'
+        required: true
+      PROXYGEN_URL:
+        description: 'Proxygen API URL'
+        required: true
+    outputs:
+      sandbox_environment:
+        description: 'Derived sandbox environment name'
+        value: ${{ jobs.authenticate-and-deploy.outputs.sandbox_environment }}
+      sandbox_service:
+        description: 'Derived sandbox service name'
+        value: ${{ jobs.authenticate-and-deploy.outputs.service }}
+      sandbox_version:
+        description: 'Derived sandbox version number'
+        value: ${{ jobs.authenticate-and-deploy.outputs.version }}
+      sandbox_should_deploy:
+        description: 'Flag indicating if sandbox deploy should run'
+        value: ${{ jobs.authenticate-and-deploy.outputs.should_deploy }}
+
+jobs:
+  authenticate-and-deploy:
+    name: Authenticate and Deploy to APIM sandbox proxy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      sandbox_environment: ${{ inputs.parsed_sandbox_environment }}
+      service: ${{ inputs.parsed_service }}
+      version: ${{ inputs.parsed_version }}
+      should_deploy: ${{ inputs.parsed_should_deploy }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS Credentials
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          type: app
+
+      - name: "Get directories"
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        id: get-directories
+        run: |
+          echo "working_directory=services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
+          echo "build_directory=build/services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
+
+      - name: Get Proxygen Access Token
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        id: get-token
+        uses: ./.github/actions/authenticate-apim
+        with:
+          api_name: ${{ inputs.parsed_service }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ secrets.AWS_REGION }}
+
+      - name: Get APIM Docker Token
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        id: get-docker-token
+        uses: ./.github/actions/authenticate-apim-docker
+        env:
+          PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
+        with:
+          access_token: ${{ steps.get-token.outputs.access_token }}
+          api_name: ${{ inputs.parsed_service }}
+
+      - name: Re-tag sandbox image
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
+          API_NAME: ${{ inputs.parsed_service }}
+          REMOTE_NAME: ${{ inputs.parsed_service }}
+          REMOTE_TAG: ${{ inputs.commit_hash }}
+          VERSION_TAG: ${{ inputs.parsed_version }}
+        run: make re-tag
+
+      - name: Deploy API Specification
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        uses: ./.github/actions/deploy-to-apim
+        with:
+          api_name: ${{ inputs.parsed_service }}
+          workspace: ${{ inputs.workspace }}
+          environment: ${{ inputs.environment }}
+          apim_env: ${{ inputs.parsed_sandbox_environment }}
+          access_token: ${{ steps.get-token.outputs.access_token }}
+          proxygen_url: ${{ secrets.PROXYGEN_URL }}
+          version_tag: ${{ inputs.parsed_version }}
+
+      - name: Deployment Summary
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        run: |
+          echo "### Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| API Name | \`${{ inputs.parsed_service }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ inputs.parsed_sandbox_environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ inputs.parsed_version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Success |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### Deployment to the APIM environment failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The deployment to Proxygen failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY

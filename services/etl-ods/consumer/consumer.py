@@ -9,46 +9,54 @@ from ftrs_common.utils.correlation_id import (
 )
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.utilities import get_base_apim_api_url, make_request
+from common.apim_client import make_apim_request
+from common.url_utils import build_organization_update_url, get_base_apim_api_url
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
+
+
+def _parse_message_body(record: dict) -> dict:
+    """Parse message body from SQS record."""
+    if isinstance(record.get("body"), str):
+        body_content = json.loads(json.loads(record.get("body")))
+        return {
+            "path": body_content.get("path"),
+            "body": body_content.get("body"),
+            "correlation_id": body_content.get("correlation_id"),
+        }
+    else:
+        return {
+            "path": record.get("path"),
+            "body": record.get("body"),
+            "correlation_id": record.get("correlation_id"),
+        }
 
 
 def process_message_and_send_request(record: dict) -> None:
     """
     Process a single SQS message and send PUT request to APIM.
     """
-    if isinstance(record.get("body"), str):
-        body_content = json.loads(json.loads(record.get("body")))
-        path = body_content.get("path")
-        body = body_content.get("body")
-        correlation_id = body_content.get("correlation_id")
-
-    else:
-        path = record.get("path")
-        body = record.get("body")
-        correlation_id = record.get("correlation_id")
-
+    message_data = _parse_message_body(record)
     message_id = record["messageId"]
 
-    correlation_id = fetch_or_set_correlation_id(correlation_id)
+    correlation_id = fetch_or_set_correlation_id(message_data["correlation_id"])
 
     with correlation_id_context(correlation_id):
         ods_consumer_logger.append_keys(correlation_id=correlation_id)
 
-        if not path or not body:
+        if not message_data["path"] or not message_data["body"]:
             err_msg = ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_006,
                 message_id=message_id,
             )
             raise ValueError(err_msg)
 
-        api_url = get_base_apim_api_url()
-        api_url = api_url + "/Organization/" + path
+        base_url = get_base_apim_api_url()
+        api_url = build_organization_update_url(base_url, message_data["path"])
 
         try:
-            response_data = make_request(
-                api_url, method="PUT", json=body, jwt_required=True
+            response_data = make_apim_request(
+                api_url, method="PUT", json=message_data["body"], jwt_required=True
             )
             ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_007,

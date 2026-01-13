@@ -4,8 +4,10 @@ import pytest
 from pytest_mock import MockerFixture
 from requests import HTTPError
 
-from pipeline.producer.extract import (
+from producer.extract import (
+    _extract_next_page_url,
     _extract_organizations_from_bundle,
+    _get_page_limit,
     fetch_organisation_uuid,
     fetch_outdated_organisations,
     validate_ods_code,
@@ -48,7 +50,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", return_value=mock_bundle
+        "producer.extract.make_ods_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -68,7 +70,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_ods_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -125,7 +127,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=[first_page, second_page]
+        "producer.extract.make_ods_request", side_effect=[first_page, second_page]
     )
 
     date = "2025-10-15"
@@ -141,7 +143,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
 def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
     """Test fetching organisation UUID from APIM."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -154,7 +156,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
         ],
     }
     make_request_mock = mocker.patch(
-        "pipeline.producer.extract.make_request", return_value=mock_response
+        "producer.extract.make_apim_request", return_value=mock_response
     )
 
     result_bundle = fetch_organisation_uuid("XYZ999")
@@ -171,7 +173,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -184,7 +186,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         raise http_err
 
     mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
     )
 
     with caplog.at_level("WARNING"):
@@ -199,7 +201,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -213,7 +215,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         raise http_err
 
     mocker.patch(
-        "pipeline.producer.extract.make_request", side_effect=raise_http_error_not_found
+        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
     )
     with caplog.at_level("ERROR"):
         with pytest.raises(HTTPError) as excinfo:
@@ -226,11 +228,11 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
 ) -> None:
     """Test fetch_organisation_uuid handles invalid resource type."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_apim_request",
         return_value={
             "resourceType": "Not Bundle",
             "status_code": 200,
@@ -252,11 +254,11 @@ def test_fetch_organisation_uuid_no_organisation_returned(
 ) -> None:
     """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
     mocker.patch(
-        "pipeline.producer.extract.get_base_apim_api_url",
+        "producer.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "pipeline.producer.extract.make_request",
+        "producer.extract.make_apim_request",
         return_value={
             "resourceType": "Bundle",
             "status_code": 200,
@@ -275,7 +277,7 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         ("ABC123", True),
         ("ABC123456789", True),
         ("12345", True),
-        ("ABC", False),  # Too short
+        ("", False),  # Empty string
         ("ABC1234567890", False),  # Too long
         ("ABC-123", False),  # Invalid characters
         (123456, False),  # Not a string
@@ -320,3 +322,76 @@ def test__extract_organizations_from_bundle_non_bundle() -> None:
     organizations = _extract_organizations_from_bundle(non_bundle)
 
     assert organizations == []
+
+
+@pytest.mark.parametrize(
+    "env_value,expected_result,should_log",
+    [
+        ("50", 50, False),  # Valid env var
+        ("invalid", 1000, True),  # Invalid env var
+        ("0", 1000, True),  # Zero value
+        (None, 1000, True),  # No env var set
+    ],
+)
+def test_get_page_limit(
+    mocker: MockerFixture, env_value: str | None, expected_result: int, should_log: bool
+) -> None:
+    """Test _get_page_limit with various environment variable values."""
+    if env_value is None:
+        mocker.patch.dict("os.environ", {}, clear=True)
+    else:
+        mocker.patch.dict("os.environ", {"ODS_API_PAGE_LIMIT": env_value})
+
+    mock_logger = mocker.patch("producer.extract.ods_processor_logger.log")
+
+    result = _get_page_limit()
+
+    assert result == expected_result
+
+    if should_log:
+        mock_logger.assert_called_once()
+    else:
+        mock_logger.assert_not_called()
+
+
+def test_extract_next_page_url_success() -> None:
+    bundle = {
+        "resourceType": "Bundle",
+        "link": [
+            {"relation": "self", "url": "http://example.com/current"},
+            {"relation": "next", "url": "http://example.com/next"},
+        ],
+    }
+
+    result = _extract_next_page_url(bundle)
+
+    assert result == "http://example.com/next"
+
+
+def test_extract_next_page_url_no_next_link() -> None:
+    bundle = {
+        "resourceType": "Bundle",
+        "link": [
+            {"relation": "self", "url": "http://example.com/current"},
+        ],
+    }
+
+    result = _extract_next_page_url(bundle)
+
+    assert result is None
+
+
+def test_extract_next_page_url_non_bundle() -> None:
+    non_bundle = {"resourceType": "Organization", "id": "123"}
+
+    result = _extract_next_page_url(non_bundle)
+
+    assert result is None
+
+
+def test_extract_next_page_url_no_links() -> None:
+    bundle = {"resourceType": "Bundle"}
+
+    result = _extract_next_page_url(bundle)
+
+    assert result is None

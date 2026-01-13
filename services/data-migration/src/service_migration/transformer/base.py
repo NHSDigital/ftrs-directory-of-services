@@ -14,13 +14,13 @@ from ftrs_data_layer.domain import (
     EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
+    HealthcareServiceTelecom,
     HealthcareServiceType,
     Location,
     NotAvailable,
     OpeningTime,
     Organisation,
     PositionGCS,
-    Telecom,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 from ftrs_data_layer.domain.clinical_code import (
@@ -121,7 +121,7 @@ class ServiceTransformer(ABC):
             identifier_ODS_ODSCode=service.odscode,
             active=True,
             name=service.name,
-            telecom=None,
+            telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
             createdDateTime=self.start_time,
@@ -169,15 +169,16 @@ class ServiceTransformer(ABC):
             createdDateTime=self.start_time,
             modifiedBy=self.MIGRATION_USER,
             modifiedDateTime=self.start_time,
+            comment=endpoint.comment,
         )
 
     def build_location(
         self,
         service: legacy_model.Service,
         organisation_id: UUID,
-    ) -> Location:
+    ) -> Location | None:
         """
-        Create a Location instance from the source DoS service data.
+        Create a Location instance from the source DoS service data if address is valid.
         """
         position = (
             PositionGCS(
@@ -187,21 +188,12 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
-        if service.address and service.address != "Not Available":
-            formatted_address = format_address(
-                service.address, service.town, service.postcode
-            )
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_015,
-                organisation=organisation_id,
-                address=formatted_address,
-            )
 
-        else:
-            formatted_address = None
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_016, organisation=organisation_id
-            )
+        formatted_address = format_address(
+            service.address,
+            service.town,
+            service.postcode,
+        )
 
         return Location(
             id=generate_uuid(service.id, "location"),
@@ -242,7 +234,7 @@ class ServiceTransformer(ABC):
             providedBy=organisation_id,
             location=location_id,
             name=service.name,
-            telecom=Telecom(
+            telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
                 phone_private=service.nonpublicphone,
                 email=service.email,

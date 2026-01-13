@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
 from requests_mock.adapter import _Matcher as Matcher
 
-from pipeline.producer.processor import (
+from producer.processor import (
     processor,
 )
 
@@ -235,7 +235,7 @@ def test_processor_processing_organisations_successful(
 ) -> None:
     expected_call_count = 2  # ODS Terminology API + APIM UUID lookup
     date = datetime.now().strftime("%Y-%m-%d")
-    load_data_mock = mocker.patch("pipeline.producer.processor.load_data")
+    load_data_mock = mocker.patch("producer.processor.load_data")
     assert processor(date) is None
     assert requests_mock.call_count == expected_call_count
 
@@ -269,22 +269,10 @@ def test_processor_processing_organisations_successful(
                 "id": "00000000-0000-0000-0000-000000000abc",
                 "meta": {
                     "profile": [
-                        "https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"
+                        "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                     ]
                 },
                 "active": True,
-                "type": [
-                    {
-                        "coding": [
-                            {
-                                "system": "TO-DO",
-                                "code": "GP Practice",
-                                "display": "GP Practice",
-                            }
-                        ],
-                        "text": "GP Practice",
-                    }
-                ],
                 "name": "Test Organisation ABC123 ODS",
                 "identifier": [
                     {
@@ -357,7 +345,70 @@ def test_processor_processing_organisations_successful(
                                 "valueBoolean": True,
                             },
                         ],
-                    }
+                    },
+                    {
+                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+                        "extension": [
+                            {
+                                "url": "instanceID",
+                                "valueInteger": 195368,
+                            },
+                            {
+                                "url": "roleCode",
+                                "valueCodeableConcept": {
+                                    "coding": [
+                                        {
+                                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                            "code": "RO76",
+                                            "display": "GP PRACTICE",
+                                        }
+                                    ]
+                                },
+                            },
+                            {
+                                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                                "extension": [
+                                    {
+                                        "url": "dateType",
+                                        "valueCoding": {
+                                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                            "code": "Legal",
+                                            "display": "Legal",
+                                        },
+                                    },
+                                    {
+                                        "url": "period",
+                                        "valuePeriod": {
+                                            "start": "2014-04-15",
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                                "extension": [
+                                    {
+                                        "url": "dateType",
+                                        "valueCoding": {
+                                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                            "code": "Operational",
+                                            "display": "Operational",
+                                        },
+                                    },
+                                    {
+                                        "url": "period",
+                                        "valuePeriod": {
+                                            "start": "2014-04-15",
+                                        },
+                                    },
+                                ],
+                            },
+                            {
+                                "url": "active",
+                                "valueBoolean": True,
+                            },
+                        ],
+                    },
                 ],
             },
             "correlation_id": TEST_CORRELATION_ID,
@@ -399,7 +450,7 @@ def test_processor_continue_on_validation_failure(
 
     date = datetime.now().strftime("%Y-%m-%d")
 
-    load_data_mock = mocker.patch("pipeline.producer.processor.load_data")
+    load_data_mock = mocker.patch("producer.processor.load_data")
     assert processor(date) is None
 
     assert requests_mock.call_count == expected_call_count
@@ -464,9 +515,7 @@ def test_processor_no_outdated_organisations(
 def test_processor_no_organisations_logs_and_returns(
     mocker: MockerFixture,
 ) -> None:
-    mocker.patch(
-        "pipeline.producer.processor.fetch_outdated_organisations", return_value=[]
-    )
+    mocker.patch("producer.processor.fetch_outdated_organisations", return_value=[])
     date = datetime.now().strftime("%Y-%m-%d")
     assert processor(date) is None
 
@@ -508,12 +557,12 @@ def test_process_organisation_exception_logs_and_returns_none(
     }
 
     mocker.patch(
-        "pipeline.producer.processor.fetch_organisation_uuid",
+        "producer.processor.fetch_organisation_uuid",
         return_value="test-uuid-123",
     )
 
     mocker.patch(
-        "pipeline.producer.processor.transform_to_payload",
+        "producer.processor.transform_to_payload",
         side_effect=Exception("transform failed"),
     )
 
@@ -564,58 +613,10 @@ def test_process_organisation_uuid_not_found(
     }
 
     # Mock fetch_organisation_uuid to return None (empty Bundle case)
-    mocker.patch(
-        "pipeline.producer.processor.fetch_organisation_uuid", return_value=None
-    )
+    mocker.patch("producer.processor.fetch_organisation_uuid", return_value=None)
 
     result = processor.__globals__["_process_organisation"](org_abc123)
 
     assert result is None
     assert "Organisation UUID not found in internal system" in caplog.text
     assert "ABC123" in caplog.text
-
-
-def test_process_organisation_not_permitted_skips_transformation(
-    mocker: MockerFixture,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    org_not_permitted = {
-        "resourceType": "Organization",
-        "id": "NOTGP",
-        "name": "Not a GP Practice",
-        "active": True,
-        "identifier": [
-            {
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                "value": "NOTGP",
-            }
-        ],
-        "extension": [
-            {
-                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                "extension": [
-                    {
-                        "url": "roleCode",
-                        "valueCodeableConcept": {
-                            "coding": [
-                                {
-                                    "code": "RO99",
-                                    "display": "Other Service",
-                                }
-                            ]
-                        },
-                    }
-                ],
-            }
-        ],
-    }
-
-    mock_fetch_uuid = mocker.patch(
-        "pipeline.producer.processor.fetch_organisation_uuid"
-    )
-
-    result = processor.__globals__["_process_organisation"](org_not_permitted)
-
-    assert result is None
-    mock_fetch_uuid.assert_not_called()
-    assert "not a permitted type" in caplog.text.lower()

@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from pipeline.consumer.consumer_handler import consumer_lambda_handler
+from consumer.consumer_handler import consumer_lambda_handler
 
 
-@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+@patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_success(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
@@ -52,14 +52,14 @@ def test_consumer_lambda_handler_success(
     assert expected_pipeline_end_log in caplog.text
 
 
-@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+@patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) -> None:
     consumer_lambda_handler({}, {})
 
     assert str(mock_process_message.call_count) == "0"
 
 
-@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+@patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_failure(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
@@ -108,7 +108,7 @@ def test_consumer_lambda_handler_failure(
     assert expected_pipeline_end_log in caplog.text
 
 
-@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+@patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_logs_start_events(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
@@ -125,7 +125,7 @@ def test_consumer_lambda_handler_logs_start_events(
     assert expected_consumer_start_log in caplog.text
 
 
-@patch("pipeline.consumer.consumer_handler.process_message_and_send_request")
+@patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_logs_batch_statistics(
     mock_process_message: MagicMock,
     caplog: pytest.LogCaptureFixture,
