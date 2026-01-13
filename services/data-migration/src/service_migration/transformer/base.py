@@ -58,9 +58,7 @@ class ServiceTransformer(ABC):
     """
 
     MIGRATION_UUID_NS = UUID("fa3aaa15-9f83-4f4a-8f86-fd1315248bcb")
-    MIGRATION_USER = AuditEvent(
-        type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
-    )
+    AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
     VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
     def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
