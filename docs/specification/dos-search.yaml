@@ -28,8 +28,10 @@ info:
     This access mode adopts the following security/authentication patterns:
     - JWT Private Key authentication
 
-    ## Service levels
-    Business hours support between 8am and 6pm, Monday to Friday, but not bank holidays. For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
+    ## Service level
+    This API is a gold service, meaning it is operational and supported 24 hours a day, 365 days a year.
+
+    For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
 
     ## Rate limits
     This API is rate limited. The default rate limit is 10 requests per second and 300 requests per minute. If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
