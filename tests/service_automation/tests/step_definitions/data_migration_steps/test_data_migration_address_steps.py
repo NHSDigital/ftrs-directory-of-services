@@ -58,14 +58,10 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
 
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    # Extract address - it can be either in document.address or directly in item
-    if "document" in item and isinstance(item["document"], dict):
-        assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
-        address = item["document"]["address"]
-    else:
-        # Fallback: address might be directly in item (not wrapped in document)
-        assert "address" in item, f"Location item missing 'address' field for UUID {location_uuid} (service ID {service_id})"
-        address = item["address"]
+    # Extract address from document
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid} (service ID {service_id})"
+    assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
+    address = item["document"]["address"]
 
     # Build expected mapping from datatable (skip header row)
     expected: Dict[str, Any] = {}
@@ -112,12 +108,9 @@ def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -
 
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    # Extract address - it can be either in document.address or directly in item
-    if "document" in item and isinstance(item["document"], dict):
-        address = item["document"].get("address")
-    else:
-        # Fallback: address might be directly in item (not wrapped in document)
-        address = item.get("address")
+    # Extract address from document
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid} (service ID {service_id})"
+    address = item["document"].get("address")
 
     assert address is None, (
         f"Expected location for service ID {service_id} to have no address (None), "
