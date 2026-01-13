@@ -84,8 +84,6 @@ class OrganisationService:
             )
             diagnostics = []
             for error in e.errors():
-                print("-----error-----")
-                print("error:", error)
                 if isinstance(error["input"], dict) and "type" in error["input"].keys():
                     if "phone" in error["input"]["type"]:
                         diagnostics.append(
@@ -96,7 +94,6 @@ class OrganisationService:
                             f"Telecom value field contains an invalid email address: {error['input']['value']}"
                         )
                 elif "url" in error["type"]:
-                    print("-----url error-----")
                     diagnostics.append(
                         f"Telecom value field contains an invalid url: {error['input']}"
                     )
