@@ -11,10 +11,6 @@ on:
         description: "The name of the workspace to deploy the application into"
         required: true
         type: string # TEMP
-      build_type:
-        description: "The type of project to build (service, package)"
-        required: true
-        type: string
       environment:
         description: "The deployment environment"
         required: true
