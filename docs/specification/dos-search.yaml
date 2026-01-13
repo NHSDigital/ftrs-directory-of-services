@@ -28,6 +28,13 @@ info:
     This access mode adopts the following security/authentication patterns:
     - JWT Private Key authentication
 
+    ## Roadmap
+    Over 2026 and 2027, we will be making further endpoints available covering the functionality of:
+
+    - [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap)
+    - [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest)
+    - [Electronic Prescription Service Directory of Services API](https://digital.nhs.uk/developer/api-catalogue/electronic-prescription-service-directory-of-services)
+
     ## Service level
     This API is a gold service, meaning it is operational and supported 24 hours a day, 365 days a year.
 
