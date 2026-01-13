@@ -148,7 +148,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": "application/pdf",
                   "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": "PEM SENT"
               },
               {
                   "address": "dummy-endpoint-email@nhs.net",
@@ -167,7 +168,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": "application/pdf",
                   "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": "ITK failed - Please advise the caller to contact the practice, reiterating the recommended timeframe"
               },
               {
                   "address": "https://dummy-itk-endpoint.nhs.uk",
@@ -186,7 +188,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": "application/hl7-cda+xml",
                   "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": "PEM SENT"
               },
               {
                   "address": "ODS:C84016",
@@ -205,7 +208,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": "application/fhir",
                   "payloadType": "scheduling",
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": null
               },
               {
                   "address": "telephone number",
@@ -224,7 +228,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": null,
                   "payloadType": null,
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": "If email fails, please telephone the practice on 12345 123456"
               },
               {
                   "address": "12345123456",
@@ -243,7 +248,8 @@ Feature: Data Migration for endpoints
                   "payloadMimeType": null,
                   "payloadType": null,
                   "service": null,
-                  "status": "active"
+                  "status": "active",
+                  "comment": null
               }
           ]
       }
