@@ -77,8 +77,8 @@ markers = [
   "organisation-exists: marks test as organisation exists conflict related",
   "location-exists: marks test as location exists conflict related",
   "healthcare-service-exists: marks test as healthcare service exists conflict related",
-  "FTRS-1961: marks test as FTRS-1961 GP practice name truncation test",
-  "FTRS-1964: marks test as FTRS-1964 HTML-encoded characters decoding test",
+  "gp-name-truncation: marks test as GP practice name truncation on hyphen separator test",
+  "html-decoding: marks test as HTML entity decoding in GP practice names test",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
 ]

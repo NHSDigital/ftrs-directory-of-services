@@ -131,7 +131,7 @@ Feature: Data Migration
       }
       """
 
-  @FTRS-1961
+  @gp-name-truncation
   Scenario: GP practice names are truncated on " - " separator
     Given a "Service" exists in DoS with attributes
       | key                  | value                                   |
@@ -192,7 +192,7 @@ Feature: Data Migration
     Then the organisation for service ID 10025752 has name Abbey-Dale Medical Centre
     Then the organisation for service ID 10035752 has name Nene Valley and Hodgson
 
-  @FTRS-1964
+  @html-decoding
   Scenario: HTML-encoded characters are decoded in GP practice names
     Given a "Service" exists in DoS with attributes
       | key                  | value                                          |
