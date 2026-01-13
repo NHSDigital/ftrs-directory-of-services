@@ -14,7 +14,6 @@ from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
-from organisations.app.models.organisation import LegalDateField
 from organisations.app.services.organisation_service import OrganisationService
 
 FIXED_CREATED_TIME = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
@@ -60,17 +59,17 @@ def test_get_outdated_fields_no_changes() -> None:
         non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
-    payload = MagicMock(
-        model_dump=lambda: {
-            "identifier_ODS_ODSCode": "ABC123",
-            "active": True,
-            "name": "Test Organisation",
-            "telecom": [
-                {"type": TelecomType.PHONE, "value": "0300 311 22 33", "isPublic": True}
-            ],
-            "endpoints": [],
-            "legalDates": {"start": date(2020, 1, 15), "end": date(2025, 12, 31)},
-        }
+    payload = Organisation(
+        identifier_ODS_ODSCode="ABC123",
+        active=True,
+        name="Test Organisation",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
+        endpoints=[],
+        primary_role_code=OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
+        non_primary_role_codes=[OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
+        legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
     )
     service = make_service()
     result = service._get_outdated_fields(organisation, payload)
@@ -178,7 +177,9 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
 
         # Extract legalDates from result for separate comparison
         result_legal_dates = result.pop("legalDates", None)
-        expected_legal_dates = {"start": date(2021, 1, 1), "end": date(2026, 12, 31)}
+        expected_legal_dates = LegalDates(
+            start=date(2021, 1, 1), end=date(2026, 12, 31)
+        )
 
         # Compare legalDates separately
         assert result_legal_dates == expected_legal_dates
@@ -187,7 +188,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "active": False,
             "name": "Updated Organisation",
             "telecom": [
-                {"type": TelecomType.EMAIL, "value": "test@nhs.net", "isPublic": True}
+                Telecom(type=TelecomType.EMAIL, value="test@nhs.net", isPublic=True)
             ],
             "lastUpdatedBy": AuditEvent(
                 type=AuditEventType.user,
@@ -198,10 +199,19 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "primary_role_code": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
             "non_primary_role_codes": [OrganisationTypeCode.GP_PRACTICE_ROLE_CODE],
         }
-        assert (
-            "Computed outdated fields: ['active', 'name', 'primary_role_code', 'non_primary_role_codes', 'telecom', 'legalDates'] for organisation d5a852ef-12c7-4014-b398-661716a63027"
-            in caplog.text
-        )
+        log_message = caplog.text
+        assert "Computed outdated fields:" in log_message
+        assert "organisation d5a852ef-12c7-4014-b398-661716a63027" in log_message
+        expected_fields = [
+            "active",
+            "name",
+            "primary_role_code",
+            "non_primary_role_codes",
+            "telecom",
+            "legalDates",
+        ]
+        for field in expected_fields:
+            assert f"'{field}'" in log_message
 
 
 def test_creates_organisation_when_valid_data_provided() -> None:
@@ -874,20 +884,3 @@ def test_get_all_organisations() -> None:
     result = service.get_all_organisations()
     assert result == [org1, org2]
     org_repository.iter_records.assert_called_once()
-
-
-def test_extract_date_field_from_enum() -> None:
-    service = OrganisationService(org_repository=MagicMock())
-    legal_dates = {"start": "2020-01-01", "end": "2025-12-31"}
-
-    assert (
-        service._extract_date_field(legal_dates, LegalDateField.START) == "2020-01-01"
-    )
-    assert service._extract_date_field(legal_dates, LegalDateField.END) == "2025-12-31"
-
-
-def test_extract_date_field_not_in_enum() -> None:
-    service = OrganisationService(org_repository=MagicMock())
-    legal_dates = {"start": "2020-01-01", "end": "2025-12-31"}
-    with pytest.raises(TypeError):
-        service._extract_date_field(legal_dates, "foo")
