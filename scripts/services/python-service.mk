@@ -106,7 +106,7 @@ publish:
 
 set-prerelease-version:
 ifeq ($(strip $(PRERELEASE_TAG)),)
-	@echo "Finding latest prerelease version for $(SERVICE)..."
+	@echo "Finding latest prerelease version"
 	$(eval PRERELEASE_TAG := $(shell \
 		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
 		| awk '{print $$2}' \
@@ -123,26 +123,20 @@ else
 endif
 
 stage-release: set-prerelease-version
-	@echo "Staging release $(PRERELEASE_TAG) for $(SERVICE)..."
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_STAGING_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_STAGING_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json s3://$(ARTEFACT_STAGING_PATH)/build-info.json --region $(AWS_REGION)
+	@echo "Staging release $(PRERELEASE_TAG)"
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
 promote-rc: set-prerelease-version
-	@echo "Promoting from staging/$(PRERELEASE_TAG) to release candidate for $(SERVICE)..."
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/build-info.json s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/build-info.json --region $(AWS_REGION)
+	@echo "Promoting from staging/$(PRERELEASE_TAG) to release candidate"
+	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	@echo "Promoted from staging/$(STAGING_VERSION) to release candidate"
 
 promote-release:
 	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
 	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
 	@echo "Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN)..."
-	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_RELEASE_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_RELEASE_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/build-info.json s3://$(ARTEFACT_RELEASE_PATH)/build-info.json --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
 	@echo "Release published successfully to releases/$(RELEASE_VERSION_CLEAN)"
 
 pre-commit: lint

@@ -98,7 +98,7 @@ invalidate-cloudfront-cache:
 
 set-prerelease-version:
 ifeq ($(strip $(PRERELEASE_TAG)),)
-	@echo "Finding latest prerelease version for $(SERVICE)..."
+	@echo "Finding latest prerelease version"
 	$(eval PRERELEASE_TAG := $(shell \
 		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
 		| awk '{print $$2}' \
@@ -115,13 +115,13 @@ else
 endif
 
 stage-release: set-prerelease-version
-	@echo "Staging release $(PRERELEASE_TAG) for $(SERVICE)..."
+	@echo "Staging release $(PRERELEASE_TAG)"
 	aws s3 sync s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
 promote-rc:
-	@echo "Promoting $(PRERELEASE_TAG) to release candidate for $(SERVICE)..."
-	aws s3 sync s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RC_PATH)/ --region $(AWS_REGION)
+	@echo "Promoting $(PRERELEASE_TAG) to release candidate"
+	aws s3 sync s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --region $(AWS_REGION)
 	@echo "Promoted from staging/$(PRERELEASE_TAG) to release candidate"
 
 publish-release:
