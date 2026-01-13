@@ -38,7 +38,9 @@ info:
     For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
 
     ## Rate limits
-    This API is rate limited. The default rate limit is 10 requests per second and 300 requests per minute. If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
+    This API is rate limited. Per app, the default rate limit is 10TPS (transactions per second). Per endpoint, the rate limit is 150TPS.
+
+    If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
 
     ## Technology
     This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
