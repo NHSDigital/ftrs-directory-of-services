@@ -16,10 +16,6 @@ on:
         required: true
         type: string
         default: "mgmt"
-      name:
-        description: "The name of the package to build"
-        required: true
-        type: string
       repo_name:
         description: "The name of the Git repo"
         required: true
