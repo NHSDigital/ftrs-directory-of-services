@@ -1,8 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
-from ftrs_data_layer.domain.auditevent import AuditEvent
-from ftrs_data_layer.domain.base import DBModel, audit_default_value
+from ftrs_data_layer.domain.base import DBModel
 from pydantic import BaseModel
 
 
@@ -30,5 +29,3 @@ class Location(DBModel):
     positionReferenceNumber_UBRN: int | None = None
     primaryAddress: bool
     partOf: UUID | None = None
-    createdBy: AuditEvent | None = audit_default_value
-    modifiedBy: AuditEvent | None = audit_default_value

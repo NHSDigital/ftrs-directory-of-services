@@ -207,7 +207,11 @@ class OrganizationMapper(FhirMapper):
             active=fhir_resource.active,
             telecom=self._get_org_telecom(fhir_resource),
             legalDates=legal_dates,
-            modifiedBy={"type": "app", "value": "apim_product_id", "display": "API Management"},
+            lastUpdatedBy={
+                "type": "app",
+                "value": "apim_product_id",
+                "display": "API Management",
+            },
             primary_role_code=primary_code,
             non_primary_role_codes=non_primary_codes,
         )

@@ -34,5 +34,3 @@ class Endpoint(DBModel):
     order: int
     isCompressionEnabled: bool
     comment: str | None = None
-    createdBy: str | None = None
-    modifiedBy: str | None = None

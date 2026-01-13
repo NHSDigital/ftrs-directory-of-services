@@ -171,224 +171,167 @@ def test_process_service(
     assert mock_logger.was_logged("DM_ETL_005") is False
     assert mock_logger.was_logged("DM_ETL_006") is True
 
-    assert processor._execute_transaction.call_count == 1
+    assert processor._save.call_count == 1
 
-    transact_items = processor._execute_transaction.call_args[0][0]
-
-    # org, location, healthcare service, state record
-    assert len(transact_items) == expected_transaction_items
-
-    deserialiser = TypeDeserializer()
-
-    assert transact_items[-1]["Put"]["TableName"] == (
-        "ftrs-dos-local-data-migration-state-test_workspace"
-    )
-    state_item = {
-        k: deserialiser.deserialize(v)
-        for k, v in transact_items[-1]["Put"]["Item"].items()
-    }
-
-    assert state_item["source_record_id"] == f"services#{mock_legacy_service.id}"
-
-    assert state_item["organisation"] == {
-        "id": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-        "type": "GP Practice",
-        "active": True,
-        "name": "Public Test Service",
-        "createdBy": {
-            "display": "Data Migration",
+    output = processor._save.call_args[0][0]
+    assert isinstance(output, ServiceTransformOutput)
+    assert len(output.organisation) == 1
+    assert output.organisation[0] == Organisation(
+        id="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
+            "display": "Data Migration",
         },
-        "createdTime": "2025-07-25T12:00:00Z",
-        "endpoints": [
-            {
-                "address": "http://example.com/endpoint",
-                "connectionType": "http",
-                "createdBy": {
-                    "display": "Data Migration",
+        lastUpdated="2025-07-25T12:00:00+00:00",
+        identifier_ODS_ODSCode="A12345",
+        identifier_oldDoS_uid="test-uid",
+        active=True,
+        name="Public Test Service",
+        telecom=[],
+        type="GP Practice",
+        endpoints=[
+            Endpoint(
+                id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
+                createdBy={
                     "type": "app",
                     "value": "INTERNAL001",
-                },
-                "createdTime": "2025-07-25T12:00:00Z",
-                "businessScenario": "Primary",
-                "comment": "Test Endpoint",
-                "id": "a226aaa5-392c-59c8-8d79-563bb921cb0d",
-                "identifier_oldDoS_id": Decimal(1),
-                "isCompressionEnabled": True,
-                "managedByOrganisation": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "lastUpdatedBy": {
                     "display": "Data Migration",
+                },
+                createdTime="2025-07-25T12:00:00+00:00",
+                lastUpdatedBy={
                     "type": "app",
                     "value": "INTERNAL001",
-                },
-                "lastUpdated": "2025-07-25T12:00:00Z",
-                "name": None,
-                "order": Decimal(1),
-                "payloadMimeType": None,
-                "payloadType": "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
-                "service": None,
-                "status": "active",
-            },
-            {
-                "address": "mailto:test@example.com",
-                "connectionType": "email",
-                "createdBy": {
                     "display": "Data Migration",
+                },
+                lastUpdated="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=1,
+                status="active",
+                connectionType="http",
+                name=None,
+                payloadMimeType=None,
+                description="Primary",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="http://example.com/endpoint",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=1,
+                isCompressionEnabled=True,
+                comment="Test Endpoint",
+            ),
+            Endpoint(
+                id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
+                createdBy={
                     "type": "app",
                     "value": "INTERNAL001",
-                },
-                "createdTime": "2025-07-25T12:00:00Z",
-                "businessScenario": "Copy",
-                "comment": "Test Email Endpoint",
-                "id": "4d678d9c-61db-584f-a64c-bd8eb829d8db",
-                "identifier_oldDoS_id": Decimal(2),
-                "isCompressionEnabled": False,
-                "managedByOrganisation": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-                "lastUpdatedBy": {
                     "display": "Data Migration",
+                },
+                createdTime="2025-07-25T12:00:00+00:00",
+                lastUpdatedBy={
                     "type": "app",
                     "value": "INTERNAL001",
+                    "display": "Data Migration",
                 },
-                "lastUpdated": "2025-07-25T12:00:00Z",
-                "name": None,
-                "order": Decimal(2),
-                "payloadMimeType": None,
-                "payloadType": "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
-                "service": None,
-                "status": "active",
-            },
+                lastUpdated="2025-07-25T12:00:00+00:00",
+                identifier_oldDoS_id=2,
+                status="active",
+                connectionType="email",
+                name=None,
+                payloadMimeType=None,
+                description="Copy",
+                payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
+                address="mailto:test@example.com",
+                managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+                service=None,
+                order=2,
+                isCompressionEnabled=False,
+                comment="Test Email Endpoint",
+            ),
         ],
-        "identifier_ODS_ODSCode": "A12345",
-        "identifier_oldDoS_uid": "test-uid",
-        "legalDates": None,
-        "lastUpdatedBy": {
-            "display": "Data Migration",
+    )
+
+    assert len(output.healthcare_service) == 1
+    assert output.healthcare_service[0] == HealthcareService(
+        id="903cd48b-5d0f-532f-94f4-937a4517b14d",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
-        },
-        "lastUpdated": "2025-07-25T12:00:00Z",
-        "non_primary_role_codes": [],
-        "primary_role_code": None,
-        "telecom": [],
-    }
-    assert state_item["location"] == {
-        "id": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-        "identifier_oldDoS_uid": "test-uid",
-        "name": None,
-        "active": True,
-        "managingOrganisation": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-        "address": {
-            "county": "West Yorkshire",
-            "line1": "123 Main St",
-            "line2": None,
-            "postcode": "AB12 3CD",
-            "town": "Leeds",
-        },
-        "createdBy": {
             "display": "Data Migration",
-            "type": "app",
-            "value": "INTERNAL001",
         },
-        "createdTime": "2025-07-25T12:00:00Z",
-        "lastUpdatedBy": {
-            "display": "Data Migration",
-            "type": "app",
-            "value": "INTERNAL001",
-        },
-        "lastUpdated": "2025-07-25T12:00:00Z",
-        "partOf": None,
-        "positionGCS": {
-            "latitude": "51.5074",
-            "longitude": "-0.1278",
-        },
-        "positionReferenceNumber_UBRN": None,
-        "positionReferenceNumber_UPRN": None,
-        "primaryAddress": True,
-    }
-    assert state_item["healthcare_service"] == {
-        "id": "903cd48b-5d0f-532f-94f4-937a4517b14d",
-        "active": True,
-        "type": "GP Consultation Service",
-        "location": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
-        "providedBy": "4539600c-e04e-5b35-a582-9fb36858d0e0",
-        "telecom": {
-            "email": "firstname.lastname@nhs.net",
-            "phone_private": "09876543210",
-            "phone_public": "01234567890",
-            "web": "http://example.com",
-        },
-        "ageEligibilityCriteria": None,
-        "category": "GP Services",
-        "createdBy": {
-            "display": "Data Migration",
-            "type": "app",
-            "value": "INTERNAL001",
-        },
-        "createdTime": "2025-07-25T12:00:00Z",
-        "identifier_oldDoS_uid": "test-uid",
-        "lastUpdatedBy": {
-            "display": "Data Migration",
-            "type": "app",
-            "value": "INTERNAL001",
-        },
-        "lastUpdated": "2025-07-25T12:00:00Z",
-        "name": "Test Service",
-        "openingTime": [
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "mon",
-                "endTime": "17:00:00",
-                "startTime": "09:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "tue",
-                "endTime": "17:00:00",
-                "startTime": "09:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "wed",
-                "endTime": "12:00:00",
-                "startTime": "09:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "wed",
-                "endTime": "17:00:00",
-                "startTime": "13:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "thu",
-                "endTime": "17:00:00",
-                "startTime": "09:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "fri",
-                "endTime": "17:00:00",
-                "startTime": "09:00:00",
-            },
-            {
-                "allDay": False,
-                "category": "availableTime",
-                "dayOfWeek": "sat",
-                "endTime": "14:00:00",
-                "startTime": "10:00:00",
-            },
-            {
-                "category": "availableTimePublicHolidays",
-                "endTime": "14:00:00",
-                "startTime": "10:00:00",
-            },
+        lastUpdated="2025-07-25T12:00:00+00:00",
+        identifier_oldDoS_uid="test-uid",
+        active=True,
+        category="GP Services",
+        type="GP Consultation Service",
+        providedBy="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        migrationNotes=[],
+        name="Test Service",
+        telecom=HealthcareServiceTelecom(
+            phone_public="01234567890",
+            phone_private="09876543210",
+            email="firstname.lastname@nhs.net",
+            web="http://example.com",
+        ),
+        openingTime=[
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="mon",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="tue",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="09:00:00",
+                endTime="12:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="wed",
+                startTime="13:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="thu",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="fri",
+                startTime="09:00:00",
+                endTime="17:00:00",
+                allDay=False,
+            ),
+            AvailableTime(
+                category="availableTime",
+                dayOfWeek="sat",
+                startTime="10:00:00",
+                endTime="14:00:00",
+                allDay=False,
+            ),
+            AvailableTimePublicHolidays(
+                category="availableTimePublicHolidays",
+                startTime="10:00:00",
+                endTime="14:00:00",
+            ),
         ],
         "symptomGroupSymptomDiscriminators": [
             {
@@ -403,30 +346,36 @@ def test_process_service(
         "dispositions": ["DX115", "DX12"],
     }
 
-    assert state_item["organisation_id"] == "4539600c-e04e-5b35-a582-9fb36858d0e0"
-    assert state_item["location_id"] == "6ef3317e-c6dc-5e27-b36d-577c375eb060"
-    assert state_item["healthcare_service_id"] == "903cd48b-5d0f-532f-94f4-937a4517b14d"
-
-    org_item = {
-        k: deserialiser.deserialize(v)
-        for k, v in transact_items[0]["Put"]["Item"].items()
-    }
-    location_item = {
-        k: deserialiser.deserialize(v)
-        for k, v in transact_items[1]["Put"]["Item"].items()
-    }
-    hc_item = {
-        k: deserialiser.deserialize(v)
-        for k, v in transact_items[2]["Put"]["Item"].items()
-    }
-
-    assert org_item.pop("field") == "document"
-    assert location_item.pop("field") == "document"
-    assert hc_item.pop("field") == "document"
-
-    assert org_item == state_item["organisation"]
-    assert location_item == state_item["location"]
-    assert hc_item == state_item["healthcare_service"]
+    assert len(output.location) == 1
+    assert output.location[0] == Location(
+        id="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        identifier_oldDoS_uid="test-uid",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-25T12:00:00+00:00",
+        active=True,
+        address=Address(
+            line1="123 Main St",
+            line2=None,
+            county="West Yorkshire",
+            town="Leeds",
+            postcode="AB12 3CD",
+        ),
+        managingOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
+        name=None,
+        positionGCS=PositionGCS(
+            latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
+        ),
+        positionReferenceNumber_UPRN=None,
+        positionReferenceNumber_UBRN=None,
+        primaryAddress=True,
+        partOf=None,
+    )
 
 
 def test_process_service_unsupported_service(

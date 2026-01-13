@@ -1,7 +1,6 @@
 from datetime import date
 
-from ftrs_data_layer.domain.auditevent import AuditEvent
-from ftrs_data_layer.domain.base import DBModel, audit_default_value
+from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import OrganisationType, OrganisationTypeCode
 from ftrs_data_layer.domain.telecom import Telecom
@@ -26,5 +25,3 @@ class Organisation(DBModel):
     telecom: list[Telecom] | str | None
     endpoints: list["Endpoint"] = Field(default_factory=list)
     legalDates: LegalDates | None = None
-    createdBy: AuditEvent | None = audit_default_value
-    modifiedBy: AuditEvent | None = audit_default_value

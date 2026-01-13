@@ -1,9 +1,8 @@
 from decimal import Decimal
 from uuid import UUID
 
-from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.availability import OpeningTime
-from ftrs_data_layer.domain.base import DBModel, audit_default_value
+from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
     SymptomGroupSymptomDiscriminatorPair,
 )
@@ -41,5 +40,3 @@ class HealthcareService(DBModel):
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[str]
     ageEligibilityCriteria: list[AgeRangeType] | None = None
-    createdBy: AuditEvent | None = audit_default_value
-    modifiedBy: AuditEvent | None = audit_default_value
