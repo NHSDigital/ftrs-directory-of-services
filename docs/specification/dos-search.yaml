@@ -157,7 +157,10 @@ paths:
             example: "odsOrganisationCode|ABC123"
         - name: _revinclude
           in: query
-          description: Resources to include in the Bundle response
+          description: |
+            Include relevant Endpoint resources for requested Organization resource matches in the returned Bundle.
+
+            Must be set to `Endpoint:organization`.
           required: true
           schema:
             type: string
