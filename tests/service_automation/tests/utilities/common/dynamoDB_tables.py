@@ -19,11 +19,9 @@ def get_table_name(resource: str) -> str:
     project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
-
     if resource.startswith("data-migration-"):
         return f"{project_name}-{environment}-{resource}-{workspace}"
-    else:
-        return f"{project_name}-{environment}-database-{resource}-{workspace}"
+    return f"{project_name}-{environment}-database-{resource}-{workspace}"
 
 
 def get_dynamodb_tables() -> list[dict[str, Any]]:
@@ -76,15 +74,17 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST"
     }
 
-    state_table = {
+    data_migration_state_table = {
         "TableName": get_table_name('data-migration-state'),
+
         "KeySchema": [
-            {"AttributeName": "source_record_id", "KeyType": "HASH"}
+            {"AttributeName": "source_record_id", "KeyType": "HASH"},
         ],
         "AttributeDefinitions": [
             {"AttributeName": "source_record_id", "AttributeType": "S"}
         ],
         "BillingMode": "PAY_PER_REQUEST"
     }
+    tables.append(data_migration_state_table)
 
-    return [*tables, triage_code_table, state_table]
+    return [*tables, triage_code_table]
