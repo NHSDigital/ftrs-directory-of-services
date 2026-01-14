@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from uuid import UUID
 
 import pytest
@@ -8,7 +10,7 @@ from ftrs_data_layer.domain.enums import (
     EndpointPayloadType,
 )
 
-from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.libraries.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
 
 
 @pytest.fixture
@@ -17,7 +19,9 @@ def endpoint_mapper():
 
 
 class TestEndpointMapper:
-    def test_create_payload_type(self, endpoint_mapper, endpoint):
+    def test_create_payload_type(
+        self, endpoint_mapper: EndpointMapper, endpoint: object
+    ) -> None:
         # Act
         result = endpoint_mapper._create_payload_type(endpoint)
 
@@ -31,7 +35,9 @@ class TestEndpointMapper:
         )
         assert result[0].coding[0].code == EndpointPayloadType.ED.value
 
-    def test_create_endpoint(self, endpoint_mapper, endpoint):
+    def test_create_endpoint(
+        self, endpoint_mapper: EndpointMapper, endpoint: object
+    ) -> None:
         endpoint = endpoint_mapper._create_fhir_endpoint(endpoint)
 
         # Assert
@@ -49,15 +55,17 @@ class TestEndpointMapper:
         assert len(endpoint.extension) == 3
 
     def test_create_endpoint_with_unsupported_connection_type(
-        self, endpoint_mapper, create_endpoint
-    ):
+        self, endpoint_mapper: EndpointMapper, create_endpoint: object
+    ) -> None:
         # Arrange & Act & Assert
         with pytest.raises(
             ValueError, match="Input should be 'itk', 'email', 'telno' or 'http'"
         ):
             create_endpoint(connection_type="unsupported")
 
-    def test_create_address(self, endpoint_mapper, create_endpoint):
+    def test_create_address(
+        self, endpoint_mapper: EndpointMapper, create_endpoint: object
+    ) -> None:
         # Arrange
         address = "https://test-address.org/fhir"
         endpoint = create_endpoint(address=address)
@@ -68,7 +76,9 @@ class TestEndpointMapper:
         # Assert
         assert result == address
 
-    def test_create_managing_organization(self, endpoint_mapper, create_endpoint):
+    def test_create_managing_organization(
+        self, endpoint_mapper: EndpointMapper, create_endpoint: object
+    ) -> None:
         # Arrange
         org_id = UUID("12345678123456781234567812345678")
         endpoint = create_endpoint(managed_by_organisation=org_id)
@@ -79,7 +89,7 @@ class TestEndpointMapper:
         # Assert
         assert result == {"reference": f"Organization/{org_id}"}
 
-    def test_create_order_extension(self, endpoint_mapper):
+    def test_create_order_extension(self, endpoint_mapper: EndpointMapper) -> None:
         # Act
         result = endpoint_mapper._create_order_extension(1)
 
@@ -89,7 +99,9 @@ class TestEndpointMapper:
             "valueInteger": 1,
         }
 
-    def test_create_compression_extension(self, endpoint_mapper):
+    def test_create_compression_extension(
+        self, endpoint_mapper: EndpointMapper
+    ) -> None:
         # Act
         result = endpoint_mapper._create_compression_extension(True)
 
@@ -122,8 +134,11 @@ class TestEndpointMapper:
         ],
     )
     def test_create_business_scenario_extension(
-        self, endpoint_mapper, business_scenario, expected_result
-    ):
+        self,
+        endpoint_mapper: EndpointMapper,
+        business_scenario: str | None,
+        expected_result: dict | None,
+    ) -> None:
         # Act
         result = endpoint_mapper._create_business_scenario_extension(business_scenario)
 
@@ -140,13 +155,13 @@ class TestEndpointMapper:
     )
     def test_create_extensions(
         self,
-        endpoint_mapper,
-        order,
-        is_compression_enabled,
-        description,
-        expected_count,
-        mocker,
-    ):
+        endpoint_mapper: EndpointMapper,
+        order: int | None,
+        is_compression_enabled: bool | None,
+        description: EndpointDescription | None,
+        expected_count: int,
+        mocker: object,
+    ) -> None:
         # Arrange
         mock_endpoint = mocker.MagicMock()
         mock_endpoint.order = order
@@ -169,7 +184,9 @@ class TestEndpointMapper:
                 ext["url"].endswith("EndpointBusinessScenario") for ext in extensions
             )
 
-    def test_map_to_endpoints_empty_list(self, endpoint_mapper, create_organisation):
+    def test_map_to_endpoints_empty_list(
+        self, endpoint_mapper: EndpointMapper, create_organisation: object
+    ) -> None:
         # Arrange
         org_value = create_organisation(endpoints=[])
 
@@ -181,10 +198,10 @@ class TestEndpointMapper:
 
     def test_map_to_endpoints_multiple_endpoints(
         self,
-        endpoint_mapper,
-        create_organisation,
-        create_endpoint,
-    ):
+        endpoint_mapper: EndpointMapper,
+        create_organisation: object,
+        create_endpoint: object,
+    ) -> None:
         # Arrange
         endpoint1 = create_endpoint(
             endpoint_id=UUID("11111111111111111111111111111111"), connection_type="itk"

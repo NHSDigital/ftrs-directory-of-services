@@ -1,21 +1,49 @@
-"""Build per-endpoint (and per-role) Lambda zip artifacts for dos-search.
+"""Build Lambda zip artefacts for dos-search.
 
-This supports:
-- one Lambda per endpoint
-- a set of Lambdas behind an endpoint (router + worker)
+Goal
+- Produce one ZIP per Lambda, with deterministic contents.
+- Each endpoint Lambda ZIP includes shared code from `functions/libraries`.
 
-Notes:
-- Third-party dependencies are provided via the Lambda dependency layer.
-- These zips package only source code: lambdas + shared modules.
+Lambda sources
+- Endpoint lambdas live under `functions/<lambda_name>/handler.py`.
+- `_status` is implemented as a legacy entrypoint under `lambdas/status_get/handler.py`.
 
+Artefacts
+- Zip name:  ftrs-dos-dos-search-<lambda_name>-lambda-<application_tag>.zip
+- Internal paths are arranged so Terraform handlers like:
+    functions/<lambda_name>/handler.lambda_handler
+  resolve correctly.
+
+Notes
+- Third-party dependencies are provided via the dependency layer.
+- These zips package only source code: endpoint handlers + shared modules.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
+
+SERVICE = "dos-search"
+ARTEFACT_PREFIX = "ftrs-dos-dos-search"
+
+ARC_FUNCTIONS_LIBRARIES = "functions/libraries"
+ARC_HEALTH_CHECK = "health_check"
+
+FUNCTIONS_DIRNAME = "functions"
+LIBRARIES_DIRNAME = "libraries"
+LEGACY_LAMBDAS_DIRNAME = "lambdas"
+
+
+@dataclass(frozen=True)
+class LambdaPackage:
+    name: str
+    roots: list[Path]
+    arc_prefixes: list[str]
 
 
 def _iter_files(base_dir: Path) -> list[Path]:
@@ -32,66 +60,110 @@ def _iter_files(base_dir: Path) -> list[Path]:
 
 
 def _zip_paths(zip_path: Path, roots: list[Path], arc_prefixes: list[str]) -> None:
+    if len(roots) != len(arc_prefixes):
+        raise ValueError
+
     zip_path.parent.mkdir(parents=True, exist_ok=True)
 
     with ZipFile(zip_path, "w", compression=ZIP_DEFLATED) as zf:
         for root, arc_prefix in zip(roots, arc_prefixes, strict=True):
+            if not root.exists():
+                raise FileNotFoundError(str(root))
+
             for file_path in _iter_files(root):
                 rel = file_path.relative_to(root)
                 arcname = str(Path(arc_prefix) / rel)
                 zf.write(file_path, arcname)
 
 
+def _zip_name(lambda_name: str, application_tag: str) -> str:
+    return f"{ARTEFACT_PREFIX}-{lambda_name}-lambda-{application_tag}.zip"
+
+
+def _artifact_name_from_folder(folder_name: str) -> str:
+    """Convert a `functions/<folder_name>` into the artefact/lambda name.
+
+    Convention:
+    - Python folders use snake_case (e.g. triage_code)
+    - Artefacts / terraform lambda_name use kebab-case (e.g. triage-code)
+
+    Special-case:
+    - `organisation` folder maps to `organization` (terraform naming)
+    """
+
+    if folder_name == "organisation":
+        return "organization"
+    return folder_name.replace("_", "-")
+
+
+def _discover_function_lambdas(service_root: Path) -> list[LambdaPackage]:
+    """Discover endpoint lambdas under `functions/<name>/handler.py`.
+
+    We purposely ignore:
+    - functions/libraries (shared code)
+    - any folder without a handler.py
+    """
+
+    functions_dir = service_root / FUNCTIONS_DIRNAME
+    libraries_dir = functions_dir / LIBRARIES_DIRNAME
+
+    packages: list[LambdaPackage] = []
+
+    for child in sorted(p for p in functions_dir.iterdir() if p.is_dir()):
+        if child.name == LIBRARIES_DIRNAME:
+            continue
+
+        handler = child / "handler.py"
+        if not handler.exists():
+            continue
+
+        package_name = _artifact_name_from_folder(child.name)
+
+        packages.append(
+            LambdaPackage(
+                name=package_name,
+                roots=[child, libraries_dir],
+                arc_prefixes=[f"functions/{child.name}", ARC_FUNCTIONS_LIBRARIES],
+            )
+        )
+
+    return packages
+
+
+def _legacy_status_lambda(service_root: Path) -> LambdaPackage:
+    """Package the legacy `_status` lambda which lives under `lambdas/status_get`."""
+
+    functions_dir = service_root / FUNCTIONS_DIRNAME
+    libraries_dir = functions_dir / LIBRARIES_DIRNAME
+
+    return LambdaPackage(
+        name="status-get",
+        roots=[
+            service_root / LEGACY_LAMBDAS_DIRNAME / "status_get",
+            libraries_dir,
+            service_root / "health_check",
+        ],
+        arc_prefixes=[
+            LEGACY_LAMBDAS_DIRNAME,
+            ARC_FUNCTIONS_LIBRARIES,
+            ARC_HEALTH_CHECK,
+        ],
+    )
+
+
 def build_all(out_dir: Path, application_tag: str) -> dict[str, Path]:
     service_root = Path(__file__).resolve().parents[1]
 
-    # Map artifact key -> lambda source folder
-    endpoint_defs: dict[str, Path] = {
-        # One-lambda endpoint
-        "status-get": service_root / "lambdas" / "status_get",
-        # Optional router for /_status (only when enabled)
-        "status-get-router": service_root / "lambdas" / "status_get_router",
-        # Default /Organization single-lambda endpoint
-        "organization-get": service_root / "functions",
-        # Set-of-lambdas endpoint (optional)
-        "organization-get-router": service_root / "lambdas" / "organization_get_router",
-        "organization-get-worker": service_root / "lambdas" / "organization_get_worker",
-        # Example additional internal workers (spike)
-        "organization-get-worker-2": service_root
-        / "lambdas"
-        / "organization_get_worker",
-        "organization-get-worker-3": service_root
-        / "lambdas"
-        / "organization_get_worker",
-    }
+    packages = [
+        _legacy_status_lambda(service_root),
+        *_discover_function_lambdas(service_root),
+    ]
 
     outputs: dict[str, Path] = {}
-
-    for name, endpoint_root in endpoint_defs.items():
-        zip_name = f"ftrs-dos-dos-search-{name}-lambda-{application_tag}.zip"
-        out_zip = out_dir / zip_name
-
-        if name == "organization-get":
-            roots = [
-                service_root / "functions",
-            ]
-            arc_prefixes = [
-                "functions",
-            ]
-        else:
-            roots = [
-                endpoint_root,
-                service_root / "functions",
-                service_root / "health_check",
-            ]
-            arc_prefixes = [
-                "lambdas",
-                "functions",
-                "health_check",
-            ]
-
-        _zip_paths(out_zip, roots=roots, arc_prefixes=arc_prefixes)
-        outputs[name] = out_zip
+    for pkg in packages:
+        out_zip = out_dir / _zip_name(pkg.name, application_tag)
+        _zip_paths(out_zip, roots=pkg.roots, arc_prefixes=pkg.arc_prefixes)
+        outputs[pkg.name] = out_zip
 
     return outputs
 
@@ -110,11 +182,49 @@ def main() -> int:
         help="Application tag used in artifact file names",
     )
 
+    parser.add_argument(
+        "--format",
+        choices=("table", "json"),
+        default="table",
+        help="Output format for generated artefacts (table|json)",
+    )
+
     args = parser.parse_args()
 
-    outputs = build_all(out_dir=args.out, application_tag=args.application_tag)
-    for name, path in outputs.items():
-        print(f"built {name}: {path}")
+    # Fail fast on obviously-invalid output locations.
+    # (Also ensures this CLI has meaningful non-zero exit codes.)
+    if not args.out.parent.exists():
+        print(f"ERROR: parent directory does not exist: {args.out.parent}")
+        return 3
+
+    try:
+        outputs = build_all(out_dir=args.out, application_tag=args.application_tag)
+    except Exception as exc:
+        print(f"ERROR: failed to build lambda artefacts: {exc}")
+        return 1
+
+    if not outputs:
+        print("ERROR: no Lambda artefacts were built")
+        return 2
+
+    if args.format == "json":
+        payload = {
+            "service": SERVICE,
+            "application_tag": args.application_tag,
+            "out_dir": str(args.out),
+            "artefacts": {name: str(path) for name, path in sorted(outputs.items())},
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        return 0
+
+    # Default: human-readable table
+    print(
+        f"Built {len(outputs)} Lambda artefact(s) for {SERVICE} (application_tag={args.application_tag})"
+    )
+    print(f"Output directory: {args.out}")
+    print()
+    for name, path in sorted(outputs.items()):
+        print(f"- {name:18} {path}")
 
     return 0
 

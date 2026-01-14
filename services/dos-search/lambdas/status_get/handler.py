@@ -3,12 +3,12 @@ from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.logging import correlation_paths
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from health_check.health_check_function import app as status_router
+from health_check.health_check_function import app as status_app
 
 logger = Logger(service="dos-search-status")
 
 app = APIGatewayRestResolver()
-app.include_router(status_router)
+app.include_router(status_app)
 
 
 @logger.inject_lambda_context(

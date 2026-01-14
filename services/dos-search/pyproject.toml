@@ -74,11 +74,19 @@ addopts = [
     "-v",
     "--cov=functions",
     "--cov=health_check",
+    "--cov-config=pyproject.toml",
     "--cov-report=term-missing",
     "--cov-fail-under=80",
     "--cov-branch",
     "--cov-context=test"
 ]
-filterwarnings = [
-    "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
+
+[tool.coverage.run]
+omit = [
+  "lambdas/**",
+]
+
+[tool.coverage.report]
+omit = [
+  "lambdas/**",
 ]

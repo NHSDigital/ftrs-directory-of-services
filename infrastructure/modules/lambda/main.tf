@@ -23,7 +23,13 @@ module "lambda" {
 
   s3_existing_package = var.s3_bucket_name != "" ? {
     bucket = var.s3_bucket_name
-    key    = var.s3_key
+    # Prefer an explicit key if provided. Otherwise, allow stacks to pass a base prefix in `s3_key`
+    # and a per-lambda `lambda_name` to get granular artefact naming.
+    key = (
+      var.s3_key != "" ? var.s3_key : (
+        var.lambda_name != "" ? "${var.lambda_name}.zip" : ""
+      )
+    )
   } : null
 
   vpc_subnet_ids         = var.subnet_ids

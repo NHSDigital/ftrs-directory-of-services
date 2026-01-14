@@ -4,7 +4,7 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
-from functions.organization_query_params import (
+from functions.libraries.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
     ODSCodeInvalidFormatError,

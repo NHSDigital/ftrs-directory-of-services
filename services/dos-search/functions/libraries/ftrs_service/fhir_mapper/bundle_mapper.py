@@ -6,8 +6,8 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.utils.api_url_util import get_fhir_url
 from ftrs_data_layer.domain import Organisation
 
-from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
-from functions.ftrs_service.fhir_mapper.organization_mapper import (
+from functions.libraries.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.libraries.ftrs_service.fhir_mapper.organization_mapper import (
     OrganizationMapper,
 )
 

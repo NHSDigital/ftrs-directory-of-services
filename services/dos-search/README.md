@@ -45,26 +45,51 @@ The service uses:
 
 ## Lambda-per-endpoint patterns
 
-We support two related patterns:
-
-1. **One Lambda per endpoint (default):** API Gateway integrates directly to a single Lambda.
-2. **Set of Lambdas per endpoint (optional):** API Gateway integrates to a *router* Lambda which can delegate to one or more *worker* Lambdas.
-
-The router/worker approach is useful when an endpoint grows in complexity, needs different scaling,
-or needs internal separation without changing the public API.
+We standardise on **one Lambda per endpoint**.
 
 For `dos-search`:
 
 - `GET /_status` uses one Lambda (`lambdas/status_get/handler.py`).
+- `GET /Organization` uses one Lambda (`functions/organisation/handler.py`).
+- Future endpoints (e.g. `triage_code`) will follow the same structure (`functions/<name>/handler.py`).
 
-- `GET /Organization` **uses one Lambda by default** (handler `functions/dos_search_ods_code_function.lambda_handler`).
-- If you enable internal workers, `GET /Organization` switches to a router + workers (`lambdas/organization_get_router/handler.py` and `lambdas/organization_get_worker/handler.py`).
+### Naming conventions (important)
 
-The router can run inline or delegate, controlled by environment variables:
+We use **two names** for the same Lambda:
 
-- `DOS_SEARCH_ORCHESTRATION_MODE=inline|lambda` (default: `inline`)
-- `DOS_SEARCH_ORG_WORKER_LAMBDA_NAMES=<comma-separated lambda names>` (preferred)
-- `DOS_SEARCH_ORG_WORKER_LAMBDA_NAME=<lambda name>` (backwards compatible)
+- **Python folder/module name (snake_case):** used in handler paths inside the ZIP
+  - Example: `functions/triage_code/handler.lambda_handler`
+- **Artefact + Terraform `lambda_name` (kebab-case):** used for ZIP / S3 object naming
+  - Example: `triage-code`
+
+The packaging script converts snake_case folder names into kebab-case artefact names.
+
+## Build artefacts
+
+Endpoint zips are produced by:
+
+- `scripts/package_endpoint_lambdas.py`
+
+It builds one ZIP per Lambda and includes `functions/libraries` in every endpoint ZIP.
+
+### Example output
+
+Table (default):
+
+```text
+Built N Lambda artefact(s) for dos-search (application_tag=<tag>)
+Output directory: <path>
+
+- organization         <path>/ftrs-dos-dos-search-organization-lambda-<tag>.zip
+- status-get           <path>/ftrs-dos-dos-search-status-get-lambda-<tag>.zip
+- triage-code          <path>/ftrs-dos-dos-search-triage-code-lambda-<tag>.zip
+```
+
+JSON (useful for CI):
+
+```shell
+poetry run python scripts/package_endpoint_lambdas.py --out <dir> --application-tag <tag> --format json
+```
 
 ## Prerequisites
 
@@ -115,17 +140,17 @@ The router can run inline or delegate, controlled by environment variables:
 ### Code Structure
 
 ```plain
-├── functions/                           # Shared business logic
-│   ├── dos_search_ods_code_function.py  # Original /Organization handler (reused by worker)
-│   ├── organization_handler.py          # Shared /Organization handler used by router
-│   └── lambda_invoker.py                # Utility for router -> worker invokes
-├── health_check/                        # Shared health check routes
-├── lambdas/                             # Per-endpoint Lambda entrypoints
-│   ├── organization_get_router/handler.py
-│   ├── organization_get_worker/handler.py
-│   └── status_get/handler.py
+├── functions/
+│   ├── libraries/                       # Shared code bundled into every Lambda zip
+│   ├── organisation/                    # /Organization endpoint lambda
+│   │   └── handler.py
+│   └── triage_code/                     # triage_code endpoint lambda
+│       └── handler.py
+├── health_check/                        # Health check logic (used by the _status lambda)
+├── lambdas/                             # Legacy/compat entrypoints
+│   └── status_get/handler.py            # GET /_status
 ├── scripts/
-│   └── package_endpoint_lambdas.py      # Builds per-endpoint/per-role zips
+│   └── package_endpoint_lambdas.py      # Builds one zip per Lambda (includes functions/libraries)
 └── ...                                 # Configuration files
 ```
 
@@ -245,45 +270,3 @@ poetry sync
      ```shell
      assume <role-name>
      ```
-
-## Choosing between router+workers vs Step Functions
-
-When an endpoint grows beyond a single Lambda, there are two common serverless patterns:
-
-### Router + internal worker Lambdas (what we use for `/Organization` when enabled)
-
-**Shape:** API Gateway r router Lambda r N internal worker lambdas (sync invokes)
-
-Use this when:
-
-- You need a **synchronous HTTP response** (request/response).
-- The flow is mostly **linear** (A r B r C).
-- Each step is fast and you remain within API Gateway + Lambda timeouts.
-- You mainly want **deployment separation** (change one step without touching others).
-
-Trade-offs:
-
-- Orchestration logic (retries, branching) lives in code.
-- More lambdas usually means more latency (multiple sync invokes).
-
-### Step Functions (recommended once it becomes a real workflow)
-
-**Shape:** API Gateway r Lambda r Step Function execution r N tasks (Lambdas)
-
-Use this when:
-
-- You need **retries/backoff**, **branches**, **compensation**, or **fan-out/fan-in**.
-- You need better **operational visibility** (one execution view of all steps).
-- Steps may be long-running or you want async patterns.
-
-Trade-offs:
-
-- Extra infrastructure and state-machine definitions to maintain.
-- For a strictly synchronous endpoint, Step Functions can add complexity.
-
-### Recommendation for `dos-search`
-
-- Keep `GET /_status` as **one Lambda per endpoint**.
-- Keep `GET /Organization` as **one Lambda by default**.
-- Enable router + worker lambdas for `GET /Organization` only when separation is needed.
-- If `GET /Organization` becomes a branching/long-running workflow, migrate orchestration to Step Functions.

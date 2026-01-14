@@ -101,6 +101,13 @@ variable "s3_key" {
   description = "S3 key (path) to the Lambda package inside the S3 bucket"
 }
 
+# Optional: name of the lambda artifact within a stack, used to construct granular s3 keys
+variable "lambda_name" {
+  description = "Logical lambda name within the stack, used for per-lambda artefact naming"
+  type        = string
+  default     = ""
+}
+
 variable "allowed_triggers" {
   description = "List of allowed triggers for the Lambda function"
   type        = map(any)

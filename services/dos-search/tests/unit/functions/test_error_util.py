@@ -1,18 +1,20 @@
+from __future__ import annotations
+
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
-from functions.error_util import (
+from functions.libraries.error_util import (
     INVALID_SEARCH_DATA_CODING,
     REC_BAD_REQUEST_CODING,
     create_invalid_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
 )
-from functions.organization_query_params import OrganizationQueryParams
+from functions.libraries.organization_query_params import OrganizationQueryParams
 
 
 class TestErrorUtil:
-    def test_create_resource_internal_server_error(self):
+    def test_create_resource_internal_server_error(self) -> None:
         # Act
         result = create_resource_internal_server_error()
 
@@ -24,7 +26,7 @@ class TestErrorUtil:
         assert result.issue[0].diagnostics == "Internal server error"
         assert result.issue[0].details is None
 
-    def test_create_validation_error_invalid_ods_code_format(self):
+    def test_create_validation_error_invalid_ods_code_format(self) -> None:
         # Arrange - ODS code too short
         validation_error = None
         try:
@@ -49,7 +51,7 @@ class TestErrorUtil:
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
-    def test_create_validation_error_invalid_identifier_system(self):
+    def test_create_validation_error_invalid_identifier_system(self) -> None:
         # Arrange - Wrong identifier system
         validation_error = None
         try:
@@ -73,7 +75,7 @@ class TestErrorUtil:
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
-    def test_create_validation_error_invalid_rev_include(self):
+    def test_create_validation_error_invalid_rev_include(self) -> None:
         # Arrange - Invalid _revinclude value
         validation_error = None
         try:
@@ -98,7 +100,7 @@ class TestErrorUtil:
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
-    def test_create_validation_error_missing_required_field(self):
+    def test_create_validation_error_missing_required_field(self) -> None:
         # Arrange - Missing required _revinclude parameter
         validation_error = None
         try:
@@ -120,7 +122,7 @@ class TestErrorUtil:
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
-    def test_create_validation_error_multiple_issues(self):
+    def test_create_validation_error_multiple_issues(self) -> None:
         # Arrange - ODS code too short and Invalid _revinclude value
         validation_error = None
         try:
@@ -154,7 +156,7 @@ class TestErrorUtil:
         )
         assert result.issue[1].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
-    def test_create_validation_error_unknown_error_type(self):
+    def test_create_validation_error_unknown_error_type(self) -> None:
         # Use a valid Pydantic error type to exercise fallback (not 'value_error' or 'missing')
         err = ValidationError.from_exception_data(
             "ValidationError",
@@ -175,7 +177,7 @@ class TestErrorUtil:
         assert result.issue[0].code == "invalid"
         assert result.issue[0].diagnostics == "Input should be a valid string"
 
-    def test_create_validation_error_unmapped_value_error(self):
+    def test_create_validation_error_unmapped_value_error(self) -> None:
         # Simulate a value_error with an unmapped custom error class
         class UnknownCustomError(ValueError):
             pass
@@ -200,7 +202,7 @@ class TestErrorUtil:
         assert result.issue[0].code == "invalid"
         assert result.issue[0].diagnostics == "boom"
 
-    def test_create_invalid_header_operation_outcome(self):
+    def test_create_invalid_header_operation_outcome(self) -> None:
         headers = ["X-NHSD-Z", "Authorization"]
 
         result = create_invalid_header_operation_outcome(headers)

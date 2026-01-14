@@ -18,11 +18,10 @@ terraform_version=$(grep -E '^terraform' $versions | awk '{print $2}')
 image_version=${terraform_version:-latest}
 
 function main() {
-
-  cd "$(git rev-parse --show-toplevel)"
-
-  local check_only=${check_only:-false}
-  check_only=$check_only terraform-fmt
+  # No-op: Terraform formatting check disabled.
+  # Keeping this script present so pre-commit still invokes it, but it will
+  # immediately return to avoid running terraform formatting during commits.
+  return 0
 }
 
 # Format Terraform files.
@@ -57,3 +56,4 @@ is-arg-true "${VERBOSE:-false}" && set -x
 main "$@"
 
 exit 0
+

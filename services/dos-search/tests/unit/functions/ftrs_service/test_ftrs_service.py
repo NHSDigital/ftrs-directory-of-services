@@ -1,22 +1,28 @@
+from __future__ import annotations
+
 from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
 
-from functions.ftrs_service.ftrs_service import FtrsService
+from functions.libraries.ftrs_service.ftrs_service import FtrsService
 
 
 @pytest.fixture
-def mock_repository(organisation):
-    with patch("functions.ftrs_service.ftrs_service.get_service_repository") as mock:
+def mock_repository(organisation: object) -> object:
+    with patch(
+        "functions.libraries.ftrs_service.ftrs_service.get_service_repository"
+    ) as mock:
         mock_repo = mock.return_value
         mock_repo.get_first_record_by_ods_code.return_value = organisation
         yield mock_repo
 
 
 @pytest.fixture
-def mock_bundle_mapper():
-    with patch("functions.ftrs_service.ftrs_service.BundleMapper") as mock_class:
+def mock_bundle_mapper() -> object:
+    with patch(
+        "functions.libraries.ftrs_service.ftrs_service.BundleMapper"
+    ) as mock_class:
         mock_mapper = mock_class.return_value
         mock_bundle = Bundle.model_validate(
             {"resourceType": "Bundle", "type": "searchset", "id": "test-bundle"}
@@ -26,12 +32,12 @@ def mock_bundle_mapper():
 
 
 @pytest.fixture
-def ftrs_service(mock_repository, mock_bundle_mapper):
+def ftrs_service(mock_repository: object, mock_bundle_mapper: object) -> FtrsService:
     return FtrsService()
 
 
 class TestFtrsService:
-    def test_init(self, mock_repository, mock_bundle_mapper):
+    def test_init(self, mock_repository: object, mock_bundle_mapper: object) -> None:
         # Act
         service = FtrsService()
 
@@ -40,8 +46,12 @@ class TestFtrsService:
         assert service.mapper == mock_bundle_mapper
 
     def test_endpoints_by_ods_success(
-        self, ftrs_service, mock_repository, mock_bundle_mapper, organisation
-    ):
+        self,
+        ftrs_service: FtrsService,
+        mock_repository: object,
+        mock_bundle_mapper: object,
+        organisation: object,
+    ) -> None:
         # Arrange
         ods_code = "O123"
         expected_bundle = mock_bundle_mapper.map_to_fhir.return_value
@@ -55,8 +65,11 @@ class TestFtrsService:
         assert result == expected_bundle
 
     def test_endpoints_by_ods_not_found(
-        self, ftrs_service, mock_repository, mock_bundle_mapper
-    ):
+        self,
+        ftrs_service: FtrsService,
+        mock_repository: object,
+        mock_bundle_mapper: object,
+    ) -> None:
         # Arrange
         ods_code = "UNKNOWN"
         organisation = None
@@ -72,8 +85,11 @@ class TestFtrsService:
         assert result == expected_bundle
 
     def test_endpoints_by_ods_repository_exception(
-        self, ftrs_service, mock_repository, mock_bundle_mapper
-    ):
+        self,
+        ftrs_service: FtrsService,
+        mock_repository: object,
+        mock_bundle_mapper: object,
+    ) -> None:
         # Arrange
         ods_code = "O123"
         expected_exc = Exception("Repository error")
@@ -89,8 +105,12 @@ class TestFtrsService:
         assert exc_info.value == expected_exc
 
     def test_endpoints_by_ods_mapper_exception(
-        self, ftrs_service, mock_repository, mock_bundle_mapper, organisation
-    ):
+        self,
+        ftrs_service: FtrsService,
+        mock_repository: object,
+        mock_bundle_mapper: object,
+        organisation: object,
+    ) -> None:
         # Arrange
         ods_code = "O123"
         expected_exc = Exception("Mapper error")

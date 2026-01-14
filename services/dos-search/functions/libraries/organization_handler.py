@@ -1,13 +1,13 @@
+from __future__ import annotations
+
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
-from aws_lambda_powertools.logging import correlation_paths
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
-from functions import error_util
-from functions.ftrs_service.ftrs_service import FtrsService
-from functions.organization_query_params import OrganizationQueryParams
+from functions.libraries import error_util
+from functions.libraries.ftrs_service.ftrs_service import FtrsService
+from functions.libraries.organization_query_params import OrganizationQueryParams
 
 
 class InvalidRequestHeadersError(ValueError):
@@ -16,10 +16,6 @@ class InvalidRequestHeadersError(ValueError):
 
 logger = Logger()
 tracer = Tracer()
-router = APIGatewayRestResolver()
-
-# Backwards compatibility: keep `app` as an alias for existing tests/imports.
-app = router
 
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
@@ -53,9 +49,19 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
         raise InvalidRequestHeadersError(invalid_headers)
 
 
-@router.get("/Organization")
+def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
+    logger.info("Creating response", extra={"status_code": status_code})
+    return Response(
+        status_code=status_code,
+        headers=DEFAULT_RESPONSE_HEADERS,
+        body=fhir_resource.model_dump_json(),
+    )
+
+
 @tracer.capture_method
-def get_organization() -> Response:
+def handle_get_organization(router: APIGatewayRestResolver) -> Response:
+    """Handle GET /Organization."""
+
     try:
         _validate_headers(router.current_event.headers)
 
@@ -91,22 +97,3 @@ def get_organization() -> Response:
     else:
         logger.info("Successfully processed")
         return create_response(200, fhir_resource)
-
-
-def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
-    logger.info("Creating response", extra={"status_code": status_code})
-    return Response(
-        status_code=status_code,
-        headers=DEFAULT_RESPONSE_HEADERS,
-        body=fhir_resource.model_dump_json(),
-    )
-
-
-@logger.inject_lambda_context(
-    correlation_id_path=correlation_paths.API_GATEWAY_REST,
-    log_event=True,
-    clear_state=True,
-)
-@tracer.capture_lambda_handler
-def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    return router.resolve(event, context)
