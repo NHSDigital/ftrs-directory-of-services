@@ -13,7 +13,7 @@ on:
         type: string # TEMP
       environment:
         description: "The deployment environment"
-        required: true
+        required: false
         type: string
         default: "mgmt"
       repo_name:
