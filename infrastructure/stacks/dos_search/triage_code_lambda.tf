@@ -5,7 +5,7 @@
 
 module "triage_code_lambda" {
   source         = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
-  function_name  = "${local.resource_prefix}-${var.lambda_name}-triage-code"
+  function_name  = "${local.resource_prefix}-triage-code"
   description    = "Lambda for triage_code endpoint (placeholder until contract finalised)"
   handler        = "functions/triage_code/handler.lambda_handler"
   runtime        = var.lambda_runtime
