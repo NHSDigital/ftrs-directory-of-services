@@ -24,8 +24,7 @@ module "lambda" {
   handler                = "functions/organisation/handler.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  lambda_name            = "organization"
-  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.lambda_name}-${var.application_tag}.zip"
+  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-organization-${var.application_tag}.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "2"
