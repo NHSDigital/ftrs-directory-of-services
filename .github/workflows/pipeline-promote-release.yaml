@@ -38,7 +38,7 @@ jobs:
       tag: ${{ inputs.release_tag }}
 
   promote-release:
-    name: "Promote ${{ matrix.name }} artefacts for release ${{ inputs.release_tag }}"
+    name: "Promote artefacts for release ${{ inputs.release_tag }}"
     needs:
       - metadata
     uses: ./.github/workflows/promote-artefacts.yaml
