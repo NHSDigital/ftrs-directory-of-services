@@ -45,6 +45,6 @@ locals {
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
 
-  opensearch_collection_name = var.opensearch_collection_name
-  opensearch_index_name      = "${var.index_base}${local.workspace_suffix}"
+  # Will be used by dos-search stack
+  opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
 }

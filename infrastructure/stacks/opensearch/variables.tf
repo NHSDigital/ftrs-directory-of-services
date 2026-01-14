@@ -57,4 +57,3 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }
-
