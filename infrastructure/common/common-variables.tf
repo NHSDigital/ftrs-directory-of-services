@@ -189,9 +189,3 @@ variable "index_base" {
   type        = string
   default     = "triage_code"
 }
-
-variable "opensearch_collection_name" {
-  description = "Optional existing OpenSearch collection name to use; leave empty to let modules create or lookup a collection."
-  type        = string
-  default     = ""
-}

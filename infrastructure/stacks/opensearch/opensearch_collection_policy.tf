@@ -106,7 +106,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
 
   name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
   type        = "data"
-  description = "Collection-level data access policy for OpenSearch collection ${local.opensearch_collection_name} (grants collection & index ops)"
+  description = "Collection-level data access policy for OpenSearch collection ${data.aws_opensearchserverless_collection.opensearch_serverless_collection.name} (grants collection & index ops)"
 
   policy = jsonencode([
     {
