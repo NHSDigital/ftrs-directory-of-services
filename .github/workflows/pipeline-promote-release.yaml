@@ -41,27 +41,8 @@ jobs:
     name: "Promote ${{ matrix.name }} artefacts for release ${{ inputs.release_tag }}"
     needs:
       - metadata
-    strategy:
-      matrix:
-        include:
-          - name: "python"
-            build_type: "package"
-          - name: "crud-apis"
-            build_type: "service"
-          - name: "data-migration"
-            build_type: "service"
-          - name: "read-only-viewer"
-            build_type: "service"
-          - name: "etl-ods"
-            build_type: "service"
-          - name: "dos-search"
-            build_type: "service"
-          - name: "dos-ui"
-            build_type: "service"
     uses: ./.github/workflows/promote-artefacts.yaml
     with:
-      name: ${{ matrix.name }}
-      build_type: ${{ matrix.build_type }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       artefact_promotion_type: "promote-release"
       type: app
