@@ -81,20 +81,17 @@ publish:
 
 stage-release:
 	@echo "Staging release $(RELEASE_TAG) for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_STAGING_PATH)/$(PACKAGES_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json s3://$(ARTEFACT_STAGING_PATH)/build-info.json --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
 promote-rc:
 	@echo "Promoting $(RELEASE_TAG) to release candidate for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_RC_PATH)/$(PACKAGES_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/build-info.json s3://$(ARTEFACT_RC_PATH)/build-info.json --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RC_PATH)/ --region $(AWS_REGION)
 	@echo "Promoted to release candidate"
 
 publish-release:
 	@echo "Publishing release $(RELEASE_TAG) for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_RC_PATH)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_RELEASE_PATH)/$(PACKAGES_LAYER_NAME).zip --region $(AWS_REGION)
-	aws s3 cp s3://$(ARTEFACT_RC_PATH)/build-info.json s3://$(ARTEFACT_RELEASE_PATH)/build-info.json --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_RC_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --region $(AWS_REGION)
 	@echo "Release published successfully"
 
 help:
