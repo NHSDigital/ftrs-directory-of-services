@@ -1,5 +1,5 @@
 name: Promote artefacts workflow
-run-name: Promote ${{ inputs.type }} - ${{ inputs.name }} artefacts
+run-name: Promote artefacts
 
 permissions:
   id-token: write
@@ -9,7 +9,7 @@ on:
     inputs:
       workspace:
         description: "The name of the workspace to deploy the application into"
-        required: true
+        required: false
         type: string # TEMP
       environment:
         description: "The deployment environment"
@@ -39,7 +39,7 @@ on:
 
 jobs:
   promote-artefacts:
-    name: "Promote ${{ inputs.type }} - ${{ inputs.name }} artefacts"
+    name: "Promote artefacts"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
