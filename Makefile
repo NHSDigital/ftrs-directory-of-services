@@ -27,3 +27,10 @@ config:: # Configure development environment (main) @Configuration
 	make _install-dependencies
 
 # ==============================================================================
+
+${VERBOSE}.SILENT: \
+	build \
+	clean \
+	config \
+	dependencies \
+	deploy \

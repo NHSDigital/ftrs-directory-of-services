@@ -11,7 +11,7 @@ module "triage_code_lambda" {
   runtime        = var.lambda_runtime
   s3_bucket_name = local.artefacts_bucket
 
-  s3_key      = "${local.artefact_base_path}/${var.project}-${var.stack_name}-triage-code-${var.application_tag}.zip"
+  s3_key = "${local.artefact_base_path}/${var.project}-${var.stack_name}-triage-code-${var.application_tag}.zip"
 
   attach_tracing_policy  = true
   tracing_mode           = "Active"
