@@ -62,7 +62,7 @@ jobs:
           echo "release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
 
   promote-release-candidate:
-    name: "Promote ${{ matrix.name }} artefacts for release ${{ needs.tag-release.outputs.release_tag }}"
+    name: "Promote artefacts for release ${{ needs.tag-release.outputs.release_tag }}"
     needs:
       - metadata
       - tag-release
