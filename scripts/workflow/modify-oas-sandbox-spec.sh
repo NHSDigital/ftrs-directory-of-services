@@ -12,7 +12,7 @@ if ! command -v yq >/dev/null 2>&1; then
 fi
 
 ORIGINAL_TARGET_SPEC="docs/specification/x-nhsd-apim/target-sandbox-${API_NAME}.yaml"
-SPEC_FILE="docs/specification/${API_NAME}-sandbox.yaml"
+SPEC_FILE="docs/specification/${API_NAME}.yaml"
 
 if [[ ! -f "$ORIGINAL_TARGET_SPEC" ]]; then
     echo "Error: Spec file not found at $ORIGINAL_TARGET_SPEC" >&2
