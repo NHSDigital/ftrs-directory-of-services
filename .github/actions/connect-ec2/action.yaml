@@ -1,0 +1,29 @@
+name: "Connect EC2 action"
+description: "Connect to an EC2 instance"
+
+inputs:
+  ec2-name-tag:
+    description: "The Name tag of the EC2 instance to connect to"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Look up EC2 instance ID by tag
+      id: lookup
+      shell: bash
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=${{ inputs.ec2-name-tag }}" \
+          --query "Reservations[0].Instances[0].InstanceId" \
+          --output text)
+
+        echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+    - name: Connect to EC2 via SSM
+      shell: bash
+      run: |
+        aws ssm send-command \
+          --instance-ids ${{ steps.lookup.outputs.instance_id }} \
+          --document-name "AWS-RunShellScript" \
+          --parameters commands=["echo Hello from GitHub Actions","uname -a"]

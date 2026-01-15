@@ -1,0 +1,67 @@
+name: Performance Test Pipeline
+
+# Workflow description
+# Run performance test
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: "The test file to run"
+        required: true
+        type: string
+      environment:
+        description: "Specify the environment to the performance test against"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+      tag:
+        description: "The application tag to test against"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  metadata:
+    name: "Get CI/CD metadata"
+    uses: ./.github/workflows/metadata.yaml
+
+  run_performance_test:
+    name: "Run performance test"
+    timeout-minutes: 15
+    environment: ${{ needs.input.environment }}
+    needs:
+      - metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+
+      - name: "Start EC2 performance instance"
+        uses: ./.github/actions/start-ec2
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+
+      - name: "Connect to EC2"
+        uses: ./.github/actions/connect-ec2
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
