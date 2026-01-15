@@ -45,11 +45,10 @@ NESTED_PATHS_WITH_META_FIELDS = [
 IGNORED_PATHS = [
     "field",
     *META_TIME_FIELDS,
-    *[
-        re.compile(r"root\['{nested}']\[\d+]\['{field}']")
-        for nested in NESTED_PATHS_WITH_META_FIELDS
-        for field in META_TIME_FIELDS
-    ],
+    *AUDIT_FIELDS,
+    *DYNAMIC_FIELDS,
+    *[re.compile(rf"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in META_TIME_FIELDS],
+    *[re.compile(rf"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in AUDIT_FIELDS],
 ]
 
 scenarios(
