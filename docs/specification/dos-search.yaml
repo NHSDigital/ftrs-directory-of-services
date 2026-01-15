@@ -291,7 +291,7 @@ paths:
                               version: "1.0.0"
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
-                        diagnostics: "The request is missing the 'revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+                        diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
                 invalid-identifier-system:
                   summary: Invalid identifier system
                   value:
