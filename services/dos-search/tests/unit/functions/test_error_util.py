@@ -160,12 +160,12 @@ class TestErrorUtil:
         err = ValidationError.from_exception_data(
             "ValidationError",
             [
-                dict(
-                    type="string_type",
-                    loc=("identifier",),
-                    msg="Input should be a valid string",
-                    input=None,
-                )
+                {
+                    "type": "string_type",
+                    "loc": ("identifier",),
+                    "msg": "Input should be a valid string",
+                    "input": None,
+                }
             ],
         )
         result = create_validation_error_operation_outcome(err)
