@@ -38,7 +38,7 @@ jobs:
   run_performance_test:
     name: "Run performance test"
     timeout-minutes: 15
-    environment: ${{ needs.input.environment }}
+    environment: ${{ inputs.environment }}
     needs:
       - metadata
     runs-on: ubuntu-latest
