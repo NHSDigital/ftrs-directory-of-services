@@ -540,7 +540,11 @@ components:
                 type: boolean
               valueCode:
                 type: string
-
+        managingOrganization:
+          type: object
+          properties:
+            reference:
+              type: string
     OperationOutcome:
       type: object
       required:
