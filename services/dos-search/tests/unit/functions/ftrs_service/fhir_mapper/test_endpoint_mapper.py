@@ -29,7 +29,7 @@ class TestEndpointMapper:
         assert len(result[0].coding) == 1
         assert (
             result[0].coding[0].system
-            == "https://hl7.org/fhir/ValueSet/endpoint-payload-type"
+            == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
         )
         assert result[0].coding[0].code == EndpointPayloadType.ED.value
 
