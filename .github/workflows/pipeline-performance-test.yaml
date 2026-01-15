@@ -31,16 +31,11 @@ permissions:
   id-token: write
 
 jobs:
-  metadata:
-    name: "Get CI/CD metadata"
-    uses: ./.github/workflows/metadata.yaml
 
   run_performance_test:
     name: "Run performance test"
     timeout-minutes: 15
     environment: ${{ inputs.environment }}
-    needs:
-      - metadata
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
