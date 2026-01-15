@@ -187,7 +187,8 @@ paths:
                       resourceType: "Organization"
                       id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       identifier:
-                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                        - use: "official"
+                          system: "https://fhir.nhs.uk/Id/ods-organization-code"
                           value: "ABC123"
                       active: true
                       name: "Example Organization"
@@ -430,6 +431,9 @@ components:
           items:
             type: object
             properties:
+              use:
+                type: string
+                enum: [ "official" ]
               system:
                 type: string
               value:
