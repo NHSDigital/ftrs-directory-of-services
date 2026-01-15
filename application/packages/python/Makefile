@@ -20,8 +20,6 @@ ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
 ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(RELEASE_TAG)
-ARTEFACT_RC_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
-ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_TAG)
 
 ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
@@ -83,16 +81,6 @@ stage-release:
 	@echo "Staging release $(RELEASE_TAG) for Python packages..."
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
 	@echo "Release staged successfully"
-
-promote-rc:
-	@echo "Promoting $(RELEASE_TAG) to release candidate for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RC_PATH)/ --region $(AWS_REGION)
-	@echo "Promoted to release candidate"
-
-publish-release:
-	@echo "Publishing release $(RELEASE_TAG) for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_RC_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --region $(AWS_REGION)
-	@echo "Release published successfully"
 
 help:
 	@echo "Python Packages Makefile Targets:"

@@ -25,7 +25,6 @@ else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
-ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 ARTEFACT_RELEASE_CANDIDATE_PATH := $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
 
 # ==============================================================================
@@ -118,6 +117,7 @@ ifeq ($(strip $(PRERELEASE_TAG)),)
 		echo "Error: No staging versions found"; \
 		exit 1; \
 	fi
+	ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 else
 	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
 endif
