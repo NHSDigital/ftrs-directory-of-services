@@ -1,14 +1,14 @@
-name: "Start EC2 action"
-description: "Start an EC2 instance"
+name: "Stop EC2 action"
+description: "Stop an EC2 instance"
 
 inputs:
   ec2-name-tag:
-    description: "The Name tag of the EC2 instance to start"
+    description: "The Name tag of the EC2 instance to stop"
     required: true
 
 outputs:
   ec2-instance-id:
-    description: 'Instance ID of the started EC2 instance'
+    description: 'Instance ID of the stopped EC2 instance'
     value: ${{ steps.lookup.outputs.instance_id }}
 
 runs:
@@ -25,12 +25,12 @@ runs:
 
         echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
 
-    - name: Start EC2 instance
+    - name: Stop EC2 instance
       shell: bash
       run: |
-        aws ec2 start-instances --instance-ids ${{ steps.lookup.outputs.instance_id }}
+        aws ec2 stop-instances --instance-ids ${{ steps.lookup.outputs.instance_id }}
 
-    - name: Wait for instance to be running
+    - name: Wait for instance to be stopped
       shell: bash
       run: |
         aws ec2 wait instance-running --instance-ids ${{ steps.lookup.outputs.instance_id }}

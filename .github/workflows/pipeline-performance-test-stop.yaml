@@ -1,4 +1,4 @@
-name: Performance Test Pipeline
+name: Performance Test Stop Pipeline
 
 # Workflow description
 # Run performance test
@@ -7,22 +7,14 @@ name: Performance Test Pipeline
 on:
   workflow_dispatch:
     inputs:
-      test_file:
-        description: "The test file to run"
-        required: true
-        type: string
       environment:
-        description: "Specify the environment to the performance test against"
+        description: "Specify the environment to stop the performance test"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
           - test
-      tag:
-        description: "The application tag to test against"
-        required: false
-        type: string
 
 permissions:
   contents: write
@@ -32,17 +24,12 @@ permissions:
 
 jobs:
 
-  run_performance_test:
-    name: "Run performance test"
-    timeout-minutes: 15
+  stop_performance_test:
+    name: "Stop performance test"
+    timeout-minutes: 5
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
-
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
         with:
@@ -51,16 +38,8 @@ jobs:
           type: app
           environment: ${{ inputs.environment }}
 
-      - name: "Start EC2 performance instance"
-        id: start-ec2
-        uses: ./.github/actions/start-ec2
+      - name: "Stop EC2 performance instance"
+        id: stop-ec2
+        uses: ./.github/actions/stop-ec2
         with:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
-
-      - name: "Connect to EC2"
-        uses: ./.github/actions/connect-ec2
-        with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-
-      - name: "Run performance test"
-        uses: ./.github/actions/run-test
