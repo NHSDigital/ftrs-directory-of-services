@@ -117,10 +117,10 @@ ifeq ($(strip $(PRERELEASE_TAG)),)
 		echo "Error: No staging versions found"; \
 		exit 1; \
 	fi
-	ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 else
 	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
 endif
+	ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 
 stage-release: set-prerelease-version
 	@echo "Staging release $(PRERELEASE_TAG)"
