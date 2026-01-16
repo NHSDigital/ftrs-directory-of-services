@@ -11,7 +11,7 @@ on:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       release_tag:
-        description: "Specify the release tag to be used for promotion (e.g. v1.1.0)"
+        description: "Specify the release candidate tag to be used for promotion (e.g. v1.1.0-rc.1)"
         required: true
         type: string
 
@@ -27,13 +27,13 @@ jobs:
       - name: "Validate release tag"
         id: validate
         run: |
-          RELEASE_TAG="${{ inputs.release_tag }}"
-          if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            RELEASE_TAG="${{ inputs.release_tag }}"
+            if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "Invalid release tag format: $RELEASE_TAG"
             exit 1
-          else
+            else
             echo "Release tag format is valid: $RELEASE_TAG"
-          fi
+            fi
 
   metadata:
     name: "Get CI/CD metadata"
