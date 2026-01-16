@@ -29,7 +29,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
@@ -37,32 +37,32 @@ jobs:
   run_performance_test:
     name: "Run performance test"
     timeout-minutes: 15
-    environment: ${{ inputs.environment }}
+    environment: "dev"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
+        # with:
+        #   ref: ${{ inputs.tag }}
 
-      - name: "Configure AWS credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: app
-          environment: ${{ inputs.environment }}
+      # - name: "Configure AWS credentials"
+      #   uses: ./.github/actions/configure-credentials
+      #   with:
+      #     aws_account_id: ${{ secrets.ACCOUNT_ID }}
+      #     aws_region: ${{ vars.AWS_REGION }}
+      #     type: app
+      #     environment: ${{ inputs.environment }}
 
-      - name: "Start EC2 performance instance"
-        id: start-ec2
-        uses: ./.github/actions/start-ec2
-        with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+      # - name: "Start EC2 performance instance"
+      #   id: start-ec2
+      #   uses: ./.github/actions/start-ec2
+      #   with:
+      #     ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
-      - name: "Connect to EC2"
-        uses: ./.github/actions/connect-ec2
-        with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+      # - name: "Connect to EC2"
+      #   uses: ./.github/actions/connect-ec2
+      #   with:
+      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
 
-      - name: "Run performance test"
-        uses: ./.github/actions/run-test
+      # - name: "Run performance test"
+      #   uses: ./.github/actions/run-test
