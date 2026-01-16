@@ -1,4 +1,5 @@
 """Helper utilities for verifying migration metrics."""
+
 from dataclasses import dataclass
 from typing import Any
 

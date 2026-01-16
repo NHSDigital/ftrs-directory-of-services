@@ -1,12 +1,17 @@
+import uuid
+
 import pytest
 from ftrs_data_layer.domain import DBModel, Organisation
 from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from pytest_bdd import given, parsers, then, when
-from utilities.infra.repo_util import model_from_json_file, save_json_file_from_model, check_record_in_repo
-from utilities.common.context import Context
 from loguru import logger
-import uuid
+from pytest_bdd import given, parsers, then, when
+from utilities.common.context import Context
+from utilities.infra.repo_util import (
+    check_record_in_repo,
+    model_from_json_file,
+    save_json_file_from_model,
+)
 
 
 @given(parsers.parse("I have a {repo_name} repo"), target_fixture="model_repo")
@@ -38,6 +43,7 @@ def create_model_from_json(model_repo: AttributeLevelRepository, json_file: str)
     model_repo.create(model)
     yield
     model_repo.delete(model.id)
+
 
 @when(
     parsers.parse('I get a record with id "{model_id}" from the repo'),
@@ -78,6 +84,7 @@ def model_not_exists(get_model_result: Organisation | None):
 def save_model_as_json(get_model_result: DBModel):
     save_json_file_from_model(get_model_result)
 
+
 def _create_model(model_repo, json_file, ods_code):
     """Helper to create and return a model with unique ID and ODS code."""
     model = model_from_json_file(json_file, model_repo)
@@ -96,8 +103,14 @@ def _create_model(model_repo, json_file, ods_code):
     return model
 
 
-@given(parsers.parse('I create a model in the repo from json file "{json_file}" using specific ODS codes'))
-def create_model_from_json_with_specificods(model_repo: AttributeLevelRepository, json_file: str, context: Context):
+@given(
+    parsers.parse(
+        'I create a model in the repo from json file "{json_file}" using specific ODS codes'
+    )
+)
+def create_model_from_json_with_specificods(
+    model_repo: AttributeLevelRepository, json_file: str, context: Context
+):
     """
     Create a model from JSON file, update its ODS code from context, and save to repo temporarily.
     """
@@ -110,9 +123,17 @@ def create_model_from_json_with_specificods(model_repo: AttributeLevelRepository
     logger.info("Single model cleanup complete")
 
 
-
-@given(parsers.parse('I create {count:d} models in the repo from json file "{json_file}" using context ODS codes'))
-def create_models_from_json(model_repo: AttributeLevelRepository, json_file: str, context: Context, count: int = 10):
+@given(
+    parsers.parse(
+        'I create {count:d} models in the repo from json file "{json_file}" using context ODS codes'
+    )
+)
+def create_models_from_json(
+    model_repo: AttributeLevelRepository,
+    json_file: str,
+    context: Context,
+    count: int = 10,
+):
     """
     Create multiple models from a JSON file, assign ODS codes from context, generate UUIDs, save to repo, and cleanup after test.
     Only works if the number of context.ods_codes matches the required count.

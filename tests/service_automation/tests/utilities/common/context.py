@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any, Self
+from typing import Any, Dict, List, Optional, Self
+
 from ftrs_data_layer.domain import Organisation
 
 

@@ -1,4 +1,5 @@
 """DynamoDB table configurations for testing."""
+
 import os
 from typing import Any
 
@@ -49,41 +50,38 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
     ]
 
     triage_code_table = {
-        "TableName": get_table_name('triage-code'),
+        "TableName": get_table_name("triage-code"),
         "KeySchema": [
             {"AttributeName": "id", "KeyType": "HASH"},
-            {"AttributeName": "field", "KeyType": "RANGE"}
+            {"AttributeName": "field", "KeyType": "RANGE"},
         ],
         "AttributeDefinitions": [
             {"AttributeName": "id", "AttributeType": "S"},
             {"AttributeName": "field", "AttributeType": "S"},
-            {"AttributeName": "codeType", "AttributeType": "S"}
+            {"AttributeName": "codeType", "AttributeType": "S"},
         ],
         "GlobalSecondaryIndexes": [
             {
-                'IndexName': 'CodeTypeIndex',
-                'KeySchema': [
-                    {'AttributeName': 'codeType', 'KeyType': 'HASH'},
-                    {'AttributeName': 'id', 'KeyType': 'RANGE'},
+                "IndexName": "CodeTypeIndex",
+                "KeySchema": [
+                    {"AttributeName": "codeType", "KeyType": "HASH"},
+                    {"AttributeName": "id", "KeyType": "RANGE"},
                 ],
-                'Projection': {
-                    'ProjectionType': 'ALL'
-                }
+                "Projection": {"ProjectionType": "ALL"},
             }
         ],
-        "BillingMode": "PAY_PER_REQUEST"
+        "BillingMode": "PAY_PER_REQUEST",
     }
 
     data_migration_state_table = {
-        "TableName": get_table_name('data-migration-state'),
-
+        "TableName": get_table_name("data-migration-state"),
         "KeySchema": [
             {"AttributeName": "source_record_id", "KeyType": "HASH"},
         ],
         "AttributeDefinitions": [
             {"AttributeName": "source_record_id", "AttributeType": "S"}
         ],
-        "BillingMode": "PAY_PER_REQUEST"
+        "BillingMode": "PAY_PER_REQUEST",
     }
     tables.append(data_migration_state_table)
 

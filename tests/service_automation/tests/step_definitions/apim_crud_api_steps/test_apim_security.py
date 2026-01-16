@@ -1,11 +1,11 @@
-from pytest_bdd import when, parsers, scenarios
-from utilities.common.constants import ENDPOINTS
-from utilities.common.json_helper import read_json_file
-from step_definitions.common_steps.api_steps import *
-from loguru import logger
+import json
 from pathlib import Path
 from typing import Optional
-import json
+
+from loguru import logger
+from pytest_bdd import parsers, scenarios, when
+from utilities.common.constants import ENDPOINTS
+from utilities.common.json_helper import read_json_file
 
 # Load the feature file
 scenarios("./apim_crud_api_features/apim_security.feature")

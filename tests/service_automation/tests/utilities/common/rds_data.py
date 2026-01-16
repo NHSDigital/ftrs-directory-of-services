@@ -1,4 +1,5 @@
 """Seed database with GP organisation test data."""
+
 from ftrs_data_layer.domain import legacy
 
 gp_service = [
@@ -43,5 +44,5 @@ gp_service = [
         web="https://hillsidesurgery.nhs.uk",
         email="admin@hillsidesurgery.nhs.uk",
         publicphone="0121 496 0789",
-    )
+    ),
 ]

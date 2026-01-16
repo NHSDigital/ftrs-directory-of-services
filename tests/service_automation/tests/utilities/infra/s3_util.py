@@ -44,13 +44,17 @@ class S3Utils:
 
     def download_object(self, bucket_name, filepath, filename):
         try:
-            self.s3_client.download_file(Bucket=bucket_name, Key=filename, Filename=filepath)
+            self.s3_client.download_file(
+                Bucket=bucket_name, Key=filename, Filename=filepath
+            )
         except Exception:
             logger.error("Error: file could not be downloaded")
 
     def put_object(self, bucket_name, filepath, file_name):
         try:
-            self.s3_client.upload_file(Filename=filepath, Bucket=bucket_name, Key=file_name)
+            self.s3_client.upload_file(
+                Filename=filepath, Bucket=bucket_name, Key=file_name
+            )
         except Exception:
             logger.error("Error: file could not be uploaded")
 

@@ -1,13 +1,11 @@
-import pytest
-from pytest_bdd import scenarios, given, when, then, parsers
+from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import text
 
-
 # Load scenarios from feature files
-scenarios('./data_migration_features/load_dos_schema_data_to_testcontainer.feature')
+scenarios("./data_migration_features/load_dos_schema_data_to_testcontainer.feature")
 
 
-@given('I have a database with migrated data')
+@given("I have a database with migrated data")
 def database_with_migrated_data(migration_context):
     """Set up context with migrated database."""
     # Verify we have migrated data

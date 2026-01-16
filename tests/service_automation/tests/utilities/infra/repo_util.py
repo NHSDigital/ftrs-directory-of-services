@@ -1,8 +1,8 @@
 import json
-from loguru import logger
 
 from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from loguru import logger
 
 JSON_FILES_PATH = "tests/json_files/"
 

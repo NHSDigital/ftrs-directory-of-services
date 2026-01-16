@@ -5,13 +5,12 @@ from decimal import Decimal
 from typing import Any, Type
 
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from ftrs_data_layer.domain import legacy as legacy_model
+from pytest_bdd import given, parsers, then, when
 from sqlalchemy.orm import Session
 from sqlmodel import select
-
-from ftrs_data_layer.domain import legacy as legacy_model
-from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 from utilities.common.constants import STRING_FIELDS
+from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 
 
 def parse_datatable_value(value: str) -> Any:
@@ -65,17 +64,15 @@ def get_entity_class(entity_name: str) -> Type[legacy_model.LegacyDoSModel]:
     entity_cls = getattr(legacy_model, entity_name, None)
 
     assert entity_cls is not None, f"Legacy data model not found: {entity_name}"
-    assert issubclass(
-        entity_cls, legacy_model.LegacyDoSModel
-    ), f"{entity_name} does not inherit from LegacyDoSModel"
+    assert issubclass(entity_cls, legacy_model.LegacyDoSModel), (
+        f"{entity_name} does not inherit from LegacyDoSModel"
+    )
 
     return entity_cls
 
 
 def normalize_value_for_comparison(
-    actual_value: Any,
-    expected_value: Any,
-    field_name: str
+    actual_value: Any, expected_value: Any, field_name: str
 ) -> tuple[Any, Any]:
     """
     Normalize two values for comparison.
@@ -94,7 +91,10 @@ def normalize_value_for_comparison(
         Tuple of (normalized_actual, normalized_expected)
     """
     # Convert Decimal to int if it's a whole number
-    if isinstance(actual_value, Decimal) and actual_value == actual_value.to_integral_value():
+    if (
+        isinstance(actual_value, Decimal)
+        and actual_value == actual_value.to_integral_value()
+    ):
         actual_value = int(actual_value)
 
     # Normalize datetime comparisons (remove timezone info)
@@ -128,7 +128,9 @@ def normalize_value_for_comparison(
     return actual_value, expected_value
 
 
-def validate_datatable(datatable: list[list[str]] | None, step_description: str) -> None:
+def validate_datatable(
+    datatable: list[list[str]] | None, step_description: str
+) -> None:
     """
     Validate that datatable is present and has data.
 
@@ -140,13 +142,15 @@ def validate_datatable(datatable: list[list[str]] | None, step_description: str)
         AssertionError: If datatable is invalid
     """
     assert datatable is not None, f"Datatable is required for {step_description}"
-    assert len(datatable) > 1, f"Datatable must contain at least one row of data for {step_description}"
+    assert len(datatable) > 1, (
+        f"Datatable must contain at least one row of data for {step_description}"
+    )
 
 
 def create_model_data_from_datatable(
     entity_cls: Type[legacy_model.LegacyDoSModel],
     datatable: list[list[str]],
-    entity_name: str
+    entity_name: str,
 ) -> dict[str, Any]:
     """
     Create model data dictionary from datatable.
@@ -240,16 +244,17 @@ def dos_data_insert_step(
     if "created_entities" not in migration_context:
         migration_context["created_entities"] = []
 
-    migration_context["created_entities"].append({
-        "type": entity_name,
-        "instance": model_obj
-    })
+    migration_context["created_entities"].append(
+        {"type": entity_name, "instance": model_obj}
+    )
 
     return model_obj
 
 
 @given(
-    parsers.parse('the "{entity_name}" with id "{entity_id}" is updated with attributes'),
+    parsers.parse(
+        'the "{entity_name}" with id "{entity_id}" is updated with attributes'
+    ),
     target_fixture="updated_dos_entity",
 )
 def dos_data_update_step(
@@ -291,7 +296,9 @@ def dos_data_update_step(
     parsed_id = parse_datatable_value(entity_id)
     model_obj = dos_db_with_migration.get(entity_cls, parsed_id)
 
-    assert model_obj is not None, f"{entity_name} with id '{entity_id}' not found in database"
+    assert model_obj is not None, (
+        f"{entity_name} with id '{entity_id}' not found in database"
+    )
 
     # Update with values from datatable
     for row in datatable[1:]:
@@ -315,16 +322,16 @@ def dos_data_update_step(
     if "updated_entities" not in migration_context:
         migration_context["updated_entities"] = []
 
-    migration_context["updated_entities"].append({
-        "type": entity_name,
-        "id": entity_id,
-        "instance": model_obj
-    })
+    migration_context["updated_entities"].append(
+        {"type": entity_name, "id": entity_id, "instance": model_obj}
+    )
 
     return model_obj
 
 
-@when(parsers.parse('I query the "{table_name}" table for "{field_name}" "{field_value}"'))
+@when(
+    parsers.parse('I query the "{table_name}" table for "{field_name}" "{field_value}"')
+)
 def query_table_by_field(
     migration_context: dict,
     dos_db_with_migration: Session,
@@ -364,12 +371,14 @@ def query_table_by_field(
     result = dos_db_with_migration.exec(statement).first()
 
     # Store result in context
-    migration_context.update({
-        "queried_entity": result,
-        "queried_table": table_name,
-        "queried_field": field_name,
-        "queried_value": parsed_value,
-    })
+    migration_context.update(
+        {
+            "queried_entity": result,
+            "queried_table": table_name,
+            "queried_field": field_name,
+            "queried_value": parsed_value,
+        }
+    )
 
 
 @then("the record should exist in the database")
