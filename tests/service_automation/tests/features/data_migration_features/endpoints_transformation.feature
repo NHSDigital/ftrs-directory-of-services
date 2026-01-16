@@ -194,8 +194,8 @@ Feature: Data Migration for endpoints
               {
                   "address": "ODS:C84016",
                   "connectionType": "http",
-                  "createdBy": "DATA_MIGRATION",
-                  "createdDateTime": "2025-11-28T12:49:13.248485Z",
+                  "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+                  "createdTime": "2025-11-28T12:49:13.248485Z",
                   "description": "Primary",
                   "id": "bab8991d-a550-599c-a6b1-724963efac89",
                   "identifier_oldDoS_id": 500004,
@@ -214,7 +214,7 @@ Feature: Data Migration for endpoints
               {
                   "address": "telephone number",
                   "connectionType": "telno",
-                  "createdBy": "DATA_MIGRATION",
+                  "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
                   "createdTime": "2025-11-28T12:49:13.248485Z",
                   "description": "Primary",
                   "id": "abdbab5b-da78-5f26-9974-65db28fbe714",
@@ -234,7 +234,7 @@ Feature: Data Migration for endpoints
               {
                   "address": "12345123456",
                   "connectionType": "telno",
-                  "createdBy": "DATA_MIGRATION",
+                  "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
                   "createdTime": "2025-11-28T12:49:13.248485Z",
                   "description": "Primary",
                   "id": "57db7d5d-f9a4-58fb-828c-47cbe3e7e3d5",
