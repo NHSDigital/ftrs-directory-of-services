@@ -275,8 +275,10 @@ Feature: Organization API Endpoint
       | email | test12@gmail.com    |
       | email | test12@yahoo.com    |
       | email | test@company.co.uk  |
+      | email | TEST@COMPANY.CO.UK  |
       | url   | http://example.com  |
       | url   | https://example.com |
+      | url   | HTTPS://EXAMPLE.COM |
 
   Scenario Outline: Reject Organization update with invalid telecom values
     Given that the stack is "organisation"
