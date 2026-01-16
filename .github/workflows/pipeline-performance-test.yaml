@@ -5,6 +5,10 @@ name: Performance Test Pipeline
 
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
+  push:
+    branches:
+      - main
+      - "task/**"
   workflow_dispatch:
     inputs:
       test_file:
@@ -26,8 +30,6 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
   id-token: write
 
 jobs:
