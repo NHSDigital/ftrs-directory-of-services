@@ -24,9 +24,8 @@ on:
         required: false
         type: string
       tag:
-        description: "The tag to build and deploy from"
-        required: true
-        default: ""
+        description: "The Git tag to build"
+        required: false
         type: string
       allure_report_retention:
         description: "The number of days to retain allure reports (in github)"

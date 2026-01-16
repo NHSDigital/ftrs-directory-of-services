@@ -27,12 +27,18 @@ on:
         description: "Specify the workspace to cleardown"
         required: true
         type: string
+      tag:
+        description: "Specify the Git tag to be used for cleardown (e.g. v1.1.0-pre.1)"
+        required: false
+        type: string
 
 jobs:
   metadata:
     if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
+    with:
+      tag: ${{ inputs.tag}}
 
   cleardown-infrastructure:
     name: "Cleardown Infrastructure"
@@ -47,6 +53,7 @@ jobs:
       release_tag: ${{ github.event.client_payload.environment || '' }}
       workflow_timeout: 30
       type: app
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   cleardown-apim-proxies:
@@ -60,6 +67,7 @@ jobs:
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       apim_env: internal-dev
       api_names: '["dos-search"]'
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   cleardown-artefacts:
@@ -74,6 +82,7 @@ jobs:
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
       type: app
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   slack-notifications:

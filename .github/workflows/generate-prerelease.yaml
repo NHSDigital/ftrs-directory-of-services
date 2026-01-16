@@ -6,6 +6,11 @@ permissions:
 
 on:
   workflow_call:
+    inputs:
+      tag:
+        description: "The Git tag to build"
+        required: false
+        type: string
     outputs:
       prerelease_tag:
         description: "The generated prerelease tag"
@@ -20,6 +25,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
 
       - name: "Generate prerelease tag"
         id: generate-prerelease
