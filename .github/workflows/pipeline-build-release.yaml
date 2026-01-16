@@ -177,6 +177,7 @@ jobs:
       - metadata
       - tag-release
       - service-automation-tests
+      - promote-release-art
     runs-on: ubuntu-latest
     steps:
       - name: Trigger downstream cleardown pipeline
@@ -185,6 +186,15 @@ jobs:
           repository: ${{ github.repository }}
           event-type: release-build-cleardown
           client-payload: '{"environment": "${{ needs.metadata.outputs.environment }}", "workspace": "rc", "release_tag": "${{ needs.tag-release.outputs.release_tag }}"}'
+  
+  promote-release-art:
+    name: "Promote Release Artefacts"
+    needs:
+      - tag-release
+      - service-automation-tests
+    uses: ./.github/workflows/pipeline-promote-release.yaml
+    with:
+      release_tag: ${{ needs.tag-release.outputs.release_tag }}
 
   check-pipeline-status:
     name: "Check pipeline status"

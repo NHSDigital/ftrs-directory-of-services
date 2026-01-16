@@ -64,3 +64,16 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
           WORKSPACE: ${{ inputs.workspace }} # TEMP
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          release_name: "Release ${{ inputs.release_tag }}"
+          body: |
+            $(git log --pretty=format:"%h %s" origin/main...HEAD)
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
