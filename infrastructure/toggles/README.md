@@ -29,13 +29,11 @@ All toggles are defined in the [toggle-registry.yaml](toggle-registry.yaml) file
 AppConfig flags are runtime toggles that control application behavior without requiring redeployment. These are stored in AWS AppConfig and can be modified dynamically.
 
 **Use Cases:**
-
 - Enable/disable data migration processes
 - Control feature availability in application logic
 - Implement gradual feature rollouts
 
 **Example:**
-
 ```yaml
 - id: data_migration_organisation_enabled
   name: "Data Migration - Organisation Enabled"
@@ -49,13 +47,11 @@ AppConfig flags are runtime toggles that control application behavior without re
 Stack toggles control whether entire infrastructure stacks are deployed via Terraform. These are infrastructure-level decisions that affect environment provisioning.
 
 **Use Cases:**
-
 - Enable/disable OpenSearch deployment
 - Control UI stack deployment
 - Manage infrastructure cost optimization
 
 **Example:**
-
 ```yaml
 - id: stack_opensearch_enabled
   name: "OpenSearch Stack Enabled"
@@ -69,13 +65,11 @@ Stack toggles control whether entire infrastructure stacks are deployed via Terr
 API Gateway toggles control the availability of specific API endpoints. When disabled, these endpoints return a configured error response (typically 503 Service Unavailable).
 
 **Use Cases:**
-
 - Enable/disable CRUD operations per resource type
 - Control search endpoint availability
 - Implement maintenance mode for specific endpoints
 
 **Example:**
-
 ```yaml
 - id: dos_search_organisation_search_enabled
   name: "DoS Search - Organisation Search Enabled"
@@ -123,7 +117,6 @@ All feature flag names MUST follow the standardized naming convention to ensure 
 ### Examples
 
 **Valid Names:**
-
 - `data_migration_organisation_enabled`
 - `dos_search_organisation_search_enabled`
 - `crud_api_location_create_enabled`
@@ -131,7 +124,6 @@ All feature flag names MUST follow the standardized naming convention to ensure 
 - `etl_ods_gp_practice_sync_enabled`
 
 **Invalid Names:**
-
 - `orgSearch` (camelCase, abbreviated)
 - `dos-search-enabled` (hyphens)
 - `SEARCH_ORG` (uppercase)
@@ -362,7 +354,6 @@ In case of production incidents, toggles can be disabled quickly:
 2. **AppConfig Flags**: Can be changed directly in AWS AppConfig (1-2 minutes)
 
 For AppConfig flags, emergency changes should:
-
 - Be communicated immediately to the team
 - Be followed up with a PR to update the registry
 - Be documented in incident reports
