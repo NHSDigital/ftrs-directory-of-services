@@ -60,6 +60,13 @@ def test_organisation() -> None:
 
 
 def test_organisation_no_type() -> None:
+    created_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+
     org = Organisation(
         id=uuid4(),
         identifier_ODS_ODSCode="123456",
@@ -74,10 +81,10 @@ def test_organisation_no_type() -> None:
                 type=TelecomType.WEB, value="https://test-site.nhs.net", isPublic=True
             ),
         ],
-        createdBy="test_user",
-        createdDateTime="2023-10-01T00:00:00Z",
-        modifiedBy="test_user",
-        modifiedDateTime="2023-10-01T00:00:00Z",
+        createdBy=created_by,
+        createdTime="2023-10-01T00:00:00Z",
+        lastUpdatedBy=modified_by,
+        lastUpdated="2023-10-01T00:00:00Z",
     )
 
     assert org.model_dump(mode="json") == {
@@ -85,10 +92,10 @@ def test_organisation_no_type() -> None:
         "identifier_ODS_ODSCode": "123456",
         "identifier_oldDoS_uid": "test_UUID",
         "active": True,
-        "createdBy": "test_user",
-        "createdDateTime": "2023-10-01T00:00:00Z",
-        "modifiedBy": "test_user",
-        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "createdBy": {"type": "user", "value": "test_user", "display": "Test User"},
+        "lastUpdatedBy": {"type": "user", "value": "test_user", "display": "Test User"},
+        "createdTime": "2023-10-01T00:00:00Z",
+        "lastUpdated": "2023-10-01T00:00:00Z",
         "non_primary_role_codes": [],
         "primary_role_code": None,
         "name": "Test GP Organisation",
