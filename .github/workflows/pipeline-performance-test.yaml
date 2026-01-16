@@ -45,13 +45,13 @@ jobs:
         # with:
         #   ref: ${{ inputs.tag }}
 
-      # - name: "Configure AWS credentials"
-      #   uses: ./.github/actions/configure-credentials
-      #   with:
-      #     aws_account_id: ${{ secrets.ACCOUNT_ID }}
-      #     aws_region: ${{ vars.AWS_REGION }}
-      #     type: app
-      #     environment: ${{ inputs.environment }}
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: "dev"
 
       # - name: "Start EC2 performance instance"
       #   id: start-ec2
