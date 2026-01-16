@@ -61,7 +61,6 @@ jobs:
       - validate-release-tag
       - metadata
       - promote-release
-      - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
