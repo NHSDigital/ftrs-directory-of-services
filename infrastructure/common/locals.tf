@@ -44,4 +44,7 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
+
+  # Will be used by dos-search stack
+  opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
 }

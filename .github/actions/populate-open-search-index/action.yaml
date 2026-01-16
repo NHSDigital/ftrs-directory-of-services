@@ -1,0 +1,51 @@
+name: 'Populate open search index action'
+description: 'Populates the required index in open search'
+
+inputs:
+  workspace:
+    description: 'The name of the workspace'
+    required: false
+    default: ''
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  aws_region:
+    description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
+    required: true
+    default: ''
+  table:
+    description: 'The DynamoDB table name to use'
+    required: true
+    default: 'ftrs-dos-dev-database-healthcare-service'
+  endpoint:
+    description: 'Resolved OpenSearch endpoint (from build action)'
+    required: true
+    default: ''
+  final_index:
+    description: 'Final index name created (from build action)'
+    required: true
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: Populate OpenSearch index
+      id: populate_index
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        AWS_REGION: ${{ inputs.aws_region }}
+        DYNAMODB_TABLE: ${{ inputs.table }}
+        OS_ENDPOINT: ${{ inputs.endpoint }}
+        OS_FINAL_INDEX: ${{ inputs.final_index }}
+      run: |
+        set -euo pipefail
+
+        echo "Using WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>} OS_ENDPOINT=${OS_ENDPOINT:-<unset>} OS_FINAL_INDEX=${OS_FINAL_INDEX:-<unset>}"
+
+        python3 -m pip install --upgrade pip setuptools wheel
+
+        python3 -m pip install boto3 requests
+
+        python3 ./scripts/workflow/populate_open_search_index.py
+

@@ -177,3 +177,9 @@ variable "included_cloudfront_log_fields" {
     "sc-range-end"
   ]
 }
+
+variable "index_base" {
+  description = "Base name of the OpenSearch index (workspace suffix will be appended at runtime)"
+  type        = string
+  default     = "triage_code"
+}
