@@ -79,3 +79,5 @@ jobs:
           release_name: "Release ${{ steps.clean_version.outputs.clean }}"
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
