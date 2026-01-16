@@ -5,10 +5,12 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
-        <stringProp name="HTTPSampler.domain">${__groovy(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; || props.get(&quot;test_mode&quot;) == &quot;proxy-stress&quot; ? (props.get(&quot;Apim_Env&quot;) + vars.get(&quot;Apim_Domain&quot;)) : vars.get(&quot;ServiceEndpoint&quot;))}</stringProp>
+        <stringProp name="HTTPSampler.domain">${__groovy(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quot;Apim_Env&quot;) + vars.get(&quot;Apim_Domain&quot;)) : props.get(&quot;ServiceEndpoint&quot;))}</stringProp>
         <stringProp name="HTTPSampler.protocol">https</stringProp>
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
           <collectionProp name="Arguments.arguments"/>
@@ -22,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -48,21 +50,15 @@ props.put(&quot;isProxyStressMode&quot;, (testMode == &quot;proxy-stress&quot;).
 
 log.info(&quot;Test mode: ${testMode}, isProxyMode: ${props.get(&apos;isProxyMode&apos;)}, isLoadMode: ${props.get(&apos;isLoadMode&apos;)}, isStressMode: ${props.get(&apos;isStressMode&apos;)}, isProxyStressMode: ${props.get(&apos;isProxyStressMode&apos;)}&quot;)
 
-</stringProp>
+def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
+def scriptText = scriptFile.text
+evaluate(scriptText)
+
+log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quot;Apim_Env&quot;) + props.get(&quot;Apim_Domain&quot;)) : props.get(&quot;ServiceEndpoint&quot;))</stringProp>
         </JSR223Sampler>
         <hashTree/>
-        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Load Plan Level Parameters JSR223 PreProcessor">
-          <stringProp name="scriptLanguage">groovy</stringProp>
-          <stringProp name="parameters"></stringProp>
-          <stringProp name="filename"></stringProp>
-          <stringProp name="cacheKey">true</stringProp>
-          <stringProp name="script">def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
-def scriptText = scriptFile.text
-evaluate(scriptText)</stringProp>
-        </JSR223PreProcessor>
-        <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(token_duration,3700)}</stringProp>
@@ -71,7 +67,7 @@ evaluate(scriptText)</stringProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">${__P(token_loop_count,1)}</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
@@ -152,7 +148,7 @@ try {
 </stringProp>
             </JSR223PreProcessor>
             <hashTree/>
-            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
               <stringProp name="cacheKey">false</stringProp>
               <stringProp name="filename"></stringProp>
               <stringProp name="parameters"></stringProp>
