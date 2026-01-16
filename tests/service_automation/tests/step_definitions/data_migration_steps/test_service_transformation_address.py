@@ -19,3 +19,6 @@ scenarios(
 scenarios(
     "../../tests/features/data_migration_features/location/service_transformation_address_not_available.feature"
 )
+scenarios(
+    "../../tests/features/data_migration_features/location/service_transformation_address_empty_with_town_postcode.feature"
+)
