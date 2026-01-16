@@ -23,15 +23,6 @@ def load_toggle_registry(registry_file: str) -> dict:
         sys.exit(1)
 
 
-def validate_lifecycle(lifecycle: str) -> None:
-    """Validate that lifecycle value is one of the allowed values"""
-    valid_lifecycles = ["kill-switch", "temporary-rollout", "experiment"]
-    if lifecycle not in valid_lifecycles:
-        raise ValueError(
-            f"Invalid lifecycle '{lifecycle}'. Must be one of: {', '.join(valid_lifecycles)}"
-        )
-
-
 def generate_appconfig_json(
     registry: dict, environment: str, created_date: str = None
 ) -> dict:
@@ -48,53 +39,43 @@ def generate_appconfig_json(
     """
     if "appconfig_flags" not in registry:
         print(
-            "Warning: No appconfig_flags section found in toggle registry",
+            "Error: No appconfig_flags section found in toggle registry",
             file=sys.stderr,
         )
-        return {"version": "1", "flags": {}, "values": {}}
+        sys.exit(1)
 
     appconfig_flags = registry["appconfig_flags"]
 
     # Initialize the AppConfig structure
     appconfig = {"version": "1", "flags": {}, "values": {}}
 
+    # Collect validation errors across all flags
+    errors: list[str] = []
+
     # Use current date if not provided
     if created_date is None:
         created_date = datetime.now().isoformat()
 
     # Process each flag
-    for flag in appconfig_flags:
+    for idx, flag in enumerate(appconfig_flags):
         flag_id = flag.get("id")
         if not flag_id:
-            print("Warning: Skipping flag without 'id' field", file=sys.stderr)
+            errors.append(f"Flag at index {idx} missing required field: id")
             continue
 
         # Validate required fields
-        required_fields = ["name", "description", "owner", "lifecycle", "environments"]
+        required_fields = ["name", "description", "owner", "environments", "service"]
         missing_fields = [field for field in required_fields if field not in flag]
         if missing_fields:
-            print(
-                f"Warning: Skipping flag '{flag_id}' - missing required fields: {', '.join(missing_fields)}",
-                file=sys.stderr,
+            errors.append(
+                f"Flag '{flag_id}' missing required fields: {', '.join(missing_fields)}"
             )
-            continue
-
-        # Validate lifecycle
-        try:
-            validate_lifecycle(flag["lifecycle"])
-        except ValueError as e:
-            print(f"Warning: Skipping flag '{flag_id}' - {str(e)}", file=sys.stderr)
             continue
 
         # Add flag definition
         appconfig["flags"][flag_id] = {
             "name": flag["name"],
-            "description": flag["description"],
-            "_metadata": {
-                "owner": flag["owner"],
-                "created_at": created_date,
-                "lifecycle": flag["lifecycle"],
-            },
+            "description": flag["description"],           
         }
 
         # Get enabled value for this environment
@@ -108,6 +89,13 @@ def generate_appconfig_json(
             f"Processed flag '{flag_id}': enabled={enabled} for environment '{environment}'",
             file=sys.stderr,
         )
+
+    # If any validation errors were found, fail fast with summary
+    if errors:
+        print("Error: Found validation issues in appconfig_flags", file=sys.stderr)
+        for err in errors:
+            print(f"- {err}", file=sys.stderr)
+        sys.exit(1)
 
     return appconfig
 
@@ -150,9 +138,7 @@ def generate_feature_flags(
     """
     try:
         print(f"Loading toggle registry from: {registry_file}", file=sys.stderr)
-        print(
-            f"Generating feature flags for environment: {environment}", file=sys.stderr
-        )
+        print(f"Generating feature flags for environment: {environment}", file=sys.stderr)
 
         registry = load_toggle_registry(registry_file)
         appconfig = generate_appconfig_json(registry, environment, created_date)

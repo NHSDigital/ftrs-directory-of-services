@@ -8,7 +8,6 @@ appconfig_flags:
     description: "Enable the migration of Organisation (+ Endpoint) resources from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
-    lifecycle: kill-switch
     environments:
       workspace: false
       dev: true
@@ -23,7 +22,6 @@ appconfig_flags:
     description: "Enable the migration of Location resources from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
-    lifecycle: kill-switch
     environments:
       workspace: true
       dev: true
@@ -38,7 +36,6 @@ appconfig_flags:
     description: "Enable the migration of HealthcareService (+ Variant) resources from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
-    lifecycle: kill-switch
     environments:
       workspace: true
       dev: true
@@ -53,7 +50,6 @@ appconfig_flags:
     description: "Enable the migration of Triage Code resources from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
-    lifecycle: kill-switch
     environments:
       workspace: true
       dev: true
@@ -68,7 +64,6 @@ appconfig_flags:
     description: "Enable the selection of GP Practice services from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
-    lifecycle: kill-switch
     environments:
       workspace: true
       dev: true
