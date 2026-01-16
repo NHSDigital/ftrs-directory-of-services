@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.identifier import Identifier
@@ -5,16 +7,20 @@ from fhir.resources.R4B.organization import Organization as FhirOrganization
 from ftrs_data_layer.domain import Telecom
 from ftrs_data_layer.domain.enums import TelecomType
 
-from functions.ftrs_service.fhir_mapper.organization_mapper import OrganizationMapper
+from functions.libraries.ftrs_service.fhir_mapper.organization_mapper import (
+    OrganizationMapper,
+)
 
 
 @pytest.fixture
-def organization_mapper():
+def organization_mapper() -> OrganizationMapper:
     return OrganizationMapper()
 
 
 class TestOrganizationMapper:
-    def test_map_to_organization_resource(self, organization_mapper, organisation):
+    def test_map_to_organization_resource(
+        self, organization_mapper: OrganizationMapper, organisation: object
+    ) -> None:
         # Act
         org_resource = organization_mapper.map_to_fhir_organization(organisation)
 
@@ -27,7 +33,9 @@ class TestOrganizationMapper:
         assert len(org_resource.telecom) == 1
         assert len(org_resource.address) == 1
 
-    def test_create_identifier(self, organization_mapper, organisation):
+    def test_create_identifier(
+        self, organization_mapper: OrganizationMapper, organisation: object
+    ) -> None:
         # Act
         identifiers = organization_mapper._create_identifier(organisation)
 
@@ -38,7 +46,9 @@ class TestOrganizationMapper:
         assert identifiers[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
         assert identifiers[0].value == "123456"
 
-    def test_create_dummy_address(self, organization_mapper):
+    def test_create_dummy_address(
+        self, organization_mapper: OrganizationMapper
+    ) -> None:
         # Act
         address = organization_mapper._create_dummy_address()
 
@@ -72,8 +82,13 @@ class TestOrganizationMapper:
         ],
     )
     def test_map_to_organization_with_different_values(
-        self, organization_mapper, create_organisation, org_name, telecom, active
-    ):
+        self,
+        organization_mapper: OrganizationMapper,
+        create_organisation: object,
+        org_name: str,
+        telecom: list[Telecom],
+        active: bool,
+    ) -> None:
         # Arrange
         updated_org_record = create_organisation(
             name=org_name, telecom=telecom, active=active

@@ -6,6 +6,7 @@ This service provides FHIR-compliant API endpoints for healthcare system integra
 
 - [Overview](#overview)
 - [Architecture](#architecture)
+- [Lambda-per-endpoint patterns](#lambda-per-endpoint-patterns)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
   - [Initial Setup](#initial-setup)
@@ -41,6 +42,54 @@ The service uses:
 - **FHIR R4 resources** for healthcare data representation
 - **Pydantic** for data validation and serialization
 - **AWS Lambda Powertools** for logging and utilities
+
+## Lambda-per-endpoint patterns
+
+We standardise on **one Lambda per endpoint**.
+
+For `dos-search`:
+
+- `GET /_status` uses one Lambda (`lambdas/status_get/handler.py`).
+- `GET /Organization` uses one Lambda (`functions/organisation/handler.py`).
+- Future endpoints (e.g. `triage_code`) will follow the same structure (`functions/<name>/handler.py`).
+
+### Naming conventions (important)
+
+We use **two names** for the same Lambda:
+
+- **Python folder/module name (snake_case):** used in handler paths inside the ZIP
+  - Example: `functions/triage_code/handler.lambda_handler`
+- **Artefact + Terraform `lambda_name` (kebab-case):** used for ZIP / S3 object naming
+  - Example: `triage-code`
+
+The packaging script converts snake_case folder names into kebab-case artefact names.
+
+## Build artefacts
+
+Endpoint zips are produced by:
+
+- `scripts/package_endpoint_lambdas.py`
+
+It builds one ZIP per Lambda and includes `functions/libraries` in every endpoint ZIP.
+
+### Example output
+
+Table (default):
+
+```text
+Built N Lambda artefact(s) for dos-search (application_tag=<tag>)
+Output directory: <path>
+
+- organization         <path>/ftrs-dos-dos-search-organization-lambda-<tag>.zip
+- status-get           <path>/ftrs-dos-dos-search-status-get-lambda-<tag>.zip
+- triage-code          <path>/ftrs-dos-dos-search-triage-code-lambda-<tag>.zip
+```
+
+JSON (useful for CI):
+
+```shell
+poetry run python scripts/package_endpoint_lambdas.py --out <dir> --application-tag <tag> --format json
+```
 
 ## Prerequisites
 
@@ -91,17 +140,17 @@ The service uses:
 ### Code Structure
 
 ```plain
-├── functions/                          # Lambda function code
-│   ├── ftrs_service/                   # FTRS service implementation
-│   │   ├── fhir_mapper/                # Mapping between data models and FHIR
-│   │   ├── repository/                 # Data access layer
-│   │   ├── config.py                   # Configuration handling
-│   │   └── ftrs_service.py             # Main service logic
-│   └── dos_search_ods_code_function.py # Lambda handler entry point
-├── tests/                              # Test suite
-│   ├── unit/                           # Unit tests
-│   ├── conftest.py                     # Test configuration and fixtures
-│   └── manual_test.py                  # Script for local testing
+├── functions/
+│   ├── libraries/                       # Shared code bundled into every Lambda zip
+│   ├── organisation/                    # /Organization endpoint lambda
+│   │   └── handler.py
+│   └── triage_code/                     # triage_code endpoint lambda
+│       └── handler.py
+├── health_check/                        # Health check logic (used by the _status lambda)
+├── lambdas/                             # Legacy/compat entrypoints
+│   └── status_get/handler.py            # GET /_status
+├── scripts/
+│   └── package_endpoint_lambdas.py      # Builds one zip per Lambda (includes functions/libraries)
 └── ...                                 # Configuration files
 ```
 
