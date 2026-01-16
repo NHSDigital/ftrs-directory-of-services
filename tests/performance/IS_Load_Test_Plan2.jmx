@@ -5,8 +5,6 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -23,6 +21,16 @@
         <boolProp name="useExpires">true</boolProp>
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
+      <hashTree/>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="Apim_Domain" elementType="Argument">
+            <stringProp name="Argument.name">Apim_Domain</stringProp>
+            <stringProp name="Argument.value">.api.service.nhs.uk</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
       <hashTree/>
       <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
@@ -58,7 +66,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
         </JSR223Sampler>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(token_duration,3700)}</stringProp>
@@ -72,7 +80,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
           <stringProp name="IfController.condition">${__P(isProxyMode,)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -309,7 +317,7 @@ if (iteration == 1) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search - Precise Throughput" enabled="false">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Backend - Precise Throughput">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,25)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,60)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3660)}</stringProp>
@@ -323,95 +331,7 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
-          <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
-            <collectionProp name="Arguments.arguments"/>
-          </elementProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
-            <stringProp name="delimiter">,</stringProp>
-            <stringProp name="fileEncoding"></stringProp>
-            <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
-            <boolProp name="ignoreFirstLine">true</boolProp>
-            <boolProp name="quotedData">false</boolProp>
-            <boolProp name="recycle">true</boolProp>
-            <stringProp name="shareMode">shareMode.group</stringProp>
-            <boolProp name="stopThread">false</boolProp>
-            <stringProp name="variableNames">ep_odscode</stringProp>
-          </CSVDataSet>
-          <hashTree/>
-          <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
-            <doubleProp>
-              <name>allowedThroughputSurplus</name>
-              <value>1.0</value>
-              <savedValue>0.0</savedValue>
-            </doubleProp>
-            <intProp name="batchSize">1</intProp>
-            <intProp name="batchThreadDelay">0</intProp>
-            <stringProp name="duration">${__P(timer_duration,3660)}</stringProp>
-            <intProp name="exactLimit">10000</intProp>
-            <longProp name="randomSeed">1</longProp>
-            <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
-            <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
-          </PreciseThroughputTimer>
-          <hashTree/>
-        </hashTree>
-      </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
-        <boolProp name="ResultCollector.error_logging">false</boolProp>
-        <objProp>
-          <name>saveConfig</name>
-          <value class="SampleSaveConfiguration">
-            <time>true</time>
-            <latency>true</latency>
-            <timestamp>true</timestamp>
-            <success>true</success>
-            <label>true</label>
-            <code>true</code>
-            <message>true</message>
-            <threadName>true</threadName>
-            <dataType>true</dataType>
-            <encoding>false</encoding>
-            <assertions>true</assertions>
-            <subresults>true</subresults>
-            <responseData>false</responseData>
-            <samplerData>false</samplerData>
-            <xml>false</xml>
-            <fieldNames>true</fieldNames>
-            <responseHeaders>false</responseHeaders>
-            <requestHeaders>false</requestHeaders>
-            <responseDataOnError>false</responseDataOnError>
-            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-            <assertionsResultsToSave>0</assertionsResultsToSave>
-            <bytes>true</bytes>
-            <sentBytes>true</sentBytes>
-            <url>true</url>
-            <threadCounts>true</threadCounts>
-            <idleTime>true</idleTime>
-            <connectTime>true</connectTime>
-          </value>
-        </objProp>
-        <stringProp name="filename"></stringProp>
-      </ResultCollector>
-      <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search - Precise Throughput" enabled="true">
-        <intProp name="ThreadGroup.num_threads">1</intProp>
-        <intProp name="ThreadGroup.ramp_time">1</intProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <stringProp name="LoopController.loops">1</stringProp>
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-        </elementProp>
-      </ThreadGroup>
-      <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
           <stringProp name="IfController.condition">${__P(isLoadMode,)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -458,134 +378,118 @@ if (iteration == 1) {
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests - Stress" enabled="false">
-        <intProp name="ThreadGroup.num_threads">1400</intProp>
-        <intProp name="ThreadGroup.ramp_time">60</intProp>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Proxy - Precise Throughput">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,3700)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
-          <stringProp name="IfController.condition">${__P(isStressMode,)}</stringProp>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+          <stringProp name="IfController.condition">${__P(isProxyMode,)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request" enabled="false">
-            <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7CH123111</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-          </HTTPSamplerProxy>
-          <hashTree/>
-          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
-            <collectionProp name="load_profile">
-              <collectionProp name="656718665">
-                <stringProp name="start">0</stringProp>
-                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="1797909186">
-                <stringProp name="start">${__P(throughput_step,50)}</stringProp>
-                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2024461214">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2023507902">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2022554590">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2021601278">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2020647966">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2019694654">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2018741342">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-2017788030">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-1437579198">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-              <collectionProp name="-1436625886">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
-                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
-                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
-              </collectionProp>
-            </collectionProp>
-          </kg.apc.jmeter.timers.VariableThroughputTimer>
-          <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
-            <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-          </HTTPSamplerProxy>
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller">
+            <boolProp name="TransactionController.parent">true</boolProp>
+            <boolProp name="TransactionController.includeTimers">false</boolProp>
+          </TransactionController>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
-              <stringProp name="delimiter">,</stringProp>
-              <stringProp name="fileEncoding"></stringProp>
-              <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
-              <boolProp name="ignoreFirstLine">true</boolProp>
-              <boolProp name="quotedData">false</boolProp>
-              <boolProp name="recycle">true</boolProp>
-              <stringProp name="shareMode">shareMode.group</stringProp>
-              <boolProp name="stopThread">false</boolProp>
-              <stringProp name="variableNames">ep_odscode</stringProp>
-            </CSVDataSet>
-            <hashTree/>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+              <stringProp name="HTTPSampler.path">/dos-search-ftrs-1380/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+                <collectionProp name="Arguments.arguments"/>
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
+                <stringProp name="delimiter">,</stringProp>
+                <stringProp name="fileEncoding"></stringProp>
+                <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
+                <boolProp name="ignoreFirstLine">true</boolProp>
+                <boolProp name="quotedData">false</boolProp>
+                <boolProp name="recycle">true</boolProp>
+                <stringProp name="shareMode">shareMode.group</stringProp>
+                <boolProp name="stopThread">false</boolProp>
+                <stringProp name="variableNames">ep_odscode</stringProp>
+              </CSVDataSet>
+              <hashTree/>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Authorization</stringProp>
+                    <stringProp name="Header.value">Bearer ${__P(varBearer,${varBearer})}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree/>
+              <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
+                <doubleProp>
+                  <name>allowedThroughputSurplus</name>
+                  <value>1.0</value>
+                  <savedValue>0.0</savedValue>
+                </doubleProp>
+                <intProp name="batchSize">1</intProp>
+                <intProp name="batchThreadDelay">0</intProp>
+                <stringProp name="duration">${__P(timer_duration,3660)}</stringProp>
+                <intProp name="exactLimit">10000</intProp>
+                <longProp name="randomSeed">1</longProp>
+                <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
+                <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
+              </PreciseThroughputTimer>
+              <hashTree/>
+            </hashTree>
           </hashTree>
         </hashTree>
       </hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="Apim_Domain" elementType="Argument">
-            <stringProp name="Argument.name">Apim_Domain</stringProp>
-            <stringProp name="Argument.value">.api.service.nhs.uk</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-        </collectionProp>
-      </Arguments>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
       <hashTree/>
     </hashTree>
   </hashTree>
