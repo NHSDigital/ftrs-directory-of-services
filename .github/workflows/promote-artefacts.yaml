@@ -65,8 +65,8 @@ jobs:
           PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
           WORKSPACE: ${{ inputs.workspace }} # TEMP
 
-      - name: Create GitHub Release
-        id: create_release
+      - name: "Create GitHub Release"
+        if: ${{ inputs.artefact_promotion_type == 'release' }}
         uses: actions/create-release@v1
         with:
           tag_name: ${{ inputs.release_tag }}
