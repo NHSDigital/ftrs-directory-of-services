@@ -55,8 +55,8 @@ jobs:
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
 
-      - name: "Promote artefacts"
-        run: make -f python-service.mk ${{ inputs.artefact_promotion_type }}
+      - name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
+        run: make -f artefact-promotion.mk ${{ inputs.artefact_promotion_type }}
         working-directory: scripts/services
         env:
           ENVIRONMENT: ${{ inputs.environment }}
