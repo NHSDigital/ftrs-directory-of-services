@@ -446,6 +446,14 @@ def validate_telecom_field(item, payload):
     """
     payload_telecom = payload.get("telecom", [])
     db_telecom = getattr(item, "telecom", [])
+    if payload_telecom == []:
+        assert db_telecom == [], (
+            f"Expected DB telecom to be empty, but found {len(db_telecom)} entries"
+        )
+        logger.info(
+            f"Validating telecom entry: expected= {payload_telecom}, got= {db_telecom}"
+        )
+        return
     if payload_telecom:
         assert len(payload_telecom) == len(db_telecom), "Telecom entries count mismatch"
         for idx, payload_entry in enumerate(payload_telecom):
