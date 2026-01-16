@@ -3,7 +3,6 @@
 # Organized into three categories: AppConfig Flags, Stack Toggles, and API Gateway Toggles
 
 appconfig_flags:
-#  - id: data_migration_organisation_enabled
   - name: "Data Migration - Organisation Enabled"
     description: "Enable the migration of Organisation (+ Endpoint) resources from the current DoS"
     service: data-migration
