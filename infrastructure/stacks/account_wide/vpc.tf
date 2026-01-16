@@ -48,7 +48,7 @@ module "vpc" {
 locals {
 
   public_subnets   = [var.vpc["public_subnet_a"], var.vpc["public_subnet_b"], var.vpc["public_subnet_c"]]
-  private_subnets  = var.environment == "dev" ? [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"], var.vpc["private_subnet_d"], var.vpc["private_subnet_e"], var.vpc["private_subnet_f"]] : [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"]]
+  private_subnets  = [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"]]
   database_subnets = [var.vpc["database_subnet_a"], var.vpc["database_subnet_b"], var.vpc["database_subnet_c"]]
   vpn_subnets      = var.environment == "dev" ? [var.vpc["vpn_subnet"]] : []
 
