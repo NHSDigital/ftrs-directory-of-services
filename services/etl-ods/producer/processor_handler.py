@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime, timedelta, timezone
 
 from ftrs_common.logger import Logger
@@ -20,6 +21,8 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for triggering the processor with a date parameter.
     """
+    start_time = time.time()
+
     try:
         current_correlation_id.set(None)
         correlation_id = fetch_or_set_correlation_id(
@@ -32,6 +35,18 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
         )
         ods_processor_logger.append_keys(
             correlation_id=correlation_id, request_id=request_id
+        )
+
+        # Log ETL Pipeline and Processor start
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PIPELINE_START,
+            lambda_name="etl-ods-processor",
+            etl_stage="pipeline_start",
+        )
+        ods_processor_logger.log(
+            OdsETLPipelineLogBase.ETL_PROCESSOR_START,
+            lambda_name="etl-ods-processor",
+            etl_stage="processor_start",
         )
 
         is_scheduled = event.get("is_scheduled", False)
@@ -48,12 +63,26 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
             return _error_response(400, error_message)
         else:
             processor(date=date)
+
+            duration_ms = round((time.time() - start_time) * 1000, 2)
+            ods_processor_logger.log(
+                OdsETLPipelineLogBase.ETL_PROCESSOR_COMPLETE,
+                lambda_name="etl-ods-processor",
+                etl_stage="processor_complete",
+                duration_ms=duration_ms,
+                date_processed=date,
+            )
+
             return {"statusCode": 200, "body": "Processing complete"}
 
     except Exception as e:
+        duration_ms = round((time.time() - start_time) * 1000, 2)
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_023,
             error_message=str(e),
+            lambda_name="etl-ods-processor",
+            etl_stage="processor_error",
+            duration_ms=duration_ms,
         )
         return _error_response(500, f"Unexpected error: {e}")
 

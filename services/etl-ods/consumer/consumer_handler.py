@@ -1,3 +1,5 @@
+import time
+
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import fetch_or_set_correlation_id
 from ftrs_common.utils.request_id import fetch_or_set_request_id
@@ -12,6 +14,8 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for consuming messages from SQS queue.
     """
+    start_time = time.time()
+
     if event:
         correlation_id = fetch_or_set_correlation_id(
             event.get("headers", {}).get("X-Correlation-ID")
@@ -25,9 +29,13 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
         )
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
+            lambda_name="etl-ods-consumer",
+            etl_stage="consumer_start",
         )
         batch_item_failures = []
         sqs_batch_response = {}
+        successful_count = 0
+        failed_count = 0
 
         records = event.get("Records")
         ods_consumer_logger.log(
@@ -46,12 +54,38 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
                     OdsETLPipelineLogBase.ETL_CONSUMER_004,
                     message_id=record["messageId"],
                 )
+                successful_count += 1
             except Exception:
                 ods_consumer_logger.log(
                     OdsETLPipelineLogBase.ETL_CONSUMER_005,
                     message_id=record["messageId"],
                 )
                 batch_item_failures.append({"itemIdentifier": record["messageId"]})
+                failed_count += 1
 
         sqs_batch_response["batchItemFailures"] = batch_item_failures
+
+        # Log batch processing completion
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE,
+            lambda_name="etl-ods-consumer",
+            etl_stage="consumer_batch_complete",
+            duration_ms=duration_ms,
+            total_records=len(records) if records else 0,
+            successful_count=successful_count,
+            failed_count=failed_count,
+        )
+
+        # Log ETL Pipeline end
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_PIPELINE_END,
+            lambda_name="etl-ods-consumer",
+            etl_stage="pipeline_end",
+            duration_ms=duration_ms,
+            etl_run_status="completed"
+            if failed_count == 0
+            else "completed_with_failures",
+        )
+
         return sqs_batch_response
