@@ -55,14 +55,6 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
     secrets: inherit
 
-  check-pipeline-status:
-    name: "Check Pipeline Status"
-    needs:
-      - metadata
-      - promote-release
-    if: always()
-    uses: ./.github/workflows/pipeline-status-check.yaml
-
   slack-notifications:
     name: "Send Notification to Slack"
     needs:

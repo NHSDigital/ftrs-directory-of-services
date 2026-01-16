@@ -195,6 +195,7 @@ jobs:
     uses: ./.github/workflows/pipeline-promote-release.yaml
     with:
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
+    secrets: inherit
 
   check-pipeline-status:
     name: "Check pipeline status"
