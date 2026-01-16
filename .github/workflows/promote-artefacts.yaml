@@ -76,9 +76,12 @@ jobs:
         id: release_notes
         run: |
           git fetch origin main
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          git log --pretty=format:"- %h %s" origin/main...HEAD >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %h %s" origin/main...HEAD > release_notes.txt
+          {
+            echo "notes<<EOF"
+            cat release_notes.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: "Create GitHub Release"
         if: ${{ inputs.artefact_promotion_type == 'release' }}
