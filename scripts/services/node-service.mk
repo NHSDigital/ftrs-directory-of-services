@@ -40,13 +40,9 @@ ARTEFACT_RELEASE_CANDIDATE_PATH = $(ARTEFACT_BUCKET)/release-candidates/$(RELEAS
 # ------------------------------------------------------------------------------
 
 ifeq ($(strip $(RELEASE_TAG)),)
-  ifeq ($(strip $(PRERELEASE_TAG)),)
     ARTEFACT_SOURCE_PATH = $(ARTEFACT_DEVELOPMENT_PATH)
-  else
-    ARTEFACT_SOURCE_PATH = $(ARTEFACT_STAGING_PATH)
-  endif
 else
-  ARTEFACT_SOURCE_PATH = $(ARTEFACT_RELEASE_CANDIDATE_PATH)
+    ARTEFACT_SOURCE_PATH = $(ARTEFACT_RELEASE_CANDIDATE_PATH)
 endif
 
 # ==============================================================================

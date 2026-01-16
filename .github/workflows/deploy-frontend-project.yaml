@@ -14,10 +14,6 @@ on:
         description: "The name of the package to build"
         required: true
         type: string
-      python_version:
-        description: "The version of Python"
-        required: true
-        type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
@@ -38,7 +34,7 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
-      tag:
+      tag: 
         description: "The tag identifying the release version to checkout and deploy"
         required: false
         type: string
@@ -87,6 +83,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
+          RELEASE_TAG: ${{ inputs.tag || '' }}
 
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache

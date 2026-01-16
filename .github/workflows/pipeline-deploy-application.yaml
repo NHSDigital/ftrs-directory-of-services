@@ -212,7 +212,6 @@ jobs:
     with:
       name: ${{ matrix.name }}
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
