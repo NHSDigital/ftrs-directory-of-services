@@ -3,7 +3,7 @@ run-name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.re
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 on:
   workflow_call:
     inputs:
@@ -65,15 +65,27 @@ jobs:
           PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
           WORKSPACE: ${{ inputs.workspace }} # TEMP
 
+      - name: "Derive clean release version"
+        if: ${{ inputs.artefact_promotion_type == 'release' }}
+        id: clean_version
+        run: |
+          echo "clean=$(echo '${{ inputs.release_tag }}' | sed 's/-rc\.[0-9]*$//')" >> $GITHUB_OUTPUT
+
+      - name: "Generate release notes"
+        if: ${{ inputs.artefact_promotion_type == 'release' }}
+        id: release_notes
+        run: |
+          git fetch origin main
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          git log --pretty=format:"- %h %s" origin/main...HEAD >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: "Create GitHub Release"
         if: ${{ inputs.artefact_promotion_type == 'release' }}
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ inputs.release_tag }}
-          release_name: "Release ${{ inputs.release_tag }}"
-          body: |
-            $(git log --pretty=format:"%h %s" origin/main...HEAD)
+          tag_name: ${{ steps.clean_version.outputs.clean }}
+          release_name: "Release ${{ steps.clean_version.outputs.clean }}"
+          body: ${{ steps.release_notes.outputs.notes }}
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
