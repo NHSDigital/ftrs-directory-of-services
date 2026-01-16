@@ -12,7 +12,7 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Default values
 TOGGLE_REGISTRY_FILE="${TOGGLE_REGISTRY_FILE:-"$ROOT_DIR/infrastructure/toggles/toggle-registry.yaml"}"
-OUTPUT_FILE="${OUTPUT_FILE:-"$ROOT_DIR/infrastructure/toggles/feature_flags.json"}"
+OUTPUT_FILE="${OUTPUT_FILE:-"$ROOT_DIR/infrastructure/toggles/feature-flags.json"}"
 CREATED_DATE="${CREATED_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
 
 # Validate required environment variables

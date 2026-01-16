@@ -6,10 +6,10 @@ module "app_config" {
 
   config_profile_type                = "AWS.AppConfig.FeatureFlags"
   hosted_config_version_content_type = "application/json"
-  hosted_config_version_content      = "${path.root}/../../toggles/feature_flags.json"
+  hosted_config_version_content      = "${path.root}/../../toggles/feature-flags.json"
 
   environments = {
-    dev = {
+    environment = {
       name        = local.workspace_suffix != "" ? terraform.workspace : var.environment
       description = "Environment for ${local.workspace_suffix != "" ? terraform.workspace : var.environment} deployments."
     }

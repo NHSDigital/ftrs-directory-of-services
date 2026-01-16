@@ -87,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
-          path: infrastructure/toggles/feature_flags.json
+          path: infrastructure/toggles/feature-flags.json
 
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
