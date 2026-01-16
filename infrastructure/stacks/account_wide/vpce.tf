@@ -53,7 +53,7 @@ resource "aws_vpc_endpoint" "current_dos_rds_endpoint" {
   vpc_id             = module.vpc.vpc_id
   service_name       = aws_ssm_parameter.texas_vpc_endpoint_service_name.value
   vpc_endpoint_type  = "Interface"
-  subnet_ids         = module.vpc.private_subnets
+  subnet_ids         = [module.vpc.private_subnets[0], module.vpc.private_subnets[1], module.vpc.private_subnets[2]]
   security_group_ids = [aws_security_group.vpce_rds_security_group.id]
 
   tags = {
