@@ -23,6 +23,5 @@ class Organisation(DBModel):
         default_factory=list
     )
     telecom: list[Telecom] | str | None
-    type: OrganisationType | str
     endpoints: list["Endpoint"] = Field(default_factory=list)
     legalDates: LegalDates | None = None
