@@ -19,10 +19,18 @@ test_service_id = uuid4()
 def get_mock_service() -> HealthcareService:
     return {
         "id": test_service_id,
-        "createdBy": "test_user",
-        "createdDateTime": "2025-05-27T12:50:55.481233Z",
-        "modifiedBy": "test_user",
-        "modifiedDateTime": "2025-05-27T12:50:55.481233Z",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        "createdTime": "2025-05-27T12:50:55.481233Z",
+        "lastUpdatedBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        "lastUpdated": "2025-05-27T12:50:55.481233Z",
         "identifier_oldDoS_uid": "161799",
         "active": True,
         "category": "GP Services",
@@ -137,7 +145,11 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
             "phone_public": "0208 883 5555",
         },
         "type": "GP Consultation Service",
-        "modifiedBy": "ODS_ETL_PIPELINE",
+        "lastUpdatedBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
         "openingTime": [
@@ -149,12 +161,16 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
                 "category": "availableTime",
             }
         ],
-        "createdBy": "SYSTEM",
-        "createdDateTime": "2023-10-01T00:00:00Z",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        "createdTime": "2023-10-01T00:00:00Z",
         "dispositions": [],
         "id": "841ef1a7-1adf-440f-9ca0-5e969ec61a5e",
         "identifier_oldDoS_uid": None,
-        "modifiedDateTime": "2023-10-01T00:00:00Z",
+        "lastUpdated": "2023-10-01T00:00:00Z",
         "symptomGroupSymptomDiscriminators": [],
         "migrationNotes": None,
         "ageEligibilityCriteria": None,
@@ -184,7 +200,11 @@ def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> 
             "phone_public": "0208 883 5555",
         },
         "type": "GP Consultation Service",
-        "modified_by": "ODS_ETL_PIPELINE",
+        "lastUpdatedBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
         "openingTime": [
@@ -282,7 +302,11 @@ def test_create_healthcare_service(mock_repository: MockerFixture) -> None:
             "name": "New Healthcare Service",
             "type": "GP Consultation Service",
             "category": "GP Services",
-            "createdBy": "test_user",
+            "createdBy": {
+                "type": "user",
+                "value": "INGRESS_API_ID",
+                "display": "FtRS Ingress API",
+            },
             "active": True,
             "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
             "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",

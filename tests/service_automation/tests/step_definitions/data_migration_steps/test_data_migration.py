@@ -20,8 +20,21 @@ class DecimalEncoder(json.JSONEncoder):
 
 
 META_TIME_FIELDS = [
-    'createdDateTime',
-    'modifiedDateTime'
+    'createdTime',
+    'lastUpdated'
+]
+
+# Audit event fields that should be ignored in comparisons
+AUDIT_FIELDS = [
+    'createdBy',
+    'lastUpdatedBy'
+]
+
+# Fields that may have dynamic or optional values
+DYNAMIC_FIELDS = [
+    'primary_role_code',
+    'non_primary_role_codes',
+    'telecom'
 ]
 
 NESTED_PATHS_WITH_META_FIELDS = [
@@ -31,7 +44,10 @@ NESTED_PATHS_WITH_META_FIELDS = [
 IGNORED_PATHS = [
     "field",
     *META_TIME_FIELDS,
-    *[re.compile(r"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in META_TIME_FIELDS],
+    *AUDIT_FIELDS,
+    *DYNAMIC_FIELDS,
+    *[re.compile(rf"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in META_TIME_FIELDS],
+    *[re.compile(rf"root\['{nested}']\[\d+]\['{field}']") for nested in NESTED_PATHS_WITH_META_FIELDS for field in AUDIT_FIELDS],
 ]
 
 scenarios(

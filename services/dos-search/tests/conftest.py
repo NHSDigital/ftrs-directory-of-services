@@ -10,6 +10,7 @@ import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
 from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     EndpointConnectionType,
     EndpointDescription,
@@ -33,9 +34,17 @@ def create_endpoint():
         payload_mime_type: EndpointPayloadMimeType = EndpointPayloadMimeType.FHIR,
         is_compression_enabled: bool = True,
         managed_by_organisation=None,
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         name: str = "Test Endpoint Name",
         payload_type: EndpointPayloadType = EndpointPayloadType.ED,
@@ -53,9 +62,9 @@ def create_endpoint():
             isCompressionEnabled=is_compression_enabled,
             managedByOrganisation=managed_by_organisation or uuid4(),
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             name=name,
             payloadType=payload_type,
             service=service,
@@ -86,9 +95,17 @@ def create_organisation():
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
         org_type: str = "GP Practice",
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         endpoints: list[Endpoint] | None = None,
     ) -> Organisation:
@@ -100,9 +117,9 @@ def create_organisation():
             telecom=telecom,
             type=org_type,
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             endpoints=endpoints or [],
         )
 

@@ -14,6 +14,7 @@ from ftrs_common.fhir.r4b.organisation_mapper import (
     OrganizationMapper,
 )
 from ftrs_data_layer.domain import Organisation, Telecom
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.enums import TelecomType
 from ftrs_data_layer.domain.organisation import LegalDates
 from pydantic import ValidationError
@@ -42,6 +43,10 @@ def make_fhir_org(
 
 def test_to_fhir_maps_fields_correctly() -> None:
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    test_to_fhir_maps_fields_correctly
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
@@ -50,7 +55,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
         primary_role_code="abc123",
         non_primary_role_codes=["bcd123"],
     )
@@ -74,13 +79,16 @@ def test_to_fhir_maps_fields_correctly() -> None:
 
 def test_to_fhir_handles_missing_telecom() -> None:
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS2",
         name="Test Org 2",
         active=False,
         telecom=[],
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
     )
     fhir_org = mapper.to_fhir(org)
     assert isinstance(fhir_org, FhirOrganisation)
@@ -265,7 +273,7 @@ def test_from_fhir_maps_fields_correctly() -> None:
     assert internal_organisation.telecom == [
         Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
     ]
-    assert internal_organisation.modifiedBy == "ODS_ETL_PIPELINE"
+    assert internal_organisation.lastUpdatedBy.display == "API Management"
 
 
 @pytest.mark.parametrize(
@@ -440,13 +448,16 @@ def test_from_ods_fhir_to_fhir_validates_and_returns() -> None:
 
 def test_to_fhir_bundle_single_org() -> None:
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org1 = Organisation(
         id="00000000-0000-0000-0000-00000000000a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org 1",
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
     )
     bundle_single = mapper.to_fhir_bundle([org1])
     assert bundle_single.__resource_type__ == "Bundle"
@@ -472,6 +483,9 @@ def test_to_fhir_bundle_single_org() -> None:
 
 def test_to_fhir_bundle_multiple_orgs() -> None:
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org1 = Organisation(
         id="00000000-0000-0000-0000-00000000000a",
         identifier_ODS_ODSCode="ODS1",
@@ -480,7 +494,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         telecom=[
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
         ],
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
     )
     org2 = Organisation(
         id="00000000-0000-0000-0000-00000000000b",
@@ -488,7 +502,7 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         name="Test Org 2",
         active=False,
         telecom=[],
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
     )
     bundle_multi = mapper.to_fhir_bundle([org1, org2])
     assert bundle_multi.__resource_type__ == "Bundle"
@@ -993,6 +1007,9 @@ def test__extract_legal_dates_first_matching_extension_wins() -> None:
 def test_to_fhir_with_legal_dates() -> None:
     """Test to_fhir includes legal date extension."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
@@ -1000,7 +1017,7 @@ def test_to_fhir_with_legal_dates() -> None:
         active=True,
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         legalDates=LegalDates(start=date(2020, 1, 15), end=date(2025, 12, 31)),
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
         primary_role_code="RO182",
     )
 
@@ -1150,12 +1167,15 @@ def test__parse_legal_period(
 def test_to_fhir_no_extension_when_no_legal_dates() -> None:
     """Test to_fhir does not include extension when no legal dates."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
         telecom=[],
     )
 
@@ -1217,6 +1237,9 @@ def test_to_fhir_partial_dates_absent_not_null(
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
 
     legal_dates = None
     if legal_start_date or legal_end_date:
@@ -1228,7 +1251,7 @@ def test_to_fhir_partial_dates_absent_not_null(
         name="Test Org",
         active=True,
         legalDates=legal_dates,
-        modifiedBy="ODS_ETL_PIPELINE",
+        lastUpdatedBy=modified_by,
         primary_role_code="RO182",
         telecom=[],
     )
@@ -2442,12 +2465,15 @@ def test__build_organisation_role_extension_with_end_date_only() -> None:
 def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> None:
     """Test building extensions with primary and non-primary role codes."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         primary_role_code="RO182",
         non_primary_role_codes=["RO198", "RO76"],
         telecom=[],
@@ -2463,12 +2489,15 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
 def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
     """Test building extensions with only non-primary role codes."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         non_primary_role_codes=["RO198", "RO76"],
         telecom=[],
     )
@@ -2481,12 +2510,15 @@ def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
 def test__build_organisation_extensions_with_legal_dates() -> None:
     """Test building extensions includes legal dates only for primary role."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         primary_role_code="RO182",
         non_primary_role_codes=["RO198"],
         legalDates=LegalDates(start=date(2020, 1, 1), end=date(2025, 12, 31)),
@@ -2508,12 +2540,15 @@ def test__build_organisation_extensions_with_legal_dates() -> None:
 def test__build_organisation_extensions_with_no_roles() -> None:
     """Test building extensions returns empty list when no roles."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         telecom=[],
     )
 
@@ -2525,13 +2560,16 @@ def test__build_organisation_extensions_with_no_roles() -> None:
 def test__build_organisation_extensions_primary_role_returns_none() -> None:
     """Test that None primary_ext is not added to extensions (line 80)."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
 
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         telecom=[],
         primary_role_code="RO182",  # To create valid Organisation
     )
@@ -2546,6 +2584,9 @@ def test__build_organisation_extensions_primary_role_returns_none() -> None:
 def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
     """Test that None non_primary_ext is not added to extensions (line 87)."""
     mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
 
     # Create org with only non-primary role codes
     org = Organisation(
@@ -2553,7 +2594,7 @@ def test__build_organisation_extensions_non_primary_role_returns_none() -> None:
         identifier_ODS_ODSCode="ODS1",
         name="Test Org",
         active=True,
-        modifiedBy="TEST",
+        lastUpdatedBy=modified_by,
         non_primary_role_codes=["RO198"],  # To create valid Organisation
         telecom=[],
     )

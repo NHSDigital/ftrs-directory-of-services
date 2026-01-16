@@ -1,3 +1,4 @@
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from pydantic import field_validator
 
 from organisations.app.models.organisation import (
@@ -21,9 +22,9 @@ class UpdatePayloadValidator(OrganisationUpdatePayload):
 
 class CreatePayloadValidator(OrganisationCreatePayload):
     @field_validator("createdBy")
-    def validate_org_fields(cls, v: str) -> str:
-        """Validates that created_by field is not empty."""
-        if not v.strip():
+    def validate_created_by(cls, v: AuditEvent) -> AuditEvent:
+        """Validates the createdBy field to ensure it has required values."""
+        if not v.value or not v.value.strip():
             raise ValueError(CREATED_BY_EMPTY_ERROR)
         return v
 

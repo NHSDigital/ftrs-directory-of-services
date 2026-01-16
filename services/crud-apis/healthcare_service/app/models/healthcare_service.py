@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceType,
@@ -77,4 +78,11 @@ class HealthCareService(BaseModel):
 
 class HealthcareServiceCreatePayload(HealthCareService):
     id: Optional[UUID] = Field(None, example="d5a852ef-12c7-4014-b398-661716a63027")
-    createdBy: str = Field(max_length=100, min_length=1, example="ROBOT")
+    createdBy: AuditEvent = Field(
+        ...,
+        example={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+    )
