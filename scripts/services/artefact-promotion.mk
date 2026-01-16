@@ -35,7 +35,7 @@ else
 	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
 endif
 
-staging: set-prerelease-version
+stage: set-prerelease-version
 	@echo "Staging release $(PRERELEASE_TAG)"
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	@echo "Release staged successfully"
