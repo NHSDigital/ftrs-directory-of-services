@@ -306,6 +306,52 @@ def test_update_organisation_no_updates(
     )
 
 
+def test_update_organisation_success_no_telecom(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    """
+    Checks when a no telecom field is specified an empty telecom list is added to update fhir payload
+    """
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+    }
+    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    fhir_payload_expect = fhir_payload.copy()
+    fhir_payload_expect["telecom"] = []
+    fhir_payload_expect["identifier"] = [
+        {
+            "id": None,
+            "extension": None,
+            "use": None,
+            "type": None,
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "12345",
+            "period": None,
+            "assigner": None,
+        }
+    ]
+    fhir_payload_expect["extension"] = None
+    mock_organisation_service.process_organisation_update.assert_called_with(
+        organisation_id=test_org_id, fhir_org=fhir_payload_expect
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["issue"][0]["code"] == "success"
+    assert response.json()["issue"][0]["severity"] == "information"
+    assert (
+        response.json()["issue"][0]["diagnostics"]
+        == "Organisation updated successfully"
+    )
+
+
 def test_update_organisation_operation_outcome(
     mock_organisation_service: MockerFixture,
 ) -> None:

@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import Literal
+from typing import Literal, Optional
 
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
@@ -141,7 +141,7 @@ class OrganisationUpdatePayload(BaseModel):
     identifier: list[Identifier] = Field(..., description="Organization identifiers")
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
-    telecom: list[ContactPoint]
+    telecom: Optional[list[ContactPoint]] = []
     extension: list[Extension] | None = None
 
     model_config = {"extra": "forbid"}
