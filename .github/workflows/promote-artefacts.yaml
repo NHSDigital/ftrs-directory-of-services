@@ -71,24 +71,11 @@ jobs:
         run: |
           echo "clean=$(echo '${{ inputs.release_tag }}' | sed 's/-rc\.[0-9]*$//')" >> $GITHUB_OUTPUT
 
-      - name: "Generate release notes"
-        if: ${{ inputs.artefact_promotion_type == 'release' }}
-        id: release_notes
-        run: |
-          git fetch origin main
-          git log --pretty=format:"- %h %s" origin/main...HEAD > release_notes.txt
-          {
-            echo "notes<<EOF"
-            cat release_notes.txt
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: "Create GitHub Release"
         if: ${{ inputs.artefact_promotion_type == 'release' }}
         uses: actions/create-release@v1
         with:
           tag_name: ${{ steps.clean_version.outputs.clean }}
           release_name: "Release ${{ steps.clean_version.outputs.clean }}"
-          body: ${{ steps.release_notes.outputs.notes }}
           draft: false
           prerelease: false
