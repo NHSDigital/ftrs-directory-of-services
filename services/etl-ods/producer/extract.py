@@ -20,6 +20,8 @@ RESOURCE_TYPE_BUNDLE = "Bundle"
 RESOURCE_TYPE_ORGANIZATION = "Organization"
 LINK_RELATION_NEXT = "next"
 ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
+PRESCRIBING_COST_CENTRE_ROLE_CODE = "RO177"
+GP_PRACTICE_ROLE_CODE = "RO76"
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -30,7 +32,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     Uses the ODS Terminology API FHIR endpoint with pagination support.
     """
     all_organisations = []
-    params = {"_lastUpdated": f"{date}", "_count": _get_page_limit()}
+    params = _build_ods_query_params(date)
     ods_url = get_base_ods_terminology_api_url()
     page_count = 0
 
@@ -75,6 +77,14 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         total_pages=page_count,
     )
     return all_organisations
+
+
+def _build_ods_query_params(date: str) -> dict:
+    return {
+        "_lastUpdated": f"{date}",
+        "_count": _get_page_limit(),
+        "roleCode": [PRESCRIBING_COST_CENTRE_ROLE_CODE, GP_PRACTICE_ROLE_CODE],
+    }
 
 
 def _get_page_limit() -> int:

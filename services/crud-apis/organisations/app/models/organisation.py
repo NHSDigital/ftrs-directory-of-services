@@ -45,7 +45,6 @@ ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 # Valid primary types (only these can be primary)
 VALID_PRIMARY_TYPE_CODES = {
     OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
-    OrganisationTypeCode.PHARMACY_ROLE_CODE,
 }
 
 
@@ -54,11 +53,8 @@ PERMITTED_ROLE_COMBINATIONS = [
         "primary": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         "non_primary": [
             OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
-            OrganisationTypeCode.OUT_OF_HOURS_ROLE_CODE,
-            OrganisationTypeCode.WALK_IN_CENTRE_ROLE_CODE,
         ],
     },
-    {"primary": OrganisationTypeCode.PHARMACY_ROLE_CODE, "non_primary": []},
 ]
 
 
