@@ -7,23 +7,34 @@
 
 PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
+POETRY_VERSION := $(shell poetry version -s)
+
 BUILD_DIR := ../../build/services/$(SERVICE)
 DEPENDENCY_DIR := $(BUILD_DIR)/dependency-layer
-ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
-POETRY_VERSION := $(shell poetry version -s)
+
 DEPENDENCY_LAYER_NAME := ftrs-dos-$(SERVICE)-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-$(SERVICE)-lambda
+
+ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 BUILD_TIMESTAMP := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
 BUILD_INFO_FILE := $(BUILD_DIR)/build-info.json
 
-# Determine the correct artefact path based on branch
+# ------------------------------------------------------------------------------
+# Development artefact path (branch-aware)
+# ------------------------------------------------------------------------------
+
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
+
+# ------------------------------------------------------------------------------
+# Promotion paths
+# ------------------------------------------------------------------------------
 
 ARTEFACT_STAGING_PATH = $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 ARTEFACT_RELEASE_CANDIDATE_PATH = $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
@@ -35,6 +46,10 @@ ARTEFACT_RELEASE_CANDIDATE_PATH = $(ARTEFACT_BUCKET)/release-candidates/$(RELEAS
 .PHONY: ensure-build-dir clean install install-dependencies lint lint-fix test \
 		unit-test coverage generate-build-info build build-dependency-layer \
 		publish stage-release promote-rc publish-release
+
+# ------------------------------------------------------------------------------
+# Setup & housekeeping
+# ------------------------------------------------------------------------------
 
 ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
@@ -50,6 +65,10 @@ install-dependencies:
 	asdf install
 	poetry install --no-interaction
 
+# ------------------------------------------------------------------------------
+# Quality
+# ------------------------------------------------------------------------------
+
 lint:
 	poetry run ruff check
 	poetry run ruff format --check
@@ -62,9 +81,12 @@ test: unit-test
 
 unit-test: coverage
 
-# Override this in service Makefile if different test paths needed
 coverage:
 	poetry run pytest --cov-report xml:coverage-$(SERVICE).xml tests/unit
+
+# ------------------------------------------------------------------------------
+# Build
+# ------------------------------------------------------------------------------
 
 generate-build-info: ensure-build-dir
 	@echo '{' > $(BUILD_INFO_FILE)
@@ -88,7 +110,6 @@ build-dependency-layer: clean
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
 	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
 
-# Override WHEEL_NAME in service Makefile if package name differs from service name
 build: ensure-build-dir build-dependency-layer generate-build-info
 	@echo "Building $(SERVICE)..."
 	poetry build -f wheel -o $(BUILD_DIR)
@@ -104,6 +125,10 @@ publish:
 	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --region $(AWS_REGION)
 	@echo "Published successfully"
 
+# ------------------------------------------------------------------------------
+# Release promotion helpers
+# ------------------------------------------------------------------------------
+
 set-prerelease-version:
 ifeq ($(strip $(PRERELEASE_TAG)),)
 	@echo "Finding latest prerelease version"
@@ -115,24 +140,24 @@ ifeq ($(strip $(PRERELEASE_TAG)),)
 		| tail -1 \
 	))
 	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-		echo "Error: No staging versions found"; \
+		echo "ERROR: No prerelease versions found in staging"; \
 		exit 1; \
 	fi
 else
 	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
 endif
 
-stage-release: set-prerelease-version
+staging: set-prerelease-version
 	@echo "Staging release $(PRERELEASE_TAG)"
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
-promote-rc: set-prerelease-version
-	@echo "Promoting from staging/$(PRERELEASE_TAG) to release candidate"
+release-candidate: set-prerelease-version
+	@echo "Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG)"
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
-	@echo "Promoted from staging/$(STAGING_VERSION) to release candidate"
+	@echo "Promoted from staging/$(STAGING_VERSION) to release-candidates/$(RELEASE_TAG)"
 
-promote-release:
+release:
 	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
 	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
 	@echo "Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN)..."

@@ -292,7 +292,7 @@ jobs:
     uses: ./.github/workflows/promote-artefacts.yaml
     with:
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      artefact_promotion_type: "stage-release"
+      artefact_promotion_type: "stage"
       type: app
       prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
       workspace: ${{ needs.metadata.outputs.workspace }} # TEMP

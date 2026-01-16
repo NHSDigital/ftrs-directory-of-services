@@ -69,7 +69,7 @@ jobs:
     uses: ./.github/workflows/promote-artefacts.yaml
     with:
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      artefact_promotion_type: "promote-rc"
+      artefact_promotion_type: "release-candidate"
       type: app
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
       prerelease_tag: ${{ github.event.inputs.prerelease_tag || '' }}

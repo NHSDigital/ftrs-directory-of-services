@@ -9,22 +9,45 @@ BUILD_DIR := ../../build/services/$(SERVICE)
 ARTEFACT_BUCKET := $(REPO_NAME)-mgmt-artefacts-bucket
 TEMP_DIRECTORY ?= ./temp
 BUILD_TIMESTAMP := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),null)
 BUILD_INFO_FILE := $(BUILD_DIR)/build-info.json
 
-# Determine workspace suffix for deployment bucket
+# ------------------------------------------------------------------------------
+# Development artefact path (branch-aware)
+# ------------------------------------------------------------------------------
+
 DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-$(WORKSPACE)),)
 
-# Determine artefact path based on branch/workspace
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 endif
 
+# ------------------------------------------------------------------------------
+# Promotion paths
+# ------------------------------------------------------------------------------
+
 ARTEFACT_STAGING_PATH = $(ARTEFACT_BUCKET)/staging/$(PRERELEASE_TAG)
 ARTEFACT_RELEASE_CANDIDATE_PATH = $(ARTEFACT_BUCKET)/release-candidates/$(RELEASE_TAG)
+
+# ------------------------------------------------------------------------------
+# Resolve artefact source path (used by deploy)
+# Priority: release → prerelease → development
+# ------------------------------------------------------------------------------
+
+ifeq ($(strip $(RELEASE_TAG)),)
+  ifeq ($(strip $(PRERELEASE_TAG)),)
+    ARTEFACT_SOURCE_PATH = $(ARTEFACT_DEVELOPMENT_PATH)
+  else
+    ARTEFACT_SOURCE_PATH = $(ARTEFACT_STAGING_PATH)
+  endif
+else
+  ARTEFACT_SOURCE_PATH = $(ARTEFACT_RELEASE_CANDIDATE_PATH)
+endif
 
 # ==============================================================================
 # Common Targets
@@ -72,20 +95,31 @@ build: clean ensure-build-dir generate-build-info
 	cd .output/server && zip -r -q ../../$(BUILD_DIR)/$(SERVICE)-server.zip *
 	@echo "Build complete: $(SERVICE)-assets.zip, $(SERVICE)-server.zip"
 
+# ------------------------------------------------------------------------------
+# Publish (development)
+# ------------------------------------------------------------------------------
+
 publish:
 	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
 	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_DEVELOPMENT_PATH)/ --region $(AWS_REGION)
 	@echo "Published successfully"
 
+# ------------------------------------------------------------------------------
+# Deploy (dev / staging / release-candidates / release)
+# ------------------------------------------------------------------------------
+
 deploy:
-	@echo "Deploying $(SERVICE) to $(DEPLOYMENT_BUCKET)..."
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(SERVICE)-assets.zip .
+	@echo "Deploying $(SERVICE) from $(ARTEFACT_SOURCE_PATH)..."
+	aws s3 cp s3://$(ARTEFACT_SOURCE_PATH)/$(SERVICE)-assets.zip .
 	unzip -q $(SERVICE)-assets.zip -d $(TEMP_DIRECTORY)
 	aws s3 sync --delete $(TEMP_DIRECTORY)/ s3://$(DEPLOYMENT_BUCKET)/
 	rm -rf $(TEMP_DIRECTORY) $(SERVICE)-assets.zip
 	@echo "Deployment complete"
 
-# Service Makefile must define: CLOUDFRONT_DISTRIBUTION_ID or provide query logic
+# ------------------------------------------------------------------------------
+# CloudFront
+# ------------------------------------------------------------------------------
+
 invalidate-cloudfront-cache:
 	@echo "Invalidating CloudFront cache for distribution: $(CLOUDFRONT_DISTRIBUTION_ID)"
 	@if [ -z "$(CLOUDFRONT_DISTRIBUTION_ID)" ]; then \
@@ -94,41 +128,6 @@ invalidate-cloudfront-cache:
 	fi
 	aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths "/*"
 	@echo "Cache invalidation initiated"
-
-set-prerelease-version:
-ifeq ($(strip $(PRERELEASE_TAG)),)
-	@echo "Finding latest prerelease version"
-	$(eval PRERELEASE_TAG := $(shell \
-		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
-		| awk '{print $$2}' \
-		| sed 's/\/$$//' \
-		| sort -V \
-		| tail -1 \
-	))
-	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-		echo "Error: No staging versions found"; \
-		exit 1; \
-	fi
-else
-	@echo "Using provided prerelease version: $(PRERELEASE_TAG)"
-endif
-
-stage-release: set-prerelease-version
-	@echo "Staging release $(PRERELEASE_TAG)"
-	aws s3 sync s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
-	@echo "Release staged successfully"
-
-promote-rc:
-	@echo "Promoting $(PRERELEASE_TAG) to release candidate"
-	aws s3 sync s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --region $(AWS_REGION)
-	@echo "Promoted from staging/$(PRERELEASE_TAG) to release candidate"
-
-publish-release:
-	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
-	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
-	@echo "Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN)..."
-	aws s3 sync s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --region $(AWS_REGION)
-	@echo "Release published successfully to releases/$(RELEASE_VERSION_CLEAN)"
 
 pre-commit: lint
 

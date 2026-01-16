@@ -1,5 +1,5 @@
 name: Promote artefacts workflow
-run-name: Promote artefacts
+run-name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
 
 permissions:
   id-token: write
@@ -39,7 +39,7 @@ on:
 
 jobs:
   promote-artefacts:
-    name: "Promote artefacts"
+    name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 

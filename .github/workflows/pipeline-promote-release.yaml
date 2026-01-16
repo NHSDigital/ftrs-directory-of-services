@@ -44,7 +44,7 @@ jobs:
     uses: ./.github/workflows/promote-artefacts.yaml
     with:
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      artefact_promotion_type: "promote-release"
+      artefact_promotion_type: "release"
       type: app
       release_tag: ${{ inputs.release_tag }}
     secrets: inherit
