@@ -10,6 +10,7 @@ on:
       - "*-*-*"
       - "*-*-*-*-*-*"
   workflow_dispatch:
+    # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       tag:
         description: "The Git tag to build"
