@@ -16,10 +16,11 @@ module "vpc" {
   create_database_nat_gateway_route      = var.create_database_nat_gateway_route
   database_subnet_group_name             = "${local.account_prefix}-database-subnet-group"
 
-  azs              = slice(data.aws_availability_zones.available_azs.names, 0, 3)
-  public_subnets   = local.public_subnets
-  private_subnets  = local.private_subnets
-  database_subnets = local.database_subnets
+  azs                 = slice(data.aws_availability_zones.available_azs.names, 0, 3)
+  public_subnets      = local.public_subnets
+  private_subnets     = local.private_subnets
+  private_subnet_tags = var.vpc["private_subnet_tags"]
+  database_subnets    = local.database_subnets
 
   # NACL configuration
   database_dedicated_network_acl = var.database_dedicated_network_acl

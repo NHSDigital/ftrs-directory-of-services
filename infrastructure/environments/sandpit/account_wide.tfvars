@@ -10,6 +10,12 @@ vpc = {
   private_subnet_b = "10.172.132.0/24"
   private_subnet_c = "10.172.133.0/24"
 
+  private_subnet_tags = [
+    { CidrRange = "24" },
+    { CidrRange = "24" },
+    { CidrRange = "24" }
+  ]
+
   database_subnet_a = "10.172.201.0/24"
   database_subnet_b = "10.172.202.0/24"
   database_subnet_c = "10.172.203.0/24"
