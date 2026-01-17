@@ -16,11 +16,10 @@ module "vpc" {
   create_database_nat_gateway_route      = var.create_database_nat_gateway_route
   database_subnet_group_name             = "${local.account_prefix}-database-subnet-group"
 
-  azs                 = slice(data.aws_availability_zones.available_azs.names, 0, 3)
-  public_subnets      = local.public_subnets
-  private_subnets     = local.private_subnets
-  private_subnet_tags = var.vpc_private_subnet_tags
-  database_subnets    = local.database_subnets
+  azs              = slice(data.aws_availability_zones.available_azs.names, 0, 3)
+  public_subnets   = local.public_subnets
+  private_subnets  = local.private_subnets
+  database_subnets = local.database_subnets
 
   # NACL configuration
   database_dedicated_network_acl = var.database_dedicated_network_acl
@@ -171,3 +170,30 @@ resource "aws_flow_log" "database_subnet_flow_log_s3" {
   }
   subnet_id = module.vpc.database_subnets[count.index]
 }
+
+# Add a CIDR Range tag to the private subnets for filtering
+resource "aws_ec2_tag" "private_subnet_tags" {
+  for_each    = toset(module.vpc.private_subnets.ids)
+  resource_id = each.value
+
+  key   = "CidrRange"
+  value = split("/", data.aws_subnet.details[each.value].cidr_block)[1]
+}
+
+
+
+
+
+
+
+
+
+
+#   for_each = module.vpc.public_subnets:
+
+#   resource_id = each.value
+
+#   tags = {
+#     CidrRange = split("/", data.aws_subnet.details[each.value].cidr_block)[1]
+#   }
+# }
