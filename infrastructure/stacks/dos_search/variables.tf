@@ -34,6 +34,12 @@ variable "application_tag" {
   default     = "latest"
 }
 
+variable "cidr_range" {
+  description = "The CIDR range for the VPC private subnets"
+  type        = string
+  default     = "24"
+}
+
 #####################################################
 
 # API Gateway

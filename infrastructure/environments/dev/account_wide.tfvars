@@ -21,15 +21,6 @@ vpc = {
   database_subnet_c = "10.170.203.0/24"
 }
 
-vpc_private_subnet_tags = [
-  { CidrRange = "24" },
-  { CidrRange = "24" },
-  { CidrRange = "24" },
-  { CidrRange = "22" },
-  { CidrRange = "22" },
-  { CidrRange = "22" }
-]
-
 enable_flow_log           = false
 flow_log_s3_force_destroy = true
 
