@@ -19,7 +19,7 @@ module "vpc" {
   azs                 = slice(data.aws_availability_zones.available_azs.names, 0, 3)
   public_subnets      = local.public_subnets
   private_subnets     = local.private_subnets
-  private_subnet_tags = var.vpc["private_subnet_tags"]
+  private_subnet_tags = var.vpc_private_subnet_tags
   database_subnets    = local.database_subnets
 
   # NACL configuration

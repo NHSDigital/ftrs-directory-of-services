@@ -136,6 +136,12 @@ variable "vpc" {
   default     = {}
 }
 
+variable "vpc_private_subnet_tags" {
+  description = "A list of tags for private subnets"
+  type        = list(map(string))
+  default     = []
+}
+
 variable "enable_flow_log" {
   description = "Whether VPC Flow logs are enabled or not"
   type        = bool
