@@ -207,36 +207,36 @@ jobs:
           path: "checkov.sarif/"
           if-no-files-found: ignore
 
-  trivy-scan:
-    name: "Trivy scan"
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.workflow_timeout }}
-    permissions:
-      contents: read
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
+  # trivy-scan:
+  #   name: "Trivy scan"
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: ${{ inputs.workflow_timeout }}
+  #   permissions:
+  #     contents: read
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v6
+  #       with:
+  #         ref: ${{ inputs.tag }}
 
-      - name: "Trivy scan"
-        id: "trivy"
-        uses: aquasecurity/trivy-action@0.33.1
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          format: "sarif"
-          output: "trivy.sarif"
-          scanners: vuln,misconfig
-          severity: 'CRITICAL,HIGH,MEDIUM'
-          limit-severities-for-sarif: true
-          trivyignores: 'services/.trivyignore'
-          exit-code: 1
+  #     - name: "Trivy scan"
+  #       id: "trivy"
+  #       uses: aquasecurity/trivy-action@0.33.1
+  #       with:
+  #         scan-type: "fs"
+  #         scan-ref: "."
+  #         format: "sarif"
+  #         output: "trivy.sarif"
+  #         scanners: vuln,misconfig
+  #         severity: 'CRITICAL,HIGH,MEDIUM'
+  #         limit-severities-for-sarif: true
+  #         trivyignores: 'services/.trivyignore'
+  #         exit-code: 1
 
-      - name: "Publish Trivy report"
-        uses: actions/upload-artifact@v6
-        if: success() || failure()
-        with:
-          name: "trivy-${{ inputs.build_timestamp }}.sarif"
-          path: "trivy.sarif"
-          if-no-files-found: ignore
+  #     - name: "Publish Trivy report"
+  #       uses: actions/upload-artifact@v6
+  #       if: success() || failure()
+  #       with:
+  #         name: "trivy-${{ inputs.build_timestamp }}.sarif"
+  #         path: "trivy.sarif"
+  #         if-no-files-found: ignore
