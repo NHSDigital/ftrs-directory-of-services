@@ -2,15 +2,16 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutco
 from pydantic import ValidationError
 
 OPERATION_OUTCOME_SYSTEM = "http://terminology.hl7.org/CodeSystem/operation-outcome"
+ERROR_PROCESSING_REQUEST = "Error processing request"
 
 FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
     "invalid": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
     "not-found": ("MSG_NO_EXIST", "Resource does not exist"),
-    "exception": ("MSG_ERROR_PARSING", "Error processing request"),
+    "exception": ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST),
     "structure": ("MSG_BAD_SYNTAX", "Bad Syntax"),
     "required": ("MSG_RESOURCE_REQUIRED", "A resource is required"),
     "value": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
-    "processing": ("MSG_ERROR_PARSING", "Error processing request"),
+    "processing": ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST),
     "duplicate": ("MSG_DUPLICATE_ID", "Duplicate Id for resource"),
     "informational": ("MSG_UPDATED", "Existing resource updated"),
     "success": ("MSG_UPDATED", "Existing resource updated"),
@@ -35,7 +36,7 @@ class OperationOutcomeHandler:
     @staticmethod
     def _build_details(code: str, text: str) -> dict:
         fhir_code, display = FHIR_OPERATION_OUTCOME_CODES.get(
-            code, ("MSG_ERROR_PARSING", "Error processing request")
+            code, ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST)
         )
         return {
             "coding": [
