@@ -138,16 +138,6 @@ paths:
                           value: "ABC123"
                       active: true
                       name: "Example Organization"
-                      telecom:
-                        - system: "phone"
-                          value: "01234 567890"
-                        - system: "email"
-                          value: "example@example.com"
-                      address:
-                        - line: ["Example Medical Practice", "Example Street"]
-                          city: "Example City"
-                          postalCode: "AB12 3CD"
-                          country: "ENGLAND"
                     search:
                       mode: "match"
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
@@ -312,8 +302,6 @@ components:
         - identifier
         - active
         - name
-        - telecom
-        - address
       properties:
         resourceType:
           type: string
@@ -334,31 +322,6 @@ components:
           type: boolean
         name:
           type: string
-        telecom:
-          type: array
-          items:
-            type: object
-            properties:
-              system:
-                type: string
-                enum: [ "phone", "fax", "email", "pager", "url", "sms", "other" ]
-              value:
-                type: string
-        address:
-          type: array
-          items:
-            type: object
-            properties:
-              line:
-                type: array
-                items:
-                  type: string
-              city:
-                type: string
-              postalCode:
-                type: string
-              country:
-                type: string
         endpoint:
           type: array
           items:
