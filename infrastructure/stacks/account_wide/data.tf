@@ -32,3 +32,8 @@ data "aws_ami" "al2023" {
     values = ["ebs"]
   }
 }
+
+data "aws_subnet" "vpc_private_subnets" {
+  for_each = toset(module.vpc.private_subnets)
+  id       = each.value
+}
