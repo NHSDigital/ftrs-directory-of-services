@@ -17,9 +17,7 @@ on:
           - test
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
   id-token: write
 
 jobs:
@@ -30,16 +28,5 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - name: "Configure AWS credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: app
-          environment: ${{ inputs.environment }}
-
-      - name: "Stop EC2 performance instance"
-        id: stop-ec2
-        uses: ./.github/actions/stop-ec2
-        with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+      - name: "Checkout code"
+        uses: actions/checkout@v6
