@@ -18,7 +18,7 @@ data "aws_subnets" "private_subnets" {
 
   filter {
     name   = "tag:CidrRange"
-    values = [var.cidr_range]
+    values = [var.vpc_private_subnet_cidr_range]
   }
 }
 
