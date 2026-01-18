@@ -1,0 +1,32 @@
+name: Performance Test Stop Pipeline
+
+# Workflow description
+# Run performance test
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Specify the environment to stop the performance test"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+
+  stop_performance_test:
+    name: "Stop performance test"
+    timeout-minutes: 5
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
