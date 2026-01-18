@@ -32,7 +32,7 @@ const EndpointOverview: React.FC<{
           { key: "Status", value: endpoint.status },
           { key: "Connection Type", value: endpoint.connectionType },
           { key: "Name", value: endpoint.name },
-          { key: "Description", value: endpoint.description },
+          { key: "Business Scenario", value: endpoint.businessScenario },
           { key: "Payload Type", value: endpoint.payloadType },
           { key: "Address", value: endpoint.address },
           { key: "Order", value: endpoint.order },

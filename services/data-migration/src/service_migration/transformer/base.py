@@ -157,7 +157,7 @@ class ServiceTransformer(ABC):
             status=EndpointStatus.ACTIVE,
             connectionType=endpoint.transport,
             name=None,
-            description=endpoint.businessscenario,
+            businessScenario=endpoint.businessscenario,
             payloadType=payload_type,
             payloadMimeType=payload_mime_type,
             address=endpoint.address,

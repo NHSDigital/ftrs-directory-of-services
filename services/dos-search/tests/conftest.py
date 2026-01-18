@@ -11,8 +11,8 @@ from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
 from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
 from ftrs_data_layer.domain.enums import (
+    EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
@@ -29,7 +29,7 @@ def create_endpoint():
         identifier_old_dos_id: int = 123456,
         status: EndpointStatus = EndpointStatus.ACTIVE,
         connection_type: EndpointConnectionType = EndpointConnectionType.ITK,
-        description: EndpointDescription = EndpointDescription.COPY,
+        business_scenario: EndpointBusinessScenario = EndpointBusinessScenario.COPY,
         payload_mime_type: EndpointPayloadMimeType = EndpointPayloadMimeType.FHIR,
         is_compression_enabled: bool = True,
         managed_by_organisation=None,
@@ -48,7 +48,7 @@ def create_endpoint():
             identifier_oldDoS_id=identifier_old_dos_id,
             status=status,
             connectionType=connection_type,
-            description=description,
+            businessScenario=business_scenario,
             payloadMimeType=payload_mime_type,
             isCompressionEnabled=is_compression_enabled,
             managedByOrganisation=managed_by_organisation or uuid4(),

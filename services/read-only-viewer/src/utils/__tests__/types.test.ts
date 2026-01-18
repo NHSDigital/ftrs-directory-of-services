@@ -70,7 +70,7 @@ describe("endpointSchema", () => {
       connectionType: "type1",
       name: "Endpoint 1",
       payloadMimeType: "json",
-      description: "Test endpoint",
+      businessScenario: "Test endpoint",
       payloadType: "application/json",
       address: "https://example.com/endpoint",
       managedByOrganisation: "84205e46-52e1-46d0-92a7-51685cd7011c",
@@ -93,7 +93,7 @@ describe("endpointSchema", () => {
       connectionType: null, // Invalid type
       name: undefined, // Invalid type
       payloadMimeType: null, // Invalid type
-      description: "Test endpoint",
+      businessScenario: "Test endpoint",
       payloadType: undefined, // Invalid type
       address: "https://example.com/endpoint",
       managedByOrganisation: "e2f1d47c-a72b-431c-ad99-5e943d450f34",
