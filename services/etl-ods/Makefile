@@ -63,6 +63,19 @@ build-consumer-lambda: ensure-build-dir
 	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
 
+build-dependency-layer: ensure-build-dir
+	mkdir -p $(DEPENDENCY_DIR)/python
+	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	pip install \
+		--platform $(PLATFORM) \
+		--target $(DEPENDENCY_DIR)/python \
+		--implementation cp \
+		--python-version $(PYTHON_VERSION) \
+		--no-deps \
+		--upgrade \
+		-r $(DEPENDENCY_DIR)/requirements.txt
+	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip . --exclude "*__pycache__/*"
+
 # ------------------------------------------------------------------------------
 # Publish (service-specific S3 layout)
 # ------------------------------------------------------------------------------
