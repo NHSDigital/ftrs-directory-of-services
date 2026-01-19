@@ -108,3 +108,18 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "not-supported"
     And the OperationOutcome contains an issue with diagnostics "Unsupported service: /DoesNotExist"
     And the OperationOutcome contains an issue with details for UNSUPPORTED_SERVICE coding
+
+
+  Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&<unexpected_param>=<unexpected_value>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "invalid"
+    And the OperationOutcome contains an issue with diagnostics "Unexpected query parameter(s): <unexpected_param>. Only 'identifier' and '_revinclude' are allowed."
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | unexpected_param | unexpected_value |
+      | foo              | bar              |
+      | junk             | 123              |

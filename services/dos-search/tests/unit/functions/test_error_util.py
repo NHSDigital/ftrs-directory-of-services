@@ -316,3 +316,31 @@ class TestErrorUtil:
         result = create_validation_error_operation_outcome(err)
         assert isinstance(result, OperationOutcome)
         assert result.issue[0].diagnostics == "Invalid search parameter value"
+
+    def test_create_validation_error_unexpected_query_param(self) -> None:
+        validation_error = None
+        try:
+            OrganizationQueryParams(
+                identifier="odsOrganisationCode|ABC12345",
+                _revinclude="Endpoint:organization",
+                foo="bar",
+            )
+        except ValidationError as exc:
+            validation_error = exc
+
+        assert validation_error is not None
+
+        result = create_validation_error_operation_outcome(validation_error)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "invalid"
+
+        diagnostics = issue.diagnostics or ""
+        assert "Unexpected query parameter" in diagnostics
+        assert "foo" in diagnostics
+        assert "identifier" in diagnostics
+        assert "_revinclude" in diagnostics

@@ -78,7 +78,27 @@ def create_validation_error_operation_outcome(
     )
 
 
+def _loc_last_str(error: ErrorDetails, default: str = "<unknown>") -> str:
+    loc = error.get("loc")
+    if not loc:
+        return default
+    if isinstance(loc, (list, tuple)):
+        return str(loc[-1])
+    return str(loc)
+
+
 def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
+    if error.get("type") == "extra_forbidden":
+        unexpected = _loc_last_str(error)
+        return _create_issue(
+            "invalid",
+            "error",
+            details=INVALID_SEARCH_DATA_CODING,
+            diagnostics=(
+                f"Unexpected query parameter(s): {unexpected}. Only 'identifier' and '_revinclude' are allowed."
+            ),
+        )
+
     if error.get("type") == "value_error":
         if custom_error := error.get("ctx", {}).get("error"):
             return _handle_custom_error(custom_error)
