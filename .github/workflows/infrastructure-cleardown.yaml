@@ -1,8 +1,8 @@
 name: Cleardown Infrastructure
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       tag:
-        description: "Name of the tag"
+        description: "The Git tag to checkout for cleardown"
         required: false
         type: string
       workflow_timeout:
@@ -32,17 +32,13 @@ on:
         required: false
         default: 10
         type: number
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
-        required: false
-        type: string
-      commit_hash:
-        description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: false
-        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
+        type: string
+      release_tag:
+        description: "The release candidate tag"
+        required: false
         type: string
 
 jobs:
@@ -55,10 +51,9 @@ jobs:
       stacks: ${{ inputs.stacks }}
       tag: ${{ inputs.tag }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
-      application_tag: ${{ inputs.application_tag }}
-      commit_hash: ${{ inputs.commit_hash }}
       action: destroy
       type: ${{ inputs.type }}
+      release_tag: ${{ inputs.release_tag }}
     secrets: inherit
 
   cleardown-os-policies:

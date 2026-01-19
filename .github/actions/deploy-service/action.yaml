@@ -14,9 +14,6 @@ inputs:
   artefact_sub_dir:
     description: "If deploying a custom artefact, specify its S3 subdirectory here."
     required: false
-  commit_hash:
-    description: "The short version of the git commit hash"
-    required: false
   artefact_bucket_name:
     description: "Name of bucket holding the artefacts for the domain"
     required: true
@@ -39,7 +36,6 @@ runs:
         export TAG=${{ inputs.tag }}
         export WORKSPACE=${{ inputs.workspace }}
         export ARTEFACT_SUB_DIR=${{ inputs.artefact_sub_dir }}
-        export COMMIT_HASH=${{ inputs.commit_hash }}
         export ARTEFACT_BUCKET_NAME=${{ inputs.artefact_bucket_name }}
         export ENVIRONMENT=${{ inputs.environment }}
         /bin/bash ./uec-dos-management/scripts/workflow/deploy-service.sh

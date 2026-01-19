@@ -19,8 +19,8 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-      application_tag:
-        description: "Optional application tag to check out (leave empty for default/latest)"
+      tag:
+        description: "The Git tag to build from"
         required: false
         type: string
     secrets:
@@ -39,8 +39,7 @@ jobs:
     env:
       ENVIRONMENT: ${{ inputs.environment }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      COMMIT_HASH: ${{ inputs.commit_hash || inputs.application_tag || '' }}
-      APPLICATION_TAG: ${{ inputs.application_tag || '' }}
+      COMMIT_HASH: ${{ inputs.commit_hash || '' }}
 
     steps:
       - name: "Normalize API name"
@@ -52,7 +51,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' && inputs.application_tag || '' }}
+          ref: ${{ inputs.tag }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.0

@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       tag:
-        description: "The git tag to checkout or, if not passed in, the current branch"
+        description: "The Git tag to checkout"
         required: false
         type: string
 

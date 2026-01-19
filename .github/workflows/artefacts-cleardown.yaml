@@ -27,6 +27,10 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      tag:
+        description: "The Git tag to checkout for artefact cleardown"
+        required: false
+        type: string
 
 jobs:
   cleardown-artefacts:

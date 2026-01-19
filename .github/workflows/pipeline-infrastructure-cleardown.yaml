@@ -15,10 +15,9 @@ on:
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
-      application_tag:
-        description: "Specify the application tag to cleardown"
-        required: true
-        default: "latest"
+      tag:
+        description: "Specify the Git tag to be used for cleardown (e.g. v1.1.0-pre.1)"
+        required: false
         type: string
       environment:
         description: "Specify the environment to cleardown"
@@ -38,6 +37,8 @@ jobs:
     if: github.actor != 'github-merge-queue[bot]'
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
+    with:
+      tag: ${{ inputs.tag}}
 
   cleardown-infrastructure:
     name: "Cleardown Infrastructure"
@@ -48,10 +49,10 @@ jobs:
       environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       stacks: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      application_tag: ${{ inputs.application_tag || github.event.client_payload.application_tag  || 'latest' }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      release_tag: ${{ github.event.client_payload.environment || '' }}
       workflow_timeout: 30
       type: app
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   cleardown-apim-proxies:
@@ -65,6 +66,7 @@ jobs:
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       apim_env: internal-dev
       api_names: '["dos-search"]'
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   cleardown-artefacts:
@@ -79,6 +81,7 @@ jobs:
       workspace: ${{ inputs.workspace || needs.metadata.outputs.workspace }}
       artefact_bucket_name: "${{ needs.metadata.outputs.reponame }}-${{ needs.metadata.outputs.mgmt_environment || inputs.environment }}-artefacts-bucket"
       type: app
+      tag: ${{ inputs.tag }}
     secrets: inherit
 
   slack-notifications:

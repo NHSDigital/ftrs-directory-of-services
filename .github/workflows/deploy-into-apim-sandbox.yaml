@@ -43,6 +43,10 @@ on:
         description: 'Pre-parsed should_deploy (true/false)'
         required: true
         type: string
+      tag:
+        description: "The Git tag to deploy from"
+        required: false
+        type: string
     secrets:
       ACCOUNT_ID:
         description: 'AWS Account ID'
@@ -83,6 +87,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag }}
 
       - name: Configure AWS Credentials
         if: ${{ inputs.parsed_should_deploy == 'true' }}

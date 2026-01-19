@@ -14,10 +14,6 @@ on:
         description: "The name of the package to build"
         required: true
         type: string
-      python_version:
-        description: "The version of Python"
-        required: true
-        type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
         required: false
@@ -34,20 +30,11 @@ on:
         description: "The name of the workspace to deploy the infrastructure into"
         required: true
         type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
-        required: false
-        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
-      release_build:
-        description: "Flag to indicate if this is a release build"
-        required: false
-        type: boolean
-        default: false
-      tag:
+      tag: 
         description: "The tag identifying the release version to checkout and deploy"
         required: false
         type: string
@@ -63,7 +50,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
-
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
@@ -97,8 +83,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
-          RELEASE_BUILD: ${{ inputs.release_build }}
+          RELEASE_TAG: ${{ inputs.tag || '' }}
 
       - name: "Invalidate CloudFront Cache"
         run: make invalidate-cloudfront-cache
@@ -110,4 +95,3 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}

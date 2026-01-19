@@ -76,7 +76,6 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
       release_tag: ${{ inputs.release_tag }}
       tag: ${{ inputs.release_tag }}
       workflow_timeout: 30
@@ -99,12 +98,9 @@ jobs:
     with:
       name: ${{ matrix.name }}
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
       environment: ${{ inputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
-      release_build: true
       type: "app"
       tag: ${{ inputs.release_tag }}
     secrets: inherit
@@ -134,6 +130,7 @@ jobs:
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
+      deployment_type: "release"
     secrets: inherit
 
   check-pipeline-status:

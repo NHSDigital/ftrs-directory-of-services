@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: "The git tag to checkout, this defaults to the head of the triggering branch"
+        description: "The Git tag to checkout"
         required: false
         type: string
       workflow_timeout:

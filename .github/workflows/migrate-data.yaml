@@ -24,7 +24,11 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
-
+      tag:
+        description: "The Git tag to checkout for data migration"
+        required: false
+        type: string
+        
 jobs:
   migrate-data-via-etl:
     name: "Run ETL process in ${{ inputs.environment }}"
@@ -34,6 +38,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
 
       - name: "Install jq"
         run: sudo apt-get install -y jq

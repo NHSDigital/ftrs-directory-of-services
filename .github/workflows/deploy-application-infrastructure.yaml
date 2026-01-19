@@ -1,8 +1,8 @@
 name: Deploy application infrastructure workflow
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -21,15 +21,15 @@ on:
         default: "dos"
         type: string
       tag:
-        description: "The git tag identifying the timeline in the repository to deploy from"
+        description: >
+          "The git tag to deploy for development or testing purposes.
+          Not used for official releases."
         required: false
         type: string
       release_tag:
-        description: "The git tag identifying the timeline in the repository to deploy from"
-        required: false
-        type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
+        description: >
+          "The release version tag to deploy (e.g. v1.4.0 or v1.4.0-rc.1).
+          Required for release and release-candidate deployments only."
         required: false
         type: string
       workflow_timeout:
@@ -37,10 +37,6 @@ on:
         required: false
         default: 5
         type: number
-      commit_hash:
-        description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: false
-        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: false
@@ -59,7 +55,6 @@ on:
         description: "The status of the deployment"
         value: ${{ jobs.deploy_summary.outputs.deploy_status }}
 
-
 jobs:
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
@@ -71,8 +66,6 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
       stacks: ${{ inputs.stacks }}
-      application_tag: ${{ inputs.application_tag }}
-      commit_hash: ${{ inputs.commit_hash }}
       tag: ${{ inputs.tag }}
       release_tag: ${{ inputs.release_tag }}
       action: plan
@@ -108,8 +101,6 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
       stacks: ${{ inputs.stacks }}
-      application_tag: ${{ inputs.application_tag }}
-      commit_hash: ${{ inputs.commit_hash }}
       tag: ${{ inputs.tag }}
       release_tag: ${{ inputs.release_tag }}
       action: apply

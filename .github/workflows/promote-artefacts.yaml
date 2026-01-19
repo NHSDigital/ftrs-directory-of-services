@@ -1,0 +1,73 @@
+name: Promote artefacts workflow
+run-name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
+
+permissions:
+  id-token: write
+  contents: write
+on:
+  workflow_call:
+    inputs:
+      workspace:
+        description: "The name of the workspace to deploy the application into"
+        required: false
+        type: string # TEMP
+      environment:
+        description: "The deployment environment"
+        required: false
+        type: string
+        default: "mgmt"
+      repo_name:
+        description: "The name of the Git repo"
+        required: true
+        type: string
+      artefact_promotion_type:
+        description: "The type of artefact promotion to perform"
+        required: true
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+      release_tag:
+        description: "The release tag for the artefact"
+        required: false
+        type: string
+      prerelease_tag:
+        description: "The prerelease tag for the artefact"
+        required: false
+        type: string
+
+jobs:
+  promote-artefacts:
+    name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+
+      - name: "Configure AWS Credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
+
+      - name: "Create GitHub Release"
+        id: semantic
+        if: ${{ inputs.artefact_promotion_type == 'release' }}
+        uses: cycjimmy/semantic-release-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ steps.semantic.outputs.new_release_version || inputs.release_tag || inputs.prerelease_tag }}"
+        run: make -f artefact-promotion.mk ${{ inputs.artefact_promotion_type }}
+        working-directory: scripts/services
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          REPO_NAME: ${{ inputs.repo_name }}
+          RELEASE_TAG: ${{ steps.semantic.outputs.new_release_version || inputs.release_tag }}
+          PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
+          WORKSPACE: ${{ inputs.workspace }} # TEMP

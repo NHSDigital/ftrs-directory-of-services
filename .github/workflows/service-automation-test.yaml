@@ -24,9 +24,8 @@ on:
         required: false
         type: string
       tag:
-        description: "The tag to build and deploy from"
-        required: true
-        default: ""
+        description: "The Git tag to checkout"
+        required: false
         type: string
       allure_report_retention:
         description: "The number of days to retain allure reports (in github)"
@@ -44,6 +43,10 @@ on:
         type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      deployment_type:
+        description: "The type of deployment (e.g., release-candidate, development)"
         required: false
         type: string
 
@@ -136,5 +139,8 @@ jobs:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+          DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
           ./scripts/workflow/upload-allure-report.sh
