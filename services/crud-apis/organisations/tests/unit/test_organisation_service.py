@@ -702,9 +702,17 @@ def test_process_organisation_update_with_none_phone_number(
         telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
         endpoints=[],
         id=organisation_id,
-        createdBy="test",
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         createdDateTime=FIXED_CREATED_TIME,
-        modifiedBy="test",
+        lastUpdatedBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         modifiedDateTime=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
