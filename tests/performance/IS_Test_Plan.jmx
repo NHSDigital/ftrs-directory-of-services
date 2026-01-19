@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="IS_Load_Test_Plan2">
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="IS_Load_Test_Plan">
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="Plan HTTP Request Defaults">
@@ -74,7 +76,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
-          <stringProp name="LoopController.loops">${__P(token_loop_count,1)}</stringProp>
+          <stringProp name="LoopController.loops">${__P(token_loop_count,-1)}</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
         </elementProp>
       </ThreadGroup>
@@ -155,7 +157,7 @@ try {
 </stringProp>
             </JSR223PreProcessor>
             <hashTree/>
-            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor">
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
               <stringProp name="cacheKey">false</stringProp>
               <stringProp name="filename"></stringProp>
               <stringProp name="parameters"></stringProp>
@@ -299,7 +301,7 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
               <hashTree/>
             </hashTree>
           </hashTree>
-          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 5 Minutes (Skip First Iteration)" enabled="true">
+          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 5 Minutes (Skip First Iteration)">
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -313,6 +315,19 @@ if (iteration == 1) {
 </stringProp>
             <stringProp name="scriptLanguage">groovy</stringProp>
           </JSR223Timer>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Proxy Mode">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isProxyMode&apos;) || props.get(&apos;isProxyMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
           <hashTree/>
         </hashTree>
       </hashTree>
@@ -336,7 +351,7 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -359,7 +374,7 @@ if (iteration == 1) {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
+            <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer">
               <doubleProp>
                 <name>allowedThroughputSurplus</name>
                 <value>1.0</value>
@@ -367,7 +382,7 @@ if (iteration == 1) {
               </doubleProp>
               <intProp name="batchSize">1</intProp>
               <intProp name="batchThreadDelay">0</intProp>
-              <stringProp name="duration">${__P(timer_duration,3660)}</stringProp>
+              <stringProp name="duration">${__P(duration,3660)}</stringProp>
               <intProp name="exactLimit">10000</intProp>
               <longProp name="randomSeed">1</longProp>
               <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
@@ -375,6 +390,19 @@ if (iteration == 1) {
             </PreciseThroughputTimer>
             <hashTree/>
           </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop If Not Load Mode">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isLoadMode&apos;) || props.get(&apos;isLoadMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree/>
         </hashTree>
       </hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Proxy - Precise Throughput">
@@ -391,7 +419,7 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__P(isProxyMode,)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -403,7 +431,7 @@ if (iteration == 1) {
           </TransactionController>
           <hashTree>
             <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
-              <stringProp name="HTTPSampler.path">/dos-search-ftrs-1380/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
+              <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=odsOrganisationCode%7C${ep_odscode}</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
@@ -413,7 +441,7 @@ if (iteration == 1) {
               </elementProp>
             </HTTPSamplerProxy>
             <hashTree>
-              <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
+              <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
                 <stringProp name="delimiter">,</stringProp>
                 <stringProp name="fileEncoding"></stringProp>
                 <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -425,7 +453,7 @@ if (iteration == 1) {
                 <stringProp name="variableNames">ep_odscode</stringProp>
               </CSVDataSet>
               <hashTree/>
-              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
                 <collectionProp name="HeaderManager.headers">
                   <elementProp name="" elementType="Header">
                     <stringProp name="Header.name">Authorization</stringProp>
@@ -434,7 +462,7 @@ if (iteration == 1) {
                 </collectionProp>
               </HeaderManager>
               <hashTree/>
-              <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
+              <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer">
                 <doubleProp>
                   <name>allowedThroughputSurplus</name>
                   <value>1.0</value>
@@ -442,7 +470,7 @@ if (iteration == 1) {
                 </doubleProp>
                 <intProp name="batchSize">1</intProp>
                 <intProp name="batchThreadDelay">0</intProp>
-                <stringProp name="duration">${__P(timer_duration,3660)}</stringProp>
+                <stringProp name="duration">${__P(duration,3660)}</stringProp>
                 <intProp name="exactLimit">10000</intProp>
                 <longProp name="randomSeed">1</longProp>
                 <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
@@ -451,6 +479,19 @@ if (iteration == 1) {
               <hashTree/>
             </hashTree>
           </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop If Not Proxy Mode" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isProxyMode&apos;) || props.get(&apos;isProxyMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree/>
         </hashTree>
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
@@ -491,7 +532,7 @@ if (iteration == 1) {
       </ResultCollector>
       <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer">
-        <stringProp name="ThreadGroup.num_threads">${__P(stress_num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
         <stringProp name="ThreadGroup.delay">${__P(startup_delay,0)}</stringProp>
@@ -522,8 +563,8 @@ if (iteration == 1) {
                 <stringProp name="end">${__P(throughput_step,50)}</stringProp>
                 <stringProp name="duration">${__P(step_duration,300)}</stringProp>
               </collectionProp>
-              <collectionProp name="-2024461214">
-                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+              <collectionProp name="405047607">
+                <stringProp name="-503223748">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
                 <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
                 <stringProp name="duration">${__P(step_duration,300)}</stringProp>
               </collectionProp>
@@ -599,6 +640,19 @@ if (iteration == 1) {
             </CSVDataSet>
             <hashTree/>
           </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Stress Mode" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isStressMode&apos;) || props.get(&apos;isStressMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree/>
         </hashTree>
       </hashTree>
     </hashTree>
