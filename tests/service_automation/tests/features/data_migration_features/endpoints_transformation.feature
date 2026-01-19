@@ -304,3 +304,60 @@ Feature: Data Migration for endpoints
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
     Then error log containing message: '3 validation errors for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created
+
+
+  Scenario: Endpoints with validation issues are not migrated
+    Given a "Service" exists in DoS with attributes
+      | key                                 | value                                                       |
+      | id                                  | 10305752                                                    |
+      | uid                                 | 138179                                                      |
+      | name                                | Abbey Medical Practice, Evesham, Worcestershire             |
+      | odscode                             | M81094                                                      |
+      | openallhours                        | FALSE                                                       |
+      | publicreferralinstructions          | STUB Public Referral Instruction Text Field 5752            |
+      | telephonetriagereferralinstructions | STUB Telephone Triage Referral Instructions Text Field 5752 |
+      | restricttoreferrals                 | TRUE                                                        |
+      | address                             | Evesham Medical Centre$Abbey Lane$Evesham                   |
+      | town                                | EVESHAM                                                     |
+      | postcode                            | WR11 4BS                                                    |
+      | easting                             | 403453                                                      |
+      | northing                            | 243634                                                      |
+      | publicphone                         | 01386 761111                                                |
+      | nonpublicphone                      | 99999 000000                                                |
+      | fax                                 | 77777 000000                                                |
+      | email                               |                                                             |
+      | web                                 | www.abbeymedical.com                                        |
+      | createdby                           | HUMAN                                                       |
+      | createdtime                         | 2011-06-29 08:00:51.000                                     |
+      | modifiedby                          | HUMAN                                                       |
+      | modifiedtime                        | 2024-11-29 10:55:23.000                                     |
+      | lasttemplatename                    | Midlands template R46 Append PC                             |
+      | lasttemplateid                      | 244764                                                      |
+      | typeid                              | 100                                                         |
+      | parentid                            | 150013                                                      |
+      | subregionid                         | 150013                                                      |
+      | statusid                            | 1                                                           |
+      | organisationid                      |                                                             |
+      | returnifopenminutes                 |                                                             |
+      | publicname                          | Abbey Medical Practice                                      |
+      | latitude                            | 52.0910543                                                  |
+      | longitude                           | -1.951003                                                   |
+      | professionalreferralinfo            | Nope                                                        |
+      | lastverified                        |                                                             |
+      | nextverificationdue                 |                                                             |
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key                  | value        | reason                               |
+      | id                   | 500006       |                                      |
+      | endpointorder        | 1            |                                      |
+      | transport            | telno        |                                      |
+      | format               |              |                                      |
+      | interaction          |              |                                      |
+      | businessscenario     | Unsupported  | Only Primary and Copy values allowed |
+      | address              | 12345123456  |                                      |
+      | comment              |              |                                      |
+      | iscompressionenabled | uncompressed |                                      |
+      | serviceid            | 10305752     |                                      |
+    When the data migration process is run for table 'services', ID '10305752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
+    Then error log containing message: '1 validation error for Endpoint' was found
+    Then there is 0 organisation, 0 location and 0 healthcare services created
