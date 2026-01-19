@@ -14,7 +14,6 @@ appconfig_flags:
       test: true
       int: true
       ref: true
-      sandpit: true
       prod: true
 
   - id: data_migration_location_enabled
@@ -28,7 +27,6 @@ appconfig_flags:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: data_migration_healthcareservice_enabled
@@ -42,7 +40,6 @@ appconfig_flags:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: data_migration_triagecode_enabled
@@ -56,7 +53,6 @@ appconfig_flags:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: data_migration_select_gp_practice_enabled
@@ -70,14 +66,13 @@ appconfig_flags:
       test: true
       int: true
       ref: true
-      sandpit: true
       prod: true
 
 stack_toggles:
   - id: stack_opensearch_enabled
     name: "OpenSearch Stack Enabled"
     description: "Enable/disable OpenSearch stack deployment"
-    terraform_variable: opensearch_enabled
+    terraform_variable: opensearch_stack_enabled
     stack_path: infrastructure/stacks/opensearch
     owner: "Infrastructure Team"
     environments:
@@ -86,13 +81,12 @@ stack_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: stack_ui_enabled
     name: "UI Stack Enabled"
     description: "Enable/disable UI stack deployment"
-    terraform_variable: ui_enabled
+    terraform_variable: ui_stack_enabled
     stack_path: infrastructure/stacks/ui
     owner: "Infrastructure Team"
     environments:
@@ -101,13 +95,12 @@ stack_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: stack_read_only_viewer_enabled
     name: "Read-Only Viewer Stack Enabled"
     description: "Enable/disable Read-Only Viewer stack deployment"
-    terraform_variable: read_only_viewer_enabled
+    terraform_variable: read_only_viewer_stack_enabled
     stack_path: infrastructure/stacks/read_only_viewer
     owner: "Infrastructure Team"
     environments:
@@ -116,7 +109,6 @@ stack_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
 api_gateway_toggles:
@@ -136,7 +128,6 @@ api_gateway_toggles:
       test: true
       int: true
       ref: true
-      sandpit: true
       prod: true
 
   - id: crud_api_organisation_create_enabled
@@ -155,7 +146,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_organisation_read_enabled
@@ -174,7 +164,6 @@ api_gateway_toggles:
       test: true
       int: true
       ref: true
-      sandpit: true
       prod: true
 
   - id: crud_api_organisation_update_enabled
@@ -193,7 +182,6 @@ api_gateway_toggles:
       test: true
       int: true
       ref: true
-      sandpit: true
       prod: true
 
   - id: crud_api_organisation_delete_enabled
@@ -212,7 +200,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_location_create_enabled
@@ -231,7 +218,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_location_read_enabled
@@ -250,7 +236,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_location_update_enabled
@@ -269,7 +254,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_location_delete_enabled
@@ -288,7 +272,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_healthcareservice_create_enabled
@@ -307,7 +290,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_healthcareservice_read_enabled
@@ -326,7 +308,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_healthcareservice_update_enabled
@@ -345,7 +326,6 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
 
   - id: crud_api_healthcareservice_delete_enabled
@@ -364,5 +344,4 @@ api_gateway_toggles:
       test: true
       int: false
       ref: false
-      sandpit: false
       prod: false
