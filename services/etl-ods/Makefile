@@ -79,12 +79,9 @@ build-consumer-lambda: ensure-build-dir
 
 publish:
 	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
-	aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip \
-		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PRODUCER_LAMBDA_NAME).zip --region $(AWS_REGION); \
-	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip \
-		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION); \
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip \
-		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION); 
+	aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PRODUCER_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
 	@echo "Published successfully"
 
 # ==============================================================================
