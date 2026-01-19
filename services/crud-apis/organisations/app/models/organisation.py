@@ -382,7 +382,7 @@ def _validate_period_dates(period_ext: Extension, is_legal: bool) -> None:
                 "Legal period start date is required when TypedPeriod extension is present"
             )
 
-        if start and end and start == end:
+        if end is not None and start == end:
             logger = Logger.get(service="crud_organisation_logger")
             logger.log(
                 CrudApisLogBase.ORGANISATION_023,
