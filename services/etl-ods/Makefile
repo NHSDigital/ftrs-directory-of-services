@@ -60,7 +60,7 @@ build-consumer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
-	cd $(BUILD_DIR)/consumer-tmp zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
 
 # ------------------------------------------------------------------------------
