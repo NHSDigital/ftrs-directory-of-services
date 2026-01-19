@@ -146,7 +146,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       api_name: ${{ matrix.api_name }}
       apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
-      tag: ${{ inputs.tag }}  
+      tag: ${{ inputs.tag }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -282,13 +282,13 @@ jobs:
     name: "Generate prerelease tag"
     needs:
       - deploy-frontend-services
-    # - service-automation-tests
-    # if: >
-    #   always() &&
-    #   github.event_name == 'push' &&
-    #   github.ref == 'refs/heads/main' &&
-    #   needs.deploy-frontend-services.result == 'success' &&
-    #   needs.service-automation-tests.result == 'success'
+      - service-automation-tests
+    if: >
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.deploy-frontend-services.result == 'success' &&
+      needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
@@ -303,7 +303,6 @@ jobs:
       artefact_promotion_type: "stage"
       type: app
       prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
-      workspace: ${{ needs.metadata.outputs.workspace }} # TEMP
     secrets: inherit
 
   check-pipeline-status:

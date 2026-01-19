@@ -7,10 +7,6 @@ permissions:
 on:
   workflow_call:
     inputs:
-      workspace:
-        description: "The name of the workspace to deploy the application into"
-        required: false
-        type: string # TEMP
       environment:
         description: "The deployment environment"
         required: false
@@ -70,4 +66,3 @@ jobs:
           REPO_NAME: ${{ inputs.repo_name }}
           RELEASE_TAG: ${{ steps.semantic.outputs.new_release_version || inputs.release_tag }}
           PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
-          WORKSPACE: ${{ inputs.workspace }} # TEMP
