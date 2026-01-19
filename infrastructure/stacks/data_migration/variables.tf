@@ -334,3 +334,9 @@ variable "dns_port" {
   type        = number
   default     = 53
 }
+
+variable "vpc_private_subnet_cidr_range" {
+  description = "The CIDR range for the VPC private subnets"
+  type        = string
+  default     = "24"
+}

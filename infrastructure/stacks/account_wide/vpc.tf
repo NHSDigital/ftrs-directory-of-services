@@ -48,7 +48,7 @@ module "vpc" {
 locals {
 
   public_subnets   = [var.vpc["public_subnet_a"], var.vpc["public_subnet_b"], var.vpc["public_subnet_c"]]
-  private_subnets  = [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"]]
+  private_subnets  = var.environment == "dev" ? [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"], var.vpc["private_subnet_d"], var.vpc["private_subnet_e"], var.vpc["private_subnet_f"]] : [var.vpc["private_subnet_a"], var.vpc["private_subnet_b"], var.vpc["private_subnet_c"]]
   database_subnets = [var.vpc["database_subnet_a"], var.vpc["database_subnet_b"], var.vpc["database_subnet_c"]]
   vpn_subnets      = var.environment == "dev" ? [var.vpc["vpn_subnet"]] : []
 
@@ -170,3 +170,13 @@ resource "aws_flow_log" "database_subnet_flow_log_s3" {
   }
   subnet_id = module.vpc.database_subnets[count.index]
 }
+
+# Add a CIDR Range tag to the private subnets for filtering
+resource "aws_ec2_tag" "private_subnet_tags" {
+  for_each = data.aws_subnet.vpc_private_subnets
+
+  resource_id = each.value.id
+  key         = "CidrRange"
+  value       = split("/", (each.value.cidr_block))[1]
+}
+

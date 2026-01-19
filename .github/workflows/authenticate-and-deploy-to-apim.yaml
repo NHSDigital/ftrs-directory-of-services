@@ -1,9 +1,5 @@
 name: Deploy API Proxy to APIM environment
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   workflow_call:
     inputs:
@@ -38,9 +34,14 @@ on:
         description: 'Proxygen API URL'
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM environment - ${{ inputs.api_name }}
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -77,19 +78,27 @@ jobs:
           proxygen_url: ${{ secrets.PROXYGEN_URL }}
 
       - name: Deployment Summary
+        shell: bash
+        env:
+          API_NAME: ${{ inputs.api_name }}
+          WORKSPACE: ${{ inputs.workspace }}
+          ENVIRONMENT: ${{ inputs.environment }}
         run: |
-          echo "### Deployment Complete 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API Name | \`${{ inputs.api_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Workspace | \`${{ inputs.workspace }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ inputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          echo "### Deployment Complete 🚀" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Parameter | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| API Name | \`$API_NAME\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Workspace | \`$WORKSPACE\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | \`$ENVIRONMENT\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ✅ Success |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Notify on failure
         if: failure()
+        shell: bash
         run: |
-          echo "### Deployment to the APIM environment failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The deployment to Proxygen failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          echo "### Deployment to the APIM environment failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The deployment to Proxygen failed. Please check the logs above for details." >> "$GITHUB_STEP_SUMMARY"

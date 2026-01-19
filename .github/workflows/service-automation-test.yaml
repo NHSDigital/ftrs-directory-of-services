@@ -1,8 +1,5 @@
 name: service automation test workflow
 
-permissions:
-  id-token: write
-  contents: read
 
 on:
   workflow_call:
@@ -50,12 +47,17 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   service-automation-tests:
     name: "Run service automation tests"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
 
     steps:
       - name: "Checkout code"
@@ -135,6 +137,7 @@ jobs:
 
       - name: Upload allure report to S3
         if: always()
+        shell: bash
         env:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
@@ -143,4 +146,5 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
+          set -euo pipefail
           ./scripts/workflow/upload-allure-report.sh
