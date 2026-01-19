@@ -6,13 +6,13 @@ inputs:
     description: 'Name of the API to deploy'
     required: true
   workspace:
-    description: 'Workspace identifier (e.g., FTRS-000)'
-    required: true
+    description: 'Workspace identifier (e.g., FTRS-000). If specified, a workspaced proxy will be deployed into the APIM environment'
+    required: false
   environment:
-    description: 'FTRS environment to deploy to (e.g., dev, test, prod)'
+    description: ' The environment our target backend is deployed to. (e.g., dev, test, prod)'
     required: true
   apim_env:
-    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev)'
+    description: 'APIM environment to deploy the API Proxy into (e.g., internal-dev, internal-qa, int, ref, prod)'
     required: true
   access_token:
     description: 'Access Token for the Proxygen API'
@@ -35,101 +35,121 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        set -euo pipefail
         python -m pip install --upgrade pip
         pip install pyyaml
 
     - name: Validate workspace format
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
       run: |
-        if [[ ! "${{ inputs.workspace }}" =~ ^ftrs-[0-9]+$ ]]; then
-          echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)"
+        set -euo pipefail
+        # Skip validation if workspace is not provided or is 'default' (e.g., for int environment)
+        if [ -z "${WORKSPACE:-}" ] || [ "$WORKSPACE" == "default" ]; then
+          printf 'No workspace provided or default workspace - skipping validation (environment: %s)\n' "${ENVIRONMENT:-}"
+        elif [[ ! "$WORKSPACE" =~ ^ftrs-[0-9]+$ ]]; then
+          echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)" >&2
           exit 1
+        else
+          printf 'Workspace format validated: %s\n' "$WORKSPACE"
         fi
-        echo "Workspace format validated: ${{ inputs.workspace }}"
 
     - name: Modify OAS Specification
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}
       id: modify-spec
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        WORKSPACE: ${{ inputs.workspace }}
+        PROXY_ENV: ${{ inputs.apim_env }}
       run: |
-        export API_NAME="${{ inputs.api_name }}"
-        export WORKSPACE="${{ inputs.workspace }}"
-        export PROXY_ENV="${{ inputs.apim_env }}"
+        set -euo pipefail
+        # Only set WORKSPACE if it's not empty and not 'default'
+        if [ -n "${WORKSPACE:-}" ] && [ "$WORKSPACE" != "default" ]; then
+          export WORKSPACE
+        else
+          unset WORKSPACE
+        fi
 
         chmod +x ./scripts/workflow/modify-oas-spec.sh
         MODIFIED_SPEC_PATH=$(./scripts/workflow/modify-oas-spec.sh)
 
-        if [ $? -eq 0 ]; then
-          echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
-          echo "OAS spec modified successfully"
-        else
-          echo "Failed to modify OAS spec"
-          exit 1
-        fi
+        printf 'modified_spec_path=%s\n' "$MODIFIED_SPEC_PATH" >> "$GITHUB_OUTPUT"
+        echo "OAS spec modified successfully"
 
     - name: Modify Sandbox OAS Specification
       if: ${{ contains(inputs.apim_env, 'sandbox') }}
       id: modify-sandbox-spec
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        PROXY_ENV: ${{ inputs.apim_env }}
+        VERSION_TAG: ${{ inputs.version_tag }}
       run: |
-        export API_NAME="${{ inputs.api_name }}"
-        export PROXY_ENV="${{ inputs.apim_env }}"
-        export VERSION_TAG="${{ inputs.version_tag }}"
-
+        set -euo pipefail
         chmod +x ./scripts/workflow/modify-oas-sandbox-spec.sh
         read -r MODIFIED_SPEC_PATH TARGET_SPEC_FILE < <(./scripts/workflow/modify-oas-sandbox-spec.sh)
 
-        if [ $? -eq 0 ]; then
-          echo "modified_spec_path=$MODIFIED_SPEC_PATH" >> $GITHUB_OUTPUT
-          echo "target_spec_file_abs=$TARGET_SPEC_FILE" >> $GITHUB_OUTPUT
-          echo "OAS spec modified successfully"
-        else
-          echo "Failed to modify OAS spec"
-          exit 1
-        fi
+        printf 'modified_spec_path=%s\n' "$MODIFIED_SPEC_PATH" >> "$GITHUB_OUTPUT"
+        printf 'target_spec_file_abs=%s\n' "$TARGET_SPEC_FILE" >> "$GITHUB_OUTPUT"
+        echo "OAS spec modified successfully"
 
     - name: Deploy API Proxy to APIM environment
       id: deploy
       shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        WORKSPACE: ${{ inputs.workspace }}
+        PROXY_ENV: ${{ inputs.apim_env }}
+        ACCESS_TOKEN: ${{ inputs.access_token }}
+        PROXYGEN_URL: ${{ inputs.proxygen_url }}
+        VERSION_TAG: ${{ inputs.version_tag }}
+        IS_SANDBOX: ${{ contains(inputs.apim_env, 'sandbox') }}
+        MODIFIED_SPEC_PATH_SANDBOX: ${{ steps.modify-sandbox-spec.outputs.modified_spec_path }}
+        TARGET_SPEC_FILE_SANDBOX: ${{ steps.modify-sandbox-spec.outputs.target_spec_file_abs }}
+        MODIFIED_SPEC_PATH_NON_SANDBOX: ${{ steps.modify-spec.outputs.modified_spec_path }}
       run: |
-        export API_NAME="${{ inputs.api_name }}"
-        export WORKSPACE="${{ inputs.workspace }}"
-        export PROXY_ENV="${{ inputs.apim_env }}"
-        export ACCESS_TOKEN="${{ inputs.access_token }}"
-        export PROXYGEN_URL="${{ inputs.proxygen_url }}"
-        export VERSION_TAG="${{ inputs.version_tag }}"
-        export IS_SANDBOX="${{ contains(inputs.apim_env, 'sandbox') }}"
+        set -euo pipefail
+        # Only set WORKSPACE if it's not empty and not 'default'
+        if [ -n "${WORKSPACE:-}" ] && [ "$WORKSPACE" != "default" ]; then
+          export WORKSPACE
+        else
+          unset WORKSPACE
+        fi
 
         if [[ "$IS_SANDBOX" == 'true' ]]; then
-          export MODIFIED_SPEC_PATH="${{ steps.modify-sandbox-spec.outputs.modified_spec_path }}"
-          export TARGET_SPEC_FILE="${{ steps.modify-sandbox-spec.outputs.target_spec_file_abs }}"
+          export MODIFIED_SPEC_PATH="$MODIFIED_SPEC_PATH_SANDBOX"
+          export TARGET_SPEC_FILE="$TARGET_SPEC_FILE_SANDBOX"
         else
-          export MODIFIED_SPEC_PATH="${{ steps.modify-spec.outputs.modified_spec_path }}"
+          export MODIFIED_SPEC_PATH="$MODIFIED_SPEC_PATH_NON_SANDBOX"
         fi
 
         chmod +x ./scripts/workflow/deploy-to-apim.sh
         ./scripts/workflow/deploy-to-apim.sh
 
-        if [ $? -eq 0 ]; then
-          echo "status=success" >> $GITHUB_OUTPUT
-          echo "${{ inputs.api_name }} deployed successfully to APIM ${{ inputs.apim_env }} environment"
-        else
-          echo "status=failed" >> $GITHUB_OUTPUT
-          echo "${{ inputs.api_name }} deployment to ${{ inputs.apim_env }} failed"
-          exit 1
-        fi
+        printf '%s deployed successfully to APIM %s environment\n' "$API_NAME" "$PROXY_ENV"
+        printf 'status=%s\n' "success" >> "$GITHUB_OUTPUT"
 
     - name: Output deployment details
       shell: bash
+      env:
+        VERSION_TAG: ${{ inputs.version_tag }}
+        API_NAME: ${{ inputs.api_name }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        APIM_ENV: ${{ inputs.apim_env }}
+        STATUS: ${{ steps.deploy.outputs.status }}
       run: |
-        VERSION_TAG="${{ inputs.version_tag }}"
+        set -euo pipefail
         echo "Deployment Summary:"
-        echo "- API Name: ${{ inputs.api_name }}"
-        echo "- Workspace: ${{ inputs.workspace }}"
-        echo "- Environment: ${{ inputs.environment }}"
-        echo "- APIM Environment: ${{inputs.apim_env }}"
-        if [ -n "$VERSION_TAG" ]; then
-          echo "- Version Tag: $VERSION_TAG"
+        printf -- '- API Name: %s\n' "$API_NAME"
+        printf -- '- Workspace: %s\n' "${WORKSPACE:-}"
+        printf -- '- Environment: %s\n' "$ENVIRONMENT"
+        printf -- '- APIM Environment: %s\n' "$APIM_ENV"
+        if [ -n "${VERSION_TAG:-}" ]; then
+          printf -- '- Version Tag: %s\n' "$VERSION_TAG"
         fi
-        echo "- Status: ${{ steps.deploy.outputs.status }}"
+        printf -- '- Status: %s\n' "$STATUS"
