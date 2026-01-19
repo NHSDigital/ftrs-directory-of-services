@@ -1,0 +1,95 @@
+model {
+  extend ftrs {
+    container etlOds "ODS ETL Pipeline" {
+      description 'ETL pipeline for syncing organisation data from ODS Terminology API using Extract-Transform-Load pattern'
+
+      // ========================================
+      // EXTRACT STAGE
+      // ========================================
+      lambda odsExtractor "ODS Extractor" {
+        description 'Extracts outdated organisations from ODS API and queues raw data for transformation'
+        technology 'Python Lambda'
+
+        -> operations.cloudWatch "logs to"
+        -> security.secretsManager "fetches ODS API key from"
+      }
+
+      sqs transformQueue "Transform Queue" {
+        description 'Queue for raw ODS organisation data awaiting transformation'
+
+        -> security.kms "encrypted by"
+      }
+
+      // ========================================
+      // TRANSFORM STAGE
+      // ========================================
+      lambda odsTransformer "ODS Transformer" {
+        description 'Transforms raw ODS data to FHIR format, looks up internal UUID, queues for loading'
+        technology 'Python Lambda'
+
+        -> operations.cloudWatch "logs to"
+        -> security.secretsManager "fetches credentials from"
+      }
+
+      sqs loadQueue "Load Queue" {
+        description 'Queue for transformed FHIR payloads ready to load to CRUD APIs'
+
+        -> security.kms "encrypted by"
+      }
+
+      // ========================================
+      // LOAD STAGE
+      // ========================================
+      lambda odsLoader "ODS Loader" {
+        description 'Loads transformed FHIR organisations to CRUD APIs via APIM'
+        technology 'Python Lambda'
+
+        -> operations.cloudWatch "logs to"
+        -> security.secretsManager "fetches JWT credentials from"
+        -> operations.ssmParameterStore "reads CRUD endpoint from"
+      }
+    }
+
+    // EventBridge triggers the ETL Extractor
+    operations.eventBridge -> etlOds.odsExtractor "triggers daily at 01:10 AM"
+  }
+
+  // External system for ODS Terminology API
+  odsTerminologyApi = system "ODS Data Terminology API" {
+    description 'ODS holds information for many different types of organisation related to health and social care'
+    technology 'External NHS API'
+  }
+
+  // ========================================
+  // Data flow: Extract stage
+  // ========================================
+  odsTerminologyApi -> ftrs.etlOds.odsExtractor "Fetches outdated organisations (FHIR Bundle)"
+  ftrs.etlOds.odsExtractor -> ftrs.etlOds.transformQueue "Sends raw organisation data"
+
+  // ========================================
+  // Data flow: Transform stage
+  // ========================================
+  ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "Triggers Lambda (SQS event, batch size 10)"
+  ftrs.etlOds.odsTransformer -> apim.dosReadProxy "Fetches organisation UUIDs by ODS code"
+  ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "Sends transformed FHIR payloads"
+
+  // ========================================
+  // Data flow: Load stage
+  // ========================================
+  ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "Triggers Lambda (SQS event, batch size 10)"
+  ftrs.etlOds.odsLoader -> apim.dosWriteProxy "PUT /Organization/{uuid} updates"
+
+  // ========================================
+  // Data flow: Through CRUD APIs (write path)
+  // ========================================
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies PUT request"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "Routes to update handler"
+  ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "Persists organisation data"
+
+  // ========================================
+  // Data flow: Through CRUD APIs (read path for UUID lookup)
+  // ========================================
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies GET request"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "Routes to query handler"
+  ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "Queries organisation by ODS code"
+}

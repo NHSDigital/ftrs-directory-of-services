@@ -1,0 +1,3415 @@
+{
+  _type: 'deployment',
+  tags: null,
+  links: null,
+  _stage: 'layouted',
+  sourcePath: 'architecture/deployment.c4',
+  description: {
+    txt: 'Complete production deployment showing all AWS and GCP components\nfor FtRS services including ETL ODS and DoS Search.\n\nKey architecture decisions:\n- Lambda functions run in private subnets within VPC\n- AWS managed services (DynamoDB, SQS, S3) are regional and accessed via VPC Endpoints\n- API Gateway is regional with custom domain and mTLS\n- All encryption uses KMS customer managed keys\n- Shield Advanced protects Route 53',
+  },
+  title: 'Production Deployment Overview',
+  id: 'prodDeployment',
+  autoLayout: {
+    direction: 'TB',
+    nodeSep: 77,
+    rankSep: 70,
+  },
+  hash: '3589e82e9bbed99eae4980c6097fb6d183a8978a',
+  bounds: {
+    x: 420,
+    y: 323,
+    width: 3189,
+    height: 2007,
+  },
+  nodes: [
+    {
+      id: 'aws',
+      parent: null,
+      level: 0,
+      children: [
+        'aws.prod',
+      ],
+      inEdges: [
+        'l6aey2',
+        '1fo8dqd',
+      ],
+      outEdges: [
+        'sh2da4',
+        '9sz7ej',
+      ],
+      deploymentRef: 'aws',
+      title: 'AWS Cloud',
+      kind: 'environment',
+      technology: 'AWS',
+      color: 'blue',
+      shape: 'rectangle',
+      tags: [],
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      depth: 3,
+      x: 430,
+      y: 333,
+      width: 2680,
+      height: 1987,
+      labelBBox: {
+        x: 6,
+        y: 0,
+        width: 72,
+        height: 15,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod',
+      parent: 'aws',
+      level: 1,
+      children: [
+        'aws.prod.eventBridge',
+        'aws.prod.ftrsVpc',
+        'aws.prod.route53',
+        'aws.prod.secretsManager',
+        'aws.prod.sqs',
+        'aws.prod.shield',
+        'aws.prod.apiGateway',
+        'aws.prod.kms',
+        'aws.prod.acm',
+        'aws.prod.s3',
+        'aws.prod.ssm',
+        'aws.prod.cloudWatch',
+        'aws.prod.orgTable',
+        'aws.prod.healthcareServiceTable',
+        'aws.prod.locationTable',
+      ],
+      inEdges: [
+        'l6aey2',
+        '1fo8dqd',
+      ],
+      outEdges: [
+        'sh2da4',
+        '9sz7ej',
+      ],
+      deploymentRef: 'aws.prod',
+      title: 'Production (eu-west-2)',
+      kind: 'zone',
+      color: 'primary',
+      shape: 'rectangle',
+      description: {
+        txt: 'Production environment in London region (eu-west-2)',
+      },
+      tags: [],
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      depth: 2,
+      x: 473,
+      y: 393,
+      width: 2596,
+      height: 1885,
+      labelBBox: {
+        x: 6,
+        y: 0,
+        width: 149,
+        height: 15,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.eventBridge',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [],
+      outEdges: [
+        '50c2u1',
+      ],
+      kind: 'instance',
+      title: 'EventBridge Scheduler',
+      description: {
+        txt: 'Daily ODS ETL trigger at 01:10 AM London time',
+      },
+      technology: 'EventBridge Scheduler, cron(10 1 * * ? *)',
+      tags: [],
+      icon: 'aws:event-bridge',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.eventBridge',
+      modelRef: 'ftrs.operations.eventBridge',
+      x: 1028,
+      y: 464,
+      width: 357,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 45,
+        width: 296,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.ftrsVpc',
+      parent: 'aws.prod',
+      level: 2,
+      children: [
+        'aws.prod.ftrsVpc.odsProcessor',
+        'aws.prod.ftrsVpc.odsConsumer',
+        'aws.prod.ftrsVpc.dosSearchLambda',
+        'aws.prod.ftrsVpc.crudApisLambda',
+      ],
+      inEdges: [
+        '50c2u1',
+        'jjyyc5',
+        's04kx4',
+        'alrkpf',
+      ],
+      outEdges: [
+        'sh2da4',
+        '9sz7ej',
+        '1s6w5y4',
+        '1b5p4fo',
+        'ikpkvj',
+        '1a0m8dh',
+        'pqx8he',
+        '1nwovdm',
+        '1s4bxt9',
+        'e7al1s',
+        '1oyej3e',
+        'mo60bf',
+        'ikpkqb',
+        '1od0c0h',
+        'a26ai4',
+        'jo7o2q',
+        'oh7o4r',
+      ],
+      deploymentRef: 'aws.prod.ftrsVpc',
+      title: 'FtRS VPC',
+      kind: 'vpc',
+      technology: 'VPC with NAT Gateway and VPC Endpoints',
+      color: 'primary',
+      shape: 'rectangle',
+      description: {
+        txt: 'Private subnets across multiple AZs with VPC Endpoints',
+      },
+      tags: [],
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      depth: 1,
+      x: 523,
+      y: 710,
+      width: 912,
+      height: 1272,
+      labelBBox: {
+        x: 6,
+        y: 0,
+        width: 58,
+        height: 15,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.ftrsVpc.odsProcessor',
+      parent: 'aws.prod.ftrsVpc',
+      level: 3,
+      children: [],
+      inEdges: [
+        '50c2u1',
+      ],
+      outEdges: [
+        'sh2da4',
+        '1s6w5y4',
+        'pqx8he',
+        '1oyej3e',
+        'mo60bf',
+      ],
+      kind: 'instance',
+      title: 'ODS Processor Lambda',
+      description: {
+        txt: 'Extracts from ODS API, transforms to FHIR, queues to SQS',
+      },
+      technology: 'Python 3.12, 512MB, 720s timeout',
+      tags: [],
+      icon: 'aws:lambda',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.ftrsVpc.odsProcessor',
+      modelRef: 'ftrs.etlOds.odsProcessor',
+      x: 1029,
+      y: 781,
+      width: 356,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 45,
+        width: 294,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.ftrsVpc.odsConsumer',
+      parent: 'aws.prod.ftrsVpc',
+      level: 3,
+      children: [],
+      inEdges: [
+        'alrkpf',
+      ],
+      outEdges: [
+        '9sz7ej',
+        '1b5p4fo',
+        'ikpkvj',
+        '1nwovdm',
+        'ikpkqb',
+      ],
+      kind: 'instance',
+      title: 'ODS Consumer Lambda',
+      description: {
+        txt: 'Consumes SQS, sends PUT to CRUD APIs via APIM',
+      },
+      technology: 'Python 3.12, 512MB, 30s timeout',
+      tags: [],
+      icon: 'aws:lambda',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.ftrsVpc.odsConsumer',
+      modelRef: 'ftrs.etlOds.odsConsumer',
+      x: 573,
+      y: 781,
+      width: 378,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 45,
+        width: 316,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'gcp',
+      parent: null,
+      level: 0,
+      children: [
+        'gcp.london',
+      ],
+      inEdges: [
+        'sh2da4',
+        '9sz7ej',
+      ],
+      outEdges: [
+        'l6aey2',
+        '1fo8dqd',
+      ],
+      deploymentRef: 'gcp',
+      title: 'Google Cloud Platform',
+      kind: 'environment',
+      technology: 'AWS',
+      color: 'blue',
+      shape: 'rectangle',
+      tags: [],
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      depth: 2,
+      x: 2718,
+      y: 695,
+      width: 881,
+      height: 387,
+      labelBBox: {
+        x: 6,
+        y: 0,
+        width: 159,
+        height: 15,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'gcp.london',
+      parent: 'gcp',
+      level: 1,
+      children: [
+        'gcp.london.dosReadProxy',
+        'gcp.london.dosWriteProxy',
+      ],
+      inEdges: [
+        'sh2da4',
+        '9sz7ej',
+      ],
+      outEdges: [
+        'l6aey2',
+        '1fo8dqd',
+      ],
+      deploymentRef: 'gcp.london',
+      title: 'London (europe-west2)',
+      kind: 'zone',
+      color: 'primary',
+      shape: 'rectangle',
+      tags: [],
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      depth: 1,
+      x: 2750,
+      y: 748,
+      width: 817,
+      height: 302,
+      labelBBox: {
+        x: 6,
+        y: 0,
+        width: 150,
+        height: 15,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'gcp.london.dosReadProxy',
+      parent: 'gcp.london',
+      level: 2,
+      children: [],
+      inEdges: [
+        'sh2da4',
+      ],
+      outEdges: [
+        'l6aey2',
+      ],
+      kind: 'instance',
+      title: 'DoS Read Proxy',
+      description: {
+        txt: 'Proxy to read data from DoS',
+      },
+      tags: [],
+      icon: 'gcp:apigee-api-platform',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'gcp.london.dosReadProxy',
+      modelRef: 'apim.dosReadProxy',
+      x: 3197,
+      y: 820,
+      width: 320,
+      height: 180,
+      labelBBox: {
+        x: 49,
+        y: 63,
+        width: 252,
+        height: 47,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'gcp.london.dosWriteProxy',
+      parent: 'gcp.london',
+      level: 2,
+      children: [],
+      inEdges: [
+        '9sz7ej',
+      ],
+      outEdges: [
+        '1fo8dqd',
+      ],
+      kind: 'instance',
+      title: 'DoS Write Proxy',
+      description: {
+        txt: 'Proxy to write data to DoS',
+      },
+      tags: [],
+      icon: 'gcp:apigee-api-platform',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'gcp.london.dosWriteProxy',
+      modelRef: 'apim.dosWriteProxy',
+      x: 2800,
+      y: 820,
+      width: 320,
+      height: 180,
+      labelBBox: {
+        x: 57,
+        y: 63,
+        width: 236,
+        height: 47,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.route53',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '29eyfw',
+        'k7j4v7',
+      ],
+      outEdges: [
+        'gzdhdo',
+        '1q0yhnn',
+      ],
+      kind: 'instance',
+      title: 'Route 53',
+      description: {
+        txt: 'ftrs.nhs.uk hosted zone with dos-search DNS records',
+      },
+      technology: 'Route 53 Public Hosted Zone, Shield Advanced protected',
+      tags: [],
+      icon: 'aws:route-53',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.route53',
+      modelRef: 'ftrs.dns.route53Zone',
+      x: 2457,
+      y: 1152,
+      width: 337,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 44,
+        width: 276,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.secretsManager',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1s6w5y4',
+        '1b5p4fo',
+      ],
+      outEdges: [
+        '1p9bxsv',
+      ],
+      kind: 'instance',
+      title: 'Secrets Manager',
+      description: {
+        txt: 'JWT credentials and ODS API key',
+      },
+      technology: 'Secrets Manager, KMS encrypted',
+      tags: [],
+      icon: 'aws:secrets-manager',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.secretsManager',
+      modelRef: 'ftrs.security.secretsManager',
+      x: 1947,
+      y: 1152,
+      width: 353,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 53,
+        width: 292,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.sqs',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'mo60bf',
+        'ikpkqb',
+      ],
+      outEdges: [
+        'g79dh4',
+        'alrkpf',
+      ],
+      kind: 'instance',
+      title: 'SQS Queue',
+      description: {
+        txt: 'ODS ETL message queue with DLQ',
+      },
+      technology: 'SQS Standard, KMS encrypted',
+      tags: [],
+      icon: 'aws:simple-queue-service',
+      color: 'primary',
+      shape: 'queue',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.sqs',
+      modelRef: 'ftrs.etlOds.odsQueue',
+      x: 1485,
+      y: 1156,
+      width: 385,
+      height: 172,
+      labelBBox: {
+        x: 57,
+        y: 49,
+        width: 313,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.shield',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'gzdhdo',
+      ],
+      outEdges: [
+        '29eyfw',
+      ],
+      kind: 'instance',
+      title: 'Shield Advanced',
+      description: {
+        txt: 'DDoS protection for Route 53 hosted zone',
+      },
+      technology: 'Shield Advanced, proactive engagement enabled',
+      tags: [],
+      icon: 'aws:shield',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.shield',
+      modelRef: 'ftrs.security.shieldAdvanced',
+      x: 2019,
+      y: 1479,
+      width: 370,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 45,
+        width: 308,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.apiGateway',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'l6aey2',
+        '1fo8dqd',
+        '1q0yhnn',
+      ],
+      outEdges: [
+        'k7j4v7',
+        '1rds1ar',
+        '1fzabac',
+        '1jqcn24',
+        'jjyyc5',
+        's04kx4',
+      ],
+      kind: 'instance',
+      title: 'API Gateway',
+      description: {
+        txt: 'DoS Search REST API with mTLS',
+      },
+      technology: 'API Gateway REST, Regional endpoint, custom domain',
+      tags: [],
+      icon: 'aws:api-gateway',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.apiGateway',
+      modelRef: 'ftrs.apiGateway',
+      x: 2466,
+      y: 1479,
+      width: 352,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 54,
+        width: 290,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.kms',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1p9bxsv',
+        'g79dh4',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'KMS',
+      description: {
+        txt: 'Customer managed keys for SQS and Secrets Manager',
+      },
+      technology: 'KMS CMK, automatic rotation',
+      tags: [],
+      icon: 'aws:key-management-service',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.kms',
+      modelRef: 'ftrs.security.kms',
+      x: 1485,
+      y: 1479,
+      width: 377,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 45,
+        width: 316,
+        height: 85,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.acm',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1rds1ar',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'ACM Certificate',
+      description: {
+        txt: '*.ftrs.nhs.uk wildcard certificate',
+      },
+      technology: 'ACM, DNS validated, auto-renewal',
+      tags: [],
+      icon: 'aws:certificate-manager',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.acm',
+      modelRef: 'ftrs.dns.acmCertificate',
+      x: 2564,
+      y: 1752,
+      width: 330,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 53,
+        width: 268,
+        height: 68,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.s3',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1jqcn24',
+        '1oyej3e',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'S3 Buckets',
+      description: {
+        txt: 'ETL pipeline store, artefacts, and mTLS trust store',
+      },
+      technology: 'S3, versioning enabled',
+      tags: [],
+      icon: 'aws:simple-storage-service',
+      color: 'primary',
+      shape: 'storage',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.s3',
+      modelRef: 'ftrs.storage.s3Bucket',
+      x: 1827,
+      y: 1752,
+      width: 344,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 44,
+        width: 282,
+        height: 86,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.ftrsVpc.dosSearchLambda',
+      parent: 'aws.prod.ftrsVpc',
+      level: 3,
+      children: [],
+      inEdges: [
+        'jjyyc5',
+      ],
+      outEdges: [
+        '1s4bxt9',
+        '1od0c0h',
+      ],
+      kind: 'instance',
+      title: 'DoS Search Lambda',
+      description: {
+        txt: 'FHIR search returning Organisation/Endpoint Bundle',
+      },
+      technology: 'Python 3.12, 512MB, X-Ray enabled',
+      tags: [],
+      icon: 'aws:lambda',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.ftrsVpc.dosSearchLambda',
+      modelRef: 'ftrs.dosSearch.getOrganizationByOds',
+      x: 1049,
+      y: 1752,
+      width: 335,
+      height: 180,
+      labelBBox: {
+        x: 47,
+        y: 44,
+        width: 273,
+        height: 86,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.ftrsVpc.crudApisLambda',
+      parent: 'aws.prod.ftrsVpc',
+      level: 3,
+      children: [],
+      inEdges: [
+        's04kx4',
+      ],
+      outEdges: [
+        '1a0m8dh',
+        'e7al1s',
+        'a26ai4',
+        'jo7o2q',
+        'oh7o4r',
+      ],
+      kind: 'instance',
+      title: 'CRUD APIs Lambda',
+      description: {
+        txt: 'FastAPI for Organisation, HealthcareService, Location CRUD',
+      },
+      technology: 'Python 3.12, FastAPI + Mangum',
+      tags: [],
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.ftrsVpc.crudApisLambda',
+      modelRef: 'ftrs.crudApis',
+      navigateTo: 'view_1nb0pja',
+      x: 633,
+      y: 1752,
+      width: 339,
+      height: 180,
+      labelBBox: {
+        x: 18,
+        y: 44,
+        width: 303,
+        height: 86,
+      },
+      links: null,
+    },
+    {
+      id: 'aws.prod.ssm',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'ikpkvj',
+        '1a0m8dh',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'SSM Parameter Store',
+      description: {
+        txt: 'CRUD APIs endpoint configuration',
+      },
+      technology: 'SSM Parameter Store',
+      tags: [],
+      icon: 'aws:systems-manager',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.ssm',
+      modelRef: 'ftrs.operations.ssmParameterStore',
+      x: 523,
+      y: 2048,
+      width: 355,
+      height: 180,
+      labelBBox: {
+        x: 47,
+        y: 53,
+        width: 293,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.cloudWatch',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1fzabac',
+        'pqx8he',
+        '1nwovdm',
+        '1s4bxt9',
+        'e7al1s',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'CloudWatch',
+      description: {
+        txt: 'Lambda logs and X-Ray traces',
+      },
+      technology: 'CloudWatch Logs, X-Ray',
+      tags: [],
+      icon: 'aws:cloud-watch',
+      color: 'primary',
+      shape: 'rectangle',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.cloudWatch',
+      modelRef: 'ftrs.operations.cloudWatch',
+      x: 2269,
+      y: 2048,
+      width: 330,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 53,
+        width: 268,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.orgTable',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        '1od0c0h',
+        'a26ai4',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'Organisation Table',
+      description: {
+        txt: 'Organisation data with ODS code GSI',
+      },
+      technology: 'DynamoDB, On-demand, PITR enabled',
+      tags: [],
+      icon: 'aws:dynamo-db',
+      color: 'primary',
+      shape: 'storage',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.orgTable',
+      modelRef: 'ftrs.db.orgTable',
+      x: 1816,
+      y: 2048,
+      width: 376,
+      height: 180,
+      labelBBox: {
+        x: 46,
+        y: 53,
+        width: 314,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.healthcareServiceTable',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'jo7o2q',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'Healthcare Service Table',
+      description: {
+        txt: 'Healthcare service data',
+      },
+      technology: 'DynamoDB, On-demand, PITR enabled',
+      tags: [],
+      icon: 'aws:dynamo-db',
+      color: 'primary',
+      shape: 'storage',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.healthcareServiceTable',
+      modelRef: 'ftrs.db.healthcareServiceTable',
+      x: 955,
+      y: 2048,
+      width: 353,
+      height: 180,
+      labelBBox: {
+        x: 47,
+        y: 53,
+        width: 291,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+    {
+      id: 'aws.prod.locationTable',
+      parent: 'aws.prod',
+      level: 2,
+      children: [],
+      inEdges: [
+        'oh7o4r',
+      ],
+      outEdges: [],
+      kind: 'instance',
+      title: 'Location Table',
+      description: {
+        txt: 'Location data',
+      },
+      technology: 'DynamoDB, On-demand, PITR enabled',
+      tags: [],
+      icon: 'aws:dynamo-db',
+      color: 'primary',
+      shape: 'storage',
+      style: {
+        opacity: 15,
+        size: 'md',
+      },
+      deploymentRef: 'aws.prod.locationTable',
+      modelRef: 'ftrs.db.locationTable',
+      x: 1385,
+      y: 2048,
+      width: 353,
+      height: 180,
+      labelBBox: {
+        x: 47,
+        y: 53,
+        width: 291,
+        height: 67,
+      },
+      navigateTo: null,
+      links: null,
+    },
+  ],
+  edges: [
+    {
+      id: 'l6aey2',
+      source: 'gcp.london.dosReadProxy',
+      target: 'aws.prod.apiGateway',
+      label: '[...]',
+      points: [
+        [
+          3291,
+          999,
+        ],
+        [
+          3263,
+          1030,
+        ],
+        [
+          3230,
+          1061,
+        ],
+        [
+          3193,
+          1082,
+        ],
+        [
+          3059,
+          1156,
+        ],
+        [
+          2641,
+          1201,
+        ],
+        [
+          2395,
+          1222,
+        ],
+      ],
+      parent: null,
+      relations: [
+        '12333et',
+        '1k3m2gi',
+        '1a0t9wl',
+        'g2itrn',
+        '13cc0c5',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 3254,
+        y: 1153,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 3299,
+          y: 1085,
+        },
+        {
+          x: 3046,
+          y: 1332,
+        },
+      ],
+    },
+    {
+      id: 'sh2da4',
+      source: 'aws.prod.ftrsVpc.odsProcessor',
+      target: 'gcp.london.dosReadProxy',
+      label: 'Fetches organisation UUIDs by ODS code',
+      points: [
+        [
+          952,
+          545,
+        ],
+        [
+          1467,
+          558,
+        ],
+        [
+          2934,
+          602,
+        ],
+        [
+          3141,
+          664,
+        ],
+        [
+          3214,
+          686,
+        ],
+        [
+          3270,
+          753,
+        ],
+        [
+          3307,
+          811,
+        ],
+      ],
+      parent: null,
+      relations: [
+        'tj12wi',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 3220,
+        y: 688,
+        width: 266,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2364,
+          y: 742,
+        },
+        {
+          x: 3260,
+          y: 742,
+        },
+      ],
+    },
+    {
+      id: '1fo8dqd',
+      source: 'gcp.london.dosWriteProxy',
+      target: 'aws.prod.apiGateway',
+      label: '[...]',
+      points: [
+        [
+          2890,
+          999,
+        ],
+        [
+          2863,
+          1029,
+        ],
+        [
+          2830,
+          1059,
+        ],
+        [
+          2796,
+          1082,
+        ],
+        [
+          2676,
+          1160,
+        ],
+        [
+          2517,
+          1198,
+        ],
+        [
+          2395,
+          1218,
+        ],
+      ],
+      parent: null,
+      relations: [
+        '18kzd59',
+        'cdqnmk',
+        '6d5rru',
+        'os8y0p',
+        '13xyu8o',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2909,
+        y: 1183,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2931,
+          y: 1107,
+        },
+        {
+          x: 2830,
+          y: 1351,
+        },
+      ],
+    },
+    {
+      id: '9sz7ej',
+      source: 'aws.prod.ftrsVpc.odsConsumer',
+      target: 'gcp.london.dosWriteProxy',
+      label: 'PUT /Organization/{uuid} updates',
+      points: [
+        [
+          518,
+          620,
+        ],
+        [
+          531,
+          624,
+        ],
+        [
+          544,
+          627,
+        ],
+        [
+          557,
+          629,
+        ],
+        [
+          1027,
+          722,
+        ],
+        [
+          2239,
+          579,
+        ],
+        [
+          2710,
+          664,
+        ],
+        [
+          2750,
+          672,
+        ],
+        [
+          2763,
+          671,
+        ],
+        [
+          2796,
+          695,
+        ],
+        [
+          2838,
+          726,
+        ],
+        [
+          2875,
+          771,
+        ],
+        [
+          2903,
+          811,
+        ],
+      ],
+      parent: null,
+      relations: [
+        '6ycbxs',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2816,
+        y: 690,
+        width: 213,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 935,
+          y: 930,
+        },
+        {
+          x: 1872,
+          y: 814,
+        },
+        {
+          x: 2767,
+          y: 699,
+        },
+        {
+          x: 2874,
+          y: 765,
+        },
+      ],
+    },
+    {
+      id: 'gzdhdo',
+      source: 'aws.prod.route53',
+      target: 'aws.prod.shield',
+      label: 'protected by',
+      points: [
+        [
+          2543,
+          1331,
+        ],
+        [
+          2515,
+          1359,
+        ],
+        [
+          2483,
+          1389,
+        ],
+        [
+          2452,
+          1414,
+        ],
+        [
+          2425,
+          1435,
+        ],
+        [
+          2396,
+          1455,
+        ],
+        [
+          2367,
+          1474,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'r8p5mf',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2441,
+        y: 1421,
+        width: 81,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2499,
+          y: 1374,
+        },
+        {
+          x: 2410,
+          y: 1445,
+        },
+      ],
+    },
+    {
+      id: '1q0yhnn',
+      source: 'aws.prod.route53',
+      target: 'aws.prod.apiGateway',
+      label: 'routes to',
+      points: [
+        [
+          2629,
+          1331,
+        ],
+        [
+          2631,
+          1374,
+        ],
+        [
+          2634,
+          1425,
+        ],
+        [
+          2636,
+          1469,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'w24ust',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2636,
+        y: 1421,
+        width: 58,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2632,
+          y: 1397,
+        },
+      ],
+    },
+    {
+      id: '29eyfw',
+      source: 'aws.prod.shield',
+      target: 'aws.prod.route53',
+      label: 'protects',
+      points: [
+        [
+          2358,
+          1479,
+        ],
+        [
+          2390,
+          1459,
+        ],
+        [
+          2423,
+          1437,
+        ],
+        [
+          2452,
+          1414,
+        ],
+        [
+          2481,
+          1391,
+        ],
+        [
+          2510,
+          1364,
+        ],
+        [
+          2536,
+          1339,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1m4u1bl',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2441,
+        y: 1421,
+        width: 54,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2406,
+          y: 1448,
+        },
+        {
+          x: 2495,
+          y: 1377,
+        },
+      ],
+    },
+    {
+      id: 'k7j4v7',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.route53',
+      label: 'DNS resolution',
+      points: [
+        [
+          2637,
+          1480,
+        ],
+        [
+          2635,
+          1437,
+        ],
+        [
+          2632,
+          1386,
+        ],
+        [
+          2630,
+          1342,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'f9bhe',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2636,
+        y: 1421,
+        width: 98,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2634,
+          y: 1414,
+        },
+      ],
+    },
+    {
+      id: '1rds1ar',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.acm',
+      label: '[...]',
+      points: [
+        [
+          2669,
+          1659,
+        ],
+        [
+          2678,
+          1686,
+        ],
+        [
+          2688,
+          1715,
+        ],
+        [
+          2696,
+          1742,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '17xaiuw',
+        '1sqq870',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2688,
+        y: 1693,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2674,
+          y: 1675,
+        },
+      ],
+    },
+    {
+      id: '1p9bxsv',
+      source: 'aws.prod.secretsManager',
+      target: 'aws.prod.kms',
+      label: 'encrypted by',
+      points: [
+        [
+          2037,
+          1331,
+        ],
+        [
+          2008,
+          1359,
+        ],
+        [
+          1975,
+          1389,
+        ],
+        [
+          1942,
+          1414,
+        ],
+        [
+          1913,
+          1435,
+        ],
+        [
+          1882,
+          1455,
+        ],
+        [
+          1850,
+          1474,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '2lz88',
+        '1f5m438',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1930,
+        y: 1421,
+        width: 84,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1991,
+          y: 1374,
+        },
+        {
+          x: 1897,
+          y: 1445,
+        },
+      ],
+    },
+    {
+      id: '1s6w5y4',
+      source: 'aws.prod.ftrsVpc.odsProcessor',
+      target: 'aws.prod.secretsManager',
+      label: '[...]',
+      points: [
+        [
+          1384,
+          877,
+        ],
+        [
+          1599,
+          887,
+        ],
+        [
+          1945,
+          915,
+        ],
+        [
+          2042,
+          996,
+        ],
+        [
+          2085,
+          1032,
+        ],
+        [
+          2105,
+          1091,
+        ],
+        [
+          2115,
+          1142,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'q0xepf',
+        'z02tg6',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2062,
+        y: 995,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1757,
+          y: 910,
+        },
+        {
+          x: 2091,
+          y: 1063,
+        },
+      ],
+    },
+    {
+      id: '1b5p4fo',
+      source: 'aws.prod.ftrsVpc.odsConsumer',
+      target: 'aws.prod.secretsManager',
+      label: 'fetches JWT credentials from',
+      points: [
+        [
+          950,
+          951,
+        ],
+        [
+          963,
+          955,
+        ],
+        [
+          976,
+          959,
+        ],
+        [
+          989,
+          961,
+        ],
+        [
+          1283,
+          1025,
+        ],
+        [
+          1365,
+          969,
+        ],
+        [
+          1664,
+          996,
+        ],
+        [
+          1741,
+          1003,
+        ],
+        [
+          1759,
+          1011,
+        ],
+        [
+          1836,
+          1019,
+        ],
+        [
+          1859,
+          1022,
+        ],
+        [
+          1921,
+          1016,
+        ],
+        [
+          1942,
+          1027,
+        ],
+        [
+          1993,
+          1053,
+        ],
+        [
+          2035,
+          1100,
+        ],
+        [
+          2066,
+          1143,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'nf1knt',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1837,
+        y: 996,
+        width: 185,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 950,
+          y: 951,
+        },
+        {
+          x: 1373,
+          y: 991,
+        },
+        {
+          x: 1754,
+          y: 1008,
+        },
+        {
+          x: 1870,
+          y: 1020,
+        },
+        {
+          x: 2012,
+          y: 1079,
+        },
+      ],
+    },
+    {
+      id: 'g79dh4',
+      source: 'aws.prod.sqs',
+      target: 'aws.prod.kms',
+      label: 'encrypted by',
+      points: [
+        [
+          1676,
+          1327,
+        ],
+        [
+          1675,
+          1371,
+        ],
+        [
+          1675,
+          1424,
+        ],
+        [
+          1674,
+          1469,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1l1ri0n',
+        '1xmdjjm',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1676,
+        y: 1421,
+        width: 84,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1675,
+          y: 1398,
+        },
+      ],
+    },
+    {
+      id: '50c2u1',
+      source: 'aws.prod.eventBridge',
+      target: 'aws.prod.ftrsVpc.odsProcessor',
+      label: '[...]',
+      points: [
+        [
+          1206,
+          644,
+        ],
+        [
+          1206,
+          684,
+        ],
+        [
+          1206,
+          730,
+        ],
+        [
+          1206,
+          771,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'vtui4m',
+        '1g30cyd',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1207,
+        y: 678,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1206,
+          y: 707,
+        },
+      ],
+    },
+    {
+      id: 'ikpkvj',
+      source: 'aws.prod.ftrsVpc.odsConsumer',
+      target: 'aws.prod.ssm',
+      label: '[...]',
+      points: [
+        [
+          738,
+          961,
+        ],
+        [
+          700,
+          1119,
+        ],
+        [
+          622,
+          1459,
+        ],
+        [
+          594,
+          1752,
+        ],
+        [
+          583,
+          1868,
+        ],
+        [
+          551,
+          1907,
+        ],
+        [
+          599,
+          2013,
+        ],
+        [
+          603,
+          2022,
+        ],
+        [
+          608,
+          2031,
+        ],
+        [
+          613,
+          2040,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1vqsw1z',
+        '8heyf5',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 631,
+        y: 1557,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 662,
+          y: 1306,
+        },
+        {
+          x: 582,
+          y: 1833,
+        },
+        {
+          x: 606,
+          y: 2027,
+        },
+      ],
+    },
+    {
+      id: '1a0m8dh',
+      source: 'aws.prod.ftrsVpc.crudApisLambda',
+      target: 'aws.prod.ssm',
+      label: 'reads configuration from',
+      points: [
+        [
+          686,
+          1932,
+        ],
+        [
+          654,
+          1958,
+        ],
+        [
+          627,
+          1981,
+        ],
+        [
+          623,
+          1990,
+        ],
+        [
+          616,
+          2006,
+        ],
+        [
+          616,
+          2023,
+        ],
+        [
+          621,
+          2039,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'yoyyfh',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 624,
+        y: 1990,
+        width: 155,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 644,
+          y: 1967,
+        },
+        {
+          x: 618,
+          y: 2015,
+        },
+      ],
+    },
+    {
+      id: '1fzabac',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.cloudWatch',
+      label: 'logs requests to',
+      points: [
+        [
+          2495,
+          1659,
+        ],
+        [
+          2464,
+          1685,
+        ],
+        [
+          2436,
+          1716,
+        ],
+        [
+          2419,
+          1752,
+        ],
+        [
+          2377,
+          1842,
+        ],
+        [
+          2388,
+          1957,
+        ],
+        [
+          2405,
+          2038,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1k3y4hb',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2420,
+        y: 1830,
+        width: 103,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2452,
+          y: 1702,
+        },
+        {
+          x: 2390,
+          y: 1898,
+        },
+      ],
+    },
+    {
+      id: 'pqx8he',
+      source: 'aws.prod.ftrsVpc.odsProcessor',
+      target: 'aws.prod.cloudWatch',
+      label: 'logs to',
+      points: [
+        [
+          1384,
+          872,
+        ],
+        [
+          1810,
+          872,
+        ],
+        [
+          2859,
+          883,
+        ],
+        [
+          2966,
+          996,
+        ],
+        [
+          3041,
+          1075,
+        ],
+        [
+          2971,
+          1132,
+        ],
+        [
+          2971,
+          1241,
+        ],
+        [
+          2971,
+          1241,
+        ],
+        [
+          2971,
+          1241,
+        ],
+        [
+          2971,
+          1843,
+        ],
+        [
+          2971,
+          1907,
+        ],
+        [
+          2977,
+          1936,
+        ],
+        [
+          2932,
+          1982,
+        ],
+        [
+          2848,
+          2069,
+        ],
+        [
+          2715,
+          2107,
+        ],
+        [
+          2608,
+          2124,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1snuzd8',
+        '1djjtx6',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2972,
+        y: 1558,
+        width: 45,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2295,
+          y: 892,
+        },
+        {
+          x: 2988,
+          y: 1140,
+        },
+        {
+          x: 2971,
+          y: 1316,
+        },
+        {
+          x: 2971,
+          y: 1863,
+        },
+        {
+          x: 2779,
+          y: 2079,
+        },
+      ],
+    },
+    {
+      id: '1nwovdm',
+      source: 'aws.prod.ftrsVpc.odsConsumer',
+      target: 'aws.prod.cloudWatch',
+      label: 'logs to',
+      points: [
+        [
+          950,
+          950,
+        ],
+        [
+          963,
+          954,
+        ],
+        [
+          976,
+          958,
+        ],
+        [
+          989,
+          961,
+        ],
+        [
+          1080,
+          986,
+        ],
+        [
+          1119,
+          945,
+        ],
+        [
+          1198,
+          996,
+        ],
+        [
+          1625,
+          1276,
+        ],
+        [
+          1363,
+          1698,
+        ],
+        [
+          1787,
+          1982,
+        ],
+        [
+          1952,
+          2093,
+        ],
+        [
+          2039,
+          1993,
+        ],
+        [
+          2230,
+          2048,
+        ],
+        [
+          2239,
+          2051,
+        ],
+        [
+          2249,
+          2054,
+        ],
+        [
+          2258,
+          2057,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1czwxc6',
+        '1h1tzoe',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1539,
+        y: 1558,
+        width: 45,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 950,
+          y: 950,
+        },
+        {
+          x: 1083,
+          y: 969,
+        },
+        {
+          x: 1494,
+          y: 1489,
+        },
+        {
+          x: 2027,
+          y: 2034,
+        },
+        {
+          x: 2244,
+          y: 2053,
+        },
+      ],
+    },
+    {
+      id: '1s4bxt9',
+      source: 'aws.prod.ftrsVpc.dosSearchLambda',
+      target: 'aws.prod.cloudWatch',
+      label: '[...]',
+      points: [
+        [
+          1305,
+          1932,
+        ],
+        [
+          1346,
+          1966,
+        ],
+        [
+          1398,
+          1999,
+        ],
+        [
+          1452,
+          2013,
+        ],
+        [
+          1788,
+          2098,
+        ],
+        [
+          1893,
+          1969,
+        ],
+        [
+          2230,
+          2048,
+        ],
+        [
+          2239,
+          2050,
+        ],
+        [
+          2249,
+          2053,
+        ],
+        [
+          2258,
+          2056,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '17bstrz',
+        '1szquip',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1453,
+        y: 1989,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1374,
+          y: 1980,
+        },
+        {
+          x: 1845,
+          y: 2032,
+        },
+        {
+          x: 2244,
+          y: 2052,
+        },
+      ],
+    },
+    {
+      id: 'e7al1s',
+      source: 'aws.prod.ftrsVpc.crudApisLambda',
+      target: 'aws.prod.cloudWatch',
+      label: 'logs to',
+      points: [
+        [
+          912,
+          1932,
+        ],
+        [
+          942,
+          1952,
+        ],
+        [
+          976,
+          1971,
+        ],
+        [
+          1010,
+          1982,
+        ],
+        [
+          1057,
+          1998,
+        ],
+        [
+          1073,
+          1983,
+        ],
+        [
+          1122,
+          1990,
+        ],
+        [
+          1169,
+          1997,
+        ],
+        [
+          1179,
+          2007,
+        ],
+        [
+          1227,
+          2013,
+        ],
+        [
+          1448,
+          2041,
+        ],
+        [
+          2013,
+          1998,
+        ],
+        [
+          2230,
+          2048,
+        ],
+        [
+          2239,
+          2050,
+        ],
+        [
+          2249,
+          2053,
+        ],
+        [
+          2258,
+          2056,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1g4erhr',
+        'lrfbay',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1228,
+        y: 1990,
+        width: 45,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 960,
+          y: 1960,
+        },
+        {
+          x: 1073,
+          y: 1989,
+        },
+        {
+          x: 1172,
+          y: 2001,
+        },
+        {
+          x: 1649,
+          y: 2023,
+        },
+        {
+          x: 2244,
+          y: 2052,
+        },
+      ],
+    },
+    {
+      id: '1jqcn24',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.s3',
+      label: '[...]',
+      points: [
+        [
+          2465,
+          1658,
+        ],
+        [
+          2464,
+          1658,
+        ],
+        [
+          2462,
+          1659,
+        ],
+        [
+          2461,
+          1659,
+        ],
+        [
+          2370,
+          1700,
+        ],
+        [
+          2266,
+          1741,
+        ],
+        [
+          2181,
+          1774,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'n7jlz9',
+        '1ha3fe',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2375,
+        y: 1693,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2463,
+          y: 1659,
+        },
+        {
+          x: 2319,
+          y: 1720,
+        },
+      ],
+    },
+    {
+      id: '1oyej3e',
+      source: 'aws.prod.ftrsVpc.odsProcessor',
+      target: 'aws.prod.s3',
+      label: '[...]',
+      points: [
+        [
+          1384,
+          878,
+        ],
+        [
+          1695,
+          891,
+        ],
+        [
+          2308,
+          924,
+        ],
+        [
+          2373,
+          996,
+        ],
+        [
+          2497,
+          1134,
+        ],
+        [
+          2441,
+          1241,
+        ],
+        [
+          2373,
+          1414,
+        ],
+        [
+          2365,
+          1433,
+        ],
+        [
+          2126,
+          1678,
+        ],
+        [
+          2112,
+          1694,
+        ],
+        [
+          2099,
+          1710,
+        ],
+        [
+          2085,
+          1727,
+        ],
+        [
+          2072,
+          1743,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'ju3ao7',
+        '5unfhd',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2368,
+        y: 1420,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1971,
+          y: 915,
+        },
+        {
+          x: 2387,
+          y: 1379,
+        },
+        {
+          x: 2163,
+          y: 1641,
+        },
+        {
+          x: 2092,
+          y: 1718,
+        },
+      ],
+    },
+    {
+      id: 'jjyyc5',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.ftrsVpc.dosSearchLambda',
+      label: '[...]',
+      points: [
+        [
+          2465,
+          1658,
+        ],
+        [
+          2464,
+          1659,
+        ],
+        [
+          2462,
+          1659,
+        ],
+        [
+          2461,
+          1659,
+        ],
+        [
+          2319,
+          1706,
+        ],
+        [
+          2279,
+          1701,
+        ],
+        [
+          2131,
+          1717,
+        ],
+        [
+          1970,
+          1735,
+        ],
+        [
+          1564,
+          1710,
+        ],
+        [
+          1393,
+          1751,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'yuduat',
+        '1rm4hoy',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2327,
+        y: 1693,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2461,
+          y: 1659,
+        },
+        {
+          x: 2210,
+          y: 1709,
+        },
+        {
+          x: 1854,
+          y: 1725,
+        },
+      ],
+    },
+    {
+      id: 's04kx4',
+      source: 'aws.prod.apiGateway',
+      target: 'aws.prod.ftrsVpc.crudApisLambda',
+      label: '[...]',
+      points: [
+        [
+          2465,
+          1658,
+        ],
+        [
+          2464,
+          1659,
+        ],
+        [
+          2462,
+          1659,
+        ],
+        [
+          2461,
+          1659,
+        ],
+        [
+          2361,
+          1689,
+        ],
+        [
+          2099,
+          1709,
+        ],
+        [
+          1995,
+          1717,
+        ],
+        [
+          1777,
+          1735,
+        ],
+        [
+          1224,
+          1704,
+        ],
+        [
+          1010,
+          1752,
+        ],
+        [
+          1001,
+          1754,
+        ],
+        [
+          991,
+          1757,
+        ],
+        [
+          981,
+          1760,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'bjlwpi',
+        'laklcd',
+        'h86wp4',
+        'xyui8q',
+        '8154kz',
+        'n23old',
+        'g4qsm8',
+        '1kaxsd2',
+        '2g56tj',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 2241,
+        y: 1693,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 2461,
+          y: 1659,
+        },
+        {
+          x: 1997,
+          y: 1717,
+        },
+        {
+          x: 1637,
+          y: 1723,
+        },
+        {
+          x: 981,
+          y: 1760,
+        },
+      ],
+    },
+    {
+      id: 'alrkpf',
+      source: 'aws.prod.sqs',
+      target: 'aws.prod.ftrsVpc.odsConsumer',
+      label: 'Triggers Lambda (SQS event)',
+      points: [
+        [
+          1616,
+          1156,
+        ],
+        [
+          1580,
+          1112,
+        ],
+        [
+          1532,
+          1061,
+        ],
+        [
+          1480,
+          1027,
+        ],
+        [
+          1295,
+          907,
+        ],
+        [
+          1203,
+          1012,
+        ],
+        [
+          989,
+          961,
+        ],
+        [
+          979,
+          959,
+        ],
+        [
+          970,
+          957,
+        ],
+        [
+          960,
+          954,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1i9i3fi',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1459,
+        y: 996,
+        width: 191,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1554,
+          y: 1088,
+        },
+        {
+          x: 1209,
+          y: 971,
+        },
+        {
+          x: 975,
+          y: 958,
+        },
+      ],
+    },
+    {
+      id: 'mo60bf',
+      source: 'aws.prod.ftrsVpc.odsProcessor',
+      target: 'aws.prod.sqs',
+      label: '[...]',
+      points: [
+        [
+          1384,
+          877,
+        ],
+        [
+          1576,
+          887,
+        ],
+        [
+          1864,
+          915,
+        ],
+        [
+          1933,
+          996,
+        ],
+        [
+          1979,
+          1051,
+        ],
+        [
+          1931,
+          1106,
+        ],
+        [
+          1865,
+          1150,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1iqm4bb',
+        '1r0scu6',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1947,
+        y: 995,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1705,
+          y: 910,
+        },
+        {
+          x: 1941,
+          y: 1077,
+        },
+      ],
+    },
+    {
+      id: 'ikpkqb',
+      source: 'aws.prod.ftrsVpc.odsConsumer',
+      target: 'aws.prod.sqs',
+      label: 'consumes from',
+      points: [
+        [
+          950,
+          950,
+        ],
+        [
+          963,
+          954,
+        ],
+        [
+          976,
+          958,
+        ],
+        [
+          989,
+          961,
+        ],
+        [
+          1202,
+          1016,
+        ],
+        [
+          1285,
+          926,
+        ],
+        [
+          1480,
+          1027,
+        ],
+        [
+          1534,
+          1055,
+        ],
+        [
+          1580,
+          1104,
+        ],
+        [
+          1615,
+          1148,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1886mu4',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1458,
+        y: 996,
+        width: 100,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 950,
+          y: 950,
+        },
+        {
+          x: 1213,
+          y: 978,
+        },
+        {
+          x: 1555,
+          y: 1082,
+        },
+      ],
+    },
+    {
+      id: '1od0c0h',
+      source: 'aws.prod.ftrsVpc.dosSearchLambda',
+      target: 'aws.prod.orgTable',
+      label: 'queries',
+      points: [
+        [
+          1249,
+          1932,
+        ],
+        [
+          1265,
+          1963,
+        ],
+        [
+          1288,
+          1994,
+        ],
+        [
+          1318,
+          2013,
+        ],
+        [
+          1405,
+          2067,
+        ],
+        [
+          1677,
+          2025,
+        ],
+        [
+          1776,
+          2048,
+        ],
+        [
+          1785,
+          2050,
+        ],
+        [
+          1795,
+          2053,
+        ],
+        [
+          1804,
+          2055,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '11kdk7w',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1319,
+        y: 1990,
+        width: 50,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 1278,
+          y: 1977,
+        },
+        {
+          x: 1597,
+          y: 2041,
+        },
+        {
+          x: 1790,
+          y: 2052,
+        },
+      ],
+    },
+    {
+      id: 'a26ai4',
+      source: 'aws.prod.ftrsVpc.crudApisLambda',
+      target: 'aws.prod.orgTable',
+      label: '[...]',
+      points: [
+        [
+          911,
+          1932,
+        ],
+        [
+          960,
+          1965,
+        ],
+        [
+          1020,
+          1999,
+        ],
+        [
+          1080,
+          2013,
+        ],
+        [
+          1381,
+          2084,
+        ],
+        [
+          1473,
+          1983,
+        ],
+        [
+          1776,
+          2048,
+        ],
+        [
+          1785,
+          2050,
+        ],
+        [
+          1794,
+          2052,
+        ],
+        [
+          1804,
+          2055,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        '1hpeyj7',
+        'ko78q2',
+        'w9b5o6',
+        'nz6en6',
+        'h49f8p',
+        'xib317',
+        'hk7qaw',
+        '18qmcjr',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 1081,
+        y: 1989,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 991,
+          y: 1980,
+        },
+        {
+          x: 1432,
+          y: 2032,
+        },
+        {
+          x: 1776,
+          y: 2048,
+        },
+      ],
+    },
+    {
+      id: 'jo7o2q',
+      source: 'aws.prod.ftrsVpc.crudApisLambda',
+      target: 'aws.prod.healthcareServiceTable',
+      label: '[...]',
+      points: [
+        [
+          819,
+          1932,
+        ],
+        [
+          828,
+          1960,
+        ],
+        [
+          841,
+          1990,
+        ],
+        [
+          862,
+          2013,
+        ],
+        [
+          870,
+          2021,
+        ],
+        [
+          903,
+          2038,
+        ],
+        [
+          944,
+          2057,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'tr0phz',
+        'rwykz8',
+        '1sh20l',
+        '1anivgj',
+        '16j96i2',
+        'pxfxoq',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 863,
+        y: 1989,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 836,
+          y: 1974,
+        },
+        {
+          x: 891,
+          y: 2031,
+        },
+      ],
+    },
+    {
+      id: 'oh7o4r',
+      source: 'aws.prod.ftrsVpc.crudApisLambda',
+      target: 'aws.prod.locationTable',
+      label: '[...]',
+      points: [
+        [
+          869,
+          1932,
+        ],
+        [
+          897,
+          1963,
+        ],
+        [
+          932,
+          1995,
+        ],
+        [
+          971,
+          2013,
+        ],
+        [
+          1122,
+          2084,
+        ],
+        [
+          1184,
+          2008,
+        ],
+        [
+          1346,
+          2048,
+        ],
+        [
+          1355,
+          2050,
+        ],
+        [
+          1364,
+          2053,
+        ],
+        [
+          1373,
+          2056,
+        ],
+      ],
+      parent: 'aws.prod',
+      relations: [
+        'h2z9xx',
+        'qqb9ao',
+        'rfvbju',
+        '8ipvse',
+        '1fshmw5',
+        '12y52le',
+      ],
+      color: 'gray',
+      line: 'dashed',
+      head: 'normal',
+      navigateTo: null,
+      tags: null,
+      labelBBox: {
+        x: 972,
+        y: 1989,
+        width: 25,
+        height: 18,
+      },
+      controlPoints: [
+        {
+          x: 916,
+          y: 1977,
+        },
+        {
+          x: 1172,
+          y: 2040,
+        },
+        {
+          x: 1360,
+          y: 2052,
+        },
+      ],
+    },
+  ],
+  _layout: 'manual',
+}

@@ -1,0 +1,100 @@
+views {
+
+  view of ftrs.crudApis {
+    title "Data Flow: CRUD APIs Service"
+    description '
+      Data flow diagram showing the CRUD APIs service which provides
+      RESTful operations for Organisation, HealthcareService, and Location resources.
+
+      The service is built with FastAPI and deployed as a Lambda function using Mangum.
+      All requests are routed through API Gateway and accessed externally via APIM proxies.
+
+      Resources:
+      - Organisation: GET (by ODS code/ID/all), POST, PUT, DELETE
+      - HealthcareService: GET (by ID/all), POST, PUT, DELETE
+      - Location: GET (by ID/all), POST, PUT, DELETE
+    '
+
+    include *
+    include ftrs.apiGateway
+    include ftrs.db.orgTable
+    include ftrs.db.healthcareServiceTable
+    include ftrs.db.locationTable
+    include apim.dosReadProxy
+    include apim.dosWriteProxy
+
+    autoLayout LeftRight 70 77
+  }
+
+  view crudApisOrganisation of ftrs.crudApis.organisationApi {
+    title "Organisation API Data Flow"
+    description '
+      CRUD operations for Organisation resources.
+      Supports FHIR-compliant requests and responses.
+    '
+
+    include *
+    include ftrs.apiGateway
+    include ftrs.db.orgTable
+    include apim.dosReadProxy
+    include apim.dosWriteProxy
+
+    autoLayout LeftRight 70 77
+  }
+
+  view crudApisHealthcareService of ftrs.crudApis.healthcareServiceApi {
+    title "HealthcareService API Data Flow"
+    description '
+      CRUD operations for HealthcareService resources.
+    '
+
+    include *
+    include ftrs.apiGateway
+    include ftrs.db.healthcareServiceTable
+    include apim.dosReadProxy
+    include apim.dosWriteProxy
+
+    autoLayout LeftRight 70 77
+  }
+
+  view crudApisLocation of ftrs.crudApis.locationApi {
+    title "Location API Data Flow"
+    description '
+      CRUD operations for Location resources.
+    '
+
+    include *
+    include ftrs.apiGateway
+    include ftrs.db.locationTable
+    include apim.dosReadProxy
+    include apim.dosWriteProxy
+
+    autoLayout LeftRight 70 77
+  }
+
+  dynamic view crudApisReadFlow {
+    title "CRUD APIs Read Flow"
+    description '
+      Sequence showing the read path through the CRUD APIs
+    '
+
+    apim.dosReadProxy -> ftrs.apiGateway "1. GET request via APIM"
+    ftrs.apiGateway -> ftrs.crudApis "2. Route to CRUD APIs Lambda"
+    ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "3. Query DynamoDB"
+
+    autoLayout TopBottom
+  }
+
+  dynamic view crudApisWriteFlow {
+    title "CRUD APIs Write Flow"
+    description '
+      Sequence showing the write path through the CRUD APIs
+    '
+
+    apim.dosWriteProxy -> ftrs.apiGateway "1. POST/PUT/DELETE request via APIM"
+    ftrs.apiGateway -> ftrs.crudApis "2. Route to CRUD APIs Lambda"
+    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "3. Update DynamoDB"
+
+    autoLayout TopBottom
+  }
+}

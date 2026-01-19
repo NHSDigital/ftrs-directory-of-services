@@ -1,0 +1,121 @@
+model {
+  extend ftrs {
+    container crudApis "CRUD APIs" {
+      description 'FastAPI service providing CRUD operations for FTRS resources (Organisation, HealthcareService, Location)'
+      technology 'Python FastAPI + Mangum'
+
+      -> operations.cloudWatch "logs to"
+      -> operations.ssmParameterStore "reads configuration from"
+
+      // Organisation endpoints
+      restapi organisationApi "Organisation API" {
+        description 'CRUD operations for Organisation resources'
+
+        lambda getOrgByOdsCode "GET /Organization" {
+          description 'Query organisations by ODS code or retrieve all'
+        }
+
+        lambda getOrgById "GET /Organization/{id}" {
+          description 'Retrieve a single organisation by UUID'
+        }
+
+        lambda createOrg "POST /Organization" {
+          description 'Create a new organisation'
+        }
+
+        lambda updateOrg "PUT /Organization/{id}" {
+          description 'Update an existing organisation'
+        }
+
+        lambda deleteOrg "DELETE /Organization/{id}" {
+          description 'Delete an organisation by UUID'
+        }
+      }
+
+      // HealthcareService endpoints
+      restapi healthcareServiceApi "HealthcareService API" {
+        description 'CRUD operations for HealthcareService resources'
+
+        lambda getHealthcareServiceById "GET /healthcare-service/{id}" {
+          description 'Retrieve a healthcare service by UUID'
+        }
+
+        lambda getAllHealthcareServices "GET /healthcare-service/" {
+          description 'Retrieve all healthcare services'
+        }
+
+        lambda createHealthcareService "POST /healthcare-service/" {
+          description 'Create a new healthcare service'
+        }
+
+        lambda updateHealthcareService "PUT /healthcare-service/{id}" {
+          description 'Update an existing healthcare service'
+        }
+
+        lambda deleteHealthcareService "DELETE /healthcare-service/{id}" {
+          description 'Delete a healthcare service by UUID'
+        }
+      }
+
+      // Location endpoints
+      restapi locationApi "Location API" {
+        description 'CRUD operations for Location resources'
+
+        lambda getLocationById "GET /location/{id}" {
+          description 'Retrieve a location by UUID'
+        }
+
+        lambda getAllLocations "GET /location/" {
+          description 'Retrieve all locations'
+        }
+
+        lambda createLocation "POST /location/" {
+          description 'Create a new location'
+        }
+
+        lambda updateLocation "PUT /location/{id}" {
+          description 'Update an existing location'
+        }
+
+        lambda deleteLocation "DELETE /location/{id}" {
+          description 'Delete a location by UUID'
+        }
+      }
+    }
+  }
+
+  // API Gateway routing
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "Routes requests to"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgById "Routes requests to"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.createOrg "Routes requests to"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "Routes requests to"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.deleteOrg "Routes requests to"
+
+  ftrs.apiGateway -> ftrs.crudApis.healthcareServiceApi.getHealthcareServiceById "Routes requests to"
+  ftrs.apiGateway -> ftrs.crudApis.locationApi.getLocationById "Routes requests to"
+
+  // Organisation data flows
+  ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "Queries"
+  ftrs.crudApis.organisationApi.getOrgById -> ftrs.db.orgTable "Queries"
+  ftrs.crudApis.organisationApi.createOrg -> ftrs.db.orgTable "Creates"
+  ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "Updates"
+  ftrs.crudApis.organisationApi.deleteOrg -> ftrs.db.orgTable "Deletes"
+
+  // HealthcareService data flows
+  ftrs.crudApis.healthcareServiceApi.getHealthcareServiceById -> ftrs.db.healthcareServiceTable "Queries"
+  ftrs.crudApis.healthcareServiceApi.getAllHealthcareServices -> ftrs.db.healthcareServiceTable "Queries"
+  ftrs.crudApis.healthcareServiceApi.createHealthcareService -> ftrs.db.healthcareServiceTable "Creates"
+  ftrs.crudApis.healthcareServiceApi.updateHealthcareService -> ftrs.db.healthcareServiceTable "Updates"
+  ftrs.crudApis.healthcareServiceApi.deleteHealthcareService -> ftrs.db.healthcareServiceTable "Deletes"
+
+  // Location data flows
+  ftrs.crudApis.locationApi.getLocationById -> ftrs.db.locationTable "Queries"
+  ftrs.crudApis.locationApi.getAllLocations -> ftrs.db.locationTable "Queries"
+  ftrs.crudApis.locationApi.createLocation -> ftrs.db.locationTable "Creates"
+  ftrs.crudApis.locationApi.updateLocation -> ftrs.db.locationTable "Updates"
+  ftrs.crudApis.locationApi.deleteLocation -> ftrs.db.locationTable "Deletes"
+
+  // External access via APIM
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies read requests"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies write requests"
+}
