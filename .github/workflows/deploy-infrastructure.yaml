@@ -92,11 +92,6 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Setup Python for stack toggles"
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
       - name: "Install Python dependencies for stack toggles"
         run: |
           python -m pip install --upgrade pip
@@ -110,7 +105,7 @@ jobs:
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
 
-      - name: "Download AppConfig Feature Flags"
+      - name: "Download Toggle Artifact"
         if: ${{ inputs.download_appconfig_artifact == true }}
         uses: actions/download-artifact@v7
         with:

@@ -31,7 +31,7 @@ resource "aws_cloudwatch_log_delivery_destination" "delivery_destination" {
 # Configure delivery from source to  destination
 resource "aws_cloudwatch_log_delivery" "log_delivery" {
   count                    = local.stack_enabled
-  delivery_source_name     = aws_cloudwatch_log_delivery_source.delivery_source.name
+  delivery_source_name     = aws_cloudwatch_log_delivery_source.delivery_source[0].name
   delivery_destination_arn = aws_cloudwatch_log_delivery_destination.delivery_destination[0].arn
 
   record_fields = var.included_cloudfront_log_fields
