@@ -45,7 +45,7 @@ on:
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
         required: false
-        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config']"
         type: string
     outputs:
       plan_result:
@@ -56,11 +56,41 @@ on:
         value: ${{ jobs.deploy_summary.outputs.deploy_status }}
 
 jobs:
+  # Generate AppConfig artifacts (feature flags JSON, ensure tfvars) and publish for downstream jobs
+  prepare-appconfig:
+    name: "Prepare AppConfig artifacts"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Install Python dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: "Generate feature flags JSON"
+        env:
+          ENVIRONMENT: ${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+        run: |
+          /bin/bash ./scripts/workflow/generate-feature-flags.sh
+
+      - name: "Upload AppConfig feature flags"
+        uses: actions/upload-artifact@v6
+        with:
+          name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: infrastructure/toggles/feature-flags.json
+
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
       cancel-in-progress: false
+    needs:
+      - prepare-appconfig
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -71,6 +101,8 @@ jobs:
       action: plan
       type: ${{ inputs.type }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
+      download_appconfig_artifact: true
+      appconfig_artifact_name: "appconfig_feature_flags"
     secrets: inherit
 
   manual-approval-application-infra:
@@ -106,6 +138,8 @@ jobs:
       action: apply
       type: ${{ inputs.type }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
+      download_appconfig_artifact: true
+      appconfig_artifact_name: "appconfig_feature_flags"
     secrets: inherit
 
   deploy_summary:
