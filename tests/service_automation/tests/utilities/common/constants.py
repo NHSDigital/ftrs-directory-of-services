@@ -1,5 +1,3 @@
-from typing import List
-
 ODS_TERMINOLOGY_INT_API_URL = (
     "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
 )
@@ -61,10 +59,10 @@ SERVICES_TABLE = f"{PATHWAYSDOS_SCHEMA}.services"
 SERVICETYPES_TABLE = f"{PATHWAYSDOS_SCHEMA}.servicetypes"
 
 # Validation
-REQUIRED_SERVICE_FIELDS: List[str] = ["id", "typeid", "statusid"]
+REQUIRED_SERVICE_FIELDS: list[str] = ["id", "typeid", "statusid"]
 
 # DynamoDB Resources
-EXPECTED_DYNAMODB_RESOURCES: List[tuple[str, str]] = [
+EXPECTED_DYNAMODB_RESOURCES: list[tuple[str, str]] = [
     ("database", "organisation"),
     ("database", "location"),
     ("database", "healthcare-service"),
