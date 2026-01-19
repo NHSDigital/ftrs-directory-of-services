@@ -1,10 +1,12 @@
 from http import HTTPStatus
 
 import pytest
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from pytest_mock import MockerFixture
 from requests import HTTPError
 
 from producer.extract import (
+    _build_ods_query_params,
     _extract_next_page_url,
     _extract_organizations_from_bundle,
     _get_page_limit,
@@ -59,9 +61,16 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     assert str(len(result)) == "2"
     assert result[0]["id"] == "ABC123"
     assert result[1]["id"] == "XYZ789"
+
+    expected_params = [
+        ("_lastUpdated", date),
+        ("_count", "1000"),
+        ("roleCode", OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value),
+        ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value),
+    ]
     make_request_mock.assert_called_once_with(
         "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
-        params={"_lastUpdated": date, "_count": 1000},
+        params=expected_params,
     )
 
 
@@ -138,6 +147,23 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     assert result[1]["id"] == "DEF456"
     assert result[2]["id"] == "GHI789"
     assert make_request_mock.call_count == EXPECTED_CALL_COUNT
+
+
+def test_build_ods_query_params_includes_gp_practice_role_codes() -> None:
+    """Test that role codes RO177 and RO76 are included for GP Practice filtering."""
+    date = "2025-10-15"
+    params = _build_ods_query_params(date)
+
+    assert isinstance(params, list)
+
+    role_code_params = [p for p in params if p[0] == "roleCode"]
+
+    assert str(len(role_code_params)) == "2"
+    assert (
+        "roleCode",
+        OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value,
+    ) in params
+    assert ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value) in params
 
 
 def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:

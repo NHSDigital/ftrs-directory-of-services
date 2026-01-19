@@ -3,6 +3,7 @@ import re
 from http import HTTPStatus
 
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
@@ -20,8 +21,6 @@ RESOURCE_TYPE_BUNDLE = "Bundle"
 RESOURCE_TYPE_ORGANIZATION = "Organization"
 LINK_RELATION_NEXT = "next"
 ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
-PRESCRIBING_COST_CENTRE_ROLE_CODE = "RO177"
-GP_PRACTICE_ROLE_CODE = "RO76"
 
 ods_processor_logger = Logger.get(service="ods_processor")
 
@@ -80,11 +79,12 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
 
 
 def _build_ods_query_params(date: str) -> dict:
-    return {
-        "_lastUpdated": f"{date}",
-        "_count": _get_page_limit(),
-        "roleCode": [PRESCRIBING_COST_CENTRE_ROLE_CODE, GP_PRACTICE_ROLE_CODE],
-    }
+    return [
+        ("_lastUpdated", f"{date}"),
+        ("_count", str(_get_page_limit())),
+        ("roleCode", OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value),
+        ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value),
+    ]
 
 
 def _get_page_limit() -> int:
