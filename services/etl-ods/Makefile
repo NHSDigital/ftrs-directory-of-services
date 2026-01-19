@@ -49,28 +49,18 @@ build: ensure-build-dir build-producer-lambda build-consumer-lambda build-depend
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
-# ------------------------------------------------------------------------------
-# Producer Lambda
-# ------------------------------------------------------------------------------
-
 build-producer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/producer-tmp
 	cp -r producer $(BUILD_DIR)/producer-tmp/
 	cp -r common $(BUILD_DIR)/producer-tmp/
-	cd $(BUILD_DIR)/producer-tmp && \
-		zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/producer-tmp
-
-# ------------------------------------------------------------------------------
-# Consumer Lambda
-# ------------------------------------------------------------------------------
 
 build-consumer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
-	cd $(BUILD_DIR)/consumer-tmp && \
-		zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/consumer-tmp zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
 
 # ------------------------------------------------------------------------------
