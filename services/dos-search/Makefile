@@ -1,80 +1,40 @@
+# DoS Search Service Makefile
+# This service provides search functionality for the Directory of Services
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
+ENVIRONMENT ?= mgmt
 SERVICE ?= dos-search
-PYTHON_VERSION ?= 3.12
-BUILD_DIR := ../../build/services/${SERVICE}
-DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
-PLATFORM ?= manylinux2014_x86_64
-S3_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
 POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := dos_search-$(POETRY_VERSION)-py3-none-any.whl
-DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
-LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
-RELEASE_BUILD ?= false
-RELEASE_DIR ?= releases
 
 # ==============================================================================
+# Include Shared Python Service Targets
+# ==============================================================================
 
-# Example CI/CD targets are: dependencies, build, publish, deploy, clean, etc.
-clean:
-	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
-	rm -rf $(BUILD_DIR)
-	rm -rf $(DEPENDENCY_DIR)
+include ../../scripts/services/python-service.mk
 
-install: config
+# ==============================================================================
+# Service-Specific Overrides
+# ==============================================================================
 
-config:
-	make _install-dependencies
-	poetry install --no-interaction
-
-lint:
-	poetry run ruff check
-	poetry run ruff format --check
-
-lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
-
-test: unit-test
-
-unit-test: coverage
-
-coverage:
-	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml tests/unit
-
-ensure-build-dir:
-	mkdir -p $(BUILD_DIR)
-
-dependencies: # Install dependencies needed to build and test the project @Pipeline
-	# TODO: Implement installation of your project dependencies
-
-build: ensure-build-dir build-dependency-layer
-	poetry build -f wheel -o $(BUILD_DIR)
-	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
-
+# Override dependency layer export to exclude additional groups
 build-dependency-layer: clean
-	mkdir -p $(DEPENDENCY_DIR)/python
+	@echo "Building dependency layer for $(SERVICE)..."
+	@mkdir -p $(DEPENDENCY_DIR)/python
 	poetry export --without dev --without test --without shared --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
-	--platform $(PLATFORM) \
-	--target $(DEPENDENCY_DIR)/python \
-	--implementation cp \
-	--python-version $(PYTHON_VERSION) \
-	--no-deps \
-	--upgrade \
-	-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
-
-publish:
-	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	else \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(S3_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	fi
-
-
-# ==============================================================================
+		--platform $(PLATFORM) \
+		--target $(DEPENDENCY_DIR)/python \
+		--implementation cp \
+		--python-version $(PYTHON_VERSION) \
+		--no-deps \
+		--upgrade \
+		-r $(DEPENDENCY_DIR)/requirements.txt
+	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
+	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
 
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
@@ -87,13 +47,25 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 		make _install-dependency name="$${plugin}"; \
 	done
 
-pre-commit: lint
-
+# ==============================================================================
+# Help Target
 # ==============================================================================
 
-${VERBOSE}.SILENT: \
-	build \
-	clean \
-	config \
-	dependencies \
-	deploy \
+help:
+	@echo "DoS Search Service Targets:"
+	@echo ""
+	@echo "Build & Test:"
+	@echo "  make install              - Install dependencies"
+	@echo "  make lint                 - Run linting checks"
+	@echo "  make lint-fix             - Fix linting issues"
+	@echo "  make test                 - Run tests"
+	@echo "  make build                - Build Lambda package"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  make publish              - Publish to development"
+	@echo "  make stage-release        - Stage release"
+	@echo "  make promote-rc           - Promote to RC"
+	@echo "  make publish-release      - Publish release"
+	@echo ""
+	@echo "Cleanup:"
+	@echo "  make clean                - Clean build artifacts"

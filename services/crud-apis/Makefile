@@ -1,48 +1,33 @@
+# CRUD APIs Service Makefile
+# This service provides REST APIs for healthcare services, locations, and organisations
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
 ENVIRONMENT ?= mgmt
 SERVICE ?= crud-apis
-PYTHON_VERSION ?= 3.12
-BUILD_DIR := ../../build/services/${SERVICE}
-DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
-PLATFORM ?= manylinux2014_x86_64
-ARTEFACT_BUCKET := ${REPO_NAME}-${ENVIRONMENT}-artefacts-bucket
 POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := crud_apis-$(POETRY_VERSION)-py3-none-any.whl
-DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
-LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
-RELEASE_BUILD ?= false
-RELEASE_DIR ?= releases
 
-.PHONY: install lint test build
+# ==============================================================================
+# Include Shared Python Service Targets
+# ==============================================================================
 
-ensure-build-dir:
-	mkdir -p $(BUILD_DIR)
+include ../../scripts/services/python-service.mk
 
-clean:
-	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
-	rm -rf $(BUILD_DIR)
-	rm -rf $(DEPENDENCY_DIR)
+# ==============================================================================
+# Service-Specific Targets
+# ==============================================================================
 
-install: install-dependencies
-
-install-dependencies:
-	asdf install
-	poetry install --no-interaction
-
-lint:
-	poetry run ruff check
-	poetry run ruff format --check
-
-lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
-
-test: unit-test
-
-unit-test: coverage
-
+# Override coverage target to test all three API modules
 coverage:
-	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml organisations/tests/unit healthcare_service/tests/ location/tests/
+	poetry run pytest --cov-report xml:coverage-$(SERVICE).xml \
+		organisations/tests/unit \
+		healthcare_service/tests/ \
+		location/tests/
 
+# Local development targets
 start-organisations-api:
 	poetry run poe start-organisations-api
 
@@ -55,32 +40,31 @@ start-location-api:
 start-all-apis:
 	poetry run poe start-all-apis
 
-build: ensure-build-dir build-dependency-layer
-	poetry build -f wheel -o $(BUILD_DIR)
-	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+# ==============================================================================
+# Help Target
+# ==============================================================================
 
-build-dependency-layer: clean
-	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-	--platform $(PLATFORM) \
-	--target $(DEPENDENCY_DIR)/python \
-	--implementation cp \
-	--python-version $(PYTHON_VERSION) \
-	--no-deps \
-	--upgrade \
-	-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
-
-publish:
-	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	else \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	fi
-
-pre-commit: lint
+help:
+	@echo "CRUD APIs Service Targets:"
+	@echo ""
+	@echo "Build & Test:"
+	@echo "  make install              - Install dependencies"
+	@echo "  make lint                 - Run linting checks"
+	@echo "  make lint-fix             - Fix linting issues"
+	@echo "  make test                 - Run tests"
+	@echo "  make build                - Build Lambda package"
+	@echo ""
+	@echo "Local Development:"
+	@echo "  make start-all-apis       - Start all APIs locally"
+	@echo "  make start-organisations-api"
+	@echo "  make start-healthcare-api"
+	@echo "  make start-location-api"
+	@echo ""
+	@echo "Deployment:"
+	@echo "  make publish              - Publish to development"
+	@echo "  make stage-release        - Stage release (RELEASE_TAG required)"
+	@echo "  make promote-rc           - Promote to RC"
+	@echo "  make publish-release      - Publish release"
+	@echo ""
+	@echo "Cleanup:"
+	@echo "  make clean                - Clean build artifacts"
