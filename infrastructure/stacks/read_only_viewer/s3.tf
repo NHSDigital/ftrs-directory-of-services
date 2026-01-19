@@ -1,4 +1,5 @@
 module "read_only_viewer_bucket" {
+  count         = local.stack_enabled
   source        = "../../modules/s3"
   bucket_name   = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
   versioning    = var.s3_versioning
@@ -20,7 +21,8 @@ module "read_only_viewer_bucket" {
 }
 
 resource "aws_s3_bucket_policy" "read_only_viewer_bucket_policy" {
-  bucket = module.read_only_viewer_bucket.s3_bucket_id
+  count  = local.stack_enabled
+  bucket = module.read_only_viewer_bucket[0].s3_bucket_id
   policy = data.aws_iam_policy_document.read_only_viewer_bucket_policy.json
 }
 
@@ -33,14 +35,14 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 
     actions = ["s3:GetObject"]
     resources = [
-      "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
+      "${module.read_only_viewer_bucket[0].s3_bucket_arn}/*",
     ]
 
     condition {
       test     = "StringEquals"
       variable = "aws:SourceArn"
       values = [
-        module.read_only_viewer_cloudfront.cloudfront_distribution_arn,
+        module.read_only_viewer_cloudfront[0].cloudfront_distribution_arn,
       ]
     }
   }
@@ -59,7 +61,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     ]
 
     resources = [
-      "${module.read_only_viewer_bucket.s3_bucket_arn}/*",
+      "${module.read_only_viewer_bucket[0].s3_bucket_arn}/*",
     ]
   }
 }

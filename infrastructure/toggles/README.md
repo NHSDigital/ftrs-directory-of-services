@@ -60,9 +60,101 @@ Stack toggles control whether entire infrastructure stacks are deployed via Terr
 - id: stack_opensearch_enabled
   name: "OpenSearch Stack Enabled"
   description: "Enable/disable OpenSearch stack deployment"
-  terraform_variable: opensearch_enabled
+  terraform_variable: opensearch_stack_enabled
   stack_path: infrastructure/stacks/opensearch
+  owner: "Infrastructure Team"
+  environments:
+    workspace: true
+    dev: true
+    test: true
+    int: false
+    ref: false
+    sandpit: false
+    prod: false
 ```
+
+**How Stack Toggles Work:**
+
+1. **Toggle Registry Definition**: Stack toggles are defined in `toggle-registry.yaml` with environment-specific values
+2. **Tfvars Generation**: The `generate-stack-toggles.py` script reads the registry and generates `stacks.auto.tfvars` files for each environment
+3. **Terraform Consumption**: Each stack has a `stack_enabled` variable that controls resource deployment via `count` meta-argument
+4. **Resource Creation**: When `stack_enabled = false`, zero resources are created (count = 0)
+
+**Using Stack Toggles:**
+
+To generate tfvars files from the toggle registry:
+
+```bash
+# Generate for all environments
+python3 scripts/generate-stack-toggles.py
+
+# Generate for specific environment
+python3 scripts/generate-stack-toggles.py --environment dev
+
+# Dry-run to see what would be generated
+python3 scripts/generate-stack-toggles.py --dry-run
+```
+
+**Stack Toggle Implementation:**
+
+Each stack implementing toggles must:
+
+1. Have a `{stack_name}_stack_enabled` boolean variable with default `true`
+2. Have a `locals.tf` with `stack_enabled = var.{stack_name}_stack_enabled ? 1 : 0`
+3. Add `count = local.stack_enabled` to all root-level resources and modules
+4. Update all resource references to use index `[0]` (e.g., `module.example[0].id`)
+5. Update outputs to handle disabled state with conditionals
+
+**Example Stack Implementation:**
+
+```terraform
+# variables.tf
+variable "opensearch_stack_enabled" {
+  description = "Enable or disable the opensearch stack"
+  type        = bool
+  default     = true
+}
+
+# locals.tf
+locals {
+  stack_enabled = var.opensearch_stack_enabled ? 1 : 0
+}
+
+# s3.tf
+module "s3" {
+  count = local.stack_enabled
+  source = "../../modules/s3"
+  # ... other arguments
+}
+
+# Other resource referencing the module
+resource "aws_s3_bucket_policy" "policy" {
+  count = local.stack_enabled
+  bucket = module.s3[0].s3_bucket_id
+  # ... other arguments
+}
+
+# outputs.tf
+output "bucket_name" {
+  value = local.stack_enabled == 1 ? module.s3[0].s3_bucket_name : ""
+}
+```
+
+**Cost Impact:**
+
+Disabling a stack results in:
+- Zero AWS resources provisioned
+- Zero ongoing AWS costs for that stack
+- Faster Terraform apply times
+- Reduced blast radius for changes
+
+**Available Stack Toggles:**
+
+| Stack | Variable | Purpose |
+|-------|----------|---------|
+| opensearch | `opensearch_stack_enabled` | OpenSearch Serverless collection and ingestion pipeline |
+| read_only_viewer | `read_only_viewer_stack_enabled` | Read-only viewer frontend application |
+| ui | `ui_stack_enabled` | Main UI application with authentication |
 
 ### API Gateway Toggles
 
@@ -113,7 +205,7 @@ All feature flag names MUST follow the standardized naming convention to ensure 
    - Examples: `organisation`, `location`, `healthcareservice`, `opensearch`
 
 4. **End with a qualifier**
-   - Common qualifiers: `enabled`, `disabled`, `create_enabled`, `read_enabled`, `update_enabled`, `delete_enabled`
+   - Common qualifiers: `enabled`, `create_enabled`, `read_enabled`, `update_enabled`, `delete_enabled`
    - Use `enabled` for simple on/off toggles
 
 5. **Avoid abbreviations except well-known ones**

@@ -1,4 +1,5 @@
 module "frontend_lambda" {
+  count  = local.stack_enabled
   source = "../../modules/lambda"
 
   description   = "Read only viewer frontend server lambda"
@@ -20,7 +21,7 @@ module "frontend_lambda" {
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.frontend_lambda_security_group.id]
+  security_group_ids = [aws_security_group.frontend_lambda_security_group[0].id]
   layers             = []
 
   environment_variables = {
@@ -35,7 +36,8 @@ module "frontend_lambda" {
 }
 
 resource "aws_lambda_function_url" "frontend_lambda_url" {
+  count = local.stack_enabled
   # checkov:skip=CKV_AWS_258: Justification: This Lambda function URL is only accessible via CloudFront, which enforces authentication and access controls.
-  function_name      = module.frontend_lambda.lambda_function_name
+  function_name      = module.frontend_lambda[0].lambda_function_name
   authorization_type = "NONE"
 }

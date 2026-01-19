@@ -1,12 +1,12 @@
 module "shield_protection" {
-  count  = local.is_primary_environment ? 1 : 0
+  count  = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
   source = "../../modules/shield"
 
   providers = {
     aws = aws.us-east-1
   }
 
-  arn_to_protect                     = module.read_only_viewer_cloudfront.cloudfront_distribution_arn
+  arn_to_protect                     = module.read_only_viewer_cloudfront[0].cloudfront_distribution_arn
   health_check_association_arn       = aws_route53_health_check.calculated_health_check.arn
   resource_name                      = "cloudfront"
   resource_prefix                    = local.resource_prefix

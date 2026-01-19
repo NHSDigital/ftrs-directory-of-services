@@ -1,5 +1,6 @@
 #trivy:ignore:AVD-AWS-0010
 module "ui_cloudfront" {
+  count = local.stack_enabled
   # Module version: v5.0.1
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=fc1010c0b53490d9b3911d2397726da80168f4fb"
 
@@ -28,12 +29,12 @@ module "ui_cloudfront" {
 
   origin = {
     s3_bucket = {
-      domain_name           = module.ui_bucket.s3_bucket_bucket_regional_domain_name
+      domain_name           = module.ui_bucket[0].s3_bucket_bucket_regional_domain_name
       origin_access_control = "${local.resource_prefix}-s3-oac${local.workspace_suffix}"
     }
 
     lambda_function = {
-      domain_name = replace(replace(aws_lambda_function_url.ui_lambda_url.function_url, "https://", ""), "/", "")
+      domain_name = replace(replace(aws_lambda_function_url.ui_lambda_url[0].function_url, "https://", ""), "/", "")
       custom_origin_config = {
         http_port              = var.http_port
         https_port             = var.https_port

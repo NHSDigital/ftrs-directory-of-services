@@ -151,6 +151,16 @@ else
   exit 1
 fi
 
+# Generate stack toggle tfvars from toggle registry
+echo "Generating stack toggles for environment: $ENVIRONMENT"
+if [ -f "$ROOT_DIR/scripts/generate-stack-toggles.py" ]; then
+  python3 "$ROOT_DIR/scripts/generate-stack-toggles.py" --environment "$ENVIRONMENT" || {
+    echo "Warning: Failed to generate stack toggles. Proceeding with existing tfvars..."
+  }
+else
+  echo "Warning: generate-stack-toggles.py not found. Skipping stack toggle generation..."
+fi
+
 
 # if no env specific tfvars for stack create temporary one
 TEMP_ENV_STACK_TF_VARS_FILE=0

@@ -1,10 +1,10 @@
 output "ui_cloudfront_distribution_url" {
-  value       = module.ui_cloudfront.cloudfront_distribution_domain_name
+  value       = module.ui_cloudfront[0].cloudfront_distribution_domain_name
   description = "The CloudFront distribution URL for the UI"
 }
 
 output "ui_cloudfront_distribution_id" {
-  value       = module.ui_cloudfront.cloudfront_distribution_id
+  value       = module.ui_cloudfront[0].cloudfront_distribution_id
   description = "The CloudFront distribution ID for the UI"
 }
 

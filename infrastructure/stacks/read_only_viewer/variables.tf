@@ -1,3 +1,9 @@
+variable "read_only_viewer_stack_enabled" {
+  description = "Enable or disable the read-only viewer stack"
+  type        = bool
+  default     = true
+}
+
 variable "application_tag" {
   description = "The version or tag of the etl_ode_code application"
   type        = string

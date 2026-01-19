@@ -1,5 +1,5 @@
 resource "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
-  count       = local.is_primary_environment ? 1 : 0
+  count       = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
   name        = "${var.environment}-${var.stack_name}-nap"
   description = "Public access for dashboard, VPC access for collection endpoint"
   type        = "network"
@@ -19,7 +19,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_netwo
 }
 
 resource "aws_opensearchserverless_access_policy" "opensearch_serverless_data_access_policy" {
-  count       = local.is_primary_environment ? 1 : 0
+  count       = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
   name        = "${var.environment}-${var.stack_name}-dap"
   type        = "data"
   description = "Allow index and collection access"
