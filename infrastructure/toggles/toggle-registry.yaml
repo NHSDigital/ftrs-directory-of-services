@@ -1,0 +1,347 @@
+# Toggle Registry
+# This file defines all feature toggles across the application
+# Organized into three categories: AppConfig Flags, Stack Toggles, and API Gateway Toggles
+
+appconfig_flags:
+  - id: data_migration_organisation_enabled
+    name: "Data Migration - Organisation Enabled"
+    description: "Enable the migration of Organisation (+ Endpoint) resources from the current DoS"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: true
+
+  - id: data_migration_location_enabled
+    name: "Data Migration - Location Enabled"
+    description: "Enable the migration of Location resources from the current DoS"
+    service: data-migration    
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: data_migration_healthcareservice_enabled
+    name: "Data Migration - HealthcareService Enabled"
+    description: "Enable the migration of HealthcareService (+ Variant) resources from the current DoS"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: data_migration_triagecode_enabled
+    name: "Data Migration - Triage Code Enabled"
+    description: "Enable the migration of Triage Code resources from the current DoS"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: data_migration_select_gp_practice_enabled
+    name: "Data Migration - Select GP Practice Enabled"
+    description: "Enable the selection of GP Practice services from the current DoS"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: true
+
+stack_toggles:
+  - id: stack_opensearch_enabled
+    name: "OpenSearch Stack Enabled"
+    description: "Enable/disable OpenSearch stack deployment"
+    terraform_variable: opensearch_stack_enabled
+    stack_path: infrastructure/stacks/opensearch
+    owner: "Infrastructure Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: stack_ui_enabled
+    name: "UI Stack Enabled"
+    description: "Enable/disable UI stack deployment"
+    terraform_variable: ui_stack_enabled
+    stack_path: infrastructure/stacks/ui
+    owner: "Infrastructure Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: stack_read_only_viewer_enabled
+    name: "Read-Only Viewer Stack Enabled"
+    description: "Enable/disable Read-Only Viewer stack deployment"
+    terraform_variable: read_only_viewer_stack_enabled
+    stack_path: infrastructure/stacks/read_only_viewer
+    owner: "Infrastructure Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+api_gateway_toggles:
+  - id: dos_search_organisation_search_enabled
+    name: "DoS Search - Organisation Search Enabled"
+    description: "Enable/disable the DoS Search Organisation endpoint (Search by ODS Code)"
+    route: "GET /Organization"
+    service: dos-search
+    terraform_variable: dos_search_organisation_search_enabled
+    disabled_response:
+      status_code: 503
+      message: "Organisation search endpoint is currently disabled"
+    owner: "DoS Search Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: true
+
+  - id: crud_api_organisation_create_enabled
+    name: "CRUD API - Organisation Create Enabled"
+    description: "Enable/disable the CRUD API Organisation Create endpoint"
+    route: "POST /Organization"
+    service: crud-apis
+    terraform_variable: crud_api_organisation_create_enabled
+    disabled_response:
+      status_code: 503
+      message: "Organisation create endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_organisation_read_enabled
+    name: "CRUD API - Organisation Read Enabled"
+    description: "Enable/disable the CRUD API Organisation Read endpoint"
+    route: "GET /Organization"
+    service: crud-apis
+    terraform_variable: crud_api_organisation_read_enabled
+    disabled_response:
+      status_code: 503
+      message: "Organisation read endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: true
+
+  - id: crud_api_organisation_update_enabled
+    name: "CRUD API - Organisation Update Enabled"
+    description: "Enable/disable the CRUD API Organisation Update endpoint"
+    route: "PUT /Organization"
+    service: crud-apis
+    terraform_variable: crud_api_organisation_update_enabled
+    disabled_response:
+      status_code: 503
+      message: "Organisation update endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: true
+
+  - id: crud_api_organisation_delete_enabled
+    name: "CRUD API - Organisation Delete Enabled"
+    description: "Enable/disable the CRUD API Organisation Delete endpoint"
+    route: "DELETE /Organization"
+    service: crud-apis
+    terraform_variable: crud_api_organisation_delete_enabled
+    disabled_response:
+      status_code: 503
+      message: "Organisation delete endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_location_create_enabled
+    name: "CRUD API - Location Create Enabled"
+    description: "Enable/disable the CRUD API Location Create endpoint"
+    route: "POST /Location"
+    service: crud-apis
+    terraform_variable: crud_api_location_create_enabled
+    disabled_response:
+      status_code: 503
+      message: "Location create endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_location_read_enabled
+    name: "CRUD API - Location Read Enabled"
+    description: "Enable/disable the CRUD API Location Read endpoint"
+    route: "GET /Location"
+    service: crud-apis
+    terraform_variable: crud_api_location_read_enabled
+    disabled_response:
+      status_code: 503
+      message: "Location read endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_location_update_enabled
+    name: "CRUD API - Location Update Enabled"
+    description: "Enable/disable the CRUD API Location Update endpoint"
+    route: "PUT /Location"
+    service: crud-apis
+    terraform_variable: crud_api_location_update_enabled
+    disabled_response:
+      status_code: 503
+      message: "Location update endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_location_delete_enabled
+    name: "CRUD API - Location Delete Enabled"
+    description: "Enable/disable the CRUD API Location Delete endpoint"
+    route: "DELETE /Location"
+    service: crud-apis
+    terraform_variable: crud_api_location_delete_enabled
+    disabled_response:
+      status_code: 503
+      message: "Location delete endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_healthcareservice_create_enabled
+    name: "CRUD API - HealthcareService Create Enabled"
+    description: "Enable/disable the CRUD API HealthcareService Create endpoint"
+    route: "POST /HealthcareService"
+    service: crud-apis
+    terraform_variable: crud_api_healthcareservice_create_enabled
+    disabled_response:
+      status_code: 503
+      message: "HealthcareService create endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_healthcareservice_read_enabled
+    name: "CRUD API - HealthcareService Read Enabled"
+    description: "Enable/disable the CRUD API HealthcareService Read endpoint"
+    route: "GET /HealthcareService"
+    service: crud-apis
+    terraform_variable: crud_api_healthcareservice_read_enabled
+    disabled_response:
+      status_code: 503
+      message: "HealthcareService read endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_healthcareservice_update_enabled
+    name: "CRUD API - HealthcareService Update Enabled"
+    description: "Enable/disable the CRUD API HealthcareService Update endpoint"
+    route: "PUT /HealthcareService"
+    service: crud-apis
+    terraform_variable: crud_api_healthcareservice_update_enabled
+    disabled_response:
+      status_code: 503
+      message: "HealthcareService update endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
+  - id: crud_api_healthcareservice_delete_enabled
+    name: "CRUD API - HealthcareService Delete Enabled"
+    description: "Enable/disable the CRUD API HealthcareService Delete endpoint"
+    route: "DELETE /HealthcareService"
+    service: crud-apis
+    terraform_variable: crud_api_healthcareservice_delete_enabled
+    disabled_response:
+      status_code: 503
+      message: "HealthcareService delete endpoint is currently disabled"
+    owner: "CRUD API Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
