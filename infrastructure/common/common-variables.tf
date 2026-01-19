@@ -134,11 +134,6 @@ variable "release_tag" {
   default     = ""
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the crud api application"
-  type        = string
-}
-
 variable "included_cloudfront_log_fields" {
   description = "List of CloudFront log fields to include in CloudWatch Logs"
   type        = list(string)
