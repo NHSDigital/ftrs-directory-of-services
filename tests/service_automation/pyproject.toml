@@ -79,5 +79,6 @@ markers = [
   "healthcare-service-exists: marks test as healthcare service exists conflict related",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
+  "dms_schema: marks test as DMS schema index creation validation related (FTRS-1708)",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']
