@@ -19,8 +19,6 @@ DEPENDENCY_LAYER_NAME := ftrs-dos-$(SERVICE)-python-dependency-layer
 PRODUCER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-processor-lambda
 CONSUMER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-consumer-lambda
 
-LAMBDAS := $(PRODUCER_LAMBDA_NAME) $(CONSUMER_LAMBDA_NAME)
-
 # ------------------------------------------------------------------------------
 # Development artefact path (branch-aware)
 # ------------------------------------------------------------------------------
