@@ -1,9 +1,5 @@
 name: Deploy API proxy to APIM sandbox environment
 
-permissions:
-  id-token: write
-  contents: read
-
 on:
   workflow_call:
     inputs:
@@ -67,9 +63,14 @@ on:
         description: 'Flag indicating if sandbox deploy should run'
         value: ${{ jobs.authenticate-and-deploy.outputs.should_deploy }}
 
+permissions:
+  contents: read
+
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM sandbox proxy
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
@@ -80,7 +81,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -96,9 +97,13 @@ jobs:
       - name: "Get directories"
         if: ${{ inputs.parsed_should_deploy == 'true' }}
         id: get-directories
+        shell: bash
+        env:
+          PARSED_SERVICE: ${{ inputs.parsed_service }}
         run: |
-          echo "working_directory=services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
-          echo "build_directory=build/services/sandbox-${{ inputs.parsed_service }}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          printf 'working_directory=services/sandbox-%s\n' "$PARSED_SERVICE" >> "$GITHUB_OUTPUT"
+          printf 'build_directory=build/services/sandbox-%s\n' "$PARSED_SERVICE" >> "$GITHUB_OUTPUT"
 
       - name: Get Proxygen Access Token
         if: ${{ inputs.parsed_should_deploy == 'true' }}
@@ -144,19 +149,27 @@ jobs:
 
       - name: Deployment Summary
         if: ${{ inputs.parsed_should_deploy == 'true' }}
+        shell: bash
+        env:
+          API_NAME: ${{ inputs.parsed_service }}
+          ENVIRONMENT: ${{ inputs.parsed_sandbox_environment }}
+          VERSION: ${{ inputs.parsed_version }}
         run: |
-          echo "### Deployment Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| API Name | \`${{ inputs.parsed_service }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ inputs.parsed_sandbox_environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`${{ inputs.parsed_version }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | Success |" >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          echo "### Deployment Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Parameter | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| API Name | \`$API_NAME\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | \`$ENVIRONMENT\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version | \`$VERSION\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | Success |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Notify on failure
         if: failure()
+        shell: bash
         run: |
-          echo "### Deployment to the APIM environment failed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The deployment to Proxygen failed. Please check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          echo "### Deployment to the APIM environment failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The deployment to Proxygen failed. Please check the logs above for details." >> "$GITHUB_STEP_SUMMARY"
