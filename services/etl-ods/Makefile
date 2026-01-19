@@ -84,7 +84,7 @@ publish:
 	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip \
 		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION); \
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip \
-		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION); \
+		s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION); 
 	@echo "Published successfully"
 
 # ==============================================================================
