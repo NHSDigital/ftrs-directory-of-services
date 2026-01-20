@@ -53,28 +53,15 @@ build-producer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/producer-tmp
 	cp -r producer $(BUILD_DIR)/producer-tmp/
 	cp -r common $(BUILD_DIR)/producer-tmp/
-	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/producer-tmp && zip -r -q $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/producer-tmp
 
 build-consumer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
-	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/consumer-tmp && zip -r -q $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
-
-build-dependency-layer: ensure-build-dir
-	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-		--platform $(PLATFORM) \
-		--target $(DEPENDENCY_DIR)/python \
-		--implementation cp \
-		--python-version $(PYTHON_VERSION) \
-		--no-deps \
-		--upgrade \
-		-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip . --exclude "*__pycache__/*"
 
 # ------------------------------------------------------------------------------
 # Publish (service-specific S3 layout)
