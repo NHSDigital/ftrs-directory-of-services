@@ -57,13 +57,14 @@ def given_table_exists_with_data(
     # Check table exists
     result = dos_db_with_migration.execute(
         text(
-            f"""
+            """
             SELECT table_name
             FROM information_schema.tables
             WHERE table_schema = 'pathwaysdos'
-            AND table_name = '{table_name}'
+            AND table_name = :table_name
             """
-        )
+        ),
+        {"table_name": table_name}
     )
     assert result.fetchone() is not None, f"Table {table_name} should exist"
 
@@ -77,17 +78,18 @@ def given_indexes_dropped_from_table(
     # (primary key, foreign key, unique constraints)
     result = dos_db_with_migration.execute(
         text(
-            f"""
+            """
             SELECT i.indexname
             FROM pg_indexes i
             LEFT JOIN pg_constraint c ON i.indexname = c.conname
             WHERE i.schemaname = 'pathwaysdos'
-            AND i.tablename = '{table_name}'
+            AND i.tablename = :table_name
             AND c.conname IS NULL
             AND i.indexname NOT LIKE '%_pkey'
             AND i.indexname NOT LIKE '%_fkey'
             """
-        )
+        ),
+        {"table_name": table_name}
     )
 
     indexes_before = [row[0] for row in result.fetchall()]
@@ -98,6 +100,8 @@ def given_indexes_dropped_from_table(
 
     # Drop each index (safe to drop - not constraint-based)
     for index_name in indexes_before:
+        # SQL identifiers cannot be parameterized, but index_name comes from pg_indexes query
+        # which ensures it's a valid identifier
         dos_db_with_migration.execute(
             text(f"DROP INDEX IF EXISTS pathwaysdos.{index_name}")
         )
@@ -114,17 +118,18 @@ def given_indexes_already_created(
     # Get current indexes (excluding constraint-based ones)
     result = dos_db_with_migration.execute(
         text(
-            f"""
+            """
             SELECT COUNT(*)
             FROM pg_indexes i
             LEFT JOIN pg_constraint c ON i.indexname = c.conname
             WHERE i.schemaname = 'pathwaysdos'
-            AND i.tablename = '{table_name}'
+            AND i.tablename = :table_name
             AND c.conname IS NULL
             AND i.indexname NOT LIKE '%_pkey'
             AND i.indexname NOT LIKE '%_fkey'
             """
-        )
+        ),
+        {"table_name": table_name}
     )
     count = result.fetchone()[0]
     dms_context["tables_with_indexes"][table_name] = {
@@ -142,13 +147,14 @@ def given_all_indexes_tables_exist(
         # Check table exists
         result = dos_db_with_migration.execute(
             text(
-                f"""
+                """
                 SELECT table_name
                 FROM information_schema.tables
                 WHERE table_schema = 'pathwaysdos'
-                AND table_name = '{table_name}'
+                AND table_name = :table_name
                 """
-            )
+            ),
+            {"table_name": table_name}
         )
         assert result.fetchone() is not None, f"Table {table_name} should exist"
 
@@ -164,23 +170,26 @@ def given_indexes_dropped_from_all_tables(
         # Get all indexes for the table, excluding constraint-based indexes
         result = dos_db_with_migration.execute(
             text(
-                f"""
+                """
                 SELECT i.indexname
                 FROM pg_indexes i
                 LEFT JOIN pg_constraint c ON i.indexname = c.conname
                 WHERE i.schemaname = 'pathwaysdos'
-                AND i.tablename = '{table_name}'
+                AND i.tablename = :table_name
                 AND c.conname IS NULL
                 AND i.indexname NOT LIKE '%_pkey'
                 AND i.indexname NOT LIKE '%_fkey'
                 """
-            )
+            ),
+            {"table_name": table_name}
         )
 
         indexes = [row[0] for row in result.fetchall()]
 
         # Drop each index
         for index_name in indexes:
+            # SQL identifiers cannot be parameterized, but index_name comes from pg_indexes query
+            # which ensures it's a valid identifier
             dos_db_with_migration.execute(
                 text(f"DROP INDEX IF EXISTS pathwaysdos.{index_name}")
             )
@@ -213,17 +222,18 @@ def then_indexes_exist_on_table(
     # Get indexes after provisioning (excluding constraint-based indexes)
     result = dos_db_with_migration.execute(
         text(
-            f"""
+            """
             SELECT i.indexname
             FROM pg_indexes i
             LEFT JOIN pg_constraint c ON i.indexname = c.conname
             WHERE i.schemaname = 'pathwaysdos'
-            AND i.tablename = '{table_name}'
+            AND i.tablename = :table_name
             AND c.conname IS NULL
             AND i.indexname NOT LIKE '%_pkey'
             AND i.indexname NOT LIKE '%_fkey'
             """
-        )
+        ),
+        {"table_name": table_name}
     )
 
     indexes_after = [row[0] for row in result.fetchall()]
@@ -257,17 +267,18 @@ def then_all_tables_have_indexes(
     for table_name in INDEXES_TABLES:
         result = dos_db_with_migration.execute(
             text(
-                f"""
+                """
                 SELECT COUNT(*)
                 FROM pg_indexes i
                 LEFT JOIN pg_constraint c ON i.indexname = c.conname
                 WHERE i.schemaname = 'pathwaysdos'
-                AND i.tablename = '{table_name}'
+                AND i.tablename = :table_name
                 AND c.conname IS NULL
                 AND i.indexname NOT LIKE '%_pkey'
                 AND i.indexname NOT LIKE '%_fkey'
                 """
-            )
+            ),
+            {"table_name": table_name}
         )
         count = result.fetchone()[0]
 
