@@ -6,7 +6,6 @@ from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointPayloadType,
 )
 
@@ -293,7 +292,7 @@ class TestEndpointMapper:
         endpoint = create_endpoint(
             order=1,
             is_compression_enabled=True,
-            description=EndpointDescription.PRIMARY,
+            business_scenario=EndpointBusinessScenario.PRIMARY,
         )
 
         # Act
@@ -325,7 +324,7 @@ class TestEndpointMapper:
             endpoint_id=endpoint_id,
             order=1,
             is_compression_enabled=True,
-            description=EndpointDescription.PRIMARY,
+            business_scenario=EndpointBusinessScenario.PRIMARY,
             connection_type="email",
         )
 
