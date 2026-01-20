@@ -517,8 +517,8 @@ paths:
         - Exactly one role is designated as the primary role
         - The primary role includes TypedPeriod extension with legal dates
         - Non-primary roles may optionally include TypedPeriod extensions
-        - If the primary role is `RO177`, at least one non-primary role must be present and must be one of: `RO76`, `RO80`, or `RO87`
-        - If the primary role is `RO182`, the non-primary roles array may be empty
+        - Primary role must be `RO177`, at least one non-primary role must be present and must be `RO76`
+        - No other role combinations are currently supported
         - Duplicate non-primary role codes are not allowed
 
         **General Validation Rules**:
@@ -583,23 +583,6 @@ paths:
                       "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
                       "code": "RO76",
                       "display": "GP PRACTICE"
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-            "extension": [
-              {
-                "url": "roleCode",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                      "code": "RO80",
-                      "display": "BRANCH SURGERY"
                     }
                   ]
                 }
@@ -925,7 +908,15 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "Primary role RO177 must have at least one non-primary role from [RO76, RO80, RO87]"
+                        diagnostics: "Primary role RO177 must have non-primary role RO76"
+                invalid-primary-role-code:
+                  summary: Invalid primary role code (e.g., RO182)
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Invalid primary role code: RO182 is not allowed"
                 invalid-non-primary-role-code:
                   summary: Invalid non-primary role code (e.g., RO268)
                   value:
