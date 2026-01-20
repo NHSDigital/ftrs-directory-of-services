@@ -53,6 +53,8 @@ jobs:
         needs.validate-sandbox-tag.outputs.sandbox_service || 'sandbox',
         needs.validate-sandbox-tag.outputs.sandbox_environment || 'API'
       ) }}
+    permissions:
+      id-token: write
     needs:
       - metadata
       - validate-sandbox-tag
