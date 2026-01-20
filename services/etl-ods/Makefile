@@ -45,7 +45,7 @@ unit-test:
 	poetry run pytest tests/unit
 
 # Override default build to produce producer + consumer artefacts
-build: ensure-build-dir build-producer-lambda build-consumer-lambda build-dependency-layer
+build: ensure-build-dir build-dependency-layer build-producer-lambda build-consumer-lambda
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
@@ -53,14 +53,14 @@ build-producer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/producer-tmp
 	cp -r producer $(BUILD_DIR)/producer-tmp/
 	cp -r common $(BUILD_DIR)/producer-tmp/
-	cd $(BUILD_DIR)/producer-tmp && zip -r -q $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/producer-tmp
 
 build-consumer-lambda: ensure-build-dir
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
-	cd $(BUILD_DIR)/consumer-tmp && zip -r -q $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
 
 # ------------------------------------------------------------------------------
