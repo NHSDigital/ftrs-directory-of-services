@@ -19,7 +19,7 @@ elif command -v yum >/dev/null 2>&1; then
 fi
 
 # Install Java 17 and base tools with fallback (dnf then yum)
-BASE_PKGS="unzip jq wget tar openssh-clients make curl"
+BASE_PKGS="unzip jq wget tar openssh-clients make"
 if command -v dnf >/dev/null 2>&1; then
   dnf -y install $BASE_PKGS || true
   dnf -y install java-17-amazon-corretto-headless || true
@@ -120,6 +120,7 @@ PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3
 AWS_JAVA_SDK_VERSION=2.40.16
 DEFAULT_PLUGINS="jpgc-graphs-basic,jpgc-graphs-additional,jpgc-tst,jpgc-casutg"
+mkdir -p "$${JM_HOME}/lib"
 
 mkdir -p "$${JM_HOME}/lib/ext" "$${JM_HOME}/lib"
 curl -fL -o "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
@@ -131,6 +132,8 @@ curl -fL -o "$${JM_HOME}/lib/cmdrunner-$${CMDRUNNER_VERSION}.jar" \
 java -cp "$${JM_HOME}/lib/ext/jmeter-plugins-manager-$${PLUGINS_MANAGER_VERSION}.jar" \
   org.jmeterplugins.repository.PluginManagerCMDInstaller || true
 bash "$${JM_HOME}/bin/PluginsManagerCMD.sh" install "$${DEFAULT_PLUGINS}" || true
+
+
 
 # Always install JWT dependency (used by IS_Proxy_Test_Plan)
 curl -fL -o "$${JM_HOME}/lib/java-jwt-$${JWT_VER}.jar" \
