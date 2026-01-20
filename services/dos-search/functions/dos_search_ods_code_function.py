@@ -28,8 +28,8 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Access-Control-Allow-Methods": "GET",
     "Access-Control-Allow-Headers": (
         "Authorization, Content-Type, NHSD-Correlation-ID, NHSD-Request-ID, X-Correlation-ID, X-Request-ID, "
-        "NHSD-Message-Id, version, end-user-role, application-id, application-name, "
-        "Accept, Accept-Encoding, Accept-Language, Request-Start-Time, "
+        "Version, End-User-Role, Application-ID, Application-Name, "
+        "Accept, Accept-Encoding, Accept-Language, "
         "User-Agent, Host, X-Amzn-Trace-Id, X-Forwarded-For, X-Forwarded-Port, "
         "X-Forwarded-Proto"
     ),
@@ -86,8 +86,8 @@ def get_organization() -> Response:
         dos_logger.warning(
             "Validation error occurred: Logging response time & size",
             validation_errors=exception.errors(),
-            opt_ftrs_response_time=f"{duration_ms}ms",
-            opt_ftrs_response_size=response_size,
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
         )
         return create_response(400, fhir_resource)
     except InvalidRequestHeadersError as exception:
@@ -109,8 +109,8 @@ def get_organization() -> Response:
         )
         dos_logger.exception(
             "Internal server error occurred: Logging response time & size",
-            opt_ftrs_response_time=f"{duration_ms}ms",
-            opt_ftrs_response_size=response_size,
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
         )
 
         return create_response(500, fhir_resource)
@@ -122,8 +122,8 @@ def get_organization() -> Response:
 
         dos_logger.info(
             "Successfully processed: Logging response time & size",
-            opt_ftrs_response_time=f"{duration_ms}ms",
-            opt_ftrs_response_size=response_size,
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
             dos_message_category="METRICS",
         )
         return create_response(200, fhir_resource)
