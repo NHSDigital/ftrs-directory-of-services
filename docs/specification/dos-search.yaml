@@ -33,7 +33,7 @@ info:
     - [Electronic Prescription Service Directory of Services API](https://digital.nhs.uk/developer/api-catalogue/electronic-prescription-service-directory-of-services)
 
     ## Service level
-    This API is a gold service, meaning it is operational and supported 24 hours a day, 365 days a year.
+    Business hours support between 8am and 6pm, Monday to Friday, but not bank holidays.
 
     For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
 
