@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 
-from functions.organization_query_params import (
+from functions.libraries.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
     ODSCodeInvalidFormatError,
@@ -29,7 +31,9 @@ class TestOrganizationQueryParams:
             "lowercase converted",
         ],
     )
-    def test_valid_organization_query_params(self, identifier, expected_ods_code):
+    def test_valid_organization_query_params(
+        self, identifier: str, expected_ods_code: str
+    ) -> None:
         # Act
         params = OrganizationQueryParams(
             identifier=identifier, _revinclude="Endpoint:organization"
@@ -65,7 +69,9 @@ class TestOrganizationQueryParams:
             "no prefix",
         ],
     )
-    def test_invalid_identifier_validation(self, identifier, expected_exception):
+    def test_invalid_identifier_validation(
+        self, identifier: str, expected_exception: type[Exception]
+    ) -> None:
         # Act
         with pytest.raises(ValidationError) as exc_info:
             OrganizationQueryParams(
@@ -78,7 +84,7 @@ class TestOrganizationQueryParams:
             exc_info.value.errors()[0]["ctx"]["error"].__class__ == expected_exception
         )
 
-    def test_invalid_revinclude_validation(self):
+    def test_invalid_revinclude_validation(self) -> None:
         # Act
         with pytest.raises(ValidationError) as exc_info:
             OrganizationQueryParams(
@@ -92,7 +98,7 @@ class TestOrganizationQueryParams:
             == InvalidRevincludeError
         )
 
-    def test_ods_code_computed_field(self):
+    def test_ods_code_computed_field(self) -> None:
         # Act
         params = OrganizationQueryParams(
             identifier="odsOrganisationCode|abc123", _revinclude="Endpoint:organization"

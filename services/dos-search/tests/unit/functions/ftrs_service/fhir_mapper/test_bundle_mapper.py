@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.organization import Organization as FhirOrganization
 
-from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
+from functions.libraries.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 
 
 @pytest.fixture
@@ -14,7 +16,9 @@ def bundle_mapper():
 
 @pytest.fixture
 def mock_get_fhir_url():
-    with patch("functions.ftrs_service.fhir_mapper.bundle_mapper.get_fhir_url") as mock:
+    with patch(
+        "functions.libraries.ftrs_service.fhir_mapper.bundle_mapper.get_fhir_url"
+    ) as mock:
         yield mock
 
 

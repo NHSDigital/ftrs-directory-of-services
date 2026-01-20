@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -5,15 +7,15 @@ from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
-from functions.dos_search_ods_code_function import (
+from functions.libraries.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
     lambda_handler,
 )
 
 
 @pytest.fixture
-def mock_error_util():
-    with patch("functions.dos_search_ods_code_function.error_util") as mock:
+def mock_error_util() -> object:
+    with patch("functions.libraries.dos_search_ods_code_function.error_util") as mock:
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
         mock_invalid_header = OperationOutcome.model_construct(id="invalid-header")
@@ -28,20 +30,22 @@ def mock_error_util():
 
 
 @pytest.fixture
-def mock_ftrs_service():
-    with patch("functions.dos_search_ods_code_function.FtrsService") as mock_class:
+def mock_ftrs_service() -> object:
+    with patch(
+        "functions.libraries.dos_search_ods_code_function.FtrsService"
+    ) as mock_class:
         mock_service = mock_class.return_value
         yield mock_service
 
 
 @pytest.fixture
-def mock_logger():
-    with patch("functions.dos_search_ods_code_function.logger") as mock:
+def mock_logger() -> object:
+    with patch("functions.libraries.dos_search_ods_code_function.logger") as mock:
         yield mock
 
 
 @pytest.fixture
-def event(ods_code):
+def event(ods_code: str) -> dict:
     return {
         "path": "/Organization",
         "httpMethod": "GET",
@@ -57,17 +61,17 @@ def event(ods_code):
 
 
 @pytest.fixture
-def ods_code():
+def ods_code() -> str:
     return "ABC123"
 
 
 @pytest.fixture
-def lambda_context():
+def lambda_context() -> object:
     return MagicMock()
 
 
 @pytest.fixture
-def bundle():
+def bundle() -> Bundle:
     return Bundle.model_construct(id="bundle-id")
 
 
@@ -76,7 +80,7 @@ EXPECTED_MULTI_VALUE_HEADERS = {
 }
 
 
-def _build_event_with_headers(headers: dict[str, str]):
+def _build_event_with_headers(headers: dict[str, str]) -> dict:
     return {
         "path": "/Organization",
         "httpMethod": "GET",
@@ -90,10 +94,10 @@ def _build_event_with_headers(headers: dict[str, str]):
 
 
 def assert_response(
-    response,
-    expected_status_code,
-    expected_body,
-):
+    response: dict,
+    expected_status_code: int,
+    expected_body: str,
+) -> None:
     assert response["statusCode"] == expected_status_code
     assert response["multiValueHeaders"] == EXPECTED_MULTI_VALUE_HEADERS
     assert response["body"] == expected_body
@@ -127,12 +131,12 @@ class TestLambdaHandler:
     )
     def test_lambda_handler_allows_valid_custom_headers(
         self,
-        header_name,
-        lambda_context,
-        mock_ftrs_service,
-        mock_logger,
-        bundle,
-    ):
+        header_name: str,
+        lambda_context: object,
+        mock_ftrs_service: object,
+        mock_logger: object,
+        bundle: Bundle,
+    ) -> None:
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
 
         event_with_headers = _build_event_with_headers({header_name: "value"})
@@ -145,10 +149,10 @@ class TestLambdaHandler:
 
     def test_lambda_handler_rejects_invalid_custom_headers(
         self,
-        lambda_context,
-        mock_logger,
-        mock_error_util,
-    ):
+        lambda_context: object,
+        mock_logger: object,
+        mock_error_util: object,
+    ) -> None:
         event_with_headers = _build_event_with_headers(
             {"X-NHSD-UNKNOWN": "abc", "Authorization": "token"}
         )
@@ -187,13 +191,13 @@ class TestLambdaHandler:
     )
     def test_lambda_handler_with_valid_event(
         self,
-        lambda_context,
-        mock_ftrs_service,
-        mock_logger,
-        ods_code,
-        event,
-        bundle,
-    ):
+        lambda_context: object,
+        mock_ftrs_service: object,
+        mock_logger: object,
+        ods_code: str,
+        event: dict,
+        bundle: Bundle,
+    ) -> None:
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
 
@@ -215,14 +219,18 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event
-    ):
+        self,
+        lambda_context: object,
+        mock_error_util: object,
+        mock_logger: object,
+        event: dict,
+    ) -> None:
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
 
         # Act
         with patch(
-            "functions.dos_search_ods_code_function.OrganizationQueryParams.model_validate",
+            "functions.libraries.dos_search_ods_code_function.OrganizationQueryParams.model_validate",
             side_effect=validation_error,
         ):
             response = lambda_handler(event, lambda_context)
@@ -250,13 +258,13 @@ class TestLambdaHandler:
 
     def test_lambda_handler_with_general_exception(
         self,
-        lambda_context,
-        mock_ftrs_service,
-        event,
-        ods_code,
-        mock_error_util,
-        mock_logger,
-    ):
+        lambda_context: object,
+        mock_ftrs_service: object,
+        event: dict,
+        ods_code: str,
+        mock_error_util: object,
+        mock_logger: object,
+    ) -> None:
         # Arrange
         mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
 
@@ -281,7 +289,7 @@ class TestLambdaHandler:
             expected_body=mock_error_util.create_resource_internal_server_error.return_value.model_dump_json(),
         )
 
-    def test_lambda_handler_with_empty_event(self, lambda_context):
+    def test_lambda_handler_with_empty_event(self, lambda_context: object) -> None:
         # Arrange
         empty_event = {}
 
