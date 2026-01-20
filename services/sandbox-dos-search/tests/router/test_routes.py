@@ -181,16 +181,20 @@ class TestOrganizationEndpoint:
         assert data["resourceType"] == "OperationOutcome"
 
     def test_alphanumeric_ods_code_12_chars_valid_format(self, client):
-        """Test that 12-character alphanumeric ODS code has valid format (though not ABC123)"""
+        """Test that 12-character alphanumeric ODS code with valid format but not matching ABC123 returns 400"""
         # Act
         response = client.get(
             "/Organization?identifier=odsOrganisationCode|ABCDEFGH1234&_revinclude=Endpoint:organization"
         )
         data = response.json()
 
-        # Assert - Valid format but not the specific code we return success for
+        # Assert - Valid format but doesn't match ABC123 (case-insensitive)
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
+        assert data["issue"][0]["severity"] == "error"
+        assert data["issue"][0]["code"] == "value"
+        assert data["issue"][0]["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
+        assert "Invalid identifier value" in data["issue"][0]["diagnostics"]
 
     def test_empty_ods_code_returns_400(self, client):
         """Test that empty ODS code after pipe returns 400 error"""
@@ -238,25 +242,30 @@ class TestOrganizationEndpoint:
             data = response.json()
             assert data["issue"][0]["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
 
-    def test_lowercase_ods_code_valid_format(self, client):
-        """Test that lowercase ODS code is accepted (regex allows [A-Za-z0-9])"""
+    def test_lowercase_ods_code_matches_case_insensitively(self, client):
+        """Test that lowercase 'abc123' matches ABC123 case-insensitively and returns 200"""
         # Act
         response = client.get(
             "/Organization?identifier=odsOrganisationCode|abc123&_revinclude=Endpoint:organization"
         )
         data = response.json()
 
-        # Assert - Valid format (lowercase allowed) but not ABC123
-        assert response.status_code == 400
+        # Assert - Case-insensitive match on ABC123 should succeed
+        assert response.status_code == 200
+        assert data["resourceType"] == "Bundle"
+        assert data["type"] == "searchset"
+        assert len(data["entry"]) == 3
 
-    def test_mixed_case_abc123_not_matched(self, client):
-        """Test that mixed case 'aBc123' is not matched (case sensitive comparison)"""
+    def test_mixed_case_abc123_matches_case_insensitively(self, client):
+        """Test that mixed case 'aBc123' matches ABC123 case-insensitively and returns 200"""
         # Act
         response = client.get(
             "/Organization?identifier=odsOrganisationCode|aBc123&_revinclude=Endpoint:organization"
         )
         data = response.json()
 
-        # Assert - Valid format but doesn't match case-sensitive ABC123
-        assert response.status_code == 400
-        assert data["resourceType"] == "OperationOutcome"
+        # Assert - Case-insensitive match on ABC123 should succeed
+        assert response.status_code == 200
+        assert data["resourceType"] == "Bundle"
+        assert data["type"] == "searchset"
+        assert len(data["entry"]) == 3
