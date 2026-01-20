@@ -2,8 +2,8 @@ from uuid import UUID
 
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.enums import (
+    EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
@@ -26,7 +26,7 @@ class Endpoint(DBModel):
     connectionType: EndpointConnectionType
     name: str | None
     payloadMimeType: EndpointPayloadMimeType | None
-    description: EndpointDescription
+    businessScenario: EndpointBusinessScenario
     payloadType: EndpointPayloadType | None
     address: str
     managedByOrganisation: UUID

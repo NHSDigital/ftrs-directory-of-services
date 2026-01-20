@@ -4,7 +4,7 @@ import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
-    EndpointDescription,
+    EndpointBusinessScenario,
     EndpointPayloadType,
 )
 
@@ -131,11 +131,11 @@ class TestEndpointMapper:
         assert result == expected_result
 
     @pytest.mark.parametrize(
-        ("order", "is_compression_enabled", "description", "expected_count"),
+        ("order", "is_compression_enabled", "business_scenario", "expected_count"),
         [
-            (1, True, EndpointDescription.COPY, 3),
-            (None, True, EndpointDescription.COPY, 2),
-            (1, None, EndpointDescription.COPY, 2),
+            (1, True, EndpointBusinessScenario.COPY, 3),
+            (None, True, EndpointBusinessScenario.COPY, 2),
+            (1, None, EndpointBusinessScenario.COPY, 2),
         ],
     )
     def test_create_extensions(
@@ -143,7 +143,7 @@ class TestEndpointMapper:
         endpoint_mapper,
         order,
         is_compression_enabled,
-        description,
+        business_scenario,
         expected_count,
         mocker,
     ):
@@ -151,7 +151,7 @@ class TestEndpointMapper:
         mock_endpoint = mocker.MagicMock()
         mock_endpoint.order = order
         mock_endpoint.isCompressionEnabled = is_compression_enabled
-        mock_endpoint.description = description
+        mock_endpoint.businessScenario = business_scenario
 
         # Act
         extensions = endpoint_mapper._create_extensions(mock_endpoint)
@@ -164,7 +164,7 @@ class TestEndpointMapper:
             )
         if is_compression_enabled is not None:
             assert any(ext["url"].endswith("EndpointCompression") for ext in extensions)
-        if description is not None:
+        if business_scenario is not None:
             assert any(
                 ext["url"].endswith("EndpointBusinessScenario") for ext in extensions
             )
