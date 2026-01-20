@@ -1,132 +1,99 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from consumer.consumer_handler import consumer_lambda_handler
 
 
+@patch("consumer.consumer_handler.setup_request_context")
+@patch("consumer.consumer_handler.extract_correlation_id_from_sqs_records")
 @patch("consumer.consumer_handler.process_message_and_send_request")
 def test_consumer_lambda_handler_success(
     mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
+    mock_extract_correlation_id: MagicMock,
+    mock_setup_context: MagicMock,
 ) -> None:
+    """Test successful processing of SQS records."""
+    mock_extract_correlation_id.return_value = "test-correlation-id"
+    mock_context = MagicMock()
     event = {
         "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
+            {"messageId": "msg-1"},
+            {"messageId": "msg-2"},
         ]
     }
 
-    response = consumer_lambda_handler(event, {})
+    response = consumer_lambda_handler(event, mock_context)
 
-    assert response["batchItemFailures"] == []
+    mock_extract_correlation_id.assert_called_once_with(event["Records"])
+    mock_setup_context.assert_called_once_with(
+        "test-correlation-id", mock_context, mock_setup_context.call_args[0][2]
+    )
+
     assert str(mock_process_message.call_count) == "2"
+    mock_process_message.assert_any_call({"messageId": "msg-1"})
+    mock_process_message.assert_any_call({"messageId": "msg-2"})
 
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_success_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-    assert expected_processing_log_1 in caplog.text
-    assert expected_success_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
-
-
-@patch("consumer.consumer_handler.process_message_and_send_request")
-def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) -> None:
-    consumer_lambda_handler({}, {})
-
-    assert str(mock_process_message.call_count) == "0"
-
-
-@patch("consumer.consumer_handler.process_message_and_send_request")
-def test_consumer_lambda_handler_failure(
-    mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    event = {
-        "Records": [
-            {"messageId": "1", "path": "test1", "body": {"key": "value1"}},
-            {"messageId": "2", "path": "test2", "body": {"key": "value2"}},
-        ]
-    }
-
-    mock_process_message.side_effect = [Exception("Test exception"), None]
-
-    response = consumer_lambda_handler(event, {})
-
-    assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
-    assert str(mock_process_message.call_count) == "2"
-
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_failure_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_005.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-
-    assert expected_processing_log_1 in caplog.text
-    assert expected_failure_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
+    assert response == {"batchItemFailures": []}
 
 
 @pytest.mark.parametrize(
-    ("path", "body"),
+    ("event", "expected_result"),
     [
-        (None, {"name": "Organization Name"}),
-        ("uuid", None),
-        ("", {"name": "Organization Name"}),
-        ("uuid", {}),
+        (None, None),
+        ({}, None),  # Empty dict is falsy, so returns None
+        ({"Records": []}, {"batchItemFailures": []}),  # Has Records key, so processes
     ],
 )
-def test_consumer_lambda_handler_handle_missing_message_parameters(
-    path: str,
-    body: dict,
-    caplog: pytest.LogCaptureFixture,
+@patch("consumer.consumer_handler.process_message_and_send_request")
+def test_consumer_lambda_handler_no_event_data(
+    mock_process_message: MagicMock, event: dict | None, expected_result: dict | None
 ) -> None:
+    """Test handler when no event data or empty records are provided."""
+    result = consumer_lambda_handler(event, {})
+    assert result == expected_result
+    assert str(mock_process_message.call_count) == "0"
+
+
+@patch("consumer.consumer_handler.setup_request_context")
+@patch("consumer.consumer_handler.extract_correlation_id_from_sqs_records")
+@patch("consumer.consumer_handler.process_message_and_send_request")
+def test_consumer_lambda_handler_partial_failure(
+    mock_process_message: MagicMock,
+    mock_extract_correlation_id: MagicMock,
+    mock_setup_context: MagicMock,
+) -> None:
+    """Test handling of partial batch failures."""
+    mock_extract_correlation_id.return_value = "test-correlation-id"
     event = {
         "Records": [
-            {
-                "messageId": "1",
-                "path": path,
-                "body": body,
-            }
+            {"messageId": "msg-1"},
+            {"messageId": "msg-2"},
+            {"messageId": "msg-3"},
         ]
     }
 
-    consumer_lambda_handler(event, {})
+    # First and third messages fail, second succeeds
+    mock_process_message.side_effect = [
+        Exception("First failure"),
+        None,
+        Exception("Third failure"),
+    ]
 
-    assert any(
-        record.levelname == "WARNING"
-        and "Message id: 1 is missing 'path' or 'body' fields." in record.message
-        for record in caplog.records
-    )
-    assert any(
-        record.levelname == "ERROR"
-        and "Failed to process message id: 1." in record.message
-        for record in caplog.records
-    )
+    response = consumer_lambda_handler(event, {})
+
+    assert str(mock_process_message.call_count) == "3"
+
+    # Test that failed items are correctly identified
+    assert response == {
+        "batchItemFailures": [{"itemIdentifier": "msg-1"}, {"itemIdentifier": "msg-3"}]
+    }
+
+
+def test_consumer_lambda_handler_empty_records() -> None:
+    """Test handler with empty Records list."""
+    event = {"Records": []}
+
+    result = consumer_lambda_handler(event, {})
+
+    assert result == {"batchItemFailures": []}

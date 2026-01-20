@@ -1,9 +1,11 @@
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import fetch_or_set_correlation_id
-from ftrs_common.utils.request_id import fetch_or_set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from consumer.consumer import process_message_and_send_request
+from consumer.request_context import (
+    extract_correlation_id_from_sqs_records,
+    setup_request_context,
+)
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
@@ -13,26 +15,20 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
     Lambda handler for consuming messages from SQS queue.
     """
     if event:
-        correlation_id = fetch_or_set_correlation_id(
-            event.get("headers", {}).get("X-Correlation-ID")
-        )
-        request_id = fetch_or_set_request_id(
-            context_id=getattr(context, "aws_request_id", None) if context else None,
-            header_id=event.get("headers", {}).get("X-Request-ID"),
-        )
-        ods_consumer_logger.append_keys(
-            correlation_id=correlation_id, request_id=request_id
-        )
+        records = event.get("Records", [])
+        correlation_id = extract_correlation_id_from_sqs_records(records)
+
+        setup_request_context(correlation_id, context, ods_consumer_logger)
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_001,
         )
         batch_item_failures = []
         sqs_batch_response = {}
 
-        records = event.get("Records")
+        records = event.get("Records", [])
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_002,
-            total_records=len(records) if records else 0,
+            total_records=len(records),
         )
         for record in records:
             ods_consumer_logger.log(
