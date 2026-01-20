@@ -164,17 +164,14 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowKMSDecryptForSecretsManager",
+      	    "Sid": "AllowKMSDecryptDescribeKey",
             "Effect": "Allow",
             "Action": [
-                "kms:Decrypt"
+                "kms:Decrypt",
+                "kms:DescribeKey",
+                "kms:GenerateDataKey"
             ],
-            "Resource": "*",
-            "Condition": {
-              "StringLike": {
-                "kms:ViaService": "secretsmanager.*.amazonaws.com"
-              }
-            }
+            "Resource": "*"
         }
     ]
 }
