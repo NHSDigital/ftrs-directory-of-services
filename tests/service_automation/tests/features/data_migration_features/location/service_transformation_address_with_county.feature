@@ -1,8 +1,5 @@
 @data-migration
 Feature: Service Transformation with Address and County Variations
-  As a test author
-  I want to execute data migration tests for GP practices with various county configurations
-  So that I can confirm the address formatter correctly extracts county from any segment position
 
   Background:
     Given the test environment is configured
