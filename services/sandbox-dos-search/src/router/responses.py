@@ -1,4 +1,4 @@
-# Stubbed responses for the dos-search sandbox, aligned with docs/specification/dos-search-sandbox.yaml
+# Stubbed responses for the dos-search sandbox, aligned with docs/specification/dos-search.yaml
 
 SUCCESS_BUNDLE_ABC123 = {
     "resourceType": "Bundle",
