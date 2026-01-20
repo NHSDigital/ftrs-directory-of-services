@@ -7,7 +7,7 @@ export const endpointSchema = zod.object({
   connectionType: zod.string(),
   name: zod.string().nullable(),
   payloadMimeType: zod.string().nullable(),
-  description: zod.string(),
+  businessScenario: zod.string(),
   payloadType: zod.string().nullable(),
   address: zod.string(),
   managedByOrganisation: zod.string().uuid(),

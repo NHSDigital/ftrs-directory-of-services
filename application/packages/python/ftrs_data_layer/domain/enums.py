@@ -51,7 +51,7 @@ class EndpointConnectionType(str, Enum):
     HTTP = "http"
 
 
-class EndpointDescription(str, Enum):
+class EndpointBusinessScenario(str, Enum):
     PRIMARY = "Primary"
     COPY = "Copy"
 
