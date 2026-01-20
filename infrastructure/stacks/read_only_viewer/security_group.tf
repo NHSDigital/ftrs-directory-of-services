@@ -3,7 +3,7 @@ resource "aws_security_group" "frontend_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-frontend-lambda-sg${local.workspace_suffix}"
   description = "Security group for frontend Lambda"
-  vpc_id      = data.aws_vpc.vpc.id
+  vpc_id      = data.aws_vpc.vpc[0].id
 
   tags = {
     Name = "${local.resource_prefix}-frontend-lambda-sg"

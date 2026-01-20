@@ -16,8 +16,8 @@ module "frontend_lambda" {
 
   number_of_policy_jsons = "2"
   policy_jsons = [
-    data.aws_iam_policy_document.ssm_access_policy.json,
-    data.aws_iam_policy_document.execute_api_policy.json
+    data.aws_iam_policy_document.ssm_access_policy[0].json,
+    data.aws_iam_policy_document.execute_api_policy[0].json
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
@@ -32,7 +32,7 @@ module "frontend_lambda" {
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
-  vpc_id         = data.aws_vpc.vpc.id
+  vpc_id         = data.aws_vpc.vpc[0].id
 }
 
 resource "aws_lambda_function_url" "frontend_lambda_url" {

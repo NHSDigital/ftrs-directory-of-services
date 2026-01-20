@@ -23,10 +23,11 @@ module "read_only_viewer_bucket" {
 resource "aws_s3_bucket_policy" "read_only_viewer_bucket_policy" {
   count  = local.stack_enabled
   bucket = module.read_only_viewer_bucket[0].s3_bucket_id
-  policy = data.aws_iam_policy_document.read_only_viewer_bucket_policy.json
+  policy = data.aws_iam_policy_document.read_only_viewer_bucket_policy[0].json
 }
 
 data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
+  count = local.stack_enabled
   statement {
     principals {
       type        = "Service"
@@ -51,8 +52,8 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        data.aws_iam_role.app_github_runner_iam_role.arn,
-        "arn:aws:iam::${data.aws_ssm_parameter.dos_aws_account_id_mgmt.value}:role/${var.repo_name}-${var.app_github_runner_role_name}"
+        data.aws_iam_role.app_github_runner_iam_role[0].arn,
+        "arn:aws:iam::${data.aws_ssm_parameter.dos_aws_account_id_mgmt[0].value}:role/${var.repo_name}-${var.app_github_runner_role_name}"
       ]
     }
 
