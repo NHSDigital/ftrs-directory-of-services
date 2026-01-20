@@ -204,7 +204,7 @@ jobs:
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
-    if: true
+    if: false
     needs:
       - metadata
       - deploy-application-infrastructure
