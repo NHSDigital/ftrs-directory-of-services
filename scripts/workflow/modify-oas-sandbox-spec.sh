@@ -12,7 +12,7 @@ if ! command -v yq >/dev/null 2>&1; then
 fi
 
 ORIGINAL_TARGET_SPEC="docs/specification/x-nhsd-apim/target-sandbox-${API_NAME}.yaml"
-SPEC_FILE="docs/specification/${API_NAME}-sandbox.yaml"
+SPEC_FILE="docs/specification/${API_NAME}.yaml"
 
 if [[ ! -f "$ORIGINAL_TARGET_SPEC" ]]; then
     echo "Error: Spec file not found at $ORIGINAL_TARGET_SPEC" >&2
@@ -24,16 +24,6 @@ if [[ ! -f "$SPEC_FILE" ]]; then
     echo "Error: Spec file not found at $SPEC_FILE" >&2
     echo "Current directory: $(pwd)" >&2
     exit 1
-fi
-
-if [[ "$PROXY_ENV" == "sandbox" ]]; then
-    SPEC_FILE_TMP=$(mktemp "$(dirname "$SPEC_FILE")/${API_NAME}-servers-trimmed.XXXXXX.yaml") || {
-        echo "Error: Unable to create temporary sandbox spec file" >&2
-        exit 1
-    }
-    cp "$SPEC_FILE" "$SPEC_FILE_TMP"
-    yq eval -i 'del(.servers[0])' "$SPEC_FILE_TMP"
-    SPEC_FILE="$SPEC_FILE_TMP"
 fi
 
 TARGET_SPEC_TMP=$(mktemp "$(dirname "$ORIGINAL_TARGET_SPEC")/target-sandbox.${API_NAME}.XXXXXX") || {
