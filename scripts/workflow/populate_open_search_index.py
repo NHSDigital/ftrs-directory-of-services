@@ -107,7 +107,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--workspace", dest="workspace", default=os.environ.get('WORKSPACE', ''), help="Terraform workspace suffix to append to index/table names (e.g. 'ftrs-856')")
     parser.add_argument("--aws-region", dest="aws_region", default=os.environ.get('AWS_REGION'), help="AWS region")
     parser.add_argument("--dynamodb-table", dest="ddb_table", default=os.environ.get('DYNAMODB_TABLE', DEFAULT_DDB_TABLE), help="DynamoDB table name")
-    parser.add_argument("--batch-size", dest="batch_size", type=int, default=200, help="Number of records to send in one bulk request (1 = per-document PUT)")
+    parser.add_argument("--batch-size", dest="batch_size", type=int, default=500, help="Number of records to send in one bulk request (1 = per-document PUT)")
     parser.add_argument(
         "--fail-fast",
         dest="fail_fast",
