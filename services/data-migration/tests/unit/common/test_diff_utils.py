@@ -11,8 +11,8 @@ from ftrs_data_layer.domain import (
 )
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import (
+    EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
@@ -105,7 +105,7 @@ def make_endpoint(organisation_id: UUID, service_id: UUID) -> Endpoint:
         status=EndpointStatus.ACTIVE,
         connectionType=EndpointConnectionType.ITK,
         name=None,
-        description=EndpointDescription.PRIMARY,
+        businessScenario=EndpointBusinessScenario.PRIMARY,
         payloadType=EndpointPayloadType.GP_PRIMARY,
         payloadMimeType=EndpointPayloadMimeType.CDA,
         address="https://test.endpoint.com",

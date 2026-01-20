@@ -225,11 +225,11 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_035 = LogReference(
         level=INFO,
-        message="Initial migration detected, added migration state record to items",
+        message="Initial migration detected, added migration state record to records",
     )
     DM_ETL_036 = LogReference(
         level=INFO,
-        message="Incremental migration detected, added migration state update to items",
+        message="Incremental migration detected, added migration state update to records",
     )
     DM_ETL_037 = LogReference(
         level=INFO,
