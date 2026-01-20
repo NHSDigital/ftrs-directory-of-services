@@ -107,23 +107,22 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--workspace", dest="workspace", default=os.environ.get('WORKSPACE', ''), help="Terraform workspace suffix to append to index/table names (e.g. 'ftrs-856')")
     parser.add_argument("--aws-region", dest="aws_region", default=os.environ.get('AWS_REGION'), help="AWS region")
     parser.add_argument("--dynamodb-table", dest="ddb_table", default=os.environ.get('DYNAMODB_TABLE', DEFAULT_DDB_TABLE), help="DynamoDB table name")
-    parser.add_argument("--batch-size", dest="batch_size", type=int, default=1, help="Number of records to send in one bulk request (1 = per-document PUT)")
-    parser.add_argument(
-        "--limit",
-        dest="limit",
-        type=int,
-        default=0,
-        help="Limit the number of DynamoDB records to process (0 = no limit)",
-    )
+    parser.add_argument("--batch-size", dest="batch_size", type=int, default=200, help="Number of records to send in one bulk request (1 = per-document PUT)")
     parser.add_argument(
         "--fail-fast",
         dest="fail_fast",
         action="store_true",
         default=False,
-        help="Stop immediately on the first indexing failure (useful for debugging 403s)",
+        help="Stop immediately on the first indexing failure",
     )
-    parser.add_argument("--log-level", dest="log_level", default=os.environ.get('LOG_LEVEL', 'INFO'))
-    parser.add_argument("--schema-config", dest="schema_config", help="Path to JSON schema config that maps DynamoDB attributes to OpenSearch fields")
+    parser.add_argument(
+        "--log-level",
+        dest="log_level",
+        default=os.environ.get('LOG_LEVEL', 'INFO'))
+    parser.add_argument(
+        "--schema-config",
+        dest="schema_config",
+        help="Path to JSON schema config that maps DynamoDB attributes to OpenSearch fields")
     parser.add_argument("--dynamodb-table-ignore-workspace", dest="ddb_ignore_workspace", default=str(DDB_IGNORE_WORKSPACE_DEFAULT),
                         help="true|false - when true do NOT append workspace to the DynamoDB table name (default: true)")
     return parser.parse_args(argv)
@@ -192,14 +191,6 @@ class SignedRequestsSession:
         self.session = requests.Session()
         self.credentials = get_aws_signing_credentials()
 
-        if os.environ.get("OS_SIGNING_DEBUG") in {"1", "true", "TRUE"}:
-            try:
-                caller_info = boto3.client('sts', region_name=aws_region).get_caller_identity() if aws_region else boto3.client('sts').get_caller_identity()
-                log.info('Caller ARN: %s', caller_info.get('Arn'))
-            except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
-                log.debug('Could not get caller identity via STS: %s', exc, exc_info=True)
-            log.info('SigV4 service=%s region=%s', self.service, self.aws_region)
-
     def request(self, method: str, url: str, body: Optional[str]) -> requests.Response:
         aws_req = build_aws_request(method, url, body)
         sign_aws_request(aws_req, self.credentials, self.service, self.aws_region)
@@ -228,11 +219,6 @@ def scan_dynamodb_table(
         raise
     return items
 
-
-def _apply_limit(items: list[DynamoDbItem], limit: int) -> list[DynamoDbItem]:
-    if limit <= 0:
-        return items
-    return items[:limit]
 
 def _normalize(value: Any) -> Any:
     if isinstance(value, Decimal):
@@ -297,37 +283,27 @@ def extract_nested_from_record(
 def parse_record_to_doc(
     record: Mapping[str, Any], schema_config: dict[str, Any]
 ) -> Optional[OpenSearchRecord]:
-    try:
-        doc: OpenSearchRecord = {}
-        if TOP_LEVEL_OUTPUT_FIELDS:
-            top_fields = TOP_LEVEL_OUTPUT_FIELDS
-        elif PRIMARY_KEY_NAME:
-            top_fields = [PRIMARY_KEY_NAME]
-        else:
-            top_fields = []
-        for field_name in top_fields:
-            aliases = _get_aliases(field_name, schema_config)
-            value = extract_field(record, aliases)
-            if value is None:
-                return None
-            doc[field_name] = value
+    doc: OpenSearchRecord = {}
+    if TOP_LEVEL_OUTPUT_FIELDS:
+        top_fields = TOP_LEVEL_OUTPUT_FIELDS
+    elif PRIMARY_KEY_NAME:
+        top_fields = [PRIMARY_KEY_NAME]
+    else:
+        top_fields = []
+    for field_name in top_fields:
+        aliases = _get_aliases(field_name, schema_config)
+        value = extract_field(record, aliases)
+        if value is None:
+            return None
+        doc[field_name] = value
 
-        doc[NESTED_COLLECTION_FIELD] = extract_nested_from_record(record, schema_config)
-        if not doc[NESTED_COLLECTION_FIELD]:
-            log.debug('Record %s missing %s data', doc.get(PRIMARY_KEY_NAME, '<missing>'), NESTED_COLLECTION_FIELD)
+    doc[NESTED_COLLECTION_FIELD] = extract_nested_from_record(record, schema_config)
+    if PRIMARY_KEY_NAME:
+        template = schema_config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
+        doc_id = template.format(**{k: doc.get(k, '') for k in schema_config.get('doc_id_fields', DOC_ID_FIELDS)})
+        doc[PRIMARY_KEY_NAME] = doc_id
 
-        if PRIMARY_KEY_NAME:
-            try:
-                template = schema_config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
-                doc_id = template.format(**{k: doc.get(k, '') for k in schema_config.get('doc_id_fields', DOC_ID_FIELDS)})
-                doc[PRIMARY_KEY_NAME] = doc_id
-            except KeyError:
-                log.debug('Failed to build primary key for record=%s', doc)
-
-        return doc
-    except (TypeError, ValueError, KeyError):
-        log.exception('Error parsing record into document; re-raising')
-        raise
+    return doc
 
 def transform_records(
     raw_items: Any, schema_config: Optional[dict[str, Any]] = None
@@ -457,7 +433,6 @@ def index_bulk(
 
     body_dict = _safe_response_json(resp)
     if not body_dict:
-        log.debug('Could not parse bulk response JSON; treating as failures')
         return 0, len(records)
 
     items = body_dict.get('items', [])
@@ -486,22 +461,14 @@ def _attempt_index_record(
     try:
         _ = build_doc_id(record)
     except KeyError:
-        log.debug('Skipping record with missing document id fields: %s', record)
         return 0
     key_display = record.get(PRIMARY_KEY_NAME, '<missing>')
     log.info('Indexing record ID: %s', key_display)
-    try:
-        ok, status, body = index_single_record(session, endpoint, index_name, record)
-        if ok:
-            return 1
-        log.error('Failed to index id=%s status=%s body=%s', key_display, status, body)
-        return 0
-    except requests.RequestException as exc:
-        log.error('Request exception indexing record id=%s: %s', key_display, exc)
-        return 0
-    except (TypeError, ValueError) as exc:
-        log.error('Unexpected data error indexing record id=%s: %s', key_display, exc)
-        return 0
+    ok, status, body = index_single_record(session, endpoint, index_name, record)
+    if ok:
+        return 1
+    log.error('Failed to index id=%s status=%s body=%s', key_display, status, body)
+    return 0
 
 
 def _process_bulk_chunk(
@@ -525,8 +492,18 @@ def index_records(
     index_name: str,
     records: list[OpenSearchRecord],
     batch_size: int = 1,
+) -> tuple[int, int]:
+    return _index_records_impl(session, endpoint, index_name, records, batch_size, fail_fast=False)
+
+
+def _index_records_impl(
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+    records: list[OpenSearchRecord],
+    batch_size: int,
     *,
-    fail_fast: bool = False,
+    fail_fast: bool,
 ) -> tuple[int, int]:
     success_count = 0
     total = 0
@@ -554,23 +531,23 @@ def load_schema_config(path: Optional[str]) -> dict[str, Any]:
     if not path:
         return DEFAULT_SCHEMA_CONFIG.copy()
     try:
-        with open(path, 'r', encoding='utf-8') as fh:
+        with open(path, "r", encoding="utf-8") as fh:
             loaded = json.load(fh)
     except (OSError, ValueError) as exc:
-        log.error('Failed to read or parse schema config %s: %s; falling back to defaults', path, exc)
+        log.error("Failed to read or parse schema config %s: %s; falling back to defaults", path, exc)
         return DEFAULT_SCHEMA_CONFIG.copy()
     return loaded
 
 def _get_aliases(field_name: str, schema_config: dict[str, Any]) -> tuple[str, ...]:
-    configured = schema_config.get('top_level', {}).get(field_name, [])
+    configured = schema_config.get("top_level", {}).get(field_name, [])
     generated = (
         field_name,
         field_name.capitalize(),
         field_name.lower(),
         field_name.upper(),
-        field_name.replace('-', ''),
-        field_name.replace('_', ''),
-        field_name.title()
+        field_name.replace("-", ""),
+        field_name.replace("_", ""),
+        field_name.title(),
     )
     aliases: list[str] = []
     for candidate in list(configured) + list(FIELD_KEY_ALIASES.get(field_name, ())) + list(generated):
@@ -579,14 +556,14 @@ def _get_aliases(field_name: str, schema_config: dict[str, Any]) -> tuple[str, .
     return tuple(aliases)
 
 def _get_nested_config(schema_config: dict[str, Any]) -> dict[str, Any]:
-    nested = schema_config.get('nested', {})
+    nested = schema_config.get("nested", {})
     return nested.get(NESTED_COLLECTION_FIELD, {})
 
 def _resolve_attr_path(data: Any, path: str) -> Any:
     if not path:
         return data
     current = data
-    for part in path.split('.'):
+    for part in path.split("."):
         if isinstance(current, dict):
             current = current.get(part)
         else:
@@ -604,13 +581,13 @@ def _coerce_str_value(value: str) -> Any:
 
 def _map_non_dict_item(deserialized: Any, nested_config: dict[str, Any]) -> dict[str, Any]:
     mapped: dict[str, Any] = {}
-    for target_field in nested_config.get('items', {}).keys():
+    for target_field in nested_config.get("items", {}).keys():
         mapped[target_field] = deserialized
     return mapped
 
 def _map_dict_item(deserialized: Mapping[str, Any], nested_config: dict[str, Any]) -> dict[str, Any]:
     mapped: dict[str, Any] = {}
-    for target_field, source_path in nested_config.get('items', {}).items():
+    for target_field, source_path in nested_config.get("items", {}).items():
         value = _resolve_attr_path(deserialized, source_path)
         if value is None:
             continue
@@ -661,7 +638,7 @@ def _resolve_final_table(ddb_table: str, workspace: str, ignore_workspace: bool)
 
 
 def _resolve_final_index(final_index: Optional[str], workspace: str) -> str:
-    base_index = final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
+    base_index = final_index or os.environ.get("OS_FINAL_INDEX") or "triage_code"
     return build_name_with_workspace(base_index, workspace)
 
 
@@ -692,29 +669,21 @@ def _run_population(
     schema_config: dict[str, Any],
     session: SignedRequestsSession,
     batch_size: int,
-    limit: int,
     fail_fast: bool,
-) -> None:
+ ) -> None:
     log.info('Scanning DynamoDB table...')
     raw_items = scan_dynamodb_table(
         prepare_dynamodb_client(aws_region),
         final_table,
         ['id', 'primary_key', 'symptomGroupSymptomDiscriminators'],
     )
-    raw_items = _apply_limit(raw_items, limit)
-    if limit > 0:
-        log.info('Limiting to %d DynamoDB item(s) for this run', len(raw_items))
     deserialized_items = deserialize_dynamodb_items(raw_items)
 
     log.info('Transforming records...')
     transformed = transform_records(deserialized_items, schema_config)
-    if limit > 0:
-        log.info('Limiting to %d transformed record(s) for this run', len(transformed))
-    if transformed:
-        log.debug('Sample transformed record: %s', json.dumps(transformed[0], default=str))
 
     log.info('Indexing records...')
-    success, total = index_records(session, endpoint, final_index, transformed, batch_size, fail_fast=fail_fast)
+    success, total = _index_records_impl(session, endpoint, final_index, transformed, batch_size, fail_fast=fail_fast)
     log.info('Indexing complete: %d successful, %d total records', success, total)
 
 
@@ -762,7 +731,6 @@ def main(argv: Optional[list[str]] = None) -> int:
             schema_config=schema_config,
             session=session,
             batch_size=args.batch_size,
-            limit=args.limit,
             fail_fast=args.fail_fast,
         )
     except (RuntimeError, botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError, requests.RequestException) as exc:
