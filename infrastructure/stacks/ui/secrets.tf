@@ -3,7 +3,7 @@ resource "aws_secretsmanager_secret" "session_secret" {
   # checkov:skip=CKV2_AWS_57:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   name        = "/${var.project}/${var.environment}${local.workspace_suffix}/ui-session-secret"
   description = "Session secret for the DoS UI"
-  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key.arn
+  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key[0].arn
 }
 
 resource "random_password" "session_secret" {
