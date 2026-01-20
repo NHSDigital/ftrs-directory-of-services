@@ -48,7 +48,7 @@ python generate_deployment.py --debug
 
 Diagrams are generated in the `output/` directory:
 
-```
+```text
 output/
 ├── prod_overview.png
 ├── data_migration.png
@@ -80,8 +80,8 @@ The generator:
 
 To add a new diagram:
 
-1. Define the view in `deployment.c4` (optional - for documentation)
-2. Add a new generator method in `generate_deployment.py`:
+- Define the view in `deployment.c4` (optional - for documentation)
+- Add a new generator method in `generate_deployment.py`:
 
 ```python
 def generate_my_diagram(self, fmt: str = "png") -> None:
@@ -96,7 +96,9 @@ def generate_my_diagram(self, fmt: str = "png") -> None:
         # Define relationships
 ```
 
-3. Register it in the `generators` dict in `main()`
+- Register it in the `generators` dict in `main()`
+    1. Existing entry
+    2. New entry
 
 ## Keeping Diagrams in Sync
 
@@ -114,6 +116,7 @@ Consider adding to CI/CD to auto-generate on merge.
 ### "ExecutableNotFound: failed to execute dot"
 
 Install Graphviz:
+
 ```bash
 brew install graphviz  # macOS
 ```
@@ -121,6 +124,7 @@ brew install graphviz  # macOS
 ### Parser not finding nodes
 
 Run with `--debug` to see what's being parsed:
+
 ```bash
 python generate_deployment.py --debug
 ```
