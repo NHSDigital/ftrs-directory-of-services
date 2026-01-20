@@ -126,33 +126,28 @@ deployment {
       // ======================================================================
 
       // DMS Components
-      dmsReplicationInstance = instanceOf ftrs.dataMigration.dmsReplicationInstance {
-        title "DMS Replication Instance"
+      dms dmsReplicationInstance "DMS Replication Instance" {
         description "Replicates DoS data from source to target RDS"
         technology "AWS DMS, Multi-AZ"
       }
 
-      targetRds = instanceOf ftrs.dataMigration.targetRds {
-        title "Target Aurora PostgreSQL"
+      rds targetRds "Target Aurora PostgreSQL" {
         description "Staging database for migrated DoS data"
         technology "Aurora PostgreSQL Serverless v2"
       }
 
       // Data Migration Queues
-      dmsEventQueue = instanceOf ftrs.dataMigration.dmsEventQueue {
-        title "DMS Event Queue"
+      sqs dmsEventQueue "DMS Event Queue" {
         description "Service migration events queue"
         technology "SQS Standard, KMS encrypted"
       }
 
-      migrationStateTable = instanceOf ftrs.dataMigration.stateTable {
-        title "Migration State Table"
+      dynamodb migrationStateTable "Migration State Table" {
         description "Tracks migration progress per service"
         technology "DynamoDB, On-demand"
       }
 
-      pipelineStore = instanceOf ftrs.dataMigration.pipelineStore {
-        title "Pipeline Store"
+      s3 pipelineStore "Pipeline Store" {
         description "Sanitised data clones and pipeline artefacts"
         technology "S3 Bucket"
       }
@@ -190,10 +185,19 @@ deployment {
           technology "Python 3.12, 512MB, X-Ray enabled"
         }
 
-        // CRUD APIs Lambda
-        crudApisLambda = instanceOf ftrs.crudApis {
-          title "CRUD APIs Lambda"
-          description "FastAPI for Organisation, HealthcareService, Location CRUD"
+        // CRUD APIs - Three separate Lambda functions
+        lambda organisationApiLambda "Organisation API Lambda" {
+          description "FastAPI Lambda for Organisation CRUD operations"
+          technology "Python 3.12, FastAPI + Mangum"
+        }
+
+        lambda healthcareServiceApiLambda "HealthcareService API Lambda" {
+          description "FastAPI Lambda for HealthcareService CRUD operations"
+          technology "Python 3.12, FastAPI + Mangum"
+        }
+
+        lambda locationApiLambda "Location API Lambda" {
+          description "FastAPI Lambda for Location CRUD operations"
           technology "Python 3.12, FastAPI + Mangum"
         }
 
@@ -242,14 +246,19 @@ deployment {
       // DoS Search and CRUD APIs
       ftrsVpc.dosSearchLambda -> cloudWatch "logs to"
       ftrsVpc.dosSearchLambda -> orgTable "queries"
-      ftrsVpc.crudApisLambda -> cloudWatch "logs to"
-      ftrsVpc.crudApisLambda -> orgTable "reads/writes"
-      ftrsVpc.crudApisLambda -> healthcareServiceTable "reads/writes"
-      ftrsVpc.crudApisLambda -> locationTable "reads/writes"
+      ftrsVpc.organisationApiLambda -> cloudWatch "logs to"
+      ftrsVpc.organisationApiLambda -> orgTable "reads/writes"
+      ftrsVpc.healthcareServiceApiLambda -> cloudWatch "logs to"
+      ftrsVpc.healthcareServiceApiLambda -> healthcareServiceTable "reads/writes"
+      ftrsVpc.locationApiLambda -> cloudWatch "logs to"
+      ftrsVpc.locationApiLambda -> locationTable "reads/writes"
 
       // API Gateway connections
       apiGateway -> s3 "reads trust store from"
       apiGateway -> ftrsVpc.dosSearchLambda "invokes"
+      apiGateway -> ftrsVpc.organisationApiLambda "invokes for /Organization"
+      apiGateway -> ftrsVpc.healthcareServiceApiLambda "invokes for /healthcare-service"
+      apiGateway -> ftrsVpc.locationApiLambda "invokes for /location"
       apiGateway -> acm "uses certificate"
 
       // DNS & Security chain
@@ -312,8 +321,7 @@ views {
   deployment view prodDeployment {
     title "Production Deployment Overview"
     description "
-      Complete production deployment showing all AWS and GCP components
-      for FtRS services including ETL ODS and DoS Search.
+      High-level production deployment showing main AWS components and data flows.
 
       Key architecture decisions:
       - Lambda functions run in private subnets within VPC
@@ -321,12 +329,34 @@ views {
       - API Gateway is regional with custom domain and mTLS
       - All encryption uses KMS customer managed keys
       - Shield Advanced protects Route 53
+
+      See detailed views for specific service data flows:
+      - etlOdsDeployment: ODS ETL pipeline (Extract-Transform-Load)
+      - dosSearchDeployment: DoS Search API
+      - dataMigrationDeployment: DoS to FtRS data migration
+      - crudApisDeployment: CRUD APIs for Organisation, HealthcareService, Location
     "
 
-    include *
-    include * -> *
+    // Include main infrastructure (not individual lambdas)
+    include aws.prod
+    include aws.prod.ftrsVpc
+    include nhsApim.*
+    include legacy.*
 
-    autoLayout LeftRight 100 100
+    // External access flow
+    include nhsApim.apimZone.* -> aws.prod.apiGateway
+    include aws.prod.route53 -> aws.prod.apiGateway
+
+    // Main data stores
+    include aws.prod.orgTable
+    include aws.prod.healthcareServiceTable
+    include aws.prod.locationTable
+
+    // Key integration points (simplified)
+    include legacy.dosDb.legacyDos -> aws.prod.dmsReplicationInstance
+    include aws.prod.eventBridge
+
+    autoLayout TopBottom 100 100
   }
 
   deployment view etlOdsDeployment {

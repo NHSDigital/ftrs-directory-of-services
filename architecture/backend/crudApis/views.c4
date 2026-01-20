@@ -79,8 +79,11 @@ views {
     '
 
     apim.dosReadProxy -> ftrs.apiGateway "1. GET request via APIM"
-    ftrs.apiGateway -> ftrs.crudApis "2. Route to CRUD APIs Lambda"
-    ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "3. Query DynamoDB"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi "2. Route to Organisation API Lambda"
+    ftrs.crudApis.organisationApi -> ftrs.db.orgTable "3. Query DynamoDB"
+    ftrs.db.orgTable -> ftrs.crudApis.organisationApi "4. Return data"
+    ftrs.crudApis.organisationApi -> ftrs.apiGateway "5. FHIR response"
+    ftrs.apiGateway -> apim.dosReadProxy "6. Return to APIM"
 
     autoLayout TopBottom
   }
@@ -92,8 +95,11 @@ views {
     '
 
     apim.dosWriteProxy -> ftrs.apiGateway "1. POST/PUT/DELETE request via APIM"
-    ftrs.apiGateway -> ftrs.crudApis "2. Route to CRUD APIs Lambda"
-    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "3. Update DynamoDB"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi "2. Route to Organisation API Lambda"
+    ftrs.crudApis.organisationApi -> ftrs.db.orgTable "3. Update DynamoDB"
+    ftrs.db.orgTable -> ftrs.crudApis.organisationApi "4. Confirm write"
+    ftrs.crudApis.organisationApi -> ftrs.apiGateway "5. FHIR response"
+    ftrs.apiGateway -> apim.dosWriteProxy "6. Return to APIM"
 
     autoLayout TopBottom
   }

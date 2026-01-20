@@ -13,15 +13,11 @@ views {
       2. CDC (Change Data Capture): Ongoing synchronisation of changes
 
       Flow:
-      1. DMS replicates DoS PostgreSQL to target Aurora PostgreSQL
-      2. Queue Populator queries services and sends IDs to SQS (manual trigger)
-         OR RDS Event Listener captures CDC changes and sends to SQS
+      1. DMS replicates DoS PostgreSQL to staging database
+      2. Queue Populator queries services and triggers processor (manual trigger)
+         OR RDS Event Listener captures CDC changes and triggers processor
       3. Processor Lambda transforms DoS services to FHIR format
-      4. Writes Organisation, HealthcareService, Location to DynamoDB
-      5. Tracks migration state in dedicated state table
-
-      The pipeline uses AWS DMS for efficient database replication with
-      minimal impact on the source database.
+      4. Writes Organisation, HealthcareService, Location to FTRS data stores
     '
 
     include *
@@ -30,86 +26,6 @@ views {
     include ftrs.db.orgTable
     include ftrs.db.healthcareServiceTable
     include ftrs.db.locationTable
-
-    include ftrs.security.secretsManager
-    include ftrs.security.kms
-    include ftrs.operations.cloudWatch
-    include ftrs.operations.ssmParameterStore
-    include ftrs.operations.eventBridge
-
-    autoLayout TopBottom 100 100
-  }
-
-  // =========================================================================
-  // DMS Replication View (Focus on database sync)
-  // =========================================================================
-  view dataMigrationDms of ftrs.dataMigration {
-    title "DMS Replication: DoS to Aurora PostgreSQL"
-    description '
-      AWS Database Migration Service (DMS) configuration for replicating
-      legacy DoS data to Aurora PostgreSQL.
-
-      Components:
-      - Source Endpoint: Connects to legacy DoS PostgreSQL (Azure)
-      - Replication Instance: Performs the actual data transfer
-      - Target Endpoint: Connects to Aurora PostgreSQL Serverless v2
-
-      Tasks:
-      - Full Load Task: Initial bulk copy of all tables
-      - CDC Task: Captures ongoing changes via logical replication
-
-      The target Aurora instance uses pglogical for CDC support.
-    '
-
-    include ftrs.dataMigration.dmsReplicationInstance
-    include ftrs.dataMigration.dmsSourceEndpoint
-    include ftrs.dataMigration.dmsTargetEndpoint
-    include ftrs.dataMigration.targetRds
-    include ftrs.dataMigration.dmsDbSetup
-    include dosLegacyDb
-
-    include ftrs.security.secretsManager
-
-    autoLayout LeftRight 100 100
-  }
-
-  // =========================================================================
-  // Processing Pipeline View (Focus on transformation)
-  // =========================================================================
-  view dataMigrationProcessing of ftrs.dataMigration {
-    title "Data Migration Processing Pipeline"
-    description '
-      Lambda-based processing pipeline for transforming DoS services to FHIR.
-
-      Components:
-      - Queue Populator: Seeds the queue with service IDs (manual/scheduled)
-      - RDS Event Listener: Captures CDC events (automated)
-      - Processor: Transforms and writes to DynamoDB
-      - Reference Data Load: Handles lookup/reference data
-
-      Transformation:
-      - DoS Service -> FHIR Organisation + HealthcareService + Location
-      - Validates data against FHIR schemas
-      - Tracks migration state and metrics
-
-      Queue uses DLQ for failed message handling with retry capability.
-    '
-
-    include ftrs.dataMigration.targetRds
-    include ftrs.dataMigration.queuePopulator
-    include ftrs.dataMigration.rdsEventListener
-    include ftrs.dataMigration.processor
-    include ftrs.dataMigration.referenceDataLoad
-    include ftrs.dataMigration.dmsEventQueue
-    include ftrs.dataMigration.dmsEventQueueDlq
-    include ftrs.dataMigration.stateTable
-
-    include ftrs.db.orgTable
-    include ftrs.db.healthcareServiceTable
-    include ftrs.db.locationTable
-
-    include ftrs.security.secretsManager
-    include ftrs.operations.cloudWatch
 
     autoLayout TopBottom 100 100
   }

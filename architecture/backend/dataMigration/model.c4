@@ -4,40 +4,13 @@ model {
       description 'Pipeline for migrating legacy DoS service data to FtRS via DMS and Lambda processing'
 
       // =========================================================================
-      // DMS Components (Database Migration Service)
+      // Staging Database
       // =========================================================================
-      component dmsReplicationInstance "DMS Replication Instance" {
-        description 'AWS DMS instance for replicating data from source to target RDS'
-        technology 'AWS DMS'
+      component stagingDb "Staging Database" {
+        description 'Staging database for replicated DoS data, used for transformation'
+        technology 'PostgreSQL'
         style {
-          icon aws:database-migration-service
-        }
-      }
-
-      component dmsSourceEndpoint "DMS Source Endpoint" {
-        description 'Connection to legacy DoS PostgreSQL database'
-        technology 'AWS DMS Endpoint'
-        style {
-          icon aws:database-migration-service
-        }
-      }
-
-      component dmsTargetEndpoint "DMS Target Endpoint" {
-        description 'Connection to target Aurora PostgreSQL in AWS'
-        technology 'AWS DMS Endpoint'
-        style {
-          icon aws:database-migration-service
-        }
-      }
-
-      // =========================================================================
-      // RDS Components
-      // =========================================================================
-      component targetRds "Target Aurora PostgreSQL" {
-        description 'Aurora PostgreSQL Serverless v2 for staging migrated DoS data'
-        technology 'Aurora PostgreSQL Serverless v2'
-        style {
-          icon aws:aurora
+          icon tech:postgresql
           shape storage
         }
       }
@@ -46,89 +19,30 @@ model {
       // Lambda Functions
       // =========================================================================
       lambda dmsDbSetup "DMS DB Setup Lambda" {
-        description 'Sets up target RDS instance for DMS replication, creates triggers'
+        description 'Sets up staging database for DMS replication, creates database triggers and indexes'
         technology 'Python 3.12'
-
-        -> security.secretsManager "fetches RDS credentials from"
-        -> operations.cloudWatch "logs to"
       }
 
       lambda rdsEventListener "RDS Event Listener Lambda" {
-        description 'Listens for database change events and routes to workspace queues'
+        description 'Listens for database change events from staging DB triggers and routes to processing queue'
         technology 'Python 3.12'
-
-        -> operations.ssmParameterStore "reads workspace queue URLs from"
-        -> operations.cloudWatch "logs to"
       }
 
       lambda queuePopulator "Queue Populator Lambda" {
-        description 'Populates SQS queue with service IDs for migration'
+        description 'Queries staging database for service IDs and populates processing queue for batch migration'
         technology 'Python 3.12'
-
-        -> security.secretsManager "fetches RDS credentials from"
-        -> operations.cloudWatch "logs to"
       }
 
       lambda processor "Migration Processor Lambda" {
-        description 'Transforms DoS services to FHIR format and writes to DynamoDB'
+        description 'Transforms DoS services to FHIR format and writes Organisation, HealthcareService, Location to FTRS'
         technology 'Python 3.12'
-
-        -> security.secretsManager "fetches RDS credentials from"
-        -> operations.cloudWatch "logs to"
       }
 
       lambda referenceDataLoad "Reference Data Load Lambda" {
-        description 'Loads reference data (triage codes, etc.) from DoS to DynamoDB'
+        description 'Loads reference data (dispositions, symptom groups, etc.) from staging DB to FTRS'
         technology 'Python 3.12'
-
-        -> security.secretsManager "fetches RDS credentials from"
-        -> operations.cloudWatch "logs to"
-      }
-
-      // =========================================================================
-      // SQS Queues
-      // =========================================================================
-      sqs dmsEventQueue "DMS Event Queue" {
-        description 'Queue for service migration events with DLQ'
-        technology 'SQS Standard Queue'
-
-        -> security.kms "encrypted by"
-      }
-
-      sqs dmsEventQueueDlq "DMS Event Queue DLQ" {
-        description 'Dead letter queue for failed migration events'
-        technology 'SQS Standard Queue'
-
-        -> security.kms "encrypted by"
-      }
-
-      // =========================================================================
-      // Storage
-      // =========================================================================
-      component pipelineStore "Pipeline Store" {
-        description 'S3 bucket for sanitised data clones and pipeline artefacts'
-        technology 'S3 Bucket'
-        style {
-          icon aws:simple-storage-service
-          shape storage
-        }
-      }
-
-      // =========================================================================
-      // DynamoDB State Table
-      // =========================================================================
-      component stateTable "Migration State Table" {
-        description 'Tracks migration state and metrics per service'
-        technology 'DynamoDB Table'
-        style {
-          icon aws:dynamo-db
-          shape storage
-        }
       }
     }
-
-    // EventBridge triggers
-    operations.eventBridge -> dataMigration.rdsEventListener "triggers on DMS task completion"
   }
 
   // =========================================================================
@@ -144,43 +58,30 @@ model {
   }
 
   // =========================================================================
-  // DMS Data Flow (Full Load / CDC)
+  // Data Flows
   // =========================================================================
-  dosLegacyDb -> ftrs.dataMigration.dmsSourceEndpoint "DMS connects to source"
-  ftrs.dataMigration.dmsSourceEndpoint -> ftrs.dataMigration.dmsReplicationInstance "reads from"
-  ftrs.dataMigration.dmsReplicationInstance -> ftrs.dataMigration.dmsTargetEndpoint "writes to"
-  ftrs.dataMigration.dmsTargetEndpoint -> ftrs.dataMigration.targetRds "replicates to"
 
-  // =========================================================================
-  // Queue Populator Flow
-  // =========================================================================
-  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.targetRds "queries service IDs from"
-  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.dmsEventQueue "sends service IDs to"
+  // Legacy DoS replication to staging
+  dosLegacyDb -> ftrs.dataMigration.stagingDb "replicated via DMS"
 
-  // =========================================================================
-  // RDS Event Listener Flow (CDC trigger path)
-  // =========================================================================
-  ftrs.dataMigration.targetRds -> ftrs.dataMigration.rdsEventListener "triggers on data change"
-  ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.dmsEventQueue "sends change events to"
+  // DMS DB Setup configures the staging database
+  ftrs.dataMigration.dmsDbSetup -> ftrs.dataMigration.stagingDb "configures triggers and indexes"
 
-  // =========================================================================
-  // Processor Flow
-  // =========================================================================
-  ftrs.dataMigration.dmsEventQueue -> ftrs.dataMigration.processor "triggers processing"
-  ftrs.dataMigration.processor -> ftrs.dataMigration.targetRds "reads service data from"
-  ftrs.dataMigration.processor -> ftrs.dataMigration.stateTable "tracks migration state"
+  // Queue Populator reads from staging and triggers processor
+  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "queries service IDs from"
+  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "triggers batch processing"
+
+  // RDS Event Listener responds to staging DB changes
+  ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "triggers on data change"
+  ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "triggers CDC processing"
+
+  // Processor reads from staging and writes to FTRS
+  ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "reads service data from"
   ftrs.dataMigration.processor -> ftrs.db.orgTable "writes Organisation to"
   ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "writes HealthcareService to"
   ftrs.dataMigration.processor -> ftrs.db.locationTable "writes Location to"
 
-  // =========================================================================
-  // Reference Data Flow
-  // =========================================================================
-  ftrs.dataMigration.referenceDataLoad -> ftrs.dataMigration.targetRds "reads reference data from"
+  // Reference Data Load reads from staging and writes to FTRS
+  ftrs.dataMigration.referenceDataLoad -> ftrs.dataMigration.stagingDb "reads reference data from"
   ftrs.dataMigration.referenceDataLoad -> ftrs.db.orgTable "writes reference data to"
-
-  // =========================================================================
-  // Failed message handling
-  // =========================================================================
-  ftrs.dataMigration.dmsEventQueue -> ftrs.dataMigration.dmsEventQueueDlq "failed messages to"
 }

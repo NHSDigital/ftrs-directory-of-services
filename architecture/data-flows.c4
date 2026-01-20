@@ -168,32 +168,29 @@ views {
     description '
       How legacy DoS service data is migrated to the new FtRS system:
 
-      1. DMS replicates DoS PostgreSQL to Aurora PostgreSQL (staging)
-      2. Queue Populator seeds SQS with service IDs (or CDC listener captures changes)
+      1. Legacy DoS data is replicated to staging database
+      2. Queue Populator triggers batch processing (or CDC listener captures changes)
       3. Processor Lambda transforms DoS services to FHIR format
-      4. Writes Organisation, HealthcareService, Location to DynamoDB
+      4. Writes Organisation, HealthcareService, Location to FTRS
 
       Supports both full load (initial migration) and CDC (ongoing sync).
     '
 
-    // DMS Replication path
-    dosLegacyDb -> ftrs.dataMigration.dmsReplicationInstance "1. DMS reads from source via logical replication"
-    ftrs.dataMigration.dmsReplicationInstance -> ftrs.dataMigration.targetRds "2. Replicates tables to Aurora PostgreSQL"
+    // Replication path
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Replicate via DMS"
 
     // Queue population paths (two options)
-    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.targetRds "3a. Query service IDs (manual/scheduled)"
-    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.dmsEventQueue "4a. Send service IDs to queue"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "Query service IDs (manual/scheduled)"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "Trigger batch processing"
 
-    ftrs.dataMigration.targetRds -> ftrs.dataMigration.rdsEventListener "3b. Trigger on CDC data change"
-    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.dmsEventQueue "4b. Route change events to queue"
+    ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "Trigger on CDC data change"
+    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "Trigger CDC processing"
 
     // Processing path
-    ftrs.dataMigration.dmsEventQueue -> ftrs.dataMigration.processor "5. SQS triggers processor Lambda"
-    ftrs.dataMigration.processor -> ftrs.dataMigration.targetRds "6. Read full service data from staging DB"
-    ftrs.dataMigration.processor -> ftrs.dataMigration.stateTable "7. Track migration state"
-    ftrs.dataMigration.processor -> ftrs.db.orgTable "8. Write FHIR Organisation"
-    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "9. Write FHIR HealthcareService"
-    ftrs.dataMigration.processor -> ftrs.db.locationTable "10. Write FHIR Location"
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read full service data from staging DB"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Write FHIR Organisation"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Write FHIR HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Write FHIR Location"
 
     autoLayout TopBottom
   }
@@ -204,26 +201,24 @@ views {
       Initial bulk migration of all DoS services to FtRS.
 
       Steps:
-      1. DMS Full Load task copies all DoS tables to Aurora
+      1. DMS Full Load task copies all DoS tables to staging DB
       2. Queue Populator queries all service IDs matching criteria
-      3. Sends batched messages to SQS (10 per batch)
-      4. Processor Lambda transforms each service to FHIR
-      5. Writes to DynamoDB with migration state tracking
+      3. Triggers processor Lambda to transform each service to FHIR
+      4. Writes to FTRS data stores
     '
 
     // DMS full load
-    dosLegacyDb -> ftrs.dataMigration.dmsReplicationInstance "1. Full table copy"
-    ftrs.dataMigration.dmsReplicationInstance -> ftrs.dataMigration.targetRds "2. DROP_AND_CREATE target tables"
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Full table copy via DMS"
 
     // Manual queue population
-    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.targetRds "3. SELECT service IDs WHERE type/status filters"
-    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.dmsEventQueue "4. Batch send to SQS"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "SELECT service IDs WHERE type/status filters"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "Trigger batch processing"
 
     // Processing
-    ftrs.dataMigration.dmsEventQueue -> ftrs.dataMigration.processor "5. Trigger processor"
-    ftrs.dataMigration.processor -> ftrs.dataMigration.targetRds "6. Load service + related data"
-    ftrs.dataMigration.processor -> ftrs.db.orgTable "7. Transform and persist"
-    ftrs.dataMigration.processor -> ftrs.dataMigration.stateTable "8. Record success/failure"
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Load service + related data"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Transform and persist Organisation"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Transform and persist HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Transform and persist Location"
 
     autoLayout TopBottom
   }
@@ -235,19 +230,20 @@ views {
 
       DMS CDC task captures INSERT/UPDATE/DELETE events via
       PostgreSQL logical replication and writes to staging DB.
-      RDS triggers notify the event listener which routes
-      changes to the appropriate workspace queue.
+      DB triggers notify the event listener which routes
+      changes to the processor.
     '
 
     // CDC replication
-    dosLegacyDb -> ftrs.dataMigration.dmsReplicationInstance "1. Capture WAL changes"
-    ftrs.dataMigration.dmsReplicationInstance -> ftrs.dataMigration.targetRds "2. Apply changes to target"
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Capture and apply WAL changes"
 
     // Event-driven processing
-    ftrs.dataMigration.targetRds -> ftrs.dataMigration.rdsEventListener "3. DB trigger fires on change"
-    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.dmsEventQueue "4. Route to workspace queue"
-    ftrs.dataMigration.dmsEventQueue -> ftrs.dataMigration.processor "5. Process change event"
-    ftrs.dataMigration.processor -> ftrs.db.orgTable "6. Update FtRS data"
+    ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "DB trigger fires on change"
+    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "Trigger CDC processing"
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read changed service data"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Update FTRS data"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Update FTRS data"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Update FTRS data"
 
     autoLayout TopBottom
   }
