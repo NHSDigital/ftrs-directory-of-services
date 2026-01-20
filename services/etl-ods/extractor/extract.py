@@ -1,24 +1,16 @@
 import os
-import re
-from http import HTTPStatus
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
-from requests.exceptions import HTTPError
 
-from common.ods_client import ODSClient
-from common.utils import (
-    get_base_apim_api_url,
-    get_base_ods_terminology_api_url,
-    make_request,
-)
+from common.url_config import get_base_ods_terminology_api_url
+from extractor.ods_client import ODSClient
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
 RESOURCE_TYPE_BUNDLE = "Bundle"
 RESOURCE_TYPE_ORGANIZATION = "Organization"
 LINK_RELATION_NEXT = "next"
-ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
 
 ods_extractor_logger = Logger.get(service="ods_extractor")
 ods_client = ODSClient()
@@ -78,7 +70,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     return all_organisations
 
 
-def _build_ods_query_params(date: str) -> dict:
+def _build_ods_query_params(date: str) -> list[tuple[str, str]]:
     return [
         ("_lastUpdated", f"{date}"),
         ("_count", str(_get_page_limit())),
@@ -115,64 +107,6 @@ def _extract_next_page_url(bundle: dict) -> str | None:
             return link.get("url")
 
     return None
-
-
-def fetch_organisation_uuid(ods_code: str) -> str | None:
-    """
-    Returns DoS UUID based on ODS code.
-    """
-    validate_ods_code(ods_code)
-    base_url = get_base_apim_api_url()
-    identifier_param = f"odsOrganisationCode|{ods_code}"
-    organisation_get_uuid_uri = (
-        base_url + "/Organization?identifier=" + identifier_param
-    )
-
-    try:
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_028,
-            ods_code=ods_code,
-        )
-        response = make_request(
-            organisation_get_uuid_uri, method="GET", jwt_required=True
-        )
-        if (
-            isinstance(response, dict)
-            and response.get("resourceType") == RESOURCE_TYPE_BUNDLE
-        ):
-            organizations = _extract_organizations_from_bundle(response)
-            if organizations:
-                return organizations[0].get("id")
-            return None
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_030,
-            ods_code=ods_code,
-            type=response.get("resourceType"),
-        )
-        raise ValueError(OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message)
-
-    except HTTPError as http_err:
-        if (
-            http_err.response is not None
-            and http_err.response.status_code == HTTPStatus.NOT_FOUND
-        ):
-            ods_extractor_logger.log(
-                OdsETLPipelineLogBase.ETL_EXTRACTOR_007,
-            )
-            raise ValueError(
-                OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message
-            ) from http_err
-        raise
-
-
-def validate_ods_code(ods_code: str) -> None:
-    if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_012,
-            e=f"Invalid ODS code: {ods_code}",
-        )
-        err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
-        raise ValueError(err_message)
 
 
 def _extract_organizations_from_bundle(bundle: dict) -> list[dict]:

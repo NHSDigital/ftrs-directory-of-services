@@ -79,10 +79,11 @@ Feature: Organization API Endpoint
     Examples:
       | primary_role_code | non_primary_role_codes |
       | RO177             | [RO76]                 |
+      | RO177             | [RO80]                 |
+      | RO177             | [RO87]                 |
       | RO177             | [RO76, RO80]           |
-      | RO177             | [RO76, RO87]           |
       | RO177             | [RO76, RO80, RO87]     |
-      | RO177             | [RO76, RO268]          |
+      | RO182             | []                     |
 
   Scenario Outline: Reject Organisation with invalid primary and non-primary role combinations
     Given that the stack is "organisation"
@@ -96,17 +97,13 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates the "<expected_error_message>"
 
     Examples:
-      | primary_role_code | non_primary_role_codes | expected_error_message                               |
-      | RO177             | [RO80]                 | RO177 requires the following non-primary roles: RO76 |
-      | RO177             | [RO80, RO87]           | RO177 requires the following non-primary roles: RO76 |
-      | RO182             | []                     | Valid primary role code (RO177) must be provided     |
-      | RO177             | [RO80, RO80]           | Duplicate non-primary roles are not allowed          |
-      | RO177             | []                     | RO177 must have at least one non-primary role        |
-      | RO177             | [RO268]                | RO177 requires the following non-primary roles: RO76 |
-      | RO177             | [RO76, RO87, RO87]     | Duplicate non-primary roles are not allowed          |
-      | RO182             | [RO76]                 | Valid primary role code (RO177) must be provided     |
-      | RO182             | [RO268]                | Valid primary role code (RO177) must be provided     |
-      | None              | [RO76, RO80, RO87]     | Valid primary role code (RO177) must be provided     |
+      | primary_role_code | non_primary_role_codes | expected_error_message                           |
+      | RO177             | [RO80, RO80]           | Duplicate non-primary roles are not allowed      |
+      | RO177             | []                     | must have at least one non-primary role          |
+      | RO177             | [RO268]                | Invalid role code: 'RO268'. Incorrect enum value |
+      | RO177             | [RO76, RO268]          | Invalid role code: 'RO268'. Incorrect enum value |
+      | RO182             | [RO268]                | Invalid role code: 'RO268'. Incorrect enum value |
+      | None              | [RO76, RO80, RO87]     | Primary role code must be provided               |
 
 
   Scenario Outline: Reject Organization update with invalid roleCode extension structure
@@ -124,7 +121,7 @@ Feature: Organization API Endpoint
       | roleCode missing valueCodeableConcept | roleCode must have a valueCodeableConcept                               |
       | roleCode missing coding array         | roleCode valueCodeableConcept must contain at least one coding          |
       | roleCode empty code value             | [{'type': 'string_pattern_mismatch'                                     |
-      | roleCode invalid enum value           | Invalid role code format: 'INVALID_CODE'                                |
+      | roleCode invalid enum value           | Invalid role code: 'INVALID_CODE'. Incorrect enum value                 |
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization

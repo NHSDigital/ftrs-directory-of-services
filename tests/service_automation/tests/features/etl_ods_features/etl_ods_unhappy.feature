@@ -1,8 +1,12 @@
 @etl-ods @data-sourcing
 Feature: ETL Event Flow - Error Handling
 
+  Background:
+    Given the ETL ODS infrastructure is available
+
+  # ==================== Extractor Validation Errors ====================
   Scenario Outline: Verify error handling when invalid date parameter is sent to ETL processor lambda
-    Given I invoke the lambda with invalid date "<invalid_date>"
+    Given I trigger the ODS ETL pipeline with invalid date "<invalid_date>"
     Then the lambda should return status code 400
     And the error message should be "Date must be in YYYY-MM-DD format"
     Then the Lambda should log the validation error "ETL_EXTRACTOR_029"
@@ -15,15 +19,72 @@ Feature: ETL Event Flow - Error Handling
       | ""           |
 
   Scenario: ETL processor lambda invoked without required date parameter
-    Given I invoke the lambda without required parameters
+    Given I trigger the ODS ETL pipeline without required parameters
     Then the lambda should return status code 400
     And the error message should be "Date parameter is required"
     Then the Lambda should log the validation error "ETL_EXTRACTOR_029"
 
 
   Scenario: ETL processor lambda invoked with a long past date
-    Given I invoke the lambda with a long past date "2000-01-01"
+    Given I trigger the ODS ETL pipeline with a long past date "2000-01-01"
     Then the lambda should return status code 400
     And the error message should be "Date must not be more than 185 days in the past"
     Then the Lambda should log the validation error "ETL_EXTRACTOR_029"
 
+
+  # ==================== Permanent Failures - Consumed Immediately ====================
+  Scenario: Transform message with 404 error is consumed without retry
+    Given I have a transform message that will fail with 404
+    When the "transform" lambda processes the message
+    Then the logs for the message should contain "Organisation not found in database for ods code"
+    And the logs for the message should contain "Permanent failure (status 404)"
+    And the logs for the message should contain "Message will be consumed immediately"
+    And the "transform" queue should not have message
+    And the "transform" DLQ should not have message
+
+  # ==================== Transform Unrecoverable Errors - DLQ ====================
+  Scenario: Transform message with malformed JSON errors
+    Given I have a transform message with malformed JSON
+    When the "transform" lambda processes the message
+    Then the logs for the message should contain "JSON"
+    And the logs for the message should contain "error"
+
+  Scenario: Transform message with missing required fields goes straight to DLQ
+    Given I have a transform message with missing required fields
+    When the "transform" lambda processes the message
+    Then the logs for the message should contain "Unrecoverable failure (MissingRequiredFields)"
+    And the logs for the message should contain "Sending to DLQ immediately"
+    And the logs for the message should contain "missing required fields"
+    And the "transform" queue should not have message
+    And the "transform" DLQ should have message
+
+  # ==================== Consumer Unrecoverable Errors - DLQ ====================
+  Scenario: Consumer message with 422 error goes to DLQ
+    Given I have a consumer message that will fail with 422
+    When the "load" lambda processes the message
+    Then the logs for the message should contain "Unrecoverable failure"
+    And the logs for the message should contain "Sending to DLQ immediately"
+    And the logs for the message should contain "failed for message id"
+    And the "load" queue should not have message
+    And the "load" DLQ should have message
+
+  Scenario: Consumer message with malformed JSON
+    Given I have a consumer message with malformed JSON
+    When the "load" lambda processes the message
+    Then the logs for the message should contain "Unrecoverable failure (MalformedJSON)"
+    And the logs for the message should contain "Sending to DLQ immediately"
+    And the logs for the message should contain "failed for message id"
+
+  # ==================== Business Logic Validation ====================
+  Scenario: Transformer handles invalid ODS code format
+    Given I have a transform message with invalid ODS code format
+    When the "transform" lambda processes the message
+    Then the logs for the message should contain "ODS code validation failed"
+    And the logs for the message should contain "Invalid ODS code"
+    Then the logs for the message should contain "Sending to DLQ immediately"
+
+  Scenario: Transformer handles organisation with no identifier
+    Given I have a transform message with organisation missing identifier
+    When the "transform" lambda processes the message
+    Then the logs for the message should contain "No ODS code identifier found in"
+    Then the logs for the message should contain "Sending to DLQ immediately"
