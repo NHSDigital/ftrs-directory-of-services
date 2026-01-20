@@ -45,7 +45,7 @@ echo "======================================"
 GENERATED_FILE=$(ENVIRONMENT="$ENVIRONMENT" \
   TOGGLE_REGISTRY_FILE="$TOGGLE_REGISTRY_FILE" \
   TOGGLE_DIR="$TOGGLE_DIR" \
-  python3 "$ROOT_DIR/scripts/generate-stack-toggles.py")
+  python3 "$SCRIPT_DIR/generate-stack-toggles.py")
 
 # Check if the generation was successful
 if [ $? -ne 0 ]; then
