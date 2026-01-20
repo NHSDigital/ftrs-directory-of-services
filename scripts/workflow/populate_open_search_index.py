@@ -7,9 +7,11 @@ import os
 import sys
 from typing import Optional, Any, Mapping
 from decimal import Decimal
+import hashlib
 from pathlib import Path
 
 from urllib.parse import quote as urlquote
+from urllib.parse import urlparse
 
 import boto3
 import botocore.exceptions
@@ -96,10 +98,30 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Populate an OpenSearch Serverless index from a DynamoDB table")
     parser.add_argument("--final-index", dest="final_index", help="Final index name" )
     parser.add_argument("--endpoint", dest="endpoint", help="OpenSearch endpoint" )
+    parser.add_argument(
+        "--sigv4-service",
+        dest="sigv4_service",
+        default=os.environ.get("OS_SIGV4_SERVICE"),
+        help="SigV4 service name to sign requests with ('aoss' for OpenSearch Serverless, 'es' for managed OpenSearch). If omitted, inferred from endpoint hostname.",
+    )
     parser.add_argument("--workspace", dest="workspace", default=os.environ.get('WORKSPACE', ''), help="Terraform workspace suffix to append to index/table names (e.g. 'ftrs-856')")
     parser.add_argument("--aws-region", dest="aws_region", default=os.environ.get('AWS_REGION'), help="AWS region")
     parser.add_argument("--dynamodb-table", dest="ddb_table", default=os.environ.get('DYNAMODB_TABLE', DEFAULT_DDB_TABLE), help="DynamoDB table name")
     parser.add_argument("--batch-size", dest="batch_size", type=int, default=1, help="Number of records to send in one bulk request (1 = per-document PUT)")
+    parser.add_argument(
+        "--limit",
+        dest="limit",
+        type=int,
+        default=0,
+        help="Limit the number of DynamoDB records to process (0 = no limit)",
+    )
+    parser.add_argument(
+        "--fail-fast",
+        dest="fail_fast",
+        action="store_true",
+        default=False,
+        help="Stop immediately on the first indexing failure (useful for debugging 403s)",
+    )
     parser.add_argument("--log-level", dest="log_level", default=os.environ.get('LOG_LEVEL', 'INFO'))
     parser.add_argument("--schema-config", dest="schema_config", help="Path to JSON schema config that maps DynamoDB attributes to OpenSearch fields")
     parser.add_argument("--dynamodb-table-ignore-workspace", dest="ddb_ignore_workspace", default=str(DDB_IGNORE_WORKSPACE_DEFAULT),
@@ -116,6 +138,30 @@ def build_endpoint(raw: str) -> str:
         return raw.rstrip('/')
     return "https://" + raw.rstrip('/')
 
+
+def _infer_sigv4_service_from_endpoint(endpoint: str) -> str:
+    hostname = urlparse(endpoint).hostname or ""
+    host = hostname.lower()
+    if ".aoss." in host or host.endswith(".aoss.amazonaws.com"):
+        return "aoss"
+    if ".es." in host or host.endswith(".es.amazonaws.com"):
+        return "es"
+    return "aoss"
+
+
+def _require_region(region: Optional[str]) -> str:
+    region_value = (region or os.environ.get("AWS_REGION") or "").strip()
+    if region_value:
+        return region_value
+    try:
+        session = botocore.session.get_session()
+        resolved = (session.get_config_variable("region") or "").strip()
+        if resolved:
+            return resolved
+    except (botocore.exceptions.BotoCoreError, AttributeError, TypeError, ValueError):
+        pass
+    raise RuntimeError("AWS region is required for SigV4 signing (set --aws-region or AWS_REGION)")
+
 def get_aws_signing_credentials() -> ReadOnlyCredentials:
     session = botocore.session.get_session()
     creds = session.get_credentials()
@@ -124,11 +170,20 @@ def get_aws_signing_credentials() -> ReadOnlyCredentials:
     return creds.get_frozen_credentials()
 
 def build_aws_request(method: str, url: str, body: Optional[str]) -> AWSRequest:
-    headers = {"Content-Type": "application/json"}
-    return AWSRequest(method=method, url=url, data=body or "", headers=headers)
+    payload = body or ""
+    payload_hash = (
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        if not payload
+        else hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    )
+    headers = {
+        "Content-Type": "application/json",
+        "x-amz-content-sha256": payload_hash,
+    }
+    return AWSRequest(method=method, url=url, data=payload, headers=headers)
 
 def sign_aws_request(aws_req: AWSRequest, credentials: ReadOnlyCredentials, service: str, region: Optional[str]) -> None:
-    SigV4Auth(credentials, service, region or os.environ.get("AWS_REGION") or "").add_auth(aws_req)
+    SigV4Auth(credentials, service, _require_region(region)).add_auth(aws_req)
 
 class SignedRequestsSession:
     def __init__(self, aws_region: Optional[str], service: str = "aoss") -> None:
@@ -136,6 +191,14 @@ class SignedRequestsSession:
         self.service = service
         self.session = requests.Session()
         self.credentials = get_aws_signing_credentials()
+
+        if os.environ.get("OS_SIGNING_DEBUG") in {"1", "true", "TRUE"}:
+            try:
+                caller_info = boto3.client('sts', region_name=aws_region).get_caller_identity() if aws_region else boto3.client('sts').get_caller_identity()
+                log.info('Caller ARN: %s', caller_info.get('Arn'))
+            except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as exc:
+                log.debug('Could not get caller identity via STS: %s', exc, exc_info=True)
+            log.info('SigV4 service=%s region=%s', self.service, self.aws_region)
 
     def request(self, method: str, url: str, body: Optional[str]) -> requests.Response:
         aws_req = build_aws_request(method, url, body)
@@ -164,6 +227,12 @@ def scan_dynamodb_table(
         log.error('DynamoDB scan failed: %s', exc)
         raise
     return items
+
+
+def _apply_limit(items: list[DynamoDbItem], limit: int) -> list[DynamoDbItem]:
+    if limit <= 0:
+        return items
+    return items[:limit]
 
 def _normalize(value: Any) -> Any:
     if isinstance(value, Decimal):
@@ -456,23 +525,29 @@ def index_records(
     index_name: str,
     records: list[OpenSearchRecord],
     batch_size: int = 1,
+    *,
+    fail_fast: bool = False,
 ) -> tuple[int, int]:
     success_count = 0
     total = 0
     if batch_size <= 1:
         total = len(records)
-        success_count = sum(_attempt_index_record(rec, session, endpoint, index_name) for rec in records)
+        for rec in records:
+            ok = _attempt_index_record(rec, session, endpoint, index_name)
+            success_count += ok
+            if fail_fast and not ok:
+                return success_count, total
         return success_count, total
     if not records:
         return 0, 0
     chunks = [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
     total_chunks = len(chunks)
-    results = [
-        _process_bulk_chunk(chunk, idx, total_chunks, session, endpoint, index_name)
-        for idx, chunk in enumerate(chunks)
-    ]
-    success_count += sum(r[0] for r in results)
-    total += sum(r[1] for r in results)
+    for idx, chunk in enumerate(chunks):
+        ok, attempted = _process_bulk_chunk(chunk, idx, total_chunks, session, endpoint, index_name)
+        success_count += ok
+        total += attempted
+        if fail_fast and ok < attempted:
+            return success_count, total
     return success_count, total
 
 def load_schema_config(path: Optional[str]) -> dict[str, Any]:
@@ -565,6 +640,84 @@ def convert_nested_items(attr: Any, nested_config: dict[str, Any]) -> list[dict[
 
     return results
 
+
+def _resolve_sigv4_service(endpoint: Optional[str], explicit_service: Optional[str]) -> str:
+    explicit = (explicit_service or "").strip()
+    if explicit:
+        return explicit
+    if endpoint:
+        return _infer_sigv4_service_from_endpoint(endpoint)
+    return "aoss"
+
+
+def _resolve_workspace(workspace: Optional[str]) -> str:
+    return (workspace or os.environ.get("WORKSPACE") or "").strip()
+
+
+def _resolve_final_table(ddb_table: str, workspace: str, ignore_workspace: bool) -> str:
+    if ignore_workspace or not ddb_table:
+        return ddb_table
+    return build_name_with_workspace(ddb_table, workspace)
+
+
+def _resolve_final_index(final_index: Optional[str], workspace: str) -> str:
+    base_index = final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
+    return build_name_with_workspace(base_index, workspace)
+
+
+def _log_configuration(
+    *,
+    endpoint: Optional[str],
+    final_index: str,
+    aws_region: Optional[str],
+    sigv4_service: str,
+    final_table: str,
+    workspace: str,
+) -> None:
+    log.info('Using configuration:')
+    log.info('  Endpoint: %s', endpoint)
+    log.info('  Final index: %s', final_index)
+    log.info('  AWS region: %s', aws_region)
+    log.info('  SigV4 service: %s', sigv4_service)
+    log.info('  DynamoDB table: %s', final_table)
+    log.info('  Workspace: %s', workspace)
+
+
+def _run_population(
+    *,
+    aws_region: Optional[str],
+    final_table: str,
+    endpoint: str,
+    final_index: str,
+    schema_config: dict[str, Any],
+    session: SignedRequestsSession,
+    batch_size: int,
+    limit: int,
+    fail_fast: bool,
+) -> None:
+    log.info('Scanning DynamoDB table...')
+    raw_items = scan_dynamodb_table(
+        prepare_dynamodb_client(aws_region),
+        final_table,
+        ['id', 'primary_key', 'symptomGroupSymptomDiscriminators'],
+    )
+    raw_items = _apply_limit(raw_items, limit)
+    if limit > 0:
+        log.info('Limiting to %d DynamoDB item(s) for this run', len(raw_items))
+    deserialized_items = deserialize_dynamodb_items(raw_items)
+
+    log.info('Transforming records...')
+    transformed = transform_records(deserialized_items, schema_config)
+    if limit > 0:
+        log.info('Limiting to %d transformed record(s) for this run', len(transformed))
+    if transformed:
+        log.debug('Sample transformed record: %s', json.dumps(transformed[0], default=str))
+
+    log.info('Indexing records...')
+    success, total = index_records(session, endpoint, final_index, transformed, batch_size, fail_fast=fail_fast)
+    log.info('Indexing complete: %d successful, %d total records', success, total)
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     args = parse_args(argv)
     log.setLevel(getattr(logging, args.log_level.upper(), logging.INFO))
@@ -576,38 +729,43 @@ def main(argv: Optional[list[str]] = None) -> int:
     endpoint = build_endpoint(endpoint_input) if endpoint_input else None
 
     aws_region = args.aws_region
+    sigv4_service = _resolve_sigv4_service(endpoint, args.sigv4_service)
+
     ddb_table = args.ddb_table
-    workspace = args.workspace or os.environ.get('WORKSPACE', '')
+    workspace = _resolve_workspace(args.workspace)
 
     ddb_ignore_workspace = str(args.ddb_ignore_workspace).strip().lower() in ("1", "true", "yes")
 
-    final_table = ddb_table if ddb_ignore_workspace or not ddb_table else build_name_with_workspace(ddb_table, workspace)
+    final_table = _resolve_final_table(ddb_table, workspace, ddb_ignore_workspace)
+    final_index = _resolve_final_index(args.final_index, workspace)
 
-    base_index = args.final_index or os.environ.get('OS_FINAL_INDEX') or "triage_code"
-    final_index = build_name_with_workspace(base_index, workspace)
-
-    log.info('Using configuration:')
-    log.info('  Endpoint: %s', endpoint)
-    log.info('  Final index: %s', final_index)
-    log.info('  AWS region: %s', aws_region)
-    log.info('  DynamoDB table: %s', final_table)
-    log.info('  Workspace: %s', workspace)
+    _log_configuration(
+        endpoint=endpoint,
+        final_index=final_index,
+        aws_region=aws_region,
+        sigv4_service=sigv4_service,
+        final_table=final_table,
+        workspace=workspace,
+    )
 
     schema_config = load_schema_config(args.schema_config)
-    session = SignedRequestsSession(aws_region)
+    session = SignedRequestsSession(aws_region, sigv4_service)
 
     try:
-        log.info('Scanning DynamoDB table...')
-        raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['id', 'primary_key', 'symptomGroupSymptomDiscriminators'])
-        deserialized_items = deserialize_dynamodb_items(raw_items)
-        log.info('Transforming records...')
-        transformed = transform_records(deserialized_items, schema_config)
-        if transformed:
-            log.debug('Sample transformed record: %s', json.dumps(transformed[0], default=str))
-        log.info('Indexing records...')
-        success, total = index_records(session, endpoint, final_index, transformed, args.batch_size)
-        log.info('Indexing complete: %d successful, %d total records', success, total)
-    except Exception as exc:
+        if endpoint is None:
+            raise RuntimeError("OpenSearch endpoint is missing")
+        _run_population(
+            aws_region=aws_region,
+            final_table=final_table,
+            endpoint=endpoint,
+            final_index=final_index,
+            schema_config=schema_config,
+            session=session,
+            batch_size=args.batch_size,
+            limit=args.limit,
+            fail_fast=args.fail_fast,
+        )
+    except (RuntimeError, botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError, requests.RequestException) as exc:
         log.error('Unexpected error: %s', exc)
         return 1
 
