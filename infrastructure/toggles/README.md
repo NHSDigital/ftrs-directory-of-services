@@ -143,6 +143,7 @@ output "bucket_name" {
 **Cost Impact:**
 
 Disabling a stack results in:
+
 - Zero AWS resources provisioned
 - Zero ongoing AWS costs for that stack
 - Faster Terraform apply times
