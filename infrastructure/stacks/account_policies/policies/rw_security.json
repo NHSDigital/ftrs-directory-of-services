@@ -169,7 +169,9 @@
             "Action": [
                 "kms:Decrypt",
                 "kms:DescribeKey",
-                "kms:GenerateDataKey"
+                "kms:GenerateDataKey",
+                "kms:ListAliases",
+                "kms:ListKeys"
             ],
             "Resource": "*"
         }
