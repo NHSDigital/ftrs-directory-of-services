@@ -2,7 +2,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 
-def test_deserialize_fallback_on_error(
+def test_deserialize_item_fallback_on_error(
     create_populate_module: Any, monkeypatch: Any
 ) -> None:
     mod = create_populate_module
@@ -11,9 +11,10 @@ def test_deserialize_fallback_on_error(
         "_DESERIALIZER",
         MagicMock(deserialize=MagicMock(side_effect=TypeError("bad"))),
     )
-    attr = {"S": "x"}
-    res = mod._deserialize_attr(attr)
-    assert res == attr
+    # DynamoDB client items use AttributeValue shapes; deserialize_dynamodb_item wraps
+    # the item as {"M": item} and should return None on deserialization errors.
+    item = {"id": {"S": "x"}}
+    assert mod.deserialize_dynamodb_item(item) is None
 
 
 def test_scan_dynamodb_table_pagination(create_populate_module: Any) -> None:
@@ -36,9 +37,12 @@ def test_scan_dynamodb_table_pagination(create_populate_module: Any) -> None:
     assert any("a" in itm or "b" in itm for itm in items)
 
 
-def test_convert_dynamodb_format_various(create_populate_module: Any) -> None:
+def test_deserialize_dynamodb_items_filters_invalid(create_populate_module: Any) -> None:
     mod = create_populate_module
-    items = [{"M": {"sg": {"N": "1"}, "sd": {"N": "2"}}}, {"S": "x"}]
-    out = mod.convert_dynamodb_format(items)
+    items = [
+        {"id": {"S": "x"}},
+        "not-a-dict",
+    ]
+    out = mod.deserialize_dynamodb_items(items)  # type: ignore[arg-type]
     assert isinstance(out, list)
-    assert out == []
+    assert out == [{"id": "x"}]

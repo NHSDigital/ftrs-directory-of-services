@@ -5,7 +5,7 @@ import botocore.exceptions as _be
 import pytest
 import requests
 
-from .loader import (
+from .helpers import (
     make_add_auth,
     make_headers_response,
     make_resp,
@@ -60,7 +60,7 @@ def test_indexcreator_create_index_resolve_none(create_module: Any) -> None:
 
 
 def test_indexcreator_create_index_head_delete_and_put(
-    create_module: Any, tmp_path: Any
+    create_module: Any
 ) -> None:
     cio = create_module
     creator = cio.IndexCreator("https://endpoint.example", "index", "", None)

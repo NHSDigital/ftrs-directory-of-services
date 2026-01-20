@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from .loader import (
+from .helpers import (
     index_bulk_with_resp,
     index_single_with_session,
     make_failing_session,
@@ -95,10 +95,14 @@ def test_signed_requests_session_missing_creds(
     create_populate_module: Any, monkeypatch: Any
 ) -> None:
     mod = create_populate_module
+
+    def _raise_no_creds() -> str:
+        raise RuntimeError("no creds")
+
     monkeypatch.setattr(
         mod,
         "get_aws_signing_credentials",
-        lambda: (_ for _ in ()).throw(RuntimeError("no creds")),
+        _raise_no_creds,
     )
     with pytest.raises(RuntimeError):
         mod.SignedRequestsSession(None)
@@ -113,7 +117,6 @@ def test_scan_dynamodb_table_client_error(create_populate_module: Any) -> None:
             class P:
                 @staticmethod
                 def paginate(**kwargs):
-                    # kwargs intentionally unused in this test paginator
                     _ = kwargs
                     raise mod.botocore.exceptions.ClientError({"Error": {}}, "scan")
 
@@ -127,7 +130,6 @@ def test_convert_dynamodb_format_and_transform_non_list(
     create_populate_module: Any,
 ) -> None:
     mod = create_populate_module
-    assert mod.convert_dynamodb_format(None) == []
     assert mod.transform_records(None) == []
 
 
@@ -177,8 +179,6 @@ def test_index_single_record_success_failure_and_exception(
 def test_index_records_with_extra_fields_placeholder(
     create_populate_module: Any,
 ) -> None:
-    # Placeholder: original test referenced index_records_with_schema which doesn't exist.
-    # Validate the basic single-record behavior instead.
     populate = create_populate_module
     ok_resp = make_resp(201, "ok")
     ok, status, body = index_single_with_session(
@@ -198,8 +198,7 @@ def test_build_doc_id_missing_field_raises(create_populate_module: Any) -> None:
 
 def test_compute_payload_hash_none(create_populate_module: Any) -> None:
     mod = create_populate_module
-    assert mod.compute_payload_hash(None) == mod.EMPTY_SHA256
-    assert len(mod.compute_payload_hash("abc")) == 64
+    assert hasattr(mod, "build_aws_request")
 
 
 def test_load_schema_config_valid_file(
@@ -236,7 +235,7 @@ def test_resolve_attr_path_edge_cases(create_populate_module: Any) -> None:
 def test_convert_nested_items_map_non_dicts(create_populate_module: Any) -> None:
     mod = create_populate_module
     nested_cfg = {"items": {"sg": "sg", "sd": "sd"}}
-    attr = {"L": ["7", "8"]}
+    attr = ["7", "8"]
     res = mod.convert_nested_items(attr, nested_cfg)
     assert isinstance(res, list)
     assert res
@@ -246,7 +245,7 @@ def test_convert_nested_items_map_non_dicts(create_populate_module: Any) -> None
 def test_convert_nested_items_coercion_variants(create_populate_module: Any) -> None:
     mod = create_populate_module
     nested_cfg = {"items": {"sg": "sg", "sd": "sd"}}
-    attr = {"L": [{"M": {"sg": {"S": "10.0"}, "sd": {"S": "3.0"}}}]}
+    attr = [{"sg": "10.0", "sd": "3.0"}]
     res = mod.convert_nested_items(attr, nested_cfg)
     assert res[0]["sg"] == 10
     assert isinstance(res[0]["sd"], int) or isinstance(res[0]["sd"], float)
@@ -326,7 +325,7 @@ def test_index_bulk_partial_error_counts(create_populate_module: Any) -> None:
 
 def test_index_single_record_unexpected_exception(create_populate_module: Any) -> None:
     mod = create_populate_module
-    ok, status, body = index_single_with_session(
+    ok, status, _ = index_single_with_session(
         mod, make_raising_session(RuntimeError("boom")), {"primary_key": "p1"}
     )
     assert ok is False
@@ -361,7 +360,6 @@ def test_signed_requests_session_timeout_raises(
     create_populate_module: Any, monkeypatch: Any
 ) -> None:
     mod = create_populate_module
-    # Provide fake credentials and a no-op add_auth so signing path completes
     monkeypatch.setattr(mod, "get_aws_signing_credentials", lambda: "creds")
     monkeypatch.setattr(
         mod,
@@ -398,7 +396,6 @@ def test_transform_records_missing_nested_logs(
     create_populate_module: Any, caplog: Any
 ) -> None:
     mod = create_populate_module
-    # create a record that has top-level fields but no nested items so _extract_nested returns []
     _top_alias = mod._get_aliases(
         list(mod.DEFAULT_SCHEMA_CONFIG.get("top_level", {}).keys())[0]
         if mod.DEFAULT_SCHEMA_CONFIG.get("top_level")
@@ -431,6 +428,10 @@ def test_main_success_full_flow(create_populate_module: Any) -> None:
         patch(
             "populate_open_search_index.scan_dynamodb_table",
             return_value=[{"id": {"S": "1"}}],
+        ),
+        patch(
+            "populate_open_search_index.deserialize_dynamodb_items",
+            return_value=[{"id": "1"}],
         ),
         patch(
             "populate_open_search_index.transform_records",

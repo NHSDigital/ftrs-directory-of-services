@@ -2,6 +2,10 @@ import json
 from typing import Any, Optional
 
 
+class RequestFailure(RuntimeError):
+    pass
+
+
 def make_resp(
     status_code: int = 200,
     text: str = "",
@@ -45,16 +49,16 @@ def make_failing_session():
     class Session:
         @staticmethod
         def request(*_args, **_kwargs):
-            raise AssertionError("fail")
+            raise RuntimeError("request was not expected")
 
     return Session()
 
 
-def make_raising_session(exc: Exception):
+def make_raising_session(exc: BaseException):
     class Session:
         @staticmethod
         def request(*_args, **_kwargs):
-            raise exc
+            raise RequestFailure(str(exc))
 
     return Session()
 

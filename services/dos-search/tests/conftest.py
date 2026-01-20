@@ -3,22 +3,12 @@ Shared pytest fixtures for all test files.
 This module provides reusable fixtures that can be used across all test files.
 """
 
-# Standard library
-import importlib.util
-import json
-import sys
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Callable
 from uuid import UUID, uuid4
 
-# Third-party
 import pytest
-from botocore.credentials import ReadOnlyCredentials
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-
-# Local
 from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
@@ -202,88 +192,3 @@ def create_fhir_endpoint():
         )
 
     return _create_fhir_endpoint
-
-
-def _load_workflow_module(module_name: str, rel_path: str) -> Any:
-    repo_root = Path(__file__).resolve().parents[3]
-    mod_path = repo_root / rel_path
-    spec = importlib.util.spec_from_file_location(module_name, str(mod_path))
-    if not spec or not spec.loader:
-        raise RuntimeError()
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-@pytest.fixture
-def create_module() -> Any:
-    """Load and return the create_open_search_index workflow module for tests.
-
-    This keeps tests decoupled from import mechanics and mirrors how the
-    module is used in workflows (file-based scripts).
-    """
-    return _load_workflow_module(
-        "create_open_search_index", "scripts/workflow/create_open_search_index.py"
-    )
-
-
-@pytest.fixture
-def create_populate_module() -> Any:
-    """Load and return the populate_open_search_index workflow module for tests.
-
-    Registered under the name 'populate_open_search_index' so tests and patch()
-    can reference it directly.
-    """
-    return _load_workflow_module(
-        "populate_open_search_index", "scripts/workflow/populate_open_search_index.py"
-    )
-
-
-# Add missing fixtures required by open_search_index tests
-
-
-@pytest.fixture
-def fake_credentials() -> ReadOnlyCredentials:
-    """Return a lightweight ReadOnlyCredentials object for signing tests."""
-    # token=None is acceptable for tests that only need access/secret
-    return ReadOnlyCredentials(
-        access_key="AKIAFAKE", secret_key="FAKESECRET", token=None
-    )
-
-
-@pytest.fixture
-def dummy_response() -> Callable[..., object]:
-    """Factory that returns a Response-like object for tests.
-
-    Usage: resp = dummy_response(status_code=201, text='{"ok":true}', headers={...}, reason='Created')
-    """
-
-    def _dummy(
-        status_code: int = 200,
-        text: str = "",
-        headers: dict | None = None,
-        reason: str = "",
-    ):
-        class Resp:
-            def __init__(self):
-                self.status_code = status_code
-                self._text = text
-                self.headers = headers or {}
-                self.reason = reason
-
-            @property
-            def text(self) -> str:
-                return self._text
-
-            def json(self):
-                if not self._text:
-                    return {}
-                try:
-                    return json.loads(self._text)
-                except (ValueError, json.JSONDecodeError):
-                    return {}
-
-        return Resp()
-
-    return _dummy

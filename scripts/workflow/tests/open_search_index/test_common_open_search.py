@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from .loader import (
+from .helpers import (
     make_headers_response,
     make_text_response,
 )

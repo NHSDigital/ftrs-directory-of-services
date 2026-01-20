@@ -11,7 +11,7 @@ inputs:
     required: true
   aws_region:
     description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
-    required: true
+    required: false
     default: ''
   table:
     description: 'The DynamoDB table name to use'
@@ -48,4 +48,3 @@ runs:
         python3 -m pip install boto3 requests
 
         python3 ./scripts/workflow/populate_open_search_index.py
-

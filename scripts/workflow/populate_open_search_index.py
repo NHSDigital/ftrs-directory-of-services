@@ -1,12 +1,11 @@
 #!/usr/bin/env python3.12
 
 import argparse
-import hashlib
 import json
 import logging
 import os
 import sys
-from typing import Optional, Any
+from typing import Optional, Any, Mapping
 from decimal import Decimal
 from pathlib import Path
 
@@ -33,38 +32,65 @@ except ModuleNotFoundError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 log = logging.getLogger("populate_open_search_index")
 
-_DESERIALIZER = TypeDeserializer()
-EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-_DEFAULT_DDB_TABLE_BASE = "ftrs-dos-local-database-healthcare-service"
-DEFAULT_DDB_TABLE = _DEFAULT_DDB_TABLE_BASE
-DDB_IGNORE_WORKSPACE_DEFAULT = True
-INDEXING_TIMEOUT_SECONDS = 60
-INDEX_PROPERTIES = MAPPINGS_PAYLOAD.get('mappings', {}).get('properties', {})
-PRIMARY_KEY_NAME = 'primary_key' if 'primary_key' in INDEX_PROPERTIES else None
-NESTED_COLLECTION_FIELD = next((name for name, spec in INDEX_PROPERTIES.items() if spec.get('type') == 'nested'), 'sgsd')
-TOP_LEVEL_OUTPUT_FIELDS = [name for name in INDEX_PROPERTIES.keys() if name not in {NESTED_COLLECTION_FIELD, PRIMARY_KEY_NAME}]
+DynamoDbItem = dict[str, Any]
+DeserializedItem = dict[str, Any]
+OpenSearchRecord = dict[str, Any]
+
+INDEX_PROPERTIES: dict[str, Any] = (
+    MAPPINGS_PAYLOAD.get("mappings", {}).get("properties", {})
+    if isinstance(MAPPINGS_PAYLOAD, dict)
+    else {}
+)
+
+NESTED_COLLECTION_FIELD = next(
+    (
+        name
+        for name, spec in INDEX_PROPERTIES.items()
+        if isinstance(spec, dict) and spec.get("type") == "nested"
+    ),
+    "sgsd",
+)
+
+PRIMARY_KEY_NAME = "primary_key"
+
+TOP_LEVEL_OUTPUT_FIELDS: list[str] = [
+    name
+    for name in INDEX_PROPERTIES.keys()
+    if name not in {NESTED_COLLECTION_FIELD, PRIMARY_KEY_NAME}
+]
+
 FIELD_KEY_ALIASES: dict[str, tuple[str, ...]] = {
-    'primary_key': ('primary_key',),
+    "primary_key": ("primary_key",),
 }
-DOC_ID_FIELDS: list[str] = ['primary_key']
+
+DOC_ID_FIELDS: list[str] = ["primary_key"]
 PRIMARY_KEY_TEMPLATE = "{primary_key}"
 
 DEFAULT_SCHEMA_CONFIG: dict[str, Any] = {
     "primary_key_template": PRIMARY_KEY_TEMPLATE,
     "doc_id_fields": DOC_ID_FIELDS,
     "top_level": {
-        "primary_key": ["primary_key", "id"]
+        "primary_key": ["primary_key", "id"],
     },
     "nested": {
         NESTED_COLLECTION_FIELD: {
             "source_attributes": ["symptomGroupSymptomDiscriminators"],
             "items": {
                 "sg": "sg",
-                "sd": "sd"
-            }
+                "sd": "sd",
+            },
         }
-    }
+    },
 }
+
+_DESERIALIZER = TypeDeserializer()
+_DEFAULT_DDB_TABLE_BASE = "ftrs-dos-local-database-healthcare-service"
+DEFAULT_DDB_TABLE = _DEFAULT_DDB_TABLE_BASE
+DDB_IGNORE_WORKSPACE_DEFAULT = True
+INDEXING_TIMEOUT_SECONDS = 60
+MAX_RETRIES = 2
+RETRYABLE_STATUS_CODES = (429, 500, 502, 503, 504)
+
 
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Populate an OpenSearch Serverless index from a DynamoDB table")
@@ -97,13 +123,8 @@ def get_aws_signing_credentials() -> ReadOnlyCredentials:
         raise RuntimeError("AWS credentials not found")
     return creds.get_frozen_credentials()
 
-def compute_payload_hash(body: Optional[str]) -> str:
-    if not body:
-        return EMPTY_SHA256
-    return hashlib.sha256(body.encode("utf-8")).hexdigest()
-
-def build_aws_request(method: str, url: str, body: Optional[str], payload_hash: str) -> AWSRequest:
-    headers = {"Content-Type": "application/json", "x-amz-content-sha256": payload_hash}
+def build_aws_request(method: str, url: str, body: Optional[str]) -> AWSRequest:
+    headers = {"Content-Type": "application/json"}
     return AWSRequest(method=method, url=url, data=body or "", headers=headers)
 
 def sign_aws_request(aws_req: AWSRequest, credentials: ReadOnlyCredentials, service: str, region: Optional[str]) -> None:
@@ -117,8 +138,7 @@ class SignedRequestsSession:
         self.credentials = get_aws_signing_credentials()
 
     def request(self, method: str, url: str, body: Optional[str]) -> requests.Response:
-        payload_hash = compute_payload_hash(body)
-        aws_req = build_aws_request(method, url, body, payload_hash)
+        aws_req = build_aws_request(method, url, body)
         sign_aws_request(aws_req, self.credentials, self.service, self.aws_region)
         prepared = requests.Request(method=aws_req.method, url=aws_req.url, data=aws_req.body, headers=dict(aws_req.headers)).prepare()
         return self.session.send(prepared, timeout=INDEXING_TIMEOUT_SECONDS)
@@ -126,38 +146,24 @@ class SignedRequestsSession:
 def prepare_dynamodb_client(region: Optional[str]) -> BaseClient:
     return boto3.client('dynamodb', region_name=region) if region else boto3.client('dynamodb')
 
-def scan_dynamodb_table(dynamodb_client: BaseClient, table_name: str, attributes: list[str]) -> list[dict]:
+def scan_dynamodb_table(
+    dynamodb_client: BaseClient, table_name: str, attributes: list[str]
+) -> list[DynamoDbItem]:
     paginator = dynamodb_client.get_paginator('scan')
     projection = ",".join(attributes) if attributes else None
     scan_kwargs = {}
     if projection:
         scan_kwargs['ProjectionExpression'] = projection
     try:
-        items = [item for page in paginator.paginate(TableName=table_name, **scan_kwargs) for item in page.get('Items', [])]
+        items: list[DynamoDbItem] = [
+            item
+            for page in paginator.paginate(TableName=table_name, **scan_kwargs)
+            for item in page.get('Items', [])
+        ]
     except botocore.exceptions.ClientError as exc:
         log.error('DynamoDB scan failed: %s', exc)
         raise
     return items
-
-def parse_dynamo_string(attr: dict) -> Optional[str]:
-    if not isinstance(attr, dict):
-        return None
-    if 'S' in attr:
-        return attr['S']
-    if 'N' in attr:
-        return str(attr['N'])
-    return None
-
-def _deserialize_attr(attr: Any) -> Any:
-    if not isinstance(attr, dict):
-        return attr
-    if len(attr) == 1 and next(iter(attr.keys())) in {"S", "N", "M", "L", "BOOL", "NULL", "SS", "NS", "BS"}:
-        try:
-            return _DESERIALIZER.deserialize(attr)
-        except (TypeError, ValueError) as exc:
-            log.debug('TypeDeserializer failed for %s: %s', attr, exc)
-            return attr
-    return attr
 
 def _normalize(value: Any) -> Any:
     if isinstance(value, Decimal):
@@ -168,32 +174,49 @@ def _normalize(value: Any) -> Any:
         return [_normalize(v) for v in value]
     return value
 
-def convert_dynamodb_format(items: list[dict]) -> list[dict[str, Any]]:
-    def _parse(entry: Any) -> Optional[dict[str, Any]]:
-        deserialized = _normalize(_deserialize_attr(entry))
-        if not isinstance(deserialized, dict):
-            return None
-        sg = deserialized.get('sg')
-        sd = deserialized.get('sd')
-        if isinstance(sg, dict) or isinstance(sd, dict):
-            return {'sg': sg, 'sd': sd}
+def deserialize_dynamodb_item(item: Any) -> Optional[DeserializedItem]:
+    if not isinstance(item, dict):
+        return None
+    try:
+        deserialized = _DESERIALIZER.deserialize({"M": item})
+        normalized = _normalize(deserialized)
+        return normalized if isinstance(normalized, dict) else None
+    except (TypeError, ValueError) as exc:
+        log.debug("Failed to deserialize DynamoDB item: %s", exc, exc_info=True)
         return None
 
+def deserialize_dynamodb_items(items: list[dict]) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         return []
-    return [parsed for parsed in (_parse(item) for item in items) if parsed]
+    out: list[DeserializedItem] = []
+    for item in items:
+        parsed = deserialize_dynamodb_item(item)
+        if parsed is not None:
+            out.append(parsed)
+    return out
 
-def extract_field(record: dict, aliases: tuple[str, ...]) -> Optional[str]:
+def _to_str(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (int, float, bool)):
+        return str(value)
+    return None
+
+def extract_field(record: Mapping[str, Any], aliases: tuple[str, ...]) -> Optional[str]:
     for k in aliases:
         v = record.get(k)
         if v is None:
             continue
-        val = parse_dynamo_string(v) or (str(v) if not isinstance(v, dict) else None)
+        val = _to_str(v)
         if val is not None:
             return val
     return None
 
-def extract_nested_from_record(record: dict, schema_config: dict[str, Any]) -> list[dict[str, Any]]:
+def extract_nested_from_record(
+    record: Mapping[str, Any], schema_config: dict[str, Any]
+) -> list[dict[str, Any]]:
     nested_cfg = _get_nested_config(schema_config)
     for attr_name in nested_cfg.get('source_attributes', []):
         value = record.get(attr_name)
@@ -202,9 +225,11 @@ def extract_nested_from_record(record: dict, schema_config: dict[str, Any]) -> l
             return items
     return []
 
-def parse_record_to_doc(record: dict, schema_config: dict[str, Any]) -> Optional[dict[str, Any]]:
+def parse_record_to_doc(
+    record: Mapping[str, Any], schema_config: dict[str, Any]
+) -> Optional[OpenSearchRecord]:
     try:
-        doc: dict[str, Any] = {}
+        doc: OpenSearchRecord = {}
         if TOP_LEVEL_OUTPUT_FIELDS:
             top_fields = TOP_LEVEL_OUTPUT_FIELDS
         elif PRIMARY_KEY_NAME:
@@ -235,23 +260,30 @@ def parse_record_to_doc(record: dict, schema_config: dict[str, Any]) -> Optional
         log.exception('Error parsing record into document; re-raising')
         raise
 
-def transform_records(raw_items: list[dict], schema_config: Optional[dict[str, Any]] = None) -> list[dict]:
+def transform_records(
+    raw_items: Any, schema_config: Optional[dict[str, Any]] = None
+) -> list[OpenSearchRecord]:
     config = schema_config or DEFAULT_SCHEMA_CONFIG
     if not isinstance(raw_items, list):
         return []
     return [r for r in (parse_record_to_doc(item, config) for item in raw_items) if r]
 
-def build_doc_id(record: dict, schema_config: Optional[dict[str, Any]] = None) -> str:
+def build_doc_id(record: Mapping[str, Any], schema_config: Optional[dict[str, Any]] = None) -> str:
     config = schema_config or DEFAULT_SCHEMA_CONFIG
     fields = config.get('doc_id_fields', DOC_ID_FIELDS)
+    separator = config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
+    if '{' in separator:
+        try:
+            return separator.format(**record)
+        except KeyError as exc:
+            missing = exc.args[0]
+            raise KeyError(f"Missing field {missing} required for document ID") from exc
+
     try:
         parts = [str(record[f]) for f in fields]
     except KeyError as exc:
         missing = exc.args[0]
         raise KeyError(f"Missing field {missing} required for document ID") from exc
-    separator = config.get('primary_key_template', PRIMARY_KEY_TEMPLATE)
-    if '{' in separator:
-        return separator.format(**record)
     return "|".join(parts)
 
 def build_doc_path(index_name: str, doc_id: str) -> str:
@@ -269,51 +301,119 @@ def build_name_with_workspace(name: str, workspace: Optional[str]) -> str:
         return name + suffix
     return name + ws_raw
 
-def build_bulk_payload(index_name: str, records: list[dict]) -> str:
+def build_bulk_payload(index_name: str, records: list[OpenSearchRecord]) -> str:
     lines = [line for record in records for line in (json.dumps({"index": {"_index": index_name, "_id": build_doc_id(record)}}), json.dumps(record))]
     return "\n".join(lines) + "\n"
 
-def index_single_record(session: SignedRequestsSession, endpoint: str, index_name: str, record: dict) -> tuple[bool, int, str]:
+def _safe_response_text(resp: requests.Response) -> str:
+    try:
+        return resp.text or ""
+    except (requests.RequestException, UnicodeDecodeError, AttributeError):
+        return ""
+
+def _safe_response_json(resp: requests.Response) -> dict[str, Any] | None:
+    try:
+        value = resp.json()
+    except (requests.RequestException, ValueError, TypeError, AttributeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+def _is_success_status(status: int) -> bool:
+    return status in (200, 201, 202)
+
+def _should_retry_status(status: int) -> bool:
+    return status in RETRYABLE_STATUS_CODES
+
+def _send_with_retries(
+    session: "SignedRequestsSession",
+    method: str,
+    url: str,
+    body: Optional[str],
+    *,
+    max_retries: int = MAX_RETRIES,
+) -> requests.Response:
+    last_exc: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            resp = session.request(method, url, body)
+        except Exception as exc:
+            last_exc = exc
+            if attempt >= max_retries:
+                raise
+            continue
+        if _should_retry_status(resp.status_code) and attempt < max_retries:
+            continue
+        return resp
+    raise RuntimeError(str(last_exc) if last_exc else "request failed")
+
+def index_single_record(
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+    record: OpenSearchRecord,
+) -> tuple[bool, int, str]:
     doc_id = build_doc_id(record)
     path = build_doc_path(index_name, doc_id)
     url = endpoint.rstrip('/') + path
     body = json.dumps(record)
 
     try:
-        resp = session.request('PUT', url, body)
-        resp_text = resp.text or ''
+        resp = _send_with_retries(session, 'PUT', url, body)
+        resp_text = _safe_response_text(resp)
         status = resp.status_code
-        if status in (200, 201, 202):
+        if _is_success_status(status):
             return True, status, resp_text
-        if 400 <= status < 500:
-            return False, status, resp_text
         return False, status, resp_text
-    except requests.RequestException as exc:
-        log.error('Request exception indexing id=%s: %s', doc_id, exc)
-        return False, 500, str(exc)
     except Exception as exc:
-        log.error('Unexpected exception indexing id=%s: %s', doc_id, exc)
+        log.error('Exception indexing id=%s: %s', doc_id, exc)
         return False, 500, str(exc)
 
-def index_bulk(session: SignedRequestsSession, endpoint: str, index_name: str, records: list[dict]) -> tuple[int, int]:
+def index_bulk(
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+    records: list[OpenSearchRecord],
+) -> tuple[int, int]:
     if not records:
         return 0, 0
     payload = build_bulk_payload(index_name, records)
     url = endpoint.rstrip('/') + '/_bulk'
-    resp = session.request('POST', url, payload)
-    if resp.status_code in (200, 201, 202):
-        try:
-            body = resp.json()
-            items = body.get('items', [])
-            success = sum(1 for it in items if 'index' in it and 200 <= it['index'].get('status', 500) < 300)
-            return success, len(records)
-        except ValueError:
-            log.debug('Could not parse bulk response JSON; treating as failures')
-            return 0, len(records)
-    return 0, len(records)
+    try:
+        resp = _send_with_retries(session, 'POST', url, payload)
+    except Exception as exc:
+        log.error('Exception bulk indexing %d records: %s', len(records), exc)
+        return 0, len(records)
+    if not _is_success_status(resp.status_code):
+        return 0, len(records)
 
-# Helpers extracted from inside index_records to reduce cognitive complexity
-def _attempt_index_record(record: dict, session: SignedRequestsSession, endpoint: str, index_name: str) -> int:
+    body_dict = _safe_response_json(resp)
+    if not body_dict:
+        log.debug('Could not parse bulk response JSON; treating as failures')
+        return 0, len(records)
+
+    items = body_dict.get('items', [])
+    if not isinstance(items, list):
+        return 0, len(records)
+
+    success = 0
+    for it in items:
+        if not isinstance(it, dict) or 'index' not in it:
+            continue
+        index_obj = it.get('index')
+        if not isinstance(index_obj, dict):
+            continue
+        status = index_obj.get('status', 500)
+        if isinstance(status, int) and 200 <= status < 300:
+            success += 1
+
+    return success, len(records)
+
+def _attempt_index_record(
+    record: OpenSearchRecord,
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+) -> int:
     try:
         _ = build_doc_id(record)
     except KeyError:
@@ -330,12 +430,19 @@ def _attempt_index_record(record: dict, session: SignedRequestsSession, endpoint
     except requests.RequestException as exc:
         log.error('Request exception indexing record id=%s: %s', key_display, exc)
         return 0
-    except Exception as exc:
-        log.error('Unexpected exception indexing record id=%s: %s', key_display, exc)
+    except (TypeError, ValueError) as exc:
+        log.error('Unexpected data error indexing record id=%s: %s', key_display, exc)
         return 0
 
 
-def _process_bulk_chunk(chunk: list[dict], idx: int, total_chunks: int, session: SignedRequestsSession, endpoint: str, index_name: str) -> tuple[int, int]:
+def _process_bulk_chunk(
+    chunk: list[OpenSearchRecord],
+    idx: int,
+    total_chunks: int,
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+) -> tuple[int, int]:
     attempted = len(chunk)
     log.info('Bulk indexing %d records (chunk %d/%d)', attempted, idx + 1, total_chunks)
     ok, attempted_returned = index_bulk(session, endpoint, index_name, chunk)
@@ -343,14 +450,19 @@ def _process_bulk_chunk(chunk: list[dict], idx: int, total_chunks: int, session:
         log.error('Bulk chunk had %d failures out of %d', attempted_returned - ok, attempted_returned)
     return ok, attempted_returned
 
-def index_records(session: SignedRequestsSession, endpoint: str, index_name: str, records: list[dict], batch_size: int = 1) -> tuple[int, int]:
+def index_records(
+    session: SignedRequestsSession,
+    endpoint: str,
+    index_name: str,
+    records: list[OpenSearchRecord],
+    batch_size: int = 1,
+) -> tuple[int, int]:
     success_count = 0
     total = 0
     if batch_size <= 1:
         total = len(records)
         success_count = sum(_attempt_index_record(rec, session, endpoint, index_name) for rec in records)
         return success_count, total
-    # bulk path
     if not records:
         return 0, 0
     chunks = [records[i:i + batch_size] for i in range(0, len(records), batch_size)]
@@ -421,7 +533,7 @@ def _map_non_dict_item(deserialized: Any, nested_config: dict[str, Any]) -> dict
         mapped[target_field] = deserialized
     return mapped
 
-def _map_dict_item(deserialized: dict, nested_config: dict[str, Any]) -> dict[str, Any]:
+def _map_dict_item(deserialized: Mapping[str, Any], nested_config: dict[str, Any]) -> dict[str, Any]:
     mapped: dict[str, Any] = {}
     for target_field, source_path in nested_config.get('items', {}).items():
         value = _resolve_attr_path(deserialized, source_path)
@@ -435,16 +547,12 @@ def _map_dict_item(deserialized: dict, nested_config: dict[str, Any]) -> dict[st
 def convert_nested_items(attr: Any, nested_config: dict[str, Any]) -> list[dict[str, Any]]:
     if not attr:
         return []
-    if isinstance(attr, dict) and 'L' in attr:
-        items = attr['L']
-    elif isinstance(attr, list):
-        items = attr
-    else:
+    if not isinstance(attr, list):
         return []
 
     results: list[dict[str, Any]] = []
-    for entry in items:
-        deserialized = _normalize(_deserialize_attr(entry))
+    for entry in attr:
+        deserialized = _normalize(entry)
         if not isinstance(deserialized, dict):
             mapped = _map_non_dict_item(deserialized, nested_config)
             if mapped:
@@ -491,8 +599,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         log.info('Scanning DynamoDB table...')
         raw_items = scan_dynamodb_table(prepare_dynamodb_client(aws_region), final_table, ['id', 'primary_key', 'symptomGroupSymptomDiscriminators'])
+        deserialized_items = deserialize_dynamodb_items(raw_items)
         log.info('Transforming records...')
-        transformed = transform_records(raw_items, schema_config)
+        transformed = transform_records(deserialized_items, schema_config)
         if transformed:
             log.debug('Sample transformed record: %s', json.dumps(transformed[0], default=str))
         log.info('Indexing records...')

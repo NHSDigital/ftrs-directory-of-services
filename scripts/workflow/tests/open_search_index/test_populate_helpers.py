@@ -7,8 +7,8 @@ def test_extract_field(create_populate_module: Any) -> None:
     mod = create_populate_module
 
     record = {
-        "a": {"S": "s1"},
-        "b": {"N": "2"},
+        "a": "s1",
+        "b": 2,
         "c": "plain",
     }
 
@@ -23,12 +23,10 @@ def test_extract_nested(create_populate_module: Any) -> None:
 
     schema = mod.DEFAULT_SCHEMA_CONFIG.copy()
 
-    nested_attr = {
-        "L": [
-            {"M": {"sg": {"S": "g1"}, "sd": {"S": "d1"}}},
-            {"M": {"sg": {"S": "g2"}, "sd": {"S": "d2"}}},
-        ]
-    }
+    nested_attr = [
+        {"sg": "g1", "sd": "d1"},
+        {"sg": "g2", "sd": "d2"},
+    ]
 
     record = {"symptomGroupSymptomDiscriminators": nested_attr}
 
@@ -42,19 +40,15 @@ def test_extract_nested(create_populate_module: Any) -> None:
 def test_parse_record(create_populate_module: Any) -> None:
     mod = create_populate_module
 
-    top_fields = (
-        mod.TOP_LEVEL_OUTPUT_FIELDS
-        if mod.TOP_LEVEL_OUTPUT_FIELDS
-        else ([mod.PRIMARY_KEY_NAME] if mod.PRIMARY_KEY_NAME else [])
-    )
+    top_fields = mod.TOP_LEVEL_OUTPUT_FIELDS
+    if not top_fields:
+        top_fields = [mod.PRIMARY_KEY_NAME] if mod.PRIMARY_KEY_NAME else []
 
     record = {}
     for fld in top_fields:
-        record[fld] = {"S": f"v-{fld}"}
+        record[fld] = f"v-{fld}"
 
-    record["symptomGroupSymptomDiscriminators"] = {
-        "L": [{"M": {"sg": {"S": "sgv"}, "sd": {"S": "sdv"}}}]
-    }
+    record["symptomGroupSymptomDiscriminators"] = [{"sg": "sgv", "sd": "sdv"}]
 
     doc = mod.parse_record_to_doc(record, mod.DEFAULT_SCHEMA_CONFIG)
     assert isinstance(doc, dict)
@@ -73,11 +67,12 @@ def test_parse_record_reraise_on_value_error(
 ) -> None:
     mod = create_populate_module
 
-    # Make extract_field raise a ValueError to simulate a parsing failure deep in the code
-    monkeypatch.setattr(
-        mod, "extract_field", lambda *a, **k: (_ for _ in ()).throw(ValueError("boom"))
-    )
+    def _raise_boom(*_args: Any, **_kwargs: Any) -> str:
+        raise ValueError("boom")
 
-    sample = {"id": {"S": "pk1"}, "symptomGroupSymptomDiscriminators": {"L": []}}
+    # Make extract_field raise a ValueError to simulate a parsing failure deep in the code
+    monkeypatch.setattr(mod, "extract_field", _raise_boom)
+
+    sample = {"id": "pk1", "symptomGroupSymptomDiscriminators": []}
     with pytest.raises(ValueError, match="boom"):
         mod.parse_record_to_doc(sample, mod.DEFAULT_SCHEMA_CONFIG)

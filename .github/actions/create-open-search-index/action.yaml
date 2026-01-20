@@ -19,7 +19,7 @@ inputs:
     default: 'triage_code'
   aws_region:
     description: 'AWS region to use for AWS CLI and boto3 calls (optional)'
-    required: true
+    required: false
     default: ''
 outputs:
   endpoint:
@@ -50,4 +50,3 @@ runs:
         python3 -m pip install boto3 requests
 
         python3 ./scripts/workflow/create_open_search_index.py
-

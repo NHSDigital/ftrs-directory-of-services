@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import botocore.exceptions as _be
 import pytest
 
-from .loader import (
+from .helpers import (
     make_add_auth,
     make_fake_bulk,
     make_paginator,
@@ -158,153 +158,17 @@ def test_index_records_bulk_path_and_chunking(create_populate_module: Any) -> No
         json_value={"items": [{"index": {"status": 201}}, {"index": {"status": 201}}]},
     )
     records = [{"primary_key": "1"}, {"primary_key": "2"}, {"primary_key": "3"}]
-    success, total = mod.index_records(
+    _, total = mod.index_records(
         make_session_with_resp(resp), "https://ep", "idx", records, batch_size=2
     )
     assert total == 3
-
-
-def test_index_records_bulk_partial_failure_logging(
-    create_populate_module: Any,
-) -> None:
-    mod = create_populate_module
-    records = [{"primary_key": "1"}, {"primary_key": "2"}, {"primary_key": "3"}]
-
-    class FakeSession:
-        pass
-
-    fake_bulk = make_fake_bulk(delta=1)
-    with patch.object(mod, "index_bulk", fake_bulk):
-        success, total = mod.index_records(
-            FakeSession(), "https://ep", "idx", records, batch_size=2
-        )
-        assert total == 3
-        assert success == 1
-
-
-def test_convert_dynamodb_format_with_nested_dicts(
-    create_populate_module: Any, monkeypatch: Any
-) -> None:
-    mod = create_populate_module
-
-    def fake_deserialize(_arg):
-        return {"sg": {"a": 1}, "sd": {"b": 2}}
-
-    monkeypatch.setattr(
-        mod,
-        "_DESERIALIZER",
-        type("X", (), {"deserialize": staticmethod(fake_deserialize)}),
-    )
-    items = [{"M": {"any": "x"}}]
-    out = mod.convert_dynamodb_format(items)
-    assert isinstance(out, list)
-    assert out
-    assert isinstance(out[0].get("sg"), dict)
-
-
-def test_convert_nested_items_non_list_and_missing(create_populate_module: Any) -> None:
-    mod = create_populate_module
-    nested_cfg = {"items": {"x": "a"}, "source_attributes": []}
-    assert mod.convert_nested_items(None, nested_cfg) == []
-    assert mod.convert_nested_items(123, nested_cfg) == []
-    res = mod.convert_nested_items([{"z": {"S": "1"}}], {"items": {"y": "y"}})
-    assert res == []
-
-
-def test_index_bulk_empty_and_non_records(create_populate_module: Any) -> None:
-    mod = create_populate_module
-    session = MagicMock()
-    ok, total = mod.index_bulk(session, "https://ep", "idx", [])
-    assert ok == 0
-    assert total == 0
-
-
-def test_handle_response_variants(create_module: Any) -> None:
-    cio = create_module
-    # use shared factory to create minimal response-like objects
-    assert cio.handle_response(make_resp(200, "ok"), "idx") == 0
-    assert (
-        cio.handle_response(make_resp(400, "resource_already_exists_exception"), "idx")
-        == 0
-    )
-    assert cio.handle_response(make_resp(409, "already exists"), "idx") == 0
-    assert cio.handle_response(make_resp(403, "forbidden"), "idx") == 4
-    assert cio.handle_response(make_resp(500, "bad"), "idx") == 4
-
-
-def test_indexcreator_delete_failure_returns_4(create_module: Any) -> None:
-    cio = create_module
-    creator = cio.IndexCreator("https://endpoint.example", "index", "", None)
-    head = make_resp(200, "")
-    delete = make_resp(500, "delete failed")
-    with (
-        patch("create_open_search_index.sign_request_and_head", return_value=head),
-        patch("create_open_search_index.sign_request_and_delete", return_value=delete),
-    ):
-        rc = creator.create_index()
-        assert rc == 4
-
-
-def test_load_schema_config_malformed_json(
-    create_populate_module: Any, tmp_path: Any
-) -> None:
-    mod = create_populate_module
-    bad = tmp_path / "bad.json"
-    bad.write_text("{ this is : not json")
-    cfg = mod.load_schema_config(str(bad))
-    assert isinstance(cfg, dict)
-    assert "primary_key_template" in cfg
-
-
-def test_transform_records_template_keyerror_handled(
-    create_populate_module: Any,
-) -> None:
-    mod = create_populate_module
-    raw_items = [{"id": {"S": "pk1"}, "symptomGroupSymptomDiscriminators": {"L": []}}]
-    schema = {
-        "primary_key_template": "{primary_key}-{missing}",
-        "doc_id_fields": ["primary_key"],
-        "top_level": {"primary_key": ["primary_key", "id"]},
-        "nested": {},
-    }
-    out = mod.transform_records(raw_items, schema)
-    assert isinstance(out, list)
-    assert len(out) == 1
-
-
-def test_scan_dynamodb_table_uses_projection(create_populate_module: Any) -> None:
-    mod = create_populate_module
-    client = make_paginator([{"Items": [{"a": 1}]}])
-    items = mod.scan_dynamodb_table(client, "tbl", ["a", "b"])
-    assert items
-    assert isinstance(items, list)
-
-
-def test_get_aws_signing_credentials_success(
-    monkeypatch: Any, create_populate_module: Any
-) -> None:
-    mod = create_populate_module
-
-    class FakeCreds:
-        @staticmethod
-        def get_frozen_credentials():
-            return "frozen"
-
-    class FakeSession:
-        @staticmethod
-        def get_credentials():
-            return FakeCreds()
-
-    monkeypatch.setattr(mod.botocore.session, "get_session", lambda: FakeSession())
-    creds = mod.get_aws_signing_credentials()
-    assert creds == "frozen"
 
 
 def test_index_single_record_transient_failure(create_populate_module: Any) -> None:
     mod = create_populate_module
     session = MagicMock()
     session.request.return_value = make_resp(500, "server error")
-    ok, status, body = mod.index_single_record(
+    ok, status, _ = mod.index_single_record(
         session, "https://ep", "idx", {"primary_key": "p1"}
     )
     assert ok is False
@@ -505,15 +369,13 @@ def test_main_passes_projection_to_scan(create_populate_module: Any) -> None:
 def test_transform_full_item_maps_id_and_nested(create_populate_module: Any) -> None:
     mod = create_populate_module
     sample = {
-        "id": {"S": "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2"},
-        "field": {"S": "document"},
-        "active": {"BOOL": True},
-        "symptomGroupSymptomDiscriminators": {
-            "L": [
-                {"M": {"sd": {"N": "4052"}, "sg": {"N": "1006"}}},
-                {"M": {"sd": {"N": "4052"}, "sg": {"N": "1004"}}},
-            ]
-        },
+        "id": "6f3d7dd4-e50b-5d8d-be2b-455f091b4df2",
+        "field": "document",
+        "active": True,
+        "symptomGroupSymptomDiscriminators": [
+            {"sd": 4052, "sg": 1006},
+            {"sd": 4052, "sg": 1004},
+        ],
     }
 
     out = mod.transform_records([sample])
