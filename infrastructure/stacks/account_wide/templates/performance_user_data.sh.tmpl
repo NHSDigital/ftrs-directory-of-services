@@ -19,7 +19,7 @@ elif command -v yum >/dev/null 2>&1; then
 fi
 
 # Install Java 17 and base tools with fallback (dnf then yum)
-BASE_PKGS="unzip jq curl wget tar openssh-clients make"
+BASE_PKGS="unzip jq wget tar openssh-clients make"
 if command -v dnf >/dev/null 2>&1; then
   dnf -y install $BASE_PKGS || true
   dnf -y install java-17-amazon-corretto-headless || true
