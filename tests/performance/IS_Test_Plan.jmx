@@ -70,7 +70,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
-        <stringProp name="ThreadGroup.duration">${__P(token_duration,30)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration+10,30)}</stringProp>
         <stringProp name="ThreadGroup.delay">${__P(token_startup_delay,0)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
@@ -87,11 +87,11 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller" enabled="true">
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller">
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="AWS Secrets Manager - JSR223 PreProcessor">
               <stringProp name="scriptLanguage">groovy</stringProp>
               <stringProp name="parameters"></stringProp>
               <stringProp name="filename"></stringProp>
