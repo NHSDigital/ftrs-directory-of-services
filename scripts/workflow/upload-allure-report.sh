@@ -33,21 +33,21 @@ EOF
 
 # Determine the deployment path based on deployment type
 case "$DEPLOYMENT_TYPE" in
-  DEVELOPMENT)
+  development)
     if [ "$BRANCH" = "main" ]; then
       DEPLOYMENT_PATH="development/latest"
     else
       DEPLOYMENT_PATH="development/${WORKSPACE_VALUE}"
     fi
     ;;
-  RELEASE-CANDIDATE)
+  release-candidate)
     if [ -z "$RELEASE_TAG" ]; then
       echo "ERROR: RELEASE_TAG is required for release-candidate deployment type"
       exit 1
     fi
     DEPLOYMENT_PATH="release-candidates/$RELEASE_TAG"
     ;;
-  RELEASE)
+  release)
     if [ -z "$RELEASE_TAG" ]; then
       echo "ERROR: RELEASE_TAG is required for release deployment type"
       exit 1
