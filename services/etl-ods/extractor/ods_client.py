@@ -3,8 +3,8 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from common.http_client import build_headers as build_common_headers
 from common.http_client import make_request as make_common_request
+from common.secrets import SecretManager
 
-from .secrets import SecretManager
 from .utils import is_mock_testing_mode, is_ods_terminology_request
 
 ods_client_logger = Logger.get(service="ods_client")
