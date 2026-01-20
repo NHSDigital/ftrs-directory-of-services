@@ -314,6 +314,5 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
             ],
             "global_secondary_indexes": None,
         },
-
     }
     return table_entity.get(entity_name, table_entity["default"])

@@ -38,7 +38,7 @@ describe("Organisation Details", () => {
           isCompressionEnabled: false,
           address: "https://api.organisation1.example.com",
           order: 1,
-          description: "Primary endpoint for Organisation 1",
+          businessScenario: "Primary endpoint for Organisation 1",
           createdBy: "user1",
           createdDateTime: "2023-01-01T00:00:00Z",
           modifiedBy: "user2",
