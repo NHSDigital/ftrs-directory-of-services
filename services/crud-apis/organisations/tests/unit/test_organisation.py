@@ -51,7 +51,7 @@ def get_organisation() -> dict:
                 "identifier_oldDoS_id": 67890,
                 "status": "active",
                 "connectionType": "itk",
-                "description": "Primary",
+                "businessScenario": "Primary",
                 "payloadMimeType": "application/fhir",
                 "isCompressionEnabled": True,
                 "managedByOrganisation": "d5a852ef-12c7-4014-b398-661716a63027",
