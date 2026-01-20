@@ -625,9 +625,6 @@ x-nhsd-apim:
       grants:
         app-level3: [ ]
   target-attributes:
-    - name: nhsd-request-id
-      required: false
-      header: nhsd-request-id
     - name: application-id
       required: false
       header: application-id

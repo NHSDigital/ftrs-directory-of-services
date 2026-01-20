@@ -68,8 +68,8 @@ class DosLogger:
             response_size = 0
             self.exception(
                 "Failed to calculate response size",
-                opt_ftrs_response_time=f"{duration_ms}ms",
-                opt_ftrs_response_size=response_size,
+                dos_response_time=f"{duration_ms}ms",
+                dos_response_size=response_size,
             )
         return response_size, duration_ms
 
@@ -129,7 +129,7 @@ class DosLogger:
     def extract_one_time(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         """Extract APIM headers and common event fields into the structured 'extra' dict.
 
-        Optional one-time fields are prefixed with 'opt_' and are always present, using a placeholder value if not found on the event.
+        One-time logging fields are contained within the 'details' block.
         """
         self.headers = event.get("headers") or {}
         placeholder = self.placeholder
@@ -138,31 +138,33 @@ class DosLogger:
         details = {}
 
         api_version = self._get_header("version") or placeholder
-        details["opt_dos_api_version"] = api_version
+        details["dos_search_api_version"] = api_version
 
         end_user_role = self._get_header("end-user-role") or placeholder
-        details["opt_dos_end_user_role"] = end_user_role
+        details["connecting_party_end_user_role"] = end_user_role
 
         client_id = self._get_header("application-id") or placeholder
-        details["opt_dos_application_id"] = client_id
+        details["connecting_party_application_id"] = client_id
 
         app_name = self._get_header("application-name") or placeholder
-        details["opt_dos_application_name"] = app_name
+        details["connecting_party_application_name"] = app_name
 
         # Request params
         req_params: Dict[str, Any] = {}
         query_params = event.get("queryStringParameters") or {}
         path_params = event.get("pathParameters") or {}
         request_context = event.get("requestContext") or {}
+        request_context.pop("identity", None)  # Remove identity for privacy/security
+        request_context.pop("accountId", None)  # Remove accountId for privacy/security
         req_params["query_params"] = query_params
         req_params["path_params"] = path_params
         req_params["request_context"] = request_context
 
-        details["opt_dos_request_params"] = req_params or {}
+        details["request_params"] = req_params or {}
 
-        details["opt_dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
+        details["dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
 
-        details["opt_dos_lambda_version"] = (
+        details["lambda_version"] = (
             os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
         )
 
