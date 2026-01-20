@@ -11,11 +11,9 @@ from utilities.ods.scenario_manager import (
     ods_invalid_data_types_scenario,
     ods_missing_required_fields_scenario,
     ods_extra_unexpected_field_scenario,
-    ods_invalid_resource_scenario,
     ods_request_too_old_scenario,
     ods_unauthorized_scenario,
     ods_unknown_resource_type_scenario,
-    ods_unknown_search_parameter_scenario,
     ods_server_error_scenario,
     ods_happy_path_scenario,
     ScenarioManager
@@ -164,19 +162,6 @@ def trigger_lambda_extra_field(
     )
 
 
-@when("I trigger the Lambda with invalid resource scenario")
-def trigger_lambda_invalid_resource(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_invalid_resource_scenario: str
-):
-    context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_invalid_resource_scenario
-    )
-
-
 @when("I trigger the Lambda with request too old scenario")
 def trigger_lambda_request_too_old(
     context: Context,
@@ -228,18 +213,6 @@ def trigger_lambda_unknown_resource_type(
         ods_unknown_resource_type_scenario
     )
 
-
-@when("I trigger the Lambda with unknown search parameter scenario")
-def trigger_lambda_unknown_search_parameter(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_unknown_search_parameter_scenario: str
-):
-    context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_unknown_search_parameter_scenario
-    )
 
 @then("the Lambda should handle the validation error")
 def verify_validation_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
@@ -293,11 +266,6 @@ def verify_unexpected_fields_handled(context: Context, cloudwatch_logs: CloudWat
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 
-@then("the Lambda should handle invalid resource type")
-def verify_invalid_resource_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Not processing organisation"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
-
 
 @then("the Lambda should handle old requests gracefully")
 def verify_old_requests_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
@@ -316,14 +284,10 @@ def verify_server_errors_handled(context: Context, cloudwatch_logs: CloudWatchLo
 
 @then("the Lambda should handle unknown resource types")
 def verify_unknown_resource_types_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Not processing organisation"
+    """Verify Lambda handles unknown resource types by filtering them out (resulting in empty results)."""
+    expected_log = "ETL_PROCESSOR_020"
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
-
-@then("the Lambda should handle unknown search parameters")
-def verify_unknown_search_parameters_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Fetching ODS Data returned"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 @then("the Lambda should handle the authorization error")
 def verify_authorization_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):

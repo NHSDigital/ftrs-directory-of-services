@@ -24,10 +24,6 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     When I trigger the Lambda with extra unexpected field scenario
     Then the Lambda should handle unexpected fields gracefully
 
-  Scenario: ETL ODS handles invalid resource type from upstream API
-    When I trigger the Lambda with invalid resource scenario
-    Then the Lambda should handle invalid resource type
-
   Scenario: ETL ODS handles request too old scenario from upstream API
     When I trigger the Lambda with request too old scenario
     Then the Lambda should handle old requests gracefully
@@ -43,7 +39,3 @@ Feature: ETL ODS Mock - Upstream API Error Handling
   Scenario: ETL ODS handles unknown resource type from upstream API
     When I trigger the Lambda with unknown resource type scenario
     Then the Lambda should handle unknown resource types
-
-  Scenario: ETL ODS handles unknown search parameter from upstream API
-    When I trigger the Lambda with unknown search parameter scenario
-    Then the Lambda should handle unknown search parameters

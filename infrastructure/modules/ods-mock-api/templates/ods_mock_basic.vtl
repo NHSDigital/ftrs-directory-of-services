@@ -289,6 +289,44 @@
       }
     ]
   }
+#elseif($lastUpdated == "2025-12-10")
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-12-10"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "Y01234",
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y01234"
+            }
+          ],
+          "active": "invalid_boolean_value",
+          "name": 12345,
+          "telecom": "invalid_array_as_string"
+        }
+      }
+    ]
+  }
 #elseif($lastUpdated == "2025-12-11")
   {
     "resourceType": "Bundle",
@@ -504,44 +542,7 @@
       }
     ]
   }
-#elseif($lastUpdated == "2025-12-10")
-  {
-    "resourceType": "Bundle",
-    "id": "befa3684-518d-4e67-a83e-978db11a539f",
-    "meta": {
-      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
-    },
-    "type": "searchset",
-    "link": [
-      {
-        "relation": "self",
-        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-12-10"
-      }
-    ],
-    "entry": [
-      {
-        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
-        "resource": {
-          "resourceType": "Location",
-          "id": "Y01234",
-          "meta": {
-            "versionId": "5",
-            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
-            "source": "#d1490690d38fb53b"
-          },
-          "identifier": [
-            {
-              "use": "official",
-              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-              "value": "Y01234"
-            }
-          ],
-          "active": true,
-          "name": "TEST LOCATION CENTRE"
-        }
-      }
-    ]
-  }
+
 #elseif($lastUpdated == "2025-12-12")
   {
     "resourceType": "Bundle",
@@ -730,6 +731,44 @@
           "unexpected": "value",
           "active": true,
           "name": "TEST PRACTICE WITH EXTRA FIELDS"
+        }
+      }
+    ]
+  }
+
+#elseif($lastUpdated == "2025-12-17")
+  {
+    "resourceType": "Bundle",
+    "id": "befa3684-518d-4e67-a83e-978db11a539f",
+    "meta": {
+      "lastUpdated": "2025-11-17T18:32:16.814+00:00"
+    },
+    "type": "searchset",
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-12-17"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization/Y01234",
+        "resource": {
+          "resourceType": "Location",
+          "id": "Y01234",
+          "meta": {
+            "versionId": "5",
+            "lastUpdated": "2025-10-01T01:07:17.412+00:00",
+          },
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "Y01234"
+            }
+          ],
+          "status": "active",
+          "name": "TEST UNKNOWN RESOURCE TYPE LOCATION"
         }
       }
     ]

@@ -207,15 +207,13 @@ The ETL mock includes the following test scenarios:
 |----------|-------------|---------|
 | **Happy Path** | Successful API response with valid organization data | Validates normal processing flow |
 | **Empty Payload** | API returns empty results | Tests handling of no data scenarios |
-| **Invalid Data Types** | API returns data with incorrect types | Validates data type validation |
+| **Invalid Data Types** | API returns Organization with wrong data types in required fields | Validates data type validation and error handling |
 | **Missing Required Fields** | API response missing mandatory fields | Tests schema validation |
 | **Extra Unexpected Fields** | API response includes unexpected fields | Tests robustness against API changes |
-| **Invalid Resource Type** | API returns invalid resource types | Validates resource type checking |
 | **Request Too Old** | API indicates request is too old | Tests time-based validation |
 | **Unauthorized** | API returns 401 unauthorized error | Tests authentication handling |
 | **Server Error** | API returns 500 server error | Tests upstream error handling |
-| **Unknown Resource Type** | API returns unknown resource types | Tests unknown data handling |
-| **Unknown Search Parameter** | API doesn't recognize search parameters | Tests parameter validation |
+| **Unknown Resource Type** | API returns Location instead of Organization | Tests filtering of invalid resource types |
 
 Each scenario is designed to test specific error conditions and edge cases that might occur when interacting with the real ODS API.
 
