@@ -1,8 +1,5 @@
 @data-migration
 Feature: Service Transformation with Invalid Address Combinations
-  As a test author
-  I want to execute data migration tests for GP practices with various invalid address combinations
-  So that I can confirm the validation process correctly handles missing or invalid address data
 
   Background:
     Given the test environment is configured

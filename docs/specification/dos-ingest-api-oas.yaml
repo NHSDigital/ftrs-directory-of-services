@@ -136,13 +136,13 @@ paths:
         Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
         ## Request requirements
-        - if the `identifier` query parameter is provided, it must be in the format `odsOrganizationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
+        - if the `identifier` query parameter is provided, it must be in the format `odsOrganisationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
         - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
-        - identifier=odsOrganizationCode|{CODE}
+        - identifier=odsOrganisationCode|{CODE}
 
-        Example: /Organization?identifier=odsOrganizationCode|ABC123
+        Example: /Organization?identifier=odsOrganisationCode|ABC123
         Example (all): /Organization
 
       operationId: searchOrganizations
@@ -179,13 +179,13 @@ paths:
       - in: query
         name: identifier
         description: >
-          ODS code in the format "odsOrganizationCode|{CODE}" (FHIR identifier search).
+          ODS code in the format "odsOrganisationCode|{CODE}" (FHIR identifier search).
           If omitted, all organizations will be returned.
           required: false
         schema:
             type: string
-            pattern: '^odsOrganizationCode\|[A-Za-z0-9]{1,12}$'
-            example: "odsOrganizationCode|ABC123"
+            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{1,12}$'
+            example: "odsOrganisationCode|ABC123"
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
         '200':
@@ -1339,3 +1339,7 @@ x-nhsd-apim:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  ratelimiting:
+    proxy:
+      timeunit: "minute"
+      limit: 300

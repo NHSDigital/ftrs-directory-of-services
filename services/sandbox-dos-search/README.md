@@ -2,7 +2,7 @@
 
 ## Overview
 
-- A lightweight FastAPI app that serves the canned responses defined in `docs/specification/dos-search-sandbox.yaml` for the
+- A lightweight FastAPI app that serves the canned responses defined in `docs/specification/dos-search.yaml` for the
   Organization (FHIR resource) search endpoint.
 - Intended for APIM Sandbox usage to support example requests and responses without backend services.
 
