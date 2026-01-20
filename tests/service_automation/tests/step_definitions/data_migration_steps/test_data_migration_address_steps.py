@@ -53,27 +53,15 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
     dynamodb_resource = dynamodb["resource"]
     table = dynamodb_resource.Table(get_table_name('location'))
 
-
     response = table.get_item(Key={"id": location_uuid, "field": "document"})
     item = response.get("Item")
 
-    if not item:
-        # Fallback: scan to locate item by generated UUID if key structure differs
-        scan = table.scan()
-        for candidate in scan.get("Items", []):
-            if candidate.get("id") == location_uuid:
-                item = candidate
-                break
-
     assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
 
-    address: Dict[str, Any]
-    if "address" in item and isinstance(item["address"], dict):
-        address = item["address"]
-    elif "document" in item and isinstance(item["document"], dict) and "address" in item["document"]:
-        address = item["document"]["address"]
-    else:
-        pytest.fail(f"No address field present for location UUID {location_uuid} (service ID {service_id})")
+    # Extract address from document
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid} (service ID {service_id})"
+    assert "address" in item["document"], f"Location document missing 'address' field for UUID {location_uuid} (service ID {service_id})"
+    address = item["document"]["address"]
 
     # Build expected mapping from datatable (skip header row)
     expected: Dict[str, Any] = {}
@@ -102,3 +90,54 @@ def service_address_should_be(service_id: int, datatable: list[list[str]], dynam
             )
 
 
+@then(parsers.parse("the location for service ID '{service_id:d}' should have no address"))
+def location_should_have_no_address(service_id: int, dynamodb: Dict[str, Any]) -> None:
+    """Verify that the location for a specific service ID has no address (address is None).
+
+    This is used for testing scenarios where address is "Not Available" or invalid,
+    and should result in formatted_address = None.
+    """
+    # Generate the UUID for the location based on the service ID
+    location_uuid = str(generate_uuid(service_id, "location"))
+
+    dynamodb_resource = dynamodb["resource"]
+    table = dynamodb_resource.Table(get_table_name('location'))
+
+    response = table.get_item(Key={"id": location_uuid, "field": "document"})
+    item = response.get("Item")
+
+    assert item is not None, f"Location item with UUID {location_uuid} (generated from service ID {service_id}) not found in 'location' table"
+
+    # Extract address from document
+    assert "document" in item and isinstance(item["document"], dict), f"Location item missing 'document' field for UUID {location_uuid} (service ID {service_id})"
+    address = item["document"].get("address")
+
+    assert address is None, (
+        f"Expected location for service ID {service_id} to have no address (None), "
+        f"but found: {address}"
+    )
+
+
+@then(parsers.parse("the service should have a validation error with code '{error_code}'"))
+def service_should_have_validation_error(error_code: str, migration_context: Dict[str, Any]) -> None:
+    """Verify that a service migration resulted in a validation error with the specified code.
+
+    This checks that the service was not successfully migrated due to validation errors.
+    The error should be captured in the migration result metrics as an invalid record.
+    """
+    result = migration_context.get("result")
+    assert result is not None, "Migration result not found in context"
+
+    metrics = result.metrics
+    assert metrics is not None, "Metrics not found in migration result"
+
+    # Service with validation errors should be marked as invalid
+    assert metrics.invalid_records > 0, (
+        f"Expected service to be marked as invalid, but invalid_records count is {metrics.invalid_records}"
+    )
+
+    # The service should not be migrated
+    assert metrics.migrated_records == 0, (
+        f"Expected service not to be migrated due to validation error '{error_code}', "
+        f"but migrated_records count is {metrics.migrated_records}"
+    )

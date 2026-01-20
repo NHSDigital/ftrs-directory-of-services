@@ -59,6 +59,16 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      download_appconfig_artifact:
+        description: "Download AppConfig feature flags artifact produced upstream"
+        required: false
+        default: false
+        type: boolean
+      appconfig_artifact_name:
+        description: "Artifact name for AppConfig feature flags"
+        required: false
+        default: "appconfig_feature_flags"
+        type: string
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -89,6 +99,13 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
+
+      - name: "Download AppConfig Feature Flags"
+        if: ${{ inputs.download_appconfig_artifact == true }}
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: infrastructure/toggles
 
       - name: "Download Terraform Plan Artifact"
         uses: actions/download-artifact@v7
