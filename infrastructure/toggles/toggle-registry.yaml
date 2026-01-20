@@ -90,7 +90,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/ui
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: false
