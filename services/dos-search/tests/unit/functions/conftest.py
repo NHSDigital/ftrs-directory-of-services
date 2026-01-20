@@ -71,13 +71,13 @@ def log_data():
 @pytest.fixture
 def details(event):
     return {
-        "opt_dos_environment": "Development",
-        "opt_dos_api_version": 1,
-        "opt_dos_lambda_version": "0.0.1",
-        "opt_dos_end_user_role": "Clinician",
-        "opt_dos_application_id": "application_id",
-        "opt_dos_application_name": "dos_unit_tests",
-        "opt_dos_request_params": {
+        "dos_environment": "Development",
+        "dos_search_api_version": 1,
+        "lambda_version": "0.0.1",
+        "connecting_party_end_user_role": "Clinician",
+        "connecting_party_application_id": "application_id",
+        "connecting_party_application_name": "dos_unit_tests",
+        "request_params": {
             "query_params": event.get("queryStringParameters") or {},
             "path_params": event.get("pathParameters") or {},
             "request_context": event.get("requestContext") or {},
