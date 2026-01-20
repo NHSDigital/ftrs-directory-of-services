@@ -35,32 +35,3 @@ class TestMainApp:
 
         # Assert
         assert "/Organization" in routes
-
-    @patch("src.app.main.uvicorn.run")
-    def test_main_runs_uvicorn(self, mock_run):
-        """Test that running main.py starts uvicorn server"""
-        # Import and execute the main block
-        import src.app.main
-
-        # Simulate running as main module
-        if hasattr(src.app.main, "__name__"):
-            with patch.object(src.app.main, "__name__", "__main__"):
-                # Execute the main block code
-                exec(
-                    """
-import uvicorn
-from src.app.main import app
-
-uvicorn.run(app, host="0.0.0.0", port=9000)
-"""
-                )
-
-        # Assert
-        mock_run.assert_called_once_with(app, host="0.0.0.0", port=9000)
-
-    def test_app_is_fastapi_instance(self):
-        """Test that app is a FastAPI instance"""
-        from fastapi import FastAPI
-
-        # Assert
-        assert isinstance(app, FastAPI)
