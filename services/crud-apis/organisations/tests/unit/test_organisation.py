@@ -267,7 +267,7 @@ def test_get_handle_organisation_requests_unhandled_exception(
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
 
 
-def test_update_organisation_success() -> None:
+def test_update_organisation_success(mock_organisation_service: MockerFixture) -> None:
     fhir_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -281,9 +281,35 @@ def test_update_organisation_success() -> None:
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
     }
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    fhir_payload_expect = fhir_payload.copy()
+    fhir_payload_expect["lastUpdatedBy"] = {
+        "type": "app",
+        "value": "test-product-id",
+        "display": "ODS",
+    }
+    fhir_payload_expect["telecom"] = []
+    fhir_payload_expect["identifier"] = [
+        {
+            "id": None,
+            "extension": None,
+            "use": None,
+            "type": None,
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "12345",
+            "period": None,
+            "assigner": None,
+        }
+    ]
+    fhir_payload_expect["extension"] = None
+    response = client.put(
+        f"/Organization/{test_org_id}",
+        json=fhir_payload,
+        headers={"NHSE-Product-ID": "test-product-id"},
+    )
+    mock_organisation_service.process_organisation_update.assert_called_with(
+        organisation_id=test_org_id, fhir_org=fhir_payload_expect
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
     assert response.json()["issue"][0]["severity"] == "information"
