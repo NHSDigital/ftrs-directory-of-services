@@ -125,7 +125,7 @@ Feature: Data Migration for endpoints
       | serviceid            | 10205752     |                                        |
 
     When the data migration process is run for table 'services', ID '10205752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'endpoints' on table 'organisation' for id 'd7976aa8-2da8-5da2-9426-f6f42d0565f2' has content:
       """
@@ -358,6 +358,6 @@ Feature: Data Migration for endpoints
       | iscompressionenabled | uncompressed |                                      |
       | serviceid            | 10305752     |                                      |
     When the data migration process is run for table 'services', ID '10305752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 1 errors
     Then error log containing message: '1 validation error for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created
