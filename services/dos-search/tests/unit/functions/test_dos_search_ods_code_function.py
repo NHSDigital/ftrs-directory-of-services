@@ -76,7 +76,6 @@ class TestLambdaHandler:
             "nhsd-correlation-id",
             "NHSD-Request-ID",
             "nhsd-request-id",
-            "NHSD-Message-Id",
             "version",
             "end-user-role",
             "application-id",
@@ -182,10 +181,8 @@ class TestLambdaHandler:
                 call.get_response_size_and_duration(bundle, ANY),
                 call.info(
                     "Successfully processed: Logging response time & size",
-                    opt_ftrs_response_time=ANY,
-                    opt_ftrs_response_size=len(
-                        bundle.model_dump_json().encode("utf-8")
-                    ),
+                    dos_response_time=ANY,
+                    dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
                     dos_message_category="METRICS",
                 ),
                 call.info(
@@ -235,8 +232,8 @@ class TestLambdaHandler:
                 call.warning(
                     "Validation error occurred: Logging response time & size",
                     validation_errors=validation_error.errors(),
-                    opt_ftrs_response_time="1ms",
-                    opt_ftrs_response_size=response_size,
+                    dos_response_time="1ms",
+                    dos_response_size=response_size,
                 ),
                 call.info(
                     "Creating response",
@@ -287,10 +284,8 @@ class TestLambdaHandler:
                 ),
                 call.exception(
                     "Internal server error occurred: Logging response time & size",
-                    opt_ftrs_response_time="1ms",
-                    opt_ftrs_response_size=len(
-                        bundle.model_dump_json().encode("utf-8")
-                    ),
+                    dos_response_time="1ms",
+                    dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
                 ),
                 call.info(
                     "Creating response",

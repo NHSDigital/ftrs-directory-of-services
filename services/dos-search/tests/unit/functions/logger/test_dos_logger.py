@@ -120,14 +120,14 @@ class TestDosLogger:
         )  # Remove env_vars populated by autouse fixture setup_env_vars
         os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
 
-        placeholder_details["opt_dos_api_version"] = placeholder
-        placeholder_details["opt_dos_end_user_role"] = placeholder
-        placeholder_details["opt_dos_application_id"] = placeholder
-        placeholder_details["opt_dos_application_name"] = placeholder
-        for key in placeholder_details["opt_dos_request_params"]:
-            placeholder_details["opt_dos_request_params"][key] = {}
-        placeholder_details["opt_dos_environment"] = placeholder
-        placeholder_details["opt_dos_lambda_version"] = placeholder
+        placeholder_details["dos_search_api_version"] = placeholder
+        placeholder_details["connecting_party_end_user_role"] = placeholder
+        placeholder_details["connecting_party_application_id"] = placeholder
+        placeholder_details["connecting_party_application_name"] = placeholder
+        for key in placeholder_details["request_params"]:
+            placeholder_details["request_params"][key] = {}
+        placeholder_details["dos_environment"] = placeholder
+        placeholder_details["lambda_version"] = placeholder
 
         # Act
         result = dos_logger.extract_one_time(modified_event)
@@ -414,8 +414,8 @@ class TestDosLogger:
             "Failed to calculate response size",
             extra={
                 "detail": {
-                    "opt_ftrs_response_time": f"{duration_ms}ms",
-                    "opt_ftrs_response_size": 0,
+                    "dos_response_time": f"{duration_ms}ms",
+                    "dos_response_size": 0,
                 }
             },
         )

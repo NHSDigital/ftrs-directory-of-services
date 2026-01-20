@@ -29,6 +29,7 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Access-Control-Allow-Headers": (
         "Authorization, Content-Type, NHSD-Correlation-ID, NHSD-Request-ID, X-Correlation-ID, X-Request-ID, "
         "Version, End-User-Role, Application-ID, Application-Name, "
+        "Request-Start-Time, "
         "Accept, Accept-Encoding, Accept-Language, "
         "User-Agent, Host, X-Amzn-Trace-Id, X-Forwarded-For, X-Forwarded-Port, "
         "X-Forwarded-Proto"

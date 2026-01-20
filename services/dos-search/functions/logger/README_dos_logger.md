@@ -69,15 +69,15 @@ These fields are extracted from API Gateway Event via the `extract` method and/o
 
 These optional fields are extracted from the API Gateway Event and/or Lambda Execution context via the `extract_one_time` method, and logged once when the `init` method is called:
 
-| Field                      | Source                                  | Placeholder           |
-| -------------------------- | --------------------------------------- | --------------------- |
-| `opt_dos_api_version`      | `NHSD-Api-Version` header               | `Value not found. Please check if this value was provided in the request.` |
-| `opt_dos_end_user_role`    | `NHSD-End-User-Role` header             | `Value not found. Please check if this value was provided in the request.` |
-| `opt_dos_client_id`        | `NHSD-Client-Id` header                 | `Value not found. Please check if this value was provided in the request.` |
-| `opt_dos_application_name` | `NHSD-Connecting-Party-App-Name` header | `Value not found. Please check if this value was provided in the request.` |
-| `opt_dos_request_params`   | Query, path, and request context        | `{}`                  |
-| `opt_dos_environment`      | `ENVIRONMENT` environment var                   | `Value not found. Please check if this value was provided in the request.` |
-| `opt_dos_lambda_version`   | `AWS_LAMBDA_FUNCTION_VERSION` environment var   | `Value not found. Please check if this value was provided in the request.` |
+| Field                               | Source                                  | Placeholder           |
+| --------------------------          | --------------------------------------- | --------------------- |
+| `dos_search_api_version`            | `Version` header                        | `Value not found. Please check if this value was provided in the request.` |
+| `connecting_party_end_user_role`    | `End-User-Role` header                  | `Value not found. Please check if this value was provided in the request.` |
+| `connecting_party_application_id`   | `Application-Id` header                 | `Value not found. Please check if this value was provided in the request.` |
+| `connecting_party_application_name` | `Application-Name` header | `Value not found. Please check if this value was provided in the request.` |
+| `request_params`                    | Query, path, and request context        | `{}`                  |
+| `dos_environment`                   | `ENVIRONMENT` environment var                   | `Value not found. Please check if this value was provided in the request.` |
+| `lambda_version`                    | `AWS_LAMBDA_FUNCTION_VERSION` environment var   | `Value not found. Please check if this value was provided in the request.` |
 
 ### Custom Message Categories
 
@@ -157,8 +157,8 @@ def get_organization() -> Response:
         response_size = len(fhir_resource.model_dump_json().encode("utf-8"))
         dos_logger.info(
             "Successfully processed",
-            opt_ftrs_response_time=f"{duration_ms}ms",
-            opt_ftrs_response_size=response_size,
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
             dos_message_category="METRICS",
         )
         return create_response(200, fhir_resource)
