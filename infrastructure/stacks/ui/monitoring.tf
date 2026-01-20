@@ -24,7 +24,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_5xx_errors" {
 resource "aws_route53_health_check" "cloudfront_5xx_errors" {
   count                   = local.stack_enabled
   type                    = "CLOUDWATCH_METRIC"
-  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_5xx_errors.alarm_name
+  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_5xx_errors[0].alarm_name
   cloudwatch_alarm_region = var.aws_region_us_east_1
 
   insufficient_data_health_status = "Healthy"
@@ -61,7 +61,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_latency" {
 resource "aws_route53_health_check" "cloudfront_latency" {
   count                   = local.stack_enabled
   type                    = "CLOUDWATCH_METRIC"
-  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_latency.alarm_name
+  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_latency[0].alarm_name
   cloudwatch_alarm_region = var.aws_region_us_east_1
 
   insufficient_data_health_status = "Healthy"
@@ -98,7 +98,7 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_4xx_errors" {
 resource "aws_route53_health_check" "cloudfront_4xx_errors" {
   count                   = local.stack_enabled
   type                    = "CLOUDWATCH_METRIC"
-  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_4xx_errors.alarm_name
+  cloudwatch_alarm_name   = aws_cloudwatch_metric_alarm.cloudfront_4xx_errors[0].alarm_name
   cloudwatch_alarm_region = var.aws_region_us_east_1
 
   insufficient_data_health_status = "Healthy"
@@ -114,9 +114,9 @@ resource "aws_route53_health_check" "calculated_health_check" {
   type                   = "CALCULATED"
   child_health_threshold = 2
   child_healthchecks = [
-    aws_route53_health_check.cloudfront_5xx_errors.id,
-    aws_route53_health_check.cloudfront_latency.id,
-    aws_route53_health_check.cloudfront_4xx_errors.id
+    aws_route53_health_check.cloudfront_5xx_errors[0].id,
+    aws_route53_health_check.cloudfront_latency[0].id,
+    aws_route53_health_check.cloudfront_4xx_errors[0].id
   ]
 
   tags = {

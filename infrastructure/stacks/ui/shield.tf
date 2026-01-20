@@ -7,7 +7,7 @@ module "shield_protection" {
   }
 
   arn_to_protect                     = module.ui_cloudfront[0].cloudfront_distribution_arn
-  health_check_association_arn       = aws_route53_health_check.calculated_health_check.arn
+  health_check_association_arn       = aws_route53_health_check.calculated_health_check[0].arn
   resource_name                      = "cloudfront"
   resource_prefix                    = local.resource_prefix
   alarm_notification_email           = var.alarm_notification_email

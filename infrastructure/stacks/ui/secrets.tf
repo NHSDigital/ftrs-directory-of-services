@@ -17,6 +17,6 @@ resource "random_password" "session_secret" {
 
 resource "aws_secretsmanager_secret_version" "session_secret" {
   count         = local.stack_enabled
-  secret_id     = aws_secretsmanager_secret.session_secret.id
-  secret_string = random_password.session_secret.result
+  secret_id     = aws_secretsmanager_secret.session_secret[0].id
+  secret_string = random_password.session_secret[0].result
 }
