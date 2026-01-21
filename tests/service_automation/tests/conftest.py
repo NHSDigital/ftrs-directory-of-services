@@ -19,10 +19,11 @@ from utilities.common.file_helper import delete_download_files
 from utilities.infra.api_util import get_url
 from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
 from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.infra.lambda_util import LambdaWrapper
 import json
 from utilities.common.context import Context
 
-pytest_plugins = ["data_migration_fixtures"]
+pytest_plugins = ["data_migration_fixtures", "fixtures.ods_fixtures"]
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -45,6 +46,14 @@ def setup_logging():
     logger.info("Starting test session...")
     yield
     logger.info("Test session completed.")
+
+
+@pytest.fixture(scope="session")
+def aws_lambda_client() -> LambdaWrapper:
+    """Create a Lambda client wrapper for test automation."""
+    iam_resource = boto3.resource("iam")
+    lambda_client = boto3.client("lambda")
+    return LambdaWrapper(lambda_client, iam_resource)
 
 
 @pytest.fixture(scope="session")
@@ -347,16 +356,6 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
         return cast(Callable, marked)
     except (SyntaxError, AttributeError, ValueError):
         return None
-
-
-@pytest.fixture(scope="function")
-def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
-    context = {
-        "db_session": dos_db_with_migration,
-        "test_data": {},  # Store any test data created during scenarios
-        "results": {},  # Store query results or other test outcomes
-    }
-    return context
 
 
 @pytest.fixture(scope="function")

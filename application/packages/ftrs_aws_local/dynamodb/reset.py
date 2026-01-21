@@ -5,7 +5,6 @@ import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
-from ftrs_data_layer.domain.data_migration_state import DataMigrationState
 from ftrs_data_layer.domain.triage_code import TriageCode
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import (
@@ -55,8 +54,8 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return Location
         case ClearableEntityTypes.triage_code:
             return TriageCode
-        case ClearableEntityTypes.state:
-            return DataMigrationState
+        # case ClearableEntityTypes.state:
+        # return DataMigrationState
         case _:
             reset_logger.log(
                 DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
