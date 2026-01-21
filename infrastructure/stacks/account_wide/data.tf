@@ -33,7 +33,8 @@ data "aws_ami" "al2023" {
   }
 }
 
-data "aws_subnet" "vpc_private_subnets" {
-  for_each = toset(module.vpc.private_subnets)
-  id       = each.value
+# Use count-based approach to avoid computed value issues
+data "aws_subnet" "vpc_private_subnets_by_count" {
+  count = length(module.vpc.private_subnets)
+  id    = module.vpc.private_subnets[count.index]
 }
