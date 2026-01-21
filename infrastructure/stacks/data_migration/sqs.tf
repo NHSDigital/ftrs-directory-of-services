@@ -4,7 +4,8 @@ resource "aws_sqs_queue" "dms_event_queue" {
     deadLetterTargetArn = aws_sqs_queue.dms_event_queue_dlq.arn
     maxReceiveCount     = 5
   })
-  kms_master_key_id = data.aws_kms_key.sqs_kms_alias.arn
+  kms_master_key_id          = data.aws_kms_key.sqs_kms_alias.arn
+  visibility_timeout_seconds = var.dms_event_queue_visibility_timeout_seconds
 }
 
 resource "aws_sqs_queue" "dms_event_queue_dlq" {
