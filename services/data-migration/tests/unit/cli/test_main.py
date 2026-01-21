@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 from pydantic import SecretStr
 from pytest_mock import MockerFixture
 from typer import Typer
@@ -6,7 +10,11 @@ from typer.testing import CliRunner
 from cli.main import typer_app
 from common.config import DatabaseConfig
 from queue_populator.config import QueuePopulatorConfig
+<<<<<<< HEAD
 from service_migration.config import ServiceMigrationConfig
+=======
+from service_migration.config import DataMigrationConfig
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 runner = CliRunner()
 
@@ -60,6 +68,7 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
 
     call_args = mock_app.return_value.handle_sqs_event.call_args[0][0]
 
+<<<<<<< HEAD
     assert call_args == {
         "Records": [
             {
@@ -67,6 +76,15 @@ def test_local_handler_single_sync(mocker: MockerFixture) -> None:
                 "messageId": "service-12345",
             },
         ],
+=======
+    assert call_args.message_id == "service-12345"
+    assert call_args.json_body == {
+        "method": "insert",
+        "record_id": 12345,
+        "service_id": 12345,
+        "table_name": "services",
+        "type": "dms_event",
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     }
 
 

@@ -346,3 +346,16 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
         return cast(Callable, marked)
     except (SyntaxError, AttributeError, ValueError):
         return None
+<<<<<<< HEAD
+=======
+
+
+@pytest.fixture(scope="function")
+def regular_context(dos_db: Session) -> Dict[str, Any]:
+    context = {
+        "db_session": dos_db,
+        "test_data": {},
+        "results": {},
+    }
+    return context
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))

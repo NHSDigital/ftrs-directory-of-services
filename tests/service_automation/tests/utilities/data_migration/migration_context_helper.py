@@ -1,10 +1,10 @@
 """Helper utilities for working with migration test context."""
+
 import os
 from typing import Any, Dict, Optional, Tuple
 
 from utilities.common.constants import (
     ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
     ENV_WORKSPACE,
     EXPECTED_DYNAMODB_RESOURCES,
 )
@@ -97,11 +97,15 @@ def store_sqs_result(
 
 def get_expected_dynamodb_table_names() -> list[str]:
     """Get expected DynamoDB table names based on environment configuration."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
     environment = os.getenv(ENV_ENVIRONMENT)
     workspace = os.getenv(ENV_WORKSPACE)
 
     return [
+<<<<<<< HEAD:tests/service_automation/tests/utilities/common/data_migration/migration_context_helper.py
         f"{project_name}-{environment}-database-{resource}-{workspace}"
         for resource in EXPECTED_DYNAMODB_RESOURCES
+=======
+        f"ftrs-dos-{environment}-{stack}-{resource}-{workspace}"
+        for stack, resource in EXPECTED_DYNAMODB_RESOURCES
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682)):tests/service_automation/tests/utilities/data_migration/migration_context_helper.py
     ]

@@ -27,7 +27,11 @@ Feature: Service Transformation with Invalid Address Combinations
       | email               | england.contactus@nhs.net |
       | publicphone         | 0300 311 22 33            |
     When a single service migration is run for ID '<service_id>'
+<<<<<<< HEAD
     Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped, 0 invalid and <expected_errors> errored
+=======
+    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped and <expected_errors> errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
     Examples: Valid Address Combinations (Should Migrate)
       | service_id | uid    | service_name              | ods_code | public_name                | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_invalid | expected_errors |

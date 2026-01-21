@@ -79,7 +79,12 @@ def test_transform(
     mock_legacy_service.statusid = 1  # Active status
 
     # When creating the transformer in the test:
+<<<<<<< HEAD
     transformer = GPPracticeTransformer(mock_dependencies)
+=======
+    transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
     validation_result = transformer.validator.validate(mock_legacy_service)
     result = transformer.transform(validation_result.sanitised)
@@ -96,4 +101,23 @@ def test_transform(
         result.healthcare_service.type == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )
 
+<<<<<<< HEAD
     assert result.validation_issues == validation_result.issues
+=======
+
+def test_transform_with_empty_publicname(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    with pytest.raises(ValueError, match="publicname is not set"):
+        """
+        Test that transform method raises and exception when it transforms a GP practice service without a publicname.
+        """
+        mock_legacy_service.name = "GP - Text Not Removed"  # GP Name
+        mock_legacy_service.publicname = None
+        mock_legacy_service.typeid = 100  # GP Practice type ID
+        mock_legacy_service.odscode = "A12345"  # Valid ODS code
+        mock_legacy_service.statusid = 1  # Active status
+        transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+        transformer.transform(mock_legacy_service)
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))

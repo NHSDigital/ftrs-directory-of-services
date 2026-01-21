@@ -1,5 +1,3 @@
-from typing import List
-
 ODS_TERMINOLOGY_INT_API_URL = (
     "https://int.api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization"
 )
@@ -54,26 +52,28 @@ DYNAMODB_ENDPOINT = "endpoint_url"
 ENV_PROJECT_NAME = "PROJECT_NAME"
 ENV_ENVIRONMENT = "ENVIRONMENT"
 ENV_WORKSPACE = "WORKSPACE"
-ENV_SOURCE_DB_HOST = "SOURCE_DB_HOST"
-ENV_SOURCE_DB_PORT = "SOURCE_DB_PORT"
-ENV_SOURCE_DB_NAME = "SOURCE_DB_NAME"
-ENV_SOURCE_DB_USER = "SOURCE_DB_USER"
-ENV_SOURCE_DB_PASSWORD = "SOURCE_DB_PASSWORD"
-ENV_ENVIRONMENT = "ENVIRONMENT"
-ENV_WORKSPACE = "WORKSPACE"
 
 # Database Configuration
 PATHWAYSDOS_SCHEMA = "pathwaysdos"
 SERVICES_TABLE = f"{PATHWAYSDOS_SCHEMA}.services"
+SERVICETYPES_TABLE = f"{PATHWAYSDOS_SCHEMA}.servicetypes"
 
 # Validation
-REQUIRED_SERVICE_FIELDS: List[str] = ["id", "typeid", "statusid"]
+REQUIRED_SERVICE_FIELDS: list[str] = ["id", "typeid", "statusid"]
 
 # DynamoDB Resources
+<<<<<<< HEAD
 EXPECTED_DYNAMODB_RESOURCES: List[str] = [
     "organisation",
     "location",
     "healthcare-service",
+=======
+EXPECTED_DYNAMODB_RESOURCES: list[tuple[str, str]] = [
+    ("database", "organisation"),
+    ("database", "location"),
+    ("database", "healthcare-service"),
+    ("data-migration", "state"),
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 ]
 S3_DEV_MIGRATION_STORE_BUCKET = "ftrs-dos-dev-data-migration-pipeline-store"
 S3_INTEGRATION_TEST_DATA_PATH = "test-data/integration-tests/"

@@ -1,4 +1,14 @@
 """Pytest fixtures for data migration testing."""
+<<<<<<< HEAD
+=======
+
+import os
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Any, Dict, Generator
+from urllib.parse import urlparse
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 import os
 from typing import Any, Dict, Generator
@@ -10,10 +20,12 @@ from sqlalchemy import text
 from sqlalchemy import create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
+from utilities.data_migration.dos_db_utils import get_test_data_script
 
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+<<<<<<< HEAD
 from utilities.common.constants import (
     ENV_ENVIRONMENT,
     ENV_WORKSPACE,
@@ -30,6 +42,11 @@ def boto3_session() -> Generator[boto3.Session, None, None]:
     """Boto3 session for testing."""
     session = boto3.Session()
     yield session
+=======
+from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
+from utilities.common.dynamoDB_tables import get_dynamodb_tables
+from utilities.data_migration.migration_helper import MigrationHelper
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 
 @pytest.fixture(scope="session")
@@ -46,6 +63,7 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
         yield localstack
 
 
+<<<<<<< HEAD
 @pytest.fixture(scope="session")
 def dynamodb_client(localstack_container: LocalStackContainer) -> DynamoDBClient:
     """Boto3 DynamoDB client for testing."""
@@ -79,6 +97,9 @@ def dynamodb_resource(
 
 
 def _create_dynamodb_tables(dynamodb_client: DynamoDBClient) -> None:
+=======
+def _create_dynamodb_tables(client: Any) -> None:
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     """
     Create DynamoDB tables for testing using environment-based configuration.
 
@@ -132,6 +153,7 @@ def _cleanup_dynamodb_tables(client: DynamoDBClient) -> None:
         logger.error(f"DynamoDB cleanup failed: {e}")
 
 
+<<<<<<< HEAD
 def _get_s3_sql_file(boto3_session: boto3.Session, file_name: str) -> str:
     """
     Get the full path to a test SQL file stored in S3.
@@ -156,12 +178,21 @@ def dos_sql_statements(boto3_session: boto3.Session) -> list[str]:
     clinical = _get_s3_sql_file(boto3_session, "clinical.sql")
 
     return [schema, metadata, clinical]
+=======
+@pytest.fixture(scope="session")
+def dos_db_setup_scripts() -> list[str]:
+    schema_sql = get_test_data_script("schema.sql")
+    metadata_sql = get_test_data_script("metadata.sql")
+    clinical_sql = get_test_data_script("clinical.sql")
+    return [schema_sql, metadata_sql, clinical_sql]
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 
 @pytest.fixture(name="dos_db", scope="function")
 def fixture_dos_db(
     dos_sql_statements: list[str],
     postgres_container: PostgresContainer,
+<<<<<<< HEAD
 ) -> Generator[Session, None, None]:
     """
     DoS database fixture for BDD tests with clean schema for each test.
@@ -189,6 +220,10 @@ def _execute_sql_statement(
     db_session: Session,
     sql_statement: str,
 ) -> None:
+=======
+    dos_db_setup_scripts: list[str],
+) -> Generator[Session, None, None]:
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     """
     Execute a SQL statement using the provided database session.
 
@@ -199,6 +234,7 @@ def _execute_sql_statement(
     db_session.execute(text(sql_statement))
     db_session.commit()
 
+<<<<<<< HEAD
 
 def _cleanup_pathwaysdos_schema(db_session: Session) -> None:
     """
@@ -206,6 +242,27 @@ def _cleanup_pathwaysdos_schema(db_session: Session) -> None:
     """
     db_session.execute(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
     db_session.commit()
+=======
+    try:
+        logger.debug("Initializing database with migrated data")
+
+        session = Session(engine)
+
+        for script in dos_db_setup_scripts:
+            session.exec(text(script))
+        session.commit()
+
+        yield session
+
+        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
+        session.commit()
+
+    finally:
+        if "session" in locals():
+            session.close()
+
+        engine.dispose()
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 
 @pytest.fixture(name="dynamodb", scope="function")
@@ -327,7 +384,12 @@ def migration_context(dos_db: Session) -> Dict[str, Any]:
         sqs_service_ids (list[int]): Service IDs extracted from SQS event
         sqs_service_id (int|None): Primary service ID from SQS event
         mock_logger (MockLogger|None): MockLogger instance with captured logs
+<<<<<<< HEAD
         db_session (Session): Active database session for DoS
+=======
+        migration_state (dict|None): State record from DynamoDB state table
+        db_session (Session): Active database session
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
     Args:
         dos_db: DoS database session fixture
@@ -344,6 +406,11 @@ def migration_context(dos_db: Session) -> Dict[str, Any]:
         "sqs_service_ids": [],
         "sqs_service_id": None,
         "mock_logger": None,
+<<<<<<< HEAD
         "db_session": dos_db,
         "state": None,
+=======
+        "migration_state": None,
+        "db_session": dos_db,
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     }

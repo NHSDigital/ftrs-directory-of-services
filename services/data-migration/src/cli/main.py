@@ -10,10 +10,15 @@ from queue_populator.config import QueuePopulatorConfig
 from queue_populator.lambda_handler import populate_sqs_queue
 from seeding.export_to_s3 import run_s3_export
 from seeding.restore import run_s3_restore
+<<<<<<< HEAD
 from service_migration.application import DMSEvent, ServiceMigrationApplication
 from service_migration.config import (
     ServiceMigrationConfig,
 )
+=======
+from service_migration.application import DataMigrationApplication, DMSEvent
+from service_migration.config import DataMigrationConfig
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 CONSOLE = rich.get_console()
 
@@ -62,6 +67,7 @@ def migrate_handler(  # noqa: PLR0913
         ),
     )
 
+<<<<<<< HEAD
     dms_event = DMSEvent(
         record_id=int(service_id),
         service_id=int(service_id),
@@ -78,6 +84,25 @@ def migrate_handler(  # noqa: PLR0913
         ]
     }
     app.handle_sqs_event(sqs_event, context={})
+=======
+    if service_id:
+        event = DMSEvent(
+            type="dms_event",
+            record_id=int(service_id),
+            service_id=int(service_id),
+            method="insert",
+            table_name="services",
+        )
+        record = SQSRecord(
+            data={
+                "messageId": f"service-{service_id}",
+                "body": event.model_dump_json(),
+            }
+        )
+        app.handle_sqs_record(record)
+    else:
+        app.handle_full_sync_event()
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
 
 @typer_app.command("populate-queue")

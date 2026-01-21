@@ -100,9 +100,14 @@ Feature: Data Migration
       | endtime             | 23:59:00 | all day? |
       | servicedayopeningid | 3000003  |          |
 
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '10615752' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '10615752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id 'e494ad1a-d8b5-5734-b46a-85cba1a28c24' has content:
       """
@@ -284,9 +289,14 @@ Feature: Data Migration
       | servicespecifiedopeningdateid | 9000002  |
 
 
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '10625752' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '10625752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id 'fd7d4681-abde-5de6-8742-375a4e2eea00' has content:
       """
@@ -392,9 +402,14 @@ Feature: Data Migration
       | id        | 3000100  |         |
       | serviceid | 10695752 |         |
       | dayid     | 1        |         |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '10695752' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '10695752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'openingTime' on table 'healthcare-service' for id '8bfe926e-f3fb-5d4a-800a-d8bb96c67bd9' has content:
       """

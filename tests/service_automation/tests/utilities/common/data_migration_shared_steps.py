@@ -8,7 +8,7 @@ from loguru import logger
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from tests.service_automation.tests.utilities.common.data_migration.migration_context_helper import (
+from tests.service_automation.tests.utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
@@ -18,19 +18,27 @@ from tests.service_automation.tests.utilities.common.data_migration.migration_co
 from utilities.common.constants import (
     DYNAMODB_CLIENT,
     ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
     ENV_WORKSPACE,
     SERVICES_TABLE,
 )
+<<<<<<< HEAD
 from utilities.common.data_migration.migration_helper import MigrationHelper
 from utilities.common.data_migration.migration_metrics_helper import (
     verify_all_metrics,
 )
 from service_migration.models import ServiceMigrationMetrics
 from utilities.common.data_migration.migration_service_helper import (
+=======
+from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.migration_metrics_helper import (
+    ExpectedMetrics,
+    verify_all_metrics,
+)
+from utilities.data_migration.migration_service_helper import (
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import build_sqs_event
+from utilities.data_migration.sqs_helper import build_sqs_event
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_migration_completed_log,
@@ -69,11 +77,15 @@ def run_test_environment_configured(
     logger.info("Environment configuration verified")
 
 
-def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def run_dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
+<<<<<<< HEAD
     result = dos_db_with_migration.execute(
         text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}")
     )
+=======
+    result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
     logger.info(f"DoS database ready with {count} services")
@@ -91,14 +103,13 @@ def run_dynamodb_tables_ready(dynamodb: DynamoDBFixture) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
         environment = os.getenv(ENV_ENVIRONMENT)
         workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+            f"Expected pattern: ftrs-dos-{environment}-database-{{resource}}-{workspace}"
         )
 
     logger.info("All required DynamoDB tables are ready")
@@ -180,7 +191,16 @@ def run_sqs_event_migration_with_params(
         "SQS event migration completed",
         extra={
             "success": result.success,
+<<<<<<< HEAD
             "migrated_records": (result.metrics.inserted if result.metrics else 0),
+=======
+            "inserted_records": (
+                result.metrics.inserted_records if result.metrics else 0
+            ),
+            "updated_records": (
+                result.metrics.updated_records if result.metrics else 0
+            ),
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
             "table_name": table_name,
             "record_id": record_id,
             "method": method,

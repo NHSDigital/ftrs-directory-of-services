@@ -1,6 +1,7 @@
 @data-migration
 Feature: Data Migration
 
+<<<<<<< HEAD
   Scenario: Multiple consecutive date ranges are transformed
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                       |
@@ -78,6 +79,89 @@ Feature: Data Migration
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
+=======
+  Background:
+    Given the test environment is configured
+    And the DoS database has test data
+    And DynamoDB tables are ready
+
+  Scenario: Multiple consecutive date ranges are transformed
+    Given a "Service" exists in DoS with attributes
+      | key                                 | value                                                       |
+      | id                                  | 1001533                                                     |
+      | uid                                 | 113474                                                      |
+      | name                                | GP: Redlam Surgery - Blackburn                              |
+      | odscode                             | P81061                                                      |
+      | isnational                          |                                                             |
+      | openallhours                        | false                                                       |
+      | publicreferralinstructions          |                                                             |
+      | telephonetriagereferralinstructions | STUB Telephone Triage Referral Instructions Text Field 1533 |
+      | restricttoreferrals                 | true                                                        |
+      | address                             | Redlam Surgery$62-64 Redlam$Blackburn$Lancashire            |
+      | town                                | BLACKBURN                                                   |
+      | postcode                            | BB2 1UW                                                     |
+      | easting                             | 366856                                                      |
+      | northing                            | 427476                                                      |
+      | publicphone                         | 01254260051                                                 |
+      | nonpublicphone                      |                                                             |
+      | fax                                 | 00000 666666                                                |
+      | email                               | 1533-fake@nhs.gov.uk                                        |
+      | web                                 | https://www.redlamsurgery.co.uk/                            |
+      | createdby                           | HUMAN                                                       |
+      | createdtime                         | 2011-06-17 09:19:36.000                                     |
+      | modifiedby                          | ROBOT                                                       |
+      | modifiedtime                        | 2025-02-11 16:32:18.000                                     |
+      | lasttemplatename                    | BwD GP Update 08 01 25                                      |
+      | lasttemplateid                      | 245697                                                      |
+      | typeid                              | 100                                                         |
+      | parentid                            | 1527                                                        |
+      | subregionid                         | 1527                                                        |
+      | statusid                            | 1                                                           |
+      | organisationid                      |                                                             |
+      | returnifopenminutes                 |                                                             |
+      | publicname                          | Redlam Surgery - Blackburn                                  |
+      | latitude                            | 53.7426167                                                  |
+      | longitude                           | -2.5039993                                                  |
+      | professionalreferralinfo            |                                                             |
+      | lastverified                        |                                                             |
+      | nextverificationdue                 |                                                             |
+
+    Given a "ServiceAgeRange" exists in DoS with attributes
+      | key       | value   |
+      | id        | 1007338 |
+      | daysfrom  | 5844.0  |
+      | daysto    | 47481.5 |
+      | serviceid | 1001533 |
+    Given a "ServiceAgeRange" exists in DoS with attributes
+      | key       | value    |
+      | id        | 1007339  |
+      | daysfrom  | 23741.25 |
+      | daysto    | 47481.5  |
+      | serviceid | 1001533  |
+    Given a "ServiceAgeRange" exists in DoS with attributes
+      | key       | value   |
+      | id        | 1007340 |
+      | daysfrom  | 365.25  |
+      | daysto    | 1825.25 |
+      | serviceid | 1001533 |
+    Given a "ServiceAgeRange" exists in DoS with attributes
+      | key       | value   |
+      | id        | 1007341 |
+      | daysfrom  | 1826.25 |
+      | daysto    | 5843.0  |
+      | serviceid | 1001533 |
+    Given a "ServiceAgeRange" exists in DoS with attributes
+      | key       | value   |
+      | id        | 1007342 |
+      | daysfrom  | 0.0     |
+      | daysto    | 364.25  |
+      | serviceid | 1001533 |
+
+    When the data migration process is run for table 'services', ID '1001533' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then there is 1 organisation, 1 location and 1 healthcare services created
+
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then the 'healthcare-service' for service ID '1001533' has content:
       """
       {
@@ -180,9 +264,14 @@ Feature: Data Migration
       | daysto    | 364.25  |
       | serviceid | 2001533 |
 
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '2001533' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '2001533' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '2001533' has content:
@@ -281,9 +370,14 @@ Feature: Data Migration
       | daysto    | 37481.5 |
       | serviceid | 3001533 |
 
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '3001533' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '3001533' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then the 'healthcare-service' for service ID '3001533' has content:
       """
@@ -386,9 +480,14 @@ Feature: Data Migration
       | daysto    | 364.25  |
       | serviceid | 4001533 |
 
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '4001533' and method 'insert'
     Then the service migration process completes successfully
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '4001533' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     Then there is 1 organisation, 1 location and 1 healthcare services created
 
     Then the 'healthcare-service' for service ID '4001533' has content:

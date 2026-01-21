@@ -24,17 +24,29 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                |
       | openallhours        | false                   |
       | restricttoreferrals | false                   |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '<service_id>' and method 'insert'
     Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, 0 inserted, 0 updated, 0 skipped, <expected_invalid> invalid and <expected_errors> errored
+=======
+    When the data migration process is run for table 'services', ID '<service_id>' and method 'insert'
+    Then the SQS event metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, 0 inserted, 0 updated, 0 skipped and <expected_errors> errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     And no organisation was created for service '<service_id>'
     And no location was created for service '<service_id>'
     And no healthcare service was created for service '<service_id>'
 
     Examples:
+<<<<<<< HEAD
       | service_id | uid    | service_name          | name                   | public_name  | ods_code | expected_supported | expected_unsupported | expected_transformed | expected_invalid | expected_errors |
       | 400001     | 400001 | MissingPublicName     | GP: Missing PublicName |              | Y12345   | 1                  | 0                    | 0                    | 1                | 0               |
       | 400002     | 400002 | MissingODSCode        | GP: Missing ODS Code   | Test Surgery |          | 0                  | 1                    | 0                    | 0                | 0               |
       | 400003     | 400003 | MissingMultipleFields | GP: Multiple Missing   |              |          | 0                  | 1                    | 0                    | 0                | 0               |
+=======
+      | service_id | uid    | service_name          | name                   | public_name  | ods_code | expected_supported | expected_unsupported | expected_transformed | expected_errors |
+      | 400001     | 400001 | MissingPublicName     | GP: Missing PublicName |              | Y12345   | 1                  | 0                    | 0                    | 1               |
+      | 400002     | 400002 | MissingODSCode        | GP: Missing ODS Code   | Test Surgery |          | 0                  | 1                    | 0                    | 0               |
+      | 400003     | 400003 | MissingMultipleFields | GP: Multiple Missing   |              |          | 0                  | 1                    | 0                    | 0               |
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
   Scenario Outline: Services with invalid ODS code format are rejected
     Given a 'Service' exists called '<service_name>' in DoS with attributes:
@@ -56,8 +68,13 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                   |
       | openallhours        | false                      |
       | restricttoreferrals | false                      |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '<service_id>' and method 'insert'
     Then the metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '<service_id>' and method 'insert'
+    Then the SQS event metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     And no organisation was created for service '<service_id>'
     And no location was created for service '<service_id>'
     And no healthcare service was created for service '<service_id>'
@@ -89,8 +106,13 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                      |
       | openallhours        | false                         |
       | restricttoreferrals | false                         |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '400020' and method 'delete'
     Then the metrics should be 0 total, 0 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '400020' and method 'delete'
+    Then the SQS event metrics should be 0 total, 0 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     And no organisation was created for service '400020'
     And no location was created for service '400020'
     And no healthcare service was created for service '400020'
@@ -115,8 +137,13 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                 |
       | openallhours        | false                    |
       | restricttoreferrals | false                    |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '400030' and method 'insert'
     Then the metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '400030' and method 'insert'
+    Then the SQS event metrics should be 1 total, 0 supported, 1 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     And no organisation was created for service '400030'
     And no location was created for service '400030'
     And no healthcare service was created for service '400030'
@@ -141,8 +168,13 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                |
       | openallhours        | false                   |
       | restricttoreferrals | false                   |
+<<<<<<< HEAD
     When the service migration process is run for table 'services', ID '<service_id>' and method 'insert'
     Then the metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped, 0 invalid and 0 errored
+=======
+    When the data migration process is run for table 'services', ID '<service_id>' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped and 0 errors
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     And no organisation was created for service '<service_id>'
     And no location was created for service '<service_id>'
     And no healthcare service was created for service '<service_id>'

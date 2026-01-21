@@ -91,8 +91,13 @@ def get_data_model_class(
     entity_cls = getattr(legacy_data_model, f"{entity_name}Data", None)
 
     assert entity_cls is not None, f"Legacy data model not found: {entity_name}"
+<<<<<<< HEAD
     assert issubclass(entity_cls, legacy_data_model.LegacyDoSDataModel), (
         f"{entity_name} does not inherit from LegacyDoSDataModel"
+=======
+    assert issubclass(entity_cls, legacy_model.LegacyDoSModel), (
+        f"{entity_name} does not inherit from LegacyDoSModel"
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     )
 
     return entity_cls
@@ -177,7 +182,12 @@ def validate_datatable(
 def create_model_data_from_datatable(
     entity_name: str,
     datatable: list[list[str]],
+<<<<<<< HEAD
 ) -> legacy_data_model.LegacyDoSDataModel:
+=======
+    entity_name: str,
+) -> dict[str, Any]:
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     """
     Create model data dictionary from datatable.
 
@@ -266,7 +276,11 @@ def dos_data_insert_step(
     db_model = get_db_model_class(entity_name)
     model_obj = db_model(**model_data.model_dump())
 
+<<<<<<< HEAD
     # # Insert into database
+=======
+    # Insert into database
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
     dos_db.add(model_obj)
     dos_db.commit()
     dos_db.refresh(model_obj)
@@ -399,7 +413,11 @@ def query_table_by_field(
     statement = select(entity_cls).where(
         getattr(entity_cls, field_name) == parsed_value
     )
+<<<<<<< HEAD
     result = dos_db.execute(statement).first()
+=======
+    result = dos_db.exec(statement).first()
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
     # Store result in context
     migration_context.update(

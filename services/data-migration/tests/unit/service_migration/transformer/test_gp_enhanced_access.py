@@ -204,10 +204,15 @@ def test_transform_services(
     mock_legacy_service.name = test_data["service_name"]
 
     # When creating the transformer in the test:
+<<<<<<< HEAD
     transformer = GPEnhancedAccessTransformer(mock_dependencies)
 
     validation_result = transformer.validator.validate(mock_legacy_service)
     result = transformer.transform(validation_result.sanitised)
+=======
+    transformer = GPEnhancedAccessTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 
     # Verify basic transformation - only healthcare service is created
     assert result.organisation is None

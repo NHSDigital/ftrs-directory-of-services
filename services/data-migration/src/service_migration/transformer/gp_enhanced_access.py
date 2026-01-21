@@ -34,7 +34,11 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
     - Service name must not contain excluded patterns: "GP Protected Learning Time (PLT)", "ARI - ", "Primary Care CAS - "
     """
 
+<<<<<<< HEAD
     def transform(self, service: ServiceData) -> TransformResult:
+=======
+    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
         """
         Transform the given GP Enhanced Access service into the new data model format.
 

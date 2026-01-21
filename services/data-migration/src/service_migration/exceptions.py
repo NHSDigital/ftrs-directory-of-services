@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from service_migration.validation.types import ValidationIssue
 
 
@@ -36,3 +37,11 @@ class FatalValidationException(ServiceMigrationException):
         )
         self.service_id = service_id
         self.issues = issues
+=======
+class ServiceMigrationException(Exception):
+    """Base exception for service migration errors."""
+
+    def __init__(self, message: str, requeue: bool = True) -> None:
+        super().__init__(message)
+        self.requeue = requeue
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))

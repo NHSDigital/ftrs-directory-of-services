@@ -27,7 +27,11 @@ class GPPracticeTransformer(ServiceTransformer):
     - The service must be active
     """
 
+<<<<<<< HEAD
     def transform(self, service: ServiceData) -> TransformResult:
+=======
+    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
         """
         Transform the given GP practice service into the new data model format.
         """

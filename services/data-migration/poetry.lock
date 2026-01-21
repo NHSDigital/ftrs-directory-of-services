@@ -971,6 +971,7 @@ files = [
 toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [[package]]
+<<<<<<< HEAD
 name = "cryptography"
 version = "46.0.3"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -1048,6 +1049,8 @@ test = ["certifi (>=2024)", "cryptography-vectors (==46.0.3)", "pretend (>=0.7)"
 test-randomorder = ["pytest-randomly"]
 
 [[package]]
+=======
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
 name = "deepdiff"
 version = "8.6.1"
 description = "Deep Difference and Search of any Python object/data. Recreate objects by adding adding deltas to each other."
@@ -2834,4 +2837,8 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
+<<<<<<< HEAD
 content-hash = "d511ae2d92bf1aa90fe5f7f01069a1038eae5107f7a379c71c9eaa6fef3c4059"
+=======
+content-hash = "8a22e8953aea73d70fa16d720892909b194665f3c9016b05db301a96445232a0"
+>>>>>>> 1e2fc0a7 (feat(data-migration): FTRS-1597 Detect changes from last known to current state (#682))
