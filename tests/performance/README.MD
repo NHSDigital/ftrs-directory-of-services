@@ -393,13 +393,7 @@ Open an SSM shell session to run JMeter tests manually:
 make jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 ```
 
-## Notes and Best Practices
-
-### File Transfer Notes
-- Very large files may exceed SSM inline limits; if you hit failures, split files or use S3
-- File transfers are non-recursive; subdirectories must be copied separately
-- The EC2 instance must be SSM-managed and in a running state
-- Your AWS CLI credentials must have SSM permissions
+## Notes
 
 ### Test Execution Best Practices
 1. **Run performance tests on EC2** to avoid network variability from local machines
@@ -410,4 +404,3 @@ make jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 3. **Calculate stress test duration correctly**: `total_duration = 12 × step_duration`
 4. **Monitor thread count**: Ensure `num_threads` is sufficient for target throughput. threads ≥ (target_TPS × avg_response_time_seconds)
 5. **Use infinite loops with duration**: Set `loop_count=-1` and specify `duration` for time-based tests
-
