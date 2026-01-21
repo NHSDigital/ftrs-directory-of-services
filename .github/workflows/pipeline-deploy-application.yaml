@@ -210,9 +210,10 @@ jobs:
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
-    if: false
+    if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
     needs:
       - metadata
+      - check-stack-toggles
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
@@ -231,6 +232,7 @@ jobs:
     outputs:
       ui_enabled: ${{ steps.get_toggles.outputs.ui_enabled }}
       read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
+      open_search_enabled: ${{ steps.get_toggles.outputs.open_search_enabled }}
     steps:
       - name: "Download AppConfig artifact"
         uses: actions/download-artifact@v6
@@ -245,19 +247,23 @@ jobs:
           
           if [ ! -f "$TFVARS_FILE" ]; then
             echo "Warning: Stack toggles file not found: $TFVARS_FILE"
-            echo "Defaulting both stacks to disabled"
-            echo "ui_enabled=false" >> $GITHUB_OUTPUT
-            echo "read_only_viewer_enabled=false" >> $GITHUB_OUTPUT
+            echo "Defaulting stacks to enabled"
+            echo "ui_enabled=true" >> $GITHUB_OUTPUT
+            echo "read_only_viewer_enabled=true" >> $GITHUB_OUTPUT
+            echo "open_search_enabled=true" >> $GITHUB_OUTPUT
           else
             # Extract toggle values from tfvars file
             UI_ENABLED=$(grep -E "^ui_stack_enabled\s*=" "$TFVARS_FILE" | awk '{print $3}' || echo "false")
             READ_ONLY_VIEWER_ENABLED=$(grep -E "^read_only_viewer_stack_enabled\s*=" "$TFVARS_FILE" | awk '{print $3}' || echo "false")
+            OPEN_SEARCH_ENABLED=$(grep -E "^opensearch_stack_enabled\s*=" "$TFVARS_FILE" | awk '{print $3}' || echo "false")
             
             echo "ui_enabled=$UI_ENABLED" >> $GITHUB_OUTPUT
             echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> $GITHUB_OUTPUT
+            echo "open_search_enabled=$OPEN_SEARCH_ENABLED" >> $GITHUB_OUTPUT
             
             echo "UI Stack Enabled: $UI_ENABLED"
             echo "Read Only Viewer Stack Enabled: $READ_ONLY_VIEWER_ENABLED"
+            echo "Open Search Stack Enabled: $OPEN_SEARCH_ENABLED"
           fi
 
   deploy-ui:
