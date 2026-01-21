@@ -250,7 +250,7 @@ def verify_successful_processing(context: Context, cloudwatch_logs: CloudWatchLo
 
 @then("the Lambda should handle empty results gracefully")
 def verify_empty_results_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "ETL_PROCESSOR_020"
+    expected_log = "ETL_EXTRACTOR_020"
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 
@@ -262,14 +262,14 @@ def verify_missing_fields_handled(context: Context, cloudwatch_logs: CloudWatchL
 
 @then("the Lambda should handle unexpected fields gracefully")
 def verify_unexpected_fields_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Successfully transformed data"
+    expected_log = "Succeeded to send"
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 
 
 @then("the Lambda should handle old requests gracefully")
 def verify_old_requests_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "ETL_PROCESSOR_020"
+    expected_log = "ETL_EXTRACTOR_020"
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 
@@ -285,7 +285,7 @@ def verify_server_errors_handled(context: Context, cloudwatch_logs: CloudWatchLo
 @then("the Lambda should handle unknown resource types")
 def verify_unknown_resource_types_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
     """Verify Lambda handles unknown resource types by filtering them out (resulting in empty results)."""
-    expected_log = "ETL_PROCESSOR_020"
+    expected_log = "ETL_EXTRACTOR_020"
     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
 
 

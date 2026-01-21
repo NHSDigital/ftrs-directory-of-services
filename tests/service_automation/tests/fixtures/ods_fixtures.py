@@ -25,7 +25,7 @@ def lambda_with_ods_mock(
     mock_client = ODSMockClient(region_name="eu-west-2")
 
     lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+        project, workspace, env, "etl-ods-extractor", "lambda"
     )
 
     config_manager = LambdaConfigManager(aws_lambda_client)
