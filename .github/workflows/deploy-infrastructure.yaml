@@ -92,7 +92,8 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Install Python dependencies for stack toggles"
+      - name: "Install Python dependencies for toggles"
+        if: ${{ inputs.download_appconfig_artifact == true && matrix.stack == 'app_config' }}
         run: |
           python -m pip install --upgrade pip
           pip install pyyaml
@@ -106,7 +107,7 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Download Toggle Artifact"
-        if: ${{ inputs.download_appconfig_artifact == true }}
+        if: ${{ inputs.download_appconfig_artifact == true && matrix.stack == 'app_config' }}
         uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}

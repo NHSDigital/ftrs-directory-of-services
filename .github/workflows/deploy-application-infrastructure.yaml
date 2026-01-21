@@ -153,6 +153,8 @@ jobs:
       action: apply
       type: ${{ inputs.type }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
+      download_appconfig_artifact: true
+      appconfig_artifact_name: "appconfig_feature_flags"
     secrets: inherit
 
   deploy_summary:
