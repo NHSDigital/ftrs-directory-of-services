@@ -56,7 +56,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
         "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-private-key*",
         "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/cis2-public-key*",
       ],
-      aws_secretsmanager_secret.session_secret[0].arn
+      [aws_secretsmanager_secret.session_secret[0].arn]
     )
   }
 
