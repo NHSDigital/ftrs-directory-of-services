@@ -35,18 +35,18 @@ class ServiceValidator(Validator[Service]):
         )
 
         if email_result := self.validate_email(data.email):
-            data.email = email_result.sanitised
+            validation_result.sanitised.email = email_result.sanitised
             validation_result.issues.extend(email_result.issues)
 
         if publicphone_result := self.validate_phone_number(data.publicphone):
-            data.publicphone = publicphone_result.sanitised
+            validation_result.sanitised.publicphone = publicphone_result.sanitised
             validation_result.issues.extend(publicphone_result.issues)
 
         if nonpublicphone_result := self.validate_phone_number(
             data.nonpublicphone,
             expression="nonpublicphone",
         ):
-            data.nonpublicphone = nonpublicphone_result.sanitised
+            validation_result.sanitised.nonpublicphone = nonpublicphone_result.sanitised
             validation_result.issues.extend(nonpublicphone_result.issues)
 
         return validation_result
@@ -77,9 +77,8 @@ class GPPracticeValidator(ServiceValidator):
     def validate(self, data: Service) -> ValidationResult[Service]:
         result = super().validate(data)
 
-        name_result = self.validate_name(data.publicname)
-        if name_result:
-            data.publicname = name_result.sanitised
+        if name_result := self.validate_name(data.publicname):
+            result.sanitised.publicname = name_result.sanitised
             result.issues.extend(name_result.issues)
 
         if location_result := self.validate_location(

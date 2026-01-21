@@ -80,9 +80,8 @@ def test_transform(
     mock_legacy_service.statusid = 1  # Active status
 
     # When creating the transformer in the test:
-    validation_issues = []
     transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
-    result = transformer.transform(mock_legacy_service, validation_issues)
+    result = transformer.transform(mock_legacy_service)
 
     assert len(result.organisation) == 1
     assert result.organisation[0].identifier_ODS_ODSCode == "A12345"
@@ -98,3 +97,20 @@ def test_transform(
         result.healthcare_service[0].type
         == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )
+
+
+def test_transform_with_empty_publicname(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    with pytest.raises(ValueError, match="publicname is not set"):
+        """
+        Test that transform method raises and exception when it transforms a GP practice service without a publicname.
+        """
+        mock_legacy_service.name = "GP - Text Not Removed"  # GP Name
+        mock_legacy_service.publicname = None
+        mock_legacy_service.typeid = 100  # GP Practice type ID
+        mock_legacy_service.odscode = "A12345"  # Valid ODS code
+        mock_legacy_service.statusid = 1  # Active status
+        transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+        transformer.transform(mock_legacy_service)
