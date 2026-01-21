@@ -49,3 +49,7 @@ scans/*
 
 # vscode settings
 .vscode
+requirements/user-stories/*
+services/nfrs-maintenance/node_modules/*
+scripts/jira/jira_secrets.sh
+scripts/nfr/confluence_secrets.sh

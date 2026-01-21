@@ -1,0 +1,110 @@
+model {
+  extend ftrs {
+    #privateBeta
+    container crudApis "CRUD APIs" {
+      description 'FastAPI service providing CRUD operations for FTRS resources (Organisation, HealthcareService, Location)'
+      technology 'Python FastAPI + Mangum'
+
+      -> operations.cloudWatch "logs to"
+      -> operations.ssmParameterStore "reads configuration from"
+
+      // Organisation Lambda - single Lambda with FastAPI routes
+      lambda organisationApi "Organisation API Lambda" {
+        description 'FastAPI Lambda handling all Organisation CRUD operations'
+        technology 'Python 3.12, FastAPI + Mangum'
+
+        component getOrgByOdsCode "GET /Organization" {
+          description 'Query organisations by ODS code or retrieve all'
+        }
+
+        component getOrgById "GET /Organization/{id}" {
+          description 'Retrieve a single organisation by UUID'
+        }
+
+        component createOrg "POST /Organization" {
+          #publicBeta
+          description 'Create a new organisation'
+        }
+
+        component updateOrg "PUT /Organization/{id}" {
+          description 'Update an existing organisation'
+        }
+
+        component deleteOrg "DELETE /Organization/{id}" {
+          #publicBeta
+          description 'Delete an organisation by UUID'
+        }
+      }
+
+      // HealthcareService Lambda - single Lambda with FastAPI routes
+      lambda healthcareServiceApi "HealthcareService API Lambda" {
+        description 'FastAPI Lambda handling all HealthcareService CRUD operations'
+        technology 'Python 3.12, FastAPI + Mangum'
+
+        component getHealthcareServiceById "GET /healthcare-service/{id}" {
+          description 'Retrieve a healthcare service by UUID'
+        }
+
+        component getAllHealthcareServices "GET /healthcare-service/" {
+          description 'Retrieve all healthcare services'
+        }
+
+        component createHealthcareService "POST /healthcare-service/" {
+          description 'Create a new healthcare service'
+        }
+
+        component updateHealthcareService "PUT /healthcare-service/{id}" {
+          description 'Update an existing healthcare service'
+        }
+
+        component deleteHealthcareService "DELETE /healthcare-service/{id}" {
+          description 'Delete a healthcare service by UUID'
+        }
+      }
+
+      // Location Lambda - single Lambda with FastAPI routes
+      lambda locationApi "Location API Lambda" {
+        description 'FastAPI Lambda handling all Location CRUD operations'
+        technology 'Python 3.12, FastAPI + Mangum'
+
+        component getLocationById "GET /location/{id}" {
+          description 'Retrieve a location by UUID'
+        }
+
+        component getAllLocations "GET /location/" {
+          description 'Retrieve all locations'
+        }
+
+        component createLocation "POST /location/" {
+          description 'Create a new location'
+        }
+
+        component updateLocation "PUT /location/{id}" {
+          description 'Update an existing location'
+        }
+
+        component deleteLocation "DELETE /location/{id}" {
+          description 'Delete a location by UUID'
+        }
+      }
+    }
+  }
+
+  // API Gateway routing to Lambdas
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi "Routes /Organization requests"
+  ftrs.apiGateway -> ftrs.crudApis.healthcareServiceApi "Routes /healthcare-service requests"
+  ftrs.apiGateway -> ftrs.crudApis.locationApi "Routes /location requests"
+
+  // Organisation Lambda data flows
+  ftrs.crudApis.organisationApi -> ftrs.db.orgTable "Reads/Writes"
+
+  // HealthcareService Lambda data flows
+  ftrs.crudApis.healthcareServiceApi -> ftrs.db.healthcareServiceTable "Reads/Writes"
+
+  // Location Lambda data flows
+  ftrs.crudApis.locationApi -> ftrs.db.locationTable "Reads/Writes"
+
+  // External access via APIM
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies read requests"
+  apim.dosWriteProxy -> ftrs.apiGateway "Proxies write requests"
+}
