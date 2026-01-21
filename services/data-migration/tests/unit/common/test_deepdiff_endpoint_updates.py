@@ -6,8 +6,8 @@ import pytest
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import (
+    EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointStatus,
 )
 
@@ -51,11 +51,11 @@ class TestEndpointUpdates:
                 {"S": EndpointConnectionType.EMAIL.value},
             ),
             (
-                "description",
-                EndpointDescription.COPY,
-                "SET #endpoints[0].#description = :val_0",
-                {"#endpoints": "endpoints", "#description": "description"},
-                {"S": EndpointDescription.COPY.value},
+                "businessScenario",
+                EndpointBusinessScenario.COPY,
+                "SET #endpoints[0].#businessScenario = :val_0",
+                {"#endpoints": "endpoints", "#businessScenario": "businessScenario"},
+                {"S": EndpointBusinessScenario.COPY.value},
             ),
             (
                 "order",
@@ -103,7 +103,7 @@ class TestEndpointUpdates:
             update={
                 "id": UUID("a66cafc4-eee0-403e-bdcb-46d4c079f6ac"),
                 "order": 2,
-                "description": EndpointDescription.COPY,
+                "businessScenario": EndpointBusinessScenario.COPY,
             }
         )
         modified = base_organisation.model_copy(
