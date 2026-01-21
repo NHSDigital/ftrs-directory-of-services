@@ -146,9 +146,7 @@ def update_organisation(
         organisation_id=organisation_id,
     )
     try:
-        print(f"NHSE-Product-ID: {NHSE_Product_ID}")
         fhir_org = update_payload_validator.model_dump()
-        print(f"FHIR Org Payload: {fhir_org}")
         if NHSE_Product_ID:
             fhir_org["lastUpdatedBy"] = {
                 "type": "app",
