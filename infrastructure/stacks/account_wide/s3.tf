@@ -111,7 +111,7 @@ module "trust_store_s3_bucket" {
   bucket_name           = local.s3_trust_store_bucket_name
   s3_logging_bucket     = local.s3_logging_bucket
   s3_encryption_key_arn = module.s3_encryption_key.arn
-  enable_s3_encryption  = true
+  enable_kms_encryption = true
 }
 
 # IS Performance S3 Bucket
