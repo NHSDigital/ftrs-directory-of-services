@@ -13,13 +13,6 @@ module "s3" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 
-  # server_side_encryption_configuration = {
-  #   rule = {
-  #     apply_server_side_encryption_by_default = {
-  #       sse_algorithm = "AES256"
-  #     }
-  #   }
-  # }
   server_side_encryption_configuration = var.enable_kms_encryption ? {
     rule = {
       apply_server_side_encryption_by_default = {
@@ -46,29 +39,6 @@ module "s3" {
 
   website = var.website_map
 }
-
-# recommended best practice to set encryption via separate resource
-# resource "aws_s3_bucket_server_side_encryption_configuration" "encryption_configuration_non_kms" {
-#   count  = var.enable_kms_encryption ? 0 : 1
-#   bucket = module.s3.s3_bucket_id
-#   rule {
-#     apply_server_side_encryption_by_default {
-#       sse_algorithm = "AES256"
-#     }
-#   }
-# }
-
-
-# resource "aws_s3_bucket_server_side_encryption_configuration" "encryption_configuration_truststore" {
-#   count  = var.enable_kms_encryption ? 1 : 0
-#   bucket = module.s3.s3_bucket_id
-#   rule {
-#     apply_server_side_encryption_by_default {
-#       sse_algorithm     = "aws:kms"
-#       kms_master_key_id = var.s3_encryption_key_arn # gitleaks:allow
-#     }
-#   }
-# }
 
 resource "aws_s3_bucket_policy" "enforce_kms_truststore" {
   count  = var.enable_kms_encryption ? 1 : 0
