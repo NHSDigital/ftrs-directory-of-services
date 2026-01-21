@@ -1352,3 +1352,8 @@ x-nhsd-apim:
     proxy:
       timeunit: "minute"
       limit: 300
+  target-attributes:
+    - name: product-id
+      required: true
+      header: NHSE-Product-ID
+      
