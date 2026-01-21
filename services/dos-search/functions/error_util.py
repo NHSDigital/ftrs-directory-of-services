@@ -78,18 +78,10 @@ def create_validation_error_operation_outcome(
     )
 
 
-def _loc_last_str(error: ErrorDetails, default: str = "<unknown>") -> str:
-    loc = error.get("loc")
-    if not loc:
-        return default
-    if isinstance(loc, (list, tuple)):
-        return str(loc[-1])
-    return str(loc)
-
-
 def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
     if error.get("type") == "extra_forbidden":
-        unexpected = _loc_last_str(error)
+        loc = error.get("loc") or ()
+        unexpected = str(loc[-1]) if isinstance(loc, (list, tuple)) and loc else ""
         return _create_issue(
             "invalid",
             "error",

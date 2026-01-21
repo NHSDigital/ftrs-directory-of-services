@@ -344,3 +344,22 @@ class TestErrorUtil:
         assert "foo" in diagnostics
         assert "identifier" in diagnostics
         assert "_revinclude" in diagnostics
+
+    def test_unexpected_query_param_diagnostics_uses_last_loc_entry(self) -> None:
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "extra_forbidden",
+                    "loc": ("query", "foo"),
+                    "msg": "Extra inputs are not permitted",
+                    "input": "bar",
+                }
+            ],
+        )
+
+        result = create_validation_error_operation_outcome(err)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert "foo" in (result.issue[0].diagnostics or "")
