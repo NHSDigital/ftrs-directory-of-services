@@ -156,7 +156,6 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
         "identifier_oldDoS_uid": None,
         "modifiedDateTime": "2023-10-01T00:00:00Z",
         "symptomGroupSymptomDiscriminators": [],
-        "migrationNotes": None,
         "ageEligibilityCriteria": None,
     }
 
