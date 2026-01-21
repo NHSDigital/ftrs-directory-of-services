@@ -172,10 +172,21 @@ resource "aws_flow_log" "database_subnet_flow_log_s3" {
 }
 
 # Add a CIDR Range tag to the private subnets for filtering
-resource "aws_ec2_tag" "private_subnet_tags" {
-  for_each = data.aws_subnet.vpc_private_subnets
+# resource "aws_ec2_tag" "private_subnet_tags" {
+#   for_each = data.aws_subnet.vpc_private_subnets
 
-  resource_id = each.value.id
+#   resource_id = each.value.id
+#   key         = "CidrRange"
+#   value       = split("/", (each.value.cidr_block))[1]
+# }
+
+resource "aws_ec2_tag" "private_subnet_tags" {
+  for_each = {
+    for subnet_id in data.aws_subnets.vpc_private_subnets.ids :
+    subnet_id => subnet_id
+  }
+
+  resource_id = each.value
   key         = "CidrRange"
   value       = split("/", (each.value.cidr_block))[1]
 }

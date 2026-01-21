@@ -33,7 +33,19 @@ data "aws_ami" "al2023" {
   }
 }
 
-data "aws_subnet" "vpc_private_subnets" {
-  for_each = toset(module.vpc.private_subnets)
-  id       = each.value
+# data "aws_subnet" "vpc_private_subnets" {
+#   for_each = toset(module.vpc.private_subnets)
+#   id       = each.value
+# }
+
+data "aws_subnets" "vpc_private_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [module.vpc.vpc_id]
+  }
+
+  filter {
+    name   = "tag:Tier"
+    values = ["private"]
+  }
 }
