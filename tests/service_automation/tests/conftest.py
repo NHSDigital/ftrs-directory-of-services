@@ -359,16 +359,6 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
 
 
 @pytest.fixture(scope="function")
-def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
-    context = {
-        "db_session": dos_db_with_migration,
-        "test_data": {},  # Store any test data created during scenarios
-        "results": {},  # Store query results or other test outcomes
-    }
-    return context
-
-
-@pytest.fixture(scope="function")
 def regular_context(dos_db: Session) -> Dict[str, Any]:
     context = {
         "db_session": dos_db,

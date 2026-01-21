@@ -37,7 +37,7 @@ Feature: Data Migration
       | parentid                            | 150013                                                                                                                                                                                                                                  |
       | subregionid                         | 150013                                                                                                                                                                                                                                  |
       | statusid                            | 1                                                                                                                                                                                                                                       |
-      | organisationid                      |                                                                                                                                                                                                   |
+      | organisationid                      |                                                                                                                                                                                                                                         |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
       | publicname                          | Abbey Medical Practice                                                                                                                                                                                                                  |
       | latitude                            | 52.0910543                                                                                                                                                                                                                              |
@@ -47,8 +47,15 @@ Feature: Data Migration
       | nextverificationdue                 |                                                                                                                                                                                                                                         |
 
     When the data migration process is run for table 'services', ID '10005752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
+    Then the state table contains a record for key 'services#10005752' with version 1
+    Then the state table contains 2 validation issue(s) for key 'services#10005752'
+    Then the state table contains the following validation issues for key 'services#10005752':
+      | expression     | code             | severity | diagnostics             | value       |
+      | email          | email_not_string | error    | Email must be a string  | None        |
+      | nonpublicphone | invalid_format   | error    | Phone number is invalid | 99999000000 |
+
     Then the 'organisation' for service ID '10005752' has content:
       """
       {
@@ -63,9 +70,11 @@ Feature: Data Migration
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice",
-        "telecom": null,
+        "telecom": [],
         "type": "GP Practice",
-        "legalDates": null
+        "legalDates": null,
+        "primary_role_code": null,
+        "non_primary_role_codes": []
       }
       """
     Then the 'healthcare-service' for service ID '10005752' has content:
@@ -81,10 +90,6 @@ Feature: Data Migration
         "dispositions": [],
         "identifier_oldDoS_uid": "138179",
         "location": "fbb2340b-53e0-56f9-ada3-ef5728ca8f98",
-        "migrationNotes": [
-          "field:['email'] ,error: email_not_string,message:Email must be a string,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice, Evesham, Worcestershire",

@@ -46,7 +46,7 @@ Feature: Data Migration
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
     When the data migration process is run for table 'services', ID '10105752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id 'a9fc6829-23bd-5bbe-83cb-32be4a50eaa2' has content:
       """
@@ -99,7 +99,7 @@ Feature: Data Migration
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
     When the data migration process is run for table 'services', ID '10105752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id 'a9fc6829-23bd-5bbe-83cb-32be4a50eaa2' has content:
       """
@@ -149,7 +149,7 @@ Feature: Data Migration
       | lastverified                        |                                                             |
       | nextverificationdue                 |                                                             |
     When the data migration process is run for table 'services', ID '10105753' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'positionGCS' on table 'location' for id '9042741e-5d30-5b5c-ac22-475215b3f96a' has content:
       """
