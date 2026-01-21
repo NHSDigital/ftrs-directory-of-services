@@ -163,27 +163,77 @@ class DataMigrationLogBase(LogBase):
 
     DM_ETL_019 = LogReference(
         level=INFO,
-        message="State record found for Service ID {record_id}, Skipping now...",
+        message="State record found for Service ID {record_id}, proceeding with incremental migration",
     )
     DM_ETL_020 = LogReference(
         level=INFO,
-        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+        message="No State record found for Service ID {record_id}, proceeding with initial migration",
     )
-
     DM_ETL_021 = LogReference(
         level=INFO,
-        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
+        message="Successfully written {item_count} items to DynamoDB",
     )
-
     DM_ETL_022 = LogReference(
         level=ERROR,
-        message="One or more items exist for  Service ID {record_id}",
+        message="DynamoDB Transaction Cancelled - one or more items failed to write",
     )
     DM_ETL_023 = LogReference(
-        level=DEBUG, message="State record found for service ID:{record_id}"
+        level=INFO,
+        message="Skipping organisation creation as no transformed organisation data present",
     )
     DM_ETL_024 = LogReference(
-        level=DEBUG, message="No state record found for service ID:{record_id}"
+        level=INFO, message="Adding organisation create item to transaction"
+    )
+    DM_ETL_025 = LogReference(
+        level=INFO,
+        message="Skipping location creation as no transformed location data present",
+    )
+    DM_ETL_026 = LogReference(
+        level=INFO, message="Adding location create item to transaction"
+    )
+    DM_ETL_027 = LogReference(
+        level=INFO,
+        message="Skipping healthcare service creation as no transformed healthcare service data present",
+    )
+    DM_ETL_028 = LogReference(
+        level=INFO,
+        message="Adding healthcare service create item to transaction",
+    )
+    DM_ETL_029 = LogReference(
+        level=INFO,
+        message="Skipping organisation update as no fields have changed since last migration",
+    )
+    DM_ETL_030 = LogReference(
+        level=INFO,
+        message="Organisation update detected, adding update item to transaction",
+    )
+    DM_ETL_031 = LogReference(
+        level=INFO,
+        message="Skipping location update as no fields have changed since last migration",
+    )
+    DM_ETL_032 = LogReference(
+        level=INFO,
+        message="Location update detected, adding update item to transaction",
+    )
+    DM_ETL_033 = LogReference(
+        level=INFO,
+        message="Skipping healthcare service update as no fields have changed since last migration",
+    )
+    DM_ETL_034 = LogReference(
+        level=INFO,
+        message="Healthcare service update detected, adding update item to transaction",
+    )
+    DM_ETL_035 = LogReference(
+        level=INFO,
+        message="Initial migration detected, added migration state record to records",
+    )
+    DM_ETL_036 = LogReference(
+        level=INFO,
+        message="Incremental migration detected, added migration state update to records",
+    )
+    DM_ETL_037 = LogReference(
+        level=INFO,
+        message="Skipping state record item as no changes were required during migration",
     )
 
     DM_ETL_999 = LogReference(
@@ -480,6 +530,26 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_UTILS_007 = LogReference(
         level=ERROR,
         message="Error decoding json with issue: {error_message}.",
+    )
+    ETL_UTILS_008 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, using api key for mock from secret manager.",
+    )
+    ETL_UTILS_009 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, sending request to mock API Gateway with x-api-key header",
+    )
+    ETL_UTILS_010 = LogReference(
+        level=INFO,
+        message="Receiving API key for ODS Terminology API",
+    )
+    ETL_UTILS_011 = LogReference(
+        level=INFO,
+        message="Attempting to use mock ODS api in unauthorized environment: {env}. Mock can only be used in dev and test",
+    )
+    ETL_UTILS_012 = LogReference(
+        level=ERROR,
+        message="Unable to get ODS path with message: {error_message}.",
     )
 
 

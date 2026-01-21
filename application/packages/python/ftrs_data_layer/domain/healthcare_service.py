@@ -39,5 +39,4 @@ class HealthcareService(DBModel):
     openingTime: list[OpeningTime] | None
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[str]
-    migrationNotes: list[str] | None = None
     ageEligibilityCriteria: list[AgeRangeType] | None = None

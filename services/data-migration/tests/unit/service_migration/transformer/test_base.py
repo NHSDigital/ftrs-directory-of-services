@@ -36,7 +36,7 @@ from service_migration.transformer import ServiceTransformer
 
 class BasicServiceTransformer(ServiceTransformer):
     def transform(self, service: Service) -> dict:
-        return super().transform(service, validation_issues=[])
+        return super().transform(service)
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -405,7 +405,6 @@ def test_build_healthcare_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
-        migrationNotes=None,
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",

@@ -1,3 +1,4 @@
+from typing import Callable
 from unittest.mock import Mock
 
 from ftrs_common.logger import Logger
@@ -24,16 +25,18 @@ class MockLogger(Logger):
         self.error = Mock(side_effect=self._log("ERROR"))
         self.critical = Mock(side_effect=self._log("CRITICAL"))
 
-    def _log(self, level: str) -> None:
+    def _log(self, level: str) -> Callable:
         """
         Store logs in a list instead of logging them.
         """
 
-        def _store_log(**kwargs: dict) -> None:
+        def _store_log(*args: str, **kwargs: dict) -> None:
             assert level in self.logs, f"Invalid log level: {level}"
+            # Handle positional argument (message string) or keyword arguments
+            msg = args[0] if args else kwargs.get("msg")
             log_dict = {
                 "reference": kwargs.get("reference"),
-                "msg": kwargs.get("msg"),
+                "msg": msg,
             }
             if kwargs.get("detail"):
                 log_dict["detail"] = kwargs.get("detail")

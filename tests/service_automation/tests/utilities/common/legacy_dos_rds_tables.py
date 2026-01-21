@@ -1,25 +1,3 @@
-# Tables to migrate data from source database
-LEGACY_DOS_TABLES = [
-    "servicestatuses",
-    "servicetypes",
-    "services",
-    "agegroups",
-    "dispositions",
-    "dispositionservicetypes",
-    "dispositiongroups",
-    "dispositiongroupdispositions",
-    "dispositiongroupservicetypes",
-    "genders",
-    "locations",
-    "openingtimedays",
-    "organisationtypes",
-    "referralroles",
-    "symptomdiscriminators",
-    "symptomdiscriminatorsynonyms",
-    "symptomgroups",
-    "symptomgroupsymptomdiscriminators",
-]
-
 # Map table name to entity class
 TABLE_TO_ENTITY = {
     "services": "Service",

@@ -1,10 +1,10 @@
 """Helper utilities for working with migration test context."""
+
 import os
 from typing import Any, Dict, Optional, Tuple
 
 from utilities.common.constants import (
     ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
     ENV_WORKSPACE,
     EXPECTED_DYNAMODB_RESOURCES,
 )
@@ -97,17 +97,10 @@ def store_sqs_result(
 
 def get_expected_dynamodb_table_names() -> list[str]:
     """Get expected DynamoDB table names based on environment configuration."""
-    project_name = os.getenv(ENV_PROJECT_NAME)
     environment = os.getenv(ENV_ENVIRONMENT)
     workspace = os.getenv(ENV_WORKSPACE)
 
-    table_names = []
-    for resource in EXPECTED_DYNAMODB_RESOURCES:
-        # data-migration-* tables don't use "database" prefix
-        if resource.startswith("data-migration-"):
-            table_name = f"{project_name}-{environment}-{resource}-{workspace}"
-        else:
-            table_name = f"{project_name}-{environment}-database-{resource}-{workspace}"
-        table_names.append(table_name)
-
-    return table_names
+    return [
+        f"ftrs-dos-{environment}-{stack}-{resource}-{workspace}"
+        for stack, resource in EXPECTED_DYNAMODB_RESOURCES
+    ]
