@@ -1,0 +1,38 @@
+views {
+
+  view of ftrs.etlOds {
+    title "Data Flow: ODS ETL Pipeline (Extract-Transform-Load)"
+    description '
+      Data flow diagram showing how organisation data is extracted from the
+      NHS ODS Terminology API, transformed to FHIR format, and loaded into
+      the FtRS system via the CRUD APIs.
+
+      Three-stage pipeline:
+      1. EXTRACT: Extractor Lambda fetches organisations modified on a given date from ODS API
+         - Queues raw organisation data to Transform Queue
+      2. TRANSFORM: Transformer Lambda processes raw data
+         - Transforms ODS FHIR to internal FHIR Organisation format
+         - Looks up internal UUID via APIM read endpoint -> CRUD APIs
+         - Queues transformed payloads to Load Queue (batch size 10)
+      3. LOAD: Loader Lambda sends to CRUD APIs
+         - Sends PUT requests to APIM -> CRUD APIs -> DynamoDB
+
+      Each queue has a Dead Letter Queue (DLQ) for failed messages.
+      See architecture/data-flows.c4 for end-to-end data flow diagrams.
+    '
+
+    include odsTerminologyApi
+    include ftrs.etlOds.*
+
+    include apim.dosReadProxy
+    include apim.dosWriteProxy
+
+    include ftrs.apiGateway
+    include ftrs.crudApis.organisationApi
+    include ftrs.crudApis.organisationApi.getOrgByOdsCode
+    include ftrs.crudApis.organisationApi.updateOrg
+    include ftrs.db.orgTable
+
+    autoLayout TopBottom 70 77
+  }
+}
