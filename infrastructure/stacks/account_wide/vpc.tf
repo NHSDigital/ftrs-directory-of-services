@@ -181,13 +181,10 @@ resource "aws_flow_log" "database_subnet_flow_log_s3" {
 # }
 
 resource "aws_ec2_tag" "private_subnet_tags" {
-  for_each = {
-    for subnet_id in data.aws_subnets.vpc_private_subnets.ids :
-    subnet_id => subnet_id
-  }
+  for_each = data.aws_subnet.vpc_private_subnets
 
-  resource_id = each.value
+  resource_id = each.value.id
   key         = "CidrRange"
-  value       = split("/", (each.value.cidr_block))[1]
+  value       = split("/", each.value.cidr_block)[1]
 }
 
