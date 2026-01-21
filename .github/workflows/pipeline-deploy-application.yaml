@@ -222,23 +222,80 @@ jobs:
       aws_region: ${{ vars.AWS_REGION }}
     secrets: inherit
 
-  deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
-      cancel-in-progress: false
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
     needs:
       - metadata
       - deploy-application-infrastructure
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "dos-ui"
-          - name: "read-only-viewer"
+    runs-on: ubuntu-latest
+    outputs:
+      ui_enabled: ${{ steps.get_toggles.outputs.ui_enabled }}
+      read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
+    steps:
+      - name: "Download AppConfig artifact"
+        uses: actions/download-artifact@v6
+        with:
+          name: appconfig_feature_flags_${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}
+          path: ./toggles
+
+      - name: "Get stack toggle status from generated tfvars"
+        id: get_toggles
+        run: |
+          TFVARS_FILE="./toggles/stacks.${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}.auto.tfvars"
+          
+          if [ ! -f "$TFVARS_FILE" ]; then
+            echo "Warning: Stack toggles file not found: $TFVARS_FILE"
+            echo "Defaulting both stacks to disabled"
+            echo "ui_enabled=false" >> $GITHUB_OUTPUT
+            echo "read_only_viewer_enabled=false" >> $GITHUB_OUTPUT
+          else
+            # Extract toggle values from tfvars file
+            UI_ENABLED=$(grep -E "^ui_stack_enabled\s*=" "$TFVARS_FILE" | awk '{print $3}' || echo "false")
+            READ_ONLY_VIEWER_ENABLED=$(grep -E "^read_only_viewer_stack_enabled\s*=" "$TFVARS_FILE" | awk '{print $3}' || echo "false")
+            
+            echo "ui_enabled=$UI_ENABLED" >> $GITHUB_OUTPUT
+            echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> $GITHUB_OUTPUT
+            
+            echo "UI Stack Enabled: $UI_ENABLED"
+            echo "Read Only Viewer Stack Enabled: $READ_ONLY_VIEWER_ENABLED"
+          fi
+
+  deploy-ui:
+    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-dos-ui"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - check-stack-toggles
+      - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: ${{ matrix.name }}
+      name: "dos-ui"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      application_tag: ${{ inputs.application_tag || 'latest' }}
+      type: "app"
+    secrets: inherit
+
+  deploy-read-only-viewer:
+    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-read-only-viewer"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - check-stack-toggles
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: "read-only-viewer"
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
@@ -310,13 +367,15 @@ jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
     needs:
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
       - service-automation-tests
     if: >
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      needs.deploy-frontend-services.result == 'success' &&
+      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped') &&
+      (needs.deploy-read-only-viewer.result == 'success' || needs.deploy-read-only-viewer.result == 'skipped') &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
@@ -324,7 +383,8 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
@@ -341,7 +401,8 @@ jobs:
       # - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease
