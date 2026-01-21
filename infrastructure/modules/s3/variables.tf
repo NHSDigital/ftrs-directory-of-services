@@ -49,8 +49,8 @@ variable "s3_encryption_key_arn" {
   default     = null
 }
 
-variable "enable_s3_encryption" {
-  description = "Whether to enable server-side encryption for the S3 bucket"
+variable "enable_kms_encryption" {
+  description = "Whether to enable server-side KMS encryption for the S3 bucket"
   type        = bool
   default     = false
 }
