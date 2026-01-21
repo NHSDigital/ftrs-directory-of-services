@@ -22,7 +22,7 @@ views {
   deployment view deploymentIndex {
     title 'Production Deployment'
 
-    include gcp.**
+    include nhsApim.**
     include aws.**
     autoLayout TopBottom 70 77
   }

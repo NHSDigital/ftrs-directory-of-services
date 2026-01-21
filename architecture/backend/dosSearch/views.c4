@@ -1,0 +1,40 @@
+views {
+
+  view of ftrs.dosSearch {
+    title "Data Flow: DoS Search Service"
+    description '
+      Data flow diagram showing the DoS Search service which provides
+      FHIR-compliant search for GP endpoints by ODS code.
+
+      The service:
+      1. Receives GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization
+      2. Queries DynamoDB for organisation data
+      3. Maps to FHIR Organization and Endpoint resources
+      4. Returns FHIR Bundle (searchset)
+    '
+
+    include *
+    include ftrs.apiGateway
+    include ftrs.db.orgTable
+    include apim.dosReadProxy
+
+    autoLayout TopBottom 70 77
+  }
+
+  dynamic view dosSearchDataFlow {
+    title "DoS Search Data Flow Sequence"
+    description '
+      Sequence showing the data flow through DoS Search service
+    '
+
+    apim.dosReadProxy -> ftrs.apiGateway "1. GET /Organization?identifier=odsOrganisationCode|{code}"
+    ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "2. Route to Lambda"
+    ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "3. Call service"
+    ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "4. Query by ODS code"
+    ftrs.dosSearch.ftrsService -> ftrs.dosSearch.bundleMapper "5. Map to FHIR"
+    ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.organizationMapper "6. Map Organization"
+    ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.endpointMapper "7. Map Endpoints"
+
+    autoLayout TopBottom
+  }
+}
