@@ -94,17 +94,11 @@ class DosLogger:
         corr_header = self._get_header(
             "NHSD-Correlation-ID",
         )
-        header_length = 3
+
         reqid_corr_msgid = corr_header.split(".") if corr_header else []
-        corr = (
-            reqid_corr_msgid[1]
-            if len(reqid_corr_msgid) == header_length
-            else self.placeholder
-        )
+        corr = reqid_corr_msgid[1] if len(reqid_corr_msgid[1]) > 0 else self.placeholder
         msgid = (
-            reqid_corr_msgid[2]
-            if len(reqid_corr_msgid) == header_length
-            else self.placeholder
+            reqid_corr_msgid[2] if len(reqid_corr_msgid[2]) > 0 else self.placeholder
         )
 
         mandatory["dos_nhsd_correlation_id"] = corr
