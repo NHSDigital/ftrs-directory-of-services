@@ -270,6 +270,10 @@ jobs:
       read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
       open_search_enabled: ${{ steps.get_toggles.outputs.open_search_enabled }}
     steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
       - name: "Download AppConfig artifact"
         uses: actions/download-artifact@v6
         with:
