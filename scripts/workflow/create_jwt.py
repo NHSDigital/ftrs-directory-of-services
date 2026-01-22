@@ -14,12 +14,18 @@ def create_signed_jwt(proxygen_jwt_secrets):
     try:
         proxygen_jwt_creds = json.loads(proxygen_jwt_secrets)
 
-        # Set JWT claims
+        # Extract REALM_URL from token_url for audience claim
+        token_url = proxygen_jwt_creds["token_url"]
+        if "/protocol/openid-connect/token" in token_url:
+            realm_url = token_url.replace("/protocol/openid-connect/token", "")
+        else:
+            realm_url = token_url
+            
         claims = {
             "sub": proxygen_jwt_creds["client_id"],
             "iss": proxygen_jwt_creds["client_id"],
             "jti": str(uuid.uuid4()),
-            "aud": proxygen_jwt_creds["token_url"],
+            "aud": realm_url,
             "exp": int(time()) + 300,
         }
 

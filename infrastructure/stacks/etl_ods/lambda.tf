@@ -57,7 +57,7 @@ module "extractor_lambda" {
     "ENVIRONMENT"        = var.environment
     "WORKSPACE"          = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"       = var.project
-    "APIM_URL"           = var.apim_url
+    "APIM_URL"           = "${var.apim_base_url}/${var.apim_dos_ingest_path_segment}${local.workspace_suffix}/FHIR/R4"
     "ODS_URL"            = var.ods_url
     "ODS_API_PAGE_LIMIT" = tostring(var.ods_api_page_limit)
   }
@@ -169,7 +169,7 @@ module "consumer_lambda" {
     "ENVIRONMENT"       = var.environment
     "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"      = var.project
-    "APIM_URL"          = var.apim_url
+    "APIM_URL"          = "${var.apim_base_url}/${var.apim_dos_ingest_path_segment}${local.workspace_suffix}/FHIR/R4"
     "MAX_RECEIVE_COUNT" = tostring(var.max_receive_count)
   }
 

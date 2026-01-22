@@ -1,0 +1,1355 @@
+openapi: 3.0.3
+# checkov:skip=CKV_OPENAPI_4: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-411
+# checkov:skip=CKV_OPENAPI_21: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-411
+info:
+  title: Directory of Services - Ingest API
+  description: |
+    ## Overview
+
+    Use this API to submit health and social care service data from your system to the NHS Directory of Services (DoS).
+
+    This API enables data partners to send structured updates on health and social care services: such as service availability, contact details, or referral information; which are validated and prepared for inclusion in the Directory of Services.
+
+    Depending on your access mode, you may create or update:
+
+    - health and social care service data
+    - organisation data
+    - location data
+
+    The API is designed for secure, system-to-system communication and supports consistent, efficient data submission; helping ensure the DoS remains accurate and up-to-date for use across NHS systems.
+
+    ## Who can use this API
+
+    This API is intended for approved data providers who need to submit or update service information in the NHS Directory of Services (DoS). Typical users may include NHS organisations, local authorities, or trusted third-party systems that manage health and social care service data.
+
+    To use this API, both your organization and the data source must be formally approved through our assurance process. This ensures that only high-quality, trusted data is submitted into the Directory of Services.
+
+    [See Onboarding](#overview--onboarding).
+
+    ## Access modes
+
+    This API has two access modes. They are:
+      * [application restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis) - addition of new resource allowed / replacement of organization allowed
+      * [user restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis) - via a UI where healthcare workers authenticate
+
+    ## Roadmap
+    At the time of writing (October 2025), we're currently finalising our roadmap and we'll update this content in due course.
+
+    ## Service level
+
+    At the time of writing (October 2025), we're currently finalising our service level and we'll update this content in due course.
+
+    ## Technology
+
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
+
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1.
+
+    You do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    * resource names are capitalised and singular, for example /Patient not /patients
+    * array names are singular, for example line not lines for address lines
+    * data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
+
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Network access
+
+    This API is available on the Internet.
+
+    ## Errors
+
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    * 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    * 400 to 499 if it failed because of a client error by your application
+    * 500 to 599 if it failed because of an error on our server
+
+    Errors specific to each API are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+
+    ## Open source
+
+    You might find the following open source resources useful:
+    | Resource | Description | Link |
+    |-----|-----|-----|
+    |Directory of Services - Ingest API | Source code for the API proxy, sandbox and specification | [Github](https://github.com/NHSDigital/ftrs-directory-of-services/tree/main/services/dos-ingest-api) |
+    | FHIR libraries and SDKs | Various open source libraries for integrating with FHIR APIs | [FHIR libraries and SDKs](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) |
+
+    ## Environments and testing
+
+    Links to available environments:
+
+    | Environment | Base URL |
+    |-------------|----------|
+    | Sandbox | https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4 |
+    | Integration | https://int.api.service.nhs.uk/dos-ingest/FHIR/R4 |
+
+    ### Sandbox
+
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing):
+    * is for early developer testing
+    * only covers a limited set of scenarios
+    * is stateless, so does not actually persist any updates
+    * is open access, so does not allow you to test authorisation
+
+    For details of sandbox test scenarios, or to try out the sandbox using our 'Try this API' feature, see the documentation for each endpoint.
+
+    ### Integration
+
+    Our [integration environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing):
+    * is for formal integration testing
+    * is stateful, so can persist updates
+    * includes authorisation via JWT token
+
+    ## Onboarding
+
+    This API is not yet available for onboarding as it's still [in development](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#statuses). You need to get your software approved by us before it can go live with this API, with further information to be added in due course.
+
+    ## Resources
+
+    The following resources are available to assist you with onboarding:
+    * [API Documentation](https://digital.nhs.uk/developer/guides-and-documentation) - comprehensive guides and documentation for using our APIs
+    * [Developer Forum](https://developer.community.nhs.uk/c/apim-platform/) - a community forum for developers to ask questions and share knowledge
+    * [Support](https://digital.nhs.uk/developer/help-and-support) - contact our support team for assistance
+
+    ## Related APIs
+
+    The following APIs are related to this one:
+    * [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest) - access information on a wide range of health and care services across England using our Directory of Services Urgent and Emergency Care
+    * [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap) - use this API to access information on a wide range of health and care services across England
+
+    ## Contact us
+    For help and support connecting to our APIs and to join our developer community, see [Help and support building healthcare software](https://digital.nhs.uk/developer/help-and-support).
+
+  version: 1.0.0
+servers:
+  - url: 'https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4'
+    description: Development Environment
+  - url: 'https://internal-qa.api.service.nhs.uk/dos-ingest/FHIR/R4'
+    description: Internal QA Environment
+  - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
+    description: Sandbox Environment
+  - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
+    description: Integration Environment
+paths:
+  '/Organization':
+    get:
+      security:
+        - app-level3: []
+      summary: Search for organisations by ODS code to return organization details
+      description: |
+        ## Overview
+        Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
+
+        ## Request requirements
+        - if the `identifier` query parameter is provided, it must be in the format `odsOrganisationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
+        - if the `identifier` parameter is omitted, all organizations will be returned.
+
+        The search is performed using the FHIR-compliant identifier parameter:
+        - identifier=odsOrganisationCode|{CODE}
+
+        Example: /Organization?identifier=odsOrganisationCode|ABC123
+        Example (all): /Organization
+
+      operationId: searchOrganizations
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: |
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
+        schema:
+          type: string
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+          Use an optional ID to track transactions across multiple systems.
+          Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
+      - in: query
+        name: identifier
+        description: >
+          ODS code in the format "odsOrganisationCode|{CODE}" (FHIR identifier search).
+          If omitted, all organizations will be returned.
+          required: false
+        schema:
+            type: string
+            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{1,12}$'
+            example: "odsOrganisationCode|ABC123"
+      - $ref: '#/components/parameters/AcceptFHIR'
+      responses:
+        '200':
+          description: Bundle of Organizations found and returned successfully
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+              example:
+                resourceType: "Bundle"
+                id: "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe"
+                type: "searchset"
+                link:
+                  - relation: "self"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123"
+                entry:
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                    resource:
+                      resourceType: "Organization"
+                      id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      identifier:
+                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                          value: "ABC123"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+                          extension:
+                            - url: "instanceID"
+                              valueInteger: 12345
+                            - url: "roleCode"
+                              valueCodeableConcept:
+                                coding:
+                                  - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
+                                    code: "RO177"
+                                    display: "PRESCRIBING COST CENTRE"
+                            - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
+                              extension:
+                                - url: "dateType"
+                                  valueCoding:
+                                    system: "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
+                                    code: "Legal"
+                                    display: "Legal"
+                                - url: "period"
+                                  valuePeriod:
+                                    start: "2020-01-15"
+                                    end: "2025-12-31"
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
+                          extension:
+                            - url: "roleCode"
+                              valueCodeableConcept:
+                                coding:
+                                  - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
+                                    code: "RO76"
+                                    display: "GP PRACTICE"
+                      active: true
+                      name: "Example Organization"
+                      telecom:
+                        - system: "phone"
+                          value: "01234 567890"
+                        - system: "email"
+                          value: "example@example.com"
+                      address:
+                        - line: ["Example Medical Practice", "Example Street"]
+                          city: "Example City"
+                          postalCode: "AB12 3CD"
+                          country: "ENGLAND"
+                    search:
+                      mode: "match"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
+                          valueInteger: 1
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "primary-recipient"
+                      status: "active"
+                      connectionType:
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
+                        code: "email"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
+                    search:
+                      mode: "include"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "5df57f63-7f48-5754-b056-ba362834c1e7"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
+                          valueInteger: 2
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "copy-recipient"
+                      status: "active"
+                      connectionType:
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
+                        code: "email"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
+                    search:
+                      mode: "include"
+        '400':
+          description: Bad request (e.g., invalid format of parameters)
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                invalid-identifier-separator:
+                  summary: Missing identifier separator
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Identifier format is invalid
+                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+                invalid-identifier-system:
+                  summary: Invalid identifier system
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Identifier system is invalid
+                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'odsOrganisationCode'"
+                invalid-identifier-format:
+                  summary: Invalid ODS code format
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: ODS code format is invalid
+                        diagnostics: "Invalid identifier value: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$"
+                unexpected-query-param:
+                  summary: Unexpected query parameter
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_UNKNOWN
+                              display: Parameter not understood
+                          text: Unexpected query parameters provided
+                        diagnostics: "Unexpected query parameter(s): foo, bar. Only 'identifier' is allowed."
+        '404':
+          description: Organization not found
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: not-found
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_NO_EXIST
+                          display: Resource does not exist
+                      text: The requested organisation was not found
+                    diagnostics: "Organisation with ODS code 'DEF456' not found"
+        '422':
+          description: Unprocessable Entity (e.g., ODS code validation failed)
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: invalid
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_PARAM_INVALID
+                          display: Parameter content is invalid
+                      text: Validation failed for resource
+                    diagnostics: "Validation failed for resource."
+        '500':
+          description: Internal server error
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: fatal
+                    code: exception
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_ERROR_PARSING
+                          display: Error processing request
+                      text: An unexpected error occurred
+                    diagnostics: "Unhandled exception occurred"
+  '/Organization/{id}':
+    put:
+      security:
+        - app-level3: []
+      summary: Update/overwrite an organization resource
+      description: |
+        Update or overwrite an existing organization resource by ID.
+
+        ## Optional Extensions
+
+        The Organization resource supports the following optional FHIR extensions:
+
+        ### OrganisationRole Extension with Primary and Non-Primary Roles
+
+        Organizations can have multiple roles defined using OrganisationRole extensions. Each organization must have exactly one primary role and may optionally have multiple non-primary roles.
+
+        - **OrganisationRole Extension URL**: `https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole`
+        - **Required sub-extensions**:
+          - `roleCode`: Sub-extension with `valueCodeableConcept` containing the organization role code from the ODS CodeSystem
+        - **Optional sub-extensions**:
+          - `instanceID`: Unique identifier for the role instance
+          - `active`: Boolean indicating if the role is active
+          - **TypedPeriod Extension** (`https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod`):
+            - `dateType`: Must be set to "Legal" from the England-PeriodType CodeSystem
+            - `period`: Contains `start` and/or `end` dates in YYYY-MM-DD format
+
+        **Allowed Role Combinations**:
+        - Exactly one role is designated as the primary role
+        - The primary role includes TypedPeriod extension with legal dates
+        - Non-primary roles may optionally include TypedPeriod extensions
+        - If the primary role is `RO177`, at least one non-primary role must be present and must be one of: `RO76`, `RO80`, or `RO87`
+        - If the primary role is `RO182`, the non-primary roles array may be empty
+        - Duplicate non-primary role codes are not allowed
+
+        **General Validation Rules**:
+        - OrganisationRole extension must contain `roleCode` sub-extensions
+        - OrganisationRole extension must contain at least one TypedPeriod extension
+        - If TypedPeriod is included, it must contain both `dateType` and `period` sub-extensions
+        - The `dateType` must be "Legal" with correct system URL
+        - **The `period` must contain a `start` date (required) and may optionally contain an `end` date**
+        - **TypedPeriod extension must have a valid URL - missing or empty URLs will be rejected**
+        - Dates must be in YYYY-MM-DD format
+        - Start and end dates must not be equal if both are provided
+        - Extension URLs must exactly match the expected NHS England structure definitions
+
+        **Example with Primary Role (RO177) and Non-Primary Roles**:
+        ```json
+        "extension": [
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO177",
+                      "display": "PRESCRIBING COST CENTRE"
+                    }
+                  ]
+                }
+              },
+              {
+                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                "extension": [
+                  {
+                    "url": "dateType",
+                    "valueCoding": {
+                      "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                      "code": "Legal",
+                      "display": "Legal"
+                    }
+                  },
+                  {
+                    "url": "period",
+                    "valuePeriod": {
+                      "start": "2020-01-15",
+                      "end": "2025-12-31"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO76",
+                      "display": "GP PRACTICE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO80",
+                      "display": "BRANCH SURGERY"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+        ```
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: |
+          An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+          Required in all environments except sandbox.
+        schema:
+          type: string
+          format: "^Bearer\\ [[:ascii:]]+$"
+          example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+      - in: header
+        name: X-Correlation-ID
+        required: false
+        description: |
+            Use an optional ID to track transactions across multiple systems.
+            Mirrored back in a response header.
+        schema:
+          type: string
+          example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+      - in: header
+        name: X-Request-ID
+        required: false
+        description: |
+          Unique request identifier in GUID format. A unique ID is generated for every
+          incoming API request if not provided.
+        schema:
+          type: string
+          example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
+      - $ref: '#/components/parameters/AcceptFHIR'
+      - $ref: '#/components/parameters/ContentTypeFHIR'
+      - in: path
+        name: id
+        description: The unique identifier of the Organization resource to update.
+        required: true
+        schema:
+          type: string
+          example: 00000000-0000-0000-0000-00000000000a
+      requestBody:
+        required: true
+        content:
+          application/fhir+json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+      responses:
+        '200':
+          description: Organization updated
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: information
+                    code: informational
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_UPDATED
+                          display: Existing resource updated
+                      text: Organisation updated successfully
+                    diagnostics: Organisation updated successfully
+        '404':
+          description: Organization not found
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: OperationOutcome
+                issue:
+                  - severity: error
+                    code: not-found
+                    details:
+                      coding:
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_NO_EXIST
+                          display: Resource does not exist
+                      text: The requested organisation was not found
+                    diagnostics: Organisation not found.
+        '422':
+          description: Unprocessable Entity (validation errors)
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                missing-required-field:
+                  summary: Missing required field
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Required field is missing
+                        diagnostics: "Field 'name' is required"
+                invalid-organisation-role-extension-url:
+                  summary: Invalid OrganisationRole extension URL
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Extension URL is invalid
+                        diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID"
+                missing-organisation-role-extension-url:
+                  summary: Missing OrganisationRole extension URL
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Extension URL is missing
+                        diagnostics: "Invalid extension URL: None"
+                invalid-typed-period-extension-url:
+                  summary: Invalid TypedPeriod extension URL within OrganisationRole
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is invalid
+                        diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod"
+                invalid-typed-period-missing-subextension:
+                  summary: TypedPeriod extension missing required sub-extension
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension is incomplete
+                        diagnostics: "TypedPeriod extension must contain both 'dateType' and 'period' sub-extensions"
+                invalid-typed-period-non-legal:
+                  summary: TypedPeriod extension with non-Legal dateType
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: dateType must be Legal
+                        diagnostics: "dateType must be 'Legal' from system 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
+                invalid-typed-period-system:
+                  summary: TypedPeriod extension with invalid system
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: dateType system is invalid
+                        diagnostics: "dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
+                invalid-typed-period-empty-period:
+                  summary: TypedPeriod extension with empty period
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Legal period start date is required
+                        diagnostics: "Legal period start date is required when TypedPeriod extension is present"
+                invalid-typed-period-missing-start-date:
+                  summary: TypedPeriod extension with missing start date
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Legal period start date is required
+                        diagnostics: "Legal period start date is required when TypedPeriod extension is present"
+                invalid-typed-period-equal-dates:
+                  summary: TypedPeriod extension with equal start and end dates
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: Start and end dates must not be equal
+                        diagnostics: "Legal period start and end dates must not be equal"
+                missing-typed-period-extension:
+                  summary: OrganisationRole extension without required TypedPeriod
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension is required
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                empty-typed-period-extension-url:
+                  summary: TypedPeriod extension with empty URL
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is empty
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                missing-typed-period-extension-url:
+                  summary: TypedPeriod extension with missing URL field
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                              code: MSG_PARAM_INVALID
+                              display: Parameter content is invalid
+                          text: TypedPeriod extension URL is missing
+                        diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
+                ro177-missing-non-primary-roles:
+                  summary: RO177 primary role without required non-primary roles
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Primary role RO177 must have at least one non-primary role from [RO76, RO80, RO87]"
+                invalid-non-primary-role-code:
+                  summary: Invalid non-primary role code (e.g., RO268)
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Invalid non-primary role code: RO268 is not allowed"
+                duplicate-non-primary-roles:
+                  summary: Duplicate non-primary role codes
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Duplicate non-primary roles are not allowed"
+                missing-primary-role-code:
+                  summary: Primary role code not provided
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Primary role code must be provided"
+components:
+  parameters:
+    AcceptFHIR:
+      in: header
+      name: Accept
+      required: true
+      description: Must be set to `application/fhir+json` to receive FHIR-compliant responses.
+      schema:
+        type: string
+        enum: [application/fhir+json]
+        example: application/fhir+json
+    ContentTypeFHIR:
+      in: header
+      name: Content-Type
+      required: true
+      description: Must be set to `application/fhir+json` for FHIR resource requests.
+      schema:
+        type: string
+        enum: [application/fhir+json]
+        example: application/fhir+json
+  schemas:
+    Organization:
+      type: object
+      required:
+        - id
+        - resourceType
+        - meta
+        - active
+        - name
+        - type
+        - identifier
+      properties:
+        resourceType:
+          type: string
+          example: Organization
+        id:
+          type: string
+          example: 00000000-0000-0000-0000-00000000000a
+        meta:
+          type: object
+          properties:
+            profile:
+              type: array
+              items:
+                type: string
+              example:
+                - https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization
+        extension:
+          type: array
+          description: |
+            Optional FHIR extensions. Currently supports:
+            - OrganisationRole extension containing TypedPeriod for legal start and end dates
+          items:
+            type: object
+            required:
+              - url
+              - extension
+            properties:
+              url:
+                type: string
+                description: Extension URL identifying the extension type
+                enum:
+                  - https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole
+                example: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole
+              extension:
+                type: array
+                description: Sub-extensions for the OrganisationRole
+                minItems: 1
+                items:
+                  type: object
+                  required:
+                    - url
+                  properties:
+                    url:
+                      type: string
+                      enum:
+                        - instanceID
+                        - roleCode
+                        - https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod
+                        - active
+                      description: Sub-extension identifier
+                    valueInteger:
+                      type: integer
+                      description: Used for instanceID sub-extension (optional)
+                      example: 12345
+                    valueCodeableConcept:
+                      type: object
+                      description: Used for roleCode sub-extension (required when url is 'roleCode')
+                      required:
+                        - coding
+                      properties:
+                        coding:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - system
+                              - code
+                            properties:
+                              system:
+                                type: string
+                                example: https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole
+                              code:
+                                type: string
+                                example: RO76
+                              display:
+                                type: string
+                                example: GP PRACTICE
+                    valueBoolean:
+                      type: boolean
+                      description: Used for active sub-extension (optional when url is 'active')
+                      example: true
+                    extension:
+                      type: array
+                      description: Nested sub-extensions for TypedPeriod containing dateType and period (both required if TypedPeriod extension is present)
+                      minItems: 2
+                      maxItems: 2
+                      items:
+                        type: object
+                        required:
+                          - url
+                        properties:
+                          url:
+                            type: string
+                            enum:
+                              - dateType
+                              - period
+                            description: TypedPeriod sub-extension identifier
+                          valueCoding:
+                            type: object
+                            description: Used for dateType sub-extension (required when url is 'dateType')
+                            required:
+                              - system
+                              - code
+                            properties:
+                              system:
+                                type: string
+                                enum:
+                                  - https://fhir.nhs.uk/England/CodeSystem/England-PeriodType
+                                example: https://fhir.nhs.uk/England/CodeSystem/England-PeriodType
+                              code:
+                                type: string
+                                enum:
+                                  - Legal
+                                example: Legal
+                              display:
+                                type: string
+                                example: Legal
+                          valuePeriod:
+                            type: object
+                            description: Used for period sub-extension containing start and/or end dates (required when url is 'period', start date is required)
+                            required:
+                              - start
+                            properties:
+                              start:
+                                type: string
+                                format: date
+                                description: Legal start date in YYYY-MM-DD format (required when TypedPeriod extension is present)
+                                example: "2020-01-15"
+                              end:
+                                type: string
+                                format: date
+                                description: Legal end date in YYYY-MM-DD format (optional)
+                                example: "2025-12-31"
+          example:
+            - url: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole
+              extension:
+                - url: instanceID
+                  valueInteger: 12345
+                - url: roleCode
+                  valueCodeableConcept:
+                    coding:
+                      - system: https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole
+                        code: RO76
+                        display: GP PRACTICE
+                - url: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod
+                  extension:
+                    - url: dateType
+                      valueCoding:
+                        system: https://fhir.nhs.uk/England/CodeSystem/England-PeriodType
+                        code: Legal
+                        display: Legal
+                    - url: period
+                      valuePeriod:
+                        start: "2020-01-15"
+                        end: "2025-12-31"
+        active:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: GP Practice Name
+        type:
+          type: array
+          items:
+            type: object
+            required:
+              - coding
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - system
+                    - code
+                  properties:
+                    system:
+                      type: string
+                      example: TO-DO
+                    code:
+                      type: string
+                      example: GP Service
+                    display:
+                      type: string
+                      example: GP Service
+        identifier:
+          type: array
+          items:
+            type: object
+            required:
+              - system
+              - value
+            properties:
+              system:
+                type: string
+                enum:
+                  - https://fhir.nhs.uk/Id/ods-organization-code
+                example: https://fhir.nhs.uk/Id/ods-organization-code
+              value:
+                type: string
+                example: ABC123
+        telecom:
+          type: array
+          items:
+            type: object
+            required:
+              - system
+              - value
+            properties:
+              system:
+                type: string
+                enum:
+                  - phone
+                example: phone
+              value:
+                type: string
+                example: 01234 567890
+              use:
+                type: string
+                enum:
+                  - work
+                example: work
+        address:
+          type: array
+          items:
+            type: object
+            required:
+              - line
+              - city
+              - postalCode
+              - country
+            properties:
+              line:
+                type: array
+                items:
+                  type: string
+                example:
+                  - Example Medical Practice
+                  - Example Street
+              city:
+                type: string
+                example: Example City
+              postalCode:
+                type: string
+                example: AB12 3CD
+              country:
+                type: string
+                example: "ENGLAND"
+    Bundle:
+      type: object
+      required:
+        - resourceType
+        - type
+        - entry
+      properties:
+        resourceType:
+          type: string
+          enum: [Bundle]
+          example: Bundle
+        type:
+          type: string
+          enum: [searchset]
+          example: searchset
+        total:
+          type: integer
+          example: 1
+        entry:
+          type: array
+          items:
+            type: object
+            required:
+              - resource
+            properties:
+              resource:
+                $ref: '#/components/schemas/Organization'
+    OperationOutcome:
+      type: object
+      required:
+        - resourceType
+        - issue
+      properties:
+        resourceType:
+          type: string
+          example: OperationOutcome
+        issue:
+          type: array
+          items:
+            type: object
+            required:
+              - severity
+              - code
+              - details
+            properties:
+              severity:
+                type: string
+                description: Indicates how relevant the issue is to the overall success of the action
+                enum:
+                  - fatal
+                  - error
+                  - warning
+                  - information
+                example: error
+              code:
+                type: string
+                description: FHIR issue type code (e.g., invalid, not-found, exception)
+                example: invalid
+              details:
+                type: object
+                description: Additional details about the error using FHIR operation-outcome codes
+                required:
+                  - coding
+                properties:
+                  coding:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - system
+                        - code
+                        - display
+                      properties:
+                        system:
+                          type: string
+                          enum:
+                            - http://terminology.hl7.org/CodeSystem/operation-outcome
+                          example: http://terminology.hl7.org/CodeSystem/operation-outcome
+                        code:
+                          type: string
+                          description: Code from the FHIR operation-outcome CodeSystem
+                          example: MSG_PARAM_INVALID
+                        display:
+                          type: string
+                          example: Parameter content is invalid
+                  text:
+                    type: string
+                    description: Human-readable description of the error
+                    example: The ODS code format is invalid
+              diagnostics:
+                type: string
+                description: Detailed diagnostic information
+                example: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$
+              expression:
+                type: array
+                description: FHIRPath expression indicating which element(s) caused the issue
+                items:
+                  type: string
+                example:
+                  - Organization.identifier[0].value
+  securitySchemes:
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
+x-nhsd-apim:
+  target:
+    type: external
+    healthcheck: /_status
+    url: https://crud.dev.ftrs.cloud.nhs.uk
+    security:
+      type: mtls
+      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+      secret: dos-ingest-mtls-secret
+  access:
+    - title: Application-restricted with Private Key JWT
+      grants:
+        app-level3: [ ]
+  ratelimiting:
+    proxy:
+      timeunit: "minute"
+      limit: 300
