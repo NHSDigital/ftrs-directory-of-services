@@ -9,6 +9,7 @@ from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from playwright.sync_api import APIRequestContext
 from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps import data_steps
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
@@ -176,7 +177,7 @@ def verify_organisation_in_repo(
     for attempt in range(1, retries + 1):
         try:
             for ods_code in ods_codes:
-                item = get_from_repo(model_repo, ods_code)
+                item = data_steps.get_from_repo(model_repo, ods_code)
                 if item is None:
                     raise AssertionError(
                         f"No record found in repository for {ods_code}"

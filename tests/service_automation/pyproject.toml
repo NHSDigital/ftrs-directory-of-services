@@ -56,7 +56,7 @@ target-version = "py312"
 select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "FURB", "PT"]
 
 [tool.ruff.lint.per-file-ignores]
-"*" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811", "F405"]
+"*" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
 
 [tool.ruff.format]
 quote-style = "double"
