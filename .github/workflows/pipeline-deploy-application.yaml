@@ -121,8 +121,8 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
-  prepare-appconfig:
-    name: "Prepare AppConfig artifacts"
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
     needs:
       - metadata
       - perform-code-analysis
@@ -162,7 +162,7 @@ jobs:
     needs:
       - metadata
       - build-services
-      - prepare-appconfig
+      - prepare-toggle-artifacts
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
