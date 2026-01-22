@@ -54,10 +54,32 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
 @tracer.capture_method
 def get_organization() -> Response:
     try:
-        _validate_headers(app.current_event.headers)
+        try:
+            _validate_headers(app.current_event.headers)
+        except InvalidRequestHeadersError as exception:
+            invalid_headers: list[str] = exception.args[0] if exception.args else []
+            logger.warning(
+                "Invalid request headers supplied",
+                extra={"invalid_headers": invalid_headers},
+            )
+            fhir_resource = error_util.create_invalid_header_operation_outcome(
+                invalid_headers
+            )
+            return create_response(400, fhir_resource)
 
         query_params = app.current_event.query_string_parameters or {}
-        validated_params = OrganizationQueryParams.model_validate(query_params)
+
+        try:
+            validated_params = OrganizationQueryParams.model_validate(query_params)
+        except ValidationError as exception:
+            logger.warning(
+                "Validation error occurred",
+                extra={"validation_errors": exception.errors()},
+            )
+            fhir_resource = error_util.create_validation_error_operation_outcome(
+                exception
+            )
+            return create_response(400, fhir_resource)
 
         ods_code = validated_params.ods_code
         logger.append_keys(ods_code=ods_code)
@@ -65,22 +87,6 @@ def get_organization() -> Response:
         ftrs_service = FtrsService()
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
-    except ValidationError as exception:
-        logger.warning(
-            "Validation error occurred", extra={"validation_errors": exception.errors()}
-        )
-        fhir_resource = error_util.create_validation_error_operation_outcome(exception)
-        return create_response(400, fhir_resource)
-    except InvalidRequestHeadersError as exception:
-        invalid_headers: list[str] = exception.args[0] if exception.args else []
-        logger.warning(
-            "Invalid request headers supplied",
-            extra={"invalid_headers": invalid_headers},
-        )
-        fhir_resource = error_util.create_invalid_header_operation_outcome(
-            invalid_headers
-        )
-        return create_response(400, fhir_resource)
     except Exception:
         logger.exception("Internal server error occurred")
         fhir_resource = error_util.create_resource_internal_server_error()
