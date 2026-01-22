@@ -421,3 +421,81 @@ def verify_migration_error_recorded(
         f"Expected DM_ETL_022 log for service {service_id}\n"
         f"All ERROR logs: {mock_logger.get_logs(level='ERROR')}"
     )
+
+
+# ============================================================
+# FTRS-1597 - Detect Changes Steps
+# ============================================================
+
+
+@then("no differences are found")
+def verify_no_differences_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that no differences were detected (DM_ETL_029 logged)."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_029 (no changes)
+    no_change_logs = mock_logger.get_log("DM_ETL_029")
+    assert len(no_change_logs) > 0, (
+        "Expected DM_ETL_029 log indicating no changes detected"
+    )
+
+    # Should NOT have logged DM_ETL_030 (organisation changes detected)
+    change_logs = mock_logger.get_log("DM_ETL_030")
+    assert len(change_logs) == 0, (
+        f"Should not have logged DM_ETL_030 when no changes detected, but found {len(change_logs)} logs"
+    )
+
+
+@then("a difference is found in the organisation record")
+def verify_organisation_difference_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that organisation differences were detected (DM_ETL_030 logged)."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_030 (organisation update detected)
+    change_logs = mock_logger.get_log("DM_ETL_030")
+    assert len(change_logs) > 0, (
+        "Expected DM_ETL_030 log indicating organisation changes detected"
+    )
+
+    # Verify the log contains diff information
+    log = change_logs[0]
+    assert "changes" in log["detail"] or "diff" in log["detail"], (
+        "DM_ETL_030 log should contain change/diff details"
+    )
+
+
+@then("a difference is found in the endpoint record")
+def verify_endpoint_difference_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that endpoint differences were detected.
+
+    Endpoints are part of the organisation record, so we check DM_ETL_030
+    and verify the diff contains endpoint-related changes.
+    """
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_030 (organisation update including endpoints)
+    change_logs = mock_logger.get_log("DM_ETL_030")
+    assert len(change_logs) > 0, (
+        "Expected DM_ETL_030 log indicating endpoint changes detected"
+    )
+
+    # Verify the log contains diff information about endpoints
+    log = change_logs[0]
+    diff_info = log["detail"].get("diff", {})
+    changes_info = log["detail"].get("changes", [])
+
+    # Check if endpoints were modified (in diff or changes)
+    has_endpoint_changes = (
+        "telecom" in str(diff_info) or
+        any("telecom" in str(change) for change in changes_info)
+    )
+
+    assert has_endpoint_changes, (
+        "DM_ETL_030 log should contain endpoint/telecom changes"
+    )
