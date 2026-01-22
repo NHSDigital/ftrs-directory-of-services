@@ -279,6 +279,10 @@ jobs:
       - name: "Get stack toggle status from generated tfvars"
         id: get_toggles
         run: |
+          pwd
+          ls -ltr
+          ls ./scripts/workflow
+          ls ./toggles/
           /bin/bash ./scripts/workflow/get-stack-toggles.sh "./toggles/stacks.${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}.auto.tfvars"
 
   deploy-ui:
