@@ -82,7 +82,6 @@ Stack toggles control whether entire infrastructure stacks are deployed via Terr
     test: true
     int: false
     ref: false
-    sandpit: false
     prod: false
 ```
 
@@ -292,7 +291,6 @@ appconfig_flags:
       test: true|false
       int: true|false
       ref: true|false
-      sandpit: true|false
       prod: true|false
 
 stack_toggles:
@@ -416,7 +414,7 @@ Feature toggles should not live forever. Once a feature is fully rolled out and 
 #### Retirement Timeline
 
 - **Lower Environments (workspace, dev, test)**: Can be retired immediately after code cleanup
-- **Higher Environments (int, ref, sandpit, prod)**: Requires notice and stakeholder approval
+- **Higher Environments (int, ref, prod)**: Requires notice and stakeholder approval
 
 ## Usage Guidelines
 
@@ -509,8 +507,6 @@ int (integration)
   ↓
 ref (reference)
   ↓
-sandpit (sandbox)
-  ↓
 prod (production)
 ```
 
@@ -519,7 +515,7 @@ prod (production)
 1. **Enable in workspace and dev**: Early development and unit testing
 2. **Enable in test**: Integration testing and QA
 3. **Enable in int**: Integration with external systems
-4. **Enable in ref and sandpit**: Pre-production validation
+4. **Enable in ref**: Pre-production validation
 5. **Enable in prod**: Production rollout
 
 ### Emergency Toggle Changes

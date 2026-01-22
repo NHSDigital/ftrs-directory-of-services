@@ -244,21 +244,6 @@ jobs:
       type: app
     secrets: inherit
 
-  deploy-open-search-indexes:
-    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
-    if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
-    needs:
-      - metadata
-      - check-stack-toggles
-      - deploy-application-infrastructure
-      - restore-dynamodb-from-s3
-    uses: ./.github/workflows/deploy-open-search-indexes.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      aws_region: ${{ vars.AWS_REGION }}
-    secrets: inherit
-
   check-stack-toggles:
     name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
     needs:
@@ -284,6 +269,21 @@ jobs:
         id: get_toggles
         run: |
           /bin/bash ./scripts/workflow/get-stack-toggles.sh "./toggles/stacks.${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}.auto.tfvars"
+
+  deploy-open-search-indexes:
+    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
+    if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
+    needs:
+      - metadata
+      - check-stack-toggles
+      - deploy-application-infrastructure
+      - restore-dynamodb-from-s3
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets: inherit
 
   deploy-ui:
     name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
