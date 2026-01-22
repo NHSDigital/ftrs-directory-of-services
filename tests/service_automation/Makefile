@@ -5,6 +5,7 @@ ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
 MARKERS ?= ui is-api is-infra
 TEST_TYPE ?= non-ui
+LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
 
 # ==============================================================================
 
@@ -27,6 +28,8 @@ config:
 	poetry run playwright install chromium
 
 lint:
+	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 	poetry run ruff check
 	poetry run ruff format --check
 
@@ -71,3 +74,5 @@ ${VERBOSE}.SILENT: \
 	_install-dependency \
 	_install-dependencies \
 	install \
+	lint \
+	lint-fix \
