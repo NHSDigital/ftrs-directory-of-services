@@ -67,7 +67,9 @@ class ServiceTransformer(ABC):
         self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod
-    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
+    def transform(
+        self, service: legacy_model.Service, validation_issues: list[str]
+    ) -> ServiceTransformOutput:
         """
         Transform the given service data into a dictionary format.
 
@@ -118,7 +120,7 @@ class ServiceTransformer(ABC):
             identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
             active=True,
-            name=service.name,
+            name=service.publicname,
             telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
@@ -217,6 +219,7 @@ class ServiceTransformer(ABC):
         location_id: UUID,
         category: HealthcareServiceCategory | None = None,
         type: HealthcareServiceType | None = None,
+        validation_issues: list[str] | None = None,
     ) -> HealthcareService:
         """
         Create a HealthcareService instance from the source DoS service data.
@@ -244,6 +247,7 @@ class ServiceTransformer(ABC):
             openingTime=self.build_opening_times(service),
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
+            migrationNotes=validation_issues,
             ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
         )
 

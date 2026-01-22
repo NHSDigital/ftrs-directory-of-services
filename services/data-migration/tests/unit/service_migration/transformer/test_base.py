@@ -32,11 +32,14 @@ from ftrs_data_layer.domain.legacy import (
 
 from common.cache import DoSMetadataCache
 from service_migration.transformer import ServiceTransformer
+from service_migration.validation.types import ValidationIssue
 
 
 class BasicServiceTransformer(ServiceTransformer):
-    def transform(self, service: Service) -> dict:
-        return super().transform(service)
+    def transform(
+        self, service: Service, validation_issues: list[ValidationIssue] = []
+    ) -> dict:
+        return super().transform(service, validation_issues)
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -91,7 +94,7 @@ def test_service_transformer_build_organisation(
     assert result == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
         identifier_oldDoS_uid="test-uid",
-        name="Test Service",
+        name="Public Test Service",
         type="GP Practice",
         active=True,
         createdBy="DATA_MIGRATION",

@@ -1,3 +1,4 @@
+import logging
 import re
 
 from ftrs_data_layer.domain.legacy import Service
@@ -9,6 +10,8 @@ from service_migration.validation.base import (
     Validator,
 )
 from service_migration.validation.types import ValidationIssue
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceValidator(Validator[Service]):
@@ -125,7 +128,7 @@ class GPPracticeValidator(ServiceValidator):
 
         # Log when suffix is discarded for monitoring/security purposes
         if " - " in full_original:
-            self.logger.info(
+            logger.info(
                 "Practice name suffix discarded",
                 extra={
                     "validation_code": "publicname_suffix_removed",
@@ -145,7 +148,7 @@ class GPPracticeValidator(ServiceValidator):
         try:
             decoded_name = self._decode_allowed_entities(name)
         except ValueError:
-            self.logger.warning(
+            logger.warning(
                 "Disallowed HTML entities detected",
                 extra={
                     "validation_code": "publicname_suspicious_encoding",
@@ -160,7 +163,7 @@ class GPPracticeValidator(ServiceValidator):
         # Check for suspicious characters AFTER safe decoding
         if not self.SAFE_NAME_PATTERN.match(decoded_name):
             char_types = self._categorize_characters(decoded_name)
-            self.logger.warning(
+            logger.warning(
                 "Suspicious characters detected in practice name",
                 extra={
                     "validation_code": "publicname_suspicious_characters",
@@ -203,7 +206,7 @@ class GPPracticeValidator(ServiceValidator):
 
         # Length validation (before any processing)
         if len(name) > self.MAX_NAME_LENGTH:
-            self.logger.warning(
+            logger.warning(
                 "Practice name exceeds maximum length",
                 extra={
                     "validation_code": "publicname_too_long",
@@ -218,7 +221,7 @@ class GPPracticeValidator(ServiceValidator):
 
         # Check for dangerous patterns BEFORE decoding (catch encoding attacks)
         if self.DANGEROUS_PATTERNS.search(name):
-            self.logger.warning(
+            logger.warning(
                 "Suspicious encoding or dangerous patterns detected",
                 extra={
                     "validation_code": "publicname_suspicious_encoding",
