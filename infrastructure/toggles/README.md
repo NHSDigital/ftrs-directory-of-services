@@ -125,6 +125,7 @@ Each stack implementing toggles must follow these conventions:
 **Toggle Generation Output:**
 
 When you run the stack toggle generation script, it creates/updates:
+
 - `infrastructure/toggles/stacks.workspace.auto.tfvars` - Contains boolean values for each stack toggle based on the current workspace configuration
 
 This tfvars file is automatically loaded by Terraform when you run commands in any stack directory.
@@ -476,6 +477,7 @@ Stack toggles are automatically managed during the CI/CD pipeline:
 ### Troubleshooting Stack Toggles
 
 **Toggle not taking effect:**
+
 - Verify the toggle is defined in `toggle-registry.yaml`
 - Re-run `./scripts/workflow/generate-stack-toggles.sh`
 - Check that `stacks.workspace.auto.tfvars` contains the expected value
@@ -483,11 +485,13 @@ Stack toggles are automatically managed during the CI/CD pipeline:
 - Verify `locals.tf` properly calculates `stack_enabled`
 
 **Terraform errors with disabled stacks:**
+
 - Ensure all resource references use `[0]` index when accessing counted resources
 - Check that outputs handle the disabled state (local.stack_enabled == 0)
 - Verify dependencies between resources respect the count meta-argument
 
 **Stack unexpectedly disabled:**
+
 - Check the environment-specific value in `toggle-registry.yaml`
 - Verify the correct workspace is active (`terraform workspace show`)
 - Regenerate the tfvars file to ensure it's up to date
