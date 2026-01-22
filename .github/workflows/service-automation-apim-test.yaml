@@ -101,6 +101,13 @@ jobs:
         run: make install
         working-directory: "tests/service_automation"
 
+      - name: Install Python dependencies for JWT
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pyjwt cryptography
+
       - name: Run APIM service automation tests
         id: run-service_automation-apim-tests
         uses: ./.github/actions/service-automation-apim-test
