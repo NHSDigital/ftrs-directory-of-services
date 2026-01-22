@@ -48,4 +48,11 @@ env TARGET_SPEC_FILE_PATH="$TARGET_SPEC_FILE" \
     yq eval -o=json '."x-nhsd-apim".target = load(strenv(TARGET_SPEC_FILE_PATH))' \
     "$SPEC_FILE" > "$MODIFIED_SPEC_PATH"
 
+case "$PROXY_ENV" in
+    "sandbox") SERVER_DESC="Sandbox" ;;
+    "internal-dev-sandbox") SERVER_DESC="Internal Sandbox" ;;
+esac
+
+yq eval -i ".servers = [.servers[] | select(.description == \"$SERVER_DESC\")]" "$MODIFIED_SPEC_PATH"
+
 printf '%s\n%s\n' "$MODIFIED_SPEC_PATH" "$TARGET_SPEC_FILE"
