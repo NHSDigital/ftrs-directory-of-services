@@ -1,9 +1,9 @@
 name: Prepare Toggle Artifacts
 
 permissions:
-  id-token: write  
-  contents: read
-  actions: write
+      id-token: write
+      contents: read
+      actions: write
 
 on:
   workflow_call:
