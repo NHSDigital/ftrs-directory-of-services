@@ -424,11 +424,6 @@ def verify_migration_error_recorded(
     )
 
 
-# ============================================================
-# FTRS-1597 - Detect Changes Steps
-# ============================================================
-
-
 @then("no differences are found")
 def verify_no_differences_found(
     migration_context: Dict[str, Any],
