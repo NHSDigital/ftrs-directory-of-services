@@ -20,6 +20,14 @@ on:
         description: "The name of the type of test report that will be generated"
         required: false
         type: string
+      api_name:
+        description: "The name of the API to test (for APIM tests, e.g., dos-search)"
+        required: false
+        type: string
+      apim_env:
+        description: "The APIM environment to test (for APIM tests, e.g., internal-dev, internal-qa)"
+        required: false
+        type: string
       ref:
         description: "The branch, tag or SHA to checkout"
         required: false
@@ -157,7 +165,16 @@ jobs:
         run: make install
         working-directory: "tests/service_automation"
 
+      - name: Install Python dependencies for JWT
+        if: inputs.test_type == 'apim'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pyjwt cryptography
+
       - name: Run ${{ inputs.test_tag }} service automation tests
+        if: inputs.test_type != 'apim'
         id: run-service_automation-tests
         uses: ./.github/actions/service-automation-test
         with:
@@ -168,6 +185,21 @@ jobs:
           test_type: ${{ inputs.test_type }}
           commit_hash: ${{ inputs.commit_hash || github.sha }}
           ref: ${{ inputs.ref }}
+
+      - name: Run APIM service automation tests
+        if: inputs.test_type == 'apim'
+        id: run-service_automation-apim-tests
+        uses: ./.github/actions/service-automation-apim-test
+        env:
+          PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+        with:
+          aws_region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          api_name: ${{ inputs.api_name }}
+          apim_env: ${{ inputs.apim_env }}
+          commit_hash: ${{ inputs.commit_hash }}
+          tag: ${{ inputs.tag }}
 
       - name: Upload allure report
         if: always()
