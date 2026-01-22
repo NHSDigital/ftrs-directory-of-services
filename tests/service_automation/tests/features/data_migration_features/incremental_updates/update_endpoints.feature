@@ -43,7 +43,7 @@ Feature: Incremental Updates - Endpoint Changes
       | interaction          | urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0 |
       | businessscenario     | Copy                                                        |
       | address              | original@nhs.net                                            |
-      | comment              | Original endpoint                                           |
+      | comment              | Original endpoint|
       | iscompressionenabled | uncompressed                                                |
       | serviceid            | 570001                                                      |
 
@@ -62,7 +62,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T13:57:24.828283Z",
             "address": "original@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600001,
             "isCompressionEnabled": false,
             "managedByOrganisation": "12737b36-7811-563e-82c8-c50c8c093542",
@@ -71,7 +71,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original endpoint"
           }
         ]
       }
@@ -96,7 +97,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T13:57:24.828283Z",
             "address": "updated@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600001,
             "isCompressionEnabled": false,
             "managedByOrganisation": "12737b36-7811-563e-82c8-c50c8c093542",
@@ -105,7 +106,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original endpoint"
           }
         ]
       }
@@ -162,7 +164,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:05:30.123456Z",
             "address": "transport@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600002,
             "isCompressionEnabled": false,
             "managedByOrganisation": "c8ea0235-6161-5255-839d-5273530ee914",
@@ -171,7 +173,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original transport"
           }
         ]
       }
@@ -199,7 +202,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:10:45.654321Z",
             "address": "https://updated-itk.nhs.uk",
             "connectionType": "itk",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600002,
             "isCompressionEnabled": false,
             "managedByOrganisation": "c8ea0235-6161-5255-839d-5273530ee914",
@@ -208,7 +211,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original transport"
           }
         ]
       }
@@ -265,7 +269,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:15:00.000000Z",
             "address": "compress@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600003,
             "isCompressionEnabled": false,
             "managedByOrganisation": "16c77f52-4d36-54b4-ad4c-9ae55334dc0a",
@@ -274,7 +278,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Uncompressed originally"
           }
         ]
       }
@@ -300,7 +305,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:20:00.000000Z",
             "address": "compress@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600003,
             "isCompressionEnabled": true,
             "managedByOrganisation": "16c77f52-4d36-54b4-ad4c-9ae55334dc0a",
@@ -309,7 +314,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Uncompressed originally"
           }
         ]
       }
@@ -367,7 +373,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:30:00.000000Z",
             "address": "order@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600004,
             "isCompressionEnabled": false,
             "managedByOrganisation": "951d528e-4c8b-5057-a598-823cf749659c",
@@ -376,7 +382,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Order 1"
           }
         ]
       }
@@ -401,7 +408,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T14:35:00.000000Z",
             "address": "order@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600004,
             "isCompressionEnabled": false,
             "managedByOrganisation": "951d528e-4c8b-5057-a598-823cf749659c",
@@ -410,7 +417,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Order 1"
           }
         ]
       }
@@ -471,7 +479,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T15:00:00.000000Z",
             "address": "original@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600010,
             "isCompressionEnabled": false,
             "managedByOrganisation": "294d28aa-416f-5f70-b859-abf741b34f2f",
@@ -480,7 +488,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original endpoint"
           }
         ]
       }
@@ -515,7 +524,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T15:10:00.000000Z",
             "address": "original@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600010,
             "isCompressionEnabled": false,
             "managedByOrganisation": "294d28aa-416f-5f70-b859-abf741b34f2f",
@@ -524,7 +533,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original endpoint"
           },
           {
             "id": "c8ece154-9853-56d5-8a8a-ed96f839d753",
@@ -534,7 +544,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T15:10:00.000000Z",
             "address": "https://new-endpoint.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600011,
             "isCompressionEnabled": false,
             "managedByOrganisation": "294d28aa-416f-5f70-b859-abf741b34f2f",
@@ -543,7 +553,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Newly added endpoint"
           }
         ]
       }
@@ -612,7 +623,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T15:30:00.000000Z",
             "address": "first-endpoint@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600012,
             "isCompressionEnabled": false,
             "managedByOrganisation": "4bb9c4e0-0aea-54e5-9701-1eda9173f399",
@@ -621,7 +632,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "First endpoint added"
           }
         ]
       }
@@ -716,7 +728,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:00:00.000000Z",
             "address": "new1@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600013,
             "isCompressionEnabled": false,
             "managedByOrganisation": "e259ae2f-0dd9-5ff0-917a-be8d3dc300f4",
@@ -725,7 +737,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "First new endpoint"
           },
           {
             "id": "86735dd5-552b-5186-8405-0b9840c1ee1e",
@@ -735,7 +748,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:00:00.000000Z",
             "address": "https://new2.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600014,
             "isCompressionEnabled": true,
             "managedByOrganisation": "e259ae2f-0dd9-5ff0-917a-be8d3dc300f4",
@@ -744,7 +757,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Second new endpoint"
           },
           {
             "id": "fd557a29-d6f8-5cdb-be1a-1c64d594b080",
@@ -754,7 +768,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:00:00.000000Z",
             "address": "https://new3.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600015,
             "isCompressionEnabled": false,
             "managedByOrganisation": "e259ae2f-0dd9-5ff0-917a-be8d3dc300f4",
@@ -763,7 +777,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Third new"
           }
         ]
       }
@@ -837,7 +852,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:30:00.000000Z",
             "address": "keep@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600020,
             "isCompressionEnabled": false,
             "managedByOrganisation": "05db0532-0f98-580e-8c15-8cffe158934e",
@@ -846,7 +861,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "This one stays"
           },
           {
             "id": "d38262b1-c82e-5972-a89d-508ab58d2ffc",
@@ -856,7 +872,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:30:00.000000Z",
             "address": "https://remove-me.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600021,
             "isCompressionEnabled": false,
             "managedByOrganisation": "05db0532-0f98-580e-8c15-8cffe158934e",
@@ -865,7 +881,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "This one will be removed"
           }
         ]
       }
@@ -889,7 +906,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T16:35:00.000000Z",
             "address": "keep@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600020,
             "isCompressionEnabled": false,
             "managedByOrganisation": "05db0532-0f98-580e-8c15-8cffe158934e",
@@ -898,7 +915,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "This one stays"
           }
         ]
       }
@@ -1026,7 +1044,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T17:00:00.000000Z",
             "address": "original@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600030,
             "isCompressionEnabled": false,
             "managedByOrganisation": "067095c1-703d-50b6-aae4-fcf724c1ced5",
@@ -1035,7 +1053,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Original endpoint"
           }
         ]
       }
@@ -1075,7 +1094,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T17:05:00.000000Z",
             "address": "updated@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600030,
             "isCompressionEnabled": false,
             "managedByOrganisation": "067095c1-703d-50b6-aae4-fcf724c1ced5",
@@ -1084,7 +1103,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Updated address"
           },
           {
             "id": "6a33c9f8-2a81-517b-b06f-8a2872bccf23",
@@ -1094,7 +1114,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T17:05:00.000000Z",
             "address": "https://new-endpoint.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600031,
             "isCompressionEnabled": false,
             "managedByOrganisation": "067095c1-703d-50b6-aae4-fcf724c1ced5",
@@ -1103,7 +1123,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Brand new endpoint"
           }
         ]
       }
@@ -1160,7 +1181,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T17:30:00.000000Z",
             "address": "to-be-removed@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600032,
             "isCompressionEnabled": false,
             "managedByOrganisation": "c9cd8718-e05d-5fa3-8b62-1190ee26e828",
@@ -1169,7 +1190,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be removed"
           }
         ]
       }
@@ -1207,7 +1229,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T17:35:00.000000Z",
             "address": "https://replacement.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600033,
             "isCompressionEnabled": true,
             "managedByOrganisation": "c9cd8718-e05d-5fa3-8b62-1190ee26e828",
@@ -1216,7 +1238,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Replacement endpoint"
           }
         ]
       }
@@ -1286,7 +1309,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:00:00.000000Z",
             "address": "update-me@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600034,
             "isCompressionEnabled": false,
             "managedByOrganisation": "332cd68b-9ab7-575b-a5de-4211b30a8c67",
@@ -1295,7 +1318,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be updated"
           },
           {
             "id": "31e3e8da-272b-5dad-bb71-154a7119b394",
@@ -1305,7 +1329,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:00:00.000000Z",
             "address": "https://remove-me.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600035,
             "isCompressionEnabled": false,
             "managedByOrganisation": "332cd68b-9ab7-575b-a5de-4211b30a8c67",
@@ -1314,7 +1338,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be removed"
           }
         ]
       }
@@ -1343,7 +1368,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:05:00.000000Z",
             "address": "updated-address@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600034,
             "isCompressionEnabled": false,
             "managedByOrganisation": "332cd68b-9ab7-575b-a5de-4211b30a8c67",
@@ -1352,7 +1377,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Address updated"
           }
         ]
       }
@@ -1422,7 +1448,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:30:00.000000Z",
             "address": "update-me@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600036,
             "isCompressionEnabled": false,
             "managedByOrganisation": "54403489-6a03-5fcb-9197-e5fcca1ad41a",
@@ -1431,7 +1457,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be updated"
           },
           {
             "id": "bb9dc471-2884-57b3-8975-a61e109ac8f6",
@@ -1441,7 +1468,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:30:00.000000Z",
             "address": "https://remove-me.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600037,
             "isCompressionEnabled": false,
             "managedByOrganisation": "54403489-6a03-5fcb-9197-e5fcca1ad41a",
@@ -1450,7 +1477,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be removed"
           }
         ]
       }
@@ -1492,7 +1520,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:35:00.000000Z",
             "address": "updated@nhs.net",
             "connectionType": "email",
-            "description": "Copy",
+            "businessScenario": "Copy",
             "identifier_oldDoS_id": 600036,
             "isCompressionEnabled": true,
             "managedByOrganisation": "54403489-6a03-5fcb-9197-e5fcca1ad41a",
@@ -1501,7 +1529,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/pdf",
             "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Will be updated"
           },
           {
             "id": "b9416800-4b19-5278-8ffa-d0fcea7db864",
@@ -1511,7 +1540,7 @@ Feature: Incremental Updates - Endpoint Changes
             "modifiedDateTime": "2026-01-12T18:35:00.000000Z",
             "address": "https://new-endpoint.nhs.uk",
             "connectionType": "itk",
-            "description": "Primary",
+            "businessScenario": "Primary",
             "identifier_oldDoS_id": 600038,
             "isCompressionEnabled": false,
             "managedByOrganisation": "54403489-6a03-5fcb-9197-e5fcca1ad41a",
@@ -1520,7 +1549,8 @@ Feature: Incremental Updates - Endpoint Changes
             "payloadMimeType": "application/hl7-cda+xml",
             "payloadType": "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0",
             "service": null,
-            "status": "active"
+            "status": "active",
+            "comment": "Brand new endpoint"
           }
         ]
       }
