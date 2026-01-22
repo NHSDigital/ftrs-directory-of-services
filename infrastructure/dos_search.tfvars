@@ -11,5 +11,5 @@ lambda_timeout     = 900
 lambda_memory_size = 512
 
 # API Gateway throttling defaults (overridable per-environment)
-api_gateway_throttling_rate_limit  = 150
+api_gateway_throttling_rate_limit  = 200
 api_gateway_throttling_burst_limit = 450
