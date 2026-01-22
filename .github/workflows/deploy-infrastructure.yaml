@@ -106,7 +106,7 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Download Toggle Artifact"
-        if: ${{ inputs.download_appconfig_artifact == true }}
+        if: ${{ inputs.download_appconfig_artifact == true && contains(fromJSON(inputs.toggle_stacks), matrix.stack) }}
         uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}

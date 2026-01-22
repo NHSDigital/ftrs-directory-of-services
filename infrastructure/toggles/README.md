@@ -6,11 +6,24 @@ This directory contains the centralized feature toggle registry for the FTRS Dir
 
 - [Overview](#overview)
 - [Toggle Types](#toggle-types)
+  - [AppConfig Flags](#appconfig-flags)
+  - [Stack Toggles](#stack-toggles)
+  - [API Gateway Toggles](#api-gateway-toggles)
 - [Flag Naming Convention](#flag-naming-convention)
 - [Toggle Registry Structure](#toggle-registry-structure)
 - [Governance Process](#governance-process)
+  - [Adding a New Toggle](#adding-a-new-toggle)
+  - [Modifying an Existing Toggle](#modifying-an-existing-toggle)
+  - [Retiring a Toggle](#retiring-a-toggle)
 - [Usage Guidelines](#usage-guidelines)
+  - [Best Practices](#best-practices)
+  - [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
 - [Environment Configuration](#environment-configuration)
+  - [Stack Toggle Workflow Integration](#stack-toggle-workflow-integration)
+  - [Troubleshooting Stack Toggles](#troubleshooting-stack-toggles)
+  - [Environment Hierarchy](#environment-hierarchy)
+  - [Typical Rollout Pattern](#typical-rollout-pattern)
+  - [Emergency Toggle Changes](#emergency-toggle-changes)
 
 ## Overview
 
@@ -76,34 +89,45 @@ Stack toggles control whether entire infrastructure stacks are deployed via Terr
 **How Stack Toggles Work:**
 
 1. **Toggle Registry Definition**: Stack toggles are defined in `toggle-registry.yaml` with environment-specific values
-2. **Tfvars Generation**: The `generate-stack-toggles.py` script reads the registry and generates `stacks.auto.tfvars` files for each environment
-3. **Terraform Consumption**: Each stack has a `stack_enabled` variable that controls resource deployment via `count` meta-argument
+2. **Tfvars Generation**: The `scripts/workflow/generate-stack-toggles.py` script reads the registry and generates `stacks.workspace.auto.tfvars` for the current workspace
+3. **Terraform Consumption**: Each stack has a `{stack_name}_stack_enabled` variable that controls resource deployment via `count` meta-argument
 4. **Resource Creation**: When `stack_enabled = false`, zero resources are created (count = 0)
+5. **Automation**: Stack toggle generation is automatically triggered via the `scripts/workflow/generate-stack-toggles.sh` wrapper script during CI/CD pipelines
 
 **Using Stack Toggles:**
 
-To generate tfvars files from the toggle registry:
+The stack toggle generation script is located at `scripts/workflow/generate-stack-toggles.py`. To manually generate or update stack toggles:
 
 ```bash
-# Generate for all environments
-python3 scripts/generate-stack-toggles.py
+# Generate stack toggles for current workspace
+./scripts/workflow/generate-stack-toggles.sh
 
-# Generate for specific environment
-python3 scripts/generate-stack-toggles.py --environment dev
+# Or run the Python script directly
+python3 scripts/workflow/generate-stack-toggles.py
 
-# Dry-run to see what would be generated
-python3 scripts/generate-stack-toggles.py --dry-run
+# Dry-run to see what would be generated (if supported)
+python3 scripts/workflow/generate-stack-toggles.py --dry-run
 ```
+
+The script will create/update `infrastructure/toggles/stacks.workspace.auto.tfvars` with the appropriate toggle values based on your current environment configuration.
 
 **Stack Toggle Implementation:**
 
-Each stack implementing toggles must:
+Each stack implementing toggles must follow these conventions:
 
-1. Have a `{stack_name}_stack_enabled` boolean variable with default `true`
-2. Have a `locals.tf` with `stack_enabled = var.{stack_name}_stack_enabled ? 1 : 0`
-3. Add `count = local.stack_enabled` to all root-level resources and modules
-4. Update all resource references to use index `[0]` (e.g., `module.example[0].id`)
-5. Update outputs to handle disabled state with conditionals
+1. **Variable Definition**: Add a `{stack_name}_stack_enabled` boolean variable with default `true` in `variables.tf`
+2. **Local Variable**: Create a `locals.tf` with `stack_enabled = var.{stack_name}_stack_enabled ? 1 : 0`
+3. **Resource Count**: Add `count = local.stack_enabled` to all root-level resources and modules
+4. **Resource References**: Update all resource references to use index `[0]` (e.g., `module.example[0].id`)
+5. **Output Conditionals**: Update outputs to handle disabled state with conditionals
+6. **Registry Entry**: Add the toggle to `toggle-registry.yaml` under `stack_toggles` section with appropriate environment settings
+
+**Toggle Generation Output:**
+
+When you run the stack toggle generation script, it creates/updates:
+- `infrastructure/toggles/stacks.workspace.auto.tfvars` - Contains boolean values for each stack toggle based on the current workspace configuration
+
+This tfvars file is automatically loaded by Terraform when you run commands in any stack directory.
 
 **Example Stack Implementation:**
 
@@ -151,11 +175,23 @@ Disabling a stack results in:
 
 **Available Stack Toggles:**
 
-| Stack | Variable | Purpose |
-|-------|----------|---------|
-| opensearch | `opensearch_stack_enabled` | OpenSearch Serverless collection and ingestion pipeline |
-| read_only_viewer | `read_only_viewer_stack_enabled` | Read-only viewer frontend application |
-| ui | `ui_stack_enabled` | Main UI application with authentication |
+The following stacks can be enabled/disabled via toggles:
+
+| Stack | Terraform Variable | Stack Path | Purpose |
+|-------|-------------------|------------|---------|
+| opensearch | `opensearch_stack_enabled` | `infrastructure/stacks/opensearch` | OpenSearch Serverless collection and ingestion pipeline |
+| read_only_viewer | `read_only_viewer_stack_enabled` | `infrastructure/stacks/read-only-viewer` | Read-only viewer frontend application |
+| ui | `ui_stack_enabled` | `infrastructure/stacks/ui` | Main UI application with authentication |
+
+**Adding a New Stack Toggle:**
+
+To add a new stack toggle:
+
+1. Add the toggle definition to `infrastructure/toggles/toggle-registry.yaml` under the `stack_toggles` section
+2. Define environment-specific values (true/false for each environment)
+3. Run `./scripts/workflow/generate-stack-toggles.sh` to regenerate the tfvars file
+4. Implement the toggle in your stack following the Stack Toggle Implementation pattern above
+5. Test in lower environments before enabling in production
 
 ### API Gateway Toggles
 
@@ -232,6 +268,13 @@ All feature flag names MUST follow the standardized naming convention to ensure 
 - `dos_org_enabled` (unapproved abbreviation)
 
 ## Toggle Registry Structure
+
+The toggle system uses the following files:
+
+- **`toggle-registry.yaml`**: Central registry containing all toggle definitions
+- **`stacks.workspace.auto.tfvars`**: Auto-generated tfvars file containing stack toggle values for the current workspace
+- **`scripts/workflow/generate-stack-toggles.py`**: Python script that reads the registry and generates tfvars
+- **`scripts/workflow/generate-stack-toggles.sh`**: Shell wrapper for the Python generation script
 
 The [toggle-registry.yaml](toggle-registry.yaml) file is organized into three main sections:
 
@@ -420,6 +463,34 @@ Feature toggles should not live forever. Once a feature is fully rolled out and 
 ## Environment Configuration
 
 Toggles can be configured per environment to support gradual rollouts and environment-specific requirements.
+
+### Stack Toggle Workflow Integration
+
+Stack toggles are automatically managed during the CI/CD pipeline:
+
+1. **Local Development**: Run `./scripts/workflow/generate-stack-toggles.sh` before applying Terraform changes
+2. **CI/CD Pipeline**: The generation script is executed automatically before Terraform plan/apply stages
+3. **Environment Detection**: The script automatically determines the current workspace/environment
+4. **File Generation**: Creates `stacks.workspace.auto.tfvars` with the appropriate toggle values
+
+### Troubleshooting Stack Toggles
+
+**Toggle not taking effect:**
+- Verify the toggle is defined in `toggle-registry.yaml`
+- Re-run `./scripts/workflow/generate-stack-toggles.sh`
+- Check that `stacks.workspace.auto.tfvars` contains the expected value
+- Ensure the stack's `variables.tf` defines the corresponding variable
+- Verify `locals.tf` properly calculates `stack_enabled`
+
+**Terraform errors with disabled stacks:**
+- Ensure all resource references use `[0]` index when accessing counted resources
+- Check that outputs handle the disabled state (local.stack_enabled == 0)
+- Verify dependencies between resources respect the count meta-argument
+
+**Stack unexpectedly disabled:**
+- Check the environment-specific value in `toggle-registry.yaml`
+- Verify the correct workspace is active (`terraform workspace show`)
+- Regenerate the tfvars file to ensure it's up to date
 
 ### Environment Hierarchy
 
