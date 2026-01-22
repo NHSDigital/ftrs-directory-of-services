@@ -487,11 +487,6 @@ def verify_field_value(
     )
 
 
-# ============================================================
-# FTRS-1597 - Update Service Data Steps
-# ============================================================
-
-
 @when(parsers.parse("the service '{service_name}' has its '{field_name}' updated to '{new_value}'"))
 def update_service_field(
     dos_db: Session,
