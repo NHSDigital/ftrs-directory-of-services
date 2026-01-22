@@ -437,3 +437,104 @@ def verify_field_value(
         f"  Actual:   '{actual_normalized}' (type: {type(actual_normalized).__name__})\n"
         f"  Expected: '{expected_normalized}' (type: {type(expected_normalized).__name__})"
     )
+
+
+# ============================================================
+# FTRS-1597 - Update Service Data Steps
+# ============================================================
+
+
+@when(parsers.parse("the service '{service_name}' has its '{field_name}' updated to '{new_value}'"))
+def update_service_field(
+    dos_db: Session,
+    migration_context: dict,
+    service_name: str,
+    field_name: str,
+    new_value: str,
+) -> None:
+    """
+    Update a specific field of a service in the DoS database.
+
+    Args:
+        dos_db: DoS database session
+        migration_context: Shared context
+        service_name: Name of the service to update
+        field_name: Field name to update
+        new_value: New value for the field
+    """
+    # Find the service by name
+    statement = select(legacy_model.Services).where(
+        legacy_model.Services.name == service_name
+    )
+    service = dos_db.exec(statement).first()
+
+    assert service is not None, f"Service '{service_name}' not found in DoS database"
+
+    # Parse and set the new value
+    parsed_value = parse_datatable_value(new_value)
+    setattr(service, field_name, parsed_value)
+
+    # Update modifiedtime to reflect the change
+    service.modifiedtime = datetime.now()
+
+    dos_db.add(service)
+    dos_db.commit()
+    dos_db.refresh(service)
+
+
+@when(parsers.parse("the organisation for service '{service_id}' is marked as last updated from ODS"))
+def mark_organisation_updated_from_ods(
+    dynamodb: dict,
+    service_id: str,
+) -> None:
+    """
+    Mark the organisation in the state table as last updated from ODS.
+
+    This simulates the scenario where ODS ingest has updated the organisation name,
+    so DoS changes should not overwrite it.
+
+    Args:
+        dynamodb: DynamoDB client and resources
+        service_id: Service ID to update state for
+    """
+    from utilities.common.constants import DYNAMODB_CLIENT
+    from utilities.common.dynamoDB_tables import get_table_name
+    from boto3.dynamodb.types import TypeDeserializer
+
+    client = dynamodb[DYNAMODB_CLIENT]
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+    state_key = f"services#{service_id}"
+
+    # Get current state record
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record not found for {state_key}"
+
+    # Deserialize the state record
+    deserializer = TypeDeserializer()
+    state_item = {k: deserializer.deserialize(v) for k, v in response["Item"].items()}
+
+    # Get the organisation from state
+    organisation = state_item.get("organisation")
+    assert organisation is not None, f"No organisation in state record for {state_key}"
+
+    # Add metadata indicating ODS update (using FHIR meta.source pattern)
+    if "meta" not in organisation:
+        organisation["meta"] = {}
+    organisation["meta"]["source"] = "https://directory.spineservices.nhs.uk/ORD/2-0-0"
+
+    # Update the state record
+    from boto3.dynamodb.types import TypeSerializer
+    serializer = TypeSerializer()
+
+    client.update_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+        UpdateExpression="SET organisation = :org",
+        ExpressionAttributeValues={
+            ":org": serializer.serialize(organisation),
+        },
+    )
