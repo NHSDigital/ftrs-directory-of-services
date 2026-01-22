@@ -360,7 +360,7 @@ Feature: Incremental Updates - Edge Cases and Special Scenarios
 
     Given the "Service" with id "530007" is updated with attributes
       | key        | value                                                                                                                     |
-      | publicname | This Is A Very Long Practice Name That Might Test Our Systems Ability To Handle Long Strings In The Update Process        |
+      | publicname | This Is A Very Long Practice Name That Tests Our Ability To Handle Long Strings                                          |
       | address    | Unit 123A Floor 45 Building Block C The Very Long Named Medical Complex Healthcare Campus Industrial Estate Business Park |
 
     When the data migration process is run for table 'services', ID '530007' and method 'update'
@@ -369,7 +369,7 @@ Feature: Incremental Updates - Edge Cases and Special Scenarios
     And field 'name' on table 'organisation' for id 'd3781fa9-2fdb-5e4d-883a-7b26f0c57acd' has content:
       """
       {
-        "name": "This Is A Very Long Practice Name That Might Test Our Systems Ability To Handle Long Strings In The Update Process"
+        "name": "This Is A Very Long Practice Name That Tests Our Ability To Handle Long Strings"
       }
       """
     And field 'address' on table 'location' for id 'c4804c7a-9d0b-5133-a05c-b84f153d065d' has content:
