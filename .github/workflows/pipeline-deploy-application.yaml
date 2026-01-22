@@ -75,7 +75,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      ref: ${{ inputs.ref }}    
+      ref: ${{ inputs.ref }}
 
   build-services:
     name: "Build ${{ matrix.name }}"
@@ -227,6 +227,28 @@ jobs:
   #     ref: ${{ inputs.ref }}
   #   secrets: inherit
 
+  service-automation-apim-tests:
+    name: "Run APIM tests for ${{ matrix.api_name }} on ${{ needs.metadata.outputs.environment }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        api_name:
+          - dos-search
+          # Add more API names here as needed
+    needs:
+      - metadata
+      - deploy-proxy-to-apim
+    uses: ./.github/workflows/service-automation-apim-test.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      tag: ${{ inputs.tag }}
+      api_name: ${{ matrix.api_name }}
+      apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
+      type: app
+    secrets: inherit
+
   export-dynamodb-to-s3:
     name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
@@ -367,12 +389,14 @@ jobs:
     needs:
       - deploy-frontend-services
       - service-automation-tests
+      - service-automation-apim-tests
     if: >
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       (needs.deploy-frontend-services.result == 'success' || needs.deploy-frontend-services.result == 'skipped') &&
-      needs.service-automation-tests.result == 'success'
+      needs.service-automation-tests.result == 'success' &&
+      needs.service-automation-apim-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
@@ -397,6 +421,7 @@ jobs:
       - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
+      - service-automation-apim-tests
       - export-dynamodb-to-s3
       - stage-prerelease-artefacts
     if: always()
