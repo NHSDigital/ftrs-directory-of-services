@@ -16,6 +16,10 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   prepare-toggles:
     name: "Prepare Toggle artifacts"

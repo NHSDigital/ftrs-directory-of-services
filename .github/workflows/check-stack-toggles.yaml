@@ -26,6 +26,10 @@ on:
         description: "Whether OpenSearch stack is enabled"
         value: ${{ jobs.check-toggles.outputs.open_search_enabled }}
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   check-toggles:
     name: "Check stack toggles for ${{ inputs.environment }}"
