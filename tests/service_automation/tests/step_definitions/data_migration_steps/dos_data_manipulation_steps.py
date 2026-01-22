@@ -511,8 +511,8 @@ def update_service_field(
         new_value: New value for the field
     """
     # Find the service by name
-    statement = select(legacy_model.Services).where(
-        legacy_model.Services.name == service_name
+    statement = select(legacy_model.Service).where(
+        legacy_model.Service.name == service_name
     )
     service = dos_db.exec(statement).first()
 
