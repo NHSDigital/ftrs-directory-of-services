@@ -226,3 +226,9 @@ variable "performance_files_bucket_name" {
   type        = string
   default     = "is-performance-files-bucket"
 }
+
+variable "enable_s3_kms_encryption" {
+  description = "Whether to enable KMS encryption for S3 buckets"
+  type        = bool
+  default     = false
+}

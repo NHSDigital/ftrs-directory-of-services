@@ -27,3 +27,5 @@ waf_name            = "frontend-waf-web-acl"
 waf_scope           = "CLOUDFRONT"
 waf_log_group       = "web-acl-logs"
 waf_log_group_class = "STANDARD"
+
+enable_s3_kms_encryption = true
