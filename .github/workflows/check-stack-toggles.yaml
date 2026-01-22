@@ -1,5 +1,9 @@
 name: Check Stack Toggles
 
+permissions:
+  contents: read
+  actions: read
+
 on:
   workflow_call:
     inputs:

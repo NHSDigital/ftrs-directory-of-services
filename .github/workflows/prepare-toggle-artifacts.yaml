@@ -1,5 +1,9 @@
 name: Prepare Toggle Artifacts
 
+permissions:
+  contents: read
+  actions: write
+
 on:
   workflow_call:
     inputs:
