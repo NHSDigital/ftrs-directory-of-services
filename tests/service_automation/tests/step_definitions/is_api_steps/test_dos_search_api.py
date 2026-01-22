@@ -3,6 +3,7 @@ import os
 import pytest
 from loguru import logger
 from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps import api_steps
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
@@ -161,7 +162,7 @@ def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
     )
 )
 def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type):
-    api_check_operation_outcome_any_issue_by_key_value(
+    api_steps.api_check_operation_outcome_any_issue_by_key_value(
         fresponse,
         key="details",
         value=CODING_MAP[coding_type],
