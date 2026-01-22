@@ -329,6 +329,7 @@ jobs:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - tag: "ftrs-pipeline"
