@@ -123,8 +123,6 @@ def fixture_dos_db(
         session = Session(engine)
 
         for script in dos_db_setup_scripts:
-            # Skip empty scripts - schema.sql is required, but metadata/clinical data is optional
-            # for tests that only validate schema structure (e.g., index creation tests)
             if script.strip():
                 session.exec(text(script))
         session.commit()
