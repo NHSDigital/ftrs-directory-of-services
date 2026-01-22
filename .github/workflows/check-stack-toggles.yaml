@@ -1,6 +1,7 @@
 name: Check Stack Toggles
 
 permissions:
+  id-token: write
   contents: read
   actions: read
 

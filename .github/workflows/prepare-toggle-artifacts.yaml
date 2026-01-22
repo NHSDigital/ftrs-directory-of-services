@@ -1,6 +1,7 @@
 name: Prepare Toggle Artifacts
 
 permissions:
+  id-token: write  
   contents: read
   actions: write
 
