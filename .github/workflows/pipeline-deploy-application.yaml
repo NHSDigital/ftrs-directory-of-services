@@ -126,36 +126,11 @@ jobs:
     needs:
       - metadata
       - perform-code-analysis
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: "Install Python dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
-
-      - name: "Generate feature flags JSON"
-        env:
-          ENVIRONMENT: ${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}
-        run: |
-          /bin/bash ./scripts/workflow/generate-feature-flags.sh
-
-      - name: "Generate stack toggles"
-        env:
-          ENVIRONMENT: ${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}
-        run: |
-          /bin/bash ./scripts/workflow/generate-stack-toggles.sh
-
-      - name: "Upload Toggle Artifact"
-        uses: actions/upload-artifact@v6
-        with:
-          name: appconfig_feature_flags_${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}
-          path: infrastructure/toggles/
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -249,26 +224,11 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
-    runs-on: ubuntu-latest
-    outputs:
-      ui_enabled: ${{ steps.get_toggles.outputs.ui_enabled }}
-      read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
-      open_search_enabled: ${{ steps.get_toggles.outputs.open_search_enabled }}
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
-      - name: "Download AppConfig artifact"
-        uses: actions/download-artifact@v6
-        with:
-          name: appconfig_feature_flags_${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}
-          path: ./toggles
-
-      - name: "Get stack toggle status from generated tfvars"
-        id: get_toggles
-        run: |
-          /bin/bash ./scripts/workflow/get-stack-toggles.sh "./toggles/stacks.${{ needs.metadata.outputs.workspace == 'default' && needs.metadata.outputs.environment || 'workspace' }}.auto.tfvars"
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      tag: ${{ inputs.tag }}
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
