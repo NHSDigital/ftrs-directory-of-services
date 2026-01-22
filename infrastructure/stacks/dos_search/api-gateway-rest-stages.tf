@@ -45,9 +45,3 @@ resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
   retention_in_days = var.api_gateway_log_group_retention_days
   log_group_class   = var.api_gateway_log_group_class
 }
-
-# JP - WAF ACL association goes here (DOSIS-2197)
-# resource "aws_wafv2_web_acl_association" "waf_attachment_default" {
-#   resource_arn = aws_api_gateway_stage.default.arn
-#   web_acl_arn  = aws_wafv2_web_acl.example.arn
-# }

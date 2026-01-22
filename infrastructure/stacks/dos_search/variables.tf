@@ -131,3 +131,47 @@ variable "gateway_responses" {
   # Use null default so we can compute from locals (file() not allowed in var defaults)
   default = null
 }
+
+#####################################################
+
+# WAF (REGIONAL) for API Gateway
+
+variable "waf_log_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the dos-search WAF"
+  type        = number
+  default     = 30
+}
+
+variable "waf_pingdom_ipv4_cidrs" {
+  description = "IPv4 CIDR ranges for Pingdom synthetic monitoring IP allowlist"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for cidr in var.waf_pingdom_ipv4_cidrs : can(cidrnetmask(cidr))])
+    error_message = "waf_pingdom_ipv4_cidrs must contain only valid IPv4 CIDR strings (for example: an IPv4 address with a /mask)."
+  }
+}
+
+variable "waf_statuscake_ipv4_cidrs" {
+  description = "IPv4 CIDR ranges for StatusCake synthetic monitoring IP allowlist"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for cidr in var.waf_statuscake_ipv4_cidrs : can(cidrnetmask(cidr))])
+    error_message = "waf_statuscake_ipv4_cidrs must contain only valid IPv4 CIDR strings (for example: an IPv4 address with a /mask)."
+  }
+}
+
+variable "waf_allowed_country_codes" {
+  description = "Allowed country codes for dos-search API access (requests from other countries are blocked)"
+  type        = list(string)
+  default     = ["GB", "JE", "IM"]
+}
+
+variable "waf_hostile_country_codes" {
+  description = "Country codes to explicitly block. If empty, no hostile-country rule is created."
+  type        = list(string)
+  default     = []
+}
