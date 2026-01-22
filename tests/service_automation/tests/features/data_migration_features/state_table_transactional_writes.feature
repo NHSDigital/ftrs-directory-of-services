@@ -179,7 +179,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the migration records an error for service ID 400005
 
   @detect-changes @no-changes
-  Scenario: FTRS-1597 AC#1 - No changes detected in organisation or endpoints
+  Scenario: No changes detected in organisation or endpoints
     Given a 'Service' exists called 'TestGPPracticeNoChanges' in DoS with attributes:
       | key                 | value                          |
       | id                  | 400006                         |
@@ -209,7 +209,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the metrics should show 0 inserted, 0 updated records for the second run
 
   @detect-changes @organisation-name-change-dos
-  Scenario: FTRS-1597 AC#2 - Organisation name changed from DoS update
+  Scenario: Organisation name changed from DoS update
     Given a 'Service' exists called 'TestGPPracticeOrgNameDos' in DoS with attributes:
       | key                 | value                            |
       | id                  | 400007                           |
@@ -240,7 +240,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the metrics should show 0 inserted, 0 updated records for the second run
 
   @detect-changes @organisation-name-change-ods
-  Scenario: FTRS-1597 AC#3 - Organisation name changed but was last updated from ODS
+  Scenario: Organisation name changed but was last updated from ODS
     Given a 'Service' exists called 'TestGPPracticeOrgNameOds' in DoS with attributes:
       | key                 | value                            |
       | id                  | 400008                           |
@@ -272,7 +272,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the metrics should show 0 inserted, 0 updated records for the second run
 
   @detect-changes @endpoint-change
-  Scenario: FTRS-1597 AC#4 - Endpoint details changed
+  Scenario: Endpoint details changed
     Given a 'Service' exists called 'TestGPPracticeEndpointChange' in DoS with attributes:
       | key                 | value                              |
       | id                  | 400009                             |
@@ -299,12 +299,12 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the service 'TestGPPracticeEndpointChange' has its 'email' updated to 'updated@nhs.net'
     And a single service migration is run for ID '400009'
     Then the pipeline treats the record as an 'update' operation
-    And the pipeline logs "Organisation update detected, adding update item to transaction"
+    And the pipeline logs "Healthcare service update detected, adding update item to transaction"
     And a difference is found in the endpoint record
     And the metrics should show 0 inserted, 0 updated records for the second run
 
   @detect-changes @multiple-changes
-  Scenario: FTRS-1597 AC#5 - Both organisation name and endpoints changed
+  Scenario: Both organisation name and endpoints changed
     Given a 'Service' exists called 'TestGPPracticeMultiChange' in DoS with attributes:
       | key                 | value                             |
       | id                  | 400010                            |
@@ -333,6 +333,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And a single service migration is run for ID '400010'
     Then the pipeline treats the record as an 'update' operation
     And the pipeline logs "Organisation update detected, adding update item to transaction"
+    And the pipeline logs "Healthcare service update detected, adding update item to transaction"
     And a difference is found in the organisation record
     And a difference is found in the endpoint record
     And the metrics should show 0 inserted, 0 updated records for the second run

@@ -8,6 +8,7 @@ from boto3.dynamodb.types import TypeDeserializer
 from pytest_bdd import parsers, scenarios, then, when
 
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.constants import DYNAMODB_CLIENT
 from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.log_helper import get_mock_logger_from_context
@@ -474,15 +475,15 @@ def verify_endpoint_difference_found(
 ) -> None:
     """Verify that endpoint differences were detected.
 
-    Endpoints are part of the organisation record, so we check DM_ETL_030
+    Endpoints are part of the HealthcareService record, so we check DM_ETL_034
     and verify the diff contains endpoint-related changes.
     """
     mock_logger = get_mock_logger_from_context(migration_context)
 
-    # Should have logged DM_ETL_030 (organisation update including endpoints)
-    change_logs = mock_logger.get_log("DM_ETL_030")
+    # Should have logged DM_ETL_034 (healthcare service update including endpoints)
+    change_logs = mock_logger.get_log("DM_ETL_034")
     assert len(change_logs) > 0, (
-        "Expected DM_ETL_030 log indicating endpoint changes detected"
+        "Expected DM_ETL_034 log indicating healthcare service/endpoint changes detected"
     )
 
     # Verify the log contains diff information about endpoints
@@ -497,5 +498,5 @@ def verify_endpoint_difference_found(
     )
 
     assert has_endpoint_changes, (
-        "DM_ETL_030 log should contain endpoint/telecom changes"
+        "DM_ETL_034 log should contain endpoint/telecom changes"
     )
