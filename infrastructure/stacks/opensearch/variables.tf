@@ -1,9 +1,3 @@
-variable "opensearch_stack_enabled" {
-  description = "Enable or disable the opensearch stack"
-  type        = bool
-  default     = true
-}
-
 variable "osis_pipeline_min_units" {
   description = "The min number of units for the OSIS pipeline"
   type        = number
