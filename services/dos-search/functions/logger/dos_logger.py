@@ -96,10 +96,19 @@ class DosLogger:
         )
 
         reqid_corr_msgid = corr_header.split(".") if corr_header else []
-        corr = reqid_corr_msgid[1] if len(reqid_corr_msgid[1]) > 0 else self.placeholder
-        msgid = (
-            reqid_corr_msgid[2] if len(reqid_corr_msgid[2]) > 0 else self.placeholder
-        )
+
+        correlation_id_index = 1
+        message_id_index = 2
+
+        if len(reqid_corr_msgid) > correlation_id_index:
+            corr = reqid_corr_msgid[correlation_id_index]
+        else:
+            corr = self.placeholder
+
+        if len(reqid_corr_msgid) > message_id_index:
+            msgid = reqid_corr_msgid[message_id_index]
+        else:
+            msgid = self.placeholder
 
         mandatory["dos_nhsd_correlation_id"] = corr
 
