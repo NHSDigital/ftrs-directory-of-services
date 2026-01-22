@@ -1179,3 +1179,126 @@ def test_invalid_multiple_primary_roles() -> None:
         OrganisationUpdatePayload(**payload)
 
     assert "Only one primary role is allowed per organisation" in str(exc_info.value)
+
+
+def test_valid_payload_with_primary_and_multiple_non_primary_role_codes() -> None:
+    """Test payload with primary role and multiple valid non-primary role codes including GP Practice."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period]
+    )
+
+    # RO76 (GP Practice) - required non-primary
+    non_primary_period_1 = _build_typed_period_extension(
+        date_type="Legal", start="2014-04-15", end=None
+    )
+    non_primary_role_1 = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[non_primary_period_1]
+    )
+
+    # RO80 - additional non-primary
+    non_primary_period_2 = _build_typed_period_extension(
+        date_type="Legal", start="2015-05-20", end=None
+    )
+    non_primary_role_2 = _build_organisation_role_extension(
+        role_code="RO80", typed_periods=[non_primary_period_2]
+    )
+
+    payload["extension"] = [primary_role, non_primary_role_1, non_primary_role_2]
+
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.name == "Test Organisation"
+    assert organisation.extension is not None
+    assert str(len(organisation.extension)) == "3"
+
+
+def test_valid_payload_with_primary_and_three_non_primary_role_codes() -> None:
+    """Test payload with primary role and three non-primary roles including required GP Practice."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period]
+    )
+
+    # RO76 (GP Practice) - required
+    gp_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # RO80 - additional
+    additional_role_1 = _build_organisation_role_extension(
+        role_code="RO80", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # RO87 - additional
+    additional_role_2 = _build_organisation_role_extension(
+        role_code="RO87", typed_periods=[_build_typed_period_extension()]
+    )
+
+    payload["extension"] = [primary_role, gp_role, additional_role_1, additional_role_2]
+
+    organisation = OrganisationUpdatePayload(**payload)
+    assert organisation.extension is not None
+    assert str(len(organisation.extension)) == "4"
+
+
+def test_invalid_prescribing_cost_centre_without_gp_practice() -> None:
+    """Test that RO177 without RO76 (GP Practice) fails validation."""
+    payload = _build_base_payload()
+
+    primary_period = _build_typed_period_extension(
+        date_type="Legal", start="2020-01-15", end=None
+    )
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[primary_period]
+    )
+
+    # Only RO80 without required RO76
+    non_primary_role = _build_organisation_role_extension(
+        role_code="RO80", typed_periods=[_build_typed_period_extension()]
+    )
+
+    payload["extension"] = [primary_role, non_primary_role]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "RO177 must have RO76 (GP Practice) as one of the non-primary roles" in str(
+        exc_info.value
+    )
+
+
+def test_invalid_prescribing_cost_centre_with_duplicate_additional_roles() -> None:
+    """Test that RO177 with duplicate additional non-primary roles fails validation."""
+    payload = _build_base_payload()
+
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # Required GP Practice
+    gp_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # Duplicate RO80
+    additional_role_1 = _build_organisation_role_extension(
+        role_code="RO80", typed_periods=[_build_typed_period_extension()]
+    )
+    additional_role_2 = _build_organisation_role_extension(
+        role_code="RO80", typed_periods=[_build_typed_period_extension()]
+    )
+
+    payload["extension"] = [primary_role, gp_role, additional_role_1, additional_role_2]
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        OrganisationUpdatePayload(**payload)
+
+    assert "Duplicate non-primary roles are not allowed" in str(exc_info.value)

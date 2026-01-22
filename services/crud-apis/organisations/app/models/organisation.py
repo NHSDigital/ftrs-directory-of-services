@@ -54,6 +54,8 @@ PERMITTED_ROLE_COMBINATIONS = [
         "non_primary": [
             OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
         ],
+        "additional_non_primary": "any",
+        "require_gp_practice": True,
     },
 ]
 
@@ -450,19 +452,27 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
     allowed_non_primary = set(permitted_combination["non_primary"])
 
     # Validate non-primary role requirements
-    if allowed_non_primary:
-        if not non_primary_role_codes:
+    if not non_primary_role_codes:
+        _raise_validation_error(
+            f"{primary_role_code.value} must have at least one non-primary role"
+        )
+
+    # Check if GP Practice is required and present
+    if permitted_combination.get("require_gp_practice", False):
+        if OrganisationTypeCode.GP_PRACTICE_ROLE_CODE not in non_primary_role_codes:
             _raise_validation_error(
-                f"{primary_role_code.value} must have at least one non-primary role"
+                f"{primary_role_code.value} must have RO76 (GP Practice) as one of the non-primary roles"
             )
 
-        # Check for invalid roles using set difference
-        invalid_roles = set(non_primary_role_codes) - allowed_non_primary
-        if invalid_roles:
-            _raise_validation_error(
-                f"Non-primary role '{next(iter(invalid_roles)).value}' is not permitted for primary type '{primary_role_code.value}'"
-            )
-    elif non_primary_role_codes:
+    # If additional non-primary roles are allowed, only validate required roles
+    if permitted_combination.get("additional_non_primary") == "any":
+        # Allow any additional roles beyond the required ones
+        return
+
+    # Strict validation for exact role combinations
+    allowed_non_primary = set(permitted_combination["non_primary"])
+    invalid_roles = set(non_primary_role_codes) - allowed_non_primary
+    if invalid_roles:
         _raise_validation_error(
-            f"{primary_role_code.value} cannot have non-primary roles"
+            f"Non-primary role '{next(iter(invalid_roles)).value}' is not permitted for primary type '{primary_role_code.value}'"
         )

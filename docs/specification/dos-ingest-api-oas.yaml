@@ -514,12 +514,12 @@ paths:
             - `period`: Contains `start` and/or `end` dates in YYYY-MM-DD format
 
         **Allowed Role Combinations**:
-        - Exactly one role is designated as the primary role
+        - Organizations must be GP Practices with exactly one primary role (RO177 - Prescribing Cost Centre)
+        - Must have RO76 (GP Practice) as one of the non-primary roles
+        - May have additional non-primary roles alongside RO76
+        - Duplicate non-primary role codes are not allowed
         - The primary role includes TypedPeriod extension with legal dates
         - Non-primary roles may optionally include TypedPeriod extensions
-        - Primary role must be `RO177`, at least one non-primary role must be present and must be `RO76`
-        - No other role combinations are currently supported
-        - Duplicate non-primary role codes are not allowed
 
         **General Validation Rules**:
         - OrganisationRole extension must contain `roleCode` sub-extensions
@@ -532,7 +532,7 @@ paths:
         - Start and end dates must not be equal if both are provided
         - Extension URLs must exactly match the expected NHS England structure definitions
 
-        **Example with Primary Role (RO177) and Non-Primary Roles**:
+        **Example with Primary Role (RO177) and Multiple Non-Primary Roles**:
         ```json
         "extension": [
           {
@@ -583,6 +583,23 @@ paths:
                       "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
                       "code": "RO76",
                       "display": "GP PRACTICE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+              {
+                "url": "roleCode", 
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                      "code": "RO268",
+                      "display": "MEDICINE SUPPLIER"
                     }
                   ]
                 }

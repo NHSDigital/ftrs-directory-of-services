@@ -2167,7 +2167,7 @@ def test_from_fhir_with_only_primary_role_code() -> None:
                             "coding": [
                                 {
                                     "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                    "code": "RO182",
+                                    "code": "RO177",
                                 }
                             ]
                         },
@@ -2181,7 +2181,7 @@ def test_from_fhir_with_only_primary_role_code() -> None:
     result = mapper.from_fhir(fhir_org)
 
     assert isinstance(result, Organisation)
-    assert result.primary_role_code == "RO182"
+    assert result.primary_role_code == "RO177"
     assert result.non_primary_role_codes == []
 
 
