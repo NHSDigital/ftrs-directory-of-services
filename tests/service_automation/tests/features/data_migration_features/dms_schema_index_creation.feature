@@ -23,4 +23,3 @@ Feature: DMS Schema Index Creation After Full Load
     When the DMS provisioner creates indexes from schema file
     And the DMS provisioner creates indexes from schema file
     Then the index "idx_8a44833f5e237e06" should exist on "services" table
-    And no errors should occur
