@@ -1,5 +1,5 @@
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
-  count = local.is_primary_environment ? 1 : 0
+  count = local.is_primary_environment && length(try(data.aws_subnet.private_subnets_details)) >= 2 ? 1 : 0
 
   replication_subnet_group_id          = "${local.resource_prefix}-etl-replication-subnet-group"
   replication_subnet_group_description = "Subnet group for DMS ETL replication instance"
@@ -14,7 +14,7 @@ resource "aws_dms_replication_instance" "dms_replication_instance" {
   replication_instance_class  = var.dms_replication_instance_class
   allocated_storage           = var.dms_allocated_storage
   vpc_security_group_ids      = [data.aws_security_group.dms_replication_security_group.id]
-  replication_subnet_group_id = aws_dms_replication_subnet_group.dms_replication_subnet_group[0].id
+  replication_subnet_group_id = try(aws_dms_replication_subnet_group.dms_replication_subnet_group[0].id, null)
   multi_az                    = var.dms_instance_multi_az
   auto_minor_version_upgrade  = var.dms_replication_instance_auto_minor_version_upgrade
   kms_key_arn                 = data.aws_kms_key.dms_kms_alias.arn
