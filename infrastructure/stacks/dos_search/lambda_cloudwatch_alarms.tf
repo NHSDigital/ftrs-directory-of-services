@@ -35,16 +35,17 @@ resource "aws_sns_topic_policy" "dos_search_lambda_alarms_policy" {
 ################################################################################
 
 # Duration Alarm - triggers if average duration exceeds threshold
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
   alarm_name          = "${local.resource_prefix}-search-lambda-duration-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Duration"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Average"
-  threshold           = var.search_lambda_duration_threshold_ms
-  alarm_description   = "Alert when search Lambda average duration exceeds threshold"
+  threshold           = local.search_lambda_duration_threshold_ms
+  alarm_description   = "Alert when search Lambda average duration exceeds threshold (${local.search_lambda_duration_threshold_ms}ms). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -56,16 +57,17 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
 }
 
 # Concurrent Executions Alarm - triggers if concurrent executions exceed threshold
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
   alarm_name          = "${local.resource_prefix}-search-lambda-concurrent-executions-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "ConcurrentExecutions"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Maximum"
-  threshold           = var.search_lambda_concurrent_executions_threshold
-  alarm_description   = "Alert when search Lambda concurrent executions exceed threshold"
+  threshold           = local.search_lambda_concurrent_executions_threshold
+  alarm_description   = "Alert when search Lambda concurrent executions exceed threshold (${local.search_lambda_concurrent_executions_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -77,16 +79,17 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
 }
 
 # Throttles Alarm - triggers if any throttles occur
+# Evaluation periods sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
   alarm_name          = "${local.resource_prefix}-search-lambda-throttles${local.workspace_suffix}"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Throttles"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
   threshold           = 1
-  alarm_description   = "Alert when search Lambda is throttled"
+  alarm_description   = "Alert when search Lambda is throttled. Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -98,16 +101,17 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
 }
 
 # Invocations Alarm - optional: tracks invocation rate
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
   alarm_name          = "${local.resource_prefix}-search-lambda-invocations-low${local.workspace_suffix}"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Invocations"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
-  threshold           = var.search_lambda_invocations_threshold
-  alarm_description   = "Alert when search Lambda invocations fall below expected threshold"
+  threshold           = local.search_lambda_invocations_threshold
+  alarm_description   = "Alert when search Lambda invocations fall below expected threshold (${local.search_lambda_invocations_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -119,16 +123,17 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
 }
 
 # Errors Alarm - triggers if error rate exceeds threshold
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
   alarm_name          = "${local.resource_prefix}-search-lambda-errors${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Errors"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
-  threshold           = var.search_lambda_errors_threshold
-  alarm_description   = "Alert when search Lambda errors exceed threshold"
+  threshold           = local.search_lambda_errors_threshold
+  alarm_description   = "Alert when search Lambda errors exceed threshold (${local.search_lambda_errors_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -144,16 +149,17 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
 ################################################################################
 
 # Duration Alarm
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-duration-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Duration"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Average"
-  threshold           = var.health_check_lambda_duration_threshold_ms
-  alarm_description   = "Alert when health check Lambda average duration exceeds threshold"
+  threshold           = local.health_check_lambda_duration_threshold_ms
+  alarm_description   = "Alert when health check Lambda average duration exceeds threshold (${local.health_check_lambda_duration_threshold_ms}ms). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -165,16 +171,17 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
 }
 
 # Concurrent Executions Alarm
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_executions" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-concurrent-executions-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "ConcurrentExecutions"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Maximum"
-  threshold           = var.health_check_lambda_concurrent_executions_threshold
-  alarm_description   = "Alert when health check Lambda concurrent executions exceed threshold"
+  threshold           = local.health_check_lambda_concurrent_executions_threshold
+  alarm_description   = "Alert when health check Lambda concurrent executions exceed threshold (${local.health_check_lambda_concurrent_executions_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -186,16 +193,17 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_execution
 }
 
 # Throttles Alarm
+# Evaluation periods sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-throttles${local.workspace_suffix}"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Throttles"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
   threshold           = 1
-  alarm_description   = "Alert when health check Lambda is throttled"
+  alarm_description   = "Alert when health check Lambda is throttled. Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -207,16 +215,17 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
 }
 
 # Invocations Alarm
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-invocations-low${local.workspace_suffix}"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Invocations"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
-  threshold           = var.health_check_lambda_invocations_threshold
-  alarm_description   = "Alert when health check Lambda invocations fall below expected threshold"
+  threshold           = local.health_check_lambda_invocations_threshold
+  alarm_description   = "Alert when health check Lambda invocations fall below expected threshold (${local.health_check_lambda_invocations_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
@@ -228,16 +237,17 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
 }
 
 # Errors Alarm
+# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_errors" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-errors${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = var.lambda_alarm_evaluation_periods
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
   metric_name         = "Errors"
   namespace           = "AWS/Lambda"
-  period              = var.lambda_alarm_period
+  period              = local.lambda_alarm_period
   statistic           = "Sum"
-  threshold           = var.health_check_lambda_errors_threshold
-  alarm_description   = "Alert when health check Lambda errors exceed threshold"
+  threshold           = local.health_check_lambda_errors_threshold
+  alarm_description   = "Alert when health check Lambda errors exceed threshold (${local.health_check_lambda_errors_threshold}). Managed via AppConfig."
   alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
   treat_missing_data  = "notBreaching"
 
