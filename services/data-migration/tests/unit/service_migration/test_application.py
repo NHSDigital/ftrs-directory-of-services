@@ -30,7 +30,7 @@ def test_handle_sqs_record_invalid_method(
         record_id=123,
         service_id=456,
         table_name="test_table",
-        method="delete",  # Unsupported method
+        method="replace",  # Unsupported method
     )
     mock_record = SQSRecord(data={"body": mock_event.model_dump_json()})
 
@@ -44,16 +44,16 @@ def test_handle_sqs_record_invalid_method(
     assert mock_logger.get_log("DM_ETL_010") == [
         {
             "detail": {
-                "method": "delete",
+                "method": "replace",
                 "event": {
                     "type": "dms_event",
                     "record_id": 123,
                     "service_id": 456,
                     "table_name": "test_table",
-                    "method": "delete",
+                    "method": "replace",
                 },
             },
-            "msg": "Unsupported event method: delete",
+            "msg": "Unsupported event method: replace",
             "reference": "DM_ETL_010",
         }
     ]
