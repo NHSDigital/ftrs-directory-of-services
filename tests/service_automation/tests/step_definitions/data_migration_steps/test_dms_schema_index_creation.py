@@ -1,4 +1,4 @@
-"""BDD step definitions for DMS schema index creation tests (FTRS-1708)."""
+"""BDD step definitions for DMS schema index creation tests."""
 from typing import Dict, List
 
 import pytest
@@ -27,21 +27,21 @@ scenarios("./data_migration_features/dms_schema_index_creation.feature")
 
 
 @pytest.fixture
-def dms_context(dos_db_with_migration: Session) -> Dict:
+def dms_context(dos_db: Session) -> Dict:
     """Context for storing DMS test state."""
     return {
-        "db_session": dos_db_with_migration,
-        "engine": dos_db_with_migration.get_bind(),
+        "db_session": dos_db,
+        "engine": dos_db.get_bind(),
         "tables_with_indexes": {},
         "error_occurred": False,
     }
 
 
 @given("the database has schema and data from source")
-def given_database_with_migration(dos_db_with_migration: Session, dms_context: Dict) -> None:
+def given_database_with_migration(dos_db: Session, dms_context: Dict) -> None:
     """Verify database is loaded with migrated schema and data."""
     # Verify pathwaysdos schema exists
-    result = dos_db_with_migration.execute(
+    result = dos_db.execute(
         text(
             "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'pathwaysdos'"
         )
@@ -51,11 +51,11 @@ def given_database_with_migration(dos_db_with_migration: Session, dms_context: D
 
 @given(parsers.parse('the "{table_name}" table exists with data'))
 def given_table_exists_with_data(
-    dos_db_with_migration: Session, dms_context: Dict, table_name: str
+    dos_db: Session, dms_context: Dict, table_name: str
 ) -> None:
     """Verify specified table exists (data is optional - some tables may be empty)."""
     # Check table exists
-    result = dos_db_with_migration.execute(
+    result = dos_db.execute(
         text(
             """
             SELECT table_name
@@ -71,12 +71,12 @@ def given_table_exists_with_data(
 
 @given(parsers.parse('all indexes are dropped from "{table_name}" table'))
 def given_indexes_dropped_from_table(
-    dos_db_with_migration: Session, dms_context: Dict, table_name: str
+    dos_db: Session, dms_context: Dict, table_name: str
 ) -> None:
     """Drop all indexes from specified table except constraint-based indexes."""
     # Get all indexes for the table, excluding those created by constraints
     # (primary key, foreign key, unique constraints)
-    result = dos_db_with_migration.execute(
+    result = dos_db.execute(
         text(
             """
             SELECT i.indexname
@@ -102,21 +102,65 @@ def given_indexes_dropped_from_table(
     for index_name in indexes_before:
         # SQL identifiers cannot be parameterized, but index_name comes from pg_indexes query
         # which ensures it's a valid identifier
-        dos_db_with_migration.execute(
+        dos_db.execute(
             text(f"DROP INDEX IF EXISTS pathwaysdos.{index_name}")
         )
         dms_context["tables_with_indexes"][table_name]["dropped_count"] += 1
 
-    dos_db_with_migration.commit()
+    dos_db.commit()
+
+
+@given(parsers.parse('the index "{index_name}" already exists on "{table_name}" table'))
+def given_index_already_exists(
+    dos_db: Session, dms_context: Dict, index_name: str, table_name: str
+) -> None:
+    """Verify specific index already exists on table (for idempotency test)."""
+    # Check if index exists
+    result = dos_db.execute(
+        text(
+            """
+            SELECT indexname
+            FROM pg_indexes
+            WHERE schemaname = 'pathwaysdos'
+            AND tablename = :table_name
+            AND indexname = :index_name
+            """
+        ),
+        {"table_name": table_name, "index_name": index_name}
+    )
+    existing_index = result.fetchone()
+
+    # If it doesn't exist, create it by calling the provisioner
+    if existing_index is None:
+        engine: Engine = dms_context["engine"]
+        create_indexes_from_sql_file(engine=engine)
+
+        # Verify it was created
+        result = dos_db.execute(
+            text(
+                """
+                SELECT indexname
+                FROM pg_indexes
+                WHERE schemaname = 'pathwaysdos'
+                AND tablename = :table_name
+                AND indexname = :index_name
+                """
+            ),
+            {"table_name": table_name, "index_name": index_name}
+        )
+        existing_index = result.fetchone()
+        assert existing_index is not None, f"Index {index_name} should exist on {table_name} after creation"
+
+    dms_context.setdefault("indexes_before", {})[index_name] = True
 
 
 @given(parsers.parse('all indexes are already created on "{table_name}" table'))
 def given_indexes_already_created(
-    dos_db_with_migration: Session, dms_context: Dict, table_name: str
+    dos_db: Session, dms_context: Dict, table_name: str
 ) -> None:
     """Verify indexes already exist on table (for idempotency test)."""
     # Get current indexes (excluding constraint-based ones)
-    result = dos_db_with_migration.execute(
+    result = dos_db.execute(
         text(
             """
             SELECT COUNT(*)
@@ -140,12 +184,12 @@ def given_indexes_already_created(
 
 @given("all INDEXES_TABLES exist with data")
 def given_all_indexes_tables_exist(
-    dos_db_with_migration: Session, dms_context: Dict
+    dos_db: Session, dms_context: Dict
 ) -> None:
     """Verify all tables in INDEXES_TABLES list exist (data is optional)."""
     for table_name in INDEXES_TABLES:
         # Check table exists
-        result = dos_db_with_migration.execute(
+        result = dos_db.execute(
             text(
                 """
                 SELECT table_name
@@ -161,14 +205,14 @@ def given_all_indexes_tables_exist(
 
 @given("all indexes are dropped from all INDEXES_TABLES")
 def given_indexes_dropped_from_all_tables(
-    dos_db_with_migration: Session, dms_context: Dict
+    dos_db: Session, dms_context: Dict
 ) -> None:
     """Drop all indexes from all tables in INDEXES_TABLES list (excluding constraint-based)."""
     total_dropped = 0
 
     for table_name in INDEXES_TABLES:
         # Get all indexes for the table, excluding constraint-based indexes
-        result = dos_db_with_migration.execute(
+        result = dos_db.execute(
             text(
                 """
                 SELECT i.indexname
@@ -190,12 +234,12 @@ def given_indexes_dropped_from_all_tables(
         for index_name in indexes:
             # SQL identifiers cannot be parameterized, but index_name comes from pg_indexes query
             # which ensures it's a valid identifier
-            dos_db_with_migration.execute(
+            dos_db.execute(
                 text(f"DROP INDEX IF EXISTS pathwaysdos.{index_name}")
             )
             total_dropped += 1
 
-    dos_db_with_migration.commit()
+    dos_db.commit()
     dms_context["total_indexes_dropped"] = total_dropped
 
 
@@ -214,13 +258,35 @@ def when_dms_provisioner_creates_indexes(dms_context: Dict) -> None:
         dms_context["error"] = str(e)
 
 
+@then(parsers.parse('the index "{index_name}" should exist on "{table_name}" table'))
+def then_index_exists_on_table(
+    dos_db: Session, dms_context: Dict, index_name: str, table_name: str
+) -> None:
+    """Verify specific index exists on specified table."""
+    result = dos_db.execute(
+        text(
+            """
+            SELECT indexname
+            FROM pg_indexes
+            WHERE schemaname = 'pathwaysdos'
+            AND tablename = :table_name
+            AND indexname = :index_name
+            """
+        ),
+        {"table_name": table_name, "index_name": index_name}
+    )
+
+    index_found = result.fetchone()
+    assert index_found is not None, f"Index {index_name} should exist on table {table_name}"
+
+
 @then(parsers.parse('all indexes should exist on "{table_name}" table'))
 def then_indexes_exist_on_table(
-    dos_db_with_migration: Session, dms_context: Dict, table_name: str
+    dos_db: Session, dms_context: Dict, table_name: str
 ) -> None:
     """Verify indexes were created on specified table."""
     # Get indexes after provisioning (excluding constraint-based indexes)
-    result = dos_db_with_migration.execute(
+    result = dos_db.execute(
         text(
             """
             SELECT i.indexname
@@ -259,13 +325,13 @@ def then_indexes_exist_on_table(
 
 @then("all INDEXES_TABLES should have their indexes created")
 def then_all_tables_have_indexes(
-    dos_db_with_migration: Session, dms_context: Dict
+    dos_db: Session, dms_context: Dict
 ) -> None:
     """Verify all tables in INDEXES_TABLES have indexes."""
     tables_with_indexes = 0
 
     for table_name in INDEXES_TABLES:
-        result = dos_db_with_migration.execute(
+        result = dos_db.execute(
             text(
                 """
                 SELECT COUNT(*)

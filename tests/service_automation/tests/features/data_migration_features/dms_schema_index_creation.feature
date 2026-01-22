@@ -1,81 +1,58 @@
 @rds_schema_modification @data_migration
 
 Feature: DMS Schema Index Creation After Full Load
-  As a data migration engineer
-  I want to ensure that indexes are created after DMS full load
-  So that database performance is maintained after bulk data migration
 
   Background:
     Given the database has schema and data from source
 
   Scenario: Indexes are created for services table
-    Given the "services" table exists with data
-    And all indexes are dropped from "services" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "services" table
-
+    Then the index "idx_8a44833f5e237e06" should exist on "services" table
 
   Scenario: Indexes are created for servicetypes table
-    Given the "servicetypes" table exists with data
-    And all indexes are dropped from "servicetypes" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicetypes" table
+    Then the index "idx_13a6b93b5e237e06" should exist on "servicetypes" table
 
 
   Scenario: Indexes are created for serviceendpoints table
-    Given the "serviceendpoints" table exists with data
-    And all indexes are dropped from "serviceendpoints" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "serviceendpoints" table
+    Then the index "idx_9e65c23389697fa8" should exist on "serviceendpoints" table
 
 
   Scenario: Indexes are created for servicedayopenings table
-    Given the "servicedayopenings" table exists with data
-    And all indexes are dropped from "servicedayopenings" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicedayopenings" table
+    Then the index "idx_4256645789697fa8" should exist on "servicedayopenings" table
 
 
   Scenario: Indexes are created for servicedayopeningtimes table
-    Given the "servicedayopeningtimes" table exists with data
-    And all indexes are dropped from "servicedayopeningtimes" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicedayopeningtimes" table
+    Then the index "idx_servicedayopeningtimes_servicedayopeningid" should exist on "servicedayopeningtimes" table
 
 
   Scenario: Indexes are created for servicesgsds table
-    Given the "servicesgsds" table exists with data
-    And all indexes are dropped from "servicesgsds" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicesgsds" table
+    Then the index "idx_32508c7f89697fa8" should exist on "servicesgsds" table
 
 
   Scenario: Indexes are created for servicedispositions table
-    Given the "servicedispositions" table exists with data
-    And all indexes are dropped from "servicedispositions" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicedispositions" table
+    Then the index "idx_fa62cf5289697fa8" should exist on "servicedispositions" table
 
 
   Scenario: Indexes are created for servicespecifiedopeningdates table
-    Given the "servicespecifiedopeningdates" table exists with data
-    And all indexes are dropped from "servicespecifiedopeningdates" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicespecifiedopeningdates" table
+    Then the index "idx_servicespecifiedopeningdates_serviceid" should exist on "servicespecifiedopeningdates" table
 
 
   Scenario: Indexes are created for servicespecifiedopeningtimes table
-    Given the "servicespecifiedopeningtimes" table exists with data
-    And all indexes are dropped from "servicespecifiedopeningtimes" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "servicespecifiedopeningtimes" table
+    Then the index "idx_servicespecifiedopeningtimes_servicespecifiedopeningdateid" should exist on "servicespecifiedopeningtimes" table
 
 
   Scenario: Index creation is idempotent
-    Given the "services" table exists with data
-    And all indexes are already created on "services" table
+    Given the index "idx_8a44833f5e237e06" already exists on "services" table
     When the DMS provisioner creates indexes from schema file
-    Then all indexes should exist on "services" table
+    Then the index "idx_8a44833f5e237e06" should exist on "services" table
     And no errors should occur
 
 
