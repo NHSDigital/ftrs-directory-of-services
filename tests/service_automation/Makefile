@@ -9,7 +9,7 @@ LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to 
 
 # ==============================================================================
 
-.PHONY: clean install config lint lint-fix pre-commit test report _install-dependency _install-dependencies
+.PHONY: clean install config lint lint-staged lint-fix pre-commit test report _install-dependency _install-dependencies
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
@@ -30,14 +30,21 @@ config:
 lint:
 	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
 	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
-	poetry run ruff check
-	poetry run ruff format --check
+
+lint-staged:
+	files=$$(git diff --relative --name-only --cached -- '*.py'); \
+	if [ -z "$$files" ]; then \
+		echo "No files staged"; \
+	else \
+		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+	fi
 
 lint-fix:
 	poetry run ruff check --fix
 	poetry run ruff format
 
-pre-commit: lint
+pre-commit: lint-staged
 
 test:
 	@for marker in $(MARKERS); do \
@@ -75,4 +82,5 @@ ${VERBOSE}.SILENT: \
 	_install-dependencies \
 	install \
 	lint \
+	lint-staged \
 	lint-fix \
