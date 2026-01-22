@@ -147,15 +147,10 @@ def update_organisation(
     )
     try:
         fhir_org = update_payload_validator.model_dump()
-        if NHSE_Product_ID:
-            fhir_org["lastUpdatedBy"] = {
-                "type": "app",
-                "value": NHSE_Product_ID,
-                "display": "ODS",
-            }
         processed = organisation_service.process_organisation_update(
             organisation_id=organisation_id,
             fhir_org=fhir_org,
+            nhse_product_id=NHSE_Product_ID,
         )
         if not processed:
             crud_organisation_logger.log(

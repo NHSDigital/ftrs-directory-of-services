@@ -12,6 +12,7 @@ from ftrs_common.fhir.operation_outcome import (
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.logbase import CrudApisLogBase
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pydantic import ValidationError
@@ -32,10 +33,18 @@ class OrganisationService:
         self,
         organisation_id: str,
         fhir_org: dict,
+        nhse_product_id: str | None = None,
     ) -> bool:
         """
         Update an organisation from a FHIR Organisation resource.
         """
+        lastUpdatedBy = AuditEvent(
+            type=AuditEventType.app, value="SYSTEM", display="SYSTEM"
+        )
+
+        if nhse_product_id:
+            lastUpdatedBy.value = nhse_product_id
+            lastUpdatedBy.display = "ODS"
         try:
             fhir_organisation = FhirValidator.validate(fhir_org, FhirOrganisation)
             ods_code = None
@@ -50,6 +59,7 @@ class OrganisationService:
                 organisation_id, ods_code
             )
             organisation = self.organisation_mapper.from_fhir(fhir_organisation)
+            organisation.lastUpdatedBy = lastUpdatedBy
             outdated_fields = self._get_outdated_fields(
                 stored_organisation, organisation
             )

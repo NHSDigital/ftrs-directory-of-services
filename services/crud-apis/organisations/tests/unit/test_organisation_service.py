@@ -373,6 +373,7 @@ def test_process_organisation_update_no_changes(
         assert f"No changes detected for organisation {organisation_id}" in caplog.text
 
 
+@freeze_time("2023-12-16T12:00:00Z")
 def test_process_organisation_update_with_changes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -414,11 +415,114 @@ def test_process_organisation_update_with_changes(
         },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
+    expected_last_updated = datetime.now(UTC)
+    expected_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Changed Name",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": "SYSTEM",
+            "display": "SYSTEM",
+        },
+        lastUpdated=expected_last_updated,
+    )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("INFO"):
         result = service.process_organisation_update(organisation_id, fhir_org)
         assert result is True
-        org_repository.update.assert_called_once()
+        org_repository.update.assert_called_once_with(
+            organisation_id, expected_organisation
+        )
+        assert f"Successfully updated organisation {organisation_id}" in caplog.text
+
+
+@freeze_time("2023-12-16T12:00:00Z")
+def test_process_organisation_update_with_changes_and_nhse_product_id(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    nhse_product_id = "NHSE_PRODUCT_123"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        lastUpdated=FIXED_MODIFIED_TIME,
+    )
+    expected_last_updated = datetime.now(UTC)
+    expected_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Changed Name",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": "NHSE_PRODUCT_123",
+            "display": "ODS",
+        },
+        lastUpdated=expected_last_updated,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("INFO"):
+        result = service.process_organisation_update(
+            organisation_id, fhir_org, nhse_product_id
+        )
+        assert result is True
+        org_repository.update.assert_called_once_with(
+            organisation_id, expected_organisation
+        )
         assert f"Successfully updated organisation {organisation_id}" in caplog.text
 
 
