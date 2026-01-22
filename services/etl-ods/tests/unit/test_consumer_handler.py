@@ -47,9 +47,7 @@ def test_consumer_lambda_handler_success(
     expected_batch_complete_log = (
         OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
     )
-    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
     assert expected_batch_complete_log in caplog.text
-    assert expected_pipeline_end_log in caplog.text
 
 
 @patch("consumer.consumer_handler.process_message_and_send_request")
@@ -103,9 +101,7 @@ def test_consumer_lambda_handler_failure(
     expected_batch_complete_log = (
         OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
     )
-    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
     assert expected_batch_complete_log in caplog.text
-    assert expected_pipeline_end_log in caplog.text
 
 
 @patch("consumer.consumer_handler.process_message_and_send_request")
@@ -147,9 +143,7 @@ def test_consumer_lambda_handler_logs_batch_statistics(
     expected_batch_complete_log = (
         OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE.value.message
     )
-    expected_pipeline_end_log = OdsETLPipelineLogBase.ETL_PIPELINE_END.value.message
     assert expected_batch_complete_log in caplog.text
-    assert expected_pipeline_end_log in caplog.text
 
 
 @pytest.mark.parametrize(

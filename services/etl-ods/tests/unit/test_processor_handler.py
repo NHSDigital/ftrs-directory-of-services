@@ -39,11 +39,9 @@ def test_processor_lambda_handler_success(
     mock_processor.assert_called_once_with(date=date)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
-    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
     expected_processor_start_log = (
         OdsETLPipelineLogBase.ETL_PROCESSOR_START.value.message
     )
-    assert expected_pipeline_start_log in caplog.text
     assert expected_processor_start_log in caplog.text
 
 
@@ -61,11 +59,9 @@ def test_processor_lambda_handler_success_is_scheduled(
     mock_processor.assert_called_once_with(date=previous_date)
     assert response == {"statusCode": 200, "body": "Processing complete"}
 
-    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
     expected_processor_start_log = (
         OdsETLPipelineLogBase.ETL_PROCESSOR_START.value.message
     )
-    assert expected_pipeline_start_log in caplog.text
     assert expected_processor_start_log in caplog.text
 
 
@@ -75,9 +71,6 @@ def test_processor_lambda_handler_missing_date(
     response = processor_lambda_handler({}, {})
     assert response["statusCode"] == HTTPStatus.BAD_REQUEST
     assert json.loads(response["body"]) == {"error": "Date parameter is required"}
-
-    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
-    assert expected_pipeline_start_log in caplog.text
 
 
 def test_processor_lambda_handler_invalid_date_format(
@@ -89,9 +82,6 @@ def test_processor_lambda_handler_invalid_date_format(
     assert json.loads(response["body"]) == {
         "error": "Date must be in YYYY-MM-DD format"
     }
-
-    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
-    assert expected_pipeline_start_log in caplog.text
 
 
 def test_processor_lambda_handler_date_too_old(mocker: MockerFixture) -> None:
@@ -133,9 +123,6 @@ def test_processor_lambda_handler_exception(
     assert str(result["statusCode"]) == "500"
     error_body = json.loads(result["body"])
     assert "Unexpected error: Test error" in error_body["error"]
-
-    expected_pipeline_start_log = OdsETLPipelineLogBase.ETL_PIPELINE_START.value.message
-    assert expected_pipeline_start_log in caplog.text
 
 
 def test_processor_lambda_handler_logs_duration(

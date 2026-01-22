@@ -37,12 +37,7 @@ def processor_lambda_handler(event: dict, context: any) -> dict:
             correlation_id=correlation_id, request_id=request_id
         )
 
-        # Log ETL Pipeline and Processor start
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PIPELINE_START,
-            lambda_name="etl-ods-processor",
-            etl_stage="pipeline_start",
-        )
+        # Log Processor start
         ods_processor_logger.log(
             OdsETLPipelineLogBase.ETL_PROCESSOR_START,
             lambda_name="etl-ods-processor",

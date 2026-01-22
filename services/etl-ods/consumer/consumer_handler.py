@@ -75,15 +75,7 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
             total_records=len(records) if records else 0,
             successful_count=successful_count,
             failed_count=failed_count,
-        )
-
-        # Log ETL Pipeline end
-        ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_PIPELINE_END,
-            lambda_name="etl-ods-consumer",
-            etl_stage="pipeline_end",
-            duration_ms=duration_ms,
-            etl_run_status="completed"
+            batch_status="completed"
             if failed_count == 0
             else "completed_with_failures",
         )
