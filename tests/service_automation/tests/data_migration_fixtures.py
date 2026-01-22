@@ -123,7 +123,8 @@ def fixture_dos_db(
         session = Session(engine)
 
         for script in dos_db_setup_scripts:
-            session.exec(text(script))
+            if script.strip():
+                session.exec(text(script))
         session.commit()
 
         yield session
