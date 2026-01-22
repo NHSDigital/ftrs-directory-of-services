@@ -116,6 +116,12 @@ variable "dms_event_queue_maximum_concurrency" {
   default     = 20
 }
 
+variable "dms_event_queue_visibility_timeout_seconds" {
+  description = "The visibility timeout in seconds for the DMS event queue"
+  type        = number
+  default     = 360
+}
+
 variable "dms_replication_instance_class" {
   description = "The instance class for the DMS replication instance"
   type        = string
