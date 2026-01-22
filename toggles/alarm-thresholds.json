@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "description": "CloudWatch alarm thresholds for DOS Search service",
+  "searchLambda": {
+    "duration": {
+      "threshold_ms": 5000,
+      "description": "Threshold in milliseconds for search Lambda average duration"
+    },
+    "concurrentExecutions": {
+      "threshold": 100,
+      "description": "Threshold for search Lambda concurrent executions"
+    },
+    "errors": {
+      "threshold": 5,
+      "description": "Threshold for search Lambda errors (sum over period)"
+    },
+    "invocations": {
+      "threshold": 1,
+      "description": "Minimum threshold for search Lambda invocations (alerts if below)"
+    }
+  },
+  "healthCheckLambda": {
+    "duration": {
+      "threshold_ms": 3000,
+      "description": "Threshold in milliseconds for health check Lambda average duration"
+    },
+    "concurrentExecutions": {
+      "threshold": 50,
+      "description": "Threshold for health check Lambda concurrent executions"
+    },
+    "errors": {
+      "threshold": 3,
+      "description": "Threshold for health check Lambda errors (sum over period)"
+    },
+    "invocations": {
+      "threshold": 1,
+      "description": "Minimum threshold for health check Lambda invocations (alerts if below)"
+    }
+  },
+  "alarmConfiguration": {
+    "evaluationPeriods": 2,
+    "periodSeconds": 300,
+    "description": "Default alarm evaluation configuration (shared across all alarms)"
+  },
+  "slackNotifications": {
+    "enabled": true,
+    "webhookSecretName": "dos-search-slack-webhook-url"
+  }
+}
