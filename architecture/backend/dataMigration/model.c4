@@ -1,0 +1,87 @@
+model {
+  extend ftrs {
+    container dataMigration "Data Migration Pipeline" {
+      description 'Pipeline for migrating legacy DoS service data to FtRS via DMS and Lambda processing'
+
+      // =========================================================================
+      // Staging Database
+      // =========================================================================
+      component stagingDb "Staging Database" {
+        description 'Staging database for replicated DoS data, used for transformation'
+        technology 'PostgreSQL'
+        style {
+          icon tech:postgresql
+          shape storage
+        }
+      }
+
+      // =========================================================================
+      // Lambda Functions
+      // =========================================================================
+      lambda dmsDbSetup "DMS DB Setup Lambda" {
+        description 'Sets up staging database for DMS replication, creates database triggers and indexes'
+        technology 'Python 3.12'
+      }
+
+      lambda rdsEventListener "RDS Event Listener Lambda" {
+        description 'Listens for database change events from staging DB triggers and routes to processing queue'
+        technology 'Python 3.12'
+      }
+
+      lambda queuePopulator "Queue Populator Lambda" {
+        description 'Queries staging database for service IDs and populates processing queue for batch migration'
+        technology 'Python 3.12'
+      }
+
+      lambda processor "Migration Processor Lambda" {
+        description 'Transforms DoS services to FHIR format and writes Organisation, HealthcareService, Location to FTRS'
+        technology 'Python 3.12'
+      }
+
+      lambda referenceDataLoad "Reference Data Load Lambda" {
+        description 'Loads reference data (dispositions, symptom groups, etc.) from staging DB to FTRS'
+        technology 'Python 3.12'
+      }
+    }
+  }
+
+  // =========================================================================
+  // External Systems
+  // =========================================================================
+  dosLegacyDb = system "Legacy DoS Database" {
+    description 'Existing Directory of Services PostgreSQL database (source of truth)'
+    technology 'PostgreSQL on Azure'
+    style {
+      icon tech:postgresql
+      shape storage
+    }
+  }
+
+  // =========================================================================
+  // Data Flows
+  // =========================================================================
+
+  // Legacy DoS replication to staging
+  dosLegacyDb -> ftrs.dataMigration.stagingDb "replicated via DMS"
+
+  // DMS DB Setup configures the staging database
+  ftrs.dataMigration.dmsDbSetup -> ftrs.dataMigration.stagingDb "configures triggers and indexes"
+
+  // Queue Populator reads from staging and triggers processor
+  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "queries service IDs from"
+  ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "triggers batch processing"
+
+  // RDS Event Listener responds to staging DB changes
+  ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "triggers on data change"
+  ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "triggers CDC processing"
+
+  // Processor reads from staging and writes to FTRS
+  ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "reads service data from"
+  ftrs.dataMigration.processor -> ftrs.db.orgTable "writes Organisation to"
+  ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "writes HealthcareService to"
+  ftrs.dataMigration.processor -> ftrs.db.locationTable "writes Location to"
+
+  // Reference Data Load reads from staging and writes to FTRS
+  ftrs.dataMigration.referenceDataLoad -> ftrs.dataMigration.stagingDb "reads reference data from"
+  ftrs.dataMigration.referenceDataLoad -> ftrs.db.orgTable "writes reference data to"
+}

@@ -72,4 +72,28 @@ specification {
     }
     technology 'SQS'
   }
+  deploymentNode s3 {
+    notation 'S3'
+    style {
+      icon aws:simple-storage-service
+      shape storage
+    }
+    technology 'S3'
+  }
+  deploymentNode dms {
+    notation 'DMS'
+    style {
+      icon aws:database-migration-service
+    }
+    technology 'AWS DMS'
+  }
+  deploymentNode rds {
+    notation 'RDS'
+    style {
+      icon aws:aurora
+    }
+    technology 'Aurora PostgreSQL'
+  }
+  tag privateBeta
+  tag publicBeta
 }
