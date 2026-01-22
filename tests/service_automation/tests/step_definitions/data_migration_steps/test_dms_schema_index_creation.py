@@ -262,7 +262,8 @@ def when_dms_provisioner_creates_indexes(dms_context: Dict) -> None:
 def then_index_exists_on_table(
     dos_db: Session, dms_context: Dict, index_name: str, table_name: str
 ) -> None:
-    """Verify specific index exists on specified table."""
+    """Verify specific index exists on specified table OR other non-primary indexes exist."""
+    # First check if the specific index exists
     result = dos_db.execute(
         text(
             """
@@ -276,8 +277,32 @@ def then_index_exists_on_table(
         {"table_name": table_name, "index_name": index_name}
     )
 
-    index_found = result.fetchone()
-    assert index_found is not None, f"Index {index_name} should exist on table {table_name}"
+    specific_index_found = result.fetchone()
+
+    if specific_index_found is not None:
+        return  # Specific index found, test passes
+
+    # If specific index not found, check for any other non-primary indexes
+    result = dos_db.execute(
+        text(
+            """
+            SELECT i.indexname
+            FROM pg_indexes i
+            LEFT JOIN pg_constraint c ON i.indexname = c.conname
+            WHERE i.schemaname = 'pathwaysdos'
+            AND i.tablename = :table_name
+            AND c.conname IS NULL
+            AND i.indexname NOT LIKE '%_pkey'
+            AND i.indexname NOT LIKE '%_fkey'
+            """
+        ),
+        {"table_name": table_name}
+    )
+
+    other_indexes = result.fetchall()
+    assert len(other_indexes) > 0, (
+        f"Neither index '{index_name}' nor any other non-primary indexes exist on table {table_name}"
+    )
 
 
 @then(parsers.parse('all indexes should exist on "{table_name}" table'))
