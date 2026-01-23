@@ -28,13 +28,13 @@ terraform apply
 2. Find: `{environment}-dos-search-alarm-thresholds`
 3. Edit configuration JSON
 4. Create deployment
-5. Run `terraform apply` to sync state (optional but recommended)
+5. Run `Terraform apply` to sync state (optional but recommended)
 
 **For Infrastructure Teams** - Update via Git:
 
 1. Edit `toggles/alarm-thresholds.json`
 2. Commit and merge to main
-3. Run `terraform apply` in both app_config and dos_search stacks
+3. Run `Terraform apply` in both AppConfig and dos_search stacks
 
 ## How It Works
 
@@ -67,8 +67,8 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 
 ### Modified Files
 
-- `infrastructure/stacks/app_config/app_config.tf` - Added alarm_thresholds_app_config module
-- `infrastructure/stacks/dos_search/data.tf` - Added app_config remote state reference
+- `infrastructure/stacks/AppConfig/app_config.tf` - Added alarm_thresholds_app_config module
+- `infrastructure/stacks/dos_search/data.tf` - Added AppConfig remote state reference
 - `infrastructure/stacks/dos_search/lambda_cloudwatch_alarms.tf` - All alarms use AppConfig locals
 - `infrastructure/stacks/dos_search/APPCONFIG_ALARMS_GUIDE.md` - Updated documentation
 
@@ -84,14 +84,14 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 
 - The local `toggles/alarm-thresholds.json` is now only used for **initial AppConfig creation**
 - After initial setup, Terraform reads from AppConfig, not the file
-- GUI updates to AppConfig take effect on next `terraform apply`
+- GUI updates to AppConfig take effect on next `Terraform apply`
 
 ## Benefits
 
 | Feature | Before | After |
 | --- | --- | --- |
-| **Update without redeployment** | ❌ Required Terraform | ✅ GUI only (with terraform apply to sync) |
-| **Real-time effect** | ❌ Required deployment | ✅ Immediate (after terraform apply) |
+| **Update without redeployment** | ❌ Required Terraform | ✅ GUI only (with Terraform apply to sync) |
+| **Real-time effect** | ❌ Required deployment | ✅ Immediate (after Terraform apply) |
 | **Audit trail** | ❌ Git only | ✅ Git + AppConfig history |
 | **Source of truth** | Local file | **Live AppConfig** |
 | **Ops-friendly** | ❌ Requires code changes | ✅ GUI updates |
@@ -104,7 +104,7 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 1. AWS AppConfig GUI
 2. Edit searchLambda.errors.threshold: 5 → 10
 3. Deploy in AppConfig
-4. Run: cd infrastructure/stacks/dos_search && terraform apply
+4. Run: cd infrastructure/stacks/dos_search && Terraform apply
 5. Done! (CloudWatch alarm updated immediately)
 ```
 
@@ -113,8 +113,8 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 ```bash
 1. Edit toggles/alarm-thresholds.json
 2. Commit to main
-3. cd infrastructure/stacks/app_config && terraform apply
-4. cd infrastructure/stacks/dos_search && terraform apply
+3. cd infrastructure/stacks/AppConfig && Terraform apply
+4. cd infrastructure/stacks/dos_search && Terraform apply
 5. Done! (Changes tracked in Git)
 ```
 
@@ -134,4 +134,4 @@ A: Run `terraform apply` in dos_search stack. Terraform will read the live AppCo
 A: Use AppConfig version history to rollback, then run `terraform apply` to sync.
 
 **Q: What if I edit both toggles/alarm-thresholds.json AND AppConfig?**
-A: Terraform will use the live AppConfig values (not the local file). The file is only used during initial app_config stack deployment.
+A: Terraform will use the live AppConfig values (not the local file). The file is only used during initial AppConfig stack deployment.

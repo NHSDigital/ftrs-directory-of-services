@@ -62,4 +62,6 @@ locals {
     Workspace   = terraform.workspace == "default" ? "default" : terraform.workspace
     ManagedBy   = "Terraform"
   }
+  state_bucket_name     = "${var.account_prefix}-terraform-state"
+  state_lock_table_name = "${var.account_prefix}-terraform-lock"
 }
