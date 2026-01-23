@@ -1088,7 +1088,7 @@ def test_invalid_pharmacy_with_non_primary_roles() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         OrganisationUpdatePayload(**payload)
 
-    assert "Primary role code must be provided" in str(exc_info.value)
+    assert "Valid primary role code (RO177) must be provided" in str(exc_info.value)
 
 
 def test_invalid_prescribing_cost_centre_with_duplicate_non_primary_roles() -> None:

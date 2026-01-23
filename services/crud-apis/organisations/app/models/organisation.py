@@ -423,7 +423,7 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
 
     # Validate primary role constraints
     if not primary_roles:
-        _raise_validation_error("Primary role code must be provided")
+        _raise_validation_error("Valid primary role code (RO177) must be provided")
 
     if len(primary_roles) > 1:
         _raise_validation_error("Only one primary role is allowed per organisation")

@@ -111,16 +111,16 @@ Feature: Organization API Endpoint
 
     Examples:
       | primary_role_code | non_primary_role_codes | expected_error_message                                             |
-      | RO177             | [RO80]                 | Non-primary role 'RO80' is not permitted for primary type 'RO177'  |
-      | RO177             | [RO80, RO87]           | Non-primary role 'RO80' is not permitted for primary type 'RO177'  |
-      | RO182             | []                     | Primary role code must be provided                                 |
+      | RO177             | [RO80]                 | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
+      | RO177             | [RO80, RO87]           | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
+      | RO182             | []                     | Valid primary role code (RO177) must be provided                   |
       | RO177             | [RO80, RO80]           | Duplicate non-primary roles are not allowed                        |
       | RO177             | []                     | RO177 must have at least one non-primary role                      |
-      | RO177             | [RO268]                | Invalid role code: 'RO268'. Incorrect enum value                   |
+      | RO177             | [RO268]                | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
       | RO177             | [RO76, RO87, RO87]     | Duplicate non-primary roles are not allowed                        |
-      | RO182             | [RO76]                 | Primary role code must be provided                                 |
-      | RO182             | [RO268]                | Invalid role code: 'RO268'                                         |
-      | None              | [RO76, RO80, RO87]     | Primary role code must be provided                                 |
+      | RO182             | [RO76]                 | Valid primary role code (RO177) must be provided                   |
+      | RO182             | [RO268]                | Valid primary role code (RO177) must be provided                   |
+      | None              | [RO76, RO80, RO87]     | Valid primary role code (RO177) must be provided                   |
 
 
   Scenario Outline: Reject Organization update with invalid roleCode extension structure
