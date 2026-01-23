@@ -19,6 +19,33 @@ scenarios(
 )
 
 
+def get_state_record(dynamodb: Dict[str, Any], state_key: str) -> Dict[str, Any]:
+    """Get and deserialize a state record from DynamoDB.
+
+    Args:
+        dynamodb: DynamoDB client connection
+        state_key: The state table key to look up
+
+    Returns:
+        Deserialized state record dictionary
+
+    Raises:
+        AssertionError: If record doesn't exist
+    """
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record should exist for key {state_key}"
+
+    deserializer = TypeDeserializer()
+    return {k: deserializer.deserialize(v) for k, v in response["Item"].items()}
+
+
 @when(parsers.parse("a record does not exist in the state table for key '{state_key}'"))
 def verify_no_state_record(
     dynamodb: Dict[str, Any],
@@ -167,19 +194,7 @@ def verify_state_record_structure(
     state_key: str,
 ) -> None:
     """Verify that the state record has all required fields."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record(dynamodb, state_key)
 
     # Verify required fields exist
     required_fields = [
@@ -208,19 +223,7 @@ def verify_state_record_field(
         state_key: The state table key to look up
         field_name: The field name to verify (e.g. 'organisation_id', 'location_id')
     """
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record(dynamodb, state_key)
 
     # Verify field is a valid UUID
     field_value = deserialized_item.get(field_name)
