@@ -194,8 +194,8 @@ variable "health_check_lambda_invocations_threshold" {
 # Slack Notification Configuration
 ################################################################################
 
-variable "slack_webhook_url_secret" {
-  description = "Slack webhook URL for sending alarm notifications (stored in Secrets Manager)"
+variable "slack_webhook_url" {
+  description = "Slack webhook URL for sending alarm notifications"
   type        = string
   sensitive   = true
   default     = "https://hooks.slack.com/services/PLACEHOLDER"

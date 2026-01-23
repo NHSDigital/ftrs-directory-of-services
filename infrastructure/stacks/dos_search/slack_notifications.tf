@@ -37,9 +37,9 @@ resource "aws_iam_role_policy_attachment" "slack_notification_lambda_xray_write"
   policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
 }
 
-# IAM Policy for accessing Secrets Manager (for Slack webhook)
+# IAM Policy for accessing Slack webhook URL from environment
 resource "aws_iam_role_policy" "slack_notification_lambda_secrets_policy" {
-  name = "${local.resource_prefix}-slack-notification-secrets-policy${local.workspace_suffix}"
+  name = "${local.resource_prefix}-slack-notification-env-policy${local.workspace_suffix}"
   role = aws_iam_role.slack_notification_lambda_role.id
 
   policy = jsonencode({
@@ -48,45 +48,15 @@ resource "aws_iam_role_policy" "slack_notification_lambda_secrets_policy" {
       {
         Effect = "Allow"
         Action = [
-          "secretsmanager:GetSecretValue"
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ]
-        Resource = aws_secretsmanager_secret.slack_webhook_url.arn
+        Resource = "arn:aws:logs:*:*:*"
       }
     ]
   })
 }
-
-# Secrets Manager secret for Slack webhook URL
-resource "aws_secretsmanager_secret" "slack_webhook_url" {
-  name                    = "${local.resource_prefix}/slack-webhook-url${local.workspace_suffix}"
-  description             = "Slack webhook URL for dos-search Lambda alarms"
-  recovery_window_in_days = 7
-  kms_key_id              = local.kms_aliases.secrets_manager
-
-  tags = {
-    Name = "${local.resource_prefix}/slack-webhook-url${local.workspace_suffix}"
-  }
-}
-
-# Placeholder secret value - user must update this manually or via pipeline
-resource "aws_secretsmanager_secret_version" "slack_webhook_url" {
-  secret_id     = aws_secretsmanager_secret.slack_webhook_url.id
-  secret_string = var.slack_webhook_url_secret
-
-  # Only set if secret is provided during init, otherwise skip
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
-}
-
-# checkov:skip=CKV2_AWS_57: Ensure Secrets Manager secrets should have automatic rotation enabled
-# Automatic rotation for Slack webhook secret
-#resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
-#  secret_id = aws_secretsmanager_secret.slack_webhook_url.id
-#  rotation_rules {
-#    automatically_after_days = 30
-#  }
-#}
 
 # Dead Letter Queue for Slack notification Lambda
 resource "aws_sqs_queue" "slack_notification_dlq" {
@@ -116,8 +86,8 @@ resource "aws_lambda_function" "slack_notification" {
 
   environment {
     variables = {
-      SLACK_WEBHOOK_SECRET_ARN = aws_secretsmanager_secret.slack_webhook_url.arn
-      ENVIRONMENT              = var.environment
+      SLACK_WEBHOOK_URL = var.slack_webhook_url
+      ENVIRONMENT       = var.environment
     }
   }
 
