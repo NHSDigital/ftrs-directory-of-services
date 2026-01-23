@@ -59,7 +59,7 @@ jobs:
       stacks: "['github_runner','account_policies']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
-      skip_dirs: "services/dos-ui, services/read-only-viewer"
+      skip_dirs: "services/dos-ui,services/read-only-viewer"
     secrets: inherit
 
   plan-permissions-infrastructure:
