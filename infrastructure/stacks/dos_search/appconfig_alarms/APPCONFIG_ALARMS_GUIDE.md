@@ -103,7 +103,7 @@ For changes with full Git history:
 ## Workflow Comparison
 
 | Aspect | GUI Updates | Code Updates |
-|--------|-------------|--------------| 
+|--------|-------------|--------------|
 | **Time to Effect** | Immediate (after Terraform apply) | Requires Git commit + Terraform apply |
 | **Audit Trail** | AWS AppConfig history | Git history + Terraform state |
 | **Best For** | Operational tuning | Permanent configuration changes |
