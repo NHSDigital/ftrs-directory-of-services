@@ -1,6 +1,39 @@
 model {
   ftrs = system "Find the Right Service" {
 
+    // Security
+    container security "Security" {
+      description 'Security services used by FtRS (secrets, encryption, edge protection)'
+
+      container secretsManager "Secrets Manager" {
+        description 'Stores JWT credentials, ODS API keys and other secrets (KMS-encrypted)'
+      }
+
+      container kms "KMS" {
+        description 'Customer managed keys used to encrypt queues, secrets and other resources'
+      }
+
+      container shieldAdvanced "Shield Advanced" {
+        description 'DDoS protection for public-facing DNS endpoints'
+      }
+    }
+
+    // Operations & observability
+    container operations "Operations & Observability" {
+      description 'Platform operations services used by FtRS (scheduling, logging, configuration)'
+
+      lambda eventBridge "EventBridge Scheduler" {
+        description 'Triggers scheduled ETL jobs (e.g. daily ODS ETL)'
+      }
+
+      container cloudWatch "CloudWatch" {
+        description 'Centralised logging and tracing for FtRS Lambdas'
+      }
+
+      container ssmParameterStore "SSM Parameter Store" {
+        description 'Configuration store for FtRS (e.g. CRUD endpoint URLs)'
+      }
+    }
   }
 
 }

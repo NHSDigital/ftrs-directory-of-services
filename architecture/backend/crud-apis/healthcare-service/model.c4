@@ -32,11 +32,11 @@ model {
     }
   }
 
-  apim.dosIngressProxy -> healthcareServiceAPI.getHealthcareService "Routes requests to"
-  apim.dosIngressProxy -> healthcareServiceAPI.getHealthcareServices "Routes requests to"
-  apim.dosIngressProxy -> healthcareServiceAPI.deleteHealthcareService "Routes requests to"
-  apim.dosIngressProxy -> healthcareServiceAPI.createHealthcareServices "Routes requests to"
-  apim.dosIngressProxy -> healthcareServiceAPI.updateHealthcareService "Routes requests to"
+  apim.dosReadProxy -> healthcareServiceAPI.getHealthcareService "Routes requests to"
+  apim.dosReadProxy -> healthcareServiceAPI.getHealthcareServices "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.deleteHealthcareService "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.createHealthcareServices "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.updateHealthcareService "Routes requests to"
 
 
 

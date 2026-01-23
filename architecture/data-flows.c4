@@ -189,7 +189,7 @@ views {
     // Processing path
     ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read full service data from staging DB"
     ftrs.dataMigration.processor -> ftrs.db.orgTable "Write FHIR Organisation"
-    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Write FHIR HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.healthCareServiceTable "Write FHIR HealthcareService"
     ftrs.dataMigration.processor -> ftrs.db.locationTable "Write FHIR Location"
 
     autoLayout TopBottom
@@ -217,7 +217,7 @@ views {
     // Processing
     ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Load service + related data"
     ftrs.dataMigration.processor -> ftrs.db.orgTable "Transform and persist Organisation"
-    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Transform and persist HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.healthCareServiceTable "Transform and persist HealthcareService"
     ftrs.dataMigration.processor -> ftrs.db.locationTable "Transform and persist Location"
 
     autoLayout TopBottom
@@ -242,7 +242,7 @@ views {
     ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "Trigger CDC processing"
     ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read changed service data"
     ftrs.dataMigration.processor -> ftrs.db.orgTable "Update FTRS data"
-    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Update FTRS data"
+    ftrs.dataMigration.processor -> ftrs.db.healthCareServiceTable "Update FTRS data"
     ftrs.dataMigration.processor -> ftrs.db.locationTable "Update FTRS data"
 
     autoLayout TopBottom

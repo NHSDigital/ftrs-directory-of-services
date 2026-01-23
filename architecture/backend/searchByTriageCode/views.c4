@@ -10,11 +10,11 @@ views {
     include ftrs.db
 
     include ftrs
-    include apim.dosSearchProxy
+    include apim.dosReadProxy
     include ftrs.db.orgTable
     include ftrs.db.locationTable
     include ftrs.db.healthCareServiceTable
-    exclude ftrs.dos-search
+    exclude ftrs.dosSearch
     autoLayout LeftRight 70 77
   }
 }

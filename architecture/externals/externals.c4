@@ -63,8 +63,8 @@ model {
       color muted
     }
   }
-  ps1 -> apim.dosSearchProxy "Queries DoS"
-  du -> apim.dosIngressProxy "Updates DoS"
-  pm -> apim.dosSearchProxy "Queries DoS"
+  ps1 -> apim.dosReadProxy "Queries DoS"
+  du -> apim.dosWriteProxy "Updates DoS"
+  pm -> apim.dosReadProxy "Queries DoS"
   // ftrs.sourcingEtlProcessor -> bsa "Data pulled from"
 }

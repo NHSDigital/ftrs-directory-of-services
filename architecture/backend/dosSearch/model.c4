@@ -1,20 +1,43 @@
 model {
-
   extend ftrs {
+    container dosSearch "DoS Search Service" {
+      description 'FHIR-compliant search service for healthcare system integrations. Searches for GP endpoints by ODS code.'
+      technology 'Python Lambda + AWS Lambda Powertools'
 
-    api dos-search "DoS Search API" {
-      description '
-        /gp-search
-        API for searching GP services
-      '
+      lambda getOrganizationByOds "GET /Organization" {
+        description 'Retrieves organisation and endpoint data by ODS code, returns FHIR Bundle'
 
-      lambda get_organization "GET /Organization?ods_code={ods_code}" {
-        description 'Retrieves a specific organization by ODS code'
+        -> operations.cloudWatch "logs and traces to"
+      }
+
+      component ftrsService "FTRS Service" {
+        description 'Core service logic for retrieving and mapping organisation data'
+      }
+
+      component bundleMapper "Bundle Mapper" {
+        description 'Maps organisation data to FHIR Bundle with Organization and Endpoint resources'
+      }
+
+      component organizationMapper "Organization Mapper" {
+        description 'Maps domain Organisation to FHIR Organization resource'
+      }
+
+      component endpointMapper "Endpoint Mapper" {
+        description 'Maps organisation endpoints to FHIR Endpoint resources'
       }
     }
   }
 
-  apim.dosSearchProxy -> dos-search.get_organization "Proxies calls to"
-  get_organization -> ftrs.db.orgTable "Reads from"
-  ps1 -> apim.dosSearchProxy "GET data from"
+  // Internal component relationships
+  ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "Calls"
+  ftrs.dosSearch.ftrsService -> ftrs.dosSearch.bundleMapper "Uses for FHIR mapping"
+  ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.organizationMapper "Delegates organization mapping"
+  ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.endpointMapper "Delegates endpoint mapping"
+
+  // Data flow
+  ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "Queries organisation by ODS code"
+
+  // External access via APIM
+  apim.dosReadProxy -> ftrs.apiGateway "Proxies search requests"
+  ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "Routes GET /Organization requests"
 }

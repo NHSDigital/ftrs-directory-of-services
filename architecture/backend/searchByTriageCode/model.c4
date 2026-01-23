@@ -17,7 +17,7 @@ model {
     }
   }
 
-  apim.dosSearchProxy -> searchByTriageCode "Proxies calls to"
+  apim.dosReadProxy -> searchByTriageCode "Proxies calls to"
   search -> roadDistance "Queries data from"
   search -> ftrs.db.orgTable "Queries data from"
   search -> ftrs.db.locationTable "Queries data from"

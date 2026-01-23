@@ -18,7 +18,7 @@ views {
     include *
     include ftrs.apiGateway
     include ftrs.db.orgTable
-    include ftrs.db.healthcareServiceTable
+    include ftrs.db.healthCareServiceTable
     include ftrs.db.locationTable
     include apim.dosReadProxy
     include apim.dosWriteProxy
@@ -50,7 +50,7 @@ views {
 
     include *
     include ftrs.apiGateway
-    include ftrs.db.healthcareServiceTable
+    include ftrs.db.healthCareServiceTable
     include apim.dosReadProxy
     include apim.dosWriteProxy
 

@@ -99,7 +99,7 @@ model {
   ftrs.crudApis.organisationApi -> ftrs.db.orgTable "Reads/Writes"
 
   // HealthcareService Lambda data flows
-  ftrs.crudApis.healthcareServiceApi -> ftrs.db.healthcareServiceTable "Reads/Writes"
+  ftrs.crudApis.healthcareServiceApi -> ftrs.db.healthCareServiceTable "Reads/Writes"
 
   // Location Lambda data flows
   ftrs.crudApis.locationApi -> ftrs.db.locationTable "Reads/Writes"

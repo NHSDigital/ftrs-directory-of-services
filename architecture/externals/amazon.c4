@@ -8,11 +8,41 @@ model {
       }
     }
 
+    container dns "DNS & Certificates" {
+      description "Public DNS and TLS certificates for FtRS external endpoints"
+
+      component route53Zone "Route 53 Hosted Zone" {
+        description "Public hosted zone for ftrs.nhs.uk and service records"
+        style {
+          icon aws:route-53
+        }
+      }
+
+      component acmCertificate "ACM Certificate" {
+        description "Wildcard TLS certificate for FtRS domains"
+        style {
+          icon aws:certificate-manager
+        }
+      }
+    }
+
     component openSearch "OpenSearch Service" {
       description "Search service for FTRS"
       style {
         icon aws:open-search-service
         shape storage
+      }
+    }
+
+    container storage "Storage" {
+      description "Object storage for ETL artefacts and trust stores"
+
+      component s3Bucket "S3 Bucket" {
+        description "Buckets for ETL pipeline, artefacts and mTLS trust store"
+        style {
+          icon aws:simple-storage-service
+          shape storage
+        }
       }
     }
 
