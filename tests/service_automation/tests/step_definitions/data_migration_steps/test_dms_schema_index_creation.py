@@ -21,17 +21,6 @@ def dms_context(dos_db: Session) -> Dict:
     }
 
 
-@given("the database has schema and data from source")
-def given_database_with_migration(dos_db: Session) -> None:
-    """Verify database is loaded with migrated schema and data."""
-    result = dos_db.exec(
-        text(
-            "SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'pathwaysdos'"
-        )
-    )
-    assert result.fetchone() is not None, "pathwaysdos schema should exist"
-
-
 @given(parsers.parse('the index "{index_name}" already exists on "{table_name}" table'))
 def given_index_already_exists(
     dos_db: Session, index_name: str, table_name: str
