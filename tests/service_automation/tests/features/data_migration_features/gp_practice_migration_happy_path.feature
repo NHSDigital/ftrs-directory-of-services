@@ -40,7 +40,7 @@ Feature: Data Migration
       | statusid                            | 1                                                                                                                                                                                                                                       |
       | organisationid                      |                                                                                                                                                                                                                                         |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
-      | publicname                          | O#&39;Reilly Medical Practice                                                                                                                                                                                                                  |
+      | publicname                          | O&#39;Reilly Medical Practice &#38; Sons                                                                                                                                                                                                   |
       | latitude                            | 52.0910543                                                                                                                                                                                                                              |
       | longitude                           | -1.951003                                                                                                                                                                                                                               |
       | professionalreferralinfo            | Non-public numbers are for healthcare professionals ONLY; they are not for routine contact and must not be shared with patients\n* GP practice opening hours are 08:00-18:30, hours shown on DoS may vary for administration purposes." |
@@ -70,7 +70,7 @@ Feature: Data Migration
         "identifier_ODS_ODSCode": "M81094",
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
-        "name": "O'Reilly Medical Practice",
+        "name": "O'Reilly Medical Practice & Sons",
         "telecom": [],
         "type": "GP Practice",
         "legalDates": null,
