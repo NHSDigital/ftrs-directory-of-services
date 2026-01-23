@@ -60,7 +60,7 @@ Your Lambda CloudWatch alarm configurations are now **AppConfig-driven**. Here's
    }
    ```
 
-3. **Deploy changes** (from infrastructure/stacks/app_config):
+3. **Deploy changes** (from infrastructure/stacks/AppConfig):
 
    ```bash
    cd infrastructure/stacks/app_config
@@ -147,7 +147,12 @@ terraform plan  # Should show no changes after applying
 
 ## Files Modified/Created
 
-- Architecture overview
+- ✅ `toggles/alarm-thresholds.json` - NEW
+- ✅ `toggles/feature-flags.json` - NEW (placeholder for future)
+- ✅ `infrastructure/stacks/app_config/app_config.tf` - UPDATED
+- ✅ `infrastructure/stacks/dos_search/appconfig_alarms.tf` - NEW
+- ✅ `infrastructure/stacks/dos_search/lambda_cloudwatch_alarms.tf` - UPDATED (all references changed)
+- ✅ `infrastructure/stacks/dos_search/APPCONFIG_ALARMS_GUIDE.md` - NEW
 
 ## Questions?
 

@@ -79,6 +79,7 @@ This is the primary way ops teams update thresholds **without code changes or re
 For changes with full Git history:
 
 1. Edit `toggles/alarm-thresholds.json`
+
    ```json
    "searchLambda": {
      "duration": { "threshold_ms": 7000 }  // Changed from 5000 to 7000
@@ -86,12 +87,14 @@ For changes with full Git history:
    ```
 
 2. Deploy changes to AppConfig stack:
+
    ```bash
    cd infrastructure/stacks/app_config
    terraform apply
    ```
 
 3. Deploy dos_search stack (reads updated AppConfig):
+
    ```bash
    cd infrastructure/stacks/dos_search
    terraform apply
