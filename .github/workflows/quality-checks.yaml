@@ -40,6 +40,11 @@ on:
         description: "The build timestamp"
         required: false
         type: string
+      skip_dirs:
+        description: "Comma seperated list of directories where traversal is skipped"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   scan-secrets:
@@ -232,9 +237,7 @@ jobs:
           limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
           exit-code: 1
-          skip-dirs: |
-            services/dos-ui
-            services/read-only-viewer
+          skip-dirs: ${{ inputs.skip_dirs }}
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v6
