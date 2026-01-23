@@ -119,6 +119,8 @@ info:
 servers:
   - url: 'https://internal-dev.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Development
+  - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Internal Sandbox
   - url: 'https://internal-qa.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Internal QA
   - url: 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4'

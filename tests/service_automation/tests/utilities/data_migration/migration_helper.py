@@ -1,4 +1,5 @@
 """Helper utilities for running data migration in tests."""
+
 from datetime import datetime
 import os
 from contextlib import contextmanager
@@ -11,11 +12,15 @@ from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 
-from reference_data_load.application import ReferenceDataLoadApplication, ReferenceDataLoadConfig, ReferenceDataLoadEvent
+from reference_data_load.application import (
+    ReferenceDataLoadApplication,
+    ReferenceDataLoadConfig,
+    ReferenceDataLoadEvent,
+)
 from service_migration.application import DataMigrationApplication, DMSEvent
 
 from service_migration.config import DataMigrationConfig
-from service_migration.processor import DataMigrationMetrics
+from service_migration.processor import ServiceMigrationMetrics
 from common.config import DatabaseConfig
 
 # Constants
@@ -33,8 +38,10 @@ class MigrationRunResult:
 
     success: bool
     error: Optional[str] = None
-    application: Optional[DataMigrationApplication | ReferenceDataLoadApplication] = None
-    metrics: Optional[DataMigrationMetrics] = None
+    application: Optional[DataMigrationApplication | ReferenceDataLoadApplication] = (
+        None
+    )
+    metrics: Optional[ServiceMigrationMetrics] = None
     mock_logger: Optional[MockLogger] = None
 
 
@@ -145,7 +152,7 @@ class MigrationHelper:
 
     def _get_metrics_from_app(
         self, app: Optional[DataMigrationApplication]
-    ) -> Optional[DataMigrationMetrics]:
+    ) -> Optional[ServiceMigrationMetrics]:
         """
         Safely retrieve metrics from application.
 
@@ -258,6 +265,7 @@ class MigrationHelper:
                 with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
                     app = DataMigrationApplication(config=config)
                     migration_fn(app)
+                    app.processor.engine.dispose()
 
             metrics = self._get_metrics_from_app(app)
             self._log_mock_logger_stats(mock_logger)
@@ -308,7 +316,9 @@ class MigrationHelper:
 
             sqs_record = self._create_sqs_record_from_dms_event(dms_event)
 
-            logger.info(f"Running single service migration for service ID: {service_id}")
+            logger.info(
+                f"Running single service migration for service ID: {service_id}"
+            )
             app.handle_sqs_record(sqs_record)
 
         return self._execute_migration(execute, f"single service (ID: {service_id})")
@@ -326,7 +336,6 @@ class MigrationHelper:
             app.handle_full_sync_event()
 
         return self._execute_migration(execute, "full service")
-
 
     def run_triage_code_migration_only(self):
         """
@@ -359,7 +368,7 @@ class MigrationHelper:
 
                 with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
                     app = ReferenceDataLoadApplication(config)
-                    app.handle(ReferenceDataLoadEvent(type = "triagecode"))
+                    app.handle(ReferenceDataLoadEvent(type="triagecode"))
 
             metrics = self._get_metrics_from_app(app)
             self._log_mock_logger_stats(mock_logger)
@@ -384,7 +393,6 @@ class MigrationHelper:
                 metrics=metrics,
                 mock_logger=mock_logger,
             )
-
 
     def run_sqs_event_migration(self, sqs_event: Dict[str, Any]) -> MigrationRunResult:
         """

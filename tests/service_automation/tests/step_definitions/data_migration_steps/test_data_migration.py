@@ -47,6 +47,14 @@ scenarios(
     "../features/data_migration_features/phone_transformation.feature",
     "../features/data_migration_features/email_transformation.feature",
     "../features/data_migration_features/service_migration_validation_failures.feature",
+    # Incremental update tests
+    "../features/data_migration_features/incremental_updates/update_organisation_fields.feature",
+    "../features/data_migration_features/incremental_updates/update_healthcare_service_fields.feature",
+    "../features/data_migration_features/incremental_updates/update_location_fields.feature",
+    "../features/data_migration_features/incremental_updates/update_edge_cases.feature",
+    "../features/data_migration_features/incremental_updates/update_multi_entity.feature",
+    "../features/data_migration_features/incremental_updates/update_status.feature",
+    "../features/data_migration_features/incremental_updates/update_endpoints.feature",
 )
 
 

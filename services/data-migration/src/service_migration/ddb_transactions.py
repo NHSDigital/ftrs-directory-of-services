@@ -8,6 +8,8 @@ from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
 from common.diff_utils import (
+    DynamoDBUpdateExpressions,
+    deepdiff_to_dynamodb_expressions,
     get_healthcare_service_diff,
     get_location_diff,
     get_organisation_diff,
@@ -164,7 +166,18 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if expressions.is_empty():
+            return self
+
+        update_item = self._build_update_item(
+            item_id=str(organisation.id),
+            table_name="organisation",
+            expressions=expressions,
+        )
+
+        self.items.append({"Update": update_item})
+        self.migration_state.organisation = organisation
 
         return self
 
@@ -232,7 +245,17 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if expressions.is_empty():
+            return self
+
+        update_item = self._build_update_item(
+            item_id=str(location.id),
+            table_name="location",
+            expressions=expressions,
+        )
+        self.items.append({"Update": update_item})
+        self.migration_state.location = location
 
         return self
 
@@ -304,7 +327,17 @@ class ServiceTransactionBuilder:
             diff=diff.to_dict(view_override="text"),
         )
 
-        # TODO: FTRS-1371 Add update logic here
+        expressions = deepdiff_to_dynamodb_expressions(diff)
+        if expressions.is_empty():
+            return self
+
+        update_item = self._build_update_item(
+            item_id=str(healthcare_service.id),
+            table_name="healthcare-service",
+            expressions=expressions,
+        )
+        self.items.append({"Update": update_item})
+        self.migration_state.healthcare_service = healthcare_service
 
         return self
 
@@ -399,3 +432,32 @@ class ServiceTransactionBuilder:
             new_version=self.migration_state.version,
         )
         return self
+
+    def _build_update_item(
+        self,
+        item_id: str,
+        table_name: str,
+        expressions: DynamoDBUpdateExpressions,
+    ) -> dict:
+        """Build a DynamoDB update item for a transaction.
+
+        Args:
+            item_id: The unique identifier of the item to update.
+            table_name: The name of the DynamoDB table.
+            expressions: The DynamoDB update expressions.
+        """
+        update_item: dict = {
+            "TableName": get_table_name(table_name),
+            "Key": {
+                "id": {"S": item_id},
+                "field": {"S": "document"},
+            },
+            "UpdateExpression": expressions.update_expression,
+            "ExpressionAttributeNames": expressions.expression_attribute_names,
+        }
+
+        # Only include ExpressionAttributeValues if non-empty (REMOVE-only updates have no values)
+        if expression_values := expressions.get_expression_attribute_values_or_none():
+            update_item["ExpressionAttributeValues"] = expression_values
+
+        return update_item

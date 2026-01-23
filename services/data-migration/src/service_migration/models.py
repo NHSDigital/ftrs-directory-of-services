@@ -38,3 +38,29 @@ class ServiceMigrationState(BaseModel):
             healthcare_service=None,
             validation_issues=validation_issues,
         )
+
+
+class ServiceMigrationMetrics(BaseModel):
+    total: int = 0
+    supported: int = 0
+    unsupported: int = 0
+    transformed: int = 0
+    inserted: int = 0
+    updated: int = 0
+    skipped: int = 0
+    invalid: int = 0
+    errors: int = 0
+
+    def reset(self) -> None:
+        """
+        Reset all metrics to zero.
+        """
+        self.total = 0
+        self.supported = 0
+        self.unsupported = 0
+        self.transformed = 0
+        self.inserted = 0
+        self.updated = 0
+        self.skipped = 0
+        self.invalid = 0
+        self.errors = 0

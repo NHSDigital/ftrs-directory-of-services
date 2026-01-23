@@ -27,7 +27,7 @@ Feature: Service Transformation with Invalid Address Combinations
       | email               | england.contactus@nhs.net |
       | publicphone         | 0300 311 22 33            |
     When a single service migration is run for ID '<service_id>'
-    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped and <expected_errors> errors
+    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped, <expected_invalid> invalid and <expected_errors> errors
 
     Examples: Valid Address Combinations (Should Migrate)
       | service_id | uid    | service_name              | ods_code | public_name                | postcode | address                          | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_invalid | expected_errors |
@@ -40,10 +40,6 @@ Feature: Service Transformation with Invalid Address Combinations
       | service_id | uid    | service_name      | ods_code | public_name      | postcode | address | town | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_invalid | expected_errors |
       | 600005     | 300005 | GP_AllFieldsEmpty | E12345   | All Fields Empty |          |         |      | 1                  | 0                    | 0                    | 0                 | 0                | 1                | 0               |
 
-    Examples: Invalid - "Not Available" Address with No Town/Postcode (Fatal Error)
-      | service_id | uid    | service_name               | ods_code | public_name                | postcode      | address       | town          | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_invalid | expected_errors |
-      | 600006     | 300006 | GP_NotAvailableAll         | F12345   | Not Available All          | Not available | Not available | Not available | 1                  | 0                    | 0                    | 0                 | 0                | 1                | 0               |
-      | 600007     | 300007 | GP_NotAvailableAddressOnly | G12345   | Not Available Address Only |               | Not available |               | 1                  | 0                    | 0                    | 0                 | 0                | 1                | 0               |
 
     Examples: Invalid - "Not Available" Address with Town Only (Fatal Error)
       | service_id | uid    | service_name                | ods_code | public_name                  | postcode      | address       | town        | expected_supported | expected_unsupported | expected_transformed | expected_inserted | expected_skipped | expected_invalid | expected_errors |

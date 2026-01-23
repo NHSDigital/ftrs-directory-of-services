@@ -30,5 +30,5 @@ Feature: Single Service Migration - Inactive Service Handling
       | email               | england.contactus@nhs.net                |
       | publicphone         | 0300 311 22 33                           |
     When a single service migration is run for ID '300002'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped, 0 invalid and 0 errors
     And service ID '300002' was skipped due to reason 'Service is not active'

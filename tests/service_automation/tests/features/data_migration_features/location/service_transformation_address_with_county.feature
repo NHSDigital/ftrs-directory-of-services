@@ -27,7 +27,7 @@ Feature: Service Transformation with Address and County Variations
       | email               | england.contactus@nhs.net |
       | publicphone         | 0300 311 22 33            |
     When a single service migration is run for ID '<service_id>'
-    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped and <expected_errors> errors
+    Then the metrics should be 1 total, <expected_supported> supported, <expected_unsupported> unsupported, <expected_transformed> transformed, <expected_inserted> inserted, 0 updated, <expected_skipped> skipped, 0 invalid and <expected_errors> errors
     And service ID '<service_id>' was transformed into 1 organisation, 1 location and 1 healthcare service
     And the service address for ID '<service_id>' should be:
       | key      | value             |

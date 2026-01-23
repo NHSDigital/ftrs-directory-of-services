@@ -195,8 +195,8 @@ def test_update_organisation_with_changes(
     result = builder.add_organisation(updated_org)
 
     assert result is builder
-    # TODO: FTRS-1371 will add update items, currently returns empty
-    assert len(builder.items) == 0
+
+    assert len(builder.items) == 1
     assert mock_logger.was_logged("DM_ETL_030")
 
 
@@ -266,7 +266,9 @@ def test_update_location_no_changes(
         validation_issues=[],
     )
     builder = ServiceTransactionBuilder(
-        service_id=123, logger=mock_logger, migration_state=existing_state
+        service_id=123,
+        logger=mock_logger,
+        migration_state=existing_state,
     )
 
     result = builder.add_location(mock_location)
@@ -298,8 +300,7 @@ def test_update_location_with_changes(
 
     builder.add_location(modified_location)
 
-    # Update logic not yet implemented (FTRS-1371), only logging
-    assert len(builder.items) == 0
+    assert len(builder.items) == 1
     assert mock_logger.was_logged("DM_ETL_032")
 
 
@@ -402,8 +403,7 @@ def test_update_healthcare_service_with_changes(
 
     builder.add_healthcare_service(modified_service)
 
-    # Update logic not yet implemented (FTRS-1371), only logging
-    assert len(builder.items) == 0
+    assert len(builder.items) == 1
     assert mock_logger.was_logged("DM_ETL_034")
 
 

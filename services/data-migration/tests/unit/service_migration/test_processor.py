@@ -12,7 +12,7 @@ from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
-from service_migration.processor import DataMigrationMetrics, DataMigrationProcessor
+from service_migration.processor import DataMigrationProcessor, ServiceMigrationMetrics
 from service_migration.transformer.base import ServiceTransformOutput
 from service_migration.validation.types import ValidationIssue, ValidationResult
 
@@ -31,14 +31,14 @@ def test_processor_init(
     assert isinstance(processor.engine, Engine)
     assert processor.metrics.model_dump() == {
         "errors": 0,
-        "inserted_records": 0,
-        "updated_records": 0,
-        "skipped_records": 0,
-        "supported_records": 0,
-        "total_records": 0,
-        "transformed_records": 0,
-        "unsupported_records": 0,
-        "invalid_records": 0,
+        "inserted": 0,
+        "updated": 0,
+        "skipped": 0,
+        "supported": 0,
+        "total": 0,
+        "transformed": 0,
+        "unsupported": 0,
+        "invalid": 0,
     }
 
 
@@ -141,29 +141,29 @@ def test_process_service(
     processor._execute_transaction = mocker.MagicMock()
     processor.get_state_record = mocker.MagicMock(return_value=None)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=0,
-        supported_records=0,
-        unsupported_records=0,
-        transformed_records=0,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=0,
+        supported=0,
+        unsupported=0,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
 
     processor._process_service(service=mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=1,
-        inserted_records=1,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=1,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
 
@@ -404,14 +404,14 @@ def test_process_service_unsupported_service(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=0,
-        unsupported_records=1,
-        transformed_records=0,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=0,
+        unsupported=1,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=0,
         errors=0,
     )
 
@@ -440,14 +440,14 @@ def test_process_service_skipped_service(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=0,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=1,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=1,
         errors=0,
     )
 
@@ -498,29 +498,29 @@ def test_handles_invalid_service(
     processor.logger.remove_keys = mocker.MagicMock()
     processor._execute_transaction = mocker.MagicMock()
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=0,
-        supported_records=0,
-        unsupported_records=0,
-        transformed_records=0,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=0,
+        supported=0,
+        unsupported=0,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=0,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=1,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=0,
+        invalid=1,
         errors=0,
     )
     mock_transformer.transform.assert_not_called()
@@ -581,15 +581,15 @@ def test_validation_warning_continues_processing(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=1,
-        inserted_records=1,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=1,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
     mock_transformer.transform.assert_called_once()
@@ -642,15 +642,15 @@ def test_validation_no_issues(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=1,
-        inserted_records=1,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=1,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
     mock_transformer.validator.validate.assert_called_once_with(mock_legacy_service)
@@ -712,15 +712,15 @@ def test_validation_error_severity_continues_processing(
 
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=1,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
-        invalid_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=0,
+        updated=0,
+        skipped=0,
+        invalid=0,
         errors=0,
     )
     mock_transformer.transform.assert_called_once()
@@ -745,14 +745,14 @@ def test_process_service_error(
     processor.get_state_record = mocker.MagicMock(return_value=None)
     processor._process_service(mock_legacy_service)
 
-    assert processor.metrics == DataMigrationMetrics(
-        total_records=1,
-        supported_records=1,
-        unsupported_records=0,
-        transformed_records=1,
-        inserted_records=0,
-        updated_records=0,
-        skipped_records=0,
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=0,
+        updated=0,
+        skipped=0,
         errors=1,
     )
 
