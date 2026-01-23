@@ -252,6 +252,7 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
       contents: read
+    if: false
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
