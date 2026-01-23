@@ -1,0 +1,43 @@
+name: "Stop EC2 action"
+description: "Stop an EC2 instance"
+
+inputs:
+  ec2-name-tag:
+    description: "The Name tag of the EC2 instance to stop"
+    required: true
+
+outputs:
+  ec2-instance-id:
+    description: 'Instance ID of the stopped EC2 instance'
+    value: ${{ steps.lookup.outputs.instance_id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Look up EC2 instance ID by tag
+      id: lookup
+      shell: bash
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=${{ inputs.ec2-name-tag }}" \
+          --query "Reservations[0].Instances[0].InstanceId" \
+          --output text)
+
+        echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+    - name: Stop EC2 instance
+      shell: bash
+      run: |
+        aws ec2 stop-instances --instance-ids ${{ steps.lookup.outputs.instance_id }}
+
+    - name: Wait for instance to be stopped
+      shell: bash
+      run: |
+        aws ec2 wait instance-running --instance-ids ${{ steps.lookup.outputs.instance_id }}
+
+    - name: Show instance state
+      shell: bash
+      run: |
+        aws ec2 describe-instances \
+          --instance-ids ${{ steps.lookup.outputs.instance_id }} \
+          --query "Reservations[0].Instances[0].State.Name"
