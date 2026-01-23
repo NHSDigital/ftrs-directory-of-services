@@ -46,12 +46,14 @@ lint-fix:
 
 pre-commit: lint-staged
 
-test:
+test: # Run tests for each marker. Separate test runs are needed to generate correct Allure reports.
 	@for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
+		elif [ "$$marker" = "is-apim" ] || [ "$(TEST_TYPE)" = "api" ]; then \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$(PROXY_NAME) -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		else \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \

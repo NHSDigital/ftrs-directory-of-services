@@ -177,6 +177,7 @@ jobs:
   #     type: app
   #   secrets: inherit
 
+
   export-dynamodb-to-s3:
     name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
@@ -275,10 +276,13 @@ jobs:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
-          - tag: "ftrs-pipeline"
+          - tag: "ftrs-pipeline is-apim"
             type: "api"
+            api_name: "dos-search"
+            apim_env: ""
           - tag: "data-migration"
             type: "data-migration"
     needs:
@@ -286,6 +290,7 @@ jobs:
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - export-dynamodb-to-s3
+      - deploy-proxy-to-apim
     if: |
       always() &&
       !cancelled() &&
@@ -304,6 +309,8 @@ jobs:
       tag: ${{ inputs.tag }}
       test_tag: ${{ matrix.tag }}
       test_type: ${{ matrix.type }}
+      api_name: ${{ matrix.api_name || '' }}
+      apim_env: ${{ matrix.type == 'apim' && (needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment) || '' }}
       type: app
     secrets: inherit
 
