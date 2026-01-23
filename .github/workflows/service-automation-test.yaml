@@ -12,6 +12,14 @@ on:
         description: "The name of the workspace to deploy the application into"
         required: true
         type: string
+      api_name:
+        description: "The name of the API to test (e.g., dos-search)"
+        required: true
+        type: string
+      apim_env:
+        description: "The APIM environment to test (e.g., internal-dev, internal-qa)"
+        required: true
+        type: string
       test_tag:
         description: "The name of the feature tag that identifies the tests to run"
         required: false
