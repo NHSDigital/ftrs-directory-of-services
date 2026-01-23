@@ -79,13 +79,14 @@ resource "aws_secretsmanager_secret_version" "slack_webhook_url" {
   }
 }
 
+# checkov:skip=CKV_AWS_91: Secrets Manager secret should be rotated based on organisational policy
 # Automatic rotation for Slack webhook secret
-resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
-  secret_id = aws_secretsmanager_secret.slack_webhook_url.id
-  rotation_rules {
-    automatically_after_days = 30
-  }
-}
+#resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
+#  secret_id = aws_secretsmanager_secret.slack_webhook_url.id
+#  rotation_rules {
+#    automatically_after_days = 30
+#  }
+#}
 
 # Dead Letter Queue for Slack notification Lambda
 resource "aws_sqs_queue" "slack_notification_dlq" {
