@@ -44,4 +44,7 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
+
+  state_bucket_name     = "${local.account_prefix}-terraform-state"
+  state_lock_table_name = "${local.account_prefix}-terraform-state-lock"
 }

@@ -81,8 +81,7 @@ resource "aws_secretsmanager_secret_version" "slack_webhook_url" {
 
 # Automatic rotation for Slack webhook secret
 resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
-  secret_id        = aws_secretsmanager_secret.slack_webhook_url.id
-  rotation_enabled = true
+  secret_id = aws_secretsmanager_secret.slack_webhook_url.id
   rotation_rules {
     automatically_after_days = 30
   }
@@ -140,9 +139,12 @@ resource "aws_lambda_function" "slack_notification" {
 
 # Lambda Code Signing Configuration
 resource "aws_lambda_code_signing_config" "slack_notification" {
-  allowed_publishers_signing_certificate_arns = ["arn:aws:acm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:certificate/*"]
-  policy                                      = "Warn"
-
+  allowed_publishers {
+    signing_profile_version_arns = ["arn:aws:signer:${var.aws_region}:${data.aws_caller_identity.current.account_id}:signing-profile/*"]
+  }
+  code_signing_policies {
+    untrusted_artifact_on_deployment = "Warn"
+  }
   description = "Code signing config for slack notification Lambda"
 }
 
