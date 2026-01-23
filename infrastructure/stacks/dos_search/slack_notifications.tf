@@ -61,7 +61,7 @@ resource "aws_secretsmanager_secret" "slack_webhook_url" {
   name                    = "${local.resource_prefix}/slack-webhook-url${local.workspace_suffix}"
   description             = "Slack webhook URL for dos-search Lambda alarms"
   recovery_window_in_days = 7
-  kms_key_id              = "alias/aws/secretsmanager"
+  kms_key_id              = local.kms_aliases.secrets_manager
 
   tags = {
     Name = "${local.resource_prefix}/slack-webhook-url${local.workspace_suffix}"
@@ -91,7 +91,7 @@ resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
 resource "aws_sqs_queue" "slack_notification_dlq" {
   name                      = "${local.resource_prefix}-slack-notification-dlq${local.workspace_suffix}"
   message_retention_seconds = 1209600 # 14 days
-  kms_master_key_id         = "alias/aws/sqs"
+  kms_master_key_id         = local.kms_aliases.sqs
 
   tags = {
     Name = "${local.resource_prefix}-slack-notification-dlq${local.workspace_suffix}"
@@ -142,7 +142,7 @@ resource "aws_lambda_code_signing_config" "slack_notification" {
   allowed_publishers {
     signing_profile_version_arns = ["arn:aws:signer:${var.aws_region}:${data.aws_caller_identity.current.account_id}:signing-profile/*"]
   }
-  code_signing_policies {
+  code_signing_policies = {
     untrusted_artifact_on_deployment = "Warn"
   }
   description = "Code signing config for slack notification Lambda"
