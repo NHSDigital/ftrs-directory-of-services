@@ -433,8 +433,8 @@ def test_process_organisation_update_with_changes(
         createdTime=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "app",
-            "value": "SYSTEM",
-            "display": "SYSTEM",
+            "value": "",
+            "display": "Data Management",
         },
         lastUpdated=expected_last_updated,
     )

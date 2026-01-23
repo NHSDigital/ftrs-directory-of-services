@@ -39,7 +39,7 @@ class OrganisationService:
         Update an organisation from a FHIR Organisation resource.
         """
         lastUpdatedBy = AuditEvent(
-            type=AuditEventType.app, value="SYSTEM", display="SYSTEM"
+            type=AuditEventType.app, value="", display="Data Management"
         )
 
         if nhse_product_id:
