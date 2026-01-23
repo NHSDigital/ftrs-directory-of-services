@@ -83,7 +83,7 @@ def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
         loc = error.get("loc") or ()
         unexpected = str(loc[-1]) if isinstance(loc, (list, tuple)) and loc else ""
         return _create_issue(
-            "invalid",
+            "value",
             "error",
             details=INVALID_SEARCH_DATA_CODING,
             diagnostics=(

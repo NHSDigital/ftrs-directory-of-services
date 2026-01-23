@@ -344,7 +344,7 @@ paths:
                     resourceType: "OperationOutcome"
                     issue:
                       - severity: "error"
-                        code: "invalid"
+                        code: "value"
                         details:
                           coding:
                             - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"

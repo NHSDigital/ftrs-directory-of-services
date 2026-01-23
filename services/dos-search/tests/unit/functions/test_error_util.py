@@ -337,7 +337,7 @@ class TestErrorUtil:
 
         issue = result.issue[0]
         assert issue.severity == "error"
-        assert issue.code == "invalid"
+        assert issue.code == "value"
 
         diagnostics = issue.diagnostics or ""
         assert "Unexpected query parameter" in diagnostics

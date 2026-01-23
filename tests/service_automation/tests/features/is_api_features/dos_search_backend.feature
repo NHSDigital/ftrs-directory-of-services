@@ -116,7 +116,7 @@ Feature: API DoS Service Search Backend
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "invalid"
+    And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Unexpected query parameter(s): <unexpected_param>. Only 'identifier' and '_revinclude' are allowed."
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
