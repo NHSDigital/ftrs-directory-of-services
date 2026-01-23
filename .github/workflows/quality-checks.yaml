@@ -237,7 +237,7 @@ jobs:
           limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
           exit-code: 1
-          skip-dirs: "${{ inputs.skip_dirs }}"
+          skip-dirs: ${{ inputs.skip_dirs }}
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v6
