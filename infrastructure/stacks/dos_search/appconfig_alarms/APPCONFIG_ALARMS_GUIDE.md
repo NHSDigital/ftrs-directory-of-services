@@ -172,9 +172,9 @@ The dos_search stack reads the configuration file directly:
 ```hcl
 locals {
   alarm_config_file = file("${path.root}/../../toggles/alarm-thresholds.json")
-  alarm_config      = jsondecode(local.alarm_config_file)
+  alarm_configuration      = jsondecode(local.alarm_config_file)
 
-  search_lambda_duration_threshold_ms = local.alarm_config.searchLambda.duration.threshold_ms
+  search_lambda_duration_threshold_ms = local.alarm_configuration.searchLambda.duration.threshold_ms
   # ... other threshold values ...
 }
 
@@ -199,4 +199,3 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
 - Create Lambda function to automatically update thresholds based on CloudWatch metrics
 - Add feature flags to enable/disable specific alarms via AppConfig
 - Implement alarm template management for different workload types
-

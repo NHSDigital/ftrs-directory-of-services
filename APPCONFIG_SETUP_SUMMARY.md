@@ -80,7 +80,7 @@ Your Lambda CloudWatch alarm configurations are now **AppConfig-driven**. Here's
 
 | Feature | Benefit |
 |---------|---------|
-| **Centralized Config** | All thresholds in one place |
+| **Centralized Configuration** | All thresholds in one place |
 | **No Redeployment** | Change thresholds without code changes |
 | **Git History** | Complete audit trail of all changes |
 | **Environment-Specific** | Different thresholds per environment |
@@ -157,6 +157,7 @@ terraform plan  # Should show no changes after applying
 ## Questions?
 
 See `APPCONFIG_ALARMS_GUIDE.md` for detailed documentation on:
+
 - Architecture overview
 - Configuration structure
 - Runtime Lambda usage

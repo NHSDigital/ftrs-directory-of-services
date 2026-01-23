@@ -142,9 +142,6 @@ resource "aws_lambda_code_signing_config" "slack_notification" {
   allowed_publishers {
     signing_profile_version_arns = ["arn:aws:signer:${var.aws_region}:${data.aws_caller_identity.current.account_id}:signing-profile/*"]
   }
-  code_signing_policies = {
-    untrusted_artifact_on_deployment = "Warn"
-  }
   description = "Code signing config for slack notification Lambda"
 }
 
