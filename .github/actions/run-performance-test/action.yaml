@@ -18,7 +18,7 @@ runs:
       id: run
       run: |
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ steps.lookup.outputs.instance_id }}" \
+            --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters commands=["echo Running "] \
             --query "Command.CommandId" \
