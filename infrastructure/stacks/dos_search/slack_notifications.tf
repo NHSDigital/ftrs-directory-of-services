@@ -147,7 +147,7 @@ resource "aws_lambda_code_signing_config" "slack_notification" {
 
 # SNS subscription for Slack notification Lambda
 resource "aws_sns_topic_subscription" "slack_notification" {
-  topic_arn = aws_sns_topic.dos_search_lambda_alarms.arn
+  topic_arn = module.sns.topic_arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.slack_notification.arn
 }
@@ -158,7 +158,7 @@ resource "aws_lambda_permission" "slack_notification_sns" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.slack_notification.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = aws_sns_topic.dos_search_lambda_alarms.arn
+  source_arn    = module.sns.topic_arn
 }
 
 # CloudWatch log group for Slack notification Lambda
