@@ -60,7 +60,7 @@ Your Lambda CloudWatch alarm configurations are now **AppConfig-driven**. Here's
    }
    ```
 
-3. **Deploy changes** (from infrastructure/stacks/AppConfig):
+3. **Deploy changes** (from infrastructure/stacks/app_config):
 
    ```bash
    cd infrastructure/stacks/app_config
@@ -84,7 +84,7 @@ Your Lambda CloudWatch alarm configurations are now **AppConfig-driven**. Here's
 | **No Redeployment** | Change thresholds without code changes |
 | **Git History** | Complete audit trail of all changes |
 | **Environment-Specific** | Different thresholds per environment |
-| **Runtime Ready** | Lambdas can read live config without redeployment |
+| **Runtime Ready** | Lambdas can read live configuration without redeployment |
 | **Easy Rollback** | Revert via Git if needed |
 
 ## Example Configuration
