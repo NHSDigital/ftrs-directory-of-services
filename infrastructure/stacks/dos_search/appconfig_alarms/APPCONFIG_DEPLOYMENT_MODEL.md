@@ -11,11 +11,11 @@ The alarm thresholds system has been refactored to use **AppConfig as the live s
 ```bash
 # Step 1: Create AppConfig application
 cd infrastructure/stacks/app_config
-terraform apply
+Terraform apply
 
-# Step 2: Deploy dos_search stack (reads initial config from AppConfig)
+# Step 2: Deploy dos_search stack (reads initial configuration from AppConfig)
 cd infrastructure/stacks/dos_search
-terraform apply
+Terraform apply
 ```
 
 ✅ CloudWatch alarms are now created with initial thresholds from AppConfig
@@ -67,7 +67,7 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 
 ### Modified Files
 
-- `infrastructure/stacks/AppConfig/app_config.tf` - Added alarm_thresholds_app_config module
+- `infrastructure/stacks/app_config/app_config.tf` - Added alarm_thresholds_app_config module
 - `infrastructure/stacks/dos_search/data.tf` - Added AppConfig remote state reference
 - `infrastructure/stacks/dos_search/lambda_cloudwatch_alarms.tf` - All alarms use AppConfig locals
 - `infrastructure/stacks/dos_search/APPCONFIG_ALARMS_GUIDE.md` - Updated documentation
@@ -76,8 +76,8 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 
 ⚠️ **Terraform Reads Live AppConfig Data**
 
-- When you run `terraform apply` in dos_search, it fetches the **current values from AppConfig**
-- If you update AppConfig via GUI, the next `terraform apply` will detect those changes
+- When you run `Terraform apply` in dos_search, it fetches the **current values from AppConfig**
+- If you update AppConfig via GUI, the next `Terraform apply` will detect those changes
 - Terraform state will always reflect the live AppConfig configuration
 
 ✅ **No More Local File Dependencies**
@@ -108,12 +108,12 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 5. Done! (CloudWatch alarm updated immediately)
 ```
 
-### Task 2: Infrastructure team makes permanent config change
+### Task 2: Infrastructure team makes permanent configuration change
 
 ```bash
 1. Edit toggles/alarm-thresholds.json
 2. Commit to main
-3. cd infrastructure/stacks/AppConfig && Terraform apply
+3. cd infrastructure/stacks/app_config && Terraform apply
 4. cd infrastructure/stacks/dos_search && Terraform apply
 5. Done! (Changes tracked in Git)
 ```
@@ -122,16 +122,16 @@ Benefit: GUI changes apply immediately, Terraform stays in sync
 
 ```python
 # See APPCONFIG_ALARMS_GUIDE.md for Lambda code example
-# Lambda uses AWS AppConfig Extension Layer to read live config
+# Lambda uses AWS AppConfig Extension Layer to read live configuration
 ```
 
 ## Troubleshooting
 
 **Q: I updated AppConfig but Terraform shows drift**
-A: Run `terraform apply` in dos_search stack. Terraform will read the live AppConfig values and update alarms.
+A: Run `Terraform apply` in dos_search stack. Terraform will read the live AppConfig values and update alarms.
 
 **Q: I want to revert a GUI change**
-A: Use AppConfig version history to rollback, then run `terraform apply` to sync.
+A: Use AppConfig version history to rollback, then run `Terraform apply` to sync.
 
 **Q: What if I edit both toggles/alarm-thresholds.json AND AppConfig?**
 A: Terraform will use the live AppConfig values (not the local file). The file is only used during initial AppConfig stack deployment.

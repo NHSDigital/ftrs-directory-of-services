@@ -70,9 +70,9 @@ This is the primary way ops teams update thresholds **without code changes or re
 3. Navigate to **Hosted Configuration Versions**
 4. Edit the JSON configuration with new threshold values
 5. Create new deployment (configuration is now live)
-6. Run `terraform apply` in dos_search stack **to sync Terraform state**
+6. Run `Terraform apply` in dos_search stack **to sync Terraform state**
 
-**Important:** Running `terraform apply` syncs the live AppConfig values into Terraform state. Terraform will read the current AppConfig content, not from the local file.
+**Important:** Running `Terraform apply` syncs the live AppConfig values into Terraform state. Terraform will read the current AppConfig content, not from the local file.
 
 ### Option 2: Via Infrastructure Code (Better Audit Trail)
 
@@ -90,21 +90,21 @@ For changes with full Git history:
 
    ```bash
    cd infrastructure/stacks/app_config
-   terraform apply
+   Terraform apply
    ```
 
 3. Deploy dos_search stack (reads updated AppConfig):
 
    ```bash
    cd infrastructure/stacks/dos_search
-   terraform apply
+   Terraform apply
    ```
 
 ## Workflow Comparison
 
 | Aspect | GUI Updates | Code Updates |
-|--------|-------------|--------------|
-| **Time to Effect** | Immediate (after terraform apply) | Requires Git commit + terraform apply |
+|--------|-------------|--------------| 
+| **Time to Effect** | Immediate (after Terraform apply) | Requires Git commit + Terraform apply |
 | **Audit Trail** | AWS AppConfig history | Git history + Terraform state |
 | **Best For** | Operational tuning | Permanent configuration changes |
 | **Rollback** | AppConfig version history | Git revert |
@@ -190,7 +190,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
 ✅ **No Code Changes** - Update thresholds without modifying Terraform
 ✅ **Audit Trail** - Git history shows all configuration changes
 ✅ **Environment-Specific** - Different thresholds per environment via AppConfig environments
-✅ **Runtime Flexibility** - Lambdas can read live config without redeployment
+✅ **Runtime Flexibility** - Lambdas can read live configuration without redeployment
 ✅ **Easy Rollback** - Git history allows instant rollback
 
 ## Future Enhancements
