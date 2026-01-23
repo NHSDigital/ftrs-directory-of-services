@@ -1,0 +1,274 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: SCAL-001
+  requirement: Horizontal scale-out increases TPS linearly within tolerance
+  services:
+  - data-migration
+  - crud-apis
+  - dos-search
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2173
+  controls:
+  - control_id: horizontal-scale-linear
+    measure: Horizontal scale-out increases TPS linearly within tolerance
+    threshold: TPS increases ~linearly per replica within agreed tolerance
+    tooling: Load tests + autoscaling reports
+    cadence: Quarterly simulation
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Validates scale-out effectiveness
+    service_stories:
+      crud-apis:
+      - FTRS-2173
+      data-migration:
+      - FTRS-2555
+      dos-search:
+      - FTRS-2556
+- code: SCAL-002
+  requirement: Vertical resize retains data & function without downtime
+  services:
+  - data-migration
+  - dos-search
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2174
+  controls:
+  - control_id: vertical-resize-no-downtime
+    measure: Vertical resize retains data & function without downtime
+    threshold: Resize completes with zero downtime and no data loss
+    tooling: Resize runbook + health checks
+    cadence: Semi-annual exercise
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures safe vertical scaling
+    service_stories:
+      crud-apis:
+      - FTRS-2174
+      data-migration:
+      - FTRS-2557
+      dos-search:
+      - FTRS-2558
+- code: SCAL-003
+  requirement: All layers pass scalability checklist
+  services:
+  - data-migration
+  - crud-apis
+  - dos-search
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2175
+  controls:
+  - control_id: scalability-checklist-complete
+    measure: All layers pass scalability checklist
+    threshold: 100% checklist items complete; exceptions recorded with expiry
+    tooling: Checklist tracker + evidence links
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures scale readiness across tiers
+    service_stories:
+      crud-apis:
+      - FTRS-2175
+      data-migration:
+      - FTRS-2559
+      dos-search:
+      - FTRS-2560
+- code: SCAL-004
+  requirement: Scale-down events occur after sustained low utilisation
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2176
+  controls:
+  - control_id: scale-down-sustained-low-util
+    measure: Scale-down events occur after sustained low utilisation
+    threshold: No scale-down unless utilisation < 40% sustained for 30m; no flapping
+    tooling: Autoscaling metrics + policy
+    cadence: Continuous + monthly policy audit
+    environments:
+    - prod
+    status: draft
+    rationale: Prevents scale instability
+    service_stories:
+      crud-apis:
+      - FTRS-2176
+      data-migration:
+      - FTRS-2561
+      dos-search:
+      - FTRS-2562
+- code: SCAL-005
+  requirement: Autoscaling policy simulation triggers controlled scale
+  teams:
+  - infrastructure
+  controls:
+  - control_id: autoscaling-policy-simulation
+    measure: Autoscaling policy simulation triggers controlled scale
+    threshold: Policy simulates expected scale events; no flapping
+    tooling: Policy simulator + metrics
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Confirms autoscaling tuning
+    stories: []
+- code: SCAL-006
+  requirement: Scale event shows no SLA breach in latency/error
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2177
+  controls:
+  - control_id: scale-event-sla
+    measure: Scale event shows no SLA breach in latency/error
+    threshold: No breach in latency/error SLAs during scale
+    tooling: Metrics/alerts during scale events
+    cadence: Continuous monitoring + quarterly drill
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Protects user experience during scaling
+    service_stories:
+      crud-apis:
+      - FTRS-2177
+      data-migration:
+      - FTRS-2563
+      dos-search:
+      - FTRS-2564
+- code: SCAL-007
+  requirement: Capacity report shows ≥30% headroom
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2178
+  controls:
+  - control_id: capacity-headroom
+    measure: Capacity report shows ≥30% headroom
+    threshold: '>= 30% capacity headroom maintained'
+    tooling: Capacity planning reports
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures buffer for demand spikes
+    service_stories:
+      crud-apis:
+      - FTRS-2178
+      data-migration:
+      - FTRS-2565
+      dos-search:
+      - FTRS-2566
+- code: SCAL-008
+  requirement: No manual scaling tickets for variance period
+  explanation: During the variance period no manual scaling tickets are needed.
+  stories: []
+  controls:
+  - control_id: manual-scaling-eliminated
+    measure: No manual scaling tickets for variance period
+    threshold: 0 manual scaling tickets in rolling 90 days
+    tooling: Ticketing system + scaling audit
+    cadence: Monthly review
+    environments:
+    - prod
+    status: draft
+    rationale: Confirms autoscaling effectiveness
+    stories: []
+  teams:
+  - infrastructure
+- code: SCAL-009
+  requirement: Audit logs capture actor/reason for scaling
+  explanation: Audit logs record who initiated scaling and why.
+  stories: []
+  controls:
+  - control_id: scaling-audit-context
+    measure: Audit logs capture actor/reason for scaling
+    threshold: 100% scale events have actor, reason, correlation_id
+    tooling: Audit log pipeline + policy
+    cadence: Continuous + quarterly audit
+    environments:
+    - prod
+    status: draft
+    rationale: Provides traceability of scaling decisions
+    stories: []
+  teams:
+  - infrastructure
+- code: SCAL-010
+  requirement: Predictive alert fires at utilisation forecast threshold
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: predictive-utilisation-alert
+    measure: Predictive alert fires at utilisation forecast threshold
+    threshold: Forecasted utilisation > 80% in 15m triggers alert; MTT Alert < 2m
+    tooling: Forecasting job + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    status: draft
+    rationale: Prevents SLA breach via early action
+    service_stories:
+      crud-apis:
+      - FTRS-2567
+      data-migration:
+      - FTRS-2568
+      dos-search:
+      - FTRS-2569
+      etl-ods:
+      - FTRS-2570

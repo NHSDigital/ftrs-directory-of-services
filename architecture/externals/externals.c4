@@ -1,5 +1,5 @@
 model {
-  dosLead = actor "DoS Admin" {
+  dosLead = actor "DoS Lead" {
     description "DoS Lead, DoS Dev Team or CM Admin"
     style {
       color muted
@@ -11,19 +11,10 @@ model {
       color muted
     }
   }
-  ps1 = system "Provider System" {
+  ps1 = system "Provider Systems" {
     description '
-      External software system
+      External software systems
       Includes 111 Tel, 999 Tel, 111 Online, S&R
-    '
-    style {
-      color muted
-    }
-  }
-  ps2 = system "Provider System" {
-    description '
-      Non-Pathways provider systems
-      i.e. MiDoS or GP Systems and Service Finder
     '
     style {
       color muted
@@ -62,9 +53,18 @@ model {
       color muted
     }
   }
-  ps1 -> apim.dosReadProxy "Queries DoS"
-  ps2 -> apim.dosReadProxy "Queries DoS"
-  du -> apim.dosWriteProxy "Updates DoS"
-  pm -> apim.dosReadProxy "Queries DoS"
-  ftrs.sourcingEtlProcessor -> bsa "Data pulled from"
+  odsService = system "ODS Service" {
+    description '
+      NHS Digital ODS Service
+      Source of truth for Organisation data
+      ODS FHIR Terminology Server
+    '
+    style {
+      color muted
+    }
+  }
+  ps1 -> apim.dosSearchProxy "Queries DoS"
+  du -> apim.dosIngressProxy "Updates DoS"
+  pm -> apim.dosSearchProxy "Queries DoS"
+  // ftrs.sourcingEtlProcessor -> bsa "Data pulled from"
 }

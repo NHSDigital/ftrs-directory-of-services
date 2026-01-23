@@ -9,21 +9,75 @@ views {
     autoLayout LeftRight 70 77
   }
 
-  view of ftrs {
-    title "Container diagram for FtRS"
-    description '
-      A model showing the containers for FtRS
-      and their relationships to other systems
-    '
-    include *
-    autoLayout LeftRight 70 77
-  }
+  // view of ftrs {
+  //   title "Container diagram for FtRS"
+  //   description '
+  //     A model showing the containers for FtRS
+  //     and their relationships to other systems
+  //   '
+  //   include *
+  //   autoLayout LeftRight 70 77
+  // }
 
-  deployment view deploymentIndex {
+  deployment view Index {
     title 'Production Deployment'
 
-    include nhsApim.**
-    include aws.**
+    include prod.**
+
     autoLayout TopBottom 70 77
   }
+
+
+  // dynamic view search-data-flow {
+  //   title 'Typical Search Data Flow'
+  //   ps1 -> cis2 'updates bearer token if needed'
+  //   ps1 -> apim 'POST request'
+  //   apim -> cis2 // title is derived from the model
+  //   apim -> ftrs.searchByOdsCode 'process request' // allow self-call
+
+  //   ftrs.searchByOdsCode -> ftrs.openSearch 'Queries OpenSearch'
+  //   ftrs.searchByOdsCode <- ftrs.openSearch 'OpenSearch responds'
+
+  //   ftrs.searchByOdsCode -> ftrs.db 'Queries database'
+  //   ftrs.searchByOdsCode <- ftrs.db 'Database response'
+
+  //   ftrs.searchByOdsCode <- apim 'returns JSON'
+  //   ps1 <- apim 'receives JSON'
+
+  // }
+
+  //   dynamic view ui-data-flow {
+  //   title 'UI Data Flow'
+  //   dosLead -> ui "Opens in browser"
+  //   ui -> cis2 'Updates bearer token if needed'
+  //   ui -> apim 'POST or GET request'
+  //   apim -> cis2 // title is derived from the model
+  //   apim -> ftrs.searchByOdsCode 'process request' // allow self-call
+
+  //   ftrs.searchByOdsCode -> ftrs.openSearch 'Queries OpenSearch'
+  //   ftrs.searchByOdsCode <- ftrs.openSearch 'OpenSearch responds'
+
+  //   ftrs.searchByOdsCode -> ftrs.db 'Queries database'
+  //   ftrs.searchByOdsCode <- ftrs.db 'Database response'
+
+  //   ftrs.searchByOdsCode <- apim 'returns JSON'
+  //   ui <- apim 'receives JSON'
+  //   autoLayout TopBottom 70 77
+
+  // }
+
+  dynamic view etl-data-flow {
+    title 'ETL Data Flow'
+
+    ftrs.liveDosDb -> ftrs.awsMigrationService
+    ftrs.awsMigrationService -> ftrs.etlStagingDosDb
+    ftrs.etlStagingDosDb -> ftrs.migration "Triggers send updates to"
+    ftrs.migration -> ftrs.db "Records any updates in"
+    ftrs.db -> ftrs.openSearch "Populates indexes in"
+
+    // autoLayout TopBottom 70 77
+    autoLayout TopBottom 70 77
+
+  }
+
 }

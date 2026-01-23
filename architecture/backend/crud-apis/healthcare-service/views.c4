@@ -1,0 +1,20 @@
+views {
+
+  view of ftrs.healthcareServiceAPI {
+    title "FTRS CRUD APIs"
+    description '
+      APIs for CRUD operations on the Organizations table
+      and to retrieve data for the Healthcare Service dashboard
+    '
+    include *
+    include apim.dosIngressProxy
+    include healthcareServiceAPI
+    include healthcareServiceAPI.getHealthcareService
+    include healthcareServiceAPI.getHealthcareServices
+    include healthcareServiceAPI.deleteHealthcareService
+    include healthcareServiceAPI.createHealthcareServices
+
+    include ftrs.db.healthCareServiceTable
+    autoLayout LeftRight 70 77
+  }
+}

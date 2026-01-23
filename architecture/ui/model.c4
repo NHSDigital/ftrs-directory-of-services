@@ -1,18 +1,17 @@
 model {
 
-  extend ftrs {
-    container ui {
-      description 'React application, deployed as a SPA'
-      style {
-        icon tech:react
-        shape browser
-      }
+  container ui {
+    title "DoS UI"
+    description 'React application, deployed as a SPA'
+    style {
+      icon tech:react
+      shape browser
     }
   }
 
   dosLead -> ui "opens in browser"
   ui -> cis2 "Logs in with"
-  ui -> apim.dosReadProxy "Queries DoS"
-  ui -> apim.dosWriteProxy "Updates DoS"
+  ui -> apim.dosSearchProxy "Queries DoS"
+  ui -> apim.dosIngressProxy "Updates DoS"
 
 }

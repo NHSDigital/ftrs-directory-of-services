@@ -1,0 +1,20 @@
+views {
+
+  view of ftrs.searchByTriageCode {
+    title "FTRS Search by Triage Code Endpoint"
+    description '
+      APIs for search operations on the Organizations table
+    '
+    include *
+    include ftrs.openSearch
+    include ftrs.db
+
+    include ftrs
+    include apim.dosSearchProxy
+    include ftrs.db.orgTable
+    include ftrs.db.locationTable
+    include ftrs.db.healthCareServiceTable
+    exclude ftrs.dos-search
+    autoLayout LeftRight 70 77
+  }
+}

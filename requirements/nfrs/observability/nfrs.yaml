@@ -1,0 +1,1050 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: OBS-001
+  requirement: App & infra health panels show green
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-1015
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: health-panels-green
+    measure: App & infra health panels show green
+    threshold: All critical panels green; no stale data
+    tooling: Health checks + dashboard status API
+    cadence: Continuous + CI verification on change
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures at-a-glance service health visibility
+    service_stories:
+      dos-search:
+      - FTRS-1015
+      - FTRS-2446
+      crud-apis:
+      - FTRS-1015
+      - FTRS-2444
+      etl-ods:
+      - FTRS-1015
+      - FTRS-2448
+      data-migration:
+      - FTRS-1015
+      - FTRS-2445
+      dos-ui:
+      - FTRS-1015
+      - FTRS-2447
+- code: OBS-002
+  requirement: Authenticated remote health dashboard accessible
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2210
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: remote-health-dashboard-availability
+    measure: Authenticated remote health dashboard accessible
+    threshold: Dashboard reachable via VPN/SRE access; authentication enforced; >=
+      99.9% monthly availability
+    tooling: Synthetic probes + access logs + uptime dashboard
+    cadence: Continuous probing + monthly review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures remote operators can reliably access health views for supported
+      services
+    service_stories:
+      crud-apis:
+      - FTRS-2210
+      data-migration:
+      - FTRS-2449
+      dos-search:
+      - FTRS-2450
+      dos-ui:
+      - FTRS-2451
+- code: OBS-003
+  requirement: Health event visible ≤60s after failure
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-1003
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: health-event-latency-sla
+    measure: Health event visible <=60s after failure
+    threshold: Critical health events appear on dashboards and alert streams within
+      60 seconds of simulated failure
+    tooling: Synthetic failure injectors + metrics pipeline + alerting system
+    cadence: Monthly drill + CI smoke on config change
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Validates observability pipeline latency for timely incident response
+    service_stories:
+      dos-search:
+      - FTRS-1003
+      - FTRS-2454
+      dos-ui:
+      - FTRS-1003
+      - FTRS-2455
+      crud-apis:
+      - FTRS-1003
+      - FTRS-2452
+      etl-ods:
+      - FTRS-1003
+      - FTRS-2456
+      data-migration:
+      - FTRS-1003
+      - FTRS-2453
+- code: OBS-004
+  requirement: Automated maintenance tasks executed; zero manual interventions
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: automated-maintenance-jobs
+    measure: Automated maintenance tasks executed; zero manual interventions
+    threshold: '>= 95% maintenance runs executed automatically per quarter; manual
+      interventions recorded with follow-up actions'
+    tooling: Job scheduler logs + run history dashboard + issue tracker
+    cadence: Continuous execution + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Reduces operational toil and risk of manual maintenance errors
+    service_stories:
+      crud-apis:
+      - FTRS-2457
+      data-migration:
+      - FTRS-2458
+      dos-search:
+      - FTRS-2459
+      dos-ui:
+      - FTRS-2460
+      etl-ods:
+      - FTRS-2461
+- code: OBS-005
+  requirement: Performance metrics per layer present
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-1016
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: perf-metrics-layer-coverage
+    measure: Performance metrics per layer present
+    threshold: Dashboards expose throughput/latency/error metrics for API, application,
+      data, and infrastructure layers; gaps documented with remediation date
+    tooling: Metrics backend + dashboard library + coverage checklist
+    cadence: Quarterly review + CI lint on dashboard definitions
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures each major layer is observable for performance and reliability
+      analysis
+    service_stories:
+      dos-search:
+      - FTRS-1016
+      - FTRS-2464
+      dos-ui:
+      - FTRS-1016
+      - FTRS-2465
+      etl-ods:
+      - FTRS-1016
+      - FTRS-2466
+      data-migration:
+      - FTRS-1016
+      - FTRS-2463
+      crud-apis:
+      - FTRS-1016
+      - FTRS-2462
+- code: OBS-006
+  requirement: Remote performance dashboard matches local view
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  teams:
+  - infrastructure
+  controls:
+  - control_id: remote-perf-dashboard-parity
+    measure: Remote performance dashboard matches local view
+    threshold: Key SLO panels (latency, error rate, throughput) show consistent values
+      across remote and local views within agreed tolerance (e.g. <=2%)
+    tooling: Dashboard snapshot comparison + query tests
+    cadence: Monthly parity check + on dashboard change
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Guarantees remote operators see accurate and aligned performance information
+    service_stories:
+      crud-apis:
+      - FTRS-2467
+      data-migration:
+      - FTRS-2468
+      dos-search:
+      - FTRS-2469
+      dos-ui:
+      - FTRS-2470
+      etl-ods:
+      - FTRS-2471
+- code: OBS-007
+  requirement: Performance metrics latency ≤60s
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2211
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: perf-metrics-latency
+    measure: Performance metrics latency ≤60s
+    threshold: Metrics pipeline delivers data within 60s latency
+    tooling: Metrics agent + ingestion SLA alerting
+    cadence: Continuous monitoring
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Fresh metrics are required for accurate operational decisions
+    service_stories:
+      crud-apis:
+      - FTRS-2211
+      data-migration:
+      - FTRS-2472
+      dos-search:
+      - FTRS-2473
+      dos-ui:
+      - FTRS-2474
+- code: OBS-008
+  requirement: TPS per endpoint displayed & threshold alert configured
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1688
+  teams:
+  - infrastructure
+  controls:
+  - control_id: tps-threshold-alert
+    measure: TPS per endpoint displayed & threshold alert configured
+    threshold: TPS dashboard present; alert rule configured and tested
+    tooling: Metrics backend + alerting system
+    cadence: CI validation + monthly alert fire drill
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Detects throughput anomalies proactively
+    service_stories:
+      crud-apis:
+      - FTRS-1688
+      - FTRS-2475
+      dos-search:
+      - FTRS-1688
+      - FTRS-2476
+- code: OBS-009
+  requirement: Endpoint latency histograms with p50/p95/p99
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: latency-histograms
+    measure: Endpoint latency histograms with p50/p95/p99
+    threshold: Histograms available per endpoint with p50/p95/p99 series
+    tooling: Metrics backend + dashboard
+    cadence: Continuous
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Percentile visibility supports performance governance
+    service_stories:
+      crud-apis:
+      - FTRS-2477
+      dos-search:
+      - FTRS-2478
+- code: OBS-010
+  requirement: Aggregate latency panel accurate within 2% roll-up
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: aggregate-latency-accuracy
+    measure: Aggregate latency panel accurate within 2% roll-up
+    threshold: Roll-up accuracy within \u22642% vs raw series
+    tooling: Dashboard query tests + calibration script
+    cadence: Monthly calibration
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures trustworthy aggregate metrics
+    service_stories:
+      crud-apis:
+      - FTRS-2479
+      dos-search:
+      - FTRS-2480
+- code: OBS-011
+  requirement: Failure types logged & classified in dashboard
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: failure-type-classification
+    measure: Failure types logged & classified in dashboard
+    threshold: 100% failures carry type; classification accuracy \u2265 95%
+    tooling: Structured logging + classifier + dashboard
+    cadence: Continuous + monthly accuracy audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Improves incident triage
+    service_stories:
+      crud-apis:
+      - FTRS-2481
+      - FTRS-998
+      data-migration:
+      - FTRS-2482
+      - FTRS-998
+      dos-search:
+      - FTRS-2483
+      - FTRS-998
+      etl-ods:
+      - FTRS-2484
+      - FTRS-998
+- code: OBS-012
+  requirement: Error percentage metric & alert configured
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-1017
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: error-percentage-alert
+    measure: Error percentage metric & alert configured
+    threshold: Alert triggers when error% > 1% over 5m; playbook linked
+    tooling: Metrics backend + alerting rules
+    cadence: Continuous + monthly tuning
+    environments:
+    - prod
+    status: draft
+    rationale: Early detection of reliability regressions
+    service_stories:
+      etl-ods:
+      - FTRS-1017
+      - FTRS-2488
+      crud-apis:
+      - FTRS-1017
+      - FTRS-2485
+      data-migration:
+      - FTRS-1017
+      - FTRS-2486
+      dos-search:
+      - FTRS-1017
+      - FTRS-2487
+- code: OBS-013
+  requirement: Infra log query returns expected fields
+  services:
+  - dos-search
+  - data-migration
+  - etl-ods
+  - crud-apis
+  stories:
+  - FTRS-323
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: infra-log-query-fields
+    measure: Infra log query returns expected fields
+    threshold: Queries return required fields (timestamp, severity, host, correlation_id)
+    tooling: Log query tests + schema
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures log usability for ops
+    service_stories:
+      crud-apis:
+      - FTRS-2489
+      data-migration:
+      - FTRS-2490
+      dos-search:
+      - FTRS-2491
+      etl-ods:
+      - FTRS-2492
+- code: OBS-014
+  requirement: Infra log entries include required fields
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2212
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: infra-log-required-fields
+    measure: Infra log entries include required fields
+    threshold: 100% entries include required fields; schema lint passes
+    tooling: Log schema validators + CI checks
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Guarantees structured logging quality
+    service_stories:
+      crud-apis:
+      - FTRS-2212
+      data-migration:
+      - FTRS-2493
+      dos-search:
+      - FTRS-2494
+- code: OBS-015
+  requirement: Retention policy enforced & reported
+  services:
+  - dos-search
+  - crud-apis
+  - etl-ods
+  - data-migration
+  teams:
+  - infrastructure
+  controls:
+  - control_id: log-retention-policy-enforced
+    measure: Retention policy enforced & reported
+    threshold: Log and metrics stores configured to documented retention periods;
+      monthly report shows compliance and upcoming deletions
+    tooling: Logging/metrics platform config export + compliance report
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures observability data is retained long enough for investigation
+      while managing storage cost and privacy
+    service_stories:
+      crud-apis:
+      - FTRS-2495
+      data-migration:
+      - FTRS-2496
+      dos-search:
+      - FTRS-2497
+      etl-ods:
+      - FTRS-2498
+- code: OBS-016
+  requirement: SIEM forwarding delivers test event <60s
+  services:
+  - dos-search
+  - crud-apis
+  - etl-ods
+  - data-migration
+  teams:
+  - infrastructure
+  controls:
+  - control_id: siem-forwarding-latency
+    measure: SIEM forwarding delivers test event <60s
+    threshold: Synthetic security event visible in SIEM within 60 seconds of generation
+    tooling: Synthetic event injector + SIEM search + alert rule
+    cadence: Weekly test + monthly report
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Confirms timely forwarding of security-relevant events to central monitoring
+    service_stories:
+      crud-apis:
+      - FTRS-2499
+      data-migration:
+      - FTRS-2500
+      dos-search:
+      - FTRS-2501
+      etl-ods:
+      - FTRS-2502
+- code: OBS-017
+  requirement: All log levels supported; dynamic change works
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2213
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: dynamic-log-level-toggle
+    measure: All log levels supported; dynamic change works
+    threshold: Log level can be changed at runtime per service without restart; change
+      propagates across fleet within 2 minutes; no data loss observed
+    tooling: Log configuration API + fleet orchestration + log sampling checks
+    cadence: Quarterly drill + CI config validation
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Enables safe, responsive tuning of log verbosity for troubleshooting
+    service_stories:
+      crud-apis:
+      - FTRS-2213
+      data-migration:
+      - FTRS-2503
+      dos-search:
+      - FTRS-2504
+- code: OBS-018
+  requirement: Log level propagation <2min with alert on breach
+  services:
+  - dos-search
+  - crud-apis
+  - etl-ods
+  - data-migration
+  teams:
+  - infrastructure
+  controls:
+  - control_id: log-level-propagation-alert
+    measure: Log level propagation <2min with alert on breach
+    threshold: Propagation time <= 2 minutes in 95% of changes; alert triggered when
+      propagation exceeds 2 minutes
+    tooling: Log level change audit + metrics on propagation delay + alert rule
+    cadence: Continuous monitoring + monthly SLA review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Detects and prevents slow or stuck configuration changes impacting
+      diagnostics
+    service_stories:
+      crud-apis:
+      - FTRS-2505
+      data-migration:
+      - FTRS-2506
+      dos-search:
+      - FTRS-2507
+      etl-ods:
+      - FTRS-2508
+- code: OBS-019
+  requirement: Operational log shows full transaction chain
+  services:
+  - dos-search
+  - crud-apis
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2214
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: transaction-chain-logging
+    measure: Operational log shows full transaction chain
+    threshold: Logs capture correlation_id and key hop identifiers across services;
+      test traces reconstruct at least 95% of sampled transactions end-to-end
+    tooling: Structured logging libraries + correlation tests + log queries
+    cadence: CI contract tests + monthly sampling audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Enables end-to-end operational tracing across services
+    service_stories:
+      crud-apis:
+      - FTRS-2214
+      data-migration:
+      - FTRS-2509
+      dos-search:
+      - FTRS-2510
+- code: OBS-020
+  requirement: Operations logs reconstruct workflow
+  services:
+  - dos-search
+  - crud-apis
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2215
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: workflow-reconstruction-logs
+    measure: Operations logs reconstruct workflow
+    threshold: For a sample of workflows, logs alone allow reconstruction of key steps,
+      actors, and outcomes without ambiguity
+    tooling: Log schema + reconstruction playbook + sampling audits
+    cadence: Quarterly sampling review
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures operational logs are rich enough to support investigations
+      and post-incident analysis
+    service_stories:
+      crud-apis:
+      - FTRS-2215
+      data-migration:
+      - FTRS-2511
+      dos-search:
+      - FTRS-2512
+- code: OBS-021
+  requirement: Operational events include transaction_id
+  services:
+  - dos-search
+  - crud-apis
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2216
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: operational-events-transaction-id
+    measure: Operational events include transaction_id
+    threshold: 100% sampled operational log entries include transaction_id; schema
+      lint passes in CI
+    tooling: Log schema validators + CI checks + sampling queries
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Guarantees traceability of operational events to end-to-end transactions
+    service_stories:
+      crud-apis:
+      - FTRS-2216
+      data-migration:
+      - FTRS-2513
+      dos-search:
+      - FTRS-2514
+- code: OBS-022
+  requirement: Audit trail reconstructs user action
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: audit-trail-coverage
+    measure: Audit trail reconstructs user action
+    threshold: Audit logs capture who, what, when, where for privileged and sensitive
+      actions; sample reconstruction successful in >= 95% cases
+    tooling: Audit logging framework + sampling audit process
+    cadence: Quarterly review
+    environments:
+    - prod
+    status: draft
+    rationale: Supports forensic analysis and compliance requirements
+    service_stories:
+      crud-apis:
+      - FTRS-2515
+      dos-search:
+      - FTRS-2516
+- code: OBS-023
+  requirement: Audit events share transaction_id & ordered timestamps
+  services:
+  - dos-search
+  - crud-apis
+  - data-migration
+  stories:
+  - FTRS-1018
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: audit-event-ordering
+    measure: Audit events share transaction_id & ordered timestamps
+    threshold: 100% audit events include transaction_id and monotonic timestamps;
+      ordering verified on sampled traces
+    tooling: Audit schema + ordering validation job
+    cadence: Monthly sampling audit
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures audit chains can be reliably reconstructed in order
+    service_stories:
+      crud-apis:
+      - FTRS-1018
+      - FTRS-2517
+      data-migration:
+      - FTRS-1018
+      - FTRS-2518
+      dos-search:
+      - FTRS-1018
+      - FTRS-2519
+- code: OBS-024
+  requirement: Alert rule triggers multi-channel notification
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2217
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: alert-rule-multichannel
+    measure: Alert rule triggers multi-channel notification
+    threshold: Critical alerts delivered to on-call, chat, and email channels within
+      2 minutes of breach
+    tooling: Alerting engine + notification integrations + periodic fire drills
+    cadence: Quarterly multi-channel test
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures important alerts reach responders via redundant channels
+    service_stories:
+      data-migration:
+      - FTRS-2217
+      dos-search:
+      - FTRS-2520
+- code: OBS-025
+  requirement: Alerts delivered to multi-channel with context
+  services:
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2218
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: migration-variance-alerts
+    measure: Actionable alerts on data-migration error rate and duration variance
+    threshold: Alert when error_rate >1% over 5m window OR full-sync duration > baseline
+      +20%; include playbook link, correlation_id, impacted counts
+    tooling: Metrics backend, alerting engine, synthetic event injector, dashboard
+    cadence: Continuous evaluation; monthly threshold tuning; weekly report
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - data-migration
+    status: draft
+    rationale: Early detection of pipeline health issues to reduce MTTR and prevent
+      silent degradation
+    service_stories:
+      data-migration:
+      - FTRS-2218
+- code: OBS-026
+  requirement: Analytics query identifies usage pattern
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: analytics-usage-queries
+    measure: Analytics query identifies usage pattern
+    threshold: Curated analytics queries exist for top N usage questions (e.g. endpoint
+      usage, geography, client type) and execute successfully against data store
+    tooling: Analytics warehouse + saved query library + dashboard
+    cadence: Quarterly review of queries and patterns
+    environments:
+    - prod
+    status: draft
+    rationale: Enables product and ops teams to understand service usage patterns
+    service_stories:
+      data-migration:
+      - FTRS-2521
+      dos-search:
+      - FTRS-2522
+- code: OBS-027
+  requirement: Analytics outage non-impacting to transactions
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2219
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: analytics-outage-nonimpacting
+    measure: Analytics outage non-impacting to transactions
+    threshold: Synthetic analytics store outage causes <=1% increase in error rate
+      and no degradation of core transaction paths
+    tooling: Chaos experiments on analytics dependencies + business telemetry
+    cadence: Annual drill
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures analytics stack failure does not impact transactional SLAs
+    service_stories:
+      data-migration:
+      - FTRS-2219
+      dos-search:
+      - FTRS-2523
+- code: OBS-028
+  requirement: RBAC restricts dashboard sections
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2220
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: dashboard-rbac-enforced
+    measure: RBAC restricts dashboard sections
+    threshold: Access tests confirm only authorised roles can view sensitive panels;
+      0 failed RBAC tests in CI
+    tooling: Dashboard auth configuration + role-based test suite
+    cadence: CI per change + quarterly role audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Protects sensitive operational and analytics data from unauthorised
+      access
+    service_stories:
+      data-migration:
+      - FTRS-2220
+      dos-search:
+      - FTRS-2524
+- code: OBS-029
+  requirement: Dashboard freshness age ≤60s
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - infrastructure
+  stories:
+  - FTRS-2221
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: dashboard-freshness-age
+    measure: Dashboard freshness age <=60s
+    threshold: Key dashboards show freshness/lag indicator <=60 seconds; alerts created
+      when lag exceeds threshold
+    tooling: Metrics backend + freshness probes + alerting rules
+    cadence: Continuous monitoring + monthly tuning
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures operators act on up-to-date information
+    service_stories:
+      data-migration:
+      - FTRS-2221
+      dos-search:
+      - FTRS-2525
+- code: OBS-030
+  requirement: Distributed trace spans cover end-to-end request
+  services:
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-885
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: distributed-trace-coverage
+    measure: Distributed trace spans cover end-to-end request
+    threshold: ≥95% of requests include spans across key tiers
+    tooling: Tracing SDKs + sampling config
+    cadence: Continuous + monthly sampling review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Enables end-to-end diagnosis and correlation across layers
+    service_stories:
+      data-migration:
+      - FTRS-2526
+      dos-search:
+      - FTRS-2527
+- code: OBS-031
+  requirement: Anonymised behaviour metrics collected without identifiers
+  services:
+  - dos-search
+  teams:
+  - infrastructure
+  controls:
+  - control_id: anonymised-behaviour-metrics
+    measure: Anonymised behaviour metrics collected without identifiers
+    threshold: Behavioural metrics exclude direct identifiers; privacy review completed;
+      random sampling validated
+    tooling: Analytics configuration + privacy review checklist + sampling tests
+    cadence: Quarterly privacy review
+    environments:
+    - prod
+    status: draft
+    rationale: Provides usage insight while protecting user privacy
+    service_stories:
+      dos-search:
+      - FTRS-2528
+- code: OBS-032
+  requirement: Per-endpoint 4xx/5xx response metrics & alert thresholds configured
+  services:
+  - dos-search
+  stories:
+  - FTRS-1573
+  teams:
+  - infrastructure
+  controls:
+  - control_id: per-endpoint-error-metrics
+    measure: Per-endpoint 4xx/5xx response metrics & alert thresholds configured
+    threshold: Error-rate metrics present per endpoint; alert thresholds documented
+      and tuned; alerts fire on breach
+    tooling: Metrics backend + alerting engine + runbooks
+    cadence: Continuous monitoring + quarterly threshold review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Detects and responds to endpoint-specific error regressions
+    service_stories:
+      dos-search:
+      - FTRS-1573
+      - FTRS-2529
+- code: OBS-033
+  requirement: Unauthorized API access attempts logged, classified, alerted
+  services:
+  - dos-search
+  stories:
+  - infrastructure
+  teams:
+  - infrastructure
+  controls:
+  - control_id: unauth-access-monitoring
+    measure: Unauthorized API access attempts logged & alerted with context
+    threshold: 100% auth failures & forbidden requests produce structured log entry
+      with reason, correlation_id, source_ip, user_agent; alert triggers on >5 failed
+      auth attempts per principal per 1m or anomaly spike (>3x baseline)
+    tooling: API gateway logs, auth middleware, metrics backend, alerting rules, anomaly
+      detection job
+    cadence: Continuous collection + weekly anomaly review + monthly rule tuning
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Early detection of credential stuffing, token misuse, and privilege
+      escalation attempts
+    service_stories:
+      dos-search:
+      - FTRS-2530
