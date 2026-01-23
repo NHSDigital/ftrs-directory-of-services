@@ -772,8 +772,6 @@ Validation and export scripts now live in the central Jira tooling repository ra
 
 Use the commands provided by the external Jira tooling repository to validate artifacts and export paste-ready text for Jira.
 
-````
-
 ### Review Checklist Before Paste
 
 | Item               | Check                                              |
