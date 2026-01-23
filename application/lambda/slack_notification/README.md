@@ -56,7 +56,7 @@ print(json.dumps(flattened, indent=2))
 
 ## Slack Webhook Setup
 
-1. Go to https://api.slack.com/apps
+1. Go to [https://api.slack.com/apps](https://api.slack.com/apps)
 2. Create a new app or select existing
 3. Enable "Incoming Webhooks"
 4. Add New Webhook to Workspace

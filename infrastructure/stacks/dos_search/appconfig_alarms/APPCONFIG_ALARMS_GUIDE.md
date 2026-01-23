@@ -6,7 +6,7 @@ Alarm thresholds for the DoS Search Lambda functions are managed through **AWS A
 
 ## Architecture
 
-```
+```hcl
 Initial Setup (One-time):
    toggles/alarm-thresholds.json
            ↓
