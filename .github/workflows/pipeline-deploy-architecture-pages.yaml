@@ -1,11 +1,14 @@
 # Sample workflow for building and deploying a website to GitHub Pages
-name: Deploy Pages
+name: Deploy Pages Pipeline
 
 on:
   # Runs on pushes targeting the default branch and c4 files
   push:
     branches:
       - main
+    paths:
+      - 'architecture/**'
+  pull_request:
     paths:
       - 'architecture/**'
   repository_dispatch:
@@ -35,14 +38,14 @@ jobs:
   build-pages:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: "Checkout code"
         uses: actions/checkout@v6
 
-      - name: Setup Pages
+      - name: "Setup Pages"
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Build
+      - name: "Build"
         uses: likec4/actions@v1
         with:
           action: build
@@ -53,7 +56,7 @@ jobs:
           # (optional) by default, the bundled version is used, which is faster due to skipping the installation
           likec4-version: latest
 
-      - name: Upload artifact
+      - name: "Upload artifact"
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist
@@ -65,7 +68,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build-pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - build-pages
+      - deploy-pages
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml

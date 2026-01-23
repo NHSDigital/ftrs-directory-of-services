@@ -1,0 +1,43 @@
+# Sample workflow for checking docs
+name: Deploy Documentation Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+  pull_request:
+    paths:
+      - 'docs/**'
+
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "docs-pages"
+  cancel-in-progress: false
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+
+      - name: "Check Markdown Format"
+        uses: ./.github/actions/check-markdown-format
+
+      - name: "Check English Usage"
+        uses: ./.github/actions/check-english-usage
+
+  check-pipeline-status:
+    name: "Check Pipeline Status"
+    needs:
+      - check-docs
+    if: always()
+    uses: ./.github/workflows/pipeline-status-check.yaml

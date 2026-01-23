@@ -10,6 +10,9 @@ on:
       - main
       - "task/**"
       - "dependabot/**"
+    paths-ignore:
+      - 'docs/**'
+      - 'architecture/**'
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:

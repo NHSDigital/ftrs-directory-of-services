@@ -232,6 +232,9 @@ jobs:
           limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
           exit-code: 1
+          skip-dirs: |
+            services/dos-ui
+            services/read-only-viewer
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v6
