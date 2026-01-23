@@ -638,15 +638,6 @@ paths:
         schema:
           type: string
           example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
-      - in: header
-        name: NHSE-Product-ID
-        required: false
-        description: |
-          Unique product identifier. The value is populated and passed down by APIM
-          It's used to persist the information on the source of record updates
-        schema:
-          type: string
-          example: ODS
       - $ref: '#/components/parameters/AcceptFHIR'
       - $ref: '#/components/parameters/ContentTypeFHIR'
       - in: path
