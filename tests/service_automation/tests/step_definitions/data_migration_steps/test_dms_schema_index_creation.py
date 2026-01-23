@@ -1,26 +1,14 @@
 """BDD step definitions for DMS schema index creation tests."""
-from typing import Dict, List
+from typing import Dict
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
-from sqlmodel import Session, create_engine
-
-import sys
-from pathlib import Path
-
-data_migration_src = (
-    Path(__file__).parent.parent.parent.parent.parent.parent
-    / "services"
-    / "data-migration"
-    / "src"
-)
-sys.path.insert(0, str(data_migration_src))
+from sqlmodel import Session
 
 from dms_provisioner.dms_service import create_indexes_from_sql_file
 
-# Load all scenarios from the feature file
 scenarios("./data_migration_features/dms_schema_index_creation.feature")
 
 
