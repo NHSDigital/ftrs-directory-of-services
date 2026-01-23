@@ -13,11 +13,6 @@ on:
 
   workflow_call:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: "docs-pages"
   cancel-in-progress: false
