@@ -3,29 +3,6 @@
 # Flattens CloudWatch alarm JSON and sends to Slack
 ################################################################################
 
-# Archive the Lambda function code
-data "archive_file" "slack_notification" {
-  type        = "zip"
-  source_dir  = "${path.module}/../../../application/lambda/slack_notification"
-  excludes    = ["build.sh", "README.md", "build"]
-  output_path = "${path.module}/.terraform/slack_notification.zip"
-}
-
-# IAM Policy for Slack notification Lambda
-data "aws_iam_policy_document" "slack_notification_policy" {
-  statement {
-    sid    = "AllowKMSEncryption"
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:GenerateDataKey"
-    ]
-    resources = [
-      "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/lambda"
-    ]
-  }
-}
-
 # Lambda function for Slack notifications
 module "slack_notification_lambda" {
   source                  = "../../modules/lambda"
@@ -33,7 +10,8 @@ module "slack_notification_lambda" {
   description             = "Lambda to send CloudWatch alarms to Slack"
   handler                 = "index.lambda_handler"
   runtime                 = "python3.11"
-  local_existing_package  = data.archive_file.slack_notification.output_path
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-slack-notification-lambda-${var.application_tag}.zip"
   ignore_source_code_hash = false
   timeout                 = 30
   memory_size             = 128
@@ -67,7 +45,20 @@ module "slack_notification_lambda" {
 
   cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
 
-  depends_on = [data.archive_file.slack_notification]
+  # IAM Policy for Slack notification Lambda
+  data "aws_iam_policy_document" "slack_notification_policy" {
+    statement {
+      sid    = "AllowKMSEncryption"
+      effect = "Allow"
+      actions = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
+      ]
+      resources = [
+        "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/lambda"
+      ]
+    }
+  }
 }
 
 # Dead Letter Queue for Slack notification Lambda
