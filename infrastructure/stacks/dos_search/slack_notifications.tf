@@ -80,8 +80,8 @@ resource "aws_lambda_function_event_invoke_config" "slack_notification" {
 
   destination_config {
     on_failure {
-      type        = "SQS"
-      destination = aws_sqs_queue.slack_notification_dlq.arn
+      destination_type = "SQS"
+      destination      = aws_sqs_queue.slack_notification_dlq.arn
     }
   }
 }
