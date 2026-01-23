@@ -19,11 +19,6 @@ scenarios(
 )
 
 
-# ============================================================
-# State Table Verification Steps
-# ============================================================
-
-
 @when(parsers.parse("a record does not exist in the state table for key '{state_key}'"))
 def verify_no_state_record(
     dynamodb: Dict[str, Any],
@@ -40,11 +35,6 @@ def verify_no_state_record(
 
     # Verify record does NOT exist
     assert "Item" not in response, f"State record should not exist for key {state_key}"
-
-
-# ============================================================
-# Pipeline Behavior Verification Steps
-# ============================================================
 
 
 @then(parsers.parse("the pipeline treats the record as an '{operation}' operation"))
@@ -273,11 +263,6 @@ def verify_state_record_healthcare_service_id(
 ) -> None:
     """Verify that the state record has a valid healthcare_service_id (UUID format)."""
     verify_state_record_field(dynamodb, state_key, "healthcare_service_id")
-
-
-# ============================================================
-# Conflict Detection Steps
-# ============================================================
 
 
 def create_conflicting_record(

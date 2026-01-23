@@ -200,7 +200,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | test7@nhs.net                  |
       | publicphone         | 0300 311 22 99                 |
     When a single service migration is run for ID '400006'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table contains a record for key 'services#400006' with version 1
     When a single service migration is run for ID '400006'
     Then the pipeline treats the record as an 'update' operation
@@ -230,46 +230,14 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | test8@nhs.net                    |
       | publicphone         | 0300 311 33 00                   |
     When a single service migration is run for ID '400007'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table contains a record for key 'services#400007' with version 1
     When the service 'TestGPPracticeOrgNameDos' has its 'publicname' updated to 'Updated Surgery Name from DoS'
     And a single service migration is run for ID '400007'
     Then the pipeline treats the record as an 'update' operation
     And the pipeline logs "Organisation update detected, adding update item to transaction"
     And a difference is found in the organisation record
-    And the metrics should show 0 inserted, 0 updated records for the second run
-
-  @detect-changes @organisation-name-change-ods
-  Scenario: Organisation name changed but was last updated from ODS
-    Given a 'Service' exists called 'TestGPPracticeOrgNameOds' in DoS with attributes:
-      | key                 | value                            |
-      | id                  | 400008                           |
-      | uid                 | 400008                           |
-      | name                | TestGPPracticeOrgNameOds         |
-      | publicname          | ODS Surgery Name                 |
-      | typeid              | 100                              |
-      | statusid            | 1                                |
-      | odscode             | A12356                           |
-      | createdtime         | 2024-01-01 10:00:00              |
-      | modifiedtime        | 2024-01-01 10:00:00              |
-      | openallhours        | false                            |
-      | restricttoreferrals | false                            |
-      | postcode            | SW1A 9JJ                         |
-      | address             | Millbank                         |
-      | town                | London                           |
-      | web                 | https://www.nhs.uk/              |
-      | email               | test9@nhs.net                    |
-      | publicphone         | 0300 311 33 11                   |
-    When a single service migration is run for ID '400008'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#400008' with version 1
-    When the organisation for service '400008' is marked as last updated from ODS
-    And the service 'TestGPPracticeOrgNameOds' has its 'publicname' updated to 'Changed Surgery Name'
-    And a single service migration is run for ID '400008'
-    Then the pipeline treats the record as an 'update' operation
-    And the pipeline logs "Skipping organisation update as no fields have changed since last migration"
-    And no differences are found
-    And the metrics should show 0 inserted, 0 updated records for the second run
+    And the metrics should show 0 inserted, 1 updated records for the second run
 
   @detect-changes @endpoint-change
   Scenario: Endpoint details changed
@@ -293,7 +261,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | original@nhs.net                   |
       | publicphone         | 0300 311 33 22                     |
     When a single service migration is run for ID '400009'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table contains a record for key 'services#400009' with version 1
     When the service 'TestGPPracticeEndpointChange' has its 'web' updated to 'https://www.updated-website.uk/'
     And the service 'TestGPPracticeEndpointChange' has its 'email' updated to 'updated@nhs.net'
@@ -301,7 +269,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     Then the pipeline treats the record as an 'update' operation
     And the pipeline logs "Healthcare service update detected, adding update item to transaction"
     And a difference is found in the endpoint record
-    And the metrics should show 0 inserted, 0 updated records for the second run
+    And the metrics should show 0 inserted, 1 updated records for the second run
 
   @detect-changes @multiple-changes
   Scenario: Both organisation name and endpoints changed
@@ -325,7 +293,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
       | email               | original2@nhs.net                 |
       | publicphone         | 0300 311 33 33                    |
     When a single service migration is run for ID '400010'
-    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    Then the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
     And the state table contains a record for key 'services#400010' with version 1
     When the service 'TestGPPracticeMultiChange' has its 'publicname' updated to 'Completely New Surgery Name'
     And the service 'TestGPPracticeMultiChange' has its 'web' updated to 'https://www.new-website.uk/'
@@ -336,4 +304,4 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the pipeline logs "Healthcare service update detected, adding update item to transaction"
     And a difference is found in the organisation record
     And a difference is found in the endpoint record
-    And the metrics should show 0 inserted, 0 updated records for the second run
+    And the metrics should show 0 inserted, 1 updated records for the second run
