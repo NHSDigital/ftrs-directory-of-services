@@ -36,7 +36,7 @@ from service_migration.transformer import ServiceTransformer
 
 class BasicServiceTransformer(ServiceTransformer):
     def transform(self, service: Service) -> dict:
-        return super().transform(service, validation_issues=[])
+        return super().transform(service)
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -112,7 +112,7 @@ def test_service_transformer_build_organisation(
                 connectionType="http",
                 name=None,
                 payloadMimeType=None,
-                description="Primary",
+                businessScenario="Primary",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="http://example.com/endpoint",
                 managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
@@ -132,7 +132,7 @@ def test_service_transformer_build_organisation(
                 connectionType="email",
                 name=None,
                 payloadMimeType=None,
-                description="Copy",
+                businessScenario="Copy",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="mailto:test@example.com",
                 managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
@@ -185,7 +185,7 @@ def test_build_endpoint(
         connectionType="itk",
         name=None,
         payloadMimeType="xml",
-        description="Primary",
+        businessScenario="Primary",
         payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         address="http://example.com/endpoint1",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -232,7 +232,7 @@ def test_build_endpoint_no_comment(
         connectionType="itk",
         name=None,
         payloadMimeType="xml",
-        description="Primary",
+        businessScenario="Primary",
         payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         address="http://example.com/endpoint1",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -282,7 +282,7 @@ def test_build_endpoint_telno(
         connectionType="telno",
         name=None,
         payloadMimeType=None,
-        description="Copy",
+        businessScenario="Copy",
         payloadType=None,
         address="tel:01234567890",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -405,7 +405,6 @@ def test_build_healthcare_service(
         modifiedDateTime="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
-        migrationNotes=None,
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",

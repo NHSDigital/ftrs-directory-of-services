@@ -13,7 +13,7 @@ from common.url_utils import (
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
 )
-from producer.ods_client import make_ods_request
+from producer.ods_client import ODSClient
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
 MAX_PAGES = 100  # Safety limit to prevent infinite loops
@@ -23,6 +23,7 @@ LINK_RELATION_NEXT = "next"
 ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
 
 ods_processor_logger = Logger.get(service="ods_processor")
+ods_client = ODSClient()
 
 
 def fetch_outdated_organisations(date: str) -> list[dict]:
@@ -48,7 +49,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
             page_num=page_count,
         )
 
-        bundle = make_ods_request(ods_url, params=params)
+        bundle = ods_client.make_request(ods_url, params=params)
         organisations = _extract_organizations_from_bundle(bundle)
 
         if organisations:

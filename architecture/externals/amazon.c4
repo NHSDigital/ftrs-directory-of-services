@@ -6,7 +6,125 @@ model {
       style {
         icon aws:api-gateway
       }
+
+      -> dns.route53Zone "DNS resolution"
+      -> dns.acmCertificate "TLS termination"
     }
+
+    // =========================================================================
+    // DNS & Certificate Management
+    // =========================================================================
+    container dns "DNS & Certificates" {
+      description "Route 53 DNS and ACM certificate management"
+      style {
+        icon aws:route-53
+      }
+
+      component route53Zone "Route 53 Hosted Zone" {
+        description "Public hosted zone for ftrs.nhs.uk domain"
+        style {
+          icon aws:route-53
+        }
+
+        -> security.shieldAdvanced "protected by"
+      }
+
+      component acmCertificate "ACM Certificate" {
+        description "Wildcard TLS certificate for *.ftrs.nhs.uk"
+        style {
+          icon aws:certificate-manager
+        }
+      }
+    }
+
+    // =========================================================================
+    // Security Services
+    // =========================================================================
+    container security "Security Services" {
+      description "KMS, Secrets Manager, and Shield Advanced"
+      style {
+        icon aws:shield
+      }
+
+      component secretsManager "Secrets Manager" {
+        description "Secure storage for API keys and JWT credentials"
+        style {
+          icon aws:secrets-manager
+        }
+
+        -> kms "encrypted by"
+      }
+
+      component kms "KMS" {
+        description "Customer managed encryption keys"
+        style {
+          icon aws:key-management-service
+        }
+      }
+
+      component shieldAdvanced "Shield Advanced" {
+        description "DDoS protection for Route 53"
+        style {
+          icon aws:shield
+        }
+      }
+    }
+
+    // =========================================================================
+    // Configuration & Observability
+    // =========================================================================
+    container operations "Operations" {
+      description "SSM Parameter Store, CloudWatch, and EventBridge"
+      style {
+        icon aws:systems-manager
+      }
+
+      component ssmParameterStore "SSM Parameter Store" {
+        description "Configuration parameters for services"
+        style {
+          icon aws:systems-manager
+        }
+      }
+
+      component cloudWatch "CloudWatch" {
+        description "Logs, metrics, and X-Ray tracing"
+        style {
+          icon aws:cloud-watch
+        }
+      }
+
+      component eventBridge "EventBridge Scheduler" {
+        description "Scheduled triggers for ETL pipelines"
+        style {
+          icon aws:event-bridge
+        }
+      }
+    }
+
+    // =========================================================================
+    // Storage
+    // =========================================================================
+    container storage "S3 Storage" {
+      description "Object storage for artifacts and data"
+      style {
+        icon aws:simple-storage-service
+        shape storage
+      }
+
+      component s3Bucket "S3 Buckets" {
+        description "Lambda artifacts, trust store, and pipeline data"
+        style {
+          icon aws:simple-storage-service
+          shape storage
+        }
+      }
+    }
+
+    // =========================================================================
+    // Cross-service relationships
+    // =========================================================================
+    apiGateway -> storage.s3Bucket "reads mTLS trust store from"
+    apiGateway -> operations.cloudWatch "logs requests to"
 
     container db "FTRS Database" {
       description 'Stores FTRS data'
@@ -19,6 +137,23 @@ model {
         description 'Organisation table'
         style {
           icon aws:dynamo-db
+          shape storage
+        }
+      }
+
+      component healthcareServiceTable "Healthcare Services" {
+        description 'Healthcare Service table'
+        style {
+          icon aws:dynamo-db
+          shape storage
+        }
+      }
+
+      component locationTable "Locations" {
+        description 'Location table'
+        style {
+          icon aws:dynamo-db
+          shape storage
         }
       }
 

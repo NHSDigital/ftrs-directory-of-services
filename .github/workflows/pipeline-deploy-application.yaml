@@ -58,6 +58,7 @@ jobs:
       - metadata
       - quality-checks
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "python"
@@ -139,6 +140,7 @@ jobs:
       - deploy-application-infrastructure
     uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
     strategy:
+      fail-fast: false
       matrix:
         api_name:
           - dos-search
@@ -202,6 +204,20 @@ jobs:
       type: app
     secrets: inherit
 
+  deploy-open-search-indexes:
+    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
+    if: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+      - restore-dynamodb-from-s3
+    uses: ./.github/workflows/deploy-open-search-indexes.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      aws_region: ${{ vars.AWS_REGION }}
+    secrets: inherit
+
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:
@@ -211,6 +227,7 @@ jobs:
       - metadata
       - deploy-application-infrastructure
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: "dos-ui"
@@ -251,7 +268,15 @@ jobs:
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: "ftrs-pipeline"
+            type: "api"
+          - tag: "data-migration"
+            type: "data-migration"
     needs:
       - metadata
       - deploy-application-infrastructure
@@ -273,8 +298,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       tag: ${{ inputs.tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
+      test_tag: ${{ matrix.tag }}
+      test_type: ${{ matrix.type }}
       type: app
     secrets: inherit
 

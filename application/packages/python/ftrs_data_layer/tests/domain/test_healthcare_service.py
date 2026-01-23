@@ -29,7 +29,6 @@ def test_healthcare_service_round_trip_and_types() -> None:
         location=uuid4(),
         modifiedBy="test_user",
         modifiedDateTime="2023-10-01T00:00:00Z",
-        migrationNotes=None,
         name="Test Healthcare Service",
         telecom=HealthcareServiceTelecom(
             phone_public="123456789",
@@ -109,7 +108,6 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
         "location": str(uuid4()),
         "modifiedBy": "test_user",
         "modifiedDateTime": "2023-10-01T00:00:00Z",
-        "migrationNotes": None,
         "name": "Test Healthcare Service",
         "telecom": {
             "phone_public": "123456789",

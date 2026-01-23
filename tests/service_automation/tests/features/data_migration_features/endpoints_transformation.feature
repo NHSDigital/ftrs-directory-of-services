@@ -125,7 +125,7 @@ Feature: Data Migration for endpoints
       | serviceid            | 10205752     |                                        |
 
     When the data migration process is run for table 'services', ID '10205752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then field 'endpoints' on table 'organisation' for id 'd7976aa8-2da8-5da2-9426-f6f42d0565f2' has content:
       """
@@ -136,7 +136,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "email",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Copy",
+                  "businessScenario": "Copy",
                   "id": "d428a4f3-ed5f-5c8c-b3a8-9e4b266d05c0",
                   "identifier_oldDoS_id": 500001,
                   "isCompressionEnabled": true,
@@ -156,7 +156,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "email",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Primary",
+                  "businessScenario": "Primary",
                   "id": "012dc0d6-f1c1-544f-a83c-ba2b964e428e",
                   "identifier_oldDoS_id": 500002,
                   "isCompressionEnabled": false,
@@ -176,7 +176,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "itk",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Copy",
+                  "businessScenario": "Copy",
                   "id": "82ddb087-8a00-50eb-8b68-2d1baacf52de",
                   "identifier_oldDoS_id": 500003,
                   "isCompressionEnabled": false,
@@ -196,7 +196,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "http",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Primary",
+                  "businessScenario": "Primary",
                   "id": "bab8991d-a550-599c-a6b1-724963efac89",
                   "identifier_oldDoS_id": 500004,
                   "isCompressionEnabled": false,
@@ -216,7 +216,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "telno",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Primary",
+                  "businessScenario": "Primary",
                   "id": "abdbab5b-da78-5f26-9974-65db28fbe714",
                   "identifier_oldDoS_id": 500005,
                   "isCompressionEnabled": false,
@@ -236,7 +236,7 @@ Feature: Data Migration for endpoints
                   "connectionType": "telno",
                   "createdBy": "DATA_MIGRATION",
                   "createdDateTime": "2025-11-28T12:49:13.248485Z",
-                  "description": "Primary",
+                  "businessScenario": "Primary",
                   "id": "57db7d5d-f9a4-58fb-828c-47cbe3e7e3d5",
                   "identifier_oldDoS_id": 500006,
                   "isCompressionEnabled": false,
@@ -301,6 +301,63 @@ Feature: Data Migration for endpoints
       | endpointorder | 1        |        |
       | serviceid     | 10305752 |        |
     When the data migration process is run for table 'services', ID '10305752' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 migrated, 0 skipped and 1 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 1 errors
     Then error log containing message: '3 validation errors for Endpoint' was found
+    Then there is 0 organisation, 0 location and 0 healthcare services created
+
+
+  Scenario: Endpoints with validation issues are not migrated
+    Given a "Service" exists in DoS with attributes
+      | key                                 | value                                                       |
+      | id                                  | 10305752                                                    |
+      | uid                                 | 138179                                                      |
+      | name                                | Abbey Medical Practice, Evesham, Worcestershire             |
+      | odscode                             | M81094                                                      |
+      | openallhours                        | FALSE                                                       |
+      | publicreferralinstructions          | STUB Public Referral Instruction Text Field 5752            |
+      | telephonetriagereferralinstructions | STUB Telephone Triage Referral Instructions Text Field 5752 |
+      | restricttoreferrals                 | TRUE                                                        |
+      | address                             | Evesham Medical Centre$Abbey Lane$Evesham                   |
+      | town                                | EVESHAM                                                     |
+      | postcode                            | WR11 4BS                                                    |
+      | easting                             | 403453                                                      |
+      | northing                            | 243634                                                      |
+      | publicphone                         | 01386 761111                                                |
+      | nonpublicphone                      | 99999 000000                                                |
+      | fax                                 | 77777 000000                                                |
+      | email                               |                                                             |
+      | web                                 | www.abbeymedical.com                                        |
+      | createdby                           | HUMAN                                                       |
+      | createdtime                         | 2011-06-29 08:00:51.000                                     |
+      | modifiedby                          | HUMAN                                                       |
+      | modifiedtime                        | 2024-11-29 10:55:23.000                                     |
+      | lasttemplatename                    | Midlands template R46 Append PC                             |
+      | lasttemplateid                      | 244764                                                      |
+      | typeid                              | 100                                                         |
+      | parentid                            | 150013                                                      |
+      | subregionid                         | 150013                                                      |
+      | statusid                            | 1                                                           |
+      | organisationid                      |                                                             |
+      | returnifopenminutes                 |                                                             |
+      | publicname                          | Abbey Medical Practice                                      |
+      | latitude                            | 52.0910543                                                  |
+      | longitude                           | -1.951003                                                   |
+      | professionalreferralinfo            | Nope                                                        |
+      | lastverified                        |                                                             |
+      | nextverificationdue                 |                                                             |
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key                  | value        | reason                               |
+      | id                   | 500006       |                                      |
+      | endpointorder        | 1            |                                      |
+      | transport            | telno        |                                      |
+      | format               |              |                                      |
+      | interaction          |              |                                      |
+      | businessscenario     | Unsupported  | Only Primary and Copy values allowed |
+      | address              | 12345123456  |                                      |
+      | comment              |              |                                      |
+      | iscompressionenabled | uncompressed |                                      |
+      | serviceid            | 10305752     |                                      |
+    When the data migration process is run for table 'services', ID '10305752' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 1 errors
+    Then error log containing message: '1 validation error for Endpoint' was found
     Then there is 0 organisation, 0 location and 0 healthcare services created

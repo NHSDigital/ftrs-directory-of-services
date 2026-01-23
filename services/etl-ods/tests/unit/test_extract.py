@@ -52,7 +52,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "producer.extract.make_ods_request", return_value=mock_bundle
+        "producer.extract.ods_client.make_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -79,7 +79,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "producer.extract.make_ods_request",
+        "producer.extract.ods_client.make_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -136,7 +136,8 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "producer.extract.make_ods_request", side_effect=[first_page, second_page]
+        "producer.extract.ods_client.make_request",
+        side_effect=[first_page, second_page],
     )
 
     date = "2025-10-15"

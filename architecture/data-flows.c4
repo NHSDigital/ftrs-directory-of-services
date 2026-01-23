@@ -1,0 +1,250 @@
+// data-flows.c4
+// Comprehensive data flow views showing how data moves through the FtRS system
+
+model {
+  // External actor representing systems that consume the DoS Search API
+  healthcareConsumer = actor "Healthcare Consumer System" {
+    description '
+      External healthcare systems that query FtRS for organisation
+      and endpoint data (e.g. 111 Online, GP Systems, Service Finder)
+    '
+    style {
+      color muted
+    }
+  }
+
+  // Relationship: External consumer queries DoS Search
+  healthcareConsumer -> apim.dosReadProxy "Searches for GP endpoints by ODS code"
+}
+
+views {
+
+  // ============================================================================
+  // END-TO-END DATA FLOWS
+  // ============================================================================
+
+  dynamic view odsToSearchEndToEnd {
+    title "End-to-End: ODS Data Sync to DoS Search"
+    description '
+      Complete data flow showing how organisation data flows from the external
+      ODS Terminology API through the ETL pipeline, CRUD APIs, and finally
+      becomes searchable via the DoS Search service.
+
+      This diagram covers:
+      - ODS ETL Pipeline (extract → transform → load)
+      - CRUD APIs (organisation update)
+      - DoS Search (query by ODS code)
+    '
+
+    // ---- EXTRACT: Fetch from ODS ----
+    odsTerminologyApi -> ftrs.etlOds.odsExtractor "1. Fetch organisations modified on date (FHIR Bundle)"
+    ftrs.etlOds.odsExtractor -> ftrs.etlOds.transformQueue "2. Queue raw organisation data for transformation"
+
+    // ---- TRANSFORM: Process and lookup UUID ----
+    ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "3. SQS event triggers transformer (batch size 10)"
+    ftrs.etlOds.odsTransformer -> apim.dosReadProxy "4. GET /Organization?identifier=odsOrganisationCode|{code} to lookup UUID"
+    apim.dosReadProxy -> ftrs.apiGateway "5. Proxy GET request to internal API"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "6. Route to CRUD API query endpoint"
+    ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "7. Query DynamoDB by ODS code index"
+    ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "8. Queue transformed FHIR payloads for loading"
+
+    // ---- LOAD: Send to CRUD APIs ----
+    ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "9. SQS event triggers loader (batch size 10)"
+    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "10. PUT /Organization/{uuid} with FHIR body"
+    apim.dosWriteProxy -> ftrs.apiGateway "11. Authenticate via JWT and proxy PUT request"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "12. Route to CRUD API update endpoint"
+    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "13. Persist updated organisation to DynamoDB"
+
+    // ---- DoS Search: External consumer queries ----
+    healthcareConsumer -> apim.dosReadProxy "14. GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization"
+    apim.dosReadProxy -> ftrs.apiGateway "15. Authenticate and proxy search request"
+    ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "16. Route to DoS Search Lambda"
+    ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "17. Invoke FTRS service layer"
+    ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "18. Query organisation by ODS code"
+    ftrs.dosSearch.ftrsService -> ftrs.dosSearch.bundleMapper "19. Map domain model to FHIR searchset Bundle"
+
+    autoLayout TopBottom
+  }
+
+  // ============================================================================
+  // ORGANISATION DATA FLOW
+  // ============================================================================
+
+  dynamic view organisationDataFlow {
+    title "Organisation Data Flow"
+    description '
+      How organisation data flows through the system:
+      - Ingested via ODS ETL Pipeline (extract → transform → load)
+      - Stored/updated via CRUD APIs
+      - Queried via DoS Search
+    '
+
+    // Extract stage
+    odsTerminologyApi -> ftrs.etlOds.odsExtractor "Extract outdated organisations (daily scheduled)"
+    ftrs.etlOds.odsExtractor -> ftrs.etlOds.transformQueue "Queue raw data for transformation"
+
+    // Transform stage
+    ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "Trigger transformer to process batched messages"
+    ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "Queue transformed FHIR payloads"
+
+    // Load stage (write path)
+    ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "Trigger loader to send to CRUD APIs"
+    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "Send PUT request with JWT authentication"
+    apim.dosWriteProxy -> ftrs.apiGateway "Proxy authenticated request to internal gateway"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "Route to organisation update handler"
+    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "Persist organisation changes to DynamoDB"
+
+    // Read path (DoS Search)
+    healthcareConsumer -> apim.dosReadProxy "Search for GP endpoints by ODS code"
+    apim.dosReadProxy -> ftrs.apiGateway "Proxy authenticated search request"
+    ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "Route to DoS Search endpoint"
+    ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "Process FHIR search request"
+    ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "Query organisation and endpoints from DynamoDB"
+
+    autoLayout TopBottom
+  }
+
+  // ============================================================================
+  // WRITE PATH
+  // ============================================================================
+
+  dynamic view writePathFlow {
+    title "Write Path: Data Ingestion Flow"
+    description '
+      How data enters the system via the write path (ETL → APIM → CRUD APIs → DynamoDB):
+
+      1. Extractor fetches from ODS API, queues raw data
+      2. Transformer processes data, looks up UUID, queues FHIR payloads
+      3. Loader sends PUT requests via APIM to CRUD APIs
+    '
+
+    // Extract stage
+    odsTerminologyApi -> ftrs.etlOds.odsExtractor "1. GET organisations modified since last sync date"
+    ftrs.etlOds.odsExtractor -> ftrs.etlOds.transformQueue "2. Queue raw organisation data"
+
+    // Transform stage
+    ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "3. SQS triggers transformer Lambda"
+    ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "4. Transform to FHIR format, queue for loading"
+
+    // Load stage
+    ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "5. SQS triggers loader Lambda"
+    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "6. PUT /Organization/{uuid} with authenticated JWT"
+    apim.dosWriteProxy -> ftrs.apiGateway "7. Validate JWT and route to internal API"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "8. Invoke update handler with FHIR payload"
+    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "9. Update organisation record in DynamoDB"
+
+    autoLayout TopBottom
+  }
+
+  // ============================================================================
+  // READ PATH
+  // ============================================================================
+
+  dynamic view readPathFlow {
+    title "Read Path: DoS Search Query Flow"
+    description '
+      How external consumers query the system via the read path:
+      Consumer -> APIM -> API Gateway -> DoS Search -> DynamoDB -> FHIR Bundle response
+    '
+
+    healthcareConsumer -> apim.dosReadProxy "1. GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization"
+    apim.dosReadProxy -> ftrs.apiGateway "2. Validate API key and proxy to internal gateway"
+    ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "3. Route to DoS Search Lambda handler"
+    ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "4. Call FTRS service to retrieve organisation"
+    ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "5. Query DynamoDB by ODS code index"
+    ftrs.dosSearch.ftrsService -> ftrs.dosSearch.bundleMapper "6. Map organisation to FHIR searchset Bundle"
+    ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.organizationMapper "7. Map domain Organisation to FHIR Organization resource"
+    ftrs.dosSearch.bundleMapper -> ftrs.dosSearch.endpointMapper "8. Map endpoints to FHIR Endpoint resources"
+
+    autoLayout TopBottom
+  }
+
+  // ============================================================================
+  // DATA MIGRATION FLOW
+  // ============================================================================
+
+  dynamic view dataMigrationFlow {
+    title "Data Migration: DoS to FtRS"
+    description '
+      How legacy DoS service data is migrated to the new FtRS system:
+
+      1. Legacy DoS data is replicated to staging database
+      2. Queue Populator triggers batch processing (or CDC listener captures changes)
+      3. Processor Lambda transforms DoS services to FHIR format
+      4. Writes Organisation, HealthcareService, Location to FTRS
+
+      Supports both full load (initial migration) and CDC (ongoing sync).
+    '
+
+    // Replication path
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Replicate via DMS"
+
+    // Queue population paths (two options)
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "Query service IDs (manual/scheduled)"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "Trigger batch processing"
+
+    ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "Trigger on CDC data change"
+    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "Trigger CDC processing"
+
+    // Processing path
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read full service data from staging DB"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Write FHIR Organisation"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Write FHIR HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Write FHIR Location"
+
+    autoLayout TopBottom
+  }
+
+  dynamic view dataMigrationFullLoadFlow {
+    title "Data Migration: Full Load Process"
+    description '
+      Initial bulk migration of all DoS services to FtRS.
+
+      Steps:
+      1. DMS Full Load task copies all DoS tables to staging DB
+      2. Queue Populator queries all service IDs matching criteria
+      3. Triggers processor Lambda to transform each service to FHIR
+      4. Writes to FTRS data stores
+    '
+
+    // DMS full load
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Full table copy via DMS"
+
+    // Manual queue population
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.stagingDb "SELECT service IDs WHERE type/status filters"
+    ftrs.dataMigration.queuePopulator -> ftrs.dataMigration.processor "Trigger batch processing"
+
+    // Processing
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Load service + related data"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Transform and persist Organisation"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Transform and persist HealthcareService"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Transform and persist Location"
+
+    autoLayout TopBottom
+  }
+
+  dynamic view dataMigrationCdcFlow {
+    title "Data Migration: CDC (Change Data Capture)"
+    description '
+      Ongoing synchronisation of DoS changes to FtRS.
+
+      DMS CDC task captures INSERT/UPDATE/DELETE events via
+      PostgreSQL logical replication and writes to staging DB.
+      DB triggers notify the event listener which routes
+      changes to the processor.
+    '
+
+    // CDC replication
+    dosLegacyDb -> ftrs.dataMigration.stagingDb "Capture and apply WAL changes"
+
+    // Event-driven processing
+    ftrs.dataMigration.stagingDb -> ftrs.dataMigration.rdsEventListener "DB trigger fires on change"
+    ftrs.dataMigration.rdsEventListener -> ftrs.dataMigration.processor "Trigger CDC processing"
+    ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "Read changed service data"
+    ftrs.dataMigration.processor -> ftrs.db.orgTable "Update FTRS data"
+    ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "Update FTRS data"
+    ftrs.dataMigration.processor -> ftrs.db.locationTable "Update FTRS data"
+
+    autoLayout TopBottom
+  }
+}

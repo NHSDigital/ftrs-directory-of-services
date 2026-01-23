@@ -4,7 +4,8 @@ import pytest
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
-    EndpointDescription,
+    EndpointBusinessScenario,
+    EndpointConnectionType,
     EndpointPayloadType,
 )
 
@@ -131,11 +132,11 @@ class TestEndpointMapper:
         assert result == expected_result
 
     @pytest.mark.parametrize(
-        ("order", "is_compression_enabled", "description", "expected_count"),
+        ("order", "is_compression_enabled", "business_scenario", "expected_count"),
         [
-            (1, True, EndpointDescription.COPY, 3),
-            (None, True, EndpointDescription.COPY, 2),
-            (1, None, EndpointDescription.COPY, 2),
+            (1, True, EndpointBusinessScenario.COPY, 3),
+            (None, True, EndpointBusinessScenario.COPY, 2),
+            (1, None, EndpointBusinessScenario.COPY, 2),
         ],
     )
     def test_create_extensions(
@@ -143,7 +144,7 @@ class TestEndpointMapper:
         endpoint_mapper,
         order,
         is_compression_enabled,
-        description,
+        business_scenario,
         expected_count,
         mocker,
     ):
@@ -151,7 +152,7 @@ class TestEndpointMapper:
         mock_endpoint = mocker.MagicMock()
         mock_endpoint.order = order
         mock_endpoint.isCompressionEnabled = is_compression_enabled
-        mock_endpoint.description = description
+        mock_endpoint.businessScenario = business_scenario
 
         # Act
         extensions = endpoint_mapper._create_extensions(mock_endpoint)
@@ -164,7 +165,7 @@ class TestEndpointMapper:
             )
         if is_compression_enabled is not None:
             assert any(ext["url"].endswith("EndpointCompression") for ext in extensions)
-        if description is not None:
+        if business_scenario is not None:
             assert any(
                 ext["url"].endswith("EndpointBusinessScenario") for ext in extensions
             )
@@ -217,3 +218,126 @@ class TestEndpointMapper:
             endpoints[2].id == "33333333-3333-3333-3333-333333333333"  # gitleaks:allow
         )
         assert endpoints[2].connectionType.code == "telno"
+
+    def test_create_business_scenario_extension_logs_error_for_unknown(
+        self, endpoint_mapper, mocker
+    ):
+        # Arrange
+        mock_logger = mocker.patch(
+            "functions.ftrs_service.fhir_mapper.endpoint_mapper.logger"
+        )
+
+        # Act
+        result = endpoint_mapper._create_business_scenario_extension("UnknownScenario")
+
+        # Assert
+        assert result is None
+        mock_logger.error.assert_called_once_with(
+            "Unknown business scenario: UnknownScenario"
+        )
+
+    def test_create_extensions_with_compression_false(
+        self, endpoint_mapper, create_endpoint
+    ):
+        # Arrange - Test with is_compression_enabled=False (not None)
+        endpoint = create_endpoint(is_compression_enabled=False)
+
+        # Act
+        extensions = endpoint_mapper._create_extensions(endpoint)
+
+        # Assert
+        # Should have order and business scenario but compression should be False
+        assert any(ext.get("valueBoolean") is False for ext in extensions)
+
+    def test_create_connection_type_lowercase(self, endpoint_mapper, create_endpoint):
+        # Arrange - Test that connection type is properly lowercased
+        endpoint = create_endpoint(connection_type=EndpointConnectionType.ITK)
+
+        # Act
+        result = endpoint_mapper._create_connection_type(endpoint)
+
+        # Assert
+        assert result.code == "itk"
+
+    def test_create_connection_type_http(self, endpoint_mapper, create_endpoint):
+        # Arrange
+        endpoint = create_endpoint(connection_type="http")
+
+        # Act
+        result = endpoint_mapper._create_connection_type(endpoint)
+
+        # Assert
+        assert result.code == "http"
+        assert (
+            result.system
+            == "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
+        )
+
+    def test_create_payload_mime_type(self, endpoint_mapper, create_endpoint):
+        # Arrange
+        endpoint = create_endpoint()
+
+        # Act
+        result = endpoint_mapper._create_payload_mime_type(endpoint)
+
+        # Assert
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0] == endpoint.payloadMimeType.value
+
+    def test_create_extensions_includes_all_fields(
+        self, endpoint_mapper, create_endpoint
+    ):
+        # Arrange - Endpoint with all extension fields
+        endpoint = create_endpoint(
+            order=1,
+            is_compression_enabled=True,
+            business_scenario=EndpointBusinessScenario.PRIMARY,
+        )
+
+        # Act
+        extensions = endpoint_mapper._create_extensions(endpoint)
+
+        # Assert - Should have order, compression, and business scenario
+        assert len(extensions) == 3
+        assert any(ext.get("valueInteger") == 1 for ext in extensions)
+        assert any(ext.get("valueBoolean") is True for ext in extensions)
+        assert any(ext.get("valueCode") == "primary-recipient" for ext in extensions)
+
+    def test_create_managing_organization_with_different_id(
+        self, endpoint_mapper, create_endpoint
+    ):
+        # Arrange
+        custom_org_id = UUID("99999999999999999999999999999999")
+        endpoint = create_endpoint(managed_by_organisation=custom_org_id)
+
+        # Act
+        result = endpoint_mapper._create_managing_organization(endpoint)
+
+        # Assert
+        assert result["reference"] == f"Organization/{custom_org_id}"
+
+    def test_create_fhir_endpoint_all_fields(self, endpoint_mapper, create_endpoint):
+        # Arrange - Create endpoint with all fields populated
+        endpoint_id = UUID("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        endpoint = create_endpoint(
+            endpoint_id=endpoint_id,
+            order=1,
+            is_compression_enabled=True,
+            business_scenario=EndpointBusinessScenario.PRIMARY,
+            connection_type="email",
+        )
+
+        # Act
+        fhir_endpoint = endpoint_mapper._create_fhir_endpoint(endpoint)
+
+        # Assert
+        assert fhir_endpoint.id == str(endpoint_id)
+        assert len(fhir_endpoint.extension) == 3
+        assert fhir_endpoint.connectionType.code == "email"
+
+    def test_business_scenario_map_contains_expected_values(self, endpoint_mapper):
+        # Assert the mapper contains the expected business scenario mappings
+        assert endpoint_mapper.BUSINESS_SCENARIO_MAP["Primary"] == "primary-recipient"
+        assert endpoint_mapper.BUSINESS_SCENARIO_MAP["Copy"] == "copy-recipient"
+        assert len(endpoint_mapper.BUSINESS_SCENARIO_MAP) == 2
