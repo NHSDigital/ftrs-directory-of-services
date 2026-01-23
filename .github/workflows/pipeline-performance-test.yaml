@@ -38,3 +38,23 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+
+      - name: "Start EC2 performance instance"
+        id: start-ec2
+        uses: ./.github/actions/start-ec2
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+
+      - name: "Run performance test"
+        uses: ./.github/actions/run-test
+        with:
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          test-file: ${{ inputs.test_file }}
