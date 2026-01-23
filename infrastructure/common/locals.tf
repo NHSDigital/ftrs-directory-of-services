@@ -58,4 +58,6 @@ locals {
 
   # Will be used by dos-search stack
   opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
+  state_bucket_name     = "${local.account_prefix}-terraform-state"
+  state_lock_table_name = "${local.account_prefix}-terraform-state-lock"
 }
