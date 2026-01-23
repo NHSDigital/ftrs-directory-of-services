@@ -54,7 +54,7 @@ jobs:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
       - name: "Run performance test"
-        uses: ./.github/actions/run-test
+        uses: ./.github/actions/run-performancetest
         with:
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
           test-file: ${{ inputs.test_file }}
