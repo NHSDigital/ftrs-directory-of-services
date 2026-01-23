@@ -1,0 +1,69 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: COMP-001
+  requirement: Published OS/browser list matches warranted spec
+  services:
+  - dos-ui
+  releases:
+  - id: ga
+  controls:
+  - control_id: published-supported-platforms
+    measure: Published OS/browser list matches warranted spec
+    threshold: Supported platform list published and current
+    tooling: Documentation repo + review checklist
+    cadence: Quarterly
+    environments:
+    - prod
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Sets clear compatibility expectations for users
+    service_stories:
+      read-only-viewer:
+      - FTRS-2396
+- code: COMP-002
+  requirement: MFA (CIS2) succeeds across supported platforms
+  services:
+  - dos-ui
+  releases:
+  - id: ga
+  controls:
+  - control_id: mfa-platforms
+    measure: MFA (CIS2) succeeds across supported platforms
+    threshold: MFA journeys pass across supported platforms
+    tooling: Cross-platform test suite + identity provider logs
+    cadence: Release cycle
+    environments:
+    - int
+    - ref
+    - prod
+    services: []
+    status: draft
+    rationale: Ensures authentication compatibility
+    service_stories:
+      dos-ui:
+      - FTRS-2397
+      - FTRS-2398
+- code: COMP-003
+  requirement: ≥90% critical journeys test pass per platform
+  services:
+  - dos-ui
+  releases:
+  - id: ga
+  controls:
+  - control_id: journeys-pass-rate
+    measure: ≥90% critical journeys test pass per platform
+    threshold: '>= 90% pass rate for critical journeys on each supported platform'
+    tooling: Cross-platform automated E2E tests
+    cadence: CI per build + release candidate validation
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Protects user experience across platforms
+    service_stories:
+      read-only-viewer:
+      - FTRS-2399

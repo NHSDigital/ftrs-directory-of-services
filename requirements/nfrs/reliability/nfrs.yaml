@@ -1,0 +1,442 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: REL-001
+  requirement: Health checks, multi-AZ deployment documented
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: healthchecks-multi-az-evidence
+    measure: Health checks, multi-AZ deployment documented
+    threshold: Architecture diagrams and runbooks show multi-AZ deployment and health
+      check paths; evidence reviewed and signed off pre-live
+    tooling: Architecture repository + runbook library + review checklist
+    cadence: Pre-live + annual review
+    environments:
+    - prod
+    status: draft
+    rationale: Provides auditable evidence that resilience patterns are designed and
+      documented
+    stories: []
+- code: REL-002
+  requirement: AZ failure simulation maintains service
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: az-failure-simulation
+    measure: AZ failure simulation maintains service
+    threshold: Successful failover with sustained service availability; no data loss
+    tooling: Chaos simulation + health checks
+    cadence: Quarterly exercise
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Validates resilience to Availability Zone failures
+    stories: []
+    service_stories:
+      infrastructure:
+      - FTRS-343
+- code: REL-003
+  requirement: Lifecycle reliability checklist completed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2169
+  controls:
+  - control_id: reliability-checklist-complete
+    measure: Lifecycle reliability checklist completed
+    threshold: 100% checklist items complete; exceptions recorded with expiry
+    tooling: Checklist tracker + evidence links
+    cadence: Pre-live + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures reliability practices across lifecycle
+    service_stories:
+      crud-apis:
+      - FTRS-2169
+      data-migration:
+      - FTRS-2531
+      dos-search:
+      - FTRS-2532
+- code: REL-004
+  requirement: DDOS (Distributed denial of service) simulation mitigated; service
+    responsive
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: dos-simulation-mitigated
+    measure: DoS simulation mitigated; service responsive
+    threshold: Sustained responsiveness; error rate \u2264 1%; p95 latency within
+      SLA during attack
+    tooling: Attack simulator + WAF/rate-limiter + metrics
+    cadence: Quarterly exercise
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Validates resilience under volumetric attacks
+    service_stories:
+      crud-apis:
+      - FTRS-2533
+      dos-search:
+      - FTRS-2534
+- code: REL-005
+  requirement: Injection attempt blocked; no code execution
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: injection-attack-simulation
+    measure: Injection attempt blocked; no code execution
+    threshold: Simulated SQL/script injection attempts blocked at edge or app; 0 successful
+      code execution events
+    tooling: Security test harness + WAF rules + application input validation
+    cadence: Quarterly security exercise + CI negative tests
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Validates protection against injection-driven reliability and security
+      failures
+    service_stories:
+      crud-apis:
+      - FTRS-2535
+      dos-search:
+      - FTRS-2536
+- code: REL-006
+  requirement: Resource placement scan shows no forbidden co-residency
+  services:
+  - dos-search
+  - crud-apis
+  - etl-ods
+  - data-migration
+  teams:
+  - infrastructure
+  controls:
+  - control_id: resource-co-residency-scan
+    measure: Resource placement scan shows no forbidden co-residency
+    threshold: Automated scan reports 0 instances of forbidden co-residency per policy
+    tooling: Cloud asset inventory + placement policy scanner
+    cadence: Monthly scan + on infra change
+    environments:
+    - prod
+    status: draft
+    rationale: Reduces correlated failure risk and meets placement policies
+    service_stories:
+      crud-apis:
+      - FTRS-2537
+      data-migration:
+      - FTRS-2538
+      dos-search:
+      - FTRS-2539
+      etl-ods:
+      - FTRS-2540
+- code: REL-007
+  requirement: Brute force/auth anomalies rate limited & alerted (peak 500 TPS burst
+    capacity; rate limits + alerts)
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1598
+  teams:
+  - infrastructure
+  controls:
+  - control_id: auth-brute-force-protection
+    measure: Brute force/auth anomalies rate limited & alerted (peak 500 TPS legitimate
+      burst supported)
+    threshold: Peak 500 TPS legitimate auth unaffected; anomalies blocked; alert ≤30s;
+      ≤1% false positives
+    tooling: Auth gateway rate limiter + anomaly aggregator + performance harness
+      + alerting
+    cadence: Continuous runtime enforcement + daily compliance script
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Protects availability & integrity under authentication attack patterns
+    service_stories:
+      crud-apis:
+      - FTRS-2541
+      dos-search:
+      - FTRS-2542
+- code: REL-008
+  requirement: MITM attempt fails; pinned cert validation passes
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: mitm-simulation-fails
+    measure: MITM attempt fails; pinned cert validation passes
+    threshold: Man-in-the-middle simulations fail to intercept or tamper traffic;
+      certificate pinning validation passes across supported clients
+    tooling: Security test harness + TLS inspection lab + client pinning tests
+    cadence: Annual exercise + CI smoke on certificate config changes
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Demonstrates resilience of secure channels against interception attacks
+    service_stories:
+      crud-apis:
+      - FTRS-2543
+      dos-search:
+      - FTRS-2544
+- code: REL-009
+  requirement: Iframe embed blocked; headers verified
+  services:
+  - dos-ui
+  teams:
+  - infrastructure
+  controls:
+  - control_id: clickjacking-protection-headers
+    measure: Iframe embed blocked; headers verified
+    threshold: Security headers (e.g. X-Frame-Options/CSP) configured to block framing;
+      automated scan and manual checks show no unapproved embedding
+    tooling: Browser security scanner + response header tests
+    cadence: CI per build + annual manual review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Prevents clickjacking scenarios that could degrade reliability and
+      safety
+    service_stories:
+      dos-ui:
+      - FTRS-2545
+- code: REL-010
+  requirement: Batch suspend/resume preserves data integrity
+  services:
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2170
+  controls:
+  - control_id: batch-suspend-resume-integrity
+    measure: Batch suspend/resume preserves data integrity
+    threshold: 0 data loss; consistent resume and reconciliation
+    tooling: Batch controller + integrity checks
+    cadence: Release cycle validation
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures reliable batch operations
+    service_stories:
+      data-migration:
+      - FTRS-2170
+      etl-ods:
+      - FTRS-2546
+- code: REL-011
+  requirement: Unhealthy node auto-replaced; workload continues
+  services:
+  - data-migration
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2171
+  controls:
+  - control_id: unhealthy-node-auto-replace
+    measure: Unhealthy node auto-replaced; workload continues
+    threshold: Auto-replacement within policy; no user-visible downtime
+    tooling: Autoscaling group events + workload health
+    cadence: Continuous monitoring + quarterly drill
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Maintains reliability during node failures
+    service_stories:
+      data-migration:
+      - FTRS-2171
+- code: REL-012
+  requirement: Single node removal shows stable performance & zero data loss
+  services:
+  - data-migration
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2172
+  controls:
+  - control_id: single-node-removal-safety
+    measure: Single node removal shows stable performance & zero data loss
+    threshold: 0 data loss; p95 latency delta \u2264 10% during removal
+    tooling: Autoscaling events + workload health + integrity checks
+    cadence: Quarterly drill
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures resilience to node loss without user impact
+    service_stories:
+      data-migration:
+      - FTRS-2172
+- code: REL-013
+  requirement: Tier failure graceful degradation & recovery evidenced
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-343
+  teams:
+  - infrastructure
+  controls:
+  - control_id: tier-failure-graceful-degrade
+    measure: Tier failure graceful degradation & recovery evidenced
+    threshold: Documented fallback; recovery time within SLA
+    tooling: Chaos experiments + observability evidence
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Demonstrates graceful degradation patterns
+    service_stories:
+      crud-apis:
+      - FTRS-2547
+      - FTRS-343
+      dos-search:
+      - FTRS-2548
+      - FTRS-343
+- code: REL-014
+  requirement: External outage shows fallback & user messaging
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: external-outage-fallback
+    measure: External outage shows fallback & user messaging
+    threshold: Documented fallback engaged; user messaging displayed; error rate \u2264
+      2%; recovery within SLA
+    tooling: Chaos experiments on external deps + observability evidence
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Demonstrates graceful handling of external dependency outages
+    service_stories:
+      crud-apis:
+      - FTRS-2549
+      dos-search:
+      - FTRS-2550
+- code: REL-015
+  requirement: LB failure retains sessions & continues routing
+  explanation: Load balancer failure preserves sessions and maintains routing continuity.
+  stories: []
+  controls:
+  - control_id: lb-failure-session-retention
+    measure: LB failure retains sessions & continues routing
+    threshold: Zero session loss; traffic re-routed within 30s; p95 latency delta
+      \u2264 10%
+    tooling: LB failover drill + session continuity tests + metrics
+    cadence: Semi-annual drill
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Ensures resilience of routing tier
+    stories: []
+  teams:
+  - infrastructure
+- code: REL-016
+  requirement: Server error shows logout/message per spec
+  stories:
+  - FTRS-973
+  teams:
+  - infrastructure
+  controls:
+  - control_id: server-error-user-messaging
+    measure: Server error shows logout/message per spec
+    threshold: Error paths conform to spec; correct logout/message; audit evidence
+      across endpoints
+    tooling: Contract tests + UI behaviour checks + logs
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Protects user experience during server errors
+- code: REL-017
+  requirement: Restore drill meets RPO/RTO & ransomware defenses
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-11
+  - FTRS-344
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: restore-drill-rpo-rto-ransomware
+    measure: Restore drill meets RPO/RTO & ransomware defenses
+    threshold: Periodic restore drills demonstrate RPO/RTO targets met; immutable
+      backups and ransomware detection controls validated
+    tooling: Backup/restore tooling + drill runbooks + integrity checks + security
+      monitoring
+    cadence: Annual full restore drill + quarterly partial tests
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Confirms end-to-end recoverability including protection against destructive/ransomware
+      scenarios
+    service_stories:
+      crud-apis:
+      - FTRS-2551
+      data-migration:
+      - FTRS-2552
+      dos-search:
+      - FTRS-2553
+      etl-ods:
+      - FTRS-2554

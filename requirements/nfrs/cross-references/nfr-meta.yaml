@@ -1,0 +1,51 @@
+version: 1
+generated: "2025-12-19 15:34:37+00:00"
+teams:
+  - id: integrated-search
+    name: Integrated Search
+    description: Team responsible for GP search and related UI
+    services:
+      - dos-search
+      - sandbox-dos-search
+  - id: future-dos
+    name: Future Directory
+    description: Team responsible for organisation and HealthcareService APIs
+    services:
+      - data-migration
+      - crud-apis
+      - read-only-viewer
+  - id: data-sourcing
+    name: Data Sourcing
+    description: Team responsible for ODS ingest and transformation
+    services:
+      - etl-ods
+  - id: infrastructure
+    name: Infrastructure
+    description: Team responsible for shared platform and cloud infrastructure
+    services:
+      - infrastructure
+  - id: programme
+    name: Programme
+    description: Programme management and cross-cutting governance
+    services:
+      - governance-nfrs
+releases:
+  - id: private-beta
+    name: Private beta
+    description: Private beta scope (End March 2026)
+  - id: ga
+    name: General availability
+    description: General availability for all relevant operations
+service_epics:
+  # Service-centric epics for NFR delivery.
+  # These mappings are consumed by Jira helper scripts to choose
+  # the correct Epic Link for NFR tickets based on the owning
+  # service. Do not put secrets here.
+  governance-nfrs: FTRS-2255
+  data-migration: FTRS-2232
+  etl-ods: FTRS-2233
+  crud-apis: FTRS-2233
+  dos-search: FTRS-1365
+  dos-ui: FTRS-2577
+  infrastructure: FTRS-2575
+  read-only-viewer: FTRS-2576

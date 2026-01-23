@@ -6,6 +6,7 @@ views {
       A model showing the the proxies deployed to NHS APIM
     '
     include *
-    autoLayout LeftRight 70 77
+    include ftrs
+    // autoLayout TopBottom 70 77
   }
 }

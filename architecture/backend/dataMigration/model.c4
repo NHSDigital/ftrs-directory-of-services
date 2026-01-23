@@ -78,7 +78,7 @@ model {
   // Processor reads from staging and writes to FTRS
   ftrs.dataMigration.processor -> ftrs.dataMigration.stagingDb "reads service data from"
   ftrs.dataMigration.processor -> ftrs.db.orgTable "writes Organisation to"
-  ftrs.dataMigration.processor -> ftrs.db.healthcareServiceTable "writes HealthcareService to"
+  ftrs.dataMigration.processor -> ftrs.db.healthCareServiceTable "writes HealthcareService to"
   ftrs.dataMigration.processor -> ftrs.db.locationTable "writes Location to"
 
   // Reference Data Load reads from staging and writes to FTRS

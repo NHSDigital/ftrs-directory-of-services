@@ -17,9 +17,19 @@ specification {
       icon tech:python
     }
   }
+  element api {
+    style {
+      icon tech:serverless
+    }
+  }
   element lambda {
     style {
       icon aws:lambda
+    }
+  }
+  element route53 {
+    style {
+      icon aws:route-53
     }
   }
   element sqs {
@@ -49,8 +59,18 @@ specification {
   deploymentNode vpc
   deploymentNode region
   deploymentNode cloudfunction
-  deploymentNode subnet
-  deploymentNode apigateway
+  deploymentNode subnet {
+    style {
+      color blue
+    }
+  }
+  deploymentNode apigateway {
+    style {
+      color blue
+      icon aws:api-gateway
+      multiple true
+    }
+  }
   deploymentNode lambda {
     style {
       color blue
