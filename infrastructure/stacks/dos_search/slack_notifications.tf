@@ -79,7 +79,7 @@ resource "aws_secretsmanager_secret_version" "slack_webhook_url" {
   }
 }
 
-# checkov:skip=CKV_AWS_91: Secrets Manager secret should be rotated based on organisational policy
+# checkov:skip=CKV2_AWS_57: Ensure Secrets Manager secrets should have automatic rotation enabled
 # Automatic rotation for Slack webhook secret
 #resource "aws_secretsmanager_secret_rotation" "slack_webhook_url" {
 #  secret_id = aws_secretsmanager_secret.slack_webhook_url.id
