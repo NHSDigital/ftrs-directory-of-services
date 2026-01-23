@@ -20,7 +20,7 @@ runs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ steps.lookup.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters commands=["echo \"Running performance test\""] \
+            --parameters commands=["echo Running "] \
             --query "Command.CommandId" \
             --output text)
 
