@@ -2,36 +2,6 @@
 # CloudWatch Alarms for dos-search Lambda Functions
 ################################################################################
 
-# SNS Topic for Slack notifications
-resource "aws_sns_topic" "dos_search_lambda_alarms" {
-  name              = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
-  display_name      = "DoS Search Lambda Alarms"
-  kms_master_key_id = "alias/aws/sns"
-
-  tags = {
-    Name = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
-  }
-}
-
-# SNS Topic Policy to allow CloudWatch to publish
-resource "aws_sns_topic_policy" "dos_search_lambda_alarms_policy" {
-  arn = aws_sns_topic.dos_search_lambda_alarms.arn
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        }
-        Action   = "SNS:Publish"
-        Resource = aws_sns_topic.dos_search_lambda_alarms.arn
-      }
-    ]
-  })
-}
-
 ################################################################################
 # Search Lambda Alarms
 ################################################################################
@@ -48,7 +18,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
   statistic           = "Average"
   threshold           = local.search_lambda_duration_threshold_ms
   alarm_description   = "Alert when search Lambda average duration exceeds threshold (${local.search_lambda_duration_threshold_ms}ms). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -72,7 +42,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
   statistic           = "Maximum"
   threshold           = local.search_lambda_concurrent_executions_threshold
   alarm_description   = "Alert when search Lambda concurrent executions exceed threshold (${local.search_lambda_concurrent_executions_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -96,7 +66,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
   statistic           = "Sum"
   threshold           = 1
   alarm_description   = "Alert when search Lambda is throttled. Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -120,7 +90,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
   statistic           = "Sum"
   threshold           = local.search_lambda_invocations_threshold
   alarm_description   = "Alert when search Lambda invocations fall below expected threshold (${local.search_lambda_invocations_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -144,7 +114,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
   statistic           = "Sum"
   threshold           = local.search_lambda_errors_threshold
   alarm_description   = "Alert when search Lambda errors exceed threshold (${local.search_lambda_errors_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -172,7 +142,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
   statistic           = "Average"
   threshold           = local.health_check_lambda_duration_threshold_ms
   alarm_description   = "Alert when health check Lambda average duration exceeds threshold (${local.health_check_lambda_duration_threshold_ms}ms). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -196,7 +166,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_execution
   statistic           = "Maximum"
   threshold           = local.health_check_lambda_concurrent_executions_threshold
   alarm_description   = "Alert when health check Lambda concurrent executions exceed threshold (${local.health_check_lambda_concurrent_executions_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -220,7 +190,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
   statistic           = "Sum"
   threshold           = 1
   alarm_description   = "Alert when health check Lambda is throttled. Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -244,7 +214,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
   statistic           = "Sum"
   threshold           = local.health_check_lambda_invocations_threshold
   alarm_description   = "Alert when health check Lambda invocations fall below expected threshold (${local.health_check_lambda_invocations_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
@@ -268,7 +238,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_errors" {
   statistic           = "Sum"
   threshold           = local.health_check_lambda_errors_threshold
   alarm_description   = "Alert when health check Lambda errors exceed threshold (${local.health_check_lambda_errors_threshold}). Managed via AppConfig."
-  alarm_actions       = [aws_sns_topic.dos_search_lambda_alarms.arn]
+  alarm_actions       = [module.sns.topic_arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = {
