@@ -101,7 +101,7 @@ make configuration
 Before you make any commits, make sure you have enabled **GPG** key signing by default:
 
 ```shell
-git configuration --global commit.gpgsign true
+git config --global commit.gpgsign true
 ```
 
 Make sure your pre-commit githooks are working, some setups may not work when running `make githooks-configuration` and instead you will have to run the scripts directly from `scripts/init.mk` specifically lines **34-37**
