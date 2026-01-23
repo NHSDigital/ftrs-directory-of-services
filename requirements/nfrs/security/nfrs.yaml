@@ -1,0 +1,1031 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: SEC-001
+  requirement: Crypto algorithms conform; weak ciphers rejected
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  stories:
+  - FTRS-2127
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: crypto-cipher-policy
+    measure: Crypto algorithms conform; weak ciphers rejected
+    threshold: TLS1.2+ only; no weak/legacy ciphers enabled
+    tooling: TLS scanner + configuration policy checks
+    cadence: CI per change + monthly scan
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - etl-ods
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Enforces modern TLS standards; automated scans detect drift
+    service_stories:
+      crud-apis:
+      - FTRS-2127
+      dos-search:
+      - FTRS-2256
+      etl-ods:
+      - FTRS-2257
+      read-only-viewer:
+      - FTRS-2258
+      - FTRS-2571
+- code: SEC-002
+  requirement: Well Architected Framework (WAF) security pillar checklist completed
+    & gaps tracked
+  services:
+  - dos-search
+  - data-migration
+  - etl-ods
+  - crud-apis
+  stories:
+  - FTRS-364
+  - FTRS-2130
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: waf-pillar-checklist
+    measure: Well Architected Framework (WAF) security pillar checklist completed
+      & gaps tracked
+    threshold: Checklist complete; 100% actions tracked; 0 open critical gaps
+    tooling: WAF checklist repository + issue tracker gate
+    cadence: Quarterly + on change
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Formalizes WAF security governance; gaps tracked to closure
+    service_stories:
+      crud-apis:
+      - FTRS-2130
+      data-migration:
+      - FTRS-2259
+      dos-search:
+      - FTRS-2260
+      etl-ods:
+      - FTRS-2261
+      infrastructure:
+      - FTRS-356
+- code: SEC-003
+  requirement: All endpoints TLS only; storage encryption enabled
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1563
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: tls-encryption-endpoints
+    measure: All public/private API endpoints enforce TLS; storage services enable
+      encryption at rest
+    threshold: 100% compliant across resources
+    tooling: AWS Config rules + Terraform policy checks
+    cadence: Continuous (real-time) with CI enforcement on change
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Aligns with NHS policy; Config provides continuous guardrails; CI blocks
+      drift
+    service_stories:
+      crud-apis:
+      - FTRS-2262
+      dos-search:
+      - FTRS-2263
+- code: SEC-004
+  requirement: Storage services show encryption enabled
+  services:
+  - data-migration
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: storage-encryption-enabled
+    measure: Storage services show encryption enabled
+    threshold: 100% storage resources encrypted at rest
+    tooling: AWS Config rules + Terraform policy checks
+    cadence: Continuous + CI enforcement
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Guardrails ensure encryption at rest across services
+    service_stories:
+      data-migration:
+      - FTRS-2132
+      infrastructure:
+      - FTRS-1611
+      - FTRS-1681
+      - FTRS-1587
+- code: SEC-005
+  requirement: Cross-environment data access attempts denied
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-1494
+  - FTRS-2135
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: cross-env-access-denied
+    measure: Cross-env data access attempts denied and logged
+    threshold: 100% denial; audit logs prove enforcement
+    tooling: IAM policies + SCP guardrails + audit log queries
+    cadence: CI policy checks + monthly audit review
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Prevents accidental or malicious cross-environment data access
+    service_stories:
+      crud-apis:
+      - FTRS-2135
+      data-migration:
+      - FTRS-2264
+      dos-search:
+      - FTRS-2265
+      etl-ods:
+      - FTRS-2266
+- code: SEC-006
+  requirement: No direct prod console queries/actions detected in audit period
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2136
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: prod-console-access-audit
+    measure: No direct prod console queries detected in audit period
+    threshold: 0 non-approved console queries in audit period
+    tooling: CloudTrail + SIEM audit queries
+    cadence: Weekly audit + alerting
+    environments:
+    - prod
+    status: draft
+    rationale: Detects improper direct access to production consoles
+    service_stories:
+      crud-apis:
+      - FTRS-2136
+      data-migration:
+      - FTRS-2267
+      dos-search:
+      - FTRS-2268
+      etl-ods:
+      - FTRS-2269
+      infrastructure:
+      - FTRS-1771
+- code: SEC-007
+  requirement: SG rules audited; attempt broad ingress denied
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-2137
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: sg-broad-ingress-denied
+    measure: SG rules audited; attempt broad ingress denied
+    threshold: 0 broad (0.0.0.0/0) ingress on restricted ports
+    tooling: AWS Config + IaC linter
+    cadence: CI per change + monthly audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Prevents risky network exposure via security groups
+    service_stories:
+      crud-apis:
+      - FTRS-2137
+      data-migration:
+      - FTRS-2270
+      dos-search:
+      - FTRS-2271
+      etl-ods:
+      - FTRS-2272
+- code: SEC-008
+  requirement: Perimeter scan shows no broad whitelist & secure channels
+  services:
+  - data-migration
+  - etl-ods
+  stories:
+  - FTRS-2138
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: perimeter-scan
+    measure: Perimeter scan shows no broad whitelist & secure channels
+    threshold: No broad whitelists; only secure channels reported
+    tooling: External perimeter scanner + config validation
+    cadence: Monthly + on change
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Confirms perimeter hygiene and secure external exposure
+    service_stories:
+      data-migration:
+      - FTRS-2138
+      etl-ods:
+      - FTRS-2273
+      infrastructure:
+      - FTRS-316
+      - FTRS-317
+      - FTRS-1783
+      - FTRS-1779
+- code: SEC-009
+  requirement: ASVS & CIS benchmark automation reports pass thresholds
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: cis-benchmark-compliance
+    measure: CIS benchmark automation reports meet pass thresholds for targeted services
+    threshold: '>= 95% controls passing; all high-severity findings remediated or
+      exceptioned'
+    tooling: CIS benchmark tooling integrated in CI and periodic audits
+    cadence: CI per change + monthly full audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Baseline hardening validated continuously; monthly cadence catches
+      drift
+    service_stories:
+      crud-apis:
+      - FTRS-2274
+      data-migration:
+      - FTRS-2275
+      dos-search:
+      - FTRS-2276
+      etl-ods:
+      - FTRS-2277
+      infrastructure:
+      - FTRS-316
+      - FTRS-361
+- code: SEC-010
+  requirement: Annual pen test executed; remediation tickets raised & closed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-1440
+  - FTRS-1455
+  - FTRS-1462
+  - FTRS-2
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: annual-pentest
+    measure: Annual pen test executed; remediation tickets raised & closed
+    threshold: Pen test executed; all critical findings remediated or exceptioned
+    tooling: Pen test reports + remediation tracking
+    cadence: Annual
+    environments:
+    - prod
+    status: draft
+    rationale: Validates security posture with external testing and tracked remediation
+    service_stories:
+      crud-apis:
+      - FTRS-2278
+      data-migration:
+      - FTRS-2279
+      dos-search:
+      - FTRS-2280
+      dos-ui:
+      - FTRS-2281
+      - FTRS-2572
+      etl-ods:
+      - FTRS-2282
+      infrastructure:
+      - FTRS-792
+- code: SEC-031
+  requirement: Pre-go-live pen test executed; critical findings remediated or risk-accepted
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  stories:
+  - FTRS-2147
+  controls:
+  - control_id: pre-go-live-pentest
+    measure: Pre-go-live pen test executed; critical findings remediated or risk-accepted
+    threshold: Pen test executed before first production go-live; all critical findings
+      remediated or with approved, time-bound risk acceptance
+    tooling: Pen test engagement reports + remediation tracker + go-live checklist
+    cadence: Per new service go-live
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures an external penetration test is completed and critical issues
+      addressed before go-live
+    service_stories:
+      crud-apis:
+      - FTRS-2147
+      data-migration:
+      - FTRS-2325
+      dos-search:
+      - FTRS-2326
+      etl-ods:
+      - FTRS-2327
+- code: SEC-011
+  requirement: Enabling security controls does not push latency beyond defined SLAs.
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-2139
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: security-features-latency-sla
+    measure: Security features enabled latency within SLA
+    threshold: Added latency within agreed SLA per endpoint
+    tooling: Performance tests with security features enabled
+    cadence: CI perf checks + monthly regression review
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures security does not breach performance SLAs
+    service_stories:
+      crud-apis:
+      - FTRS-2139
+      data-migration:
+      - FTRS-2283
+      dos-search:
+      - FTRS-2284
+      etl-ods:
+      - FTRS-2285
+- code: SEC-012
+  requirement: IAM policy review confirms least privilege for system roles
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-1274
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: iam-least-privilege
+    measure: IAM policy review confirms least privilege for system roles
+    threshold: '>= 95% policies compliant; no wildcard resource; explicit actions
+      only'
+    tooling: IAM Access Analyzer + policy linters
+    cadence: CI per change + quarterly audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Continuous analysis prevents privilege creep; periodic review catches
+      drift
+    service_stories:
+      crud-apis:
+      - FTRS-2286
+      data-migration:
+      - FTRS-2287
+      dos-search:
+      - FTRS-2288
+      etl-ods:
+      - FTRS-2289
+      infrastructure:
+      - FTRS-359
+- code: SEC-013
+  requirement: Key rotation events logged; unauthorized access denied
+  services:
+  - data-migration
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2140
+  controls:
+  - control_id: key-rotation-logging
+    measure: Key rotation events logged; unauthorized access denied
+    threshold: 100% rotation events logged; 0 unauthorized key access
+    tooling: KMS/AWS logs + SIEM correlation
+    cadence: Quarterly audit + CI checks on policy
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Audit trail confirms rotation compliance and denial of unauthorized
+      access
+    service_stories:
+      crud-apis:
+      - FTRS-2140
+      data-migration:
+      - FTRS-2290
+      dos-search:
+      - FTRS-2291
+- code: SEC-014
+  requirement: mTLS handshake succeeds between designated services
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: mtls-service-handshake
+    measure: mTLS handshake succeeds between designated services using ITOC-approved
+      CA signed leaf + intermediate certs (chain to ITOC root); invalid/expired/revoked/untrusted-issuer/weak-cipher
+      attempts rejected
+    threshold: 100% handshake success for valid ITOC chain; 0 successful handshakes
+      with expired, revoked, weak cipher, or non-ITOC issuer certs; rotation introduces
+      0 downtime
+    tooling: Integration tests (valid/expired/revoked/wrong-CA/weak-cipher) + gateway
+      cert management + OCSP/CRL polling
+    cadence: CI per build + cert rotation checks + revocation poll ≤5m
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    status: draft
+    rationale: Enforces trusted ITOC certificate chain, strong ciphers, timely revocation,
+      and zero-downtime rotation for secure service-to-service trust
+    service_stories:
+      crud-apis:
+      - FTRS-1600
+      - FTRS-2292
+- code: SEC-015
+  requirement: Expiry alert fired in advance; renewal executed seamlessly
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1604
+  teams:
+  - infrastructure
+  controls:
+  - control_id: cert-expiry-alert-renewal
+    measure: Expiry alert fired in advance; renewal executed seamlessly
+    threshold: '>= 30 days prior alert; 0 outage during renewal'
+    tooling: Cert manager alerts + renewal runbooks
+    cadence: Continuous monitoring
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Proactive renewal prevents downtime; alerts ensure timely action
+    service_stories:
+      crud-apis:
+      - FTRS-1604
+      - FTRS-2293
+      dos-search:
+      - FTRS-1604
+      - FTRS-2294
+- code: SEC-016
+  requirement: MFA enforced for all privileged infra roles
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2141
+  controls:
+  - control_id: privileged-mfa-enforced
+    measure: MFA enforced for all privileged infra roles
+    threshold: 100% privileged roles require MFA
+    tooling: IAM policy checks + directory audit
+    cadence: CI policy checks + quarterly audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Strong authentication for privileged accounts reduces risk
+    service_stories:
+      crud-apis:
+      - FTRS-2141
+      data-migration:
+      - FTRS-2295
+      dos-search:
+      - FTRS-2296
+      etl-ods:
+      - FTRS-2297
+- code: SEC-017
+  requirement: Scan reports zero unmanaged long-lived credentials
+  services:
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2142
+  controls:
+  - control_id: zero-long-lived-credentials
+    measure: Scan reports zero unmanaged long-lived credentials
+    threshold: 0 unmanaged long-lived credentials
+    tooling: Secret scanners + IAM credential report audit
+    cadence: CI per build + weekly audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Reduces risk from forgotten credentials; continuous scanning plus scheduled
+      audits
+    service_stories:
+      data-migration:
+      - FTRS-2142
+      etl-ods:
+      - FTRS-2298
+- code: SEC-018
+  requirement: Supplier audit attestation stored & verified
+  explanation: Third-party supplier security attestation is collected and stored for
+    audit.
+  stories: []
+  controls:
+  - control_id: supplier-audit-attestation
+    measure: Supplier audit attestation stored & verified
+    threshold: Attestations current; verification completed
+    tooling: Supplier management system + evidence repository
+    cadence: Annual + on contract change
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures supplier compliance and auditable records
+    stories: []
+  teams:
+  - infrastructure
+- code: SEC-019
+  requirement: Segmentation test confirms tenant isolation
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2143
+  controls:
+  - control_id: segmentation-tenant-isolation
+    measure: Segmentation test confirms tenant isolation
+    threshold: 100% isolation; no cross-tenant data access observed
+    tooling: Segmentation test suite + log verification
+    cadence: Quarterly
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures strict isolation between tenants per policy
+    service_stories:
+      crud-apis:
+      - FTRS-2143
+      data-migration:
+      - FTRS-2299
+      dos-search:
+      - FTRS-2300
+      etl-ods:
+      - FTRS-2301
+- code: SEC-020
+  requirement: Remote connections present valid Authority certs
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: authority-cert-validation
+    measure: Remote connections present valid Authority certs; invalid certs rejected
+    threshold: 100% validation events pass; 0 successful connections with invalid
+      certs
+    tooling: TLS config tests + runtime observation in logs
+    cadence: CI policy validation + runtime checks
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: External data source interactions require strict certificate validation
+    service_stories:
+      crud-apis:
+      - FTRS-2302
+      dos-search:
+      - FTRS-2303
+- code: SEC-021
+  requirement: Port scan matches approved diagnostic list only
+  explanation: Port scans reveal only approved diagnostic and service ports—no unexpected
+    exposures.
+  stories: []
+  controls:
+  - control_id: port-scan-diagnostic-only
+    measure: Port scan matches approved diagnostic list only
+    threshold: No unexpected open ports detected outside approved list
+    tooling: Automated port scan + baseline comparison
+    cadence: Monthly + CI smoke on infra changes
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Detects misconfigurations; verifies adherence to diagnostic port policy
+    stories: []
+    service_stories:
+      infrastructure:
+      - FTRS-316
+      - FTRS-317
+      - FTRS-1783
+      - FTRS-1779
+  teams:
+  - infrastructure
+- code: SEC-022
+  requirement: Utility program access restricted to approved roles
+  explanation: Access to powerful utility programs is restricted to approved roles.
+  stories: []
+  controls:
+  - control_id: utility-access-restricted
+    measure: Utility program access restricted to approved roles
+    threshold: Only approved roles can access utility programs
+    tooling: RBAC policy checks + audit logs
+    cadence: CI policy checks + monthly audit
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Prevents misuse of diagnostic utilities
+    stories: []
+  teams:
+  - infrastructure
+- code: SEC-023
+  requirement: Deployment provenance shows unique traceable accounts
+  services:
+  - data-migration
+  - etl-ods
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2144
+  controls:
+  - control_id: deployment-provenance-traceable
+    measure: Deployment provenance shows unique traceable accounts
+    threshold: All deployments traceable to unique accounts
+    tooling: CI/CD audit trails + commit signing
+    cadence: Continuous
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures accountability and traceability for all deployments
+    service_stories:
+      crud-apis:
+      - FTRS-2144
+      data-migration:
+      - FTRS-2304
+      dos-search:
+      - FTRS-2305
+      etl-ods:
+      - FTRS-2306
+- code: SEC-024
+  requirement: Code/data transfer logs show integrity & secure channels
+  services:
+  - data-migration
+  - etl-ods
+  - crud-apis
+  - dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: transfer-integrity-secure
+    measure: Code/data transfer logs show integrity & secure channels
+    threshold: 100% transfers logged; integrity and secure channel verified
+    tooling: Checksums/signatures + TLS enforcement + audit logs
+    cadence: CI per change + weekly reviews
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Validates integrity and secure transport for all transfers
+    service_stories:
+      crud-apis:
+      - FTRS-2307
+      data-migration:
+      - FTRS-2308
+      dos-search:
+      - FTRS-2309
+      etl-ods:
+      - FTRS-2310
+- code: SEC-025
+  requirement: PID requests enforce mTLS; plain text blocked
+  explanation: Requests containing identifiable patient data enforce mTLS; plaintext
+    attempts are blocked.
+  stories: []
+  controls:
+  - control_id: pid-mtls-enforcement
+    measure: Requests carrying PID fields require mutual TLS; plaintext requests blocked
+    threshold: 100% enforcement on designated endpoints
+    tooling: API gateway/WAF policy + integration tests
+    cadence: CI policy validation + continuous enforcement
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures transport security for sensitive data; test coverage verifies
+      enforcement
+    stories: []
+  teams:
+  - infrastructure
+- code: SEC-026
+  requirement: API responses contain no unencrypted PID fields
+  services:
+  - dos-search
+  - crud-apis
+  teams:
+  - infrastructure
+  controls:
+  - control_id: pid-no-plaintext-response
+    measure: API responses contain no unencrypted PID fields
+    threshold: 0 occurrences of unencrypted PID in responses
+    tooling: Integration tests + response scanners
+    cadence: CI per build + periodic production sampling
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures sensitive data is never returned unencrypted
+    service_stories:
+      crud-apis:
+      - FTRS-2311
+      dos-search:
+      - FTRS-2312
+- code: SEC-027
+  requirement: Build fails on high CVE; report archived
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-2145
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: high-cve-block
+    measure: Build fails when high/critical CVEs detected in application or container
+      dependencies
+    threshold: 0 unresolved High/Critical CVEs at release time
+    tooling: SCA scanner (e.g., OWASP Dependency-Check), container scanner, pipeline
+      gate
+    cadence: CI per build + scheduled weekly scans
+    environments:
+    - dev
+    - int
+    - ref
+    status: draft
+    rationale: Prevents introduction of known vulnerabilities; gate aligned to release
+      quality
+    service_stories:
+      crud-apis:
+      - FTRS-2145
+      data-migration:
+      - FTRS-2313
+      dos-search:
+      - FTRS-2314
+      etl-ods:
+      - FTRS-2315
+      infrastructure:
+      - FTRS-1783
+      - FTRS-1779
+- code: SEC-028
+  requirement: Release pipeline blocks on critical unresolved findings
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-2146
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: release-block-critical-findings
+    measure: Release pipeline blocks on critical unresolved findings
+    threshold: 0 critical unresolved findings prior to release
+    tooling: Pipeline gate integrated with SCA, container, IaC scanners
+    cadence: Per release
+    environments:
+    - dev
+    - int
+    - ref
+    status: draft
+    rationale: Enforces remediation before release; gate consolidates multiple scanner
+      outputs
+    service_stories:
+      crud-apis:
+      - FTRS-2146
+      data-migration:
+      - FTRS-2316
+      dos-search:
+      - FTRS-2317
+      etl-ods:
+      - FTRS-2318
+- code: SEC-029
+  requirement: All API endpoints enforce CIS2 JWT authentication (signature, issuer,
+    audience, assurance claims)
+  explanation: All API endpoints enforce CIS2 JWT authentication with signature, issuer,
+    audience and required assurance claim validation; invalid or missing tokens are
+    rejected with structured errors.
+  stories:
+  - FTRS-1593
+  controls:
+  - control_id: cis2-jwt-auth-enforced
+    measure: All API endpoints enforce CIS2 JWT authentication (signature, issuer,
+      audience, assurance claims)
+    threshold: 100% endpoints require valid CIS2 JWT; invalid/missing tokens rejected
+      with structured 401
+    tooling: OIDC integration tests + JWT validator + JWKS cache monitor
+    cadence: CI per build + continuous runtime enforcement
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - etl-ods
+    - read-only-viewer
+    status: draft
+    rationale: Ensures uniform strong authentication; claim + signature validation
+      prevents unauthorized access
+    service_stories:
+      crud-apis:
+      - FTRS-2319
+      dos-search:
+      - FTRS-2320
+      etl-ods:
+      - FTRS-2321
+      read-only-viewer:
+      - FTRS-2322
+      - FTRS-2573
+- code: SEC-030
+  requirement: Certificates and private keys stored only in approved encrypted secret
+    stores; zero plain text exposure
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1602
+  teams:
+  - infrastructure
+  controls:
+  - control_id: cert-secure-storage
+    measure: Certificate and private key material stored only in approved encrypted
+      secret stores (KMS/Secrets Manager); zero plaintext in repos, images, build
+      logs, or artifacts
+    threshold: 0 plaintext occurrences; 100% issuance & rotation actions use managed
+      secrets; 100% scan coverage of git history and container layers
+    tooling: Secret scanning (git history + container layers), CI policy checks, artifact
+      scanner, repo pre-commit hooks
+    cadence: CI per build + weekly full history & image layer scan
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Prevents certificate/private key exposure by enforcing exclusive use
+      of encrypted secret storage and continuous scanning
+    service_stories:
+      dos-search:
+      - FTRS-1602
+      - FTRS-2324
+      crud-apis:
+      - FTRS-1602
+      - FTRS-2323

@@ -1,0 +1,13 @@
+views {
+
+  view of ftrs.locationAPI {
+    title "FTRS CRUD APIs"
+    description '
+      APIs for CRUD operations on the Organizations table
+      and to retrieve data for the Healthcare Service dashboard
+    '
+    include *
+    include ftrs.db.locationTable
+    autoLayout LeftRight 70 77
+  }
+}

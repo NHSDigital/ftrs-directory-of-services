@@ -1,12 +1,11 @@
 model {
 
-  extend ftrs {
-    container ui {
-      description 'React application, deployed as a SPA'
-      style {
-        icon tech:react
-        shape browser
-      }
+  container ui {
+    title "DoS UI"
+    description 'React application, deployed as a SPA'
+    style {
+      icon tech:react
+      shape browser
     }
   }
 

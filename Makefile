@@ -28,6 +28,16 @@ config:: # Configure development environment (main) @Configuration
 
 # ==============================================================================
 
+## NFRs toolkit helpers
+
+nfrs-serve: # Run NFR maintenance UI/API for this repo's NFRs
+	../nfrs-toolkit/nfrs-cli.sh serve --nfr-root requirements/nfrs
+
+nfrs-generate: # Regenerate NFR markdown pages for this repo
+	../nfrs-toolkit/nfrs-cli.sh generate --nfr-root requirements/nfrs
+
+# ==============================================================================
+
 ${VERBOSE}.SILENT: \
 	build \
 	clean \
