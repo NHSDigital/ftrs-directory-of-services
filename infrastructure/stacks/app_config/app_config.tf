@@ -6,7 +6,7 @@ module "app_config" {
 
   config_profile_type                = "AWS.AppConfig.FeatureFlags"
   hosted_config_version_content_type = "application/json"
-  hosted_config_version_content      = "${path.root}/../../toggles/feature-flags.json"
+  hosted_config_version_content      = abspath("${path.root}/../../toggles/feature-flags.json")
 
   environments = {
     environment = {
@@ -23,9 +23,9 @@ module "alarm_thresholds_app_config" {
   name        = "${local.project_prefix}-alarm-thresholds${local.workspace_suffix}"
   description = "AppConfig application for managing CloudWatch alarm thresholds."
 
-  config_profile_type                = "AWS.AppConfig.HostedConfigurationVersion"
+  config_profile_type                = "AWS.Freeform"
   hosted_config_version_content_type = "application/json"
-  hosted_config_version_content      = "${path.root}/../../toggles/alarm-thresholds.json"
+  hosted_config_version_content      = abspath("${path.root}/../../toggles/alarm-thresholds.json")
 
   environments = {
     environment = {
