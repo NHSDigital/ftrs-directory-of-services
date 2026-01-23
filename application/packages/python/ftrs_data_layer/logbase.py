@@ -354,6 +354,25 @@ class UtilsLogBase(LogBase):
         level=DEBUG, message="No county found for name: {county_name}"
     )
 
+    UTILS_GP_PRACTICE_VALIDATOR_001 = LogReference(
+        level=INFO,
+        message="GP Practice name suffix discarded: original length is {original_length}, sanitized length is {sanitized_length}",
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_002 = LogReference(
+        level=WARNING, message="Disallowed HTML entities detected in GP Practice name"
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_003 = LogReference(
+        level=WARNING, message="Suspicious characters detected in GP practice name"
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_004 = LogReference(
+        level=WARNING,
+        message="GP Practice name exceeds maximum length of {max_chars} characters",
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_005 = LogReference(
+        level=INFO,
+        message="Suspicious encoding or dangerous patterns detected in GP Practice name",
+    )
+
 
 class OdsETLPipelineLogBase(LogBase):
     """

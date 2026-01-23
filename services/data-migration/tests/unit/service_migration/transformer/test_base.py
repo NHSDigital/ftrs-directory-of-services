@@ -32,14 +32,14 @@ from ftrs_data_layer.domain.legacy import (
 
 from common.cache import DoSMetadataCache
 from service_migration.transformer import ServiceTransformer
-from service_migration.validation.types import ValidationIssue
 
 
 class BasicServiceTransformer(ServiceTransformer):
     def transform(
-        self, service: Service, validation_issues: list[ValidationIssue] = []
+        self,
+        service: Service,
     ) -> dict:
-        return super().transform(service, validation_issues)
+        return super().transform(service)
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:

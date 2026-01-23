@@ -1,7 +1,7 @@
-import logging
 import re
 
-from ftrs_data_layer.domain.legacy import Service
+from ftrs_data_layer.domain.legacy.service import Service
+from ftrs_data_layer.logbase import UtilsLogBase
 
 from service_migration.formatting.address_formatter import format_address
 from service_migration.validation.base import (
@@ -10,8 +10,6 @@ from service_migration.validation.base import (
     Validator,
 )
 from service_migration.validation.types import ValidationIssue
-
-logger = logging.getLogger(__name__)
 
 
 class ServiceValidator(Validator[Service]):
@@ -128,13 +126,10 @@ class GPPracticeValidator(ServiceValidator):
 
         # Log when suffix is discarded for monitoring/security purposes
         if " - " in full_original:
-            logger.info(
-                "Practice name suffix discarded",
-                extra={
-                    "validation_code": "publicname_suffix_removed",
-                    "original_length": len(full_original),
-                    "sanitized_length": len(name),
-                },
+            self.logger.log(
+                UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_001,
+                original_length=len(full_original),
+                sanitized_length=len(name),
             )
 
         # Check if empty after splitting
@@ -148,13 +143,7 @@ class GPPracticeValidator(ServiceValidator):
         try:
             decoded_name = self._decode_allowed_entities(name)
         except ValueError:
-            logger.warning(
-                "Disallowed HTML entities detected",
-                extra={
-                    "validation_code": "publicname_suspicious_encoding",
-                    "name_length": len(name),
-                },
-            )
+            self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_002)
             return self._error(
                 "publicname_suspicious_encoding",
                 "Name contains disallowed HTML entities",
@@ -163,14 +152,7 @@ class GPPracticeValidator(ServiceValidator):
         # Check for suspicious characters AFTER safe decoding
         if not self.SAFE_NAME_PATTERN.match(decoded_name):
             char_types = self._categorize_characters(decoded_name)
-            logger.warning(
-                "Suspicious characters detected in practice name",
-                extra={
-                    "validation_code": "publicname_suspicious_characters",
-                    "character_types": char_types,
-                    "name_length": len(decoded_name),
-                },
-            )
+            self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_003)
             return self._error(
                 "publicname_suspicious_characters",
                 f"Name contains unexpected character types: {char_types}",
@@ -206,13 +188,9 @@ class GPPracticeValidator(ServiceValidator):
 
         # Length validation (before any processing)
         if len(name) > self.MAX_NAME_LENGTH:
-            logger.warning(
-                "Practice name exceeds maximum length",
-                extra={
-                    "validation_code": "publicname_too_long",
-                    "name_length": len(name),
-                    "max_length": self.MAX_NAME_LENGTH,
-                },
+            self.logger.log(
+                UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_004,
+                max_chars=self.MAX_NAME_LENGTH,
             )
             return self._error(
                 "publicname_too_long",
@@ -221,13 +199,7 @@ class GPPracticeValidator(ServiceValidator):
 
         # Check for dangerous patterns BEFORE decoding (catch encoding attacks)
         if self.DANGEROUS_PATTERNS.search(name):
-            logger.warning(
-                "Suspicious encoding or dangerous patterns detected",
-                extra={
-                    "validation_code": "publicname_suspicious_encoding",
-                    "name_length": len(name),
-                },
-            )
+            self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_005)
             return self._error(
                 "publicname_suspicious_encoding",
                 "Name contains suspicious or disallowed HTML entities",
