@@ -1,7 +1,4 @@
 <!-- markdownlint-disable-next-line first-line-heading -->
-
-# Pull Request
-
 ## Description
 
 <!-- Describe your changes in detail. -->
