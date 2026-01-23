@@ -6,6 +6,7 @@ Feature: Data Migration
     And the DoS database has test data
     And DynamoDB tables are ready
 
+  @happy
   Scenario: Happy path migration for a GP Practice
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                                                                                                                                                                                                   |
@@ -39,7 +40,7 @@ Feature: Data Migration
       | statusid                            | 1                                                                                                                                                                                                                                       |
       | organisationid                      |                                                                                                                                                                                                                                         |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
-      | publicname                          | Abbey Medical Practice                                                                                                                                                                                                                  |
+      | publicname                          | O#&39;Reilly Medical Practice                                                                                                                                                                                                                  |
       | latitude                            | 52.0910543                                                                                                                                                                                                                              |
       | longitude                           | -1.951003                                                                                                                                                                                                                               |
       | professionalreferralinfo            | Non-public numbers are for healthcare professionals ONLY; they are not for routine contact and must not be shared with patients\n* GP practice opening hours are 08:00-18:30, hours shown on DoS may vary for administration purposes." |
@@ -69,7 +70,7 @@ Feature: Data Migration
         "identifier_ODS_ODSCode": "M81094",
         "modifiedBy": "DATA_MIGRATION",
         "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
-        "name": "Abbey Medical Practice",
+        "name": "O'Reilly Medical Practice",
         "telecom": [],
         "type": "GP Practice",
         "legalDates": null,
