@@ -8,7 +8,9 @@ resource "aws_sns_topic" "dos_search_lambda_alarms" {
   display_name      = "DoS Search Lambda Alarms"
   kms_master_key_id = "alias/aws/sns"
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+  }
 }
 
 # SNS Topic Policy to allow CloudWatch to publish
@@ -53,9 +55,9 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
     FunctionName = module.lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-search-lambda-duration-high${local.workspace_suffix}"
-  })
+  }
 }
 
 # Concurrent Executions Alarm - triggers if concurrent executions exceed threshold
@@ -77,9 +79,9 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
     FunctionName = module.lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-search-lambda-concurrent-executions-high${local.workspace_suffix}"
-  })
+  }
 }
 
 # Throttles Alarm - triggers if any throttles occur
@@ -101,9 +103,9 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
     FunctionName = module.lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-search-lambda-throttles${local.workspace_suffix}"
-  })
+  }
 }
 
 # Invocations Alarm - optional: tracks invocation rate
@@ -125,9 +127,9 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
     FunctionName = module.lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-search-lambda-invocations-low${local.workspace_suffix}"
-  })
+  }
 }
 
 # Errors Alarm - triggers if error rate exceeds threshold
@@ -149,9 +151,9 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
     FunctionName = module.lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-search-lambda-errors${local.workspace_suffix}"
-  })
+  }
 }
 
 ################################################################################
@@ -177,9 +179,9 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
     FunctionName = module.health_check_lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-health-check-lambda-duration-high${local.workspace_suffix}"
-  })
+  }
 }
 
 # Concurrent Executions Alarm
@@ -201,9 +203,9 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_execution
     FunctionName = module.health_check_lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-health-check-lambda-concurrent-executions-high${local.workspace_suffix}"
-  })
+  }
 }
 
 # Throttles Alarm
@@ -225,9 +227,9 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
     FunctionName = module.health_check_lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-health-check-lambda-throttles${local.workspace_suffix}"
-  })
+  }
 }
 
 # Invocations Alarm
@@ -249,9 +251,9 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
     FunctionName = module.health_check_lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-health-check-lambda-invocations-low${local.workspace_suffix}"
-  })
+  }
 }
 
 # Errors Alarm
@@ -273,7 +275,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_errors" {
     FunctionName = module.health_check_lambda.lambda_function_name
   }
 
-  tags = merge(local.common_tags, {
+  tags = {
     Name = "${local.resource_prefix}-health-check-lambda-errors${local.workspace_suffix}"
-  })
+  }
 }

@@ -74,11 +74,6 @@ data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
 
-locals {
-  state_bucket_name     = "${local.account_prefix}-terraform-state"
-  state_lock_table_name = "${local.account_prefix}-terraform-lock"
-}
-
 ################################################################################
 # AppConfig Remote State
 # Required to read AppConfig application/environment/profile IDs for alarm thresholds

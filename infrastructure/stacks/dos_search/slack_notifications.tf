@@ -20,7 +20,9 @@ resource "aws_iam_role" "slack_notification_lambda_role" {
     ]
   })
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.resource_prefix}-slack-notification-lambda-role${local.workspace_suffix}"
+  }
 }
 
 # IAM Policy for basic Lambda execution (CloudWatch logs)
@@ -61,7 +63,9 @@ resource "aws_secretsmanager_secret" "slack_webhook_url" {
   recovery_window_in_days = 7
   kms_key_id              = "alias/aws/secretsmanager"
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.resource_prefix}/slack-webhook-url${local.workspace_suffix}"
+  }
 }
 
 # Placeholder secret value - user must update this manually or via pipeline
@@ -90,7 +94,9 @@ resource "aws_sqs_queue" "slack_notification_dlq" {
   message_retention_seconds = 1209600 # 14 days
   kms_master_key_id         = "alias/aws/sqs"
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.resource_prefix}-slack-notification-dlq${local.workspace_suffix}"
+  }
 }
 
 # Lambda function for Slack notifications
@@ -125,7 +131,9 @@ resource "aws_lambda_function" "slack_notification" {
     security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
   }
 
-  tags = local.common_tags
+  tags = {
+    Name = "${local.resource_prefix}-slack-notification${local.workspace_suffix}"
+  }
 
   depends_on = [aws_iam_role_policy_attachment.slack_notification_lambda_basic_execution]
 }
@@ -160,5 +168,7 @@ resource "aws_cloudwatch_log_group" "slack_notification_lambda_logs" {
   retention_in_days = var.lambda_cloudwatch_logs_retention_days
   kms_key_id        = "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/logs"
 
-  tags = local.common_tags
+  tags = {
+    Name = "/aws/lambda/${aws_lambda_function.slack_notification.function_name}"
+  }
 }
