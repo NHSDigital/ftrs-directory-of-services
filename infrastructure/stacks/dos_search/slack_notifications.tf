@@ -3,6 +3,21 @@
 # Flattens CloudWatch alarm JSON and sends to Slack
 ################################################################################
 
+# IAM Policy for Slack notification Lambda
+data "aws_iam_policy_document" "slack_notification_policy" {
+  statement {
+    sid    = "AllowKMSEncryption"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey"
+    ]
+    resources = [
+      "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/lambda"
+    ]
+  }
+}
+
 # Lambda function for Slack notifications
 module "slack_notification_lambda" {
   source                  = "../../modules/lambda"
@@ -44,21 +59,6 @@ module "slack_notification_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
-
-  # IAM Policy for Slack notification Lambda
-  data "aws_iam_policy_document" "slack_notification_policy" {
-    statement {
-      sid    = "AllowKMSEncryption"
-      effect = "Allow"
-      actions = [
-        "kms:Decrypt",
-        "kms:GenerateDataKey"
-      ]
-      resources = [
-        "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/lambda"
-      ]
-    }
-  }
 }
 
 # Dead Letter Queue for Slack notification Lambda
