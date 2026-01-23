@@ -53,4 +53,13 @@ locals {
   lambda_alarm_period             = local.alarm_config.alarmConfiguration.periodSeconds
 
   # Slack notification configuration from LIVE AppConfig
+  resource_prefix  = "${var.account_prefix}-${var.environment}-${var.stack_name}"
+  workspace_suffix = terraform.workspace == "default" ? "" : "-${terraform.workspace}"
+  common_tags = {
+    Environment = var.environment
+    Project     = var.project
+    Stack       = var.stack_name
+    Workspace   = terraform.workspace == "default" ? "default" : terraform.workspace
+    ManagedBy   = "Terraform"
+  }
 }
