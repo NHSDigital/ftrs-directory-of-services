@@ -6,70 +6,74 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 import json
 import logging
 import os
-import boto3
-import urllib3
-from typing import Any, Dict
 from datetime import datetime
+from typing import Any, Dict
+
+import urllib3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 http = urllib3.PoolManager()
-secrets_client = boto3.client("secretsmanager")
 
+# Constants
+DOS_SEARCH_API = "DoS Search API"
+ENDPOINT_TEMPLATE = "/Organization?{query}"
+PERIOD = "5-minute evaluation window"
+MIN_ALARM_NAME_PARTS = 3
+SUCCESS_STATUS_CODE = 200
 
 # API and endpoint mappings for metrics
 METRIC_CONTEXT = {
     "Duration": {
-        "api": "DoS Search API",
-        "endpoint": "/Organization?{query}",
-        "period": "5-minute evaluation window",
+        "api": DOS_SEARCH_API,
+        "endpoint": ENDPOINT_TEMPLATE,
+        "period": PERIOD,
     },
     "ConcurrentExecutions": {
-        "api": "DoS Search API",
-        "endpoint": "/Organization?{query}",
-        "period": "5-minute evaluation window",
+        "api": DOS_SEARCH_API,
+        "endpoint": ENDPOINT_TEMPLATE,
+        "period": PERIOD,
     },
     "Throttles": {
-        "api": "DoS Search API",
-        "endpoint": "/Organization?{query}",
-        "period": "5-minute evaluation window",
+        "api": DOS_SEARCH_API,
+        "endpoint": ENDPOINT_TEMPLATE,
+        "period": PERIOD,
     },
     "Invocations": {
-        "api": "DoS Search API",
-        "endpoint": "/Organization?{query} & /health",
-        "period": "5-minute evaluation window",
+        "api": DOS_SEARCH_API,
+        "endpoint": ENDPOINT_TEMPLATE + " & /health",
+        "period": PERIOD,
     },
     "Errors": {
-        "api": "DoS Search API",
-        "endpoint": "/Organization?{query}",
-        "period": "5-minute evaluation window",
+        "api": DOS_SEARCH_API,
+        "endpoint": ENDPOINT_TEMPLATE,
+        "period": PERIOD,
     },
 }
 
 
 def get_slack_webhook_url() -> str:
     """
-    Retrieve Slack webhook URL from AWS Secrets Manager.
+    Retrieve Slack webhook URL from environment variable.
 
     Returns:
         str: The Slack webhook URL
+
+    Raises:
+        ValueError: If SLACK_WEBHOOK_URL environment variable is not set
     """
-    secret_arn = os.environ.get("SLACK_WEBHOOK_SECRET_ARN")
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
 
-    if not secret_arn:
-        raise ValueError("SLACK_WEBHOOK_SECRET_ARN environment variable not set")
-
-    try:
-        response = secrets_client.get_secret_value(SecretId=secret_arn)
-        secret = response.get("SecretString", "")
-        return secret.strip()
-    except Exception as e:
-        logger.error(f"Failed to retrieve Slack webhook URL from Secrets Manager: {str(e)}")
-        raise
+    if webhook_url:
+        return webhook_url.strip()
+    msg = "SLACK_WEBHOOK_URL environment variable not set"
+    raise ValueError(msg)
 
 
-def flatten_dict(data: Dict[str, Any], parent_key: str = "", sep: str = "_") -> Dict[str, Any]:
+def flatten_dict(
+    data: Dict[str, Any], parent_key: str = "", sep: str = "_"
+) -> Dict[str, Any]:
     """
     Flatten nested dictionary to single level.
 
@@ -108,10 +112,9 @@ def parse_cloudwatch_alarm(message: str) -> Dict[str, Any]:
         Dict: Parsed alarm data
     """
     try:
-        alarm_data = json.loads(message)
-        return alarm_data
-    except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse alarm message: {str(e)}")
+        return json.loads(message)
+    except json.JSONDecodeError:
+        logger.exception("Failed to parse alarm message")
         return {"raw_message": message}
 
 
@@ -126,7 +129,7 @@ def extract_lambda_name(alarm_name: str) -> str:
         str: Extracted Lambda function name
     """
     parts = alarm_name.split("-")
-    if len(parts) >= 3:
+    if len(parts) >= MIN_ALARM_NAME_PARTS:
         return "-".join(parts[:-2]) if "lambda" in alarm_name.lower() else alarm_name
     return alarm_name
 
@@ -143,13 +146,13 @@ def get_metric_context(metric_name: str) -> Dict[str, str]:
     """
     context = METRIC_CONTEXT.get(metric_name, {})
     return {
-        "api": context.get("api", "DoS Search API"),
+        "api": context.get("api", DOS_SEARCH_API),
         "endpoint": context.get("endpoint", "Unknown"),
         "period": context.get("period", "5-minute evaluation window"),
     }
 
 
-def format_timestamp(timestamp_val: Any) -> str:
+def format_timestamp(timestamp_val: int | float | str) -> str:
     """
     Format timestamp for display.
 
@@ -204,15 +207,11 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Determine color and emoji based on state
     color_map = {
-        "ALARM": "#FF0000",              # Red
-        "OK": "#00AA00",                # Green
-        "INSUFFICIENT_DATA": "#FFAA00"  # Orange
+        "ALARM": "#FF0000",  # Red
+        "OK": "#00AA00",  # Green
+        "INSUFFICIENT_DATA": "#FFAA00",  # Orange
     }
-    emoji_map = {
-        "ALARM": "🚨",
-        "OK": "✅",
-        "INSUFFICIENT_DATA": "⚠️"
-    }
+    emoji_map = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
     color = color_map.get(state_value, "#808080")
     emoji = emoji_map.get(state_value, "📊")
 
@@ -231,38 +230,26 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
                     {
                         "title": "Metric Triggered",
                         "value": f"{trigger_metric} ({trigger_statistic})",
-                        "short": True
+                        "short": True,
                     },
                     {
                         "title": "Threshold",
                         "value": str(trigger_threshold),
-                        "short": True
+                        "short": True,
                     },
-                    {
-                        "title": "API",
-                        "value": context["api"],
-                        "short": True
-                    },
-                    {
-                        "title": "Endpoint",
-                        "value": context["endpoint"],
-                        "short": True
-                    },
+                    {"title": "API", "value": context["api"], "short": True},
+                    {"title": "Endpoint", "value": context["endpoint"], "short": True},
                     {
                         "title": "Alert Period",
                         "value": context["period"],
-                        "short": False
+                        "short": False,
                     },
-                    {
-                        "title": "Timestamp",
-                        "value": timestamp,
-                        "short": False
-                    }
+                    {"title": "Timestamp", "value": timestamp, "short": False},
                 ],
                 "footer": f"Lambda: {lambda_name}",
-                "mrkdwn_in": ["text"]
+                "mrkdwn_in": ["text"],
             }
-        ]
+        ],
     }
 
     return slack_message
@@ -285,22 +272,22 @@ def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
             "POST",
             webhook_url,
             body=encoded_msg,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
-        if resp.status == 200:
+        if resp.status == SUCCESS_STATUS_CODE:
             logger.info("Successfully sent message to Slack")
             return True
         else:
             logger.error(f"Failed to send message to Slack: HTTP {resp.status}")
             logger.error(f"Response: {resp.data.decode('utf-8')}")
             return False
-    except Exception as e:
-        logger.error(f"Exception while sending to Slack: {str(e)}")
+    except Exception:
+        logger.exception("Exception while sending to Slack")
         return False
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
     """
     Lambda handler function for processing CloudWatch alarms and sending to Slack.
 
@@ -340,17 +327,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if success:
             return {
                 "statusCode": 200,
-                "body": json.dumps("Message sent to Slack successfully")
+                "body": json.dumps("Message sent to Slack successfully"),
             }
         else:
             return {
                 "statusCode": 500,
-                "body": json.dumps("Failed to send message to Slack")
+                "body": json.dumps("Failed to send message to Slack"),
             }
 
     except Exception as e:
         logger.error(f"Error processing alarm: {str(e)}", exc_info=True)
-        return {
-            "statusCode": 500,
-            "body": json.dumps(f"Error: {str(e)}")
-        }
+        return {"statusCode": 500, "body": json.dumps(f"Error: {str(e)}")}

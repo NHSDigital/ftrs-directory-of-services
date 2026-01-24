@@ -23,7 +23,7 @@ module "slack_notification_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-slack-notification"
   description             = "Lambda to send CloudWatch alarms to Slack"
-  handler                 = "index.lambda_handler"
+  handler                 = "slack_alarm_handler.lambda_handler"
   runtime                 = "python3.11"
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-slack-notification-lambda-${var.application_tag}.zip"
