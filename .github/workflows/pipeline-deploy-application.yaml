@@ -279,9 +279,13 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - tag: "ftrs-pipeline is-apim"
+          - tag: "ftrs-is-pipeline is-apim"
             type: "api"
             api_name: "dos-search"
+            apim_env: ""
+          - tag: "ftrs-pipeline"
+            type: "api"
+            api_name: "dos-ingest"
             apim_env: ""
           - tag: "data-migration"
             type: "data-migration"
