@@ -20,30 +20,33 @@ data "aws_iam_policy_document" "slack_notification_policy" {
 
 # Lambda function for Slack notifications
 module "slack_notification_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-slack-notification"
-  description             = "Lambda to send CloudWatch alarms to Slack"
-  handler                 = "slack_alarm_handler.lambda_handler"
-  runtime                 = "python3.11"
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-slack-notification-lambda-${var.application_tag}.zip"
-  ignore_source_code_hash = false
-  timeout                 = 30
-  memory_size             = 128
-  tracing_mode            = "Active"
-  attach_tracing_policy   = true
+  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
+  function_name          = "${local.resource_prefix}-slack-notification"
+  description            = "Lambda to send CloudWatch alarms to Slack"
+  handler                = "slack-notification/slack_alarm_handler.lambda_handler"
+  runtime                = var.lambda_runtime
+  s3_bucket_name         = local.artefacts_bucket
+  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  attach_tracing_policy  = true
+  tracing_mode           = "Active"
+  number_of_policy_jsons = "1"
+  policy_jsons           = [data.aws_iam_policy_document.slack_notification_policy.json]
+  timeout                = 30
+  memory_size            = 128
+
+  layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
 
-  number_of_policy_jsons = "1"
-  policy_jsons = [
-    data.aws_iam_policy_document.slack_notification_policy.json,
-  ]
-
   environment_variables = {
     "SLACK_WEBHOOK_URL" = var.slack_webhook_url
     "ENVIRONMENT"       = var.environment
+    "PROJECT_NAME"      = var.project
+    "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
   }
 
   allowed_triggers = {
