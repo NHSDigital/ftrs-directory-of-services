@@ -61,31 +61,6 @@ module "slack_notification_lambda" {
   cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
 }
 
-# Dead Letter Queue for Slack notification Lambda
-resource "aws_sqs_queue" "slack_notification_dlq" {
-  name                      = "${local.resource_prefix}-slack-notification-dlq${local.workspace_suffix}"
-  message_retention_seconds = 1209600 # 14 days
-  kms_master_key_id         = local.kms_aliases.sqs
-
-  tags = {
-    Name = "${local.resource_prefix}-slack-notification-dlq${local.workspace_suffix}"
-  }
-}
-
-# Update Lambda DLQ configuration
-resource "aws_lambda_function_event_invoke_config" "slack_notification" {
-  function_name                = module.slack_notification_lambda.lambda_function_name
-  maximum_event_age_in_seconds = 3600
-  maximum_retry_attempts       = 0
-
-  destination_config {
-    on_failure {
-      destination_type = "SQS"
-      destination      = aws_sqs_queue.slack_notification_dlq.arn
-    }
-  }
-}
-
 # SNS subscription for Slack notification Lambda
 resource "aws_sns_topic_subscription" "slack_notification" {
   topic_arn = module.sns.topic_arn
