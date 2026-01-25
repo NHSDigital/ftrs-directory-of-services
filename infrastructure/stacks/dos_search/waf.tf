@@ -16,6 +16,7 @@ locals {
 
 resource "aws_cloudwatch_log_group" "waf_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  # checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
   name              = local.waf_logs_log_group
   retention_in_days = var.waf_log_retention_days
 }
