@@ -23,8 +23,8 @@
 
 # Parse the live AppConfig JSON response and define CloudWatch alarms
 locals {
-  # Decode the JSON content from AppConfig remote state
-  alarm_config = jsondecode(data.terraform_remote_state.app_config.outputs.alarm_thresholds_content)
+  # Decode the JSON content from local configuration file
+  alarm_config = jsondecode(file("${path.module}/toggles/alarm-thresholds.json"))
 
   # Search Lambda thresholds from LIVE AppConfig
   search_lambda_duration_threshold_ms           = local.alarm_config.searchLambda.duration.threshold_ms
