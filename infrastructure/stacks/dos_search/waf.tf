@@ -3,7 +3,7 @@
 
 locals {
   waf_web_acl_name   = "${local.resource_prefix}-dos-search-waf-web-acl${local.workspace_suffix}"
-  waf_logs_log_group = "/aws/wafv2/${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
+  waf_logs_log_group = "aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}"
   # Note: WAF requires a metric_name value in visibility_config even when CloudWatch metrics are disabled.
   waf_metric_base_name  = "${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
   waf_allowed_countries = var.waf_allowed_country_codes
@@ -635,9 +635,53 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
   }
 }
 
+# Allow AWS WAF to deliver logs to this account's CloudWatch Log Group.
+# WAF requires a CloudWatch Logs resource policy granting delivery.logs.amazonaws.com permission.
+# NOTE: data.aws_caller_identity.current is defined in provider.tf for this stack.
+
+data "aws_iam_policy_document" "dos_search_waf_log_group_policy_document" {
+  version = "2012-10-17"
+
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    # Match the account_wide approach: allow writing to aws-waf-logs-* log groups in this account/region.
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}:log-stream:*"
+    ]
+
+    condition {
+      test     = "ArnLike"
+      values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+      variable = "aws:SourceArn"
+    }
+
+    condition {
+      test     = "StringEquals"
+      values   = [tostring(data.aws_caller_identity.current.account_id)]
+      variable = "aws:SourceAccount"
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_resource_policy" "dos_search_waf_log_group_policy" {
+  policy_document = data.aws_iam_policy_document.dos_search_waf_log_group_policy_document.json
+  policy_name     = "${local.resource_prefix}-dos-search-waf-log-group-policy${local.workspace_suffix}"
+}
+
 resource "aws_wafv2_web_acl_logging_configuration" "dos_search_waf_logging" {
+  # Use the log group's ARN as the destination.
   log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
   resource_arn            = aws_wafv2_web_acl.dos_search_web_acl.arn
+
+  depends_on = [aws_cloudwatch_log_resource_policy.dos_search_waf_log_group_policy]
 }
 
 resource "aws_wafv2_web_acl_association" "dos_search_api_gateway_stage" {
