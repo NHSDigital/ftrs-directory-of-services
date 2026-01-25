@@ -7,7 +7,7 @@ module "alarm_thresholds_app_config" {
 
   config_profile_type                = "AWS.Freeform"
   hosted_config_version_content_type = "application/json"
-  hosted_config_version_content      = abspath("${path.root}/../../../toggles/alarm-thresholds.json")
+  hosted_config_version_content      = abspath("${path.root}/../dos_search/toggles/alarm-thresholds.json")
 
   environments = {
     environment = {
