@@ -207,6 +207,33 @@ poetry install
 poetry sync
 ```
 
+## Monitoring and Alerting
+
+The service includes CloudWatch alarms and Slack notifications for operational monitoring:
+
+### Alarm Configuration
+
+Alarm thresholds are centrally managed via AWS AppConfig and defined in `toggles/alarm-thresholds.json`. This enables operational teams to update thresholds without code changes:
+
+- **Search Lambda**: Duration, concurrent executions, errors, and invocation rate
+- **Health Check Lambda**: Same metrics as search Lambda
+- **Shared Configuration**: Evaluation periods and metric collection intervals
+
+### Slack Notifications
+
+CloudWatch alarms are automatically sent to Slack via:
+
+- **Lambda Function**: `slack_notifications.tf` defines a Lambda that flattens alarm JSON and sends to Slack
+- **SNS Integration**: Alarms publish to SNS, which triggers the Slack notification Lambda
+- **Webhook**: Slack webhook URL is managed via Terraform variables (not in code)
+
+### Architecture Flow
+
+1. CloudWatch detects metric threshold breach
+2. Alarm publishes to SNS topic
+3. SNS triggers Slack notification Lambda
+4. Lambda flattens alarm data and sends to Slack webhook
+
 ## Troubleshooting
 
 ### Common Issues

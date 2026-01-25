@@ -23,6 +23,7 @@
 
 # Data source to fetch LIVE alarm configuration from AppConfig
 # This reads the current values stored in AWS AppConfig, not the local file
+# Local reference: toggles/alarm-thresholds.json
 data "aws_appconfig_configuration" "alarm_thresholds" {
   application           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_application_id
   environment           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_environment_ids["environment"]
