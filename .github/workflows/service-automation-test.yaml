@@ -14,11 +14,11 @@ on:
         type: string
       api_name:
         description: "The name of the API to test (e.g., dos-search)"
-        required: true
+        required: false
         type: string
       apim_env:
         description: "The APIM environment to test (e.g., internal-dev, internal-qa)"
-        required: true
+        required: false
         type: string
       test_tag:
         description: "The name of the feature tag that identifies the tests to run"
@@ -120,6 +120,8 @@ jobs:
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
           commit_hash: ${{ inputs.commit_hash }}
+          apim_env: ${{ inputs.apim_env }}
+          api_name: ${{ inputs.api_name }}
           tag: ${{ inputs.tag }}
 
       - name: Upload allure report
