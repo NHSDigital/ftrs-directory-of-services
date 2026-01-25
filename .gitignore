@@ -49,3 +49,5 @@ scans/*
 
 # vscode settings
 .vscode
+
+.amazonq

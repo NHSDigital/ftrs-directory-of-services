@@ -6,11 +6,19 @@ variable "alarm_name" {
 variable "comparison_operator" {
   description = "Comparison operator for the alarm"
   type        = string
+  validation {
+    condition     = contains(["GreaterThanThreshold", "GreaterThanOrEqualToThreshold", "LessThanThreshold", "LessThanOrEqualToThreshold"], var.comparison_operator)
+    error_message = "comparison_operator must be one of: GreaterThanThreshold, GreaterThanOrEqualToThreshold, LessThanThreshold, LessThanOrEqualToThreshold"
+  }
 }
 
 variable "evaluation_periods" {
   description = "Number of periods to evaluate"
   type        = number
+  validation {
+    condition     = var.evaluation_periods > 0
+    error_message = "evaluation_periods must be a positive integer"
+  }
 }
 
 variable "metric_name" {
@@ -21,11 +29,19 @@ variable "metric_name" {
 variable "period" {
   description = "Period in seconds"
   type        = number
+  validation {
+    condition     = var.period > 0
+    error_message = "period must be a positive integer"
+  }
 }
 
 variable "statistic" {
   description = "Statistic to use (Average, Sum, Maximum, etc.)"
   type        = string
+  validation {
+    condition     = contains(["SampleCount", "Average", "Sum", "Minimum", "Maximum"], var.statistic)
+    error_message = "statistic must be one of: SampleCount, Average, Sum, Minimum, Maximum"
+  }
 }
 
 variable "threshold" {
@@ -53,18 +69,34 @@ variable "workspace_suffix" {
   type        = string
 }
 
+variable "treat_missing_data" {
+  description = "How to treat missing data (notBreaching, breaching, ignore, missing)"
+  type        = string
+  default     = "notBreaching"
+  validation {
+    condition     = contains(["notBreaching", "breaching", "ignore", "missing"], var.treat_missing_data)
+    error_message = "treat_missing_data must be one of: notBreaching, breaching, ignore, missing"
+  }
+}
+
+variable "namespace" {
+  description = "CloudWatch namespace for the metric"
+  type        = string
+  default     = "AWS/Lambda"
+}
+
 resource "aws_cloudwatch_metric_alarm" "alarm" {
   alarm_name          = "${var.alarm_name}${var.workspace_suffix}"
   comparison_operator = var.comparison_operator
   evaluation_periods  = var.evaluation_periods
   metric_name         = var.metric_name
-  namespace           = "AWS/Lambda"
+  namespace           = var.namespace
   period              = var.period
   statistic           = var.statistic
   threshold           = var.threshold
   alarm_description   = var.alarm_description
   alarm_actions       = [var.sns_topic_arn]
-  treat_missing_data  = "notBreaching"
+  treat_missing_data  = var.treat_missing_data
 
   dimensions = {
     FunctionName = var.function_name
@@ -73,4 +105,19 @@ resource "aws_cloudwatch_metric_alarm" "alarm" {
   tags = {
     Name = "${var.alarm_name}${var.workspace_suffix}"
   }
+}
+
+output "alarm_arn" {
+  description = "ARN of the CloudWatch alarm"
+  value       = aws_cloudwatch_metric_alarm.alarm.arn
+}
+
+output "alarm_name" {
+  description = "Name of the CloudWatch alarm"
+  value       = aws_cloudwatch_metric_alarm.alarm.alarm_name
+}
+
+output "alarm_id" {
+  description = "ID of the CloudWatch alarm"
+  value       = aws_cloudwatch_metric_alarm.alarm.id
 }
