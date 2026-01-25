@@ -30,9 +30,6 @@ data "aws_appconfig_configuration" "alarm_thresholds" {
 
 # Parse the live AppConfig JSON response and define CloudWatch alarms
 locals {
-  resource_prefix  = "dos-search"
-  workspace_suffix = terraform.workspace == "default" ? "" : "-${terraform.workspace}"
-
   # Decode the JSON content fetched from AppConfig
   alarm_config = jsondecode(data.aws_appconfig_configuration.alarm_thresholds.content)
 
