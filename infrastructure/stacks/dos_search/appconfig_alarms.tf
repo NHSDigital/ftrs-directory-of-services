@@ -22,16 +22,17 @@
 ################################################################################
 
 # Data source to fetch LIVE alarm configuration from AppConfig
-data "aws_appconfig_hosted_configuration_version" "alarm_thresholds" {
+data "aws_appconfig_configuration" "alarm_thresholds" {
   application_id           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_application_id
   configuration_profile_id = data.terraform_remote_state.app_config.outputs.alarm_thresholds_configuration_profile_id
-  version_number           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_version_number
+  environment_id           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_environment_id
+  configuration_version    = data.terraform_remote_state.app_config.outputs.alarm_thresholds_version_number
 }
 
 # Parse the live AppConfig JSON response and define CloudWatch alarms
 locals {
   # Decode the JSON content fetched from AppConfig
-  alarm_config = jsondecode(data.aws_appconfig_hosted_configuration_version.alarm_thresholds.content)
+  alarm_config = jsondecode(data.aws_appconfig_configuration.alarm_thresholds.content)
 
   # Search Lambda thresholds from LIVE AppConfig
   search_lambda_duration_threshold_ms           = local.alarm_config.searchLambda.duration.threshold_ms
