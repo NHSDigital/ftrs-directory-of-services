@@ -41,7 +41,7 @@ resource "aws_wafv2_ip_set" "statuscake_ips" {
 
 resource "aws_wafv2_web_acl" "dos_search_web_acl" {
   name        = local.waf_web_acl_name
-  description = "DoS Search API Gateway WAF (regional)"
+  description = "DOS Search API Gateway WAF regional"
   scope       = "REGIONAL"
 
   default_action {
