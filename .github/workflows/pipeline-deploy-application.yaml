@@ -280,7 +280,7 @@ jobs:
       matrix:
         include:
           - tag: "ftrs-is-pipeline is-apim"
-            type: "api"
+            type: "apim"
             api_name: "dos-search"
             apim_env: ""
           - tag: "ftrs-pipeline"
