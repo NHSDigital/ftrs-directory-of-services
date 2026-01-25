@@ -78,13 +78,13 @@ data "aws_prefix_list" "dynamodb" {
 # AppConfig Remote State
 # Required to read AppConfig application/environment/profile IDs for alarm thresholds
 ################################################################################
-# data "terraform_remote_state" "app_config" {
-#   backend = "s3"
-#
-#   config = {
-#     bucket         = local.state_bucket_name
-#     key            = "app_config/terraform.tfstate"
-#     region         = var.aws_region
-#     dynamodb_table = local.state_lock_table_name
-#   }
-# }
+data "terraform_remote_state" "app_config" {
+  backend = "s3"
+
+  config = {
+    bucket         = local.state_bucket_name
+    key            = "app_config/terraform.tfstate"
+    region         = var.aws_region
+    dynamodb_table = local.state_lock_table_name
+  }
+}

@@ -6,12 +6,12 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import urllib3
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 http = urllib3.PoolManager()
@@ -51,6 +51,14 @@ METRIC_CONTEXT = {
         "period": PERIOD,
     },
 }
+
+# State formatting for Slack messages
+COLOR_MAP = {
+    "ALARM": "#FF0000",  # Red
+    "OK": "#00AA00",  # Green
+    "INSUFFICIENT_DATA": "#FFAA00",  # Orange
+}
+EMOJI_MAP = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
 
 
 def get_slack_webhook_url() -> str:
@@ -129,8 +137,8 @@ def extract_lambda_name(alarm_name: str) -> str:
         str: Extracted Lambda function name
     """
     parts = alarm_name.split("-")
-    if len(parts) >= MIN_ALARM_NAME_PARTS:
-        return "-".join(parts[:-2]) if "lambda" in alarm_name.lower() else alarm_name
+    if len(parts) >= MIN_ALARM_NAME_PARTS and "lambda" in alarm_name.lower():
+        return "-".join(parts[:-2])
     return alarm_name
 
 
@@ -164,7 +172,7 @@ def format_timestamp(timestamp_val: int | float | str) -> str:
     """
     try:
         if isinstance(timestamp_val, (int, float)):
-            dt = datetime.fromtimestamp(int(timestamp_val))
+            dt = datetime.fromtimestamp(int(timestamp_val), tz=timezone.utc)
             return dt.strftime("%d/%m/%Y at %I:%M%p").lower()
         elif isinstance(timestamp_val, str):
             return timestamp_val
@@ -206,14 +214,8 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     timestamp = format_timestamp(timestamp_val)
 
     # Determine color and emoji based on state
-    color_map = {
-        "ALARM": "#FF0000",  # Red
-        "OK": "#00AA00",  # Green
-        "INSUFFICIENT_DATA": "#FFAA00",  # Orange
-    }
-    emoji_map = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
-    color = color_map.get(state_value, "#808080")
-    emoji = emoji_map.get(state_value, "📊")
+    color = COLOR_MAP.get(state_value, "#808080")
+    emoji = EMOJI_MAP.get(state_value, "📊")
 
     # Extract lambda name for context
     lambda_name = extract_lambda_name(alarm_name)
@@ -302,7 +304,12 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
 
     try:
         # Extract SNS message
-        sns_message = event.get("Records", [{}])[0].get("Sns", {}).get("Message", "")
+        records = event.get("Records", [])
+        if not records:
+            logger.error("No records found in event")
+            return {"statusCode": 400, "body": "No records found in event"}
+
+        sns_message = records[0].get("Sns", {}).get("Message", "")
 
         if not sns_message:
             logger.error("No SNS message found in event")

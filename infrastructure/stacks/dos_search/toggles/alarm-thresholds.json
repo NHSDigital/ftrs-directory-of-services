@@ -10,6 +10,10 @@
       "threshold": 100,
       "description": "Threshold for search Lambda concurrent executions"
     },
+    "throttles": {
+      "threshold": 1,
+      "description": "Threshold for search Lambda throttles (alerts if >= threshold)"
+    },
     "errors": {
       "threshold": 5,
       "description": "Threshold for search Lambda errors (sum over period)"
@@ -27,6 +31,10 @@
     "concurrentExecutions": {
       "threshold": 50,
       "description": "Threshold for health check Lambda concurrent executions"
+    },
+    "throttles": {
+      "threshold": 1,
+      "description": "Threshold for health check Lambda throttles (alerts if >= threshold)"
     },
     "errors": {
       "threshold": 3,
