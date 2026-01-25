@@ -151,9 +151,13 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     }
   }
 
-  # Managed rule groups with overrides (mirrors live configuration intent)
+  # Managed rule groups
+  # Note: WAFNonexistentItemException at CreateWebACL is commonly caused by referencing a managed rule group name
+  # or per-rule override 'name' that doesn't exist in the target region/account.
+
+  # IP Reputation (managed rules - run in normal mode)
   rule {
-    name     = "AWSManagedIPReputationList"
+    name     = "AWSManagedRulesAmazonIpReputationList"
     priority = 10
 
     override_action {
@@ -162,7 +166,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
     statement {
       managed_rule_group_statement {
-        name        = "AWSManagedIPReputationList"
+        name        = "AWSManagedRulesAmazonIpReputationList"
         vendor_name = "AWS"
 
         rule_action_override {
@@ -195,6 +199,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     }
   }
 
+  # Known bad inputs (managed rules - run in normal mode)
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
     priority = 20
@@ -209,7 +214,6 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
         name        = "AWSManagedRulesKnownBadInputsRuleSet"
         vendor_name = "AWS"
 
-        # Override all rule actions (selected high-signal rules)
         rule_action_override {
           name = "JavaDeserializationRCE_BODY"
           action_to_use {
@@ -251,6 +255,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "ExploitablePaths_URIPATH"
           action_to_use {
@@ -264,18 +269,21 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "Log4JRCE_BODY"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "Log4JRCE_URIPATH"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "Log4JRCE_HEADER"
           action_to_use {
@@ -299,11 +307,12 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     }
   }
 
+  # Bot Control (COUNT mode while tuning)
   rule {
     name     = "AWSManagedRulesBotControlRuleSet"
     priority = 30
 
-    # Bot Control is run in COUNT mode at the rule-group level, with selected bot categories/signals overridden to BLOCK.
+    # Override rule group = true (rule group action set to COUNT)
     override_action {
       count {}
     }
@@ -313,105 +322,120 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
         name        = "AWSManagedRulesBotControlRuleSet"
         vendor_name = "AWS"
 
-        # Block selected bot categories/signals; all other Bot Control detections are counted.
         rule_action_override {
           name = "CategoryAdvertising"
           action_to_use {
             block {}
           }
         }
-        rule_action_override {
-          name = "CategoryArchiver"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryContentFetcher"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryEmailClient"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryHttpLibrary"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryLinkChecker"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryMiscellaneous"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryMonitoring"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategoryScrapingFramework"
-          action_to_use {
-            block {}
-          }
-        }
-        rule_action_override {
-          name = "CategorySearchEngine"
-          action_to_use {
-            block {}
-          }
-        }
+
         rule_action_override {
           name = "CategorySecurity"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "CategorySeo"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "CategorySocialMedia"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "CategoryAI"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SignalAutomatedBrowser"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SignalKnownBotDataCenter"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SignalNonBrowserUserAgent"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryArchiver"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryContentFetcher"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryEmailClient"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryHttpLibrary"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryLinkChecker"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryMiscellaneous"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryMonitoring"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryScrapingFramework"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategorySearchEngine"
           action_to_use {
             block {}
           }
@@ -426,6 +450,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     }
   }
 
+  # Common rules (COUNT mode while tuning)
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
     priority = 40
@@ -440,37 +465,41 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
 
-        # Override all rule actions (selected high-signal rules)
         rule_action_override {
           name = "NoUserAgent_HEADER"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "UserAgent_BadBots_HEADER"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SizeRestrictions_QUERYSTRING"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SizeRestrictions_Cookie_HEADER"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SizeRestrictions_BODY"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "SizeRestrictions_URIPATH"
           action_to_use {
@@ -484,18 +513,21 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "EC2MetaDataSSRF_COOKIE"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "EC2MetaDataSSRF_URIPATH"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "EC2MetaDataSSRF_QUERYARGUMENTS"
           action_to_use {
@@ -509,12 +541,14 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "GenericLFI_URIPATH"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "GenericLFI_BODY"
           action_to_use {
@@ -528,6 +562,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "RestrictedExtensions_QUERYARGUMENTS"
           action_to_use {
@@ -541,12 +576,14 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "GenericRFI_BODY"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "GenericRFI_URIPATH"
           action_to_use {
@@ -560,18 +597,21 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
+
         rule_action_override {
           name = "CrossSiteScripting_QUERYARGUMENTS"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "CrossSiteScripting_BODY"
           action_to_use {
             block {}
           }
         }
+
         rule_action_override {
           name = "CrossSiteScripting_URIPATH"
           action_to_use {
