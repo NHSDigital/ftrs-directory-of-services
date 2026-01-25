@@ -7,7 +7,7 @@
 ################################################################################
 
 # Duration Alarm - triggers if average duration exceeds threshold
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
   alarm_name          = "${local.resource_prefix}-search-lambda-duration-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
@@ -31,7 +31,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_duration" {
 }
 
 # Concurrent Executions Alarm - triggers if concurrent executions exceed threshold
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
   alarm_name          = "${local.resource_prefix}-search-lambda-concurrent-executions-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
@@ -55,7 +55,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_concurrent_executions" {
 }
 
 # Throttles Alarm - triggers if any throttles occur
-# Evaluation periods sourced from AppConfig (toggles/alarm-thresholds.json)
+# Evaluation periods sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
   alarm_name          = "${local.resource_prefix}-search-lambda-throttles${local.workspace_suffix}"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -79,7 +79,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_throttles" {
 }
 
 # Invocations Alarm - optional: tracks invocation rate
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
   alarm_name          = "${local.resource_prefix}-search-lambda-invocations-low${local.workspace_suffix}"
   comparison_operator = "LessThanThreshold"
@@ -103,7 +103,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_invocations" {
 }
 
 # Errors Alarm - triggers if error rate exceeds threshold
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
   alarm_name          = "${local.resource_prefix}-search-lambda-errors${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
@@ -131,7 +131,7 @@ resource "aws_cloudwatch_metric_alarm" "search_lambda_errors" {
 ################################################################################
 
 # Duration Alarm
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-duration-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
@@ -155,7 +155,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_duration" {
 }
 
 # Concurrent Executions Alarm
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_executions" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-concurrent-executions-high${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"
@@ -179,7 +179,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_concurrent_execution
 }
 
 # Throttles Alarm
-# Evaluation periods sourced from AppConfig (toggles/alarm-thresholds.json)
+# Evaluation periods sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-throttles${local.workspace_suffix}"
   comparison_operator = "GreaterThanOrEqualToThreshold"
@@ -203,7 +203,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_throttles" {
 }
 
 # Invocations Alarm
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-invocations-low${local.workspace_suffix}"
   comparison_operator = "LessThanThreshold"
@@ -227,7 +227,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check_lambda_invocations" {
 }
 
 # Errors Alarm
-# Threshold is sourced from AppConfig (toggles/alarm-thresholds.json)
+# Threshold is sourced from AppConfig (infrastructure/stacks/dos_search/toggles/alarm-thresholds.json)
 resource "aws_cloudwatch_metric_alarm" "health_check_lambda_errors" {
   alarm_name          = "${local.resource_prefix}-health-check-lambda-errors${local.workspace_suffix}"
   comparison_operator = "GreaterThanThreshold"

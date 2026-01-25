@@ -41,9 +41,5 @@
     "evaluationPeriods": 2,
     "periodSeconds": 300,
     "description": "Default alarm evaluation configuration (shared across all alarms)"
-  },
-  "slackNotifications": {
-    "enabled": true,
-    "webhookSecretName": "dos-search-slack-webhook-url"
   }
 }
