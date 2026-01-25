@@ -22,18 +22,17 @@
 ################################################################################
 
 # Data source to fetch LIVE alarm configuration from AppConfig
-# This reads the current values stored in AWS AppConfig, not the local file
-# Local reference: toggles/alarm-thresholds.json
 data "aws_appconfig_configuration" "alarm_thresholds" {
   application           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_application_id
   environment           = data.terraform_remote_state.app_config.outputs.alarm_thresholds_environment_ids["environment"]
   configuration_profile = data.terraform_remote_state.app_config.outputs.alarm_thresholds_configuration_profile_id
-  # Note: Without version_number, Terraform will fetch the LATEST version
-  # This ensures Terraform always reads the most recent GUI updates
 }
 
-# Parse the live AppConfig JSON response
+# Parse the live AppConfig JSON response and define CloudWatch alarms
 locals {
+  resource_prefix  = "dos-search"
+  workspace_suffix = terraform.workspace == "default" ? "" : "-${terraform.workspace}"
+
   # Decode the JSON content fetched from AppConfig
   alarm_config = jsondecode(data.aws_appconfig_configuration.alarm_thresholds.content)
 
@@ -52,4 +51,118 @@ locals {
   # Shared alarm configuration from LIVE AppConfig
   lambda_alarm_evaluation_periods = local.alarm_config.alarmConfiguration.evaluationPeriods
   lambda_alarm_period             = local.alarm_config.alarmConfiguration.periodSeconds
+
+  # CloudWatch Alarms configuration
+  alarms = {
+    # Search Lambda Alarms
+    search_lambda_duration = {
+      function_name       = var.search_lambda_function_name
+      metric_name         = "Duration"
+      statistic           = "Average"
+      threshold           = local.search_lambda_duration_threshold_ms
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-search-lambda-duration-high"
+      description         = "Alert when search Lambda average duration exceeds threshold (${local.search_lambda_duration_threshold_ms}ms). Managed via AppConfig."
+    }
+    search_lambda_concurrent_executions = {
+      function_name       = var.search_lambda_function_name
+      metric_name         = "ConcurrentExecutions"
+      statistic           = "Maximum"
+      threshold           = local.search_lambda_concurrent_executions_threshold
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-search-lambda-concurrent-executions-high"
+      description         = "Alert when search Lambda concurrent executions exceed threshold (${local.search_lambda_concurrent_executions_threshold}). Managed via AppConfig."
+    }
+    search_lambda_throttles = {
+      function_name       = var.search_lambda_function_name
+      metric_name         = "Throttles"
+      statistic           = "Sum"
+      threshold           = 1
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      alarm_name          = "${local.resource_prefix}-search-lambda-throttles"
+      description         = "Alert when search Lambda is throttled. Managed via AppConfig."
+    }
+    search_lambda_invocations = {
+      function_name       = var.search_lambda_function_name
+      metric_name         = "Invocations"
+      statistic           = "Sum"
+      threshold           = local.search_lambda_invocations_threshold
+      comparison_operator = "LessThanThreshold"
+      alarm_name          = "${local.resource_prefix}-search-lambda-invocations-low"
+      description         = "Alert when search Lambda invocations fall below expected threshold (${local.search_lambda_invocations_threshold}). Managed via AppConfig."
+    }
+    search_lambda_errors = {
+      function_name       = var.search_lambda_function_name
+      metric_name         = "Errors"
+      statistic           = "Sum"
+      threshold           = local.search_lambda_errors_threshold
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-search-lambda-errors"
+      description         = "Alert when search Lambda errors exceed threshold (${local.search_lambda_errors_threshold}). Managed via AppConfig."
+    }
+    # Health Check Lambda Alarms
+    health_check_lambda_duration = {
+      function_name       = var.health_check_lambda_function_name
+      metric_name         = "Duration"
+      statistic           = "Average"
+      threshold           = local.health_check_lambda_duration_threshold_ms
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-health-check-lambda-duration-high"
+      description         = "Alert when health check Lambda average duration exceeds threshold (${local.health_check_lambda_duration_threshold_ms}ms). Managed via AppConfig."
+    }
+    health_check_lambda_concurrent_executions = {
+      function_name       = var.health_check_lambda_function_name
+      metric_name         = "ConcurrentExecutions"
+      statistic           = "Maximum"
+      threshold           = local.health_check_lambda_concurrent_executions_threshold
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-health-check-lambda-concurrent-executions-high"
+      description         = "Alert when health check Lambda concurrent executions exceed threshold (${local.health_check_lambda_concurrent_executions_threshold}). Managed via AppConfig."
+    }
+    health_check_lambda_throttles = {
+      function_name       = var.health_check_lambda_function_name
+      metric_name         = "Throttles"
+      statistic           = "Sum"
+      threshold           = 1
+      comparison_operator = "GreaterThanOrEqualToThreshold"
+      alarm_name          = "${local.resource_prefix}-health-check-lambda-throttles"
+      description         = "Alert when health check Lambda is throttled. Managed via AppConfig."
+    }
+    health_check_lambda_invocations = {
+      function_name       = var.health_check_lambda_function_name
+      metric_name         = "Invocations"
+      statistic           = "Sum"
+      threshold           = local.health_check_lambda_invocations_threshold
+      comparison_operator = "LessThanThreshold"
+      alarm_name          = "${local.resource_prefix}-health-check-lambda-invocations-low"
+      description         = "Alert when health check Lambda invocations fall below expected threshold (${local.health_check_lambda_invocations_threshold}). Managed via AppConfig."
+    }
+    health_check_lambda_errors = {
+      function_name       = var.health_check_lambda_function_name
+      metric_name         = "Errors"
+      statistic           = "Sum"
+      threshold           = local.health_check_lambda_errors_threshold
+      comparison_operator = "GreaterThanThreshold"
+      alarm_name          = "${local.resource_prefix}-health-check-lambda-errors"
+      description         = "Alert when health check Lambda errors exceed threshold (${local.health_check_lambda_errors_threshold}). Managed via AppConfig."
+    }
+  }
+}
+
+module "cloudwatch_alarms" {
+  for_each = local.alarms
+
+  source = "../../modules/cloudwatch-alarm"
+
+  alarm_name          = each.value.alarm_name
+  comparison_operator = each.value.comparison_operator
+  evaluation_periods  = local.lambda_alarm_evaluation_periods
+  metric_name         = each.value.metric_name
+  period              = local.lambda_alarm_period
+  statistic           = each.value.statistic
+  threshold           = each.value.threshold
+  alarm_description   = each.value.description
+  sns_topic_arn       = var.sns_topic_arn
+  function_name       = each.value.function_name
+  workspace_suffix    = local.workspace_suffix
 }
