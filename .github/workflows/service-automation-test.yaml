@@ -120,6 +120,8 @@ jobs:
       - name: Run ${{ inputs.test_tag }} service automation tests
         id: run-service_automation-tests
         uses: ./.github/actions/service-automation-test
+        env:
+          PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
         with:
           aws_region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
