@@ -152,7 +152,7 @@ locals {
 module "cloudwatch_alarms" {
   for_each = local.alarms
 
-  source = "../../modules/cloudwatch-alarm"
+  source = "../../../modules/cloudwatch-alarm"
 
   alarm_name          = each.value.alarm_name
   comparison_operator = each.value.comparison_operator
