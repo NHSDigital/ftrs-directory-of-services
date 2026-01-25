@@ -56,7 +56,7 @@ locals {
   alarms = {
     # Search Lambda Alarms
     search_lambda_duration = {
-      function_name       = var.search_lambda_function_name
+      function_name       = module.lambda.lambda_function_name
       metric_name         = "Duration"
       statistic           = "Average"
       threshold           = local.search_lambda_duration_threshold_ms
@@ -65,7 +65,7 @@ locals {
       description         = "Alert when search Lambda average duration exceeds threshold (${local.search_lambda_duration_threshold_ms}ms). Managed via AppConfig."
     }
     search_lambda_concurrent_executions = {
-      function_name       = var.search_lambda_function_name
+      function_name       = module.lambda.lambda_function_name
       metric_name         = "ConcurrentExecutions"
       statistic           = "Maximum"
       threshold           = local.search_lambda_concurrent_executions_threshold
@@ -74,7 +74,7 @@ locals {
       description         = "Alert when search Lambda concurrent executions exceed threshold (${local.search_lambda_concurrent_executions_threshold}). Managed via AppConfig."
     }
     search_lambda_throttles = {
-      function_name       = var.search_lambda_function_name
+      function_name       = module.lambda.lambda_function_name
       metric_name         = "Throttles"
       statistic           = "Sum"
       threshold           = 1
@@ -83,7 +83,7 @@ locals {
       description         = "Alert when search Lambda is throttled. Managed via AppConfig."
     }
     search_lambda_invocations = {
-      function_name       = var.search_lambda_function_name
+      function_name       = module.lambda.lambda_function_name
       metric_name         = "Invocations"
       statistic           = "Sum"
       threshold           = local.search_lambda_invocations_threshold
@@ -92,7 +92,7 @@ locals {
       description         = "Alert when search Lambda invocations fall below expected threshold (${local.search_lambda_invocations_threshold}). Managed via AppConfig."
     }
     search_lambda_errors = {
-      function_name       = var.search_lambda_function_name
+      function_name       = module.lambda.lambda_function_name
       metric_name         = "Errors"
       statistic           = "Sum"
       threshold           = local.search_lambda_errors_threshold
@@ -102,7 +102,7 @@ locals {
     }
     # Health Check Lambda Alarms
     health_check_lambda_duration = {
-      function_name       = var.health_check_lambda_function_name
+      function_name       = module.health_check_lambda.lambda_function_name
       metric_name         = "Duration"
       statistic           = "Average"
       threshold           = local.health_check_lambda_duration_threshold_ms
@@ -111,7 +111,7 @@ locals {
       description         = "Alert when health check Lambda average duration exceeds threshold (${local.health_check_lambda_duration_threshold_ms}ms). Managed via AppConfig."
     }
     health_check_lambda_concurrent_executions = {
-      function_name       = var.health_check_lambda_function_name
+      function_name       = module.health_check_lambda.lambda_function_name
       metric_name         = "ConcurrentExecutions"
       statistic           = "Maximum"
       threshold           = local.health_check_lambda_concurrent_executions_threshold
@@ -120,7 +120,7 @@ locals {
       description         = "Alert when health check Lambda concurrent executions exceed threshold (${local.health_check_lambda_concurrent_executions_threshold}). Managed via AppConfig."
     }
     health_check_lambda_throttles = {
-      function_name       = var.health_check_lambda_function_name
+      function_name       = module.health_check_lambda.lambda_function_name
       metric_name         = "Throttles"
       statistic           = "Sum"
       threshold           = 1
@@ -129,7 +129,7 @@ locals {
       description         = "Alert when health check Lambda is throttled. Managed via AppConfig."
     }
     health_check_lambda_invocations = {
-      function_name       = var.health_check_lambda_function_name
+      function_name       = module.health_check_lambda.lambda_function_name
       metric_name         = "Invocations"
       statistic           = "Sum"
       threshold           = local.health_check_lambda_invocations_threshold
@@ -138,7 +138,7 @@ locals {
       description         = "Alert when health check Lambda invocations fall below expected threshold (${local.health_check_lambda_invocations_threshold}). Managed via AppConfig."
     }
     health_check_lambda_errors = {
-      function_name       = var.health_check_lambda_function_name
+      function_name       = module.health_check_lambda.lambda_function_name
       metric_name         = "Errors"
       statistic           = "Sum"
       threshold           = local.health_check_lambda_errors_threshold
@@ -152,7 +152,7 @@ locals {
 module "cloudwatch_alarms" {
   for_each = local.alarms
 
-  source = "../../../modules/cloudwatch-alarm"
+  source = "../../modules/cloudwatch-alarm"
 
   alarm_name          = each.value.alarm_name
   comparison_operator = each.value.comparison_operator
@@ -162,7 +162,7 @@ module "cloudwatch_alarms" {
   statistic           = each.value.statistic
   threshold           = each.value.threshold
   alarm_description   = each.value.description
-  sns_topic_arn       = var.sns_topic_arn
+  sns_topic_arn       = module.sns.topic_arn
   function_name       = each.value.function_name
   workspace_suffix    = local.workspace_suffix
 }
