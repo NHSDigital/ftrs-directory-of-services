@@ -69,6 +69,11 @@ on:
         required: false
         default: "appconfig_feature_flags"
         type: string
+      toggle_stacks:
+        description: "A list of the infrastructure stacks that consume feature toggle outputs"
+        required: false
+        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
+        type: string  
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -100,8 +105,8 @@ jobs:
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
 
-      - name: "Download AppConfig Feature Flags"
-        if: ${{ inputs.download_appconfig_artifact == true }}
+      - name: "Download Toggle Artifact"
+        if: ${{ inputs.download_appconfig_artifact == true && contains(fromJSON(inputs.toggle_stacks), matrix.stack) }}
         uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}

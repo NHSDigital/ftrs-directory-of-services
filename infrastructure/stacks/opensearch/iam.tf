@@ -1,5 +1,6 @@
 resource "aws_iam_role" "osis_pipelines_role" {
-  name = "${local.resource_prefix}-osis-role${local.workspace_suffix}"
+  count = local.stack_enabled
+  name  = "${local.resource_prefix}-osis-role${local.workspace_suffix}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,8 +19,9 @@ resource "aws_iam_role" "osis_pipelines_role" {
 }
 
 resource "aws_iam_role_policy" "osis_pipelines_policy" {
-  name = "${local.resource_prefix}-osis-policy${local.workspace_suffix}"
-  role = aws_iam_role.osis_pipelines_role.id
+  count = local.stack_enabled
+  name  = "${local.resource_prefix}-osis-policy${local.workspace_suffix}"
+  role  = aws_iam_role.osis_pipelines_role[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -56,10 +58,10 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
           "s3:PutObjectAcl"
         ]
         Resource = [
-          module.s3.s3_bucket_arn,
-          "${module.s3.s3_bucket_arn}/*",
-          module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_arn,
-          "${module.s3_opensearch_pipeline_dlq_bucket.s3_bucket_arn}/*"
+          module.s3[0].s3_bucket_arn,
+          "${module.s3[0].s3_bucket_arn}/*",
+          module.s3_opensearch_pipeline_dlq_bucket[0].s3_bucket_arn,
+          "${module.s3_opensearch_pipeline_dlq_bucket[0].s3_bucket_arn}/*"
         ]
       },
       {
@@ -102,7 +104,7 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream"
         ]
-        Resource = aws_cloudwatch_log_group.osis_pipeline_cloudwatch_log_group.arn
+        Resource = aws_cloudwatch_log_group.osis_pipeline_cloudwatch_log_group[0].arn
       }
     ]
   })
