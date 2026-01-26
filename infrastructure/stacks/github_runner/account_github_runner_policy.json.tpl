@@ -91,7 +91,6 @@
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
                 "iam:UpdateOpenIDConnectProviderThumbprint",
-                "iam:UpdateAssumeRolePolicy",
                 "iam:CreateInstanceProfile",
                 "iam:DeleteInstanceProfile",
                 "iam:AddRoleToInstanceProfile",
@@ -235,15 +234,6 @@
             "Resource": "*"
         },
         {
-            "Sid": "AssumeSteamPipeReadOnlyRole",
-            "Effect": "Allow",
-            "Action": [
-                "sts:AssumeRole",
-                "sts:TagSession"
-            ],
-            "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
-        },
-        {
             "Sid": "Inspector2Access",
             "Effect": "Allow",
             "Action": [
@@ -265,6 +255,15 @@
                 "iam:AWSServiceName": "inspector2.amazonaws.com"
                 }
             }
+        },
+        {
+            "Sid": "AssumeSteamPipeReadOnlyRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole",
+                "sts:TagSession"
+            ],
+            "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
         }
     ]
 }
