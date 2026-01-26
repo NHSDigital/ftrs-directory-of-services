@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Usage:
+#   BASE_URL=http://localhost:9000 WAIT_SECS=30 ./scripts/smoke.sh
+#   DEBUG=1 WAIT_SECS=30 ./scripts/smoke.sh
+#
+
 # Optional debug: set DEBUG=1 to trace commands
 if [[ "${DEBUG:-0}" == "1" ]]; then set -x; fi
 
@@ -49,6 +54,13 @@ do_call() {
 
 # Preflight: ensure target is reachable (optionally wait)
 wait_ready
+
+# Monitoring endpoints
+# - _status: readiness / healthcheck
+# - _ping: lightweight liveness
+
+do_call "/_status" 200 "200 status (_status)"
+do_call "/_ping" 200 "200 ping (_ping)"
 
 # 1) 200 success
 do_call "/Organization?identifier=odsOrganisationCode%7CABC123&_revinclude=Endpoint:organization" 200 "200 success (identifier + _revinclude)"
