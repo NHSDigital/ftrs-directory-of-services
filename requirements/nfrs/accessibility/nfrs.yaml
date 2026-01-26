@@ -1,0 +1,436 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: ACC-001
+  requirement: WCAG 2.2 AA scan & manual audit pass
+  services:
+  - dos-ui
+  teams:
+  - programme
+  controls:
+  - control_id: wcag-aa-pass
+    measure: WCAG 2.2 AA scan & manual audit pass
+    threshold: Automated AA scan passes; manual audit issues triaged and resolved
+    tooling: Accessibility scanner + manual audit checklist
+    cadence: Quarterly + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures accessibility conformance for UI surfaces
+    service_stories:
+      read-only-viewer:
+      - FTRS-2351
+- code: ACC-002
+  requirement: Automated scans run across critical pages & browsers
+  services:
+  - dos-ui
+  controls:
+  - control_id: automated-scans-coverage
+    measure: Automated scans run across critical pages & browsers
+    threshold: Critical pages covered across supported browsers
+    tooling: CI accessibility suite + cross-browser runners
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Automated checks catch regressions early
+    service_stories:
+      read-only-viewer:
+      - FTRS-2352
+- code: ACC-003
+  requirement: Manual accessibility test executed per release
+  services:
+  - dos-ui
+  controls:
+  - control_id: manual-accessibility-test
+    measure: Manual accessibility test executed per release
+    threshold: Release includes manual accessibility audit; issues triaged within
+      5 business days
+    tooling: Manual checklist + report
+    cadence: Per release
+    environments:
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures human validation beyond automation
+    service_stories:
+      read-only-viewer:
+      - FTRS-2353
+- code: ACC-004
+  requirement: Defects tracked with parity priority & SLA
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-defect-sla
+    measure: Defects tracked with parity priority & SLA
+    threshold: Accessibility defects use same priority/SLA scheme; monthly compliance
+      report
+    tooling: Issue tracker + SLA report
+    cadence: Monthly
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Enforces parity with functional defects
+    service_stories:
+      read-only-viewer:
+      - FTRS-2354
+- code: ACC-005
+  requirement: Tooling operational in dev/int/reference envs
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-tooling-operational
+    measure: Tooling operational in dev/int/reference envs
+    threshold: CI scanners and browser runners functional in dev/int/ref
+    tooling: CI accessibility suite
+    cadence: CI per build
+    environments:
+    - dev
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Guarantees tooling readiness across envs
+    service_stories:
+      read-only-viewer:
+      - FTRS-2355
+- code: ACC-006
+  requirement: Assistive tech not blocked by headers/CSP
+  services:
+  - dos-ui
+  controls:
+  - control_id: assistive-tech-headers-csp
+    measure: Assistive tech not blocked by headers/CSP
+    threshold: Headers/CSP allow screen readers; tests pass for supported AT
+    tooling: AT test harness + response header checks
+    cadence: Pre-release
+    environments:
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Prevents accidental blocking via security headers
+    service_stories:
+      read-only-viewer:
+      - FTRS-2356
+- code: ACC-007
+  requirement: Test dataset covers tables/forms/status messages
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-test-dataset-coverage
+    measure: Test dataset covers tables/forms/status messages
+    threshold: Dataset includes representative components; annual review
+    tooling: Dataset repo + checklist
+    cadence: Annual
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures coverage of common interactive components
+    service_stories:
+      read-only-viewer:
+      - FTRS-2357
+- code: ACC-008
+  requirement: CI accessibility stage completes <5min
+  services:
+  - dos-ui
+  controls:
+  - control_id: ci-accessibility-duration
+    measure: CI accessibility stage completes <5min
+    threshold: CI accessibility job completes < 5 minutes
+    tooling: CI job timer
+    cadence: CI per build
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Keeps pipeline fast while ensuring checks
+    service_stories:
+      read-only-viewer:
+      - FTRS-2358
+- code: ACC-009
+  requirement: Keyboard tab order regression test passes
+  services:
+  - dos-ui
+  controls:
+  - control_id: keyboard-tab-order
+    measure: Keyboard tab order regression test passes
+    threshold: Tab order matches expected flow; no focus loss
+    tooling: Automated tab order tests + manual verification
+    cadence: CI per build + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Supports keyboard-only navigation
+    service_stories:
+      read-only-viewer:
+      - FTRS-2359
+- code: ACC-010
+  requirement: Focus trap tests pass for modals/overlays
+  services:
+  - dos-ui
+  controls:
+  - control_id: focus-trap-tests
+    measure: Focus trap tests pass for modals/overlays
+    threshold: No escape from focus trap; correct focus restoration
+    tooling: Automated focus tests + manual checks
+    cadence: CI per build + pre-release
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures accessible modal behaviour
+    service_stories:
+      read-only-viewer:
+      - FTRS-2360
+- code: ACC-011
+  requirement: Screen reader ARIA role announcements verified
+  services:
+  - dos-ui
+  controls:
+  - control_id: aria-role-announcements
+    measure: Screen reader ARIA role announcements verified
+    threshold: ARIA roles/states announced correctly across key flows
+    tooling: Screen reader scripts + audit
+    cadence: Quarterly
+    environments:
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Validates semantic accessibility
+    service_stories:
+      read-only-viewer:
+      - FTRS-2361
+- code: ACC-012
+  requirement: Accessibility results documented with feature tests
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-results-documented
+    measure: Accessibility results documented with feature tests
+    threshold: Docs stored with tests; updated on change
+    tooling: Test reports + docs repo
+    cadence: CI per build
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Maintains traceable evidence
+    service_stories:
+      read-only-viewer:
+      - FTRS-2362
+- code: ACC-013
+  requirement: Central issue log maintained & current
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-issue-log-current
+    measure: Central issue log maintained & current
+    threshold: Log updated within 5 business days of finding; monthly review
+    tooling: Issue tracker + report
+    cadence: Monthly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures visibility of accessibility work
+    service_stories:
+      read-only-viewer:
+      - FTRS-2363
+- code: ACC-014
+  requirement: Accessibility champion/workgroup active
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-champion-active
+    measure: Accessibility champion/workgroup active
+    threshold: Named champion/workgroup; quarterly minutes published
+    tooling: Meeting notes + tracker
+    cadence: Quarterly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Sustains practice through leadership
+    service_stories:
+      read-only-viewer:
+      - FTRS-2364
+- code: ACC-015
+  requirement: Monthly accessibility report published
+  services:
+  - dos-ui
+  controls:
+  - control_id: monthly-accessibility-report
+    measure: Monthly accessibility report published
+    threshold: Report produced and published monthly with tracked actions
+    tooling: Reporting automation + issue tracker
+    cadence: Monthly
+    environments:
+    - int
+    - ref
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Maintains visibility and accountability
+    service_stories:
+      read-only-viewer:
+      - FTRS-2365
+- code: ACC-016
+  requirement: Exception process documented & used
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-exception-process
+    measure: Exception process documented & used
+    threshold: Exceptions recorded with impact, mitigation, expiry; reviewed monthly
+    tooling: Exception log
+    cadence: Monthly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Manages deviations responsibly
+    service_stories:
+      read-only-viewer:
+      - FTRS-2366
+- code: ACC-017
+  requirement: Exception record contains required fields
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-exception-record-fields
+    measure: Exception record contains required fields
+    threshold: 100% exceptions include fields; expiry monitored
+    tooling: Exception log + report
+    cadence: Monthly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Ensures actionable exception management
+    service_stories:
+      read-only-viewer:
+      - FTRS-2367
+- code: ACC-018
+  requirement: Pre-commit checks complete <30s
+  stories:
+  - FTRS-1778
+  - FTRS-898
+  services:
+  - dos-ui
+  controls:
+  - control_id: precommit-accessibility-duration
+    measure: Pre-commit checks complete <30s
+    threshold: Pre-commit accessibility checks complete < 30s
+    tooling: Pre-commit runner
+    cadence: On commit
+    environments:
+    - dev
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Keeps local workflow efficient
+    service_stories:
+      read-only-viewer:
+      - FTRS-2368
+- code: ACC-019
+  requirement: CI accessibility stage completes <5min
+  services:
+  - dos-ui
+  controls:
+  - control_id: ci-accessibility-duration-policy
+    measure: CI accessibility stage completes <5min
+    threshold: CI job < 5 minutes; breaches trigger optimisation ticket
+    tooling: CI timer + policy
+    cadence: CI per build
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Enforces pipeline performance policy
+    service_stories:
+      read-only-viewer:
+      - FTRS-2369
+- code: ACC-020
+  requirement: Overnight full scan duration <2h
+  services:
+  - dos-ui
+  controls:
+  - control_id: overnight-scan-duration
+    measure: Overnight full scan duration <2h
+    threshold: Full scan completes < 2 hours
+    tooling: Scan scheduler + timer
+    cadence: Nightly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Keeps nightly checks practical
+    service_stories:
+      read-only-viewer:
+      - FTRS-2370
+- code: ACC-021
+  requirement: Accessibility regression triggers alert
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-regression-alert
+    measure: Accessibility regression triggers alert
+    threshold: Alert fires on score drop or new critical issue
+    tooling: Accessibility scanner + alerting
+    cadence: CI per build
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Fast feedback on regressions
+    service_stories:
+      read-only-viewer:
+      - FTRS-2371
+- code: ACC-022
+  requirement: False positive ratio report shows improvement
+  services:
+  - dos-ui
+  controls:
+  - control_id: accessibility-false-positive-ratio
+    measure: False positive ratio report shows improvement
+    threshold: False positive ratio decreasing quarter over quarter
+    tooling: Scanner report + trend analysis
+    cadence: Quarterly
+    environments:
+    - int
+    services:
+    - read-only-viewer
+    status: draft
+    rationale: Improves signal quality of automated scans
+    service_stories:
+      read-only-viewer:
+      - FTRS-2372

@@ -1,0 +1,241 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: COST-001
+  requirement: Mandatory tagging set present on 100% resources
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2162
+  controls:
+  - control_id: mandatory-tagging
+    measure: Mandatory tagging set present on 100% resources
+    threshold: 100% resources carry mandatory tags
+    tooling: AWS Config rules + tag audit automation
+    cadence: Continuous + monthly report
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Enables cost visibility and accountability
+    service_stories:
+      crud-apis:
+      - FTRS-2162
+      dos-search:
+      - FTRS-2400
+      read-only-viewer:
+      - FTRS-2401
+- code: COST-002
+  requirement: Monthly Cost Explorer review & anomaly log
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2163
+  controls:
+  - control_id: monthly-cost-review
+    measure: Monthly Cost Explorer review & anomaly log
+    threshold: Review completed; anomalies logged with actions
+    tooling: Cost Explorer + anomaly detection
+    cadence: Monthly
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Ensures proactive cost management
+    service_stories:
+      crud-apis:
+      - FTRS-2163
+      dos-search:
+      - FTRS-2402
+      read-only-viewer:
+      - FTRS-2403
+- code: COST-003
+  requirement: CloudHealth access for each team infra engineer
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2164
+  controls:
+  - control_id: cloudhealth-access
+    measure: CloudHealth access for each team infra engineer
+    threshold: Access provisioned; onboarding verified
+    tooling: CloudHealth admin + access logs
+    cadence: Quarterly verification
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures teams can act on cost insights
+    service_stories:
+      crud-apis:
+      - FTRS-2164
+      data-migration:
+      - FTRS-2404
+      dos-search:
+      - FTRS-2405
+- code: COST-004
+  requirement: CloudHealth optimisation & tag compliance reports
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2165
+  controls:
+  - control_id: optimisation-reports
+    measure: CloudHealth optimisation & tag compliance reports
+    threshold: Reports generated; tracked actions created
+    tooling: CloudHealth reporting + tracker
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Drives optimisation and tag hygiene
+    service_stories:
+      crud-apis:
+      - FTRS-2165
+      data-migration:
+      - FTRS-2406
+      dos-search:
+      - FTRS-2407
+- code: COST-005
+  requirement: Budgets & alert notifications configured & tested
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2166
+  controls:
+  - control_id: budgets-and-alerts
+    measure: Budgets & alert notifications configured & tested
+    threshold: Budgets configured; alerts tested successfully
+    tooling: AWS Budgets + notifications
+    cadence: Quarterly + pre-fiscal review
+    environments:
+    - prod
+    status: draft
+    rationale: Prevents cost overruns via alerting
+    service_stories:
+      crud-apis:
+      - FTRS-2166
+      data-migration:
+      - FTRS-2408
+      dos-search:
+      - FTRS-2409
+- code: COST-006
+  requirement: ftrs-cost-alerts channel created & receiving test alerts
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2167
+  controls:
+  - control_id: ftrs-cost-alerts-channel-operational
+    measure: ftrs-cost-alerts channel created & receiving test alerts
+    threshold: Channel exists; ownership documented; monthly test alerts received
+      and acknowledged
+    tooling: Messaging platform admin + alert test job + runbook
+    cadence: Monthly test + on-boarding of new alerts
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    - read-only-viewer
+    status: draft
+    rationale: Ensures central cost alerts channel is active, monitored, and wired
+      to key services
+    service_stories:
+      crud-apis:
+      - FTRS-2167
+      dos-search:
+      - FTRS-2410
+      read-only-viewer:
+      - FTRS-2411
+- code: COST-007
+  requirement: Quarterly cost review minutes & tracked actions
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2168
+  controls:
+  - control_id: quarterly-cost-review-minutes
+    measure: Quarterly cost review minutes & tracked actions
+    threshold: Review held quarterly; minutes stored; actions logged with owner and
+      due date; status reviewed next quarter
+    tooling: Cost Explorer reports + meeting minutes repo + action tracker
+    cadence: Quarterly
+    environments:
+    - prod
+    status: draft
+    rationale: Provides auditable record of cost governance and follow-up actions
+    service_stories:
+      crud-apis:
+      - FTRS-2168
+      data-migration:
+      - FTRS-2412
+      dos-search:
+      - FTRS-2413
