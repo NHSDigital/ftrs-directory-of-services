@@ -91,10 +91,6 @@ Feature: Data Migration
         "dispositions": [],
         "identifier_oldDoS_uid": "138179",
         "location": "fbb2340b-53e0-56f9-ada3-ef5728ca8f98",
-        "migrationNotes": [
-          "field:['email'] ,error: email_not_string,message:Email must be a string,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
         "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "lastUpdated": "2025-10-07T08:38:57.679754Z",
         "name": "Abbey Medical Practice, Evesham, Worcestershire",
