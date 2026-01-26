@@ -3,10 +3,26 @@ from ftrs_data_layer.domain import DBModel, Organisation
 from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_bdd import given, parsers, then, when
-from utilities.infra.repo_util import model_from_json_file, save_json_file_from_model, check_record_in_repo
+from utilities.infra.repo_util import (
+    model_from_json_file,
+    save_json_file_from_model,
+    check_record_in_repo,
+)
 from utilities.common.context import Context
 from loguru import logger
-import uuid
+from uuid import uuid4
+import random
+import string
+
+
+def generate_ods_code(length: int) -> str:
+    """
+    Generate an alphanumeric ODS code (matches ^[A-Za-z0-9]{1,12}$)
+    """
+    if length < 1 or length > 12:
+        raise ValueError("ODS code length must be between 1 and 12")
+
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 @given(parsers.parse("I have a {repo_name} repo"), target_fixture="model_repo")
@@ -38,6 +54,7 @@ def create_model_from_json(model_repo: AttributeLevelRepository, json_file: str)
     model_repo.create(model)
     yield
     model_repo.delete(model.id)
+
 
 @when(
     parsers.parse('I get a record with id "{model_id}" from the repo'),
@@ -78,6 +95,7 @@ def model_not_exists(get_model_result: Organisation | None):
 def save_model_as_json(get_model_result: DBModel):
     save_json_file_from_model(get_model_result)
 
+
 def _create_model(model_repo, json_file, ods_code):
     """Helper to create and return a model with unique ID and ODS code."""
     model = model_from_json_file(json_file, model_repo)
@@ -96,8 +114,14 @@ def _create_model(model_repo, json_file, ods_code):
     return model
 
 
-@given(parsers.parse('I create a model in the repo from json file "{json_file}" using specific ODS codes'))
-def create_model_from_json_with_specificods(model_repo: AttributeLevelRepository, json_file: str, context: Context):
+@given(
+    parsers.parse(
+        'I create a model in the repo from json file "{json_file}" using specific ODS codes'
+    )
+)
+def create_model_from_json_with_specificods(
+    model_repo: AttributeLevelRepository, json_file: str, context: Context
+):
     """
     Create a model from JSON file, update its ODS code from context, and save to repo temporarily.
     """
@@ -110,25 +134,30 @@ def create_model_from_json_with_specificods(model_repo: AttributeLevelRepository
     logger.info("Single model cleanup complete")
 
 
-
-@given(parsers.parse('I create {count:d} models in the repo from json file "{json_file}" using context ODS codes'))
-def create_models_from_json(model_repo: AttributeLevelRepository, json_file: str, context: Context, count: int = 10):
+@given(
+    parsers.parse(
+        'I create a model in the repo from json file "{json_file}" with specific id'
+    ),
+    target_fixture="seeded_model",
+)
+def create_model_from_json_with_specific_id(
+    model_repo: AttributeLevelRepository, json_file: str
+):
     """
-    Create multiple models from a JSON file, assign ODS codes from context, generate UUIDs, save to repo, and cleanup after test.
-    Only works if the number of context.ods_codes matches the required count.
+    Create a model from JSON file with dynamic id and ods code.
     """
-    if not context.ods_codes or len(context.ods_codes) != count:
-        raise AssertionError(
-            f"Expected {count} ODS codes, got {len(context.ods_codes) if context.ods_codes else 0}"
-        )
-    created_models = []
-    for i in range(count):
-        model = _create_model(model_repo, json_file, context.ods_codes[i])
-        context.saved_models[model.id] = model
-        created_models.append(model)
-    yield
-    for model in created_models:
-        logger.info(f"Deleting model ID={model.id}, ODS={model.identifier_ODS_ODSCode}")
+    model = model_from_json_file(json_file, model_repo)
+    # Generate unique ID and ODS code
+    model.id = uuid4()
+    unique_ods = generate_ods_code(6)
+    model.identifier_ODS_ODSCode = unique_ods
+    logger.info(f"Generated model ID: {model.id}")
+    logger.info(f"Generated ODS code: {unique_ods}")
+    if not check_record_in_repo(model_repo, model.id):
+        logger.warning(f"Existing record found for ID {model.id}, deleting it")
         model_repo.delete(model.id)
-        context.saved_models.clear()
-        logger.info("All temporary models deleted and context.saved_models cleared")
+    model_repo.create(model)
+    logger.info(f"Organisation seeded successfully with ID {model.id}")
+    yield model
+    logger.info(f"Cleaning up organisation with ID {model.id}")
+    model_repo.delete(model.id)
