@@ -41,7 +41,10 @@ async def get_organization(
     else:
         system, code = identifier.split("|", 1)
         if system != "odsOrganisationCode":
-            error_content = ERROR_INVALID_IDENTIFIER_SYSTEM
+            error_content = deepcopy(ERROR_INVALID_IDENTIFIER_SYSTEM)
+            error_content["issue"][0]["diagnostics"] = error_content["issue"][0][
+                "diagnostics"
+            ].format(system=system)
         elif not re.fullmatch(r"[A-Za-z0-9]{5,12}", code or ""):
             error_content = ERROR_INVALID_IDENTIFIER_VALUE
         elif code.upper() == "ABC123":

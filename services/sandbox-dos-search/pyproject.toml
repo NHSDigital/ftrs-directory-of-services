@@ -25,9 +25,8 @@ packages = [{ include = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
-
-[tool.poetry.requires-plugins]
-poetry-plugin-export = ">=1.8"
+pytest = "^8.3.5"
+httpx = "^0.28.1"
 
 [tool.ruff]
 line-length = 88
@@ -48,4 +47,3 @@ docstring-code-format = true
 minversion = "6.0"
 addopts = "-v"
 testpaths = ["tests"]
-

@@ -5,12 +5,12 @@ from src.app.main import app
 
 
 @pytest.fixture
-def client():
+def client() -> TestClient:
     return TestClient(app)
 
 
 class TestOrganizationEndpoint:
-    def test_valid_request_returns_200(self, client):
+    def test_valid_request_returns_200(self, client: TestClient) -> None:
         """Test that a valid request with ABC123 returns 200"""
         # Act
         response = client.get(
@@ -21,7 +21,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/fhir+json"
 
-    def test_valid_request_returns_bundle(self, client):
+    def test_valid_request_returns_bundle(self, client: TestClient) -> None:
         """Test that a valid request returns a Bundle resource"""
         # Act
         response = client.get(
@@ -34,7 +34,7 @@ class TestOrganizationEndpoint:
         assert data["type"] == "searchset"
         assert len(data["entry"]) == 3
 
-    def test_valid_request_contains_organization(self, client):
+    def test_valid_request_contains_organization(self, client: TestClient) -> None:
         """Test that response contains the Organization resource"""
         # Act
         response = client.get(
@@ -47,7 +47,7 @@ class TestOrganizationEndpoint:
         assert org_entry["resource"]["resourceType"] == "Organization"
         assert org_entry["resource"]["identifier"][0]["value"] == "ABC123"
 
-    def test_valid_request_reflects_url_in_bundle_link(self, client):
+    def test_valid_request_reflects_url_in_bundle_link(self, client: TestClient) -> None:
         """Test that the bundle link reflects the actual system and code from the request"""
         # Act
         response = client.get(
@@ -60,7 +60,7 @@ class TestOrganizationEndpoint:
         assert "identifier=odsOrganisationCode|ABC123" in link_url
         assert "_revinclude=Endpoint:organization" in link_url
 
-    def test_missing_identifier_returns_400(self, client):
+    def test_missing_identifier_returns_400(self, client: TestClient) -> None:
         """Test that missing identifier returns 400 error"""
         # Act
         response = client.get("/Organization?_revinclude=Endpoint:organization")
@@ -71,7 +71,7 @@ class TestOrganizationEndpoint:
         assert data["resourceType"] == "OperationOutcome"
         assert data["issue"][0]["severity"] == "error"
 
-    def test_missing_revinclude_returns_400(self, client):
+    def test_missing_revinclude_returns_400(self, client: TestClient) -> None:
         """Test that missing _revinclude returns 400 error"""
         # Act
         response = client.get("/Organization?identifier=odsOrganisationCode|ABC123")
@@ -82,7 +82,7 @@ class TestOrganizationEndpoint:
         assert data["resourceType"] == "OperationOutcome"
         assert "_revinclude=Endpoint:organization" in data["issue"][0]["diagnostics"]
 
-    def test_invalid_revinclude_value_returns_400(self, client):
+    def test_invalid_revinclude_value_returns_400(self, client: TestClient) -> None:
         """Test that invalid _revinclude value returns 400 error"""
         # Act
         response = client.get(
@@ -94,7 +94,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_identifier_without_pipe_returns_400(self, client):
+    def test_identifier_without_pipe_returns_400(self, client: TestClient) -> None:
         """Test that identifier without pipe separator returns 400 error"""
         # Act
         response = client.get(
@@ -106,7 +106,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_invalid_identifier_system_returns_400(self, client):
+    def test_invalid_identifier_system_returns_400(self, client: TestClient) -> None:
         """Test that invalid identifier system returns 400 error"""
         # Act
         response = client.get(
@@ -120,7 +120,7 @@ class TestOrganizationEndpoint:
         assert "Invalid identifier system 'wrongSystem'" in data["issue"][0]["diagnostics"]
         assert "odsOrganisationCode" in data["issue"][0]["diagnostics"]
 
-    def test_ods_code_too_short_returns_400(self, client):
+    def test_ods_code_too_short_returns_400(self, client: TestClient) -> None:
         """Test that ODS code shorter than 5 characters returns 400 error"""
         # Act
         response = client.get(
@@ -132,7 +132,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_ods_code_too_long_returns_400(self, client):
+    def test_ods_code_too_long_returns_400(self, client: TestClient) -> None:
         """Test that ODS code longer than 12 characters returns 400 error"""
         # Act
         response = client.get(
@@ -144,7 +144,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_ods_code_with_invalid_characters_returns_400(self, client):
+    def test_ods_code_with_invalid_characters_returns_400(self, client: TestClient) -> None:
         """Test that ODS code with invalid characters returns 400 error"""
         # Act
         response = client.get(
@@ -156,7 +156,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_valid_ods_code_not_abc123_returns_400(self, client):
+    def test_valid_ods_code_not_abc123_returns_400(self, client: TestClient) -> None:
         """Test that valid format ODS code other than ABC123 returns 400 (not found)"""
         # Act
         response = client.get(
@@ -168,7 +168,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_alphanumeric_ods_code_5_chars_valid_format(self, client):
+    def test_alphanumeric_ods_code_5_chars_valid_format(self, client: TestClient) -> None:
         """Test that 5-character alphanumeric ODS code has valid format (though not ABC123)"""
         # Act
         response = client.get(
@@ -180,7 +180,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_alphanumeric_ods_code_12_chars_valid_format(self, client):
+    def test_alphanumeric_ods_code_12_chars_valid_format(self, client: TestClient) -> None:
         """Test that 12-character alphanumeric ODS code with valid format but not matching ABC123 returns 400"""
         # Act
         response = client.get(
@@ -196,7 +196,7 @@ class TestOrganizationEndpoint:
         assert data["issue"][0]["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
         assert "Invalid identifier value" in data["issue"][0]["diagnostics"]
 
-    def test_empty_ods_code_returns_400(self, client):
+    def test_empty_ods_code_returns_400(self, client: TestClient) -> None:
         """Test that empty ODS code after pipe returns 400 error"""
         # Act
         response = client.get(
@@ -208,7 +208,7 @@ class TestOrganizationEndpoint:
         assert response.status_code == 400
         assert data["resourceType"] == "OperationOutcome"
 
-    def test_response_has_correct_content_type(self, client):
+    def test_response_has_correct_content_type(self, client: TestClient) -> None:
         """Test that all responses have application/fhir+json content type"""
         # Act - Valid request
         response = client.get(
@@ -218,7 +218,7 @@ class TestOrganizationEndpoint:
         # Assert
         assert response.headers["content-type"] == "application/fhir+json"
 
-    def test_error_response_has_correct_content_type(self, client):
+    def test_error_response_has_correct_content_type(self, client: TestClient) -> None:
         """Test that error responses have application/fhir+json content type"""
         # Act - Invalid request
         response = client.get("/Organization?identifier=odsOrganisationCode|ABC")
@@ -226,7 +226,7 @@ class TestOrganizationEndpoint:
         # Assert
         assert response.headers["content-type"] == "application/fhir+json"
 
-    def test_all_error_responses_use_invalid_search_data_coding(self, client):
+    def test_all_error_responses_use_invalid_search_data_coding(self, client: TestClient) -> None:
         """Test that error responses use INVALID_SEARCH_DATA coding"""
         # Act - Various error scenarios
         error_responses = [
@@ -242,7 +242,7 @@ class TestOrganizationEndpoint:
             data = response.json()
             assert data["issue"][0]["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
 
-    def test_lowercase_ods_code_matches_case_insensitively(self, client):
+    def test_lowercase_ods_code_matches_case_insensitively(self, client: TestClient) -> None:
         """Test that lowercase 'abc123' matches ABC123 case-insensitively and returns 200"""
         # Act
         response = client.get(
@@ -256,7 +256,7 @@ class TestOrganizationEndpoint:
         assert data["type"] == "searchset"
         assert len(data["entry"]) == 3
 
-    def test_mixed_case_abc123_matches_case_insensitively(self, client):
+    def test_mixed_case_abc123_matches_case_insensitively(self, client: TestClient) -> None:
         """Test that mixed case 'aBc123' matches ABC123 case-insensitively and returns 200"""
         # Act
         response = client.get(

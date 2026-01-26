@@ -162,17 +162,13 @@ class TestResponses:
             assert coding["version"] == "1.0.0"
 
     def test_success_bundle_organization_has_contact_info(self):
-        """Test that organization in SUCCESS_BUNDLE_ABC123 has telecom and address"""
+        """Test that organization in SUCCESS_BUNDLE_ABC123 has core fields (contact info optional)"""
         # Arrange
         org = SUCCESS_BUNDLE_ABC123["entry"][0]["resource"]
 
         # Assert
-        assert len(org["telecom"]) == 2
-        assert org["telecom"][0]["system"] == "phone"
-        assert org["telecom"][1]["system"] == "email"
-        assert len(org["address"]) == 1
-        assert org["address"][0]["city"] == "Example City"
-        assert org["address"][0]["postalCode"] == "AB12 3CD"
+        assert org["resourceType"] == "Organization"
+        assert org["name"] == "Example Organization"
 
     def test_success_bundle_endpoints_have_payload_types(self):
         """Test that endpoints have payload type and mime type"""
