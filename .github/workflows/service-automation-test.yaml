@@ -163,7 +163,7 @@ jobs:
           workspace: ${{ inputs.workspace }}
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
-          commit_hash: ${{ inputs.commit_hash }}
+          commit_hash: ${{ inputs.commit_hash || github.sha }}
           tag: ${{ inputs.tag }}
 
       - name: Upload allure report
