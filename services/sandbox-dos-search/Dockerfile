@@ -64,6 +64,9 @@ WORKDIR /app
 # Copy application code (avoid a recursive chown by using COPY --chown)
 COPY --chown=appuser:appuser src /app/src
 
+# Ensure copied content isn't writable (defense-in-depth for runtime file integrity)
+RUN chmod -R go-w /app/src
+
 USER appuser
 
 EXPOSE 9000
@@ -78,9 +81,11 @@ CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "9000"]
 ############################
 FROM runtime-base AS runtime-with-corp-ca
 COPY --from=deps-with-corp-ca ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+USER appuser
 
 ############################
 # Runtime image (default)
 ############################
 FROM runtime-base AS runtime
 COPY --from=deps ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+USER appuser
