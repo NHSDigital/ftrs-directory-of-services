@@ -62,7 +62,7 @@ ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 WORKDIR /app
 
 # Copy application code (avoid a recursive chown by using COPY --chown)
-COPY --chown=appuser:appuser src /app/src
+COPY --chown=appuser:appuser --chmod=0555 src /app/src
 
 # Ensure copied content isn't writable (defense-in-depth for runtime file integrity)
 RUN chmod -R a-w /app/src
