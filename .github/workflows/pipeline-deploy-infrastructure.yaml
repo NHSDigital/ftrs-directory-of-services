@@ -1,0 +1,136 @@
+name: Deploy Infrastructure Workflow
+
+permissions:
+  id-token: write
+  contents: read
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The name of the environment to deploy the infrastructure into"
+        required: true
+        type: string
+      workspace:
+        description: "The name of the workspace to deploy the infrastructure into"
+        required: true
+        type: string
+      project:
+        description: "The project - eg dos or cm."
+        required: false
+        default: "dos"
+        type: string
+      account_type:
+        description: "The type of account based on the environment"
+        required: false
+        default: "env"
+        type: string
+      stacks:
+        description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
+        required: false
+        default: ""
+        type: string
+      action:
+        description: "The type of action to perform with the stack."
+        required: false
+        default: "plan"
+        type: string
+      tag:
+        description: "The git tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      application_tag:
+        description: "The application tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      release_tag:
+        description: "The release tag identifying the timeline in the repository to deploy from"
+        required: false
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 30
+        type: number
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: true
+        type: string
+      download_appconfig_artifact:
+        description: "Download AppConfig feature flags artifact produced upstream"
+        required: false
+        default: false
+        type: boolean
+      appconfig_artifact_name:
+        description: "Artifact name for AppConfig feature flags"
+        required: false
+        default: "appconfig_feature_flags"
+        type: string
+    outputs:
+      plan_result:
+        description: "The Terraform plan output"
+        value: ${{ jobs.deploy-infrastructure.outputs.plan_result }}
+
+jobs:
+  deploy-infrastructure:
+    name: "Deploy infrastructure"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: ${{ inputs.workflow_timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: ${{ fromJSON(inputs.stacks) }}
+    outputs:
+      plan_result: ${{ steps.deploy_stack.outputs.plan_result }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: ${{ inputs.type }}
+          environment: ${{ inputs.environment }}
+
+      - name: "Download AppConfig Feature Flags"
+        if: ${{ inputs.download_appconfig_artifact == true }}
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: infrastructure/toggles
+
+      - name: "Download Terraform Plan Artifact"
+        uses: actions/download-artifact@v7
+        if: ${{ inputs.action == 'apply' }}
+        with:
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
+          path: ./
+
+      - name: "Deploy infrastructure stack"
+        id: deploy_stack
+        uses: ./.github/actions/action-infrastructure-stack
+        with:
+          environment: ${{ inputs.environment }}
+          workspace: ${{ inputs.workspace }}
+          stack: ${{ matrix.stack }}
+          action: ${{ inputs.action }}
+          project: ${{ inputs.project }}
+          application_tag: ${{ inputs.application_tag }}
+          release_tag: ${{ inputs.release_tag }}
+          commit_hash: ${{ inputs.commit_hash }}
+          mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+
+      - name: "Upload Terraform Plan Artifact"
+        uses: actions/upload-artifact@v6
+        if: ${{ inputs.action == 'plan' }}
+        with:
+          name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
+          path: ${{ matrix.stack }}.tfplan
