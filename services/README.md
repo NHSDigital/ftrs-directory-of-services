@@ -44,5 +44,4 @@ aws osis start-pipeline --region "${AWS_REGION}" --pipeline-name organisation-fd
 
 The API sandbox serving canned responses for APIM now lives under `services/sandbox-dos-search`. Use the local `Makefile` targets there to build, test, and publish the Docker image that the application pipeline consumes.
 
-
 TEST
