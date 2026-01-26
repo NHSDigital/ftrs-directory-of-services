@@ -98,7 +98,9 @@ class DataMigrationProcessor:
                 self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
                 return
 
-            validation_result = transformer.validator.validate(service)
+            validation_result = transformer.validator.validate(
+                service
+            )  # note: some pre-transformation logic here
             if not validation_result.is_valid:
                 issues = [
                     issue.model_dump(mode="json") for issue in validation_result.issues
