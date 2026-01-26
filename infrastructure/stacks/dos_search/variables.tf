@@ -142,28 +142,6 @@ variable "waf_log_retention_days" {
   default     = 30
 }
 
-variable "waf_pingdom_ipv4_cidrs" {
-  description = "IPv4 CIDR ranges for Pingdom synthetic monitoring IP allowlist"
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition     = alltrue([for cidr in var.waf_pingdom_ipv4_cidrs : can(cidrnetmask(cidr))])
-    error_message = "waf_pingdom_ipv4_cidrs must contain only valid IPv4 CIDR strings (for example: an IPv4 address with a /mask)."
-  }
-}
-
-variable "waf_statuscake_ipv4_cidrs" {
-  description = "IPv4 CIDR ranges for StatusCake synthetic monitoring IP allowlist"
-  type        = list(string)
-  default     = []
-
-  validation {
-    condition     = alltrue([for cidr in var.waf_statuscake_ipv4_cidrs : can(cidrnetmask(cidr))])
-    error_message = "waf_statuscake_ipv4_cidrs must contain only valid IPv4 CIDR strings (for example: an IPv4 address with a /mask)."
-  }
-}
-
 variable "waf_allowed_country_codes" {
   description = "Allowed country codes for dos-search API access (requests from other countries are blocked)"
   type        = list(string)

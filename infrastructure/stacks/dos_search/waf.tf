@@ -7,11 +7,6 @@ locals {
   # Note: WAF requires a metric_name value in visibility_config even when CloudWatch metrics are disabled.
   waf_metric_base_name  = "${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
   waf_allowed_countries = var.waf_allowed_country_codes
-
-  # Synthetic monitoring allowlists are optional.
-  # If CIDR lists are empty, we do not create the IP sets or the allow rules.
-  enable_pingdom_allowlist    = length(var.waf_pingdom_ipv4_cidrs) > 0
-  enable_statuscake_allowlist = length(var.waf_statuscake_ipv4_cidrs) > 0
 }
 
 resource "aws_cloudwatch_log_group" "waf_log_group" {
@@ -19,24 +14,6 @@ resource "aws_cloudwatch_log_group" "waf_log_group" {
   # checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
   name              = local.waf_logs_log_group
   retention_in_days = var.waf_log_retention_days
-}
-
-resource "aws_wafv2_ip_set" "pingdom_ips" {
-  count              = local.enable_pingdom_allowlist ? 1 : 0
-  name               = "${local.resource_prefix}-dos-search-waf-pingdom-ips${local.workspace_suffix}"
-  description        = "Pingdom synthetic monitoring source IPs"
-  scope              = "REGIONAL"
-  ip_address_version = "IPV4"
-  addresses          = var.waf_pingdom_ipv4_cidrs
-}
-
-resource "aws_wafv2_ip_set" "statuscake_ips" {
-  count              = local.enable_statuscake_allowlist ? 1 : 0
-  name               = "${local.resource_prefix}-dos-search-waf-statuscake-ips${local.workspace_suffix}"
-  description        = "StatusCake synthetic monitoring source IPs"
-  scope              = "REGIONAL"
-  ip_address_version = "IPV4"
-  addresses          = var.waf_statuscake_ipv4_cidrs
 }
 
 resource "aws_wafv2_web_acl" "dos_search_web_acl" {
@@ -48,62 +25,11 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     allow {}
   }
 
-  # Synthetic monitoring allow rules (optional).
-  # Note: these allowlisted sources bypass geo / managed rules.
-  # Logging is enabled via aws_wafv2_web_acl_logging_configuration; metrics are intentionally disabled.
-  dynamic "rule" {
-    for_each = local.enable_pingdom_allowlist ? [1] : []
-    content {
-      name     = "dos-search-waf-allow-pingdom"
-      priority = 0
-
-      action {
-        allow {}
-      }
-
-      statement {
-        ip_set_reference_statement {
-          arn = aws_wafv2_ip_set.pingdom_ips[0].arn
-        }
-      }
-
-      visibility_config {
-        cloudwatch_metrics_enabled = false
-        metric_name                = "dos-search-waf-allow-pingdom"
-        sampled_requests_enabled   = true
-      }
-    }
-  }
-
-  dynamic "rule" {
-    for_each = local.enable_statuscake_allowlist ? [1] : []
-    content {
-      name     = "dos-search-waf-allow-statuscake"
-      priority = 1
-
-      action {
-        allow {}
-      }
-
-      statement {
-        ip_set_reference_statement {
-          arn = aws_wafv2_ip_set.statuscake_ips[0].arn
-        }
-      }
-
-      visibility_config {
-        cloudwatch_metrics_enabled = false
-        metric_name                = "dos-search-waf-allow-statuscake"
-        sampled_requests_enabled   = true
-      }
-    }
-  }
-
   # Geo restrictions
   # Block requests that are NOT from allowed countries
   rule {
     name     = "dos-search-waf-block-disallowed-countries"
-    priority = 2
+    priority = 0
 
     action {
       block {}
@@ -131,7 +57,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     for_each = length(var.waf_hostile_country_codes) > 0 ? [1] : []
     content {
       name     = "dos-search-waf-block-hostile-countries"
-      priority = 3
+      priority = 1
 
       action {
         block {}

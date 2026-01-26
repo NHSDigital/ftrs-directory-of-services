@@ -9,15 +9,10 @@ id = "ipv4"
 regex = '''[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'''
 
 [rules.allowlist]
-regexTarget = "line"
+regexTarget = "match"
 regexes = [
   # Exclude the private network IPv4 addresses as well as the DNS servers for Google and OpenDNS
   '''(127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|10\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|11\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|172\.(1[6-9]|2[0-9]|3[0-1])\.[0-9]{1,3}\.[0-9]{1,3}|192\.168\.[0-9]{1,3}\.[0-9]{1,3}|0\.0\.0\.0|255\.255\.255\.255|8\.8\.8\.8|8\.8\.4\.4|208\.67\.222\.222|208\.67\.220\.220)''',
-  # Allow legitimate WAF vendor allow-lists expressed as quoted CIDRs in Terraform var files.
-  # This avoids suppressing arbitrary IPs elsewhere while keeping pre-commit usable.
-  '''^\s*waf_(pingdom|statuscake)_ipv4_cidrs\s*=\s*\[\s*$''',
-  '''^\s*\"\d{1,3}(?:\.\d{1,3}){3}/\d{1,2}\",?\s*$''',
-  '''^\s*\]\s*$''',
 ]
 
 [allowlist]
