@@ -1,5 +1,6 @@
 #trivy:ignore:AVD-AWS-0010
 module "read_only_viewer_cloudfront" {
+  count = local.stack_enabled
   # Module version: v5.0.1
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudfront.git?ref=fc1010c0b53490d9b3911d2397726da80168f4fb"
 
@@ -28,12 +29,12 @@ module "read_only_viewer_cloudfront" {
 
   origin = {
     s3_bucket = {
-      domain_name           = module.read_only_viewer_bucket.s3_bucket_bucket_regional_domain_name
+      domain_name           = module.read_only_viewer_bucket[0].s3_bucket_bucket_regional_domain_name
       origin_access_control = "${local.resource_prefix}-s3-oac${local.workspace_suffix}"
     }
 
     lambda_function = {
-      domain_name = replace(replace(aws_lambda_function_url.frontend_lambda_url.function_url, "https://", ""), "/", "")
+      domain_name = replace(replace(aws_lambda_function_url.frontend_lambda_url[0].function_url, "https://", ""), "/", "")
       custom_origin_config = {
         http_port              = var.http_port
         https_port             = var.https_port
@@ -85,14 +86,14 @@ module "read_only_viewer_cloudfront" {
   viewer_certificate = {
     cloudfront_default_certificate = true
     cloudfront_default_certificate = false
-    acm_certificate_arn            = data.aws_acm_certificate.domain_cert.arn
+    acm_certificate_arn            = data.aws_acm_certificate.domain_cert[0].arn
     ssl_support_method             = var.ssl_support_method
     minimum_protocol_version       = var.minimum_protocol_version
   }
 
   aliases = ["${var.stack_name}${local.workspace_suffix}.${local.env_domain_name}"]
 
-  web_acl_id = data.aws_wafv2_web_acl.waf_web_acl.arn
+  web_acl_id = data.aws_wafv2_web_acl.waf_web_acl[0].arn
 
   tags = {
     Name = "${local.resource_prefix}${local.workspace_suffix}"

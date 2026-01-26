@@ -61,41 +61,11 @@ on:
 
 
 jobs:
-  # Generate AppConfig artifacts (feature flags JSON, ensure tfvars) and publish for downstream jobs
-  prepare-appconfig:
-    name: "Prepare AppConfig artifacts"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.tag }}
-
-      - name: "Install Python dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
-
-      - name: "Generate feature flags JSON"
-        env:
-          ENVIRONMENT: ${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
-        run: |
-          /bin/bash ./scripts/workflow/generate-feature-flags.sh
-
-      - name: "Upload AppConfig feature flags"
-        uses: actions/upload-artifact@v6
-        with:
-          name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
-          path: infrastructure/toggles/feature-flags.json
-
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.tag || inputs.workspace}}"
       cancel-in-progress: false
-    needs:
-      - prepare-appconfig
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}

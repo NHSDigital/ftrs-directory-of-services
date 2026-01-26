@@ -1,0 +1,47 @@
+model {
+
+  extend ftrs {
+
+    lambda locationAPI "Location API" {
+      description '
+        /location
+        API for CRUD operations on the Locations table
+        and to retrieve data for the Location dashboard
+      '
+
+      lambda getById "GET location/{location_id}" {
+        description 'Retrieves location data by location id'
+      }
+
+      lambda getAllLocations "GET location" {
+        description 'Retrieves all location data'
+      }
+
+      lambda createLocation "POST /location" {
+        description 'Creates a new location'
+      }
+
+      lambda updateLocation "PUT /location/{location_id}" {
+        description 'Updates an existing location'
+      }
+
+      lambda deleteLocation "DELETE /location/{location_id}" {
+        description 'Deletes an existing location'
+      }
+
+    }
+  }
+
+  apim.dosReadProxy -> locationAPI.getById "Routes requests to"
+  apim.dosReadProxy -> locationAPI.getAllLocations "Routes requests to"
+  apim.dosWriteProxy -> locationAPI.createLocation "Routes requests to"
+  apim.dosWriteProxy -> locationAPI.updateLocation "Routes requests to"
+  apim.dosWriteProxy -> locationAPI.deleteLocation "Routes requests to"
+
+  getById -> ftrs.db.locationTable "Queries data from"
+  getAllLocations -> ftrs.db.locationTable "Queries data from"
+  createLocation -> ftrs.db.locationTable "Creates in"
+  updateLocation -> ftrs.db.locationTable "Updates in"
+  deleteLocation -> ftrs.db.locationTable "Deletes from"
+
+}

@@ -1,4 +1,5 @@
 data "aws_vpc" "vpc" {
+  count = local.stack_enabled
   filter {
     name   = "tag:Name"
     values = ["${local.account_prefix}-vpc"]
@@ -6,9 +7,10 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_subnets" "private_subnets" {
+  count = local.stack_enabled
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.vpc.id]
+    values = [data.aws_vpc.vpc[0].id]
   }
 
   filter {
@@ -18,19 +20,22 @@ data "aws_subnets" "private_subnets" {
 }
 
 data "aws_subnet" "private_subnets_details" {
-  for_each = toset(data.aws_subnets.private_subnets.ids)
+  for_each = local.stack_enabled == 1 ? toset(data.aws_subnets.private_subnets[0].ids) : toset([])
   id       = each.value
 }
 
 data "aws_iam_role" "app_github_runner_iam_role" {
-  name = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
+  count = local.stack_enabled
+  name  = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
 }
 
 data "aws_ssm_parameter" "dos_aws_account_id_mgmt" {
-  name = "/dos/${var.environment}/aws_account_id_mgmt"
+  count = local.stack_enabled
+  name  = "/dos/${var.environment}/aws_account_id_mgmt"
 }
 
 data "aws_iam_policy_document" "ssm_access_policy" {
+  count = local.stack_enabled
   statement {
     effect = "Allow"
     actions = [
@@ -46,6 +51,7 @@ data "aws_iam_policy_document" "ssm_access_policy" {
 
 # TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
 data "aws_iam_policy_document" "execute_api_policy" {
+  count = local.stack_enabled
   statement {
     effect = "Allow"
     actions = [
@@ -58,16 +64,19 @@ data "aws_iam_policy_document" "execute_api_policy" {
 }
 
 data "aws_wafv2_web_acl" "waf_web_acl" {
+  count    = local.stack_enabled
   name     = "${local.project_prefix}-account-wide-${var.waf_name}"
   scope    = var.waf_scope
   provider = aws.us-east-1
 }
 
 data "aws_route53_zone" "main" {
-  name = local.env_domain_name
+  count = local.stack_enabled
+  name  = local.env_domain_name
 }
 
 data "aws_acm_certificate" "domain_cert" {
+  count       = local.stack_enabled
   provider    = aws.us-east-1
   domain      = "*.${local.env_domain_name}"
   statuses    = ["ISSUED"]

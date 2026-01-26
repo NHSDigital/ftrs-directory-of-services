@@ -1,0 +1,556 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: INT-001
+  requirement: Resources validated against UK Core profiles
+  services:
+  - crud-apis
+  - dos-search
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: uk-core-profile-validation
+    measure: Resources validated against UK Core profiles
+    threshold: 100% resources pass UK Core validation in CI and pre-release audit
+    tooling: FHIR validators + contract test suite
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    status: draft
+    rationale: Ensures national standard alignment
+    service_stories:
+      crud-apis:
+      - FTRS-2424
+      - FTRS-978
+  - control_id: uk-core-profile-validation
+    measure: Resources validated against UK Core profiles
+    threshold: 100% resources pass UK Core validation in CI and pre-release audit
+    tooling: FHIR validators + contract test suite
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Ensures national standard alignment
+    stories: []
+    service_stories:
+      crud-apis:
+      - FTRS-2424
+      - FTRS-978
+- code: INT-002
+  requirement: Versioning & deprecation policy published
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2196
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: versioning-deprecation-policy
+    measure: Versioning & deprecation policy published
+    threshold: Policy published; changes communicated; minimum 6 months deprecation
+      window
+    tooling: Documentation repo + change comms channel
+    cadence: Review quarterly; update on change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Reduces integration friction
+    service_stories:
+      crud-apis:
+      - FTRS-2196
+      dos-search:
+      - FTRS-2426
+- code: INT-003
+  requirement: Minor releases backward compatible for 12 months
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2197
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: backward-compatibility-window
+    measure: Minor releases backward compatible for 12 months
+    threshold: No breaking changes; deprecation window \u226512 months; exceptions
+      recorded
+    tooling: Contract tests + release notes
+    cadence: CI per build + release review
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Protects consumer integrations
+    service_stories:
+      crud-apis:
+      - FTRS-2197
+      dos-search:
+      - FTRS-2427
+- code: INT-004
+  requirement: Semantic mapping round-trip fidelity preserved
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2198
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: semantic-roundtrip-fidelity
+    measure: Semantic mapping round-trip fidelity preserved
+    threshold: Round-trip preserves fields and codes; divergence \u2264 1%
+    tooling: Mapping tests + diff reports
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Maintains semantic integrity
+    service_stories:
+      crud-apis:
+      - FTRS-2198
+      dos-search:
+      - FTRS-2428
+- code: INT-005
+  requirement: Standard OperationOutcome error structure enforced
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-2199
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: operationoutcome-structure
+    measure: Standard OperationOutcome error structure enforced
+    threshold: 100% error responses conform to OperationOutcome spec
+    tooling: Contract tests + schema validators
+    cadence: CI per build + weekly contract audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent error semantics across integrations
+    service_stories:
+      crud-apis:
+      - FTRS-2199
+      dos-search:
+      - FTRS-2429
+- code: INT-006
+  requirement: Identifier normalization applied (uppercase, trimmed)
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - etl-ods
+  stories:
+  - FTRS-2200
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: identifier-normalization-enforced
+    measure: Identifier normalization applied (uppercase, trimmed)
+    threshold: 100% identifiers normalised; mismatches \u2264 0.1%
+    tooling: Normalization middleware + validation tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent identifier handling
+    service_stories:
+      crud-apis:
+      - FTRS-2200
+      dos-search:
+      - FTRS-2430
+- code: INT-007
+  requirement: Strict content negotiation implemented
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-2201
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: strict-content-negotiation
+    measure: Strict content negotiation implemented
+    threshold: Only documented media types accepted; correct response Content-Type
+    tooling: API contract tests + gateway policies
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents ambiguity in accepted formats
+    service_stories:
+      crud-apis:
+      - FTRS-2201
+      dos-search:
+      - FTRS-2431
+- code: INT-008
+  requirement: Reference data sync latency ≤24h
+  services:
+  - data-migration
+  stories:
+  - FTRS-2202
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: reference-data-sync-latency
+    measure: Reference data sync latency ≤24h
+    threshold: Sync completes within 24 hours
+    tooling: ETL scheduler + latency report
+    cadence: Daily
+    environments:
+    - prod
+    services:
+    - etl-ods
+    status: draft
+    rationale: Timely reference data ensures correct behaviour
+    service_stories:
+      etl-ods:
+      - FTRS-2202
+- code: INT-009
+  requirement: Only documented FHIR search params accepted
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2203
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: documented-search-params-only
+    measure: Only documented FHIR search params accepted
+    threshold: Unknown search params rejected with OperationOutcome
+    tooling: API gateway policy + contract tests
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents ambiguity in search semantics
+    service_stories:
+      crud-apis:
+      - FTRS-2203
+      dos-search:
+      - FTRS-2432
+- code: INT-010
+  requirement: Version-controlled integration contract published
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2204
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: version-controlled-contract
+    measure: Version-controlled integration contract published
+    threshold: Contract published under version control; lint passes; updated \u22645
+      business days after change
+    tooling: Spec repo + Spectral lint + diff job
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures consistent and timely documentation
+    service_stories:
+      crud-apis:
+      - FTRS-2204
+      dos-search:
+      - FTRS-2433
+- code: INT-011
+  requirement: Machine-readable changelog generated
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - etl-ods
+  - dos-ui
+  stories:
+  - FTRS-2205
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: machine-readable-changelog
+    measure: Machine-readable changelog generated
+    threshold: Changelog generated per release with breaking changes highlighted
+    tooling: Release pipeline + changelog generator
+    cadence: Per release
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Supports integrators with clear changes
+    service_stories:
+      crud-apis:
+      - FTRS-2205
+      dos-search:
+      - FTRS-2434
+- code: INT-012
+  requirement: Terminology bindings validated
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2206
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: terminology-binding-validation
+    measure: Terminology bindings validated
+    threshold: 100% required bindings validated against value sets
+    tooling: Terminology server + validators
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures correct coding practices
+    service_stories:
+      crud-apis:
+      - FTRS-2206
+      dos-search:
+      - FTRS-2435
+- code: INT-013
+  requirement: Correlation IDs preserved across calls
+  services:
+  - dos-search
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: correlation-id-preserved
+    measure: Correlation IDs preserved across calls
+    threshold: 100% requests preserve transaction_id/correlation_id in logs and headers
+    tooling: Middleware + log correlation tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Enables end-to-end tracing and diagnostics
+    service_stories:
+      crud-apis:
+      - FTRS-2436
+      - FTRS-980
+      dos-search:
+      - FTRS-2437
+      - FTRS-980
+- code: INT-014
+  requirement: Null vs absent data handled per FHIR
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2207
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: null-vs-absent-semantics
+    measure: Null vs absent data handled per FHIR
+    threshold: Responses follow FHIR rules; conformance tests pass
+    tooling: Contract tests + response validators
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Clarifies response semantics for consumers
+    service_stories:
+      crud-apis:
+      - FTRS-2207
+      dos-search:
+      - FTRS-2438
+- code: INT-015
+  requirement: ≥90% interoperability scenario coverage
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - FTRS-2208
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: interoperability-scenario-coverage
+    measure: \u226590% interoperability scenario coverage
+    threshold: \u226590% coverage across documented scenarios; exceptions recorded
+    tooling: Scenario test suite + coverage reports
+    cadence: CI per build + quarterly review
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Ensures comprehensive interoperability validation
+    service_stories:
+      crud-apis:
+      - FTRS-2208
+      dos-search:
+      - FTRS-2439
+- code: INT-016
+  requirement: Stateless sequence-independent operations
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  stories:
+  - FTRS-2209
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: stateless-sequence-independence
+    measure: Stateless sequence-independent operations
+    threshold: 100% documented operations produce correct outcome independent of prior
+      invocation order
+    tooling: Idempotence + shuffled sequence integration tests
+    cadence: CI per build + quarterly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Enables horizontal scaling and predictable consumer integration
+    service_stories:
+      crud-apis:
+      - FTRS-2209
+      dos-search:
+      - FTRS-2440
+- code: INT-017
+  requirement: Complete field-level input validation every request
+  services:
+  - dos-search
+  - crud-apis
+  stories:
+  - FTRS-1488
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: field-validation-complete
+    measure: Complete field-level input validation every request
+    threshold: 100% of inputs validated; rich error responses on failure
+    tooling: Validation layer + contract tests
+    cadence: CI per build
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    status: draft
+    rationale: Protects system integrity via strict input validation
+    service_stories:
+      crud-apis:
+      - FTRS-2441
+- code: INT-018
+  requirement: Comprehensive published OpenAPI documentation (overview, audience,
+    related APIs, roadmap, SLA, tech stack, network access, security/auth, test environment,
+    onboarding, endpoints with examples)
+  services:
+  - dos-search
+  - crud-apis
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: api-documentation-completeness
+    measure: Comprehensive published OpenAPI documentation
+    threshold: All required catalogue sections present; spec passes lint; updated
+      ≤5 business days after prod change
+    tooling: Spectral lint + spec diff + manual checklist
+    cadence: CI per build + weekly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Reduces integration friction; ensures transparency for consumers
+    service_stories:
+      crud-apis:
+      - FTRS-2442
+      dos-search:
+      - FTRS-2443

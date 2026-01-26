@@ -24,7 +24,7 @@ views {
     include dosLegacyDb
 
     include ftrs.db.orgTable
-    include ftrs.db.healthcareServiceTable
+    include ftrs.db.healthCareServiceTable
     include ftrs.db.locationTable
 
     autoLayout TopBottom 100 100
