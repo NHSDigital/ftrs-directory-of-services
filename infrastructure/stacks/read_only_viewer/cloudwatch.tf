@@ -36,4 +36,9 @@ resource "aws_cloudwatch_log_delivery" "log_delivery" {
 
   record_fields = var.included_cloudfront_log_fields
   provider      = aws.us-east-1
+
+  depends_on = [
+    aws_cloudwatch_log_delivery_source.delivery_source,
+    aws_cloudwatch_log_delivery_destination.delivery_destination
+  ]
 }
