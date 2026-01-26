@@ -12,7 +12,7 @@ model {
       lambda assuranceEngine "Assurance Engine" {
         description '
           Performs data quality checks.
-          Success updates data in the Organisations table, and possibly the tasks table
+          Success updates data in the Organizations table, and possibly the tasks table
           Failure updates the Tasks table
         '
       }

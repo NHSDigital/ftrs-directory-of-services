@@ -2,117 +2,43 @@ model {
   extend ftrs {
 
     component apiGateway "API Gateway" {
-      description 'Routes requests to the appropriate service'
+      description "Routes requests to the appropriate service"
       style {
         icon aws:api-gateway
       }
-
-      -> dns.route53Zone "DNS resolution"
-      -> dns.acmCertificate "TLS termination"
     }
 
-    // =========================================================================
-    // DNS & Certificate Management
-    // =========================================================================
     container dns "DNS & Certificates" {
-      description "Route 53 DNS and ACM certificate management"
-      style {
-        icon aws:route-53
-      }
+      description "Public DNS and TLS certificates for FtRS external endpoints"
 
       component route53Zone "Route 53 Hosted Zone" {
-        description "Public hosted zone for ftrs.nhs.uk domain"
+        description "Public hosted zone for ftrs.nhs.uk and service records"
         style {
           icon aws:route-53
         }
-
-        -> security.shieldAdvanced "protected by"
       }
 
       component acmCertificate "ACM Certificate" {
-        description "Wildcard TLS certificate for *.ftrs.nhs.uk"
+        description "Wildcard TLS certificate for FtRS domains"
         style {
           icon aws:certificate-manager
         }
       }
     }
 
-    // =========================================================================
-    // Security Services
-    // =========================================================================
-    container security "Security Services" {
-      description "KMS, Secrets Manager, and Shield Advanced"
+    component openSearch "OpenSearch Service" {
+      description "Search service for FTRS"
       style {
-        icon aws:shield
-      }
-
-      component secretsManager "Secrets Manager" {
-        description "Secure storage for API keys and JWT credentials"
-        style {
-          icon aws:secrets-manager
-        }
-
-        -> kms "encrypted by"
-      }
-
-      component kms "KMS" {
-        description "Customer managed encryption keys"
-        style {
-          icon aws:key-management-service
-        }
-      }
-
-      component shieldAdvanced "Shield Advanced" {
-        description "DDoS protection for Route 53"
-        style {
-          icon aws:shield
-        }
-      }
-    }
-
-    // =========================================================================
-    // Configuration & Observability
-    // =========================================================================
-    container operations "Operations" {
-      description "SSM Parameter Store, CloudWatch, and EventBridge"
-      style {
-        icon aws:systems-manager
-      }
-
-      component ssmParameterStore "SSM Parameter Store" {
-        description "Configuration parameters for services"
-        style {
-          icon aws:systems-manager
-        }
-      }
-
-      component cloudWatch "CloudWatch" {
-        description "Logs, metrics, and X-Ray tracing"
-        style {
-          icon aws:cloud-watch
-        }
-      }
-
-      component eventBridge "EventBridge Scheduler" {
-        description "Scheduled triggers for ETL pipelines"
-        style {
-          icon aws:event-bridge
-        }
-      }
-    }
-
-    // =========================================================================
-    // Storage
-    // =========================================================================
-    container storage "S3 Storage" {
-      description "Object storage for artifacts and data"
-      style {
-        icon aws:simple-storage-service
+        icon aws:open-search-service
         shape storage
       }
+    }
 
-      component s3Bucket "S3 Buckets" {
-        description "Lambda artifacts, trust store, and pipeline data"
+    container storage "Storage" {
+      description "Object storage for ETL artefacts and trust stores"
+
+      component s3Bucket "S3 Bucket" {
+        description "Buckets for ETL pipeline, artefacts and mTLS trust store"
         style {
           icon aws:simple-storage-service
           shape storage
@@ -120,29 +46,23 @@ model {
       }
     }
 
-    // =========================================================================
-    // Cross-service relationships
-    // =========================================================================
-    apiGateway -> storage.s3Bucket "reads mTLS trust store from"
-    apiGateway -> operations.cloudWatch "logs requests to"
-
     container db "FTRS Database" {
-      description 'Stores FTRS data'
+      description "Stores FTRS data"
       style {
         icon aws:dynamo-db
         shape storage
       }
 
-      component orgTable "Organisations" {
-        description 'Organisation table'
+      component orgTable "Organizations" {
+        description "Organization table"
         style {
           icon aws:dynamo-db
           shape storage
         }
       }
 
-      component healthcareServiceTable "Healthcare Services" {
-        description 'Healthcare Service table'
+      component healthCareServiceTable "Healthcare Services" {
+        description "Healthcare Services table"
         style {
           icon aws:dynamo-db
           shape storage
@@ -150,19 +70,44 @@ model {
       }
 
       component locationTable "Locations" {
-        description 'Location table'
+        description "Locations table"
         style {
           icon aws:dynamo-db
           shape storage
         }
-      }
 
-      component tasksTable "Tasks" {
-        description 'Tasks table'
-        style {
-          icon aws:dynamo-db
+        component tasksTable "Tasks" {
+          description "Tasks table"
+          style {
+            icon aws:dynamo-db
+            shape storage
+          }
         }
       }
     }
+
+    container liveDosDb "Live Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
+    container awsMigrationService "AWS Data Migration Service" {
+      style {
+        icon aws:database-migration-service
+      }
+    }
+
+    container etlStagingDosDb "ETL Staging Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
+    ftrs.db.healthCareServiceTable -> ftrs.openSearch "Updates index in"
+    ftrs.db.locationTable -> ftrs.openSearch "Updates index in"
+    ftrs.db.orgTable -> ftrs.openSearch "Updates index in"
   }
 }

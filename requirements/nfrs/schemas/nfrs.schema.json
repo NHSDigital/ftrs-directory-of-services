@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Domain NFRs",
+  "type": "object",
+  "required": ["version", "nfrs"],
+  "properties": {
+    "version": {"type": ["string", "number"]},
+    "generated": {"type": ["string", "number"]},
+    "nfrs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "requirement"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[A-Z]+-[0-9]+$"},
+          "title": {"type": "string"},
+          "requirement": {"type": "string"},
+          "explanation": {"type": "string"},
+          "stories": {"type": "array", "items": {"type": "string"}},
+          "controls": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["control_id", "measure"],
+              "properties": {
+                "control_id": {"type": "string"},
+                "measure": {"type": "string"},
+                "threshold": {"type": "string"},
+                "tooling": {"type": "string"},
+                "cadence": {"type": "string"},
+                "environments": {"type": "array", "items": {"type": "string"}},
+                "services": {"type": "array", "items": {"type": "string"}},
+                "operation_id": {"type": "string", "description": "Explicit operation identifier to correlate with performance targets"},
+                "status": {"type": "string"},
+                "rationale": {"type": "string"},
+                "stories": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          },
+          "operations": {
+            "description": "Performance-specific per-endpoint expectations (use for PERF domain)",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["service", "operation_id"],
+              "properties": {
+                "service": {"type": "string"},
+                "operation_id": {"type": "string"},
+                "p50_target_ms": {"type": ["number", "string"]},
+                "p95_target_ms": {"type": ["number", "string"]},
+                "absolute_max_ms": {"type": ["number", "string"]},
+                "burst_tps_target": {"type": ["number", "string"]},
+                "sustained_tps_target": {"type": ["number", "string"]},
+                "max_request_payload_bytes": {"type": ["number", "string"]},
+                "status": {"type": "string"},
+                "rationale": {"type": "string"},
+                "stories": {"type": "array", "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

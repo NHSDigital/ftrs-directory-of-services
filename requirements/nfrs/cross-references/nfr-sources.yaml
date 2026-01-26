@@ -1,0 +1,94 @@
+# Map NFR codes to their originating source documents for traceability
+# Extend this file over time for all domains.
+version: 1
+sources:
+  PERF-001:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-001
+  PERF-002:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-002
+  PERF-003:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-003
+  PERF-004:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-004
+  PERF-005:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-005
+  PERF-006:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-006
+  PERF-007:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-007
+  PERF-008:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-008
+  PERF-009:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-009
+  PERF-010:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-010
+  PERF-011:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-011
+  PERF-012:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-012
+  PERF-013:
+    - title: Performance NFRs – Atomic Requirements
+      path: requirements/nfrs/areas/performance/overview.md
+      anchor: PERF-013
+
+# Optional: Domain-level source links (e.g., original Confluence pages)
+# Populate per domain as needed. Keys should match domain names (capitalized),
+# values are arrays of {title, url}. Leave url blank to avoid rendering until set.
+domains:
+  Accessibility:
+    - title: Accessibility NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471135/Accessibility"
+  Availability:
+    - title: Availability NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471107/Availability"
+  Compatibility:
+    - title: Compatibility NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471126/Compatibility"
+  Cost:
+    - title: Cost NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471149/FinOps"
+  Governance:
+    - title: Governance NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471139/Compliance+and+Governance"
+  Interoperability:
+    - title: Interoperability NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471146/Interoperability"
+  Observability:
+    - title: Observability NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066470827/Observability+Monitoring+Metrics+Dashboards+and+Alerting"
+  Performance:
+    - title: Performance NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471098/Performance"
+  Reliability:
+    - title: Reliability NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471112/Reliability+and+Resilience"
+  Scalability:
+    - title: Scalability NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066471101/Scalability"
+  Security:
+    - title: Security NFRs – Original Confluence Page
+      url: "https://nhsd-confluence.digital.nhs.uk/spaces/FRS/pages/1066470803/Security"

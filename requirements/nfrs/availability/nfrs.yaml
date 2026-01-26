@@ -1,0 +1,311 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: AVAIL-001
+  requirement: Availability report shows ≥99.90% multi-AZ uptime
+  services:
+  - dos-search
+  - crud-apis
+  - dos-ui
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: multi-az-uptime-report
+    measure: Availability report shows ≥99.90% multi-AZ uptime
+    threshold: '>= 99.90% monthly uptime across multi-AZ deployment'
+    tooling: Uptime monitoring + monthly report automation
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Tracks SLA against multi-AZ deployment goals
+    service_stories:
+      crud-apis:
+      - FTRS-2373
+      dos-search:
+      - FTRS-2374
+      dos-ui:
+      - FTRS-2375
+- code: AVAIL-002
+  requirement: Region DR simulation meets plan objectives
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-11
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: region-dr-simulation
+    measure: Region DR simulation meets plan objectives
+    threshold: DR exercise meets RTO/RPO targets and user impact objectives
+    tooling: DR runbooks + simulation exercises
+    cadence: Semi-annual
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Validates disaster recovery readiness across regions
+    service_stories:
+      data-migration:
+      - FTRS-11
+      - FTRS-2377
+      crud-apis:
+      - FTRS-11
+      - FTRS-2376
+      etl-ods:
+      - FTRS-11
+      - FTRS-2380
+      dos-search:
+      - FTRS-11
+      - FTRS-2378
+      dos-ui:
+      - FTRS-11
+      - FTRS-2379
+      infrastructure:
+      - FTRS-407
+- code: AVAIL-003
+  requirement: Uptime monitoring confirms 24x7 coverage
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  - sandbox-dos-search
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  - id: private-beta
+  stories:
+  - FTRS-2155
+  controls:
+  - control_id: uptime-monitoring-coverage
+    measure: Uptime monitoring confirms 24x7 coverage
+    threshold: 24x7 coverage; alerts configured for service degradation
+    tooling: Uptime monitors + alerting system
+    cadence: Continuous monitoring
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures continuous availability monitoring
+    service_stories:
+      crud-apis:
+      - FTRS-2155
+      - FTRS-2384
+      data-migration:
+      - FTRS-2381
+      dos-search:
+      - FTRS-2382
+      dos-ui:
+      - FTRS-2383
+- code: AVAIL-004
+  requirement: Monthly maintenance minutes ≤150; single ≤60
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  - id: private-beta
+  stories:
+  - FTRS-2157
+  controls:
+  - control_id: maintenance-window-minutes
+    measure: Monthly maintenance minutes ≤150; single ≤60
+    threshold: Monthly total ≤150 minutes; single window ≤60 minutes
+    tooling: Maintenance logs + reporting
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Controls maintenance impact to meet availability objectives
+    service_stories:
+      crud-apis:
+      - FTRS-2157
+      data-migration:
+      - FTRS-2385
+      dos-search:
+      - FTRS-2386
+      dos-ui:
+      - FTRS-2387
+- code: AVAIL-005
+  requirement: Maintenance window executed; smoke tests pass
+  stories:
+  - FTRS-1004
+  - FTRS-1693
+  teams:
+  - infrastructure
+  controls:
+  - control_id: scheduled-maintenance-smoke-tests
+    measure: Maintenance window executed; smoke tests pass
+    threshold: Maintenance completes; post-window smoke tests 100% pass; no Sev-1/2
+      incidents
+    tooling: Deployment controller + smoke test suite + incident log
+    cadence: Weekly maintenance window
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures safe scheduled maintenance without user impact
+    stories: []
+- code: AVAIL-006
+  requirement: DR exercise restores service <2h
+  services:
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-11
+  - FTRS-751
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  controls:
+  - control_id: dr-exercise-rto
+    measure: DR exercise restores service <2h
+    threshold: End-to-end restore < 120 minutes; data loss = 0 per RPO
+    tooling: DR runbook + timer + integrity checks
+    cadence: Semi-annual exercise
+    environments:
+    - int
+    - ref
+    status: draft
+    rationale: Validates recovery objectives and data integrity
+    service_stories:
+      data-migration:
+      - FTRS-11
+      - FTRS-2388
+      dos-search:
+      - FTRS-11
+      - FTRS-2389
+- code: AVAIL-007
+  requirement: Replication lag ≤60s; fail-over data delta minimal
+  services:
+  - data-migration
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2158
+  controls:
+  - control_id: replication-lag-threshold
+    measure: Replication lag \u226460s; fail-over data delta minimal
+    threshold: Replication lag \u2264 60s for primary datasets; failover delta \u2264
+      1% records
+    tooling: Replication metrics + failover audit
+    cadence: Continuous + monthly report
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures rapid failover with minimal inconsistency
+    service_stories:
+      data-migration:
+      - FTRS-2158
+- code: AVAIL-008
+  requirement: API uptime aligns with core service
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2159
+  controls:
+  - control_id: api-uptime-sla
+    measure: API uptime aligns with core service
+    threshold: API uptime \u2265 99.90% monthly; maintenance excluded per policy
+    tooling: Uptime monitors + SLA calculator
+    cadence: Monthly
+    environments:
+    - prod
+    status: draft
+    rationale: Aligns API availability to overall SLA
+    service_stories:
+      crud-apis:
+      - FTRS-2159
+      data-migration:
+      - FTRS-2390
+      dos-search:
+      - FTRS-2391
+- code: AVAIL-009
+  requirement: Non-UK access attempts blocked & logged
+  services:
+  - dos-search
+  - dos-ui
+  teams:
+  - infrastructure
+  releases:
+  - id: private-beta
+  - id: ga
+  stories:
+  - FTRS-2160
+  controls:
+  - control_id: geo-blocking-enforced
+    measure: Non-UK access attempts blocked & logged
+    threshold: 100% non-UK requests blocked at edge; structured log with country +
+      ip
+    tooling: WAF geo rules + edge logs
+    cadence: Continuous + weekly audit
+    environments:
+    - prod
+    status: draft
+    rationale: Reduces risk from out-of-region access
+    service_stories:
+      dos-search:
+      - FTRS-2160
+      dos-ui:
+      - FTRS-2392
+- code: AVAIL-010
+  requirement: Blue/green deployment produces 0 failed requests
+  services:
+  - dos-search
+  - crud-apis
+  - dos-ui
+  - data-migration
+  - etl-ods
+  teams:
+  - infrastructure
+  releases:
+  - id: ga
+  - id: private-beta
+  stories:
+  - FTRS-2161
+  controls:
+  - control_id: blue-green-zero-failures
+    measure: Blue/green deployment produces 0 failed requests
+    threshold: 0 failed requests during blue/green switch
+    tooling: Deployment controller + canary telemetry
+    cadence: Per deployment
+    environments:
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Ensures safe deployments without user impact
+    service_stories:
+      crud-apis:
+      - FTRS-2161
+      data-migration:
+      - FTRS-2393
+      dos-search:
+      - FTRS-2394
+      dos-ui:
+      - FTRS-2395
