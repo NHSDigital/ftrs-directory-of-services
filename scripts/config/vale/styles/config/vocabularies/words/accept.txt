@@ -127,3 +127,5 @@ service_automation
 Http
 JMeter
 env
+(?i)boolean
+(?i)ui

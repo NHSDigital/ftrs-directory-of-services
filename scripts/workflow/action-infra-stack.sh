@@ -116,6 +116,7 @@ COMMON_TF_VARS_FILE="common.tfvars"
 STACK_TF_VARS_FILE="$STACK.tfvars"
 ENV_TF_VARS_FILE="environment.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
+TOGGLE_ENVIRONMENT=$( [ "${WORKSPACE}" = "default" ] && echo "${ENVIRONMENT}" || echo "workspace" )
 
 echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
 ROOT_DIR=$PWD
@@ -142,6 +143,13 @@ if [ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ] ; then
   TEMP_STACK_TF_VARS_FILE=1
 fi
 
+STACK_TOGGLE_TF_VARS_FILE="$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/toggles/stacks."$TOGGLE_ENVIRONMENT".auto.tfvars
+TEMP_STACK_TOGGLE_TF_VARS_FILE=0
+if [ ! -f "$STACK_TOGGLE_TF_VARS_FILE" ] ; then
+  touch "$STACK_TOGGLE_TF_VARS_FILE"
+  TEMP_STACK_TOGGLE_TF_VARS_FILE=1
+fi
+
 ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT/"
 
 if [ -d "$ENVIRONMENTS_DIR" ]  ; then
@@ -150,7 +158,6 @@ else
   echo "No environment specific directory found for $ENVIRONMENT. Please create one and try again"
   exit 1
 fi
-
 
 # if no env specific tfvars for stack create temporary one
 TEMP_ENV_STACK_TF_VARS_FILE=0
@@ -169,7 +176,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$STACK_TOGGLE_TF_VARS_FILE"
 
   PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
 
@@ -200,7 +208,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$STACK_TOGGLE_TF_VARS_FILE"
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then

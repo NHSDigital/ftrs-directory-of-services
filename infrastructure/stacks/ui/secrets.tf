@@ -1,11 +1,13 @@
 resource "aws_secretsmanager_secret" "session_secret" {
+  count = local.stack_enabled
   # checkov:skip=CKV2_AWS_57:TODO - https://nhsd-jira.digital.nhs.uk/browse/FDOS-405
   name        = "/${var.project}/${var.environment}${local.workspace_suffix}/ui-session-secret"
   description = "Session secret for the DoS UI"
-  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key.arn
+  kms_key_id  = data.aws_kms_key.secrets_manager_kms_key[0].arn
 }
 
 resource "random_password" "session_secret" {
+  count   = local.stack_enabled
   length  = 32
   special = true
   upper   = true
@@ -14,6 +16,7 @@ resource "random_password" "session_secret" {
 }
 
 resource "aws_secretsmanager_secret_version" "session_secret" {
-  secret_id     = aws_secretsmanager_secret.session_secret.id
-  secret_string = random_password.session_secret.result
+  count         = local.stack_enabled
+  secret_id     = aws_secretsmanager_secret.session_secret[0].id
+  secret_string = random_password.session_secret[0].result
 }
