@@ -80,5 +80,9 @@ markers = [
   "incremental-update: marks test as incremental update (data changes between migrations) related",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
+  "validation: marks test as validation related",
+  "state-management: marks test as state management related",
+  "ready-to-run: marks test as ready to run with existing steps",
+  "missing-steps: marks test as missing step definitions",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']
