@@ -53,7 +53,7 @@ resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_policy_attachm
 }
 
 data "aws_iam_role" "github_account_role" {
-  name = "${var.account_prefix}-${var.account_github_runner_role_name}"
+  name = "${local.account_prefix}-${var.account_github_runner_role_name}"
 }
 
 data "aws_iam_policy_document" "trust_github_runner_roles" {
