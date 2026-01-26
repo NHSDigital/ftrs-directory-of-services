@@ -12,3 +12,9 @@ osis_pipeline_cloudwatch_log_group_name = "/aws/vendedlogs/OpenSearchIngestion/d
 max_sink_retries                        = 1
 opensearch_pipeline_s3_dlq_bucket_name  = "osis-pipiline-dlq"
 opensearch_pipeline_s3_dlq_prefix       = "osis-pipeline-errors/"
+
+opensearch_type                  = "SEARCH"
+opensearch_standby_replicas      = "DISABLED"
+opensearch_create_access_policy  = false
+opensearch_create_network_policy = false
+opensearch_collection_name       = "-osc"

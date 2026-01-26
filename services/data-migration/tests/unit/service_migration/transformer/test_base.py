@@ -35,7 +35,10 @@ from service_migration.transformer import ServiceTransformer
 
 
 class BasicServiceTransformer(ServiceTransformer):
-    def transform(self, service: Service) -> dict:
+    def transform(
+        self,
+        service: Service,
+    ) -> dict:
         return super().transform(service)
 
     @classmethod
@@ -91,7 +94,7 @@ def test_service_transformer_build_organisation(
     assert result == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
         identifier_oldDoS_uid="test-uid",
-        name="Test Service",
+        name="Public Test Service",
         type="GP Practice",
         active=True,
         createdBy="DATA_MIGRATION",
