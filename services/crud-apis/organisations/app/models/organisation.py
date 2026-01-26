@@ -54,8 +54,6 @@ PERMITTED_ROLE_COMBINATIONS = [
         "non_primary": [
             OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
         ],
-        "additional_non_primary": "any",
-        "require_gp_practice": True,
     },
 ]
 
@@ -423,7 +421,10 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
 
     # Validate primary role constraints
     if not primary_roles:
-        _raise_validation_error("Valid primary role code (RO177) must be provided")
+        valid_primary_codes = ", ".join(code.value for code in VALID_PRIMARY_TYPE_CODES)
+        _raise_validation_error(
+            f"Valid primary role code ({valid_primary_codes}) must be provided"
+        )
 
     if len(primary_roles) > 1:
         _raise_validation_error("Only one primary role is allowed per organisation")
@@ -449,30 +450,19 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
             f"Invalid primary role code: '{primary_role_code.value}'"
         )
 
-    allowed_non_primary = set(permitted_combination["non_primary"])
-
     # Validate non-primary role requirements
     if not non_primary_role_codes:
         _raise_validation_error(
             f"{primary_role_code.value} must have at least one non-primary role"
         )
 
-    # Check if GP Practice is required and present
-    if permitted_combination.get("require_gp_practice", False):
-        if OrganisationTypeCode.GP_PRACTICE_ROLE_CODE not in non_primary_role_codes:
-            _raise_validation_error(
-                f"{primary_role_code.value} must have RO76 (GP Practice) as one of the non-primary roles"
-            )
+    # Check that all required non-primary roles are present
+    required_non_primary = set(permitted_combination["non_primary"])
+    provided_non_primary = set(non_primary_role_codes)
 
-    # If additional non-primary roles are allowed, only validate required roles
-    if permitted_combination.get("additional_non_primary") == "any":
-        # Allow any additional roles beyond the required ones
-        return
-
-    # Strict validation for exact role combinations
-    allowed_non_primary = set(permitted_combination["non_primary"])
-    invalid_roles = set(non_primary_role_codes) - allowed_non_primary
-    if invalid_roles:
+    missing_required_roles = required_non_primary - provided_non_primary
+    if missing_required_roles:
+        missing_role_names = [role.value for role in missing_required_roles]
         _raise_validation_error(
-            f"Non-primary role '{next(iter(invalid_roles)).value}' is not permitted for primary type '{primary_role_code.value}'"
+            f"{primary_role_code.value} requires the following non-primary roles: {', '.join(missing_role_names)}"
         )

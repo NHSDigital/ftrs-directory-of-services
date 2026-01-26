@@ -1270,9 +1270,7 @@ def test_invalid_prescribing_cost_centre_without_gp_practice() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         OrganisationUpdatePayload(**payload)
 
-    assert "RO177 must have RO76 (GP Practice) as one of the non-primary roles" in str(
-        exc_info.value
-    )
+    assert "RO177 requires the following non-primary roles: RO76" in str(exc_info.value)
 
 
 def test_invalid_prescribing_cost_centre_with_duplicate_additional_roles() -> None:

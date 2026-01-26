@@ -925,7 +925,7 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "RO177 must have RO76 (GP Practice) as one of the non-primary roles"
+                        diagnostics: "RO177 requires the following non-primary roles: RO76"
                 invalid-primary-role-code:
                   summary: Invalid primary role code (e.g., RO182)
                   value:
@@ -941,7 +941,7 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "RO177 must have RO76 (GP Practice) as one of the non-primary roles"
+                        diagnostics: "RO177 requires the following non-primary roles: RO76"
                 duplicate-non-primary-roles:
                   summary: Duplicate non-primary role codes
                   value:

@@ -110,17 +110,17 @@ Feature: Organization API Endpoint
     And the diagnostics message indicates the "<expected_error_message>"
 
     Examples:
-      | primary_role_code | non_primary_role_codes | expected_error_message                                             |
-      | RO177             | [RO80]                 | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
-      | RO177             | [RO80, RO87]           | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
-      | RO182             | []                     | Valid primary role code (RO177) must be provided                   |
-      | RO177             | [RO80, RO80]           | Duplicate non-primary roles are not allowed                        |
-      | RO177             | []                     | RO177 must have at least one non-primary role                      |
-      | RO177             | [RO268]                | RO177 must have RO76 (GP Practice) as one of the non-primary roles |
-      | RO177             | [RO76, RO87, RO87]     | Duplicate non-primary roles are not allowed                        |
-      | RO182             | [RO76]                 | Valid primary role code (RO177) must be provided                   |
-      | RO182             | [RO268]                | Valid primary role code (RO177) must be provided                   |
-      | None              | [RO76, RO80, RO87]     | Valid primary role code (RO177) must be provided                   |
+      | primary_role_code | non_primary_role_codes | expected_error_message                               |
+      | RO177             | [RO80]                 | RO177 requires the following non-primary roles: RO76 |
+      | RO177             | [RO80, RO87]           | RO177 requires the following non-primary roles: RO76 |
+      | RO182             | []                     | Valid primary role code (RO177) must be provided     |
+      | RO177             | [RO80, RO80]           | Duplicate non-primary roles are not allowed          |
+      | RO177             | []                     | RO177 must have at least one non-primary role        |
+      | RO177             | [RO268]                | RO177 requires the following non-primary roles: RO76 |
+      | RO177             | [RO76, RO87, RO87]     | Duplicate non-primary roles are not allowed          |
+      | RO182             | [RO76]                 | Valid primary role code (RO177) must be provided     |
+      | RO182             | [RO268]                | Valid primary role code (RO177) must be provided     |
+      | None              | [RO76, RO80, RO87]     | Valid primary role code (RO177) must be provided     |
 
 
   Scenario Outline: Reject Organization update with invalid roleCode extension structure
