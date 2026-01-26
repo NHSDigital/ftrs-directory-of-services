@@ -69,7 +69,7 @@ jobs:
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v4.0.2
+        uses: aws-actions/configure-aws-credentials@v5.1.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true
@@ -203,12 +203,12 @@ jobs:
       # Upload report artifacts for download
       - name: Upload reports
         if: steps.should-run.outputs.should_run == 'true'
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: aws-wafr-thrifty-reports-${{ matrix.environment }}
           path: reports/
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 30
 
   slack-notifications:
     name: "Send Notification to Slack"
