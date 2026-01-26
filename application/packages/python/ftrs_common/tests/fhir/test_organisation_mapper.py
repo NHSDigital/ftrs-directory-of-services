@@ -1192,9 +1192,6 @@ def test_to_fhir_no_extension_when_no_legal_dates() -> None:
 def test_from_fhir_no_legal_dates_when_no_extension() -> None:
     """Test from_fhir sets legal dates to None when no extension."""
     mapper = OrganizationMapper()
-    modified_by = AuditEvent(
-        type=AuditEventType.user, value="test_user", display="Test User"
-    )
     fhir_org = FhirOrganisation(
         id="00000000-0000-0000-0000-00000000000a",
         identifier=[
@@ -2492,7 +2489,9 @@ def test__build_organisation_extensions_with_primary_and_non_primary_roles() -> 
 def test__build_organisation_extensions_with_non_primary_roles_only() -> None:
     """Test building extensions with only non-primary role codes."""
     mapper = OrganizationMapper()
-    modified_by = AuditEvent(type=AuditEventType.user, value="test_user", display="Test User")
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
