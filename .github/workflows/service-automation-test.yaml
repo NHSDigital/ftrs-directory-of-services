@@ -46,8 +46,9 @@ on:
 
   workflow_dispatch:
     inputs:
+      # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
       environment:
-        description: "Deployment environment"
+        description: "Which aws environment to run against"
         required: true
         default: "dev"
         type: choice
@@ -57,7 +58,7 @@ on:
           - int
           - ref
       workspace:
-        description: "The name of the workspace to deploy the application into"
+        description: "The name of the workspace to run the test against"
         required: false
         default: ""
         type: string
