@@ -56,17 +56,9 @@ class DataMigrationApplication:
         """
         event = self.parse_event(record.json_body)
 
-        if event.method.lower() not in ["insert", "update", "delete"]:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_010,
-                method=event.method,
-                event=event.model_dump(),
-            )
-            return
-
         match event.table_name:
             case "services":
-                return self.processor.sync_service(event.record_id, event.method)
+                return self.handle_service_event(event)
             case "serviceendpoints":
                 return self.handle_endpoint_event(event)
 
@@ -130,4 +122,23 @@ class DataMigrationApplication:
         )
 
     def handle_endpoint_event(self, event: DMSEvent) -> None:
+        """
+        Handle database change events for the serviceendpoints table.
+        All endpoint events (insert/update/delete) trigger a service update to sync endpoint changes.
+        """
         return self.processor.sync_service(event.service_id, "update")
+
+    def handle_service_event(self, event: DMSEvent) -> None:
+        """
+        Handle database change events for the services table.
+        Only insert and update events are processed. Delete events are logged and skipped.
+        """
+        if event.method.lower() not in ["insert", "update"]:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_010,
+                method=event.method,
+                event=event.model_dump(),
+            )
+            return
+
+        return self.processor.sync_service(event.record_id, event.method)
