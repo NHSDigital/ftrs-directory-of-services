@@ -74,7 +74,6 @@ class ServiceTransformer(ABC):
         """
         Transform the given service data into a dictionary format.
 
-        :param validation_issues:
         :param service: The service data to transform.
         :return: A dictionary representation of the transformed service data.
         """
@@ -121,7 +120,7 @@ class ServiceTransformer(ABC):
             identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
             active=True,
-            name=service.name,
+            name=service.publicname,
             telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
