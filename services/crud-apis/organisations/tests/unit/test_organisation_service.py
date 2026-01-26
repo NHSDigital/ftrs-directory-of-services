@@ -713,7 +713,7 @@ def test_process_organisation_update_with_none_phone_number(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        modifiedDateTime=FIXED_MODIFIED_TIME,
+        lastUpdated=FIXED_MODIFIED_TIME,
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):

@@ -253,9 +253,7 @@ class OrganisationService:
                 outdated_fields=list(outdated_fields.keys()),
                 organisation_id=getattr(organisation, "id", None),
             )
-            outdated_fields["lastUpdatedBy"] = (
-                payload.lastUpdatedBy or "ODS_ETL_PIPELINE"
-            )
+            outdated_fields["lastUpdatedBy"] = payload.lastUpdatedBy
             outdated_fields["lastUpdated"] = datetime.now(UTC)
         return outdated_fields
 
