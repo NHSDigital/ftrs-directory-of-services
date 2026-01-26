@@ -65,7 +65,7 @@ WORKDIR /app
 COPY --chown=appuser:appuser src /app/src
 
 # Ensure copied content isn't writable (defense-in-depth for runtime file integrity)
-RUN chmod -R go-w /app/src
+RUN chmod -R a-w /app/src
 
 USER appuser
 
