@@ -26,7 +26,7 @@ docker build -t dos-search:local .
 
 ### Corporate CA build (Zscaler / TLS interception)
 
-1) Copy your corporate root CA bundle PEM into the Docker build context (this folder).
+1. Copy your corporate root CA bundle PEM into the Docker build context (this folder).
 
 Use any filename you like (example uses `corp-proxy-ca.pem`):
 
@@ -35,7 +35,7 @@ cd services/sandbox-dos-search
 cp -f ../../your-corp-ca.pem ./corp-proxy-ca.pem
 ```
 
-2) Build the corporate-CA target:
+1. Build the corporate-CA target:
 
 ```bash
 docker build --target runtime-with-corp-ca -t dos-search:local .
