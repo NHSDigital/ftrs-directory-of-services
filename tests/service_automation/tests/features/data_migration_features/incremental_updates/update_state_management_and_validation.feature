@@ -1,4 +1,4 @@
-@data-migration @incremental-update @state-management @validation
+@data-migration @incremental-update @state-management @validation @ftrs-1371
 Feature: Incremental Updates - State Management and Validation
 
   Background:
@@ -34,7 +34,6 @@ Feature: Incremental Updates - State Management and Validation
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#570001' with version 1
 
-    # Update multiple fields at once
     Given the "Service" with id "570001" is updated with attributes
       | key         | value                            |
       | name        | Multi Field Practice - Updated   |
@@ -49,10 +48,9 @@ Feature: Incremental Updates - State Management and Validation
 
     When the data migration process is run for table 'services', ID '570001' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    # Version should only increment by 1 despite multiple field changes
     And the state table contains a record for key 'services#570001' with version 2
 
-  @missing-steps
+  @ready-to-run
   Scenario: Update when state table record exists validates correctly
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
@@ -80,12 +78,10 @@ Feature: Incremental Updates - State Management and Validation
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#570002' with version 1
 
-    # Verify state table has all 3 entity IDs stored
     And the state table record for key 'services#570002' contains organisation ID
     And the state table record for key 'services#570002' contains location ID
     And the state table record for key 'services#570002' contains healthcare_service ID
 
-    # Update should use stored state to perform incremental update
     Given the "Service" with id "570002" is updated with attributes
       | key  | value                          |
       | name | State Check Practice - Updated |
@@ -94,7 +90,7 @@ Feature: Incremental Updates - State Management and Validation
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#570002' with version 2
 
-  @missing-steps
+  @ready-to-run
   Scenario: Update HealthcareService with valid providedBy reference succeeds
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
@@ -122,11 +118,9 @@ Feature: Incremental Updates - State Management and Validation
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#570003' with version 1
 
-    # Verify providedBy reference exists and points to Organisation
     And the DynamoDB record for healthcare-service contains valid providedBy UUID
     And the referenced Organisation record exists in DynamoDB
 
-    # Update should maintain valid reference
     Given the "Service" with id "570003" is updated with attributes
       | key  | value                                 |
       | name | Valid Reference Practice - Updated    |
@@ -135,59 +129,20 @@ Feature: Incremental Updates - State Management and Validation
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
     And the DynamoDB record for healthcare-service still contains same providedBy UUID
 
-  @missing-steps
-  Scenario: Update with invalid enum value is handled gracefully
+  @ready-to-run
+  Scenario: Update with maximum field length is handled correctly
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
       | id                  | 570004                  |
       | uid                 | 570004                  |
-      | name                | Enum Test Practice      |
-      | odscode             | V57004                  |
-      | openallhours        | FALSE                   |
-      | restricttoreferrals | FALSE                   |
-      | address             | 5 Version Street        |
-      | town                | VERSIONTOWN             |
-      | postcode            | VS5 5AA                 |
-      | publicphone         | 01234 570004            |
-      | email               | enumtest@nhs.net        |
-      | web                 | www.enumtest.com        |
-      | createdtime         | 2024-01-01 08:00:00.000 |
-      | modifiedtime        | 2024-01-01 08:00:00.000 |
-      | typeid              | 100                     |
-      | statusid            | 1                       |
-      | publicname          | Enum Test Practice      |
-      | latitude            | 51.5074                 |
-      | longitude           | -0.1278                 |
-
-    When the data migration process is run for table 'services', ID '570004' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#570004' with version 1
-
-    # Update with invalid statusid that doesn't map to valid enum
-    Given the "Service" with id "570004" is updated with attributes
-      | key      | value |
-      | statusid | 9999  |
-
-    When the data migration process is run for table 'services', ID '570004' and method 'update'
-    # System should either skip (if validation catches it) or error (if not supported)
-    # This validates error handling exists for invalid enum mappings
-    Then the SQS event should be processed without causing system failure
-    And appropriate error or skip should be recorded in metrics
-
-  @missing-steps
-  Scenario: Update with maximum field length is handled correctly
-    Given a "Service" exists in DoS with attributes
-      | key                 | value                   |
-      | id                  | 570005                  |
-      | uid                 | 570005                  |
       | name                | Boundary Test Practice  |
-      | odscode             | V57005                  |
+      | odscode             | V57004                  |
       | openallhours        | FALSE                   |
       | restricttoreferrals | FALSE                   |
       | address             | 8 Version Street        |
       | town                | VERSIONTOWN             |
       | postcode            | VS8 8AA                 |
-      | publicphone         | 01234 570005            |
+      | publicphone         | 01234 570004            |
       | email               | boundary@nhs.net        |
       | web                 | www.boundary.com        |
       | createdtime         | 2024-01-01 08:00:00.000 |
@@ -198,35 +153,33 @@ Feature: Incremental Updates - State Management and Validation
       | latitude            | 51.5074                 |
       | longitude           | -0.1278                 |
 
-    When the data migration process is run for table 'services', ID '570005' and method 'insert'
+    When the data migration process is run for table 'services', ID '570004' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#570005' with version 1
+    And the state table contains a record for key 'services#570004' with version 1
 
-    # Update with very long name (test field length handling)
-    Given the "Service" with id "570005" is updated with attributes
+    Given the "Service" with id "570004" is updated with attributes
       | key  | value                                                                                                                                                                                                                                                                   |
       | name | This is an extremely long service name that tests the maximum field length handling in the incremental update process to ensure that long strings are properly processed and stored in DynamoDB without truncation or error and this name is exactly 255 chars long!!! |
 
-    When the data migration process is run for table 'services', ID '570005' and method 'update'
+    When the data migration process is run for table 'services', ID '570004' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#570005' with version 2
-    # Verify full name is stored (no truncation)
+    And the state table contains a record for key 'services#570004' with version 2
     And field 'name' on table 'healthcare-service' contains the full updated name
 
   @ready-to-run
   Scenario: Update with high precision GPS coordinates preserves precision
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
-      | id                  | 570006                  |
-      | uid                 | 570006                  |
+      | id                  | 570005                  |
+      | uid                 | 570005                  |
       | name                | GPS Precision Practice  |
-      | odscode             | V57006                  |
+      | odscode             | V57005                  |
       | openallhours        | FALSE                   |
       | restricttoreferrals | FALSE                   |
       | address             | 9 Version Street        |
       | town                | VERSIONTOWN             |
       | postcode            | VS9 9AA                 |
-      | publicphone         | 01234 570006            |
+      | publicphone         | 01234 570005            |
       | email               | gpsprecision@nhs.net    |
       | web                 | www.gpsprecision.com    |
       | createdtime         | 2024-01-01 08:00:00.000 |
@@ -237,19 +190,19 @@ Feature: Incremental Updates - State Management and Validation
       | latitude            | 51.5074                 |
       | longitude           | -0.1278                 |
 
-    When the data migration process is run for table 'services', ID '570006' and method 'insert'
+    When the data migration process is run for table 'services', ID '570005' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#570006' with version 1
+    And the state table contains a record for key 'services#570005' with version 1
 
     # Update coordinates with high precision (15 decimal places)
-    Given the "Service" with id "570006" is updated with attributes
+    Given the "Service" with id "570005" is updated with attributes
       | key       | value                |
       | latitude  | 51.123456789012345   |
       | longitude | -2.987654321098765   |
 
-    When the data migration process is run for table 'services', ID '570006' and method 'update'
+    When the data migration process is run for table 'services', ID '570005' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    And the state table contains a record for key 'services#570006' with version 2
+    And the state table contains a record for key 'services#570005' with version 2
     # Verify precision is maintained (Decimal as string in DynamoDB)
     And field 'positionGCS' on table 'location' for id 'e2g7f0b6-9e5c-5dd4-e8f1-2g0b6c4d7e8f' has content:
       """
