@@ -1,0 +1,616 @@
+# WAFv2 Web ACL for DoS Search API Gateway (REGIONAL)
+# Mirrors the complex/live DoS WAF ruleset (synthetic monitoring allowlists + geo + managed groups + logging).
+
+locals {
+  waf_web_acl_name   = "${local.resource_prefix}-dos-search-waf-web-acl${local.workspace_suffix}"
+  waf_logs_log_group = "aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}"
+  # Note: WAF requires a metric_name value in visibility_config even when CloudWatch metrics are disabled.
+  waf_metric_base_name  = "${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
+  waf_allowed_countries = var.waf_allowed_country_codes
+}
+
+resource "aws_cloudwatch_log_group" "waf_log_group" {
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  # checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
+  name              = local.waf_logs_log_group
+  retention_in_days = var.waf_log_retention_days
+}
+
+resource "aws_wafv2_web_acl" "dos_search_web_acl" {
+  name        = local.waf_web_acl_name
+  description = "DOS Search API Gateway WAF regional"
+  scope       = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  # Geo restrictions
+  # Block requests that are NOT from allowed countries
+  rule {
+    name     = "dos-search-waf-block-disallowed-countries"
+    priority = 0
+
+    action {
+      block {}
+    }
+
+    statement {
+      not_statement {
+        statement {
+          geo_match_statement {
+            country_codes = local.waf_allowed_countries
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "dos-search-waf-block-disallowed-countries"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Optional hostile country block (higher priority than managed groups)
+  dynamic "rule" {
+    for_each = length(var.waf_hostile_country_codes) > 0 ? [1] : []
+    content {
+      name     = "dos-search-waf-block-hostile-countries"
+      priority = 1
+
+      action {
+        block {}
+      }
+
+      statement {
+        geo_match_statement {
+          country_codes = var.waf_hostile_country_codes
+        }
+      }
+
+      visibility_config {
+        cloudwatch_metrics_enabled = false
+        metric_name                = "dos-search-waf-block-hostile-countries"
+        sampled_requests_enabled   = true
+      }
+    }
+  }
+
+  # Managed rule groups
+  # Note: WAFNonexistentItemException at CreateWebACL is commonly caused by referencing a managed rule group name
+  # or per-rule override 'name' that doesn't exist in the target region/account.
+
+  # IP Reputation (managed rules - run in normal mode)
+  rule {
+    name     = "AWSManagedRulesAmazonIpReputationList"
+    priority = 10
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesAmazonIpReputationList"
+        vendor_name = "AWS"
+
+        rule_action_override {
+          name = "AWSManagedIPReputationList"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "AWSManagedReconnaissanceList"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "AWSManagedIPDDoSList"
+          action_to_use {
+            count {}
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "dos-search-waf-aws-managed-ip-reputation-list"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Known bad inputs (managed rules - run in normal mode)
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 20
+
+    # Override rule group = false
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+
+        rule_action_override {
+          name = "JavaDeserializationRCE_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "JavaDeserializationRCE_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "JavaDeserializationRCE_QUERYSTRING"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "JavaDeserializationRCE_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "Host_localhost_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "PROPFIND_METHOD"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "ExploitablePaths_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "Log4JRCE_QUERYSTRING"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "Log4JRCE_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "Log4JRCE_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "Log4JRCE_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "ReactJSRCE_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "dos-search-waf-aws-managed-known-bad-inputs"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Bot Control (COUNT mode while tuning)
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 30
+
+    # Override rule group = true (rule group action set to COUNT)
+    override_action {
+      count {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
+
+        rule_action_override {
+          name = "CategoryAdvertising"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategorySecurity"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategorySeo"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategorySocialMedia"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryAI"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalAutomatedBrowser"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalKnownBotDataCenter"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalNonBrowserUserAgent"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryArchiver"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryContentFetcher"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryEmailClient"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryHttpLibrary"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryLinkChecker"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryMiscellaneous"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryMonitoring"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategoryScrapingFramework"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CategorySearchEngine"
+          action_to_use {
+            block {}
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "dos-search-waf-aws-managed-bot-control"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Common rules (COUNT mode while tuning)
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 40
+
+    # Override rule group = true (rule group action set to COUNT)
+    override_action {
+      count {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+
+        rule_action_override {
+          name = "NoUserAgent_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "UserAgent_BadBots_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SizeRestrictions_QUERYSTRING"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SizeRestrictions_Cookie_HEADER"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SizeRestrictions_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "SizeRestrictions_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "EC2MetaDataSSRF_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "EC2MetaDataSSRF_COOKIE"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "EC2MetaDataSSRF_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "EC2MetaDataSSRF_QUERYARGUMENTS"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericLFI_QUERYARGUMENTS"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericLFI_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericLFI_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "RestrictedExtensions_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "RestrictedExtensions_QUERYARGUMENTS"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericRFI_QUERYARGUMENTS"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericRFI_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "GenericRFI_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CrossSiteScripting_COOKIE"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CrossSiteScripting_QUERYARGUMENTS"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CrossSiteScripting_BODY"
+          action_to_use {
+            block {}
+          }
+        }
+
+        rule_action_override {
+          name = "CrossSiteScripting_URIPATH"
+          action_to_use {
+            block {}
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "dos-search-waf-aws-managed-common-rules"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = false
+    metric_name                = local.waf_metric_base_name
+    sampled_requests_enabled   = true
+  }
+}
+
+# Allow AWS WAF to deliver logs to this account's CloudWatch Log Group.
+# WAF requires a CloudWatch Logs resource policy granting delivery.logs.amazonaws.com permission.
+# NOTE: data.aws_caller_identity.current is defined in provider.tf for this stack.
+
+data "aws_iam_policy_document" "dos_search_waf_log_group_policy_document" {
+  version = "2012-10-17"
+
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    # Match the account_wide approach: allow writing to aws-waf-logs-* log groups in this account/region.
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}:log-stream:*"
+    ]
+
+    condition {
+      test     = "ArnLike"
+      values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+      variable = "aws:SourceArn"
+    }
+
+    condition {
+      test     = "StringEquals"
+      values   = [tostring(data.aws_caller_identity.current.account_id)]
+      variable = "aws:SourceAccount"
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_resource_policy" "dos_search_waf_log_group_policy" {
+  policy_document = data.aws_iam_policy_document.dos_search_waf_log_group_policy_document.json
+  policy_name     = "${local.resource_prefix}-dos-search-waf-log-group-policy${local.workspace_suffix}"
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "dos_search_waf_logging" {
+  # Use the log group's ARN as the destination.
+  log_destination_configs = [aws_cloudwatch_log_group.waf_log_group.arn]
+  resource_arn            = aws_wafv2_web_acl.dos_search_web_acl.arn
+
+  depends_on = [aws_cloudwatch_log_resource_policy.dos_search_waf_log_group_policy]
+}
+
+resource "aws_wafv2_web_acl_association" "dos_search_api_gateway_stage" {
+  resource_arn = aws_api_gateway_stage.default.arn
+  web_acl_arn  = aws_wafv2_web_acl.dos_search_web_acl.arn
+}
