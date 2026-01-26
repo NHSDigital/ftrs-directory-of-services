@@ -234,7 +234,7 @@ async def run_s3_export(env: str, workspace: str | None) -> list:
         if "database-" in table_name:
             entity_key = table_name.split("database-")[-1]
         elif "data-migration-" in table_name:
-            entity_key = table_name.split("data-migration-")[-1]
+            entity_key = "data-migration-" + table_name.split("data-migration-")[-1]
         else:
             entity_key = table_name
 

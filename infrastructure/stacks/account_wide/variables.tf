@@ -38,31 +38,6 @@ variable "log_group_retention_in_days" {
   default     = 7
 }
 
-variable "opensearch_type" {
-  description = "The type of OpenSearch"
-  type        = string
-}
-
-variable "opensearch_standby_replicas" {
-  description = "Number of standby replicas for OpenSearch"
-  type        = string
-}
-
-variable "opensearch_create_access_policy" {
-  description = "Flag to create access policy for OpenSearch"
-  type        = bool
-}
-
-variable "opensearch_create_network_policy" {
-  description = "Flag to create network policy for OpenSearch"
-  type        = bool
-}
-
-variable "opensearch_collection_name" {
-  description = "The OpenSearch Collection name"
-  type        = string
-}
-
 variable "waf_log_group_policy_name" {
   description = "The WAF log group policy name"
   type        = string
@@ -225,4 +200,10 @@ variable "performance_files_bucket_name" {
   description = "S3 bucket name for performance files"
   type        = string
   default     = "is-performance-files-bucket"
+}
+
+variable "enable_s3_kms_encryption" {
+  description = "Whether to enable KMS encryption for S3 buckets"
+  type        = bool
+  default     = false
 }

@@ -165,6 +165,7 @@ def test_organisation_excludes_endpoint_modified_datetime(
 
 
 def test_organisation_detects_endpoint_data_changes(organisation: Organisation) -> None:
+    """Endpoint status and address changes are detected."""
     service_id = uuid4()
     endpoint1 = make_endpoint(organisation.id, service_id)
     endpoint2 = endpoint1.model_copy(
@@ -177,9 +178,22 @@ def test_organisation_detects_endpoint_data_changes(organisation: Organisation) 
     diff = get_organisation_diff(org1, org2)
 
     assert "values_changed" in diff
-    changed_paths = [str(item.path()) for item in diff["values_changed"]]
-    assert any("status" in path for path in changed_paths)
-    assert any("address" in path for path in changed_paths)
+    assert len(diff["values_changed"]) == 2  # noqa: PLR2004
+
+    changes = {}
+    for change in diff["values_changed"]:
+        path = str(change.path())
+        changes[path] = {"old": change.t1, "new": change.t2}
+
+    status_path = "root['endpoints'][0]['status']"
+    assert status_path in changes
+    assert changes[status_path]["old"] == EndpointStatus.ACTIVE.value
+    assert changes[status_path]["new"] == EndpointStatus.OFF.value
+
+    address_path = "root['endpoints'][0]['address']"
+    assert address_path in changes
+    assert changes[address_path]["old"] == "https://test.endpoint.com"
+    assert changes[address_path]["new"] == "https://changed.endpoint.com"
 
 
 def test_organisation_tree_view_has_old_and_new_values(
@@ -189,7 +203,10 @@ def test_organisation_tree_view_has_old_and_new_values(
     diff = get_organisation_diff(organisation, modified)
 
     assert "values_changed" in diff
+    assert len(diff["values_changed"]) == 1
+
     change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
     assert change.t1 == "Test Organisation"
     assert change.t2 == "New Name"
 
@@ -222,7 +239,10 @@ def test_location_tree_view_has_old_and_new_values(location: Location) -> None:
     diff = get_location_diff(location, modified)
 
     assert "values_changed" in diff
+    assert len(diff["values_changed"]) == 1
+
     change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
     assert change.t1 == "Test Location"
     assert change.t2 == "New Name"
 
@@ -247,9 +267,10 @@ def test_healthcare_service_excludes_modified_datetime(
     assert len(diff) == 0
 
 
-def test_healthcare_service_ignores_dispositions_order(
+def test_healthcare_service_detects_dispositions_order_changes(
     healthcare_service: HealthcareService,
 ) -> None:
+    """Reordering dispositions is detected as additions/removals at different positions."""
     service1 = healthcare_service.model_copy(
         update={"dispositions": ["DX1", "DX114", "DX200"]}
     )
@@ -258,12 +279,24 @@ def test_healthcare_service_ignores_dispositions_order(
     )
 
     diff = get_healthcare_service_diff(service1, service2)
-    assert len(diff) == 0
+
+    assert len(diff) > 0
+    assert "iterable_item_added" in diff
+    assert "iterable_item_removed" in diff
+
+    removed = {str(c.path()): c.t1 for c in diff["iterable_item_removed"]}
+    added = {str(c.path()): c.t2 for c in diff["iterable_item_added"]}
+
+    assert "root['dispositions'][2]" in removed
+    assert removed["root['dispositions'][2]"] == "DX200"
+    assert "root['dispositions'][0]" in added
+    assert added["root['dispositions'][0]"] == "DX200"
 
 
-def test_healthcare_service_ignores_sgsd_order(
+def test_healthcare_service_detects_sgsd_order_changes(
     healthcare_service: HealthcareService,
 ) -> None:
+    """Swapping SGSD positions causes value changes at each index."""
     sgsd1 = SymptomGroupSymptomDiscriminatorPair(sg=1000, sd=4003)
     sgsd2 = SymptomGroupSymptomDiscriminatorPair(sg=2000, sd=5003)
 
@@ -275,7 +308,19 @@ def test_healthcare_service_ignores_sgsd_order(
     )
 
     diff = get_healthcare_service_diff(service1, service2)
-    assert len(diff) == 0
+
+    assert len(diff) > 0
+    assert "values_changed" in diff
+    assert len(diff["values_changed"]) == 4  # noqa: PLR2004  # 2 positions x 2 fields
+
+    changes = {
+        str(change.path()): (change.t1, change.t2) for change in diff["values_changed"]
+    }
+
+    assert changes["root['symptomGroupSymptomDiscriminators'][0]['sg']"] == (1000, 2000)
+    assert changes["root['symptomGroupSymptomDiscriminators'][0]['sd']"] == (4003, 5003)
+    assert changes["root['symptomGroupSymptomDiscriminators'][1]['sg']"] == (2000, 1000)
+    assert changes["root['symptomGroupSymptomDiscriminators'][1]['sd']"] == (5003, 4003)
 
 
 def test_healthcare_service_detects_disposition_changes(
@@ -288,7 +333,10 @@ def test_healthcare_service_detects_disposition_changes(
 
     assert len(diff) > 0
     assert "values_changed" in diff
+    assert len(diff["values_changed"]) == 1
+
     change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['dispositions'][1]"
     assert change.t1 == "DX114"
     assert change.t2 == "DX999"
 
@@ -300,7 +348,10 @@ def test_healthcare_service_tree_view_has_old_and_new_values(
     diff = get_healthcare_service_diff(healthcare_service, modified)
 
     assert "values_changed" in diff
+    assert len(diff["values_changed"]) == 1
+
     change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
     assert change.t1 == "Test Healthcare Service"
     assert change.t2 == "New Name"
 
@@ -308,6 +359,7 @@ def test_healthcare_service_tree_view_has_old_and_new_values(
 def test_organisation_detects_changes_but_excludes_datetimes(
     organisation: Organisation,
 ) -> None:
+    """Datetime fields are excluded while other changes are detected."""
     modified = organisation.model_copy(
         update={
             "name": "Changed Name",
@@ -318,10 +370,12 @@ def test_organisation_detects_changes_but_excludes_datetimes(
     diff = get_organisation_diff(organisation, modified)
 
     assert "values_changed" in diff
-    changed_paths = [str(item.path()) for item in diff["values_changed"]]
-    assert any("name" in path for path in changed_paths)
-    assert not any("createdDateTime" in path for path in changed_paths)
-    assert not any("modifiedDateTime" in path for path in changed_paths)
+    assert len(diff["values_changed"]) == 1
+
+    change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
+    assert change.t1 == "Test Organisation"
+    assert change.t2 == "Changed Name"
 
 
 def test_location_detects_changes_but_excludes_datetimes(location: Location) -> None:
@@ -335,10 +389,12 @@ def test_location_detects_changes_but_excludes_datetimes(location: Location) -> 
     diff = get_location_diff(location, modified)
 
     assert "values_changed" in diff
-    changed_paths = [str(item.path()) for item in diff["values_changed"]]
-    assert any("name" in path for path in changed_paths)
-    assert not any("createdDateTime" in path for path in changed_paths)
-    assert not any("modifiedDateTime" in path for path in changed_paths)
+    assert len(diff["values_changed"]) == 1
+
+    change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
+    assert change.t1 == "Test Location"
+    assert change.t2 == "Changed Location"
 
 
 def test_healthcare_service_detects_changes_but_excludes_datetimes(
@@ -354,7 +410,9 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
     diff = get_healthcare_service_diff(healthcare_service, modified)
 
     assert "values_changed" in diff
-    changed_paths = [str(item.path()) for item in diff["values_changed"]]
-    assert any("name" in path for path in changed_paths)
-    assert not any("createdDateTime" in path for path in changed_paths)
-    assert not any("modifiedDateTime" in path for path in changed_paths)
+    assert len(diff["values_changed"]) == 1
+
+    change = list(diff["values_changed"])[0]
+    assert str(change.path()) == "root['name']"
+    assert change.t1 == "Test Healthcare Service"
+    assert change.t2 == "Changed Service"

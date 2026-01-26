@@ -139,12 +139,12 @@ def service_should_have_validation_error(error_code: str, migration_context: Dic
     assert metrics is not None, "Metrics not found in migration result"
 
     # Service with validation errors should be marked as invalid
-    assert metrics.invalid_records > 0, (
+    assert metrics.invalid > 0, (
         f"Expected service to be marked as invalid, but invalid_records count is {metrics.invalid_records}"
     )
 
     # The service should not be migrated
-    assert metrics.updated_records == 0, (
+    assert metrics.updated == 0, (
         f"Expected service not to be migrated due to validation error '{error_code}', "
         f"but updated_records count is {metrics.migrated_records}"
     )

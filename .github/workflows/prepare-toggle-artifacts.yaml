@@ -1,0 +1,54 @@
+name: Prepare Toggle Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The environment to prepare toggles for"
+        required: true
+        type: string
+      workspace:
+        description: "The workspace name"
+        required: true
+        type: string
+      tag:
+        description: "The tag to checkout"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-toggles:
+    name: "Prepare Toggle artifacts"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Install Python dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: "Generate feature flags JSON"
+        env:
+          ENVIRONMENT: ${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+        run: |
+          /bin/bash ./scripts/workflow/generate-feature-flags.sh
+
+      - name: "Generate stack toggles"
+        env:
+          ENVIRONMENT: ${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+        run: |
+          /bin/bash ./scripts/workflow/generate-stack-toggles.sh
+
+      - name: "Upload Toggle Artifact"
+        uses: actions/upload-artifact@v6
+        with:
+          name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: infrastructure/toggles/

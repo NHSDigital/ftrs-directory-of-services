@@ -49,7 +49,7 @@ info:
 
     You do not need to know much about [FHIR](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#fhir) to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
     - resource names are capitalised and singular, for example /Patient not /patients
-    - array names are singular, for example line not lines for address lines
+    - array names are singular, for example entry not entries for Bundle entries
     - data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object.
 
     There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
@@ -119,6 +119,8 @@ info:
 servers:
   - url: 'https://internal-dev.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Development
+  - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Internal Sandbox
   - url: 'https://internal-qa.api.service.nhs.uk/dos-search/FHIR/R4'
     description: Internal QA
   - url: 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
@@ -232,16 +234,6 @@ paths:
                           value: "ABC123"
                       active: true
                       name: "Example Organization"
-                      telecom:
-                        - system: "phone"
-                          value: "01234 567890"
-                        - system: "email"
-                          value: "example@example.com"
-                      address:
-                        - line: ["Example Medical Practice", "Example Street"]
-                          city: "Example City"
-                          postalCode: "AB12 3CD"
-                          country: "ENGLAND"
                     search:
                       mode: "match"
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
@@ -457,8 +449,6 @@ components:
         - identifier
         - active
         - name
-        - telecom
-        - address
       properties:
         resourceType:
           type: string
@@ -482,31 +472,6 @@ components:
           type: boolean
         name:
           type: string
-        telecom:
-          type: array
-          items:
-            type: object
-            properties:
-              system:
-                type: string
-                enum: [ "phone", "fax", "email", "pager", "url", "sms", "other" ]
-              value:
-                type: string
-        address:
-          type: array
-          items:
-            type: object
-            properties:
-              line:
-                type: array
-                items:
-                  type: string
-              city:
-                type: string
-              postalCode:
-                type: string
-              country:
-                type: string
         endpoint:
           type: array
           items:

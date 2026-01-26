@@ -109,7 +109,7 @@ deployment {
         technology "DynamoDB, On-demand, PITR enabled"
       }
 
-      healthcareServiceTable = instanceOf ftrs.db.healthcareServiceTable {
+      healthcareServiceTable = instanceOf ftrs.db.healthCareServiceTable {
         title "Healthcare Service Table"
         description "Healthcare service data"
         technology "DynamoDB, On-demand, PITR enabled"
