@@ -12,6 +12,14 @@ on:
         description: "The name of the workspace to deploy the application into"
         required: true
         type: string
+      api_name:
+        description: "The name of the API to test (e.g., dos-search)"
+        required: false
+        type: string
+      apim_env:
+        description: "The APIM environment to test (e.g., internal-dev, internal-qa)"
+        required: false
+        type: string
       test_tag:
         description: "The name of the feature tag that identifies the tests to run"
         required: false
@@ -102,9 +110,18 @@ jobs:
         run: make install
         working-directory: "tests/service_automation"
 
+      - name: Install Python dependencies for JWT
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pyjwt cryptography
+
       - name: Run ${{ inputs.test_tag }} service automation tests
         id: run-service_automation-tests
         uses: ./.github/actions/service-automation-test
+        env:
+          PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
         with:
           aws_region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
@@ -112,6 +129,8 @@ jobs:
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
           commit_hash: ${{ inputs.commit_hash }}
+          apim_env: ${{ inputs.apim_env }}
+          api_name: ${{ inputs.api_name }}
           tag: ${{ inputs.tag }}
 
       - name: Upload allure report

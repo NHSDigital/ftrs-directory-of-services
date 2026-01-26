@@ -1,4 +1,5 @@
 """Gherkin table parsing utilities."""
+
 from typing import Any, Dict, List
 
 

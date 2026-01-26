@@ -1,5 +1,6 @@
-import boto3
 import os
+
+import boto3
 from loguru import logger
 
 
@@ -31,7 +32,9 @@ class ODSMockClient:
 
             parameter_name = f"/{project}-{env}/mock-api/endpoint-url-{workspace}"
 
-            response = self.ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+            response = self.ssm_client.get_parameter(
+                Name=parameter_name, WithDecryption=True
+            )
             api_url = response["Parameter"]["Value"]
             logger.info("Retrieved ODS mock API URL")
 

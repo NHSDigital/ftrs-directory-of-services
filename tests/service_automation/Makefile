@@ -5,10 +5,11 @@ ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
 MARKERS ?= ui is-api is-infra
 TEST_TYPE ?= non-ui
+LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
 
 # ==============================================================================
 
-.PHONY: clean install config test report
+.PHONY: clean install config lint lint-staged lint-fix pre-commit test report _install-dependency _install-dependencies
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
@@ -26,12 +27,33 @@ config:
 	poetry install --no-root --no-interaction --with shared
 	poetry run playwright install chromium
 
-test:
+lint:
+	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
+
+lint-staged:
+	files=$$(git diff --relative --name-only --cached -- '*.py'); \
+	if [ -z "$$files" ]; then \
+		echo "No files staged"; \
+	else \
+		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+	fi
+
+lint-fix:
+	poetry run ruff check --fix
+	poetry run ruff format
+
+pre-commit: lint-staged
+
+test: # Run tests for each marker. Separate test runs are needed to generate correct Allure reports.
 	@for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
+		elif [ "$$marker" = "is-apim" ]; then \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$(PROXY_NAME) -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		else \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
@@ -61,3 +83,6 @@ ${VERBOSE}.SILENT: \
 	_install-dependency \
 	_install-dependencies \
 	install \
+	lint \
+	lint-staged \
+	lint-fix \
