@@ -21,7 +21,7 @@ FROM base AS deps
 WORKDIR /app
 
 ENV VIRTUAL_ENV=/opt/venv
-RUN python -m venv ${VIRTUAL_ENV}
+RUN python -m venv "${VIRTUAL_ENV}"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 COPY requirements.txt ./requirements.txt
@@ -39,7 +39,7 @@ COPY ${CORP_CA_PEM} /usr/local/share/ca-certificates/corp-proxy.crt
 RUN update-ca-certificates
 
 ENV VIRTUAL_ENV=/opt/venv
-RUN python -m venv ${VIRTUAL_ENV}
+RUN python -m venv "${VIRTUAL_ENV}"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 COPY requirements.txt ./requirements.txt
@@ -52,9 +52,9 @@ FROM base AS runtime-base
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r appuser \
+    && useradd -r -g appuser appuser
 
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
