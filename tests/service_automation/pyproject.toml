@@ -84,6 +84,5 @@ markers = [
   "state-management: marks test as state management related",
   "ready-to-run: marks test as ready to run with existing steps",
   "missing-steps: marks test as missing step definitions",
-  "ftrs-1371: marks test as FTRS-1371 state management and validation tests",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

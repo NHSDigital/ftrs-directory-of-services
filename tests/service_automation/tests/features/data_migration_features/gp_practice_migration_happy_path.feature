@@ -34,8 +34,8 @@ Feature: Data Migration
       | lasttemplatename                    | Midlands template R46 Append PC                                                                                                                                                                                                         |
       | lasttemplateid                      | 244764                                                                                                                                                                                                                                  |
       | typeid                              | 100                                                                                                                                                                                                                                     |
-      | parentid                            | 150013                                                                                                                                                                                                                                  |
-      | subregionid                         | 150013                                                                                                                                                                                                                                  |
+      | parentid                            |                                                                                                                                                                                                                                         |
+      | subregionid                         |                                                                                                                                                                                                                                         |
       | statusid                            | 1                                                                                                                                                                                                                                       |
       | organisationid                      |                                                                                                                                                                                                                                         |
       | returnifopenminutes                 |                                                                                                                                                                                                                                         |
@@ -165,8 +165,8 @@ Feature: Data Migration
       | lasttemplatename                    |                                     |
       | lasttemplateid                      |                                     |
       | typeid                              | 100                                 |
-      | parentid                            | 150013                              |
-      | subregionid                         | 150013                              |
+      | parentid                            |                                     |
+      | subregionid                         |                                     |
       | statusid                            | 1                                   |
       | organisationid                      |                                     |
       | returnifopenminutes                 |                                     |

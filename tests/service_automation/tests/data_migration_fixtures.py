@@ -131,22 +131,54 @@ def fixture_dos_db(
     Yields:
         Database session with schema and data from source DB
     """
+    # Create a new connection for this test to ensure isolation
+    connection = dos_db_engine.connect()
+    session = Session(bind=connection)
 
     try:
         logger.debug("Initializing database with migrated data")
-        session = Session(dos_db_engine)
 
-        for script in dos_db_setup_scripts:
-            if script and script.strip():
-                session.exec(text(script))
-        session.commit()
+        # Begin a transaction
+        trans = connection.begin()
+
+        try:
+            for script in dos_db_setup_scripts:
+                if script and script.strip():
+                    session.exec(text(script))
+            session.commit()
+            trans.commit()
+
+            # Add missing servicestatuses that tests expect
+            session.exec(text("""
+                INSERT INTO pathwaysdos.servicestatuses (id, name)
+                VALUES (3, 'Inactive')
+                ON CONFLICT (id) DO NOTHING;
+
+                INSERT INTO pathwaysdos.servicestatuses (id, name)
+                VALUES (2, 'Commissioned')
+                ON CONFLICT (id) DO NOTHING;
+            """))
+            session.commit()
+        except Exception as setup_error:
+            logger.error(f"Setup failed: {setup_error}")
+            trans.rollback()
+            raise
 
         yield session
 
+    except Exception as e:
+        logger.error(f"Error in dos_db fixture: {e}")
+        raise
     finally:
-        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
-        session.commit()
-        session.close()
+        # Clean up schema
+        try:
+            session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
+            session.commit()
+        except Exception as cleanup_error:
+            logger.error(f"Cleanup failed: {cleanup_error}")
+        finally:
+            session.close()
+            connection.close()
 
 
 @pytest.fixture(name="dynamodb", scope="function")
@@ -157,9 +189,6 @@ def fixture_dynamodb(
     DynamoDB fixture with pre-created tables for each test.
 
     Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
-
-    Args:
-        localstack_container: LocalStack container fixture
 
     Yields:
         Dictionary with client, resource, and endpoint_url
