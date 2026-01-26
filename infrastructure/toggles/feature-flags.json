@@ -1,6 +1,0 @@
-{
-  "_comment": "This file is intentionally minimal - it will be overwritten during deployment by generate-feature-flags.sh",
-  "flags": {},
-  "values": {},
-  "version": "1"
-}
