@@ -27,6 +27,8 @@ packages = [{ include = "src" }]
 ruff = "^0.9.6"
 pytest = "^8.3.5"
 httpx = "^0.28.1"
+pytest-cov = "^6.1.1"
+coverage = "^7.13.0"
 
 [tool.ruff]
 line-length = 88
