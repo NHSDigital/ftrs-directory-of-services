@@ -20,8 +20,12 @@ def get_table_name(resource: str, stack_name: str = "database") -> str:
     project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
     environment = os.getenv("ENVIRONMENT", "dev")
     workspace = os.getenv("WORKSPACE", "test")
+    table_name = f"{project_name}-{environment}-{stack_name}-{resource}"
 
-    return f"{project_name}-{environment}-{stack_name}-{resource}-{workspace}"
+    if workspace:
+        table_name = f"{table_name}-{workspace}"
+
+    return table_name
 
 
 def get_dynamodb_tables() -> list[dict[str, Any]]:
