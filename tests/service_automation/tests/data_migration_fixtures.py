@@ -93,11 +93,16 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
 
 
 @pytest.fixture(scope="session")
-def dos_db_setup_scripts() -> list[str]:
+def dos_db_setup_scripts() -> list[tuple[str, str]]:
+    """Return list of (script_name, script_content) tuples for setup."""
     schema_sql = get_test_data_script("schema.sql")
     metadata_sql = get_test_data_script("metadata.sql")
     clinical_sql = get_test_data_script("clinical.sql")
-    return [schema_sql, metadata_sql, clinical_sql]
+    return [
+        ("schema.sql", schema_sql),
+        ("metadata.sql", metadata_sql),
+        ("clinical.sql", clinical_sql),
+    ]
 
 
 @pytest.fixture(scope="session")
@@ -143,27 +148,24 @@ def fixture_dos_db(
         session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
         session.commit()
 
-        # Begin a transaction
-        trans = connection.begin()
-
         try:
-            for script in dos_db_setup_scripts:
-                if script and script.strip():
-                    session.exec(text(script))
-            session.commit()
-            trans.commit()
-
-            # Add missing servicestatuses that tests expect
-            # First check if they already exist, if not insert them
-            session.exec(text("""
-                DELETE FROM pathwaysdos.servicestatuses WHERE id IN (2, 3);
-                INSERT INTO pathwaysdos.servicestatuses (id, name)
-                VALUES (3, 'Inactive'), (2, 'Commissioned');
-            """))
+            for script_name, script_content in dos_db_setup_scripts:
+                if script_content and script_content.strip():
+                    try:
+                        logger.debug(f"Executing setup script: {script_name}")
+                        session.exec(text(script_content))
+                    except Exception as script_error:
+                        logger.error(
+                            f"Failed to execute setup script '{script_name}': {script_error}"
+                        )
+                        session.rollback()
+                        raise RuntimeError(
+                            f"Database setup failed while executing '{script_name}'"
+                        ) from script_error
             session.commit()
         except Exception as setup_error:
-            logger.error(f"Setup failed: {setup_error}")
-            trans.rollback()
+            logger.error(f"Database setup failed: {setup_error}")
+            session.rollback()
             raise
 
         yield session
@@ -172,11 +174,9 @@ def fixture_dos_db(
         logger.error(f"Error in dos_db fixture: {e}")
         raise
     finally:
-        # Clean up schema - ensure any pending transactions are rolled back
+        # Clean up schema
         try:
-            # Roll back any uncommitted transaction
-            if connection.in_transaction():
-                session.rollback()
+            session.rollback()  # Roll back any uncommitted transaction
             session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
             session.commit()
         except Exception as cleanup_error:

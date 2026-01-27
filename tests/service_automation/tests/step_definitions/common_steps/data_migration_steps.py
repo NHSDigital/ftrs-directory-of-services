@@ -24,6 +24,7 @@ from utilities.common.constants import (
     ENV_ENVIRONMENT,
     ENV_WORKSPACE,
     SERVICETYPES_TABLE,
+    STATE_TABLE_ENTITY_ID_FIELDS,
 )
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
@@ -35,9 +36,12 @@ from utilities.common.log_helper import (
     verify_transformer_selected_log,
 )
 from utilities.common.dynamoDB_tables import get_table_name
-from boto3.dynamodb.types import TypeDeserializer
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
     parse_datatable_value,
+)
+from utilities.common.data_migration_shared_steps import (
+    get_state_record_by_id,
+    get_dynamodb_record_by_id,
 )
 from service_migration.models import ServiceMigrationMetrics
 
@@ -412,19 +416,7 @@ def verify_state_record_details(
     version: int,
 ) -> None:
     """Verify state record exists with correct version."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
 
     assert deserialized_item["version"] == version, (
         f"Version should be {version}, got {deserialized_item['version']}"
@@ -507,28 +499,10 @@ def verify_state_record_contains_entity_id(
     entity_type: str,
 ) -> None:
     """Verify state record contains the specified entity ID (organisation, location, healthcare_service)."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    entity_field_map = {
-        "organisation": "organisation_id",
-        "location": "location_id",
-        "healthcare_service": "healthcare_service_id",
-    }
-
-    field_name = entity_field_map.get(entity_type.lower())
+    field_name = STATE_TABLE_ENTITY_ID_FIELDS.get(entity_type.lower())
     assert field_name is not None, f"Unknown entity type: {entity_type}"
 
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
 
     assert field_name in deserialized_item, (
         f"State record should contain {field_name} field"
@@ -541,174 +515,4 @@ def verify_state_record_contains_entity_id(
 
     assert len(str(entity_id)) == 36 and "-" in str(entity_id), (
         f"{field_name} should be a valid UUID format, got: {entity_id}"
-    )
-
-
-@then("the DynamoDB record for healthcare-service contains valid providedBy UUID")
-def verify_healthcare_service_providedby(
-    migration_context: Dict[str, Any],
-    dynamodb: Dict[str, Any],
-) -> None:
-    """Verify healthcare-service record contains valid providedBy reference."""
-    migration_state = migration_context.get("migration_state")
-    assert migration_state is not None, "Migration state should exist"
-
-    hs_id = migration_state.get("healthcare_service_id")
-    assert hs_id is not None, "Healthcare service ID should exist in migration state"
-
-    hs_table_name = get_table_name(resource="healthcare-service", stack_name="data-migration")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    response = client.get_item(
-        TableName=hs_table_name,
-        Key={
-            "id": {"S": str(hs_id)},
-            "sort_key": {"S": "document"}
-        }
-    )
-
-    assert "Item" in response, f"Healthcare service record should exist for ID {hs_id}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    assert "providedBy" in deserialized_item, "providedBy field should exist"
-    provided_by = deserialized_item["providedBy"]
-
-    assert provided_by is not None and provided_by != "", (
-        f"providedBy should have a valid UUID value, got: {provided_by}"
-    )
-
-    assert len(str(provided_by)) == 36 and "-" in str(provided_by), (
-        f"providedBy should be a valid UUID format, got: {provided_by}"
-    )
-
-    migration_context["original_provided_by"] = provided_by
-
-
-@then("the referenced Organisation record exists in DynamoDB")
-def verify_referenced_organisation_exists(
-    migration_context: Dict[str, Any],
-    dynamodb: Dict[str, Any],
-) -> None:
-    """Verify the Organisation referenced by providedBy exists in DynamoDB."""
-    provided_by = migration_context.get("original_provided_by")
-    assert provided_by is not None, "providedBy UUID should be stored in context"
-
-    org_table_name = get_table_name(resource="organisation", stack_name="data-migration")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    response = client.get_item(
-        TableName=org_table_name,
-        Key={
-            "id": {"S": str(provided_by)},
-            "sort_key": {"S": "document"}
-        }
-    )
-
-    assert "Item" in response, (
-        f"Referenced Organisation record should exist for providedBy UUID {provided_by}"
-    )
-
-
-@then("the DynamoDB record for healthcare-service still contains same providedBy UUID")
-def verify_healthcare_service_providedby_unchanged(
-    migration_context: Dict[str, Any],
-    dynamodb: Dict[str, Any],
-) -> None:
-    """Verify healthcare-service providedBy reference remains unchanged after update."""
-    original_provided_by = migration_context.get("original_provided_by")
-    assert original_provided_by is not None, "Original providedBy UUID should be stored in context"
-
-    migration_state = migration_context.get("migration_state")
-    assert migration_state is not None, "Migration state should exist"
-
-    hs_id = migration_state.get("healthcare_service_id")
-    assert hs_id is not None, "Healthcare service ID should exist in migration state"
-
-    hs_table_name = get_table_name(resource="healthcare-service", stack_name="data-migration")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    response = client.get_item(
-        TableName=hs_table_name,
-        Key={
-            "id": {"S": str(hs_id)},
-            "sort_key": {"S": "document"}
-        }
-    )
-
-    assert "Item" in response, f"Healthcare service record should exist for ID {hs_id}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    current_provided_by = deserialized_item.get("providedBy")
-    assert current_provided_by == original_provided_by, (
-        f"providedBy should remain unchanged. "
-        f"Expected: {original_provided_by}, got: {current_provided_by}"
-    )
-
-
-@then(
-    parsers.parse(
-        "field '{field_name}' on table '{table_name}' contains the full updated name"
-    )
-)
-def verify_field_contains_full_value(
-    migration_context: Dict[str, Any],
-    dynamodb: Dict[str, Any],
-    field_name: str,
-    table_name: str,
-) -> None:
-    """Verify field in DynamoDB contains the full expected value without truncation."""
-    migration_state = migration_context.get("migration_state")
-    assert migration_state is not None, "Migration state should exist"
-
-    entity_id_field_map = {
-        "healthcare-service": "healthcare_service_id",
-        "organisation": "organisation_id",
-        "location": "location_id",
-    }
-
-    entity_id_field = entity_id_field_map.get(table_name)
-    assert entity_id_field is not None, f"Unknown table name: {table_name}"
-
-    entity_id = migration_state.get(entity_id_field)
-    assert entity_id is not None, f"{entity_id_field} should exist in migration state"
-
-    full_table_name = get_table_name(resource=table_name, stack_name="data-migration")
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    response = client.get_item(
-        TableName=full_table_name,
-        Key={
-            "id": {"S": str(entity_id)},
-            "sort_key": {"S": "document"}
-        }
-    )
-
-    assert "Item" in response, f"Record should exist in {table_name} for ID {entity_id}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
-
-    assert field_name in deserialized_item, f"Field '{field_name}' should exist in record"
-    actual_value = deserialized_item[field_name]
-
-    # The expected value is the 255-character string from the feature file
-    expected_value = (
-        "This is an extremely long service name that tests the maximum field length "
-        "handling in the incremental update process to ensure that long strings are "
-        "properly processed and stored in DynamoDB without truncation or error and "
-        "this name is exactly 255 chars long!!!"
-    )
-
-    assert actual_value == expected_value, (
-        f"Field '{field_name}' should contain the full updated value.\n"
-        f"Expected length: {len(expected_value)}, Actual length: {len(actual_value)}\n"
-        f"Expected: {expected_value}\n"
-        f"Actual: {actual_value}"
     )
