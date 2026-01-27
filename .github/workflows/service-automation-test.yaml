@@ -47,6 +47,58 @@ on:
         required: false
         type: string
 
+  workflow_dispatch:
+    inputs:
+      # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
+      environment:
+        description: "Which aws environment to run against"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - int
+          - ref
+      workspace:
+        description: "The name of the workspace to run the test against"
+        required: false
+        default: ""
+        type: string
+      test_tag:
+        description: "The name of the feature tag that identifies the tests to run"
+        required: false
+        type: string
+      test_type:
+        description: "The name of the type of test report that will be generated"
+        default: "data-migration"
+        required: false
+        type: string
+      tag:
+        description: "The tag to build and deploy from"
+        required: false
+        default: "data-migration"
+        type: string
+      allure_report_retention:
+        description: "The number of days to retain allure reports (in github)"
+        required: false
+        default: 10
+        type: number
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 10
+        type: number
+      type:
+        description: "The type of permissions (e.g., account, app)"
+        required: false
+        default: app
+        type: string
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+
 permissions:
   contents: read
 
@@ -114,7 +166,7 @@ jobs:
           workspace: ${{ inputs.workspace }}
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
-          commit_hash: ${{ inputs.commit_hash }}
+          commit_hash: ${{ inputs.commit_hash || github.sha }}
           tag: ${{ inputs.tag }}
 
       - name: Upload allure report
