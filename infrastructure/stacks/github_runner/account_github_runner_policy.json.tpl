@@ -97,7 +97,8 @@
                 "iam:RemoveRoleFromInstanceProfile",
                 "iam:GetInstanceProfile",
                 "iam:TagInstanceProfile",
-                "iam:UntagInstanceProfile"
+                "iam:UntagInstanceProfile",
+                "iam:UpdateAssumeRolePolicy"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",
