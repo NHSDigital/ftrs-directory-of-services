@@ -200,7 +200,7 @@ variable "health_check_lambda_invocations_threshold" {
 # Slack Notification Configuration
 ################################################################################
 
-variable "slack_webhook_url" {
+variable "slack_webhook_alarms_url" {
   description = "Slack webhook URL for sending alarm notifications"
   type        = string
   sensitive   = true
