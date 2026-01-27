@@ -65,6 +65,7 @@ jobs:
           aws_account_id: ${{ secrets.ACCOUNT_ID }}
           aws_region: ${{ vars.AWS_REGION }}
           type: account
+          environment: ${{ matrix.environment }}
 
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
