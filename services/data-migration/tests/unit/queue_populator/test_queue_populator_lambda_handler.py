@@ -17,6 +17,17 @@ from queue_populator.lambda_handler import (
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags client to prevent AppConfig initialization."""
+    mock_ff = mocker.MagicMock()
+    mock_ff.is_enabled.return_value = False
+    mocker.patch(
+        "queue_populator.lambda_handler.get_feature_flags", return_value=mock_ff
+    )
+    return mock_ff
+
+
 @pytest.fixture
 def mock_config() -> QueuePopulatorConfig:
     return QueuePopulatorConfig(

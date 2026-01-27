@@ -250,3 +250,34 @@ data "aws_iam_policy_document" "lambda_kms_access" {
 data "aws_kms_key" "dms_kms_alias" {
   key_id = local.kms_aliases.dms
 }
+
+# AppConfig SSM Parameters
+data "aws_ssm_parameter" "appconfig_application_id" {
+  name = "/${var.project}/${var.environment}/appconfig/application_id"
+}
+
+data "aws_ssm_parameter" "appconfig_environment_id" {
+  name = "/${var.project}/${var.environment}/appconfig/environment_id"
+}
+
+data "aws_ssm_parameter" "appconfig_configuration_profile_id" {
+  name = "/${var.project}/${var.environment}/appconfig/configuration_profile_id"
+}
+
+data "aws_ssm_parameter" "appconfig_extension_layer_arn" {
+  name = "/${var.project}/${var.environment}/appconfig/extension_layer_arn"
+}
+
+data "aws_iam_policy_document" "appconfig_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "appconfig:GetLatestConfiguration",
+      "appconfig:StartConfigurationSession"
+    ]
+    resources = [
+      "arn:aws:appconfig:${var.aws_region}:${data.aws_caller_identity.current.account_id}:application/${data.aws_ssm_parameter.appconfig_application_id.value}/environment/*/configuration/*"
+    ]
+  }
+}
+

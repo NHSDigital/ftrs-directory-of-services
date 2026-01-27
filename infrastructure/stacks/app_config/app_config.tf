@@ -35,3 +35,29 @@ output "configuration_profile_id" {
 output "appconfig_extension_layer_arn" {
   value = module.app_config.appconfig_extension_layer_arn
 }
+
+# SSM Parameters for cross-stack access
+resource "aws_ssm_parameter" "appconfig_application_id" {
+  name  = "/${var.project}/${var.environment}/appconfig/application_id"
+  type  = "String"
+  value = module.app_config.application_id
+}
+
+resource "aws_ssm_parameter" "appconfig_environment_id" {
+  name  = "/${var.project}/${var.environment}/appconfig/environment_id"
+  type  = "String"
+  value = module.app_config.environment_ids["environment"].environment_id
+}
+
+resource "aws_ssm_parameter" "appconfig_configuration_profile_id" {
+  name  = "/${var.project}/${var.environment}/appconfig/configuration_profile_id"
+  type  = "String"
+  value = module.app_config.configuration_profile_id
+}
+
+resource "aws_ssm_parameter" "appconfig_extension_layer_arn" {
+  name  = "/${var.project}/${var.environment}/appconfig/extension_layer_arn"
+  type  = "String"
+  value = module.app_config.appconfig_extension_layer_arn
+}
+
