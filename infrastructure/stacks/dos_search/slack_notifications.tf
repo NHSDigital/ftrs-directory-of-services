@@ -23,7 +23,7 @@ module "slack_notification_lambda" {
   source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
   function_name          = "${local.resource_prefix}-slack-notification"
   description            = "Lambda to send CloudWatch alarms to Slack"
-  handler                = "slack_alarm_handler.lambda_handler"
+  handler                = "functions.slack_alarm_handler.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
   s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
