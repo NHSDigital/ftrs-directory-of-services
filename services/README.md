@@ -1,6 +1,6 @@
 # Services
 
-Directory containing the services that make up the FtRS suite.
+Directory containing the services that make up the FtRS suites.
 
 Any new services should be added into this directory.
 
@@ -11,6 +11,7 @@ Any new services should be added into this directory.
   - [Data Migration](#data-migration)
   - [Read-Only Viewer](#read-only-viewer)
   - [Opensearch ingestion pipelines](#opensearch-ingestion-pipelines)
+  - [Sandbox](#sandbox)
 
 ## Data Migration
 
