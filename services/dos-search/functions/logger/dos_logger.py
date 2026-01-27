@@ -6,6 +6,8 @@ from typing import Any, Dict, Literal, Optional
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
+PLACEHOLDER = "Value not found. Please check if this value was provided in the request."
+
 
 class DosLogger:
     """Service-local wrapper that adds DOS structured fields to powertools logs while mirroring the underlying Logger implementation and behaviour.
@@ -19,11 +21,8 @@ class DosLogger:
     - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
     """
 
-    def __init__(self, service: str = "dos", debug: bool = False) -> None:
+    def __init__(self, service: str = "dos") -> None:
         self.logger = PowertoolsLogger(service=service)
-        self.placeholder = (
-            "Value not found. Please check if this value was provided in the request."
-        )
         self.headers = {}
 
     # Initialise method handles processing of event details - this should be called at the start of Lambda execution
@@ -103,12 +102,12 @@ class DosLogger:
         if len(reqid_corr_msgid) > correlation_id_index:
             corr = reqid_corr_msgid[correlation_id_index]
         else:
-            corr = self.placeholder
+            corr = PLACEHOLDER
 
         if len(reqid_corr_msgid) > message_id_index:
             msgid = reqid_corr_msgid[message_id_index]
         else:
-            msgid = self.placeholder
+            msgid = PLACEHOLDER
 
         mandatory["dos_nhsd_correlation_id"] = corr
 
@@ -120,7 +119,7 @@ class DosLogger:
             self._get_header(
                 "NHSD-Request-ID",
             )
-            or self.placeholder
+            or PLACEHOLDER
         )
         mandatory["dos_nhsd_request_id"] = reqid
 
@@ -135,21 +134,20 @@ class DosLogger:
         One-time logging fields are contained within the 'details' block.
         """
         self.headers = event.get("headers") or {}
-        placeholder = self.placeholder
 
         # One-time fields added to "details" to separate
         details = {}
 
-        api_version = self._get_header("version") or placeholder
+        api_version = self._get_header("version") or PLACEHOLDER
         details["dos_search_api_version"] = api_version
 
-        end_user_role = self._get_header("end-user-role") or placeholder
+        end_user_role = self._get_header("end-user-role") or PLACEHOLDER
         details["connecting_party_end_user_role"] = end_user_role
 
-        client_id = self._get_header("application-id") or placeholder
+        client_id = self._get_header("application-id") or PLACEHOLDER
         details["connecting_party_application_id"] = client_id
 
-        app_name = self._get_header("application-name") or placeholder
+        app_name = self._get_header("application-name") or PLACEHOLDER
         details["connecting_party_application_name"] = app_name
 
         # Request params
@@ -157,18 +155,18 @@ class DosLogger:
         query_params = event.get("queryStringParameters") or {}
         path_params = event.get("pathParameters") or {}
         request_context = event.get("requestContext") or {}
-        request_context.pop("identity", None)  # Remove identity for privacy/security
-        request_context.pop("accountId", None)  # Remove accountId for privacy/security
+        request_context.pop("identity")  # Remove identity for privacy/security
+        request_context.pop("accountId")  # Remove accountId for privacy/security
         req_params["query_params"] = query_params
         req_params["path_params"] = path_params
         req_params["request_context"] = request_context
 
         details["request_params"] = req_params or {}
 
-        details["dos_environment"] = os.environ.get("ENVIRONMENT") or placeholder
+        details["dos_environment"] = os.environ.get("ENVIRONMENT") or PLACEHOLDER
 
         details["lambda_version"] = (
-            os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or placeholder
+            os.environ.get("AWS_LAMBDA_FUNCTION_VERSION") or PLACEHOLDER
         )
 
         return details

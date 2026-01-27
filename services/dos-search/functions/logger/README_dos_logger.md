@@ -57,13 +57,13 @@ dos_logger.exception("Exception occurred", error_detail="details")
 
 These fields are extracted from API Gateway Event via the `extract` method and/or initialised as static/default fields, and appended to all subsequent logs for the duration of a Lambda execution when the `init` method is called:
 
-| Field                     | Source                                   | Placeholder           |
-| ------------------------- | ---------------------------------------- | --------------------- |
-| `dos_nhsd_correlation_id` | `NHSD-Correlation-ID` header             | `Value not found. Please check if this value was provided in the request.` |
-| `dos_nhsd_request_id`     | `NHSD-Request-ID` header                 | `Value not found. Please check if this value was provided in the request.` |
-| `dos_message_id`          | `NHSD-Message-Id` header                 | `Value not found. Please check if this value was provided in the request.` |
-| `dos_message_category`    | Default: `"LOGGING"` (can be overridden) | N/A                   |
-| `logger`                  | Identifier: `"dos_logger"`               | N/A                   |
+| Field                     | Source                                      | Placeholder           |
+| ------------------------- | --------------------------------------------| --------------------- |
+| `dos_nhsd_correlation_id` | Extracted from `NHSD-Correlation-ID` header | `Value not found. Please check if this value was provided in the request.` |
+| `dos_nhsd_request_id`     | `NHSD-Request-ID` header                    | `Value not found. Please check if this value was provided in the request.` |
+| `dos_message_id`          | Extracted from `NHSD-Correlation-ID` header | `Value not found. Please check if this value was provided in the request.` |
+| `dos_message_category`    | Default: `"LOGGING"` (can be overridden)    | N/A                   |
+| `logger`                  | Identifier: `"dos_logger"`                  | N/A                   |
 
 ### One-Time Fields (Logged Once at Initialization)
 
