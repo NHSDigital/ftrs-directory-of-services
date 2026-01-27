@@ -163,7 +163,7 @@ def assert_org_details_match(item: DBModel, expected_org: dict) -> None:
     assert getattr(item, "type", None) == expected_org["type"]
     assert getattr(item, "active", None) == expected_org["active"]
     assert getattr(item, "telecom", None) == expected_org["phone"]
-    assert getattr(item, "modifiedBy", None) == "ODS_ETL_PIPELINE"
+    assert getattr(item, "lastUpdatedBy", None) == "ODS_ETL_PIPELINE"
 
 
 def verify_organisation_in_repo(

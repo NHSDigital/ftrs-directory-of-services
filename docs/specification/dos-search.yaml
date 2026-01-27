@@ -338,6 +338,20 @@ paths:
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
                         diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+                unexpected-query-param:
+                  summary: Unexpected query parameter
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
 
         '401':
           description: Unauthorized - Invalid or missing authentication token

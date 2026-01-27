@@ -10,6 +10,7 @@ import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
 from ftrs_data_layer.domain import Endpoint, Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
@@ -32,9 +33,17 @@ def create_endpoint():
         payload_mime_type: EndpointPayloadMimeType = EndpointPayloadMimeType.FHIR,
         is_compression_enabled: bool = True,
         managed_by_organisation=None,
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         name: str = "Test Endpoint Name",
         payload_type: EndpointPayloadType = EndpointPayloadType.ED,
@@ -52,9 +61,9 @@ def create_endpoint():
             isCompressionEnabled=is_compression_enabled,
             managedByOrganisation=managed_by_organisation or uuid4(),
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             name=name,
             payloadType=payload_type,
             service=service,
@@ -82,9 +91,17 @@ def create_organisation():
         active: bool = True,
         name: str = "Test Organisation",
         org_type: str = "GP Practice",
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         endpoints: list[Endpoint] | None = None,
     ) -> Organisation:
@@ -96,9 +113,9 @@ def create_organisation():
             telecom=[],
             type=org_type,
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             endpoints=endpoints or [],
         )
 
@@ -121,6 +138,7 @@ def create_fhir_organization():
         name: str = "Test Organization",
         ods_code: str = "O123",
         active: bool = True,
+        telecom: str = "01234567890",
     ) -> Organization:
         return Organization.model_validate(
             {
@@ -132,6 +150,15 @@ def create_fhir_organization():
                         "use": "official",
                         "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                         "value": ods_code,
+                    }
+                ],
+                "telecom": [{"system": "phone", "value": telecom}],
+                "address": [
+                    {
+                        "line": ["Dummy Medical Practice", "Dummy Street"],
+                        "city": "Dummy City",
+                        "postalCode": "DU00 0MY",
+                        "country": "ENGLAND",
                     }
                 ],
             }
