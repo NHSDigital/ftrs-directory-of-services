@@ -40,10 +40,10 @@ def organisation() -> Organisation:
         type=OrganisationType.GP_PRACTICE,
         telecom=None,
         endpoints=[],
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -64,10 +64,10 @@ def location() -> Location:
         name="Test Location",
         positionGCS=PositionGCS(latitude=51.5074, longitude=-0.1278),
         primaryAddress=True,
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -91,10 +91,10 @@ def healthcare_service() -> HealthcareService:
         openingTime=[],
         symptomGroupSymptomDiscriminators=[],
         dispositions=[],
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -113,25 +113,21 @@ def make_endpoint(organisation_id: UUID, service_id: UUID) -> Endpoint:
         service=service_id,
         order=1,
         isCompressionEnabled=False,
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
 def test_organisation_excludes_created_datetime(organisation: Organisation) -> None:
-    modified = organisation.model_copy(
-        update={"createdDateTime": datetime(2025, 12, 31)}
-    )
+    modified = organisation.model_copy(update={"createdTime": datetime(2025, 12, 31)})
     diff = get_organisation_diff(organisation, modified)
     assert len(diff) == 0
 
 
 def test_organisation_excludes_modified_datetime(organisation: Organisation) -> None:
-    modified = organisation.model_copy(
-        update={"modifiedDateTime": datetime(2025, 12, 31)}
-    )
+    modified = organisation.model_copy(update={"lastUpdated": datetime(2025, 12, 31)})
     diff = get_organisation_diff(organisation, modified)
     assert len(diff) == 0
 
@@ -141,7 +137,7 @@ def test_organisation_excludes_endpoint_created_datetime(
 ) -> None:
     service_id = uuid4()
     endpoint1 = make_endpoint(organisation.id, service_id)
-    endpoint2 = endpoint1.model_copy(update={"createdDateTime": datetime(2025, 6, 15)})
+    endpoint2 = endpoint1.model_copy(update={"createdTime": datetime(2025, 6, 15)})
 
     org1 = organisation.model_copy(update={"endpoints": [endpoint1]})
     org2 = organisation.model_copy(update={"endpoints": [endpoint2]})
@@ -155,7 +151,7 @@ def test_organisation_excludes_endpoint_modified_datetime(
 ) -> None:
     service_id = uuid4()
     endpoint1 = make_endpoint(organisation.id, service_id)
-    endpoint2 = endpoint1.model_copy(update={"modifiedDateTime": datetime(2025, 6, 15)})
+    endpoint2 = endpoint1.model_copy(update={"lastUpdated": datetime(2025, 6, 15)})
 
     org1 = organisation.model_copy(update={"endpoints": [endpoint1]})
     org2 = organisation.model_copy(update={"endpoints": [endpoint2]})
@@ -212,13 +208,13 @@ def test_organisation_tree_view_has_old_and_new_values(
 
 
 def test_location_excludes_created_datetime(location: Location) -> None:
-    modified = location.model_copy(update={"createdDateTime": datetime(2025, 12, 31)})
+    modified = location.model_copy(update={"createdTime": datetime(2025, 12, 31)})
     diff = get_location_diff(location, modified)
     assert len(diff) == 0
 
 
 def test_location_excludes_modified_datetime(location: Location) -> None:
-    modified = location.model_copy(update={"modifiedDateTime": datetime(2025, 12, 31)})
+    modified = location.model_copy(update={"lastUpdated": datetime(2025, 12, 31)})
     diff = get_location_diff(location, modified)
     assert len(diff) == 0
 
@@ -226,8 +222,8 @@ def test_location_excludes_modified_datetime(location: Location) -> None:
 def test_location_excludes_both_datetimes(location: Location) -> None:
     modified = location.model_copy(
         update={
-            "createdDateTime": datetime(2025, 1, 1),
-            "modifiedDateTime": datetime(2025, 1, 1),
+            "createdTime": datetime(2025, 1, 1),
+            "lastUpdated": datetime(2025, 1, 1),
         }
     )
     diff = get_location_diff(location, modified)
@@ -251,7 +247,7 @@ def test_healthcare_service_excludes_created_datetime(
     healthcare_service: HealthcareService,
 ) -> None:
     modified = healthcare_service.model_copy(
-        update={"createdDateTime": datetime(2025, 12, 31)}
+        update={"createdTime": datetime(2025, 12, 31)}
     )
     diff = get_healthcare_service_diff(healthcare_service, modified)
     assert len(diff) == 0
@@ -261,7 +257,7 @@ def test_healthcare_service_excludes_modified_datetime(
     healthcare_service: HealthcareService,
 ) -> None:
     modified = healthcare_service.model_copy(
-        update={"modifiedDateTime": datetime(2025, 12, 31)}
+        update={"lastUpdated": datetime(2025, 12, 31)}
     )
     diff = get_healthcare_service_diff(healthcare_service, modified)
     assert len(diff) == 0
@@ -363,8 +359,8 @@ def test_organisation_detects_changes_but_excludes_datetimes(
     modified = organisation.model_copy(
         update={
             "name": "Changed Name",
-            "createdDateTime": datetime(2025, 1, 1),
-            "modifiedDateTime": datetime(2025, 1, 1),
+            "createdTime": datetime(2025, 1, 1),
+            "lastUpdated": datetime(2025, 1, 1),
         }
     )
     diff = get_organisation_diff(organisation, modified)
@@ -382,8 +378,8 @@ def test_location_detects_changes_but_excludes_datetimes(location: Location) -> 
     modified = location.model_copy(
         update={
             "name": "Changed Location",
-            "createdDateTime": datetime(2025, 1, 1),
-            "modifiedDateTime": datetime(2025, 1, 1),
+            "createdTime": datetime(2025, 1, 1),
+            "lastUpdated": datetime(2025, 1, 1),
         }
     )
     diff = get_location_diff(location, modified)
@@ -403,8 +399,8 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
     modified = healthcare_service.model_copy(
         update={
             "name": "Changed Service",
-            "createdDateTime": datetime(2025, 1, 1),
-            "modifiedDateTime": datetime(2025, 1, 1),
+            "createdTime": datetime(2025, 1, 1),
+            "lastUpdated": datetime(2025, 1, 1),
         }
     )
     diff = get_healthcare_service_diff(healthcare_service, modified)

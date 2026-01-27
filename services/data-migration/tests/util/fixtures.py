@@ -475,10 +475,10 @@ def base_organisation() -> Organisation:
             Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True),
         ],
         endpoints=[],
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 2, 1),
     )
 
 
@@ -501,10 +501,10 @@ def base_location() -> Location:
             latitude=Decimal("51.5074"), longitude=Decimal("-0.1278")
         ),
         primaryAddress=True,
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -528,10 +528,10 @@ def base_healthcare_service() -> HealthcareService:
         openingTime=[],
         symptomGroupSymptomDiscriminators=[],
         dispositions=[],
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -551,8 +551,8 @@ def base_endpoint() -> Endpoint:
         service=UUID("43f8c8c0-2272-4371-966a-f2db6d338e58"),
         order=1,
         isCompressionEnabled=False,
-        createdBy="test_user",
-        createdDateTime=datetime(2023, 1, 1),
-        modifiedBy="test_user",
-        modifiedDateTime=datetime(2023, 1, 1),
+        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
+        createdTime=datetime(2023, 1, 1),
+        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
+        lastUpdated=datetime(2023, 1, 1),
     )
