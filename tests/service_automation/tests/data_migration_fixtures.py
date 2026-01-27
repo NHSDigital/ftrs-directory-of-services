@@ -174,26 +174,15 @@ def fixture_dos_db(
         logger.error(f"Error in dos_db fixture: {e}")
         raise
     finally:
-        # Clean up schema
+        # Clean up: drop schema and close connections
         try:
-            session.rollback()  # Roll back any uncommitted transaction
             session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
             session.commit()
-        except Exception as cleanup_error:
-            logger.error(f"Cleanup failed: {cleanup_error}")
-            try:
-                session.rollback()
-            except Exception:
-                pass
+        except Exception:
+            pass  # Ignore cleanup errors - container will be destroyed anyway
         finally:
-            try:
-                session.close()
-            except Exception:
-                pass
-            try:
-                connection.close()
-            except Exception:
-                pass
+            session.close()
+            connection.close()
 
 
 @pytest.fixture(name="dynamodb", scope="function")

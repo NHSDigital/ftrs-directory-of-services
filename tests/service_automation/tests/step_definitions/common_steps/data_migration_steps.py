@@ -1,5 +1,6 @@
 import os
 from typing import Any, Dict, Literal
+from uuid import UUID
 
 import pytest
 from pytest_bdd import given, parsers, then, when
@@ -513,6 +514,10 @@ def verify_state_record_contains_entity_id(
         f"{field_name} should have a valid UUID value, got: {entity_id}"
     )
 
-    assert len(str(entity_id)) == 36 and "-" in str(entity_id), (
-        f"{field_name} should be a valid UUID format, got: {entity_id}"
-    )
+    # Validate UUID format by attempting to parse it
+    try:
+        UUID(str(entity_id))
+    except (ValueError, AttributeError) as e:
+        raise AssertionError(
+            f"{field_name} should be a valid UUID format, got: {entity_id}"
+        ) from e
