@@ -79,45 +79,6 @@ def get_state_record_by_id(
     return {k: deserializer.deserialize(v) for k, v in item.items()}
 
 
-def get_dynamodb_record_by_id(
-    dynamodb: DynamoDBFixture,
-    resource: str,
-    record_id: str,
-    stack_name: str = "data-migration",
-) -> Dict[str, Any]:
-    """
-    Retrieve and deserialize a DynamoDB record by ID.
-
-    Args:
-        dynamodb: DynamoDB client and resource dictionary
-        resource: Resource name (e.g., "healthcare-service", "organisation", "location")
-        record_id: The ID to look up
-        stack_name: Stack name for table resolution (default: "data-migration")
-
-    Returns:
-        Deserialized DynamoDB record as dictionary
-
-    Raises:
-        AssertionError: If record does not exist
-    """
-    table_name = get_table_name(resource=resource, stack_name=stack_name)
-    client = dynamodb[DYNAMODB_CLIENT]
-
-    response = client.get_item(
-        TableName=table_name,
-        Key={
-            "id": {"S": str(record_id)},
-            "sort_key": {"S": "document"}
-        }
-    )
-
-    assert "Item" in response, f"Record should exist in {resource} for ID {record_id}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    return {k: deserializer.deserialize(v) for k, v in item.items()}
-
-
 def run_test_environment_configured(
     migration_helper: MigrationHelper, dynamodb: DynamoDBFixture
 ) -> None:

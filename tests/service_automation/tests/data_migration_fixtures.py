@@ -194,6 +194,9 @@ def fixture_dynamodb(
 
     Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
 
+    Args:
+        localstack_container: LocalStack container fixture
+
     Yields:
         Dictionary with client, resource, and endpoint_url
     """

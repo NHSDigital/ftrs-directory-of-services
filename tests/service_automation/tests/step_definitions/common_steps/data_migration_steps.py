@@ -42,7 +42,6 @@ from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
 )
 from utilities.common.data_migration_shared_steps import (
     get_state_record_by_id,
-    get_dynamodb_record_by_id,
 )
 from service_migration.models import ServiceMigrationMetrics
 
