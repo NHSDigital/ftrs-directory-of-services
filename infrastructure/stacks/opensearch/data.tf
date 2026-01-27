@@ -1,3 +1,14 @@
+
+# locals {
+#   opensearch_collection_name = try(
+#     data.aws_opensearchserverless_collection.opensearch_serverless_collection[0],
+#     module.opensearch_serverless[0]
+#   )
+#   # opensearch_collection_endpoint = try(
+#   #   data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].endpoint,
+#   #   module.opensearch_serverless[0].endpoint
+#   # )
+# }
 data "aws_vpc" "vpc" {
   count = local.stack_enabled
   filter {
@@ -22,6 +33,11 @@ data "aws_subnets" "private_subnets" {
 data "aws_subnet" "private_subnets_details" {
   for_each = local.stack_enabled == 1 ? toset(data.aws_subnets.private_subnets[0].ids) : toset([])
   id       = each.value
+}
+
+data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
+  count = local.stack_enabled
+  name  = "${local.project_prefix}-osc"
 }
 
 data "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
