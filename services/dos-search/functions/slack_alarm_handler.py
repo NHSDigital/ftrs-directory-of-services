@@ -182,7 +182,7 @@ def format_timestamp(timestamp_val: int | float | str) -> str:
         return "Unknown"
 
 
-def build_slack_message(alarm_data: Dict[str, Any], webhook_url: str) -> Dict[str, Any]:
+def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Build a Slack message with essential alert information.
 
@@ -194,7 +194,6 @@ def build_slack_message(alarm_data: Dict[str, Any], webhook_url: str) -> Dict[st
 
     Args:
         alarm_data: Flattened alarm data from CloudWatch
-        webhook_url: Slack webhook URL to determine format
 
     Returns:
         Dict: Slack message payload
@@ -220,96 +219,18 @@ def build_slack_message(alarm_data: Dict[str, Any], webhook_url: str) -> Dict[st
     # Extract lambda name for context
     lambda_name = extract_lambda_name(alarm_name)
 
-    # Check if this is a Slack Workflow webhook (new format)
-    is_workflow = "/triggers/" in webhook_url
+    # Simple text format for Slack Workflow webhooks
+    message_text = f"{emoji} *{alarm_name}* - {state_value}\n\n"
+    message_text += f"*Reason:* {state_reason}\n\n"
+    message_text += f"*Metric:* {trigger_metric} ({trigger_statistic})\n"
+    message_text += f"*Threshold:* {trigger_threshold}\n"
+    message_text += f"*API:* {context['api']}\n"
+    message_text += f"*Endpoint:* {context['endpoint']}\n"
+    message_text += f"*Period:* {context['period']}\n"
+    message_text += f"*Timestamp:* {timestamp}\n"
+    message_text += f"*Lambda:* {lambda_name}"
 
-    if is_workflow:
-        # Slack Workflow format - using Block Kit for better formatting
-        color = COLOR_MAP.get(state_value, "#808080")
-
-        return {
-            "blocks": [
-                {
-                    "type": "header",
-                    "text": {
-                        "type": "plain_text",
-                        "text": f"{emoji} {alarm_name}",
-                        "emoji": True,
-                    },
-                },
-                {
-                    "type": "section",
-                    "fields": [
-                        {"type": "mrkdwn", "text": f"*Status:*\n{state_value}"},
-                        {"type": "mrkdwn", "text": f"*Timestamp:*\n{timestamp}"},
-                    ],
-                },
-                {
-                    "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"*Reason:*\n{state_reason}"},
-                },
-                {"type": "divider"},
-                {
-                    "type": "section",
-                    "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Metric:*\n{trigger_metric} ({trigger_statistic})",
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Threshold:*\n{trigger_threshold}",
-                        },
-                        {"type": "mrkdwn", "text": f"*API:*\n{context['api']}"},
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Endpoint:*\n{context['endpoint']}",
-                        },
-                        {"type": "mrkdwn", "text": f"*Period:*\n{context['period']}"},
-                        {"type": "mrkdwn", "text": f"*Lambda:*\n{lambda_name}"},
-                    ],
-                },
-            ]
-        }
-    else:
-        # Legacy Incoming Webhook format with attachments
-        color = COLOR_MAP.get(state_value, "#808080")
-        return {
-            "text": f"{emoji} {alarm_name} - {state_value}",
-            "attachments": [
-                {
-                    "color": color,
-                    "title": f"{emoji} {alarm_name}",
-                    "text": state_reason,
-                    "fields": [
-                        {
-                            "title": "Metric Triggered",
-                            "value": f"{trigger_metric} ({trigger_statistic})",
-                            "short": True,
-                        },
-                        {
-                            "title": "Threshold",
-                            "value": str(trigger_threshold),
-                            "short": True,
-                        },
-                        {"title": "API", "value": context["api"], "short": True},
-                        {
-                            "title": "Endpoint",
-                            "value": context["endpoint"],
-                            "short": True,
-                        },
-                        {
-                            "title": "Alert Period",
-                            "value": context["period"],
-                            "short": False,
-                        },
-                        {"title": "Timestamp", "value": timestamp, "short": False},
-                    ],
-                    "footer": f"Lambda: {lambda_name}",
-                    "mrkdwn_in": ["text"],
-                }
-            ],
-        }
+    return {"text": message_text}
 
 
 def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
@@ -378,11 +299,11 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
         flattened_data = flatten_dict(alarm_data)
         logger.info(f"Flattened alarm data: {json.dumps(flattened_data)}")
 
+        # Build Slack message
+        slack_message = build_slack_message(flattened_data)
+
         # Get Slack webhook URL
         webhook_url = get_slack_webhook_url()
-
-        # Build Slack message
-        slack_message = build_slack_message(flattened_data, webhook_url)
 
         # Send to Slack
         success = send_to_slack(webhook_url, slack_message)
