@@ -1,3 +1,4 @@
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceType,
@@ -46,8 +47,8 @@ class HealthcareServiceCreatePayloadValidator(HealthcareServiceCreatePayload):
         return v
 
     @field_validator("createdBy")
-    def validate_created_by(cls, v: str) -> str:
-        """Validates the createdBy field to ensure it is not empty or whitespace."""
-        if not v.strip():
+    def validate_created_by(cls, v: AuditEvent) -> AuditEvent:
+        """Validates the createdBy field to ensure it has required values."""
+        if not v.value or not v.value.strip():
             raise ValueError(CREATED_BY_EMPTY_ERROR)
         return v

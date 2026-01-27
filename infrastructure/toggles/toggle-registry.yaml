@@ -19,7 +19,7 @@ appconfig_flags:
   - id: data_migration_location_enabled
     name: "Data Migration - Location Enabled"
     description: "Enable the migration of Location resources from the current DoS"
-    service: data-migration    
+    service: data-migration
     owner: "Data Migration Team"
     environments:
       workspace: true
@@ -90,7 +90,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/ui
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: false
@@ -104,7 +104,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/read_only_viewer
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: false
