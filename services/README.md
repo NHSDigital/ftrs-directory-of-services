@@ -1,6 +1,6 @@
 # Services
 
-Directory containing the services that make up the FtRS suites.
+Directory containing the services that make up the FtRS suite.
 
 Any new services should be added into this directory.
 
