@@ -1,5 +1,5 @@
 @data-migration
-Feature: Data Migration
+Feature: SYSTEM
 
   Background:
     Given the test environment is configured
@@ -21,7 +21,7 @@ Feature: Data Migration
       {
           "codeType": "Symptom Discriminator (SD)",
           "synonyms": [],
-          "createdDateTime": "2025-11-24T20:48:08.669768Z",
+          "createdTime": "2025-11-24T20:48:08.669768Z",
           "source": "pathways",
           "codeValue": "PC extended ophthalmic assessment and management capability, minor condition (MECS)",
           "codeID": 4311,
@@ -29,9 +29,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": false,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-24T20:48:08.669775Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-24T20:48:08.669775Z",
           "id": "SD4311",
           "time": 0
       }
@@ -49,7 +49,7 @@ Feature: Data Migration
               "Primary Care",
               "GP In Hours"
           ],
-          "createdDateTime": "2025-11-26T07:50:50.602490Z",
+          "createdTime": "2025-11-26T07:50:50.602490Z",
           "source": "servicefinder",
           "codeValue": "GP Practice",
           "codeID": 14023,
@@ -57,9 +57,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": false,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-26T07:50:50.602496Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-26T07:50:50.602496Z",
           "id": "SD14023",
           "time": 0
       }
@@ -69,7 +69,7 @@ Feature: Data Migration
       {
           "codeType": "Disposition (Dx)",
           "synonyms": [],
-          "createdDateTime": "2025-11-27T08:26:02.927515Z",
+          "createdTime": "2025-11-27T08:26:02.927515Z",
           "source": "pathways",
           "codeValue": "To contact a Primary Care Service within 24 hours",
           "codeID": "DX08",
@@ -77,9 +77,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": false,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-27T08:26:02.927523Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-27T08:26:02.927523Z",
           "id": "DX08",
           "time": 1440
       }
@@ -89,7 +89,7 @@ Feature: Data Migration
       {
           "codeType": "Symptom Group (SG)",
           "synonyms": [],
-          "createdDateTime": "2025-11-26T07:50:29.278874Z",
+          "createdTime": "2025-11-26T07:50:29.278874Z",
           "source": "servicefinder",
           "codeValue": "z2.0 - Service Types",
           "codeID": 360,
@@ -97,9 +97,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": true,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-26T07:50:29.278878Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-26T07:50:29.278878Z",
           "id": "SG360",
           "time": 0
       }
@@ -109,7 +109,7 @@ Feature: Data Migration
       {
           "codeType": "Symptom Discriminator (SD)",
           "synonyms": [],
-          "createdDateTime": "2025-11-26T07:50:48.851428Z",
+          "createdTime": "2025-11-26T07:50:48.851428Z",
           "source": "servicefinder",
           "codeValue": "Cancer Support Service",
           "codeID": 11843,
@@ -117,9 +117,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": false,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-26T07:50:48.851434Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-26T07:50:48.851434Z",
           "id": "SD11843",
           "time": 0
       }
@@ -130,7 +130,7 @@ Feature: Data Migration
       {
           "codeType": "Symptom Group (SG)",
           "synonyms": [],
-          "createdDateTime": "2025-11-24T20:47:52.801548Z",
+          "createdTime": "2025-11-24T20:47:52.801548Z",
           "source": "pathways",
           "codeValue": "Self Triage, Mental Health",
           "codeID": 1240,
@@ -138,9 +138,9 @@ Feature: Data Migration
           "field": "item",
           "zCodeExists": false,
           "dx_group_ids": [],
-          "createdBy": "SYSTEM",
-          "modifiedBy": "SYSTEM",
-          "modifiedDateTime": "2025-11-24T20:47:52.801553Z",
+          "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+          "lastUpdated": "2025-11-24T20:47:52.801553Z",
           "id": "SG1240",
           "time": 0
       }
@@ -150,7 +150,7 @@ Feature: Data Migration
       {
         "codeType": "Symptom Group and Symptom Discriminator Pair (SG-SD)",
         "synonyms": [],
-        "createdDateTime": "2025-11-24T20:48:36.304817Z",
+        "createdTime": "2025-11-24T20:48:36.304817Z",
         "source": "pathways",
         "codeValue": null,
         "codeID": null,
@@ -271,9 +271,9 @@ Feature: Data Migration
         "field": "combinations",
         "zCodeExists": false,
         "dx_group_ids": [],
-        "createdBy": "SYSTEM",
-        "modifiedBy": "SYSTEM",
-        "modifiedDateTime": "2025-11-24T20:48:36.304824Z",
+        "createdBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+        "lastUpdatedBy": {"type": "app", "value": "SYSTEM", "display": "SYSTEM"},
+        "lastUpdated": "2025-11-24T20:48:36.304824Z",
         "id": "SG1240",
         "time": 0
       }

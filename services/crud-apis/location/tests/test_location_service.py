@@ -34,10 +34,18 @@ def get_mock_location() -> Location:
         "positionReferenceNumber_UBRN": None,
         "partOf": None,
         "primaryAddress": True,
-        "createdBy": "ROBOT",
-        "createdDateTime": "2025-03-27T12:00:00Z",
-        "modifiedBy": "ROBOT",
-        "modifiedDateTime": "2025-03-27T12:00:00",
+        "createdBy": {
+            "type": "user",
+            "value": "ROBOT",
+            "display": "Robot User",
+        },
+        "createdTime": "2025-03-27T12:00:00Z",
+        "lastUpdatedBy": {
+            "type": "user",
+            "value": "ROBOT",
+            "display": "Robot User",
+        },
+        "lastUpdated": "2025-03-27T12:00:00Z",
     }
 
 
