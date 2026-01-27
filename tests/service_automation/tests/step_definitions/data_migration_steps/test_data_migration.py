@@ -20,9 +20,27 @@ class DecimalEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-META_TIME_FIELDS = ["createdDateTime", "modifiedDateTime"]
+META_TIME_FIELDS = [
+    'createdTime',
+    'lastUpdated'
+]
 
-NESTED_PATHS_WITH_META_FIELDS = ["endpoints"]
+# Audit event fields that should be ignored in comparisons
+AUDIT_FIELDS = [
+    'createdBy',
+    'lastUpdatedBy'
+]
+
+# Fields that may have dynamic or optional values
+DYNAMIC_FIELDS = [
+    'primary_role_code',
+    'non_primary_role_codes',
+    'telecom'
+]
+
+NESTED_PATHS_WITH_META_FIELDS = [
+    "endpoints"
+]
 
 IGNORED_PATHS = [
     "field",

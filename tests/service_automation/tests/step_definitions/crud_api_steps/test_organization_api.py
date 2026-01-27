@@ -135,7 +135,6 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
         logger.info(f"Response [{response.status}]: {response.text}")
     return response
 
-
 def update_organisation_apim(
     payload: dict,
     new_apim_request_context,
@@ -181,7 +180,6 @@ def assert_item_matches_payload(item, payload: dict, mandatory_only: bool = Fals
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
         ("active", payload["active"]),
-        ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
     if not mandatory_only:
         fields.append(("telecom", payload.get("telecom", [{}])[0].get("value")))
@@ -465,7 +463,6 @@ def validate_db_entry_against_payload(item, payload):
         ("identifier_ODS_ODSCode", payload["identifier"][0]["value"]),
         ("name", payload["name"].title()),
         ("active", payload["active"]),
-        ("modifiedBy", "ODS_ETL_PIPELINE"),
     ]
 
     for attr, expected_value in expected_fields:
@@ -1166,26 +1163,26 @@ def step_save_modified(fresponse, model_repo):
     payload = fresponse.request_body
     item = get_db_item(model_repo, payload)
     saved_data = {
-        "modifiedBy": getattr(item, "modifiedBy", None),
-        "modifiedDateTime": getattr(item, "modifiedDateTime", None),
+        "lastUpdatedBy": getattr(item, "lastUpdatedBy", None),
+        "lastUpdated": getattr(item, "lastUpdated", None),
         "payload": payload,
     }
-    logger.info(f"Saved modifiedBy: {saved_data['modifiedBy']}")
-    logger.info(f"Saved modifiedDateTime: {saved_data['modifiedDateTime']}")
+    logger.info(f"Saved lastUpdatedBy: {saved_data['lastUpdatedBy']}")
+    logger.info(f"Saved lastUpdated: {saved_data['lastUpdated']}")
     return saved_data
 
 
 @then("the database matches the inserted payload with the same modifiedBy timestamp")
 def step_validate_modified_unchanged(saved_data, model_repo):
     payload = saved_data["payload"]
-    saved_dt = saved_data["modifiedDateTime"]
+    saved_dt = saved_data["lastUpdated"]
     item = get_db_item(model_repo, payload)
     validate_db_entry_against_payload(item, payload)
-    # Compare the saved and current modifiedDateTime
-    current_dt = getattr(item, "modifiedDateTime")
-    logger.info(f"Comparing modifiedDateTime: saved={saved_dt}, current={current_dt}")
+    # Compare the saved and current lastUpdated
+    current_dt = getattr(item, "lastUpdated")
+    logger.info(f"Comparing lastUpdated: saved={saved_dt}, current={current_dt}")
     assert current_dt == saved_dt, (
-        f"modifiedDateTime mismatch: expected {saved_dt}, got {current_dt}"
+        f"lastUpdated mismatch: expected {saved_dt}, got {current_dt}"
     )
 
 

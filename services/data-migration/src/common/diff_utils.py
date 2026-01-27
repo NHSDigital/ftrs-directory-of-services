@@ -37,6 +37,16 @@ DYNAMODB_RESERVED_WORDS = frozenset(
         "size",
     }
 )
+EXCLUDE_PATHS = [
+    "root['createdTime']",
+    "root['lastUpdated']",
+]
+EXCLUDE_REGEX_PATHS = [
+    r"root\['endpoints'\]\[\d+\]\['createdTime'\]",
+    r"root\['endpoints'\]\[\d+\]\['lastUpdated'\]",
+    r"root\['endpoints'\]\[\d+\]\['createdBy'\]",
+    r"root\['endpoints'\]\[\d+\]\['lastUpdatedBy'\]",
+]
 
 
 @dataclass
@@ -286,13 +296,11 @@ def get_organisation_diff(previous: Organisation, current: Organisation) -> Deep
     return DeepDiff(
         previous.model_dump(),
         current.model_dump(),
-        exclude_paths=["root['createdDateTime']", "root['modifiedDateTime']"],
-        exclude_regex_paths=[
-            r"root\['endpoints'\]\[\d+\]\['createdDateTime'\]",
-            r"root\['endpoints'\]\[\d+\]\['modifiedDateTime'\]",
-        ],
+        exclude_paths=EXCLUDE_PATHS,
+        exclude_regex_paths=EXCLUDE_REGEX_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )
 
 
@@ -301,9 +309,10 @@ def get_location_diff(previous: Location, current: Location) -> DeepDiff:
     return DeepDiff(
         previous.model_dump(),
         current.model_dump(),
-        exclude_paths=["root['createdDateTime']", "root['modifiedDateTime']"],
+        exclude_paths=EXCLUDE_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )
 
 
@@ -315,7 +324,8 @@ def get_healthcare_service_diff(
     return DeepDiff(
         previous.model_dump(),
         current.model_dump(),
-        exclude_paths=["root['createdDateTime']", "root['modifiedDateTime']"],
+        exclude_paths=EXCLUDE_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )

@@ -11,6 +11,7 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Telecom
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import OrganisationTypeCode, TelecomType
 from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
@@ -206,9 +207,7 @@ class OrganisationCreatePayload(Organisation):
         example="d5a852ef-12c7-4014-b398-661716a63027",
     )
     identifier_ODS_ODSCode: str = Field(max_length=12, min_length=1, example="ABC123")
-    createdBy: str = Field(
-        max_length=100, min_length=1, example="ROBOT", pattern="^[a-zA-Z]+$"
-    )
+    createdBy: AuditEvent = Field(default_factory=AuditEvent)
 
 
 def _extract_identifier_system(identifier: str) -> str:
