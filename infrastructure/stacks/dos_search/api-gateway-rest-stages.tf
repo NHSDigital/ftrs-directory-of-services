@@ -1,5 +1,4 @@
 resource "aws_api_gateway_stage" "default" {
-  # checkov:skip=CKV2_AWS_77: WAFv2 WebACL is associated to this stage in waf.tf (aws_wafv2_web_acl_association.dos_search_api_gateway_stage); Checkov doesn't resolve cross-file association reliably.
   # checkov:skip=CKV2_AWS_51: False positive, the API is secured by mTLS via DNS domain certificate
   # checkov:skip=CKV2_AWS_4: False positive, we are configuring custom logging
   # checkov:skip=CKV_AWS_120: Caching breaks the tests
@@ -37,6 +36,12 @@ resource "aws_api_gateway_stage" "default" {
     })
   }
 
+}
+
+# WAF ACL association for the default stage
+resource "aws_wafv2_web_acl_association" "dos_search_api_gateway_stage" {
+  resource_arn = aws_api_gateway_stage.default.arn
+  web_acl_arn  = aws_wafv2_web_acl.dos_search_web_acl.arn
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
