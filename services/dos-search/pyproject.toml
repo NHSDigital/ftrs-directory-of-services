@@ -18,6 +18,7 @@ dependencies = [
     "boto3 (>=1.37.24,<2.0.0)",
     "boto3-stubs[dynamodb] (>=1.37.24,<2.0.0)",
     "opensearch-py (>=3.0.0,<4.0.0)",
+    "urllib3 (>=2.0.0,<3.0.0)",
 ]
 
 [build-system]
