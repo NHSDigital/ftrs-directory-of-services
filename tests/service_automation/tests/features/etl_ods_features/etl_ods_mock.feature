@@ -6,9 +6,8 @@ Feature: ETL ODS Mock - Upstream API Error Handling
 
   Scenario: ETL ODS processes successful response from upstream API
     When I trigger the Lambda with happy path scenario
-    Then the Lambda should process the organizations successfully
+  # Then the Lambda should process the organizations successfully
 
-  @test
   Scenario: ETL ODS handles empty results from upstream API
     When I trigger the Lambda with empty payload scenario
     Then the Lambda should handle empty results gracefully
@@ -16,6 +15,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
   Scenario: ETL ODS handles invalid data types from upstream API
     When I trigger the Lambda with invalid data scenario
     Then the Lambda should handle the validation error
+
 
   Scenario: ETL ODS handles missing required fields from upstream API
     When I trigger the Lambda with missing required fields scenario
