@@ -91,8 +91,8 @@ stack_toggles:
     owner: "Infrastructure Team"
     environments:
       workspace: false
-      dev: true
-      test: true
+      dev: false
+      test: false
       int: false
       ref: false
       prod: false
@@ -105,8 +105,8 @@ stack_toggles:
     owner: "Infrastructure Team"
     environments:
       workspace: false
-      dev: true
-      test: true
+      dev: false
+      test: false
       int: false
       ref: false
       prod: false
