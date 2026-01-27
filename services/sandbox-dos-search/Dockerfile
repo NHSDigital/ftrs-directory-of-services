@@ -1,5 +1,10 @@
 # syntax=docker/dockerfile:1
 
+# NOTE: Poetry (`pyproject.toml` + `poetry.lock`) is the source of truth for dependencies.
+# This Docker image installs dependencies via `pip -r requirements.txt` purely as a build input,
+# because installing/running Poetry inside `docker build` can be unreliable behind corporate proxy / TLS interception.
+# Keep `requirements.txt` generated/exported from `poetry.lock` to avoid drift.
+
 ############################
 # Base OS layer
 ############################
@@ -80,6 +85,7 @@ CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "9000"]
 # Runtime image (opt-in: corporate CA)
 ############################
 FROM runtime-base AS runtime-with-corp-ca
+
 COPY --from=deps-with-corp-ca ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 USER appuser
 
