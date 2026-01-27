@@ -138,7 +138,7 @@ Feature: Organization API Endpoint
       | roleCode missing valueCodeableConcept | roleCode must have a valueCodeableConcept                               |
       | roleCode missing coding array         | roleCode valueCodeableConcept must contain at least one coding          |
       | roleCode empty code value             | [{'type': 'string_pattern_mismatch'                                     |
-      | roleCode invalid enum value           | Invalid role code: 'INVALID_CODE'. Incorrect enum value                 |
+      | roleCode invalid enum value           | Invalid role code format: 'INVALID_CODE'                                |
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization

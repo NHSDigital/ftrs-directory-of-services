@@ -988,7 +988,7 @@ def test_invalid_role_code_not_in_enum() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         OrganisationUpdatePayload(**payload)
 
-    assert "Invalid role code: 'INVALID_CODE'" in str(exc_info.value)
+    assert "Invalid role code format: 'INVALID_CODE'" in str(exc_info.value)
 
 
 def test_valid_payload_with_no_role_codes() -> None:
@@ -1299,3 +1299,59 @@ def test_invalid_prescribing_cost_centre_with_duplicate_additional_roles() -> No
         OrganisationUpdatePayload(**payload)
 
     assert "Duplicate non-primary roles are not allowed" in str(exc_info.value)
+
+
+def test_valid_payload_with_additional_non_primary_role_code() -> None:
+    """Test that RO177 + RO76 + additional role code (e.g., RO268) is valid."""
+    payload = _build_base_payload()
+
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # Required RO76
+    gp_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # RO268 - should be allowed as additional role
+    unknown_role = _build_organisation_role_extension(
+        role_code="RO268", typed_periods=[_build_typed_period_extension()]
+    )
+
+    payload["extension"] = [primary_role, gp_role, unknown_role]
+
+    # Should not raise - additional role codes allowed when required roles present
+    organisation = OrganisationUpdatePayload(**payload)
+
+    assert organisation is not None
+    assert str(len(organisation.extension)) == "3"
+
+
+def test_valid_payload_with_multiple_additional_non_primary_roles() -> None:
+    """Test that RO177 + RO76 + multiple additional role codes is valid."""
+    payload = _build_base_payload()
+
+    primary_role = _build_organisation_role_extension(
+        role_code="RO177", typed_periods=[_build_typed_period_extension()]
+    )
+
+    gp_role = _build_organisation_role_extension(
+        role_code="RO76", typed_periods=[_build_typed_period_extension()]
+    )
+
+    # Multiple additional role codes
+    additional_role_1 = _build_organisation_role_extension(
+        role_code="RO268", typed_periods=[_build_typed_period_extension()]
+    )
+
+    additional_role_2 = _build_organisation_role_extension(
+        role_code="RO999", typed_periods=[_build_typed_period_extension()]
+    )
+
+    payload["extension"] = [primary_role, gp_role, additional_role_1, additional_role_2]
+
+    organisation = OrganisationUpdatePayload(**payload)
+
+    assert organisation is not None
+    assert str(len(organisation.extension)) == "4"
