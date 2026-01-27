@@ -83,7 +83,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
       AllowFromPublic = true
       Rules = [
         {
-          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name}"]
+          Resource     = ["collection/${module.opensearch_serverless[0].name}"]
           ResourceType = "dashboard"
         }
       ]
@@ -93,7 +93,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
       AllowFromPublic = true
       Rules = [
         {
-          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name}"]
+          Resource     = ["collection/${module.opensearch_serverless[0].name}"]
           ResourceType = "collection"
         }
       ]
@@ -106,14 +106,14 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
 
   name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
   type        = "data"
-  description = "Collection-level data access policy for OpenSearch collection ${data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name} (grants collection & index ops)"
+  description = "Collection-level data access policy for OpenSearch collection ${module.opensearch_serverless[0].name} (grants collection & index ops)"
 
   policy = jsonencode([
     {
       Rules = [
         {
           ResourceType = "collection"
-          Resource     = ["collection/${data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name}"]
+          Resource     = ["collection/${module.opensearch_serverless[0].name}"]
           Permission = [
             "aoss:CreateCollectionItems",
             "aoss:UpdateCollectionItems",
@@ -123,7 +123,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
         },
         {
           ResourceType = "index"
-          Resource     = ["index/${data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name}/${local.opensearch_index_name}"]
+          Resource     = ["index/${module.opensearch_serverless[0].name}/${local.opensearch_index_name}"]
           Permission = [
             "aoss:CreateIndex",
             "aoss:UpdateIndex",
