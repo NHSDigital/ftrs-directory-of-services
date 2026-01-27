@@ -168,10 +168,7 @@ class TestEndpointUpdates:
         diff = get_organisation_diff(org_with_endpoints, modified)
         result = deepdiff_to_dynamodb_expressions(diff)
 
-        assert "SET" in result.update_expression
-        assert len(result.expression_attribute_values) == 4  # noqa: PLR2004
-        assert "id" in result.expression_attribute_names.values()
-        assert "order" in result.expression_attribute_names.values()
+        assert result.is_empty()
 
     def test_all_endpoint_status_values(
         self,
