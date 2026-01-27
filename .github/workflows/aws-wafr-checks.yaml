@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - dev
+          - test
           - mgmt
       tag:
         description: "The git tag to checkout or, if not passed in, the current branch"
@@ -32,6 +33,7 @@ jobs:
         include:
           - environment: dev
           - environment: mgmt
+          - environment: test
       fail-fast: false
 
     steps:
