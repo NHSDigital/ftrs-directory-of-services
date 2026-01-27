@@ -1,14 +1,3 @@
-
-# locals {
-#   opensearch_collection_name = try(
-#     data.aws_opensearchserverless_collection.opensearch_serverless_collection[0],
-#     module.opensearch_serverless[0]
-#   )
-#   # opensearch_collection_endpoint = try(
-#   #   data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].endpoint,
-#   #   module.opensearch_serverless[0].endpoint
-#   # )
-# }
 data "aws_vpc" "vpc" {
   count = local.stack_enabled
   filter {
