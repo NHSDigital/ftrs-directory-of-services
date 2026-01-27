@@ -212,38 +212,32 @@ def trigger_lambda_unknown_resource_type(
     )
 
 
-# @then("the Lambda should handle the validation error")
-# def verify_validation_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-#     """Verify Lambda detected and handled invalid data."""
-#     # Check for validation error logging
-#     validation_logs = [
-#         "Error processing organisation with ods_code",
-#         "Payload validation failed"
-#     ]
-
-#     assert context.lambda_response.get("statusCode") == 200
-
-#     found_validation_log = any(
-#         verify_log_message_exists(cloudwatch_logs, context.lambda_name, log_msg)
-#         for log_msg in validation_logs
-#     )
-
-#     logger.info(f"Validation scenario completed for lambda {context.lambda_name}, validation log found: {found_validation_log}")
+@then("the Lambda should handle the validation error")
+def verify_validation_error_handled(context: Context):
+    """Verify Lambda detected and handled invalid data."""
+    # Check for validation error logging
+    assert context.lambda_response.get("statusCode") == 200
+    expected_log = "FHIR_001"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
 
-# @then("the Lambda should process the organizations successfully")
-# def verify_successful_processing(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-#     """Verify Lambda successfully processed organizations from happy path."""
-#     expected_log = "Fetching ODS Data returned"
-#     assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
-
-#     body = context.lambda_response.get("body", "")
-#     if isinstance(body, str) and body != "Processing complete":
-#         try:
-#             parsed_body = json.loads(body) if isinstance(body, str) else body
-#             assert "error" not in str(parsed_body).lower()
-#         except json.JSONDecodeError:
-#             pass
+@then("the Lambda should process the organizations successfully")
+def verify_successful_processing(context: Context):
+    """Verify Lambda successfully processed organizations from happy path."""
+    expected_log = "ETL_PROCESSOR_002"
+    assert context.lambda_response.get("statusCode") == 200
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+    body = context.lambda_response.get("body", "")
+    if isinstance(body, str) and body != "Processing complete":
+        try:
+            parsed_body = json.loads(body) if isinstance(body, str) else body
+            assert "error" not in str(parsed_body).lower()
+        except json.JSONDecodeError:
+            pass
 
 
 @then("the Lambda should handle empty results gracefully")
@@ -258,18 +252,18 @@ def verify_empty_results_handled(context: Context):
 @then("the Lambda should handle missing fields gracefully")
 def verify_missing_fields_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
-    expected_log = "Error processing organisation"
+    expected_log = "ETL_PROCESSOR_027"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "message", expected_log
+        context, "etl-ods-processor-lambda", "reference", expected_log
     )
 
 
 @then("the Lambda should handle unexpected fields gracefully")
 def verify_unexpected_fields_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
-    expected_log = "Successfully transformed data"
+    expected_log = "ETL_PROCESSOR_026"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "message", expected_log
+        context, "etl-ods-processor-lambda", "reference", expected_log
     )
 
 
@@ -282,13 +276,17 @@ def verify_old_requests_handled(context: Context):
     )
 
 
-# @then("the Lambda should handle upstream server errors")
-# def verify_server_errors_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-#     expected_log = "ETL_UTILS_003"
-#     assert_status_code_and_logs(context, 500, cloudwatch_logs, expected_log)
-
-#     error_message = extract_error_message(context.lambda_response)
-#     assert any(keyword in error_message.lower() for keyword in ["error", "failed", "exception"])
+@then("the Lambda should handle upstream server errors")
+def verify_server_errors_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 500
+    expected_log = "ETL_UTILS_003"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+    error_message = extract_error_message(context.lambda_response)
+    assert any(
+        keyword in error_message.lower() for keyword in ["error", "failed", "exception"]
+    )
 
 
 @then("the Lambda should handle unknown resource types")
@@ -301,10 +299,12 @@ def verify_unknown_resource_types_handled(context: Context):
     )
 
 
-# @then("the Lambda should handle the authorization error")
-# def verify_authorization_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-#     expected_log = "ETL_UTILS_003"
-#     assert_status_code_and_logs(context, 500, cloudwatch_logs, expected_log)
-
-#     error_message = extract_error_message(context.lambda_response)
-#     assert "unauthorized" in error_message.lower(), f"{error_message}"
+@then("the Lambda should handle the authorization error")
+def verify_authorization_error_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 500
+    expected_log = "ETL_UTILS_003"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+    error_message = extract_error_message(context.lambda_response)
+    assert "unauthorized" in error_message.lower(), f"{error_message}"
