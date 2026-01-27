@@ -28,7 +28,6 @@ class OrganisationTypeCode(str, Enum):
     OUT_OF_HOURS_ROLE_CODE = "RO80"
     WALK_IN_CENTRE_ROLE_CODE = "RO87"
     PHARMACY_ROLE_CODE = "RO182"
-    MEDICINE_SUPPLIER = "RO268"
 
 
 class HealthcareServiceCategory(str, Enum):
