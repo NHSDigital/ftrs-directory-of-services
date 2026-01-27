@@ -8,7 +8,7 @@ from unittest.mock import call, patch
 import pytest
 from aws_lambda_powertools.event_handler import Response
 
-from functions.logger.dos_logger import DosLogger
+from functions.logger.dos_logger import PLACEHOLDER, DosLogger
 from tests.unit.functions.logger.setup_dummy_lambda import lambda_handler
 
 
@@ -80,9 +80,9 @@ class TestDosLogger:
         modified_event["headers"].pop("NHSD-Request-ID")
 
         extract = dict(log_data)
-        extract["dos_nhsd_correlation_id"] = dos_logger.placeholder
-        extract["dos_nhsd_request_id"] = dos_logger.placeholder
-        extract["dos_message_id"] = dos_logger.placeholder
+        extract["dos_nhsd_correlation_id"] = PLACEHOLDER
+        extract["dos_nhsd_request_id"] = PLACEHOLDER
+        extract["dos_message_id"] = PLACEHOLDER
 
         # Act
         result = dos_logger.extract(modified_event)
@@ -101,7 +101,6 @@ class TestDosLogger:
 
     def test_extract_one_time_with_missing_headers(self, dos_logger, event, details):
         # Arrange
-        placeholder = dos_logger.placeholder
 
         modified_event = deepcopy(event)
 
@@ -120,15 +119,14 @@ class TestDosLogger:
         )  # Remove env_vars populated by autouse fixture setup_env_vars
         os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
 
-        placeholder_details["dos_search_api_version"] = placeholder
-        placeholder_details["connecting_party_end_user_role"] = placeholder
-        placeholder_details["connecting_party_application_id"] = placeholder
-        placeholder_details["connecting_party_application_name"] = placeholder
+        placeholder_details["dos_search_api_version"] = PLACEHOLDER
+        placeholder_details["connecting_party_end_user_role"] = PLACEHOLDER
+        placeholder_details["connecting_party_application_id"] = PLACEHOLDER
+        placeholder_details["connecting_party_application_name"] = PLACEHOLDER
         for key in placeholder_details["request_params"]:
             placeholder_details["request_params"][key] = {}
-        placeholder_details["dos_environment"] = placeholder
-        placeholder_details["lambda_version"] = placeholder
-
+        placeholder_details["dos_environment"] = PLACEHOLDER
+        placeholder_details["lambda_version"] = PLACEHOLDER
         # Act
         result = dos_logger.extract_one_time(modified_event)
 
