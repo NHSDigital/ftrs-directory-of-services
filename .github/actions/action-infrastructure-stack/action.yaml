@@ -24,7 +24,7 @@ inputs:
   release_tag:
     description: "The release tag identifying the timeline in the repository to deploy from"
     required: false
-  slack_webhook_url:
+  slack_webhook_alarms_url:
     description: "Slack webhook URL for CloudWatch alarms"
     required: false
 outputs:
@@ -48,7 +48,7 @@ runs:
       id: "action_stack"
       shell: bash
       env:
-        TF_VAR_slack_webhook_url: ${{ inputs.slack_webhook_url }}
+        TF_VAR_slack_webhook_alarms_url: ${{ inputs.slack_webhook_alarms_url }}
       run: |
         export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
         export ACTION=${{ inputs.action }}
