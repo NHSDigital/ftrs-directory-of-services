@@ -75,12 +75,12 @@ Feature: Service Migration - Validation Failures
       | 400013     | 400013 | ODSWithSpaces   | Y12 345         |
 
   Scenario: Unsupported operation method is not processed
-    Given a 'Service' exists called 'ReplaceOperation' in DoS with attributes:
+    Given a 'Service' exists called 'DeleteOperation' in DoS with attributes:
       | key                 | value                         |
       | id                  | 400020                        |
       | uid                 | 400020                        |
-      | name                | GP: REPLACE Test              |
-      | publicname          | REPLACE Operation Test        |
+      | name                | GP: DELETE Test               |
+      | publicname          | DELETE Operation Test         |
       | typeid              | 100                           |
       | statusid            | 1                             |
       | odscode             | Y12399                        |
@@ -94,7 +94,7 @@ Feature: Service Migration - Validation Failures
       | town                | TestTown                      |
       | openallhours        | false                         |
       | restricttoreferrals | false                         |
-    When the data migration process is run for table 'services', ID '400020' and method 'replace'
+    When the data migration process is run for table 'services', ID '400020' and method 'delete'
     Then the SQS event metrics should be 0 total, 0 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 0 skipped and 0 errors
     And no organisation was created for service '400020'
     And no location was created for service '400020'

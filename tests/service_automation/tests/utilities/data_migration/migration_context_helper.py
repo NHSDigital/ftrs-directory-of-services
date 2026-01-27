@@ -9,6 +9,8 @@ from utilities.common.constants import (
     EXPECTED_DYNAMODB_RESOURCES,
 )
 
+from utilities.common.dynamoDB_tables import get_table_name
+
 
 def get_service_context(
     migration_context: Dict[str, Any],
@@ -96,11 +98,7 @@ def store_sqs_result(
 
 
 def get_expected_dynamodb_table_names() -> list[str]:
-    """Get expected DynamoDB table names based on environment configuration."""
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
     return [
-        f"ftrs-dos-{environment}-{stack}-{resource}-{workspace}"
+        get_table_name(resource, stack)
         for stack, resource in EXPECTED_DYNAMODB_RESOURCES
     ]
