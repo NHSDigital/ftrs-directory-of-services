@@ -155,8 +155,10 @@ class DosLogger:
         query_params = event.get("queryStringParameters") or {}
         path_params = event.get("pathParameters") or {}
         request_context = event.get("requestContext") or {}
-        request_context.pop("identity")  # Remove identity for privacy/security
-        request_context.pop("accountId")  # Remove accountId for privacy/security
+        request_context.pop("identity", "None")  # Remove identity for privacy/security
+        request_context.pop(
+            "accountId", "None"
+        )  # Remove accountId for privacy/security
         req_params["query_params"] = query_params
         req_params["path_params"] = path_params
         req_params["request_context"] = request_context
