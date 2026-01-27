@@ -41,13 +41,13 @@ The `IS_Test_Plan.jmx` is a unified test plan that supports three different test
 1. **`test_mode=proxy`** - Tests via APIM proxy with JWT authentication
    - Runs: Get Token Thread Group (generates JWT and bearer token)
    - Runs: Organization Search Proxy Thread Group
-   - Uses: APIM endpoint 
+   - Uses: APIM endpoint
    - Authentication: JWT tokens from AWS Secrets Manager
    - Timer: PreciseThroughputTimer for consistent load
 
 2. **`test_mode=load`** - Direct backend load testing with mTLS
    - Runs: Organization Search Backend Thread Group
-   - Uses: Direct service endpoint 
+   - Uses: Direct service endpoint
    - Authentication: mTLS with PFX certificate
    - Timer: PreciseThroughputTimer for consistent load
 
@@ -120,12 +120,14 @@ make download-performance-files
 ```
 
 ### GUI Setup
-To run a test plan from the GUI, create `test_params.csv` with the following format:
+To run a test plan from the GUI, create `test_params.csv` with the following format, no headers:
 ```
 APIM Env address, AWS Env, AWS Secret Name, internal R53 endpoint address
 
-# Example:
+
+# Example data:
 internal-dev, dev, my-secret, test.dev.domain.uk
+```
 
 ### Certificate Setup
 
@@ -136,8 +138,10 @@ make jmeter-generate-pks-file \
   KEY_NAME=your-key \
   PFX_NAME=jmeter_pfx \
   ENVIRONMENT=dev
+```
 
-# Or manually:
+Or manually:
+```sh
 openssl pkcs12 -export \
   -in <cert-name>.crt \
   -inkey <key-name>.pem \
@@ -145,7 +149,7 @@ openssl pkcs12 -export \
 ```
 You will be prompted to set a password for the PFX file.
 
-Store the PEM file that corresponds to the API Key and KID extracted from the aws secret 
+Store the PEM file that corresponds to the API Key and KID extracted from the aws secret
 
 ### Launch JMeter GUI
 ```sh
@@ -179,7 +183,7 @@ make performance-test-jwt \
   PLAN_NAME=IS_Test_Plan \
   APIM_ENV=internal-dev \
   ENV=dev \
-  SECRET_NAME="aws secret name"" \
+  SECRET_NAME="aws secret name" \
   NUM_THREADS=10 \
   RAMP_TIME=1 \
   DURATION=300 \
