@@ -1,23 +1,8 @@
 # WAFv2 Web ACL for DoS Search API Gateway (REGIONAL)
-# Mirrors the complex/live DoS WAF ruleset (synthetic monitoring allowlists + geo + managed groups + logging).
-
-locals {
-  waf_web_acl_name   = "${local.resource_prefix}-dos-search-waf-web-acl${local.workspace_suffix}"
-  waf_logs_log_group = "aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}"
-  # Note: WAF requires a metric_name value in visibility_config even when CloudWatch metrics are disabled.
-  waf_metric_base_name  = "${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
-  waf_allowed_countries = var.waf_allowed_country_codes
-}
-
-resource "aws_cloudwatch_log_group" "waf_log_group" {
-  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
-  # checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
-  name              = local.waf_logs_log_group
-  retention_in_days = var.waf_log_retention_days
-}
+# Implements geo restrictions, AWS managed rule groups, and WAF logging.
 
 resource "aws_wafv2_web_acl" "dos_search_web_acl" {
-  name        = local.waf_web_acl_name
+  name        = "${local.resource_prefix}-dos-search-waf-web-acl${local.workspace_suffix}"
   description = "DOS Search API Gateway WAF regional"
   scope       = "REGIONAL"
 
@@ -27,6 +12,12 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
   # Geo restrictions
   # Block requests that are NOT from allowed countries
+  # IMPORTANT: This rule implements a strict allow-list (default-deny).
+  # It blocks requests that are NOT from values listed in `var.waf_allowed_country_codes`.
+  # Do NOT deploy with `waf_allowed_country_codes` empty — that will either
+  # (a) cause the Web ACL creation to fail or (b) effectively disable the intended default-deny
+  # behaviour and allow traffic from all countries. Ensure tfvars provide at least one
+  # country code (e.g. ["GB", "JE", "IM"]).
   rule {
     name     = "dos-search-waf-block-disallowed-countries"
     priority = 0
@@ -39,7 +30,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
       not_statement {
         statement {
           geo_match_statement {
-            country_codes = local.waf_allowed_countries
+            country_codes = var.waf_allowed_country_codes
           }
         }
       }
@@ -47,7 +38,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "dos-search-waf-block-disallowed-countries"
+      metric_name                = "${local.resource_prefix}-dos-search-waf-block-disallowed-countries${local.workspace_suffix}"
       sampled_requests_enabled   = true
     }
   }
@@ -71,7 +62,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
       visibility_config {
         cloudwatch_metrics_enabled = false
-        metric_name                = "dos-search-waf-block-hostile-countries"
+        metric_name                = "${local.resource_prefix}-dos-search-waf-block-hostile-countries${local.workspace_suffix}"
         sampled_requests_enabled   = true
       }
     }
@@ -120,7 +111,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "dos-search-waf-aws-managed-ip-reputation-list"
+      metric_name                = "${local.resource_prefix}-dos-search-waf-aws-managed-ip-reputation-list${local.workspace_suffix}"
       sampled_requests_enabled   = true
     }
   }
@@ -139,34 +130,6 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesKnownBadInputsRuleSet"
         vendor_name = "AWS"
-
-        rule_action_override {
-          name = "JavaDeserializationRCE_BODY"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "JavaDeserializationRCE_URIPATH"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "JavaDeserializationRCE_QUERYSTRING"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "JavaDeserializationRCE_HEADER"
-          action_to_use {
-            block {}
-          }
-        }
 
         rule_action_override {
           name = "Host_localhost_HEADER"
@@ -188,47 +151,12 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
             block {}
           }
         }
-
-        rule_action_override {
-          name = "Log4JRCE_QUERYSTRING"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "Log4JRCE_BODY"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "Log4JRCE_URIPATH"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "Log4JRCE_HEADER"
-          action_to_use {
-            block {}
-          }
-        }
-
-        rule_action_override {
-          name = "ReactJSRCE_BODY"
-          action_to_use {
-            block {}
-          }
-        }
       }
     }
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "dos-search-waf-aws-managed-known-bad-inputs"
+      metric_name                = "${local.resource_prefix}-dos-search-waf-aws-managed-known-bad-inputs${local.workspace_suffix}"
       sampled_requests_enabled   = true
     }
   }
@@ -371,7 +299,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "dos-search-waf-aws-managed-bot-control"
+      metric_name                = "${local.resource_prefix}-dos-search-waf-aws-managed-bot-control${local.workspace_suffix}"
       sampled_requests_enabled   = true
     }
   }
@@ -549,57 +477,16 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "dos-search-waf-aws-managed-common-rules"
+      metric_name                = "${local.resource_prefix}-dos-search-waf-aws-managed-common-rules${local.workspace_suffix}"
       sampled_requests_enabled   = true
     }
   }
 
   visibility_config {
     cloudwatch_metrics_enabled = false
-    metric_name                = local.waf_metric_base_name
+    metric_name                = "${local.resource_prefix}-dos-search-waf${local.workspace_suffix}"
     sampled_requests_enabled   = true
   }
-}
-
-# Allow AWS WAF to deliver logs to this account's CloudWatch Log Group.
-# WAF requires a CloudWatch Logs resource policy granting delivery.logs.amazonaws.com permission.
-# NOTE: data.aws_caller_identity.current is defined in provider.tf for this stack.
-
-data "aws_iam_policy_document" "dos_search_waf_log_group_policy_document" {
-  version = "2012-10-17"
-
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["delivery.logs.amazonaws.com"]
-    }
-
-    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
-
-    # Match the account_wide approach: allow writing to aws-waf-logs-* log groups in this account/region.
-    resources = [
-      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}:log-stream:*"
-    ]
-
-    condition {
-      test     = "ArnLike"
-      values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
-      variable = "aws:SourceArn"
-    }
-
-    condition {
-      test     = "StringEquals"
-      values   = [tostring(data.aws_caller_identity.current.account_id)]
-      variable = "aws:SourceAccount"
-    }
-  }
-}
-
-resource "aws_cloudwatch_log_resource_policy" "dos_search_waf_log_group_policy" {
-  policy_document = data.aws_iam_policy_document.dos_search_waf_log_group_policy_document.json
-  policy_name     = "${local.resource_prefix}-dos-search-waf-log-group-policy${local.workspace_suffix}"
 }
 
 resource "aws_wafv2_web_acl_logging_configuration" "dos_search_waf_logging" {
@@ -608,9 +495,4 @@ resource "aws_wafv2_web_acl_logging_configuration" "dos_search_waf_logging" {
   resource_arn            = aws_wafv2_web_acl.dos_search_web_acl.arn
 
   depends_on = [aws_cloudwatch_log_resource_policy.dos_search_waf_log_group_policy]
-}
-
-resource "aws_wafv2_web_acl_association" "dos_search_api_gateway_stage" {
-  resource_arn = aws_api_gateway_stage.default.arn
-  web_acl_arn  = aws_wafv2_web_acl.dos_search_web_acl.arn
 }

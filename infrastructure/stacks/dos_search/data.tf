@@ -73,3 +73,39 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+# Allow AWS WAF to deliver logs to this account's CloudWatch Log Group.
+# WAF requires a CloudWatch Logs resource policy granting delivery.logs.amazonaws.com permission.
+# NOTE: data.aws_caller_identity.current is defined in provider.tf for this stack.
+
+data "aws_iam_policy_document" "dos_search_waf_log_group_policy_document" {
+  version = "2012-10-17"
+
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+
+    # Match the account_wide approach: allow writing to aws-waf-logs-* log groups in this account/region.
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:aws-waf-logs-${local.resource_prefix}-dos-search${local.workspace_suffix}:log-stream:*"
+    ]
+
+    condition {
+      test     = "ArnLike"
+      values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+      variable = "aws:SourceArn"
+    }
+
+    condition {
+      test     = "StringEquals"
+      values   = [tostring(data.aws_caller_identity.current.account_id)]
+      variable = "aws:SourceAccount"
+    }
+  }
+}
