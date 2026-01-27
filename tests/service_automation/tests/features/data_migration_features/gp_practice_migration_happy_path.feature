@@ -6,6 +6,7 @@ Feature: Data Migration
     And the DoS database has test data
     And DynamoDB tables are ready
 
+  @happy
   Scenario: Happy path migration for a GP Practice
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                                                                                                                                                                                                   |
