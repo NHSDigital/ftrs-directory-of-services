@@ -138,6 +138,11 @@ def fixture_dos_db(
     try:
         logger.debug("Initializing database with migrated data")
 
+        # Clean up any existing schema from previous test
+        logger.debug("Cleaning up existing schema")
+        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
+        session.commit()
+
         # Begin a transaction
         trans = connection.begin()
 
@@ -149,14 +154,11 @@ def fixture_dos_db(
             trans.commit()
 
             # Add missing servicestatuses that tests expect
+            # First check if they already exist, if not insert them
             session.exec(text("""
+                DELETE FROM pathwaysdos.servicestatuses WHERE id IN (2, 3);
                 INSERT INTO pathwaysdos.servicestatuses (id, name)
-                VALUES (3, 'Inactive')
-                ON CONFLICT (id) DO NOTHING;
-
-                INSERT INTO pathwaysdos.servicestatuses (id, name)
-                VALUES (2, 'Commissioned')
-                ON CONFLICT (id) DO NOTHING;
+                VALUES (3, 'Inactive'), (2, 'Commissioned');
             """))
             session.commit()
         except Exception as setup_error:
@@ -170,15 +172,28 @@ def fixture_dos_db(
         logger.error(f"Error in dos_db fixture: {e}")
         raise
     finally:
-        # Clean up schema
+        # Clean up schema - ensure any pending transactions are rolled back
         try:
+            # Roll back any uncommitted transaction
+            if connection.in_transaction():
+                session.rollback()
             session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
             session.commit()
         except Exception as cleanup_error:
             logger.error(f"Cleanup failed: {cleanup_error}")
+            try:
+                session.rollback()
+            except Exception:
+                pass
         finally:
-            session.close()
-            connection.close()
+            try:
+                session.close()
+            except Exception:
+                pass
+            try:
+                connection.close()
+            except Exception:
+                pass
 
 
 @pytest.fixture(name="dynamodb", scope="function")
