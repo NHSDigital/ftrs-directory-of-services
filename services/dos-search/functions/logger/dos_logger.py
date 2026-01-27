@@ -1,7 +1,7 @@
 import os
 import time
 from functools import cache
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal, Optional
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
@@ -26,7 +26,7 @@ class DosLogger:
         self.headers = {}
 
     # Initialise method handles processing of event details - this should be called at the start of Lambda execution
-    def init(self, event: Dict[str, Any]) -> None:
+    def init(self, event: dict[str, Any]) -> None:
         # Extract of common mandatory fields
         log_data = self.extract(event)
         # Extract of one-time fields for logging below
@@ -73,7 +73,7 @@ class DosLogger:
         return response_size, duration_ms
 
     # --- extract methods -------------------------------------------------
-    def extract(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def extract(self, event: Optional[dict[str, Any]]) -> dict[str, Any]:
         """Extract APIM headers mandatorily appended to all logs into the structured 'mandatory' dict.
 
         All mandatory fields are present; missing values use the configured placeholder.
@@ -81,7 +81,7 @@ class DosLogger:
 
         self.headers = event.get("headers") or {}
 
-        mandatory: Dict[str, Any] = {
+        mandatory: dict[str, Any] = {
             "logger": "dos_logger"  # Identifier for when logs are created using our logger
         }
 
@@ -128,7 +128,7 @@ class DosLogger:
 
         return mandatory
 
-    def extract_one_time(self, event: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def extract_one_time(self, event: Optional[dict[str, Any]]) -> dict[str, Any]:
         """Extract APIM headers and common event fields into the structured 'extra' dict.
 
         One-time logging fields are contained within the 'details' block.
@@ -151,7 +151,7 @@ class DosLogger:
         details["connecting_party_application_name"] = app_name
 
         # Request params
-        req_params: Dict[str, Any] = {}
+        req_params: dict[str, Any] = {}
         query_params = event.get("queryStringParameters") or {}
         path_params = event.get("pathParameters") or {}
         request_context = event.get("requestContext") or {}
@@ -174,10 +174,10 @@ class DosLogger:
         return details
 
     # --- powertools context -----------------------------------------------
-    def append_keys(self, extra: Dict[str, Any]) -> None:
+    def append_keys(self, extra: dict[str, Any]) -> None:
         self.logger.append_keys(**extra)
 
-    def get_keys(self) -> Dict[str, Any]:
+    def get_keys(self) -> dict[str, Any]:
         return self.logger.get_current_keys()
 
     def set_level(self, level: Literal[10, 20, 30, 40, 50]) -> None:
