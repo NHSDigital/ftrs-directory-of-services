@@ -44,6 +44,8 @@ runs:
     - name: "Action Infrastructure Stack"
       id: "action_stack"
       shell: bash
+      env:
+        TF_VAR_slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
         export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
         export ACTION=${{ inputs.action }}
