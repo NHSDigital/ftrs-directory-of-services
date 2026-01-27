@@ -138,7 +138,6 @@ def _build_organisation_role_extension(
     typed_periods: list[dict] | None = None,
     url: str
     | None = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-    primary_role: bool | None = None,
 ) -> dict:
     """Helper to build an OrganisationRole extension with TypedPeriod(s).
 
@@ -982,7 +981,7 @@ def test_invalid_role_code_not_in_enum() -> None:
         date_type="Legal", start="2020-01-15", end=None
     )
     role_extension = _build_organisation_role_extension(
-        role_code="INVALID_CODE", typed_periods=[typed_period], primary_role=True
+        role_code="INVALID_CODE", typed_periods=[typed_period]
     )
     payload["extension"] = [role_extension]
 
@@ -1099,7 +1098,7 @@ def test_invalid_prescribing_cost_centre_with_duplicate_non_primary_roles() -> N
         date_type="Legal", start="2020-01-15", end=None
     )
     primary_role = _build_organisation_role_extension(
-        role_code="RO177", typed_periods=[primary_period], primary_role=True
+        role_code="RO177", typed_periods=[primary_period]
     )
 
     # First RO76
@@ -1107,7 +1106,7 @@ def test_invalid_prescribing_cost_centre_with_duplicate_non_primary_roles() -> N
         date_type="Legal", start="2014-04-15", end=None
     )
     non_primary_role_1 = _build_organisation_role_extension(
-        role_code="RO76", typed_periods=[non_primary_period_1], primary_role=False
+        role_code="RO76", typed_periods=[non_primary_period_1]
     )
 
     # Duplicate RO76
@@ -1115,7 +1114,7 @@ def test_invalid_prescribing_cost_centre_with_duplicate_non_primary_roles() -> N
         date_type="Legal", start="2015-05-20", end=None
     )
     non_primary_role_2 = _build_organisation_role_extension(
-        role_code="RO76", typed_periods=[non_primary_period_2], primary_role=False
+        role_code="RO76", typed_periods=[non_primary_period_2]
     )
 
     payload["extension"] = [primary_role, non_primary_role_1, non_primary_role_2]
@@ -1134,7 +1133,7 @@ def test_invalid_prescribing_cost_centre_no_non_primary_roles() -> None:
         date_type="Legal", start="2020-01-15", end=None
     )
     primary_role = _build_organisation_role_extension(
-        role_code="RO177", typed_periods=[primary_period], primary_role=True
+        role_code="RO177", typed_periods=[primary_period]
     )
 
     payload["extension"] = [primary_role]
