@@ -325,6 +325,7 @@ def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
     """
     try:
         encoded_msg = json.dumps(message).encode("utf-8")
+        logger.info(f"Sending to Slack: {json.dumps(message, indent=2)}")
         resp = http.request(
             "POST",
             webhook_url,
