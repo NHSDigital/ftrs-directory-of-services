@@ -83,11 +83,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
       AllowFromPublic = true
       Rules = [
         {
-          Resource = ["collection/${try(
-            data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name,
-            module.opensearch_serverless[0].name
-            )}"
-          ]
+          Resource     = ["collection/${local.opensearch_collection_name}"]
           ResourceType = "dashboard"
         }
       ]
@@ -97,11 +93,7 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
       AllowFromPublic = true
       Rules = [
         {
-          Resource = ["collection/${try(
-            data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name,
-            module.opensearch_serverless[0].name
-            )}"
-          ]
+          Resource     = ["collection/${local.opensearch_collection_name}"]
           ResourceType = "collection"
         }
       ]
@@ -112,23 +104,16 @@ resource "aws_opensearchserverless_security_policy" "opensearch_serverless_works
 resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspace_data_access_policy" {
   count = local.stack_enabled == 1 && local.workspace_suffix != "" ? 1 : 0
 
-  name = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
-  type = "data"
-  description = "Collection-level data access policy for OpenSearch collection ${try(
-    data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name,
-    module.opensearch_serverless[0].name
-  )} (grants collection & index ops)"
+  name        = "${var.environment}-${var.stack_name}${local.workspace_suffix}-dap"
+  type        = "data"
+  description = "Collection-level data access policy for OpenSearch collection ${local.opensearch_collection_name} (grants collection & index ops)"
 
   policy = jsonencode([
     {
       Rules = [
         {
           ResourceType = "collection"
-          Resource = ["collection/${try(
-            data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name,
-            module.opensearch_serverless[0].name
-            )}"
-          ]
+          Resource     = ["collection/${local.opensearch_collection_name}"]
           Permission = [
             "aoss:CreateCollectionItems",
             "aoss:UpdateCollectionItems",
@@ -138,10 +123,7 @@ resource "aws_opensearchserverless_access_policy" "opensearch_serverless_workspa
         },
         {
           ResourceType = "index"
-          Resource = ["index/${try(
-            data.aws_opensearchserverless_collection.opensearch_serverless_collection[0].name,
-            module.opensearch_serverless[0].name
-          )}}/${local.opensearch_index_name}"]
+          Resource     = ["index/${local.opensearch_collection_name}/${local.opensearch_index_name}"]
           Permission = [
             "aoss:CreateIndex",
             "aoss:UpdateIndex",
