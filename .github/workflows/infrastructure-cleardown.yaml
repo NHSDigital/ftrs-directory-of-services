@@ -59,6 +59,7 @@ jobs:
       commit_hash: ${{ inputs.commit_hash }}
       action: destroy
       type: ${{ inputs.type }}
+      download_appconfig_artifact: true
     secrets: inherit
 
   cleardown-os-policies:
