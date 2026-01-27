@@ -73,6 +73,7 @@ scenarios(
     "../features/data_migration_features/incremental_updates/update_multi_entity.feature",
     "../features/data_migration_features/incremental_updates/update_status.feature",
     "../features/data_migration_features/incremental_updates/update_endpoints.feature",
+    "../features/data_migration_features/incremental_updates/update_state_management_and_validation.feature",
 )
 
 

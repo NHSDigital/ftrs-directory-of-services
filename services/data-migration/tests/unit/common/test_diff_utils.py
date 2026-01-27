@@ -266,7 +266,8 @@ def test_healthcare_service_excludes_modified_datetime(
 def test_healthcare_service_detects_dispositions_order_changes(
     healthcare_service: HealthcareService,
 ) -> None:
-    """Reordering dispositions is detected as additions/removals at different positions."""
+    """Reordering identical dispositions at different positions produces no diff."""
+
     service1 = healthcare_service.model_copy(
         update={"dispositions": ["DX1", "DX114", "DX200"]}
     )
@@ -275,24 +276,13 @@ def test_healthcare_service_detects_dispositions_order_changes(
     )
 
     diff = get_healthcare_service_diff(service1, service2)
-
-    assert len(diff) > 0
-    assert "iterable_item_added" in diff
-    assert "iterable_item_removed" in diff
-
-    removed = {str(c.path()): c.t1 for c in diff["iterable_item_removed"]}
-    added = {str(c.path()): c.t2 for c in diff["iterable_item_added"]}
-
-    assert "root['dispositions'][2]" in removed
-    assert removed["root['dispositions'][2]"] == "DX200"
-    assert "root['dispositions'][0]" in added
-    assert added["root['dispositions'][0]"] == "DX200"
+    assert len(diff) == 0
 
 
 def test_healthcare_service_detects_sgsd_order_changes(
     healthcare_service: HealthcareService,
 ) -> None:
-    """Swapping SGSD positions causes value changes at each index."""
+    """Reordering identical SGSD objects at different positions produces no diff."""
     sgsd1 = SymptomGroupSymptomDiscriminatorPair(sg=1000, sd=4003)
     sgsd2 = SymptomGroupSymptomDiscriminatorPair(sg=2000, sd=5003)
 
@@ -305,18 +295,7 @@ def test_healthcare_service_detects_sgsd_order_changes(
 
     diff = get_healthcare_service_diff(service1, service2)
 
-    assert len(diff) > 0
-    assert "values_changed" in diff
-    assert len(diff["values_changed"]) == 4  # noqa: PLR2004  # 2 positions x 2 fields
-
-    changes = {
-        str(change.path()): (change.t1, change.t2) for change in diff["values_changed"]
-    }
-
-    assert changes["root['symptomGroupSymptomDiscriminators'][0]['sg']"] == (1000, 2000)
-    assert changes["root['symptomGroupSymptomDiscriminators'][0]['sd']"] == (4003, 5003)
-    assert changes["root['symptomGroupSymptomDiscriminators'][1]['sg']"] == (2000, 1000)
-    assert changes["root['symptomGroupSymptomDiscriminators'][1]['sd']"] == (5003, 4003)
+    assert len(diff) == 0
 
 
 def test_healthcare_service_detects_disposition_changes(
