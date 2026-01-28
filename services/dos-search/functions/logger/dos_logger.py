@@ -99,29 +99,15 @@ class DosLogger:
         correlation_id_index = 1
         message_id_index = 2
 
-        if len(reqid_corr_msgid) > correlation_id_index:
-            corr = reqid_corr_msgid[correlation_id_index]
-        else:
-            corr = PLACEHOLDER
-
-        if len(reqid_corr_msgid) > message_id_index:
-            msgid = reqid_corr_msgid[message_id_index]
-        else:
-            msgid = PLACEHOLDER
-
-        mandatory["dos_nhsd_correlation_id"] = corr
-
-        # APIM message id
-        mandatory["dos_message_id"] = msgid
+        mandatory["dos_nhsd_correlation_id"] = (
+            reqid_corr_msgid[correlation_id_index] or PLACEHOLDER
+        )
+        mandatory["dos_message_id"] = reqid_corr_msgid[message_id_index] or PLACEHOLDER
 
         # NHSD request id
-        reqid = (
-            self._get_header(
-                "NHSD-Request-ID",
-            )
-            or PLACEHOLDER
+        mandatory["dos_nhsd_request_id"] = (
+            self._get_header("NHSD-Request-ID") or PLACEHOLDER
         )
-        mandatory["dos_nhsd_request_id"] = reqid
 
         # Default category to LOGGING, can be overridden later
         mandatory["dos_message_category"] = "LOGGING"
