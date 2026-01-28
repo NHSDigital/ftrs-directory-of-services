@@ -73,17 +73,7 @@ jobs:
         uses: ./.github/actions/run-performance-test-gateway
         with:
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-          test-file: ${{ inputs.test_type }}
           aws_region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           endpoint: ${{ inputs.endpoint }}
 
-      - name: "Run performance test (Proxy)"
-        if: ${{ inputs.endpoint_type == 'proxy' }}
-        uses: ./.github/actions/run-performance-test-proxy
-        with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-          test-file: ${{ inputs.test_type }}
-          aws_region: ${{ vars.AWS_REGION }}
-          environment: ${{ inputs.environment }}
-          endpoint: ${{ inputs.endpoint }}
