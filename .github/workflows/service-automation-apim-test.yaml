@@ -1,5 +1,4 @@
-name: service automation test workflow
-
+name: service automation APIM test workflow
 
 on:
   workflow_call:
@@ -12,21 +11,13 @@ on:
         description: "The name of the workspace to deploy the application into"
         required: true
         type: string
-      test_tag:
-        description: "The name of the feature tag that identifies the tests to run"
-        required: false
-        type: string
-      test_type:
-        description: "The name of the type of test report that will be generated"
-        required: false
-        type: string
       api_name:
-        description: "The name of the API to test (for APIM tests, e.g., dos-search)"
-        required: false
+        description: "The name of the API to test (e.g., dos-search)"
+        required: true
         type: string
       apim_env:
-        description: "The APIM environment to test (for APIM tests, e.g., internal-dev, internal-qa)"
-        required: false
+        description: "The APIM environment to test (e.g., internal-dev, internal-qa)"
+        required: true
         type: string
       tag:
         description: "The tag to build and deploy from"
@@ -46,58 +37,6 @@ on:
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
-        type: string
-      commit_hash:
-        description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: false
-        type: string
-
-  workflow_dispatch:
-    inputs:
-      # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
-      environment:
-        description: "Which aws environment to run against"
-        required: true
-        default: "dev"
-        type: choice
-        options:
-          - dev
-          - test
-          - int
-          - ref
-      workspace:
-        description: "The name of the workspace to run the test against"
-        required: false
-        default: ""
-        type: string
-      test_tag:
-        description: "The name of the feature tag that identifies the tests to run"
-        required: false
-        type: string
-      test_type:
-        description: "The name of the type of test report that will be generated"
-        default: "data-migration"
-        required: false
-        type: string
-      tag:
-        description: "The tag to build and deploy from"
-        required: false
-        default: "data-migration"
-        type: string
-      allure_report_retention:
-        description: "The number of days to retain allure reports (in github)"
-        required: false
-        default: 10
-        type: number
-      workflow_timeout:
-        description: "Timeout duration in minutes"
-        required: false
-        default: 10
-        type: number
-      type:
-        description: "The type of permissions (e.g., account, app)"
-        required: false
-        default: app
         type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
@@ -108,8 +47,8 @@ permissions:
   contents: read
 
 jobs:
-  service-automation-tests:
-    name: "Run ${{ inputs.test_tag }} service automation tests"
+  service-automation-apim-tests:
+    name: "Run APIM tests for ${{ inputs.api_name }}"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
@@ -163,28 +102,13 @@ jobs:
         working-directory: "tests/service_automation"
 
       - name: Install Python dependencies for JWT
-        if: inputs.test_type == 'apim'
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
           pip install pyjwt cryptography
 
-      - name: Run ${{ inputs.test_tag }} service automation tests
-        if: inputs.test_type != 'apim'
-        id: run-service_automation-tests
-        uses: ./.github/actions/service-automation-test
-        with:
-          aws_region: ${{ vars.AWS_REGION }}
-          environment: ${{ inputs.environment }}
-          workspace: ${{ inputs.workspace }}
-          test_tag: ${{ inputs.test_tag }}
-          test_type: ${{ inputs.test_type }}
-          commit_hash: ${{ inputs.commit_hash || github.sha }}
-          tag: ${{ inputs.tag }}
-
       - name: Run APIM service automation tests
-        if: inputs.test_type == 'apim'
         id: run-service_automation-apim-tests
         uses: ./.github/actions/service-automation-apim-test
         env:
@@ -203,7 +127,7 @@ jobs:
         id: upload_allure_report
         uses: actions/upload-artifact@v6
         with:
-          name: allure-report-${{ inputs.test_type == 'apim' && format('{0}-{1}', inputs.test_type, inputs.api_name) || inputs.test_tag }}
+          name: allure-report-apim-${{ inputs.api_name }}
           path: tests/service_automation/allure-reports/index.html
           retention-days: ${{ inputs.allure_report_retention }}
 
@@ -223,7 +147,7 @@ jobs:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
-          TEST_TAG: ${{ inputs.test_tag }}
+          TEST_TAG: apim-${{ inputs.api_name }}
         run: |
           set -euo pipefail
           ./scripts/workflow/upload-allure-report.sh
