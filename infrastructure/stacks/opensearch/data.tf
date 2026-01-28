@@ -25,7 +25,7 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
-  count = local.stack_enabled
+  count = local.stack_enabled == 1 && local.is_primary_environment ? 0 : 1
   name  = "${local.project_prefix}-osc"
 }
 
