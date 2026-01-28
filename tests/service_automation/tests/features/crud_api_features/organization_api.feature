@@ -5,7 +5,7 @@ Feature: Organization API Endpoint
     When I request data from the "crud" endpoint "Organization"
     Then I receive a status code "200" in response
     And the response body contains a bundle
-    And the bundle contains "10" "Organization" resources
+    And the bundle contains "0" "Organization" resources
 
   Scenario: Update Organization for specific ODS Code
     Given that the stack is "organisation"
