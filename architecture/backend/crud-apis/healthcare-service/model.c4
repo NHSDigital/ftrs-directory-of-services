@@ -1,0 +1,47 @@
+model {
+
+  extend ftrs {
+
+    api healthcareServiceAPI "Healthcare Service API" {
+      description '
+        /healthcare-service
+        API for CRUD operations on the Healthcare Service table
+        and to retrieve data for the Healthcare Service dashboard
+      '
+
+      lambda getHealthcareService "GET /healthcare-service/{service_id}" {
+        description 'Retrieves a specific healthcare service by ID'
+      }
+
+      lambda updateHealthcareService "PUT /healthcare-service/{service_id}" {
+        description 'Updates a specific healthcare service by ID'
+      }
+
+      lambda deleteHealthcareService "DELETE /healthcare-service/{service_id}" {
+        description 'Deletes a specific healthcare service by ID'
+      }
+
+      lambda getHealthcareServices "GET /healthcare-services" {
+        description 'Retrieves all healthcare services'
+      }
+
+      lambda createHealthcareServices "POST /healthcare-services" {
+        description 'Creates a new healthcare service'
+      }
+
+    }
+  }
+
+  apim.dosReadProxy -> healthcareServiceAPI.getHealthcareService "Routes requests to"
+  apim.dosReadProxy -> healthcareServiceAPI.getHealthcareServices "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.deleteHealthcareService "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.createHealthcareServices "Routes requests to"
+  apim.dosWriteProxy -> healthcareServiceAPI.updateHealthcareService "Routes requests to"
+
+
+
+  getHealthcareService -> ftrs.db.healthCareServiceTable "Reads from"
+  getHealthcareServices -> ftrs.db.healthCareServiceTable "Reads from"
+  deleteHealthcareService -> ftrs.db.healthCareServiceTable "Deletes from"
+  createHealthcareServices -> ftrs.db.healthCareServiceTable "Creates in"
+}

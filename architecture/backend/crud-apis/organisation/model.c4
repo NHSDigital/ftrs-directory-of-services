@@ -1,0 +1,49 @@
+model {
+
+  extend ftrs {
+
+    lambda organizationAPI "Organization API" {
+      description '
+        /organization
+        API for CRUD operations on the Organizations table
+        and to retrieve data for the Organization dashboard
+      '
+
+      lambda orgByOdsCode "GET organization/{ods_code}" {
+        description 'Retrieves organization data by ODS code'
+      }
+
+      lambda getByOrganizationId "GET organization/{organization_id}" {
+        description 'Retrieves organization data by Organization ID'
+      }
+
+      lambda addOrg "POST /organization" {
+        description 'Adds a new organization to the FTRS database'
+      }
+
+      lambda updateOrg "PUT /organization/{organization_id}" {
+        description 'Updates an existing organization in the FTRS database'
+      }
+
+      lambda deleteOrg "DELETE /organization/{organization_id}" {
+        description 'Deletes an existing organization from the FTRS database'
+      }
+    }
+  }
+
+  apim.dosReadProxy -> organizationAPI.orgByOdsCode "Routes requests to"
+  apim.dosReadProxy -> organizationAPI.getByOrganizationId "Routes requests to"
+  apim.dosWriteProxy -> organizationAPI.addOrg "Routes requests to"
+  apim.dosWriteProxy -> organizationAPI.updateOrg "Routes requests to"
+  apim.dosWriteProxy -> organizationAPI.deleteOrg "Routes requests to"
+
+  orgByOdsCode -> ftrs.db.orgTable "Queries data from"
+  getByOrganizationId -> ftrs.db.orgTable "Queries data from"
+  addOrg -> ftrs.db.orgTable "Creates in"
+  updateOrg -> ftrs.db.orgTable "Updates in"
+  deleteOrg -> ftrs.db.orgTable "Deletes from"
+
+  addOrg -> ftrs.assuranceQueue "Enqueues in"
+  updateOrg -> ftrs.assuranceQueue "Enqueues in"
+  deleteOrg -> ftrs.assuranceQueue "Enqueues in"
+}

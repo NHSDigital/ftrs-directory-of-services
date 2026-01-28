@@ -74,6 +74,7 @@ jobs:
       stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
+      skip_dirs: "services/dos-ui,services/read-only-viewer"
     secrets: inherit
 
   plan-infrastructure:

@@ -1,9 +1,6 @@
 import pytest
-from fhir.resources.R4B.address import Address
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganization
-from ftrs_data_layer.domain import Telecom
-from ftrs_data_layer.domain.enums import TelecomType
 
 from functions.ftrs_service.fhir_mapper.organization_mapper import OrganizationMapper
 
@@ -24,8 +21,6 @@ class TestOrganizationMapper:
         assert org_resource.name == "Test Organisation"
         assert org_resource.active is True
         assert len(org_resource.identifier) == 1
-        assert len(org_resource.telecom) == 1
-        assert len(org_resource.address) == 1
 
     def test_create_identifier(self, organization_mapper, organisation):
         # Act
@@ -38,52 +33,23 @@ class TestOrganizationMapper:
         assert identifiers[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
         assert identifiers[0].value == "123456"
 
-    def test_create_dummy_address(self, organization_mapper):
-        # Act
-        address = organization_mapper._create_dummy_address()
-
-        # Assert
-        assert len(address) == 1
-        assert isinstance(address[0], Address)
-        assert len(address[0].line) == 2
-        assert address[0].line[0] == "Dummy Medical Practice"
-        assert address[0].city == "Dummy City"
-        assert address[0].postalCode == "DU00 0MY"
-        assert address[0].country == "ENGLAND"
-
     @pytest.mark.parametrize(
-        ("org_name", "telecom", "active"),
+        ("org_name", "active"),
         [
-            (
-                "Test Org 1",
-                [
-                    Telecom(
-                        type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True
-                    )
-                ],
-                True,
-            ),
-            (
-                "Test Org 2",
-                [Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
-                False,
-            ),
-            ("Default Name", [], True),
+            ("Test Org 1", True),
+            ("Test Org 2", False),
+            ("Default Name", True),
         ],
     )
     def test_map_to_organization_with_different_values(
-        self, organization_mapper, create_organisation, org_name, telecom, active
+        self, organization_mapper, create_organisation, org_name, active
     ):
         # Arrange
-        updated_org_record = create_organisation(
-            name=org_name, telecom=telecom, active=active
-        )
+        updated_org_record = create_organisation(name=org_name, active=active)
 
         # Act
         org_resource = organization_mapper.map_to_fhir_organization(updated_org_record)
 
         # Assert
         assert org_resource.name == org_name
-        if len(telecom) > 0 or len(org_resource.telecom) > 0:
-            assert org_resource.telecom[0].value == telecom[0].value
         assert org_resource.active == active

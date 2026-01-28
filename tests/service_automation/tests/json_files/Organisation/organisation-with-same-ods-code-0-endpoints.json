@@ -1,9 +1,17 @@
 {
   "id": "e18bf4d8-667d-4d41-9b09-79537d9f9081",
-  "createdBy": "ROBOT",
-  "createdDateTime": "2025-06-27T12:46:36.111296Z",
-  "modifiedBy": "ROBOT",
-  "modifiedDateTime": "2025-06-27T12:46:36.111296Z",
+  "createdBy": {
+    "type": "user",
+    "value": "INGRESS_API_ID",
+    "display": "FtRS Ingress API"
+  },
+  "createdTime": "2025-06-27T12:46:36.111296Z",
+  "lastUpdatedBy": {
+    "type": "user",
+    "value": "INGRESS_API_ID",
+    "display": "FtRS Ingress API"
+  },
+  "lastUpdated": "2025-06-27T12:46:36.111296Z",
   "identifier_ODS_ODSCode": "P00083010",
   "active": true,
   "name": "GP: Monarch Medical Centre - Radcliffe - Bury",

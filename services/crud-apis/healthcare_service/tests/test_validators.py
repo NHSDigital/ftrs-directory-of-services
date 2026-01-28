@@ -18,7 +18,11 @@ def test_validate_with_valid() -> NoReturn:
         "name": "Healthcare Service",
         "type": HealthcareServiceType.GP_CONSULTATION_SERVICE,
         "category": HealthcareServiceCategory.GP_SERVICES,
-        "createdBy": "AdminUser",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "active": True,
     }
     validator = HealthcareServiceCreatePayloadValidator(**payload)
@@ -30,7 +34,11 @@ def test_validate_with_empty_name() -> NoReturn:
         "name": "   ",
         "type": HealthcareServiceType.GP_CONSULTATION_SERVICE,
         "category": HealthcareServiceCategory.GP_SERVICES,
-        "createdBy": "AdminUser",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "active": True,
     }
     with pytest.raises(ValidationError) as exc_info:
@@ -45,7 +53,11 @@ def test_validate_with_invalid_type() -> NoReturn:
         "name": "Healthcare Service",
         "type": "InvalidType",
         "category": HealthcareServiceCategory.GP_SERVICES,
-        "createdBy": "AdminUser",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "active": True,
     }
     with pytest.raises(ValidationError) as exc_info:
@@ -60,7 +72,11 @@ def test_validate_with_invalid_category() -> NoReturn:
         "name": "Healthcare Service",
         "type": HealthcareServiceType.GP_CONSULTATION_SERVICE,
         "category": "InvalidCategory",
-        "createdBy": "AdminUser",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "active": True,
     }
     with pytest.raises(ValidationError) as exc_info:
@@ -90,7 +106,11 @@ def test_validate_with_missing_fields() -> NoReturn:
         "name": "Healthcare Service",
         "type": HealthcareServiceType.GP_CONSULTATION_SERVICE,
         # Missing category
-        "createdBy": "AdminUser",
+        "createdBy": {
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
         "active": True,
     }
     with pytest.raises(ValidationError) as exc_info:

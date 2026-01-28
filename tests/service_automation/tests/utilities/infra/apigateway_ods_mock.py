@@ -28,8 +28,9 @@ class ODSMockClient:
             env = os.environ.get("ENVIRONMENT", "dev")
             project = os.environ.get("PROJECT_NAME", "ftrs-dos")
             workspace = os.environ.get("WORKSPACE", "")
-
-            parameter_name = f"/{project}-{env}/mock-api/endpoint-url-{workspace}"
+            
+            workspace_suffix = f"-{workspace}" if workspace else ""
+            parameter_name = f"/{project}-{env}/mock-api/endpoint-url{workspace_suffix}"
 
             response = self.ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
             api_url = response["Parameter"]["Value"]

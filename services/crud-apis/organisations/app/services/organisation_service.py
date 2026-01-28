@@ -156,11 +156,7 @@ class OrganisationService:
             organisation_id=existing_organisation.id,
         )
         for field, value in outdated_fields.items():
-            if field == "modified_by":
-                setattr(existing_organisation, "modifiedBy", value)
-            else:
-                setattr(existing_organisation, field, value)
-        existing_organisation.modifiedDateTime = datetime.now(UTC)
+            setattr(existing_organisation, field, value)
 
     def _get_stored_organisation(
         self, organisation_id: str, ods_code: str
@@ -257,8 +253,8 @@ class OrganisationService:
                 outdated_fields=list(outdated_fields.keys()),
                 organisation_id=getattr(organisation, "id", None),
             )
-            outdated_fields["modified_by"] = payload.modifiedBy or "ODS_ETL_PIPELINE"
-            outdated_fields["modifiedDateTime"] = datetime.now(UTC)
+            outdated_fields["lastUpdatedBy"] = payload.lastUpdatedBy
+            outdated_fields["lastUpdated"] = datetime.now(UTC)
         return outdated_fields
 
     def _field_has_changed(self, current_value: object, new_value: object) -> bool:

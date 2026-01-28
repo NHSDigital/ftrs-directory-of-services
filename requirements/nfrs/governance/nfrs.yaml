@@ -1,0 +1,667 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: GOV-001
+  requirement: Service Management pre-live acceptance signed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2179
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: service-management-pre-live
+    measure: Service Management pre-live acceptance signed
+    threshold: Acceptance signed; evidence stored
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures service readiness sign-off
+    service_stories:
+      crud-apis:
+      - FTRS-2179
+      data-migration:
+      - FTRS-2179
+      dos-search:
+      - FTRS-2179
+      dos-ui:
+      - FTRS-2179
+      etl-ods:
+      - FTRS-2179
+- code: GOV-002
+  requirement: Well-Architected review completed & actions closed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - etl-ods
+  - dos-ui
+  stories:
+  - FTRS-2180
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: well-architected-review
+    measure: Well-Architected review completed & actions closed
+    threshold: Review complete; actions closed or exceptioned
+    tooling: WAR tool + issue tracker
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    status: draft
+    rationale: Maintains architectural quality
+    service_stories:
+      etl-ods:
+      - FTRS-2180
+      data-migration:
+      - FTRS-2180
+      crud-apis:
+      - FTRS-2180
+      dos-search:
+      - FTRS-2180
+      dos-ui:
+      - FTRS-2180
+      infrastructure:
+      - FTRS-356
+- code: GOV-003
+  requirement: Solution Architecture Framework assessment approved
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2181
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: saf-assessment-approved
+    measure: Solution Architecture Framework assessment approved
+    threshold: Approved assessment stored with evidence link; exceptions recorded
+    tooling: Governance tracker + document repository
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures architectural governance sign-off
+    service_stories:
+      crud-apis:
+      - FTRS-2181
+      dos-ui:
+      - FTRS-2181
+      dos-search:
+      - FTRS-2181
+      etl-ods:
+      - FTRS-2181
+      data-migration:
+      - FTRS-2181
+- code: GOV-004
+  requirement: Engineering Red-lines compliance checklist signed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2182
+  teams:
+  - infrastructure
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: nhs-github-enterprise-repos
+    measure: All FtRS code repositories are hosted in NHS GitHub Enterprise and comply
+      with securing-repositories policy; engineering dashboards show compliance
+    threshold: 100% repositories on NHS GitHub Enterprise; 100% securing-repositories
+      checks passing; exceptions recorded with owner and review date
+    tooling: Enterprise repository policy audit + engineering compliance dashboards
+      + CI checks
+    cadence: Continuous (CI on change) + quarterly governance review
+    environments:
+    - dev
+    - int
+    - ref
+    - prod
+    status: draft
+    rationale: Enforces organisational SDLC-1 Red Line for using NHS GitHub Enterprise
+      and securing repositories; provides traceable evidence and automated verification
+    service_stories:
+      etl-ods:
+      - FTRS-2414
+      - FTRS-2415
+      - FTRS-2416
+      - FTRS-2417
+      - FTRS-2418
+      crud-apis:
+      - FTRS-2414
+      - FTRS-2415
+      - FTRS-2416
+      - FTRS-2417
+      - FTRS-2418
+      data-migration:
+      - FTRS-2414
+      - FTRS-2415
+      - FTRS-2416
+      - FTRS-2417
+      - FTRS-2418
+      dos-search:
+      - FTRS-2414
+      - FTRS-2415
+      - FTRS-2416
+      - FTRS-2417
+      - FTRS-2418
+      dos-ui:
+      - FTRS-2414
+      - FTRS-2415
+      - FTRS-2416
+      - FTRS-2417
+      - FTRS-2418
+- code: GOV-005
+  requirement: GDPR compliance assessment signed by IG
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2183
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: gdpr-assessment-signed
+    measure: GDPR compliance assessment signed by IG
+    threshold: Assessment signed; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live + annual
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures data protection compliance
+    service_stories:
+      etl-ods:
+      - FTRS-2183
+      crud-apis:
+      - FTRS-2183
+      data-migration:
+      - FTRS-2183
+      dos-search:
+      - FTRS-2183
+      dos-ui:
+      - FTRS-2183
+- code: GOV-006
+  requirement: Medical Device out-of-scope statement recorded
+  services:
+  - dos-search
+  - data-migration
+  - etl-ods
+  - dos-ui
+  - crud-apis
+  stories:
+  - FTRS-2184
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: medical-device-out-of-scope
+    measure: Medical Device out-of-scope statement recorded
+    threshold: Statement recorded and reviewed annually
+    tooling: Evidence repository
+    cadence: Annual review
+    environments:
+    - prod
+    status: draft
+    rationale: Confirms regulatory position
+    service_stories:
+      crud-apis:
+      - FTRS-2184
+      data-migration:
+      - FTRS-2184
+      dos-ui:
+      - FTRS-2184
+      dos-search:
+      - FTRS-2184
+      etl-ods:
+      - FTRS-2184
+- code: GOV-007
+  requirement: FtRS Architects review & approval logged
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2185
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: ftrs-architects-approval
+    measure: FtRS Architects review & approval logged
+    threshold: Review minutes and approval recorded; actions tracked
+    tooling: Review tracker + minutes repo
+    cadence: Pre-live + on major change
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Provides architectural oversight evidence
+    service_stories:
+      dos-search:
+      - FTRS-2185
+      crud-apis:
+      - FTRS-2185
+- code: GOV-008
+  requirement: Cloud Expert deployment approval documented
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2186
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: cloud-expert-approval
+    measure: Cloud Expert deployment approval documented
+    threshold: Approval recorded; infra readiness checklist passed
+    tooling: Infra checklist + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Confirms infrastructure deployment readiness
+    service_stories:
+      crud-apis:
+      - FTRS-2186
+      dos-search:
+      - FTRS-2186
+  - control_id: cloud-expert-approval-data-migration
+    measure: Cloud Expert deployment approval documented for data pipelines
+    threshold: Approval recorded; data migration infra checklist passed; rollback
+      tested
+    tooling: Data migration infra checklist + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - data-migration
+    status: draft
+    rationale: Tailors Cloud Expert checks to data-migration-specific infrastructure
+      and rollback paths
+    service_stories:
+      data-migration:
+      - FTRS-2186
+- code: GOV-009
+  requirement: Solution Assurance approval ticket closed
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2187
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: solution-assurance-approval
+    measure: Solution Assurance approval ticket closed
+    threshold: Approval obtained; ticket closed
+    tooling: Assurance workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Meets governance approval requirements
+    service_stories:
+      dos-search:
+      - FTRS-2187
+      dos-ui:
+      - FTRS-2187
+      etl-ods:
+      - FTRS-2187
+      data-migration:
+      - FTRS-2187
+      crud-apis:
+      - FTRS-2187
+- code: GOV-010
+  requirement: Clinical Safety assurance approval recorded
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-1640
+  - FTRS-824
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: clinical-safety-approval
+    measure: Clinical Safety assurance approval recorded
+    threshold: Approval recorded; evidence available
+    tooling: Clinical safety workflow + repository
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Complies with clinical safety governance
+    service_stories:
+      etl-ods:
+      - FTRS-2419
+      - FTRS-2420
+      - FTRS-2421
+      - FTRS-2422
+      - FTRS-2423
+      data-migration:
+      - FTRS-2419
+      - FTRS-2420
+      - FTRS-2421
+      - FTRS-2422
+      - FTRS-2423
+      crud-apis:
+      - FTRS-2419
+      - FTRS-2420
+      - FTRS-2421
+      - FTRS-2422
+      - FTRS-2423
+      dos-search:
+      - FTRS-2419
+      - FTRS-2420
+      - FTRS-2421
+      - FTRS-2422
+      - FTRS-2423
+      dos-ui:
+      - FTRS-2419
+      - FTRS-2420
+      - FTRS-2421
+      - FTRS-2422
+      - FTRS-2423
+- code: GOV-011
+  requirement: Information Governance approval recorded
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2188
+  teams:
+  - programme
+  releases:
+  - id: ga
+  - id: private-beta
+  controls:
+  - control_id: ig-approval-recorded
+    measure: Information Governance approval recorded
+    threshold: Approval recorded; actions tracked
+    tooling: IG workflow + evidence repository
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Meets IG governance
+    service_stories:
+      dos-search:
+      - FTRS-2188
+      dos-ui:
+      - FTRS-2188
+      etl-ods:
+      - FTRS-2188
+      crud-apis:
+      - FTRS-2188
+      data-migration:
+      - FTRS-2188
+- code: GOV-012
+  requirement: TRG approval session outcome logged
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2189
+  teams:
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: trg-approval-outcome
+    measure: TRG approval session outcome logged
+    threshold: Outcome recorded; decisions minuted; actions tracked
+    tooling: TRG minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Documents technical governance approval
+    service_stories:
+      crud-apis:
+      - FTRS-2189
+      dos-search:
+      - FTRS-2189
+- code: GOV-013
+  requirement: SIRO sign-off obtained
+  services:
+  - dos-search
+  - data-migration
+  - crud-apis
+  - dos-ui
+  - etl-ods
+  stories:
+  - FTRS-2190
+  teams:
+  - programme
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: siro-signoff
+    measure: SIRO sign-off obtained
+    threshold: Sign-off recorded; evidence stored
+    tooling: Governance tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Confirms senior risk acceptance
+    service_stories:
+      dos-ui:
+      - FTRS-2190
+      etl-ods:
+      - FTRS-2190
+      crud-apis:
+      - FTRS-2190
+      data-migration:
+      - FTRS-2190
+      dos-search:
+      - FTRS-2190
+- code: GOV-014
+  requirement: Caldicott Principles Guardian approval recorded
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - programme
+  stories:
+  - FTRS-2191
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: caldicott-guardian-approval
+    measure: Caldicott Principles Guardian approval recorded
+    threshold: Approval recorded with data handling summary
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures data handling governance
+    service_stories:
+      data-migration:
+      - FTRS-2191
+      dos-search:
+      - FTRS-2191
+- code: GOV-015
+  requirement: DUEC Assurance Board acceptance logged
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - programme
+  stories:
+  - FTRS-2192
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: duec-acceptance
+    measure: DUEC Assurance Board acceptance logged
+    threshold: Acceptance recorded; actions tracked
+    tooling: Board minutes + tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Documents assurance acceptance
+    service_stories:
+      dos-search:
+      - FTRS-2192
+      data-migration:
+      - FTRS-2192
+- code: GOV-016
+  requirement: Live Services Board go-live approval recorded
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - programme
+  stories:
+  - FTRS-2193
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: live-services-go-live
+    measure: Live Services Board go-live approval recorded
+    threshold: Go-live approval recorded; evidence stored
+    tooling: Governance tracker + evidence repo
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Final governance approval before production
+    service_stories:
+      data-migration:
+      - FTRS-2193
+      dos-search:
+      - FTRS-2193
+- code: GOV-017
+  requirement: ITOC approval recorded
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - programme
+  stories:
+  - FTRS-2194
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: itoc-approval
+    measure: ITOC approval recorded
+    threshold: Approval recorded; decisions and actions tracked
+    tooling: Governance tracker + meeting minutes
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Confirms oversight by Information Technology Oversight Committee (ITOC)
+    service_stories:
+      data-migration:
+      - FTRS-2194
+      dos-search:
+      - FTRS-2194
+- code: GOV-018
+  requirement: CSOC approval recorded
+  services:
+  - dos-search
+  - data-migration
+  teams:
+  - programme
+  stories:
+  - FTRS-2195
+  releases:
+  - id: private-beta
+  - id: ga
+  controls:
+  - control_id: csoc-approval
+    measure: CSOC approval recorded
+    threshold: Approval recorded; security monitoring/onboarding complete; actions
+      tracked
+    tooling: CSOC workflow + governance tracker
+    cadence: Pre-live
+    environments:
+    - prod
+    status: draft
+    rationale: Ensures Cyber Security Operations Centre (CSOC) oversight before go-live
+    service_stories:
+      dos-search:
+      - FTRS-2195
+      data-migration:
+      - FTRS-2195

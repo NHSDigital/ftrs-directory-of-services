@@ -1,0 +1,443 @@
+version: 1
+generated: auto-migrated
+nfrs:
+- code: PERF-001
+  requirement: Each operation meets registry-defined percentile targets (p50/p95)
+    logged & asserted (see performance/expectations.yaml)
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  teams:
+  - integrated-search
+  - future-dos
+  - data-sourcing
+  releases:
+  - id: private-beta
+    operations:
+    - dos-lookup-ods
+    team_status:
+      integrated-search: in-review
+      future-dos: in-review
+      data-sourcing: not-applicable
+    overall_status: in-review
+  - id: ga
+    operations:
+    - dos-search
+    - dos-lookup-ods
+    - dos-nearby
+    overall_status: not-started
+  controls:
+  - control_id: perf-dos-search-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (dos-search endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Aligns with defined operation targets
+    operation_ids:
+    - dos-search
+    - dos-lookup-ods
+    - dos-nearby
+    service_stories:
+      dos-search:
+      - FTRS-1382
+      - FTRS-2328
+      - FTRS-887
+  - control_id: perf-org-get-latency
+    measure: Assert p50/p95/max targets per operation
+    threshold: As per operations in PERF-001 (crud-apis endpoints)
+    tooling: synthetic probes + real-user monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - crud-apis
+    status: draft
+    rationale: Aligns with defined operation targets
+    operation_ids:
+    - org-get
+    - org-update
+    service_stories:
+      crud-apis:
+      - FTRS-2250
+  - control_id: perf-etl-ods-latency
+    measure: Assert p50/p95/max targets per ETL operation
+    threshold: As per operations in PERF-001 (etl-ods endpoints)
+    tooling: synthetic probes + batch window monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - etl-ods
+    status: draft
+    rationale: Aligns ETL latency with defined operation targets
+    operation_ids:
+    - ods-daily-sync
+    - ods-batch-transform
+    - ods-sqs-batch-send
+    service_stories:
+      etl-ods:
+      - FTRS-2251
+  - control_id: perf-data-migration-latency
+    measure: Assert p50/p95/max targets per data migration operation
+    threshold: As per operations in PERF-001 (data-migration endpoints)
+    tooling: synthetic probes + batch window monitoring
+    cadence: continuous
+    environments:
+    - prod
+    services:
+    - data-migration
+    status: draft
+    rationale: Aligns data migration latency with defined operation targets
+    operation_ids:
+    - dm-record-transform
+    - dm-full-sync
+    service_stories:
+      data-migration:
+      - FTRS-2252
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Primary user-facing query; critical perceived responsiveness
+    stories:
+    - FTRS-1690
+    - FTRS-831
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Direct ODS code lookup; largely cacheable
+    stories:
+    - FTRS-831
+    - FTRS-887
+    - FTRS-1382
+  - service: dos-search
+    operation_id: dos-nearby
+    p50_target_ms: 150
+    p95_target_ms: 300
+    absolute_max_ms: 500
+    status: draft
+    rationale: Geo filtering + limited enrichment
+    stories:
+    - FTRS-831
+  - service: crud-apis
+    operation_id: org-get
+    p50_target_ms: 40
+    p95_target_ms: 100
+    absolute_max_ms: 300
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Simple primary key lookup; cached storage path
+  - service: crud-apis
+    operation_id: org-update
+    p50_target_ms: 70
+    p95_target_ms: 150
+    absolute_max_ms: 400
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Validation + persistence + OperationOutcome classification
+  - service: crud-apis
+    operation_id: healthcare-service-get
+    p50_target_ms: 50
+    p95_target_ms: 120
+    absolute_max_ms: 350
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Direct read + lightweight mapping
+  - service: crud-apis
+    operation_id: org-search-ods
+    p50_target_ms: 60
+    p95_target_ms: 140
+    absolute_max_ms: 400
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: ODS code normalization + single index scan
+  - service: etl-ods
+    operation_id: ods-daily-sync
+    p50_target_ms: 500
+    p95_target_ms: 1500
+    absolute_max_ms: 3000
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: exception
+    rationale: External ORD call + list parsing; acceptable longer latency
+  - service: etl-ods
+    operation_id: ods-batch-transform
+    p50_target_ms: 200
+    p95_target_ms: 600
+    absolute_max_ms: 1200
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Mapping + normalization + extension filtering
+  - service: etl-ods
+    operation_id: ods-sqs-batch-send
+    p50_target_ms: 30
+    p95_target_ms: 80
+    absolute_max_ms: 200
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Single AWS API batch request with lightweight payload
+  - service: data-migration
+    operation_id: dm-record-transform
+    p50_target_ms: 120
+    p95_target_ms: 250
+    absolute_max_ms: 800
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: Single legacy record validation + transform + upsert
+  - service: data-migration
+    operation_id: dm-full-sync
+    p50_target_ms: 1200000
+    p95_target_ms: 1800000
+    absolute_max_ms: 2700000
+    burst_tps_target: ''
+    sustained_tps_target: ''
+    max_request_payload_bytes: ''
+    status: draft
+    rationale: End-to-end duration baseline including transform and upserts
+- code: PERF-002
+  requirement: Performance pillar checklist completed & actions closed
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2222
+  - FTRS-2329
+  - FTRS-2330
+  releases:
+  - id: private-beta
+  - id: ga
+- code: PERF-003
+  requirement: Performance expectations table versioned & referenced
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2223
+  - FTRS-2331
+  - FTRS-2332
+  releases:
+  - id: private-beta
+  - id: ga
+- code: PERF-004
+  requirement: Anonymised live-like dataset present & audited
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2224
+  - FTRS-2333
+  - FTRS-2334
+  releases:
+  - id: private-beta
+  - id: ga
+- code: PERF-005
+  requirement: Automated test suite matches defined actions & exclusions
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2225
+  - FTRS-2335
+  - FTRS-2336
+  releases:
+  - id: private-beta
+  - id: ga
+- code: PERF-006
+  requirement: Batch window p95 latency delta ≤5%
+  services:
+  - etl-ods
+  - data-migration
+  stories:
+  - FTRS-2226
+  - FTRS-2337
+  releases:
+  - id: ga
+- code: PERF-007
+  requirement: Telemetry overhead within CPU & latency thresholds
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2227
+  - FTRS-2338
+  - FTRS-2339
+  releases:
+  - id: ga
+- code: PERF-008
+  requirement: 8h rolling window p95 variance ≤10%
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2228
+  - FTRS-2340
+  - FTRS-2341
+  releases:
+  - id: ga
+- code: PERF-009
+  requirement: Regression alert triggers on >10% p95 increase
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2342
+  - FTRS-2343
+  - FTRS-2344
+  releases:
+  - id: ga
+- code: PERF-010
+  requirement: Percentile methodology document & tool configuration aligned
+  services:
+  - crud-apis
+  - dos-search
+  - data-migration
+  stories:
+  - FTRS-2229
+  - FTRS-2345
+  - FTRS-2346
+  releases:
+  - id: ga
+  - id: private-beta
+- code: PERF-011
+  requirement: Endpoints sustain burst TPS at or above the defined target (burst_tps_target)
+  services:
+  - dos-search
+  stories:
+  - FTRS-1382
+  - FTRS-738
+  - FTRS-831
+  controls:
+  - control_id: perf-dos-search-burst-tps
+    measure: dos-search endpoints sustain burst 150 TPS
+    threshold: Burst_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + synthetic load + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies burst throughput capacity
+    service_stories:
+      dos-search:
+      - FTRS-2347
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    burst_tps_target: 150
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    burst_tps_target: 150
+  - service: dos-search
+    operation_id: dos-nearby
+    burst_tps_target: 150
+- code: PERF-012
+  requirement: Endpoints sustain steady-state TPS at or above the defined target (sustained_tps_target)
+  services:
+  - dos-search
+  stories:
+  - FTRS-1650
+  - FTRS-738
+  - FTRS-1690
+  - FTRS-1382
+  controls:
+  - control_id: perf-dos-search-steady-tps
+    measure: dos-search endpoints sustain steady 150 TPS
+    threshold: Sustained_tps_target met across key endpoints as per operations registry
+    tooling: Performance harness + soak tests + RUM
+    cadence: Quarterly + CI smoke on change
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - dos-search
+    status: draft
+    rationale: Verifies steady-state throughput capacity
+    service_stories:
+      dos-search:
+      - FTRS-2348
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    sustained_tps_target: 150
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    sustained_tps_target: 150
+  - service: dos-search
+    operation_id: dos-nearby
+    sustained_tps_target: 150
+- code: PERF-013
+  requirement: Request payload size per endpoint stays within the defined maximum
+    (max_request_payload_bytes)
+  services:
+  - crud-apis
+  - dos-search
+  stories:
+  - (placeholder)
+  controls:
+  - control_id: perf-request-payload-limits
+    measure: Maximum request payload size per endpoint 1MB
+    threshold: Max_request_payload_bytes enforced per endpoint per operations registry
+    tooling: Gateway payload limit + contract tests
+    cadence: CI per build + monthly audit
+    environments:
+    - int
+    - ref
+    - prod
+    services:
+    - crud-apis
+    - dos-search
+    status: draft
+    rationale: Prevents oversized payload degradation
+    service_stories:
+      crud-apis:
+      - FTRS-2349
+      dos-search:
+      - FTRS-2350
+  operations:
+  - service: dos-search
+    operation_id: dos-search
+    max_request_payload_bytes: 1048576
+  - service: dos-search
+    operation_id: dos-lookup-ods
+    max_request_payload_bytes: 1048576
+  - service: dos-search
+    operation_id: dos-nearby
+    max_request_payload_bytes: 1048576
