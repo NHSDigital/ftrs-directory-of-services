@@ -18,11 +18,12 @@ runs:
       id: run
       run: |
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --instance-ids "i-0921fa8d098e8b441" \
             --document-name "AWS-RunShellScript" \
-            --parameters commands=[ \
-                "make performance-test-mtls PLAN_NAME=IS_Test_Plan ENDPOINT=\"dos-search-2591.dev.ftrs.cloud.nhs.uk\" PFX_PATH=\"./parameter_files/jmeter_pfx.pfx\" PFX_PASSWORD=\"$PFX_PASSWORD\" NUM_THREADS=10 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=20 THROUGHPUT=10 THROUGHPUT_PERIOD=60" \
-            ] \
+            --parameters 'commands=["cd /home/ssm-user",
+                         "pwd",
+                         "make download-performance-files",
+                         "make performance-test-mtls-jp AWS_REGION=eu-west-2 PLAN_NAME=IS_Test_Plan ENDPOINT=dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/dev/api-jmeter-pks-key NUM_THREADS=10 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=20 THROUGHPUT=10 THROUGHPUT_PERIOD=60"]' \
             --query "Command.CommandId" \
             --output text)
 
