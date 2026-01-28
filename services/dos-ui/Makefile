@@ -30,18 +30,3 @@ install-dependencies: ## Install all dependencies
 	asdf install
 	npm i -g npm@latest
 	npm install
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help: ## Show this help message
-	@echo ""
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)  DoS UI Service - Available Commands$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo ""
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
-		sort
-	@echo ""

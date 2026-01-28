@@ -122,7 +122,6 @@ jobs:
           PACKAGE: ${{ inputs.name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
           REPO_NAME: ${{ inputs.repo_name }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
 
       - name: "Publish artefacts to S3"
         run: make publish

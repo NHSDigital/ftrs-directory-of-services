@@ -46,18 +46,3 @@ _install-dependencies: ## Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help: ## Show this help message
-	@echo ""
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)  DoS Search Service - Available Commands$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo ""
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
-		sort
-	@echo ""

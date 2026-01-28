@@ -41,7 +41,7 @@ include ../../scripts/services/python-service.mk
 # Overrides / Service-specific behaviour
 # ==============================================================================
 
-unit-test: ## Run unit testsßßß
+unit-test: ## Run unit tests
 	poetry run pytest tests/unit
 
 # Override default build to produce producer + consumer artefacts
@@ -73,18 +73,3 @@ publish: ## Publish build artefacts to development path
 	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
 	@echo "Published successfully"
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help: ## Show this help message
-	@echo ""
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)  ETL ODS Service - Available Commands$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo ""
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
-		sort
-	@echo ""

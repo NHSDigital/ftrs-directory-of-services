@@ -20,18 +20,3 @@ CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions \
 # ==============================================================================
 
 include ../../scripts/services/node-service.mk
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help: ## Show this help message
-	@echo ""
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)  Read Only Viewer Service - Available Commands$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo ""
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
-		sort
-	@echo ""

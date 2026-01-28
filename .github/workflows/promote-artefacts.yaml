@@ -54,7 +54,7 @@ jobs:
       - name: "Create GitHub Release"
         id: semantic
         if: ${{ inputs.artefact_promotion_type == 'release' }}
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

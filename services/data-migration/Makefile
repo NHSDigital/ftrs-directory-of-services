@@ -65,18 +65,3 @@ invoke-lambda: ## Invoke the DMS DB setup Lambda function
 	aws lambda invoke \
 	--function-name $(DMS_DB_LAMBDA_NAME) \
 	/dev/null
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help: ## Show this help message
-	@echo ""
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)  Data Migration Service - Available Commands$(COLOR_RESET)"
-	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
-	@echo ""
-	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
-		sort
-	@echo ""
