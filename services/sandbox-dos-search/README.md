@@ -168,9 +168,12 @@ RUN update-ca-certificates \
 ```
 
 Notes and alternatives:
+
 - Ensure `cert.pem` is available during `docker build`.
-- The `cat >> certifi` step appends your certificate to the certifi bundle (preferred over specifying a hard-coded path such as `/usr/local/lib/python3.12/site-packages/certifi/cacert.pem`, which can vary). It uses `certifi.where()` to locate the correct bundle at build time.
-- You can also set additional env vars (optional) to help other tools pick up the custom bundle:
+
+- The `cat` command appends your certificate to the Python CA bundle used by the `requests` library (this is preferable to specifying a hard‑coded path such as `/usr/local/lib/python3.12/site-packages/certifi/cacert.pem`, which can vary). The command uses Python to locate the correct bundle at build time.
+
+- You can also set additional environment variables (optional) to help other tools pick up the custom bundle:
 
 ```dockerfile
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
