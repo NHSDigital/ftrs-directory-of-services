@@ -70,7 +70,7 @@ Feature: Data Migration
         "identifier_ODS_ODSCode": "M81094",
         "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "lastUpdated": "2025-10-07T08:38:57.679754Z",
-        "name": "Abbey Medical Practice",
+        "name": "O'Reilly Medical Practice & Sons",
         "telecom": [],
         "type": "GP Practice",
         "legalDates": null,
