@@ -82,4 +82,3 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
