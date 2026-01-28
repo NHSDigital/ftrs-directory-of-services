@@ -75,7 +75,7 @@ on:
         required: false
         type: string
       ref:
-        description: "The tag to build and deploy from"
+        description: "The branch, tag or SHA to checkout"
         required: false
         default: "data-migration"
         type: string
@@ -195,7 +195,7 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
           DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
-          RELEASE_ref: ${{ inputs.ref }}
+          RELEASE_tag: ${{ inputs.ref }}
           ENVIRONMENT: ${{ inputs.environment }}
           TEST_TAG: ${{ inputs.test_tag }}
         run: |
