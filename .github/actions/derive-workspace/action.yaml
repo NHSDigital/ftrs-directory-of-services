@@ -13,9 +13,16 @@ runs:
       id: "derive-workspace"
       shell: bash
       run: |
-        export TRIGGER=${{ github.ref_type }}
+        # Determine if we're on a tag
+        if git describe --exact-match --tags HEAD 2>/dev/null; then
+          export TRIGGER=tag
+          export TRIGGER_REFERENCE=$(git describe --exact-match --tags HEAD)
+        else
+          export TRIGGER=${{ github.ref_type }}
+          export TRIGGER_REFERENCE=${{ github.ref_name }}
+        fi
+
         export TRIGGER_ACTION=${{ github.event_name }}
-        export TRIGGER_REFERENCE=${{ github.ref_name }}
         export TRIGGER_HEAD_REFERENCE=${{ github.head_ref }}
         export TRIGGER_EVENT_REF=${{ github.event.ref}}
         export COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)
