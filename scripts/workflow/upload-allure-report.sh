@@ -11,26 +11,6 @@ BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 RUN_TIMESTAMP=${RUN_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 RELEASE_VERSION=${RELEASE_VERSION:-$([ -n "$RELEASE_TAG" ] && echo "$RELEASE_TAG" || echo "null")}
 
-# Function to generate build info JSON file
-generate_build_info() {
-  local build_info_file=$1
-  local report_dir=$2
-
-  mkdir -p "$(dirname "$build_info_file")"
-
-  cat > "$build_info_file" <<EOF
-{
-  "git_commit": "$COMMIT_HASH",
-  "run_timestamp": "$RUN_TIMESTAMP",
-  "release_version": "$RELEASE_VERSION",
-  "environment": "$ENVIRONMENT",
-  "deployment_type": "$DEPLOYMENT_TYPE",
-}
-EOF
-
-  echo "Generated build info: $build_info_file"
-}
-
 # Determine the deployment path based on deployment type
 case "$DEPLOYMENT_TYPE" in
   development)
@@ -77,13 +57,8 @@ TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
 ZIP_DIR=$(mktemp -d)
 trap 'rm -rf "$ZIP_DIR"' EXIT
 ZIP_FILE="$ZIP_DIR/allure-report-${TIMESTAMP}.zip"
-BUILD_INFO_FILE="$ZIP_DIR/build-info.json"
 
-# Generate build info file
-generate_build_info "$BUILD_INFO_FILE" "$REPORT_DIR"
-
-# Create zip with report and build info
-( cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" "$REPORT_DIR" "$BUILD_INFO_FILE" )
+( cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" . )
 
 S3_KEY="${DEPLOYMENT_PATH}/service-automation/${DEPLOYMENT_TYPE}/allure-report-${TEST_TAG}-${TIMESTAMP}.zip"
 
