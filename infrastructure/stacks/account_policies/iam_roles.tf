@@ -51,3 +51,30 @@ resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_policy_attachm
   role       = aws_iam_role.cloudwatch_api_gateway_role.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
+
+data "aws_iam_role" "github_account_role" {
+  name = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}"
+}
+
+data "aws_iam_policy_document" "trust_github_runner_roles" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [data.aws_iam_role.github_account_role.arn]
+    }
+
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+  }
+}
+
+resource "aws_iam_role" "steampipe_role" {
+  name               = "${var.repo_name}-${var.steampipe_role_name}"
+  assume_role_policy = data.aws_iam_policy_document.trust_github_runner_roles.json
+}
+
+resource "aws_iam_role_policy_attachment" "steampipe_role_policy_attachment" {
+  role       = aws_iam_role.steampipe_role.name
+  policy_arn = "arn:aws:iam::aws:policy/ReadOnlyAccess"
+}
