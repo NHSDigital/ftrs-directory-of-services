@@ -32,7 +32,6 @@ dedup
 Dependabot
 detected_total
 dev
-Dockerfile
 eg
 error_rate_target_percent
 exceptioned
