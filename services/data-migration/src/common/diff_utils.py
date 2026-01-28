@@ -69,6 +69,85 @@ class DynamoDBUpdateExpressions:
         """Return attribute values dict, or None if empty (DynamoDB rejects empty dicts)."""
         return self.expression_attribute_values or None
 
+    def add_audit_timestamps(
+        self,
+        timestamp: str,
+        updated_by: dict[str, str],
+        serializer: TypeSerializer,
+    ) -> None:
+        """Add audit timestamp fields to the update expression.
+
+        Args:
+            timestamp: ISO format timestamp string.
+            updated_by: Dictionary with required keys: 'type', 'value', 'display'.
+            serializer: DynamoDB type serializer.
+
+        Raises:
+            ValueError: If updated_by is missing required keys or timestamp is invalid.
+        """
+        self._validate_audit_inputs(timestamp, updated_by)
+        self._register_audit_field_names()
+        self._serialize_audit_field_values(timestamp, updated_by, serializer)
+        self._prepend_audit_clauses_to_expression()
+
+    def _validate_audit_inputs(
+        self, timestamp: str, updated_by: dict[str, str]
+    ) -> None:
+        """Validate audit timestamp inputs."""
+        if not timestamp:
+            raise ValueError("timestamp cannot be empty")
+
+        required_keys = {"type", "value", "display"}
+        missing = required_keys - updated_by.keys()
+        if missing:
+            raise ValueError(f"updated_by missing required keys: {missing}")
+
+    def _register_audit_field_names(self) -> None:
+        """Register attribute name placeholders for audit fields."""
+        self.expression_attribute_names["#lastUpdated"] = "lastUpdated"
+        self.expression_attribute_names["#lastUpdatedBy"] = "lastUpdatedBy"
+
+    def _serialize_audit_field_values(
+        self,
+        timestamp: str,
+        updated_by: dict[str, str],
+        serializer: TypeSerializer,
+    ) -> None:
+        """Serialize and store audit field values."""
+        self.expression_attribute_values[":lastUpdated"] = serializer.serialize(
+            timestamp
+        )
+        self.expression_attribute_values[":lastUpdatedBy"] = serializer.serialize(
+            updated_by
+        )
+
+    def _prepend_audit_clauses_to_expression(self) -> None:
+        """Add audit SET clauses to the beginning of the update expression."""
+        audit_set_clause = (
+            "#lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy"
+        )
+
+        if self._has_existing_set_clause():
+            self.update_expression = self._insert_after_set_keyword(audit_set_clause)
+        else:
+            self.update_expression = self._create_new_set_clause(audit_set_clause)
+
+    def _has_existing_set_clause(self) -> bool:
+        """Check if the update expression already contains a SET clause."""
+        return bool(re.search(r"\bSET\b", self.update_expression))
+
+    def _insert_after_set_keyword(self, audit_clause: str) -> str:
+        """Insert audit clause immediately after the SET keyword."""
+        pattern = r"(\bSET\s+)"
+        replacement = rf"\1{audit_clause}, "
+        return re.sub(pattern, replacement, self.update_expression, count=1)
+
+    def _create_new_set_clause(self, audit_clause: str) -> str:
+        """Create a new SET clause with audit fields."""
+        if not self.update_expression:
+            return f"SET {audit_clause}"
+        return f"SET {audit_clause} {self.update_expression}"
+
 
 class DeepDiffToDynamoDBConverter:
     """

@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 import pytest
+from boto3.dynamodb.types import TypeSerializer
 from ftrs_data_layer.domain import (
     HealthcareService,
     HealthcareServiceTelecom,
@@ -23,6 +24,7 @@ from ftrs_data_layer.domain.enums import (
 from ftrs_data_layer.domain.location import Address, PositionGCS
 
 from common.diff_utils import (
+    DynamoDBUpdateExpressions,
     get_healthcare_service_diff,
     get_location_diff,
     get_organisation_diff,
@@ -96,6 +98,28 @@ def healthcare_service() -> HealthcareService:
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 1, 1),
     )
+
+
+@pytest.fixture
+def serializer() -> TypeSerializer:
+    """Provide a TypeSerializer instance."""
+    return TypeSerializer()
+
+
+@pytest.fixture
+def timestamp() -> str:
+    """Provide a valid ISO timestamp."""
+    return "2026-01-28T12:00:00+00:00"
+
+
+@pytest.fixture
+def updated_by() -> dict[str, str]:
+    """Provide valid updater metadata."""
+    return {
+        "type": "app",
+        "value": "INTERNAL001",
+        "display": "Data Migration",
+    }
 
 
 def make_endpoint(organisation_id: UUID, service_id: UUID) -> Endpoint:
@@ -391,3 +415,87 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
     assert str(change.path()) == "root['name']"
     assert change.t1 == "Test Healthcare Service"
     assert change.t2 == "Changed Service"
+
+
+@pytest.mark.parametrize(
+    "initial_expression,expected_prefix",
+    [
+        ("", "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy"),
+        (
+            "SET #name = :name",
+            "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy, ",
+        ),
+        (
+            "REMOVE #field",
+            "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy",
+        ),
+    ],
+)
+def test_add_audit_timestamps_to_expressions(
+    serializer: TypeSerializer,
+    timestamp: str,
+    updated_by: dict[str, str],
+    initial_expression: str,
+    expected_prefix: str,
+) -> None:
+    """Audit timestamps are correctly added to various expression types."""
+    expressions = DynamoDBUpdateExpressions(update_expression=initial_expression)
+
+    expressions.add_audit_timestamps(timestamp, updated_by, serializer)
+
+    assert expressions.update_expression.startswith(expected_prefix)
+    assert expressions.expression_attribute_names == {
+        "#lastUpdated": "lastUpdated",
+        "#lastUpdatedBy": "lastUpdatedBy",
+    }
+    assert ":lastUpdated" in expressions.expression_attribute_values
+    assert ":lastUpdatedBy" in expressions.expression_attribute_values
+
+
+@pytest.mark.parametrize(
+    "invalid_timestamp,invalid_updater,error_match",
+    [
+        (
+            "",
+            {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+            "timestamp cannot be empty",
+        ),
+        (
+            "2026-01-28T12:00:00+00:00",
+            {"type": "app"},
+            "updated_by missing required keys",
+        ),
+        ("2026-01-28T12:00:00+00:00", {}, "updated_by missing required keys"),
+    ],
+)
+def test_add_audit_timestamps_validation_errors(
+    serializer: TypeSerializer,
+    invalid_timestamp: str,
+    invalid_updater: dict[str, str],
+    error_match: str,
+) -> None:
+    """Invalid inputs raise ValueError with appropriate messages."""
+    expressions = DynamoDBUpdateExpressions()
+
+    with pytest.raises(ValueError, match=error_match):
+        expressions.add_audit_timestamps(invalid_timestamp, invalid_updater, serializer)
+
+
+def test_add_audit_timestamps_serializes_correctly(
+    serializer: TypeSerializer,
+    timestamp: str,
+    updated_by: dict[str, str],
+) -> None:
+    """Audit values are properly serialized to DynamoDB format."""
+    expressions = DynamoDBUpdateExpressions()
+
+    expressions.add_audit_timestamps(timestamp, updated_by, serializer)
+
+    assert expressions.expression_attribute_values[":lastUpdated"] == {"S": timestamp}
+    assert expressions.expression_attribute_values[":lastUpdatedBy"] == {
+        "M": {
+            "type": {"S": "app"},
+            "value": {"S": "INTERNAL001"},
+            "display": {"S": "Data Migration"},
+        }
+    }

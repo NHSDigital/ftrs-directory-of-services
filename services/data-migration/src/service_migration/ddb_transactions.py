@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Self
 
 from boto3.dynamodb.types import TypeSerializer
@@ -34,6 +35,10 @@ class ServiceTransactionBuilder:
         items: List of transaction items to be written.
     """
 
+    AUDIT_UPDATER_TYPE = "app"
+    AUDIT_UPDATER_VALUE = "INTERNAL001"
+    AUDIT_UPDATER_DISPLAY = "Data Migration"
+
     def __init__(
         self,
         service_id: int,
@@ -62,6 +67,7 @@ class ServiceTransactionBuilder:
         self.service_id = service_id
         self.serialiser = TypeSerializer()
         self.items = []
+        self.start_time = datetime.now(timezone.utc)
 
     def add_organisation(self, organisation: Organisation | None) -> Self:
         """
@@ -433,6 +439,14 @@ class ServiceTransactionBuilder:
         )
         return self
 
+    def _get_audit_updater(self) -> dict[str, str]:
+        """Get standardized audit updater metadata."""
+        return {
+            "type": self.AUDIT_UPDATER_TYPE,
+            "value": self.AUDIT_UPDATER_VALUE,
+            "display": self.AUDIT_UPDATER_DISPLAY,
+        }
+
     def _build_update_item(
         self,
         item_id: str,
@@ -446,6 +460,13 @@ class ServiceTransactionBuilder:
             table_name: The name of the DynamoDB table.
             expressions: The DynamoDB update expressions.
         """
+        # Add audit timestamps to all UPDATE operations
+        expressions.add_audit_timestamps(
+            timestamp=self.start_time.isoformat(),
+            updated_by=self._get_audit_updater(),
+            serializer=self.serialiser,
+        )
+
         update_item: dict = {
             "TableName": get_table_name(table_name),
             "Key": {
