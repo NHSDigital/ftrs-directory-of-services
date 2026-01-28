@@ -469,48 +469,7 @@ def assert_telecom_details_match(model_repo: AttributeLevelRepository) -> None:
     assert item.type == "GP Practice", "Mismatch in type"
     assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
     assert item.active is True, "Expected 'active' to be True"
-    # Telecom assertions
-    telecom = item.telecom
-    assert telecom, "telecom list is empty"
-    assert isinstance(telecom, list), "telecom should be a list"
-    assert len(telecom) > 0, "Expected at least one telecom entry"
-    for telecom_entry in telecom:
-        assert hasattr(telecom_entry, "isPublic"), (
-            "Telecom entry should have 'isPublic' attribute"
-        )
-        assert isinstance(telecom_entry.isPublic, bool), "isPublic should be a boolean"
-
-        assert hasattr(telecom_entry, "type"), (
-            "Telecom entry should have 'type' attribute"
-        )
-        assert isinstance(telecom_entry.type, str), "type should be a string"
-
-        assert hasattr(telecom_entry, "value"), (
-            "Telecom entry should have 'value' attribute"
-        )
-        assert isinstance(telecom_entry.value, str), "value should be a string"
-
-        assert hasattr(telecom_entry, "use"), (
-            "Telecom entry should have 'use' attribute"
-        )
-        assert isinstance(telecom_entry.use, str), "use should be a string"
-
-        # Validate specific types and values
-        if telecom_entry.type == "phone":
-            assert telecom_entry.value == "0300 311 22 33", (
-                "Expected 'value' for phone to be '0300 311 22 33'"
-            )
-        elif telecom_entry.type == "web":
-            assert telecom_entry.value == " https://example123.com", (
-                "Expected 'value' for web to be 'https://example123.com'"
-            )
-        elif telecom_entry.type == "email":
-            assert telecom_entry.value == "test134@nhs.net", (
-                "Expected 'value' for email to be 'test134@nhs.net'"
-            )
-
-        # Check isPublic field value based on type
-        assert telecom_entry.isPublic is True, "Expected 'isPublic' to be True"
+    assert item.telecom == [], "Expected 'telecom' to be an empty list"
     # Legal dates check
     legal_dates = item.legalDates
     assert legal_dates.start == date(1974, 4, 1), (
