@@ -8,6 +8,16 @@ inputs:
   test-file:
     description: "The test file to run"
     required: true
+  endpoint:
+    description: "The endpoint to run the performance test against"
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  aws_region:
+    description: 'AWS region for Secrets Manager'
+    required: true
+
 
 runs:
   using: "composite"
@@ -22,7 +32,7 @@ runs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
                         "make download-performance-files",
-                        "make performance-test-mtls-jp AWS_REGION=eu-west-2 PLAN_NAME=IS_Test_Plan ENDPOINT=dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/dev/api-jmeter-pks-key NUM_THREADS=10 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=20 THROUGHPUT=10 THROUGHPUT_PERIOD=60"]' \
+                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws_region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=10 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=20 THROUGHPUT=10 THROUGHPUT_PERIOD=60"]' \
             --query "Command.CommandId" \
             --output text)
 
