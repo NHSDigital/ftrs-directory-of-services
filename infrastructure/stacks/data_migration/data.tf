@@ -268,6 +268,10 @@ data "aws_ssm_parameter" "appconfig_extension_layer_arn" {
   name = "/${var.project}/${var.environment}/appconfig/extension_layer_arn"
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_policy_document" "appconfig_access_policy" {
   statement {
     effect = "Allow"
@@ -277,6 +281,27 @@ data "aws_iam_policy_document" "appconfig_access_policy" {
     ]
     resources = [
       "arn:aws:appconfig:${var.aws_region}:${data.aws_caller_identity.current.account_id}:application/${data.aws_ssm_parameter.appconfig_application_id.value}/environment/*/configuration/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters"
+    ]
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}/${var.environment}/appconfig/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt"
+    ]
+    resources = [
+      data.aws_kms_key.ssm_kms_key.arn
     ]
   }
 }
