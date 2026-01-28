@@ -88,7 +88,7 @@ jobs:
           plugin-connections: |
             connection "aws" {
                 plugin     = "aws"
-                regions    = ["us-east-1", "eu-west-2"]
+                regions    = ${{ vars.WAFR_AWS_REGIONS }}
             }
 
       # Install Powerpipe CLI using Github Action
