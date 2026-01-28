@@ -28,6 +28,7 @@ dependencies = [
   "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
   "authlib (>=1.6.6,<2.0.0)",
   "deepdiff==8.6.1",
+  "pytz (>=2025.1,<2026.0)",
 ]
 
 [build-system]

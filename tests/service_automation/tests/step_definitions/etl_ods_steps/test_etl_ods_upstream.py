@@ -2,10 +2,17 @@ import json
 import pytest
 from pytest_bdd import given, scenarios, then, when
 from loguru import logger
+import uuid
 
 from utilities.common.context import Context
 from utilities.infra.lambda_util import LambdaWrapper
-from utilities.infra.logs_util import CloudWatchLogsWrapper
+from datetime import datetime
+from utilities.infra.logs_util import get_logs
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
+
+
+# from utilities.infra.logs_util import CloudWatchLogsWrapper
 from utilities.ods.scenario_manager import (
     ods_empty_payload_scenario,
     ods_invalid_data_types_scenario,
@@ -16,16 +23,39 @@ from utilities.ods.scenario_manager import (
     ods_unknown_resource_type_scenario,
     ods_server_error_scenario,
     ods_happy_path_scenario,
-    ScenarioManager
+    ScenarioManager,
 )
 
 scenarios("./etl_ods_features/etl_ods_mock.feature")
 
 
-@pytest.fixture(scope="function")
-def cloudwatch_logs():
-    """Create CloudWatch logs wrapper for log verification."""
-    return CloudWatchLogsWrapper()
+def generic_lambda_log_check_function(
+    context: Context, lambda_name: str, field: str, message: str
+) -> None:
+    """Assert the lambda log contains the expected message filtered by correlation_id."""
+    field = field if field else "message"
+    expected_message = message
+    correlation_id = (
+        context.correlation_id.replace("/", r"\/") if context.correlation_id else ""
+    )
+    start_time = (
+        int(context.lambda_invocation_time.timestamp() * 1000)
+        if context.lambda_invocation_time
+        else None
+    )
+    query = (
+        f"fields @timestamp, @message, correlation_id, {field} "
+        f'| filter correlation_id = "{correlation_id}" '
+        f'| filter {field} = "{expected_message}" '
+        f"| sort @timestamp desc"
+    )
+    logs = get_logs(query=query, lambda_name=lambda_name, start_time=start_time)
+    logger.info(f"Checking logs for Lambda: {lambda_name}")
+    logger.info(f"Logs retrieved: {logs}")
+    assert message in logs, (
+        f"ERROR!!.. '{lambda_name}' logs did not contain the expected message: '{message}' "
+        f"for correlation_id '{context.correlation_id}'."
+    )
 
 
 def extract_error_message(lambda_response: dict) -> str:
@@ -46,199 +76,172 @@ def extract_error_message(lambda_response: dict) -> str:
 
 
 def invoke_lambda_with_scenario(
+    context: Context,
     lambda_name: str,
     aws_lambda_client: LambdaWrapper,
-    scenario_date: str
+    scenario_date: str,
 ) -> dict:
-    event = {"date": scenario_date}
-
+    context.lambda_invocation_time = datetime.utcnow()
+    context.correlation_id = str(uuid.uuid4())
+    event = {
+        "date": scenario_date,
+        "headers": {"X-Correlation-ID": context.correlation_id},
+    }
     response = aws_lambda_client.lambda_client.invoke(
-        FunctionName=lambda_name,
-        Payload=json.dumps(event)
+        FunctionName=lambda_name, Payload=json.dumps(event)
     )
-
+    logger.info(f"Correlation-ID: {context.correlation_id}")
     return json.loads(response["Payload"].read())
-
-
-def verify_log_message_exists(cloudwatch_logs: CloudWatchLogsWrapper, lambda_name: str, expected_message: str) -> bool:
-    """Helper to verify specific log message exists in CloudWatch logs."""
-    return cloudwatch_logs.find_log_message(lambda_name, expected_message)
-
-
-def assert_status_code_and_logs(context: Context, expected_status: int, cloudwatch_logs: CloudWatchLogsWrapper, expected_log_message: str = None) -> None:
-    """Helper to assert both status code and verify specific log messages."""
-    assert context.lambda_response.get("statusCode") == expected_status
-
-    if expected_log_message and cloudwatch_logs:
-        assert verify_log_message_exists(cloudwatch_logs, context.lambda_name, expected_log_message), \
-            f"Expected log message '{expected_log_message}' not found in lambda {context.lambda_name}"
 
 
 @given("the ETL ODS processor Lambda is configured with ODS mock")
 def lambda_configured(lambda_with_ods_mock, context: Context):
     lambda_name, mock_manager = lambda_with_ods_mock
     context.lambda_name = lambda_name
-
+    logger.info(f"Lambda configured for testing: {context.lambda_name}")
     mock_url = mock_manager.get_mock_endpoint_url()
-    context.other['mock_manager'] = mock_manager
+    context.other["mock_manager"] = mock_manager
     context.other["mock_url"] = mock_url
 
 
 @when("I trigger the Lambda with empty results scenario")
 def trigger_lambda_empty_scenario(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_empty_payload_scenario: str
+    context: Context, aws_lambda_client: LambdaWrapper, ods_empty_payload_scenario: str
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_empty_payload_scenario
+        context, context.lambda_name, aws_lambda_client, ods_empty_payload_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with empty payload scenario")
 def trigger_lambda_empty_payload(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_empty_payload_scenario: str
+    context: Context, aws_lambda_client: LambdaWrapper, ods_empty_payload_scenario: str
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_empty_payload_scenario
+        context, context.lambda_name, aws_lambda_client, ods_empty_payload_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with happy path scenario")
 def trigger_lambda_happy_path(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_happy_path_scenario: str
+    context: Context, aws_lambda_client: LambdaWrapper, ods_happy_path_scenario: str
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_happy_path_scenario
+        context, context.lambda_name, aws_lambda_client, ods_happy_path_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with invalid data scenario")
 def trigger_lambda_invalid_data(
     context: Context,
     aws_lambda_client: LambdaWrapper,
-    ods_invalid_data_types_scenario: str
+    ods_invalid_data_types_scenario: str,
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_invalid_data_types_scenario
+        context, context.lambda_name, aws_lambda_client, ods_invalid_data_types_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with missing required fields scenario")
 def trigger_lambda_missing_fields(
     context: Context,
     aws_lambda_client: LambdaWrapper,
-    ods_missing_required_fields_scenario: str
+    ods_missing_required_fields_scenario: str,
 ):
     context.lambda_response = invoke_lambda_with_scenario(
+        context,
         context.lambda_name,
         aws_lambda_client,
-        ods_missing_required_fields_scenario
+        ods_missing_required_fields_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with extra unexpected field scenario")
 def trigger_lambda_extra_field(
     context: Context,
     aws_lambda_client: LambdaWrapper,
-    ods_extra_unexpected_field_scenario: str
+    ods_extra_unexpected_field_scenario: str,
 ):
     context.lambda_response = invoke_lambda_with_scenario(
+        context,
         context.lambda_name,
         aws_lambda_client,
-        ods_extra_unexpected_field_scenario
+        ods_extra_unexpected_field_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with request too old scenario")
 def trigger_lambda_request_too_old(
     context: Context,
     aws_lambda_client: LambdaWrapper,
-    ods_request_too_old_scenario: str
+    ods_request_too_old_scenario: str,
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_request_too_old_scenario
+        context, context.lambda_name, aws_lambda_client, ods_request_too_old_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with unauthorized scenario")
 def trigger_lambda_unauthorized(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_unauthorized_scenario: str
+    context: Context, aws_lambda_client: LambdaWrapper, ods_unauthorized_scenario: str
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_unauthorized_scenario
+        context, context.lambda_name, aws_lambda_client, ods_unauthorized_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with server error scenario")
 def trigger_lambda_server_error(
-    context: Context,
-    aws_lambda_client: LambdaWrapper,
-    ods_server_error_scenario: str
+    context: Context, aws_lambda_client: LambdaWrapper, ods_server_error_scenario: str
 ):
     context.lambda_response = invoke_lambda_with_scenario(
-        context.lambda_name,
-        aws_lambda_client,
-        ods_server_error_scenario
+        context, context.lambda_name, aws_lambda_client, ods_server_error_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with unknown resource type scenario")
 def trigger_lambda_unknown_resource_type(
     context: Context,
     aws_lambda_client: LambdaWrapper,
-    ods_unknown_resource_type_scenario: str
+    ods_unknown_resource_type_scenario: str,
 ):
     context.lambda_response = invoke_lambda_with_scenario(
+        context,
         context.lambda_name,
         aws_lambda_client,
-        ods_unknown_resource_type_scenario
+        ods_unknown_resource_type_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @then("the Lambda should handle the validation error")
-def verify_validation_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_validation_error_handled(context: Context):
     """Verify Lambda detected and handled invalid data."""
     # Check for validation error logging
-    validation_logs = [
-        "Error processing organisation with ods_code",
-        "Payload validation failed"
-    ]
-
     assert context.lambda_response.get("statusCode") == 200
-
-    found_validation_log = any(
-        verify_log_message_exists(cloudwatch_logs, context.lambda_name, log_msg)
-        for log_msg in validation_logs
+    expected_log = "FHIR_001"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
     )
-
-    logger.info(f"Validation scenario completed for lambda {context.lambda_name}, validation log found: {found_validation_log}")
 
 
 @then("the Lambda should process the organizations successfully")
-def verify_successful_processing(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_successful_processing(context: Context):
     """Verify Lambda successfully processed organizations from happy path."""
-    expected_log = "Fetching ODS Data returned"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
-
+    expected_log = "ETL_PROCESSOR_002"
+    assert context.lambda_response.get("statusCode") == 200
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
     body = context.lambda_response.get("body", "")
     if isinstance(body, str) and body != "Processing complete":
         try:
@@ -249,50 +252,94 @@ def verify_successful_processing(context: Context, cloudwatch_logs: CloudWatchLo
 
 
 @then("the Lambda should handle empty results gracefully")
-def verify_empty_results_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_empty_results_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
 
 @then("the Lambda should handle missing fields gracefully")
-def verify_missing_fields_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Error processing organisation"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
+def verify_missing_fields_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 200
+    expected_log = "ETL_PROCESSOR_027"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
 
 @then("the Lambda should handle unexpected fields gracefully")
-def verify_unexpected_fields_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
-    expected_log = "Successfully transformed data"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
+def verify_unexpected_fields_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 200
+    expected_log = "ETL_PROCESSOR_026"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
+
+@then("the message should be sent to the queue successfully")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ETL_PROCESSOR_014"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+
+
+@then("the Consumer should log the successful processing of the request")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ETL_CONSUMER_007"
+    generic_lambda_log_check_function(
+        context, "etl-ods-consumer-lambda", "reference", expected_log
+    )
+
+
+@then("the CRUD API should log the update request for the organisation")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ORGANISATION_008"
+    generic_lambda_log_check_function(
+        context, "crud-apis-organisations-lambda", "reference", expected_log
+    )
 
 
 @then("the Lambda should handle old requests gracefully")
-def verify_old_requests_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_old_requests_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
 
 @then("the Lambda should handle upstream server errors")
-def verify_server_errors_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_server_errors_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 500
     expected_log = "ETL_UTILS_003"
-    assert_status_code_and_logs(context, 500, cloudwatch_logs, expected_log)
-
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
     error_message = extract_error_message(context.lambda_response)
-    assert any(keyword in error_message.lower() for keyword in ["error", "failed", "exception"])
+    assert any(
+        keyword in error_message.lower() for keyword in ["error", "failed", "exception"]
+    )
 
 
 @then("the Lambda should handle unknown resource types")
-def verify_unknown_resource_types_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_unknown_resource_types_handled(context: Context):
     """Verify Lambda handles unknown resource types by filtering them out (resulting in empty results)."""
+    assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
-    assert_status_code_and_logs(context, 200, cloudwatch_logs, expected_log)
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
 
 
 @then("the Lambda should handle the authorization error")
-def verify_authorization_error_handled(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
+def verify_authorization_error_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 500
     expected_log = "ETL_UTILS_003"
-    assert_status_code_and_logs(context, 500, cloudwatch_logs, expected_log)
-
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
     error_message = extract_error_message(context.lambda_response)
     assert "unauthorized" in error_message.lower(), f"{error_message}"
