@@ -20,6 +20,19 @@ BUILD_TIMESTAMP := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),null)
 BUILD_INFO_FILE := $(BUILD_DIR)/build-info.json
 
+COLOR_ORANGE := \033[0;33m
+COLOR_GREEN := \033[0;32m
+COLOR_RESET := \033[0m
+
+define log_start
+	@echo "$(COLOR_ORANGE)$(1)...$(COLOR_RESET)"
+endef
+
+define log_success
+	@echo "$(COLOR_GREEN)✓ $(1)$(COLOR_RESET)"
+endef
+
+
 # ------------------------------------------------------------------------------
 # Development artefact path (branch-aware)
 # ------------------------------------------------------------------------------
@@ -54,7 +67,7 @@ clean:
 
 install: install-dependencies
 
-install-dependencies:
+install-dependencies: ## Install project dependencies
 	asdf install
 	poetry install --no-interaction
 
@@ -62,7 +75,7 @@ install-dependencies:
 # Quality
 # ------------------------------------------------------------------------------
 
-lint:
+lint: ## Run linting checks
 	poetry run ruff check
 	poetry run ruff format --check
 
@@ -70,11 +83,11 @@ lint-fix:
 	poetry run ruff check --fix
 	poetry run ruff format
 
-test: unit-test
+test: unit-test ## Run all tests
 
-unit-test: coverage
+unit-test: coverage ## Run unit tests
 
-coverage:
+coverage: ## Run unit tests with coverage
 	poetry run pytest --cov-report xml:coverage-$(SERVICE).xml tests/unit
 
 # ------------------------------------------------------------------------------
@@ -88,8 +101,8 @@ generate-build-info: ensure-build-dir
 	@echo '  "release_version": "$(RELEASE_VERSION)"' >> $(BUILD_INFO_FILE)
 	@echo '}' >> $(BUILD_INFO_FILE)
 
-build-dependency-layer: clean
-	@echo "Building dependency layer for $(SERVICE)..."
+build-dependency-layer: clean ### Build the dependency layer
+	$(call log_start,Building dependency layer for $(SERVICE))
 	@mkdir -p $(DEPENDENCY_DIR)/python
 	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
@@ -101,38 +114,21 @@ build-dependency-layer: clean
 		--upgrade \
 		-r $(DEPENDENCY_DIR)/requirements.txt
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
-	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
+	$(call log_success,Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip)
 
-build: ensure-build-dir build-dependency-layer generate-build-info
-	@echo "Building $(SERVICE)..."
+build: ensure-build-dir build-dependency-layer generate-build-info ### Build the service
+	$(call log_start,Building $(SERVICE))
 	poetry build -f wheel -o $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME).zip
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
-	@echo "Build complete: $(LAMBDA_NAME).zip"
+	$(call log_success,Build complete: $(LAMBDA_NAME).zip)
 
-publish:
-	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
+publish: ## Publish artifacts to S3 development path
+	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --region $(AWS_REGION)
-	@echo "Published successfully"
+	$(call log_success,Published successfully)
 
 pre-commit: lint
-
-# ==============================================================================
-# Help Target
-# ==============================================================================
-
-help:
-	@echo "Common Python Service Targets:"
-	@echo "  install              - Install dependencies"
-	@echo "  lint                 - Run linting checks"
-	@echo "  lint-fix             - Fix linting issues"
-	@echo "  test                 - Run tests"
-	@echo "  build                - Build Lambda package and dependency layer"
-	@echo "  publish              - Publish to development artefact bucket"
-	@echo "  stage-release        - Stage release candidate"
-	@echo "  promote-rc           - Promote to release candidate"
-	@echo "  publish-release      - Publish final release"
-	@echo "  clean                - Clean build artifacts"

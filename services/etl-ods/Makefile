@@ -41,22 +41,22 @@ include ../../scripts/services/python-service.mk
 # Overrides / Service-specific behaviour
 # ==============================================================================
 
-unit-test:
+unit-test: ## Run unit testsßßß
 	poetry run pytest tests/unit
 
 # Override default build to produce producer + consumer artefacts
-build: ensure-build-dir build-dependency-layer build-producer-lambda build-consumer-lambda
+build: ensure-build-dir build-dependency-layer build-producer-lambda build-consumer-lambda ## Build all artefacts
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
-build-producer-lambda: ensure-build-dir
+build-producer-lambda: ensure-build-dir ## Build producer lambda artefact
 	mkdir -p $(BUILD_DIR)/producer-tmp
 	cp -r producer $(BUILD_DIR)/producer-tmp/
 	cp -r common $(BUILD_DIR)/producer-tmp/
 	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/producer-tmp
 
-build-consumer-lambda: ensure-build-dir
+build-consumer-lambda: ensure-build-dir ## Build consumer lambda artefact
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
@@ -67,7 +67,7 @@ build-consumer-lambda: ensure-build-dir
 # Publish (service-specific S3 layout)
 # ------------------------------------------------------------------------------
 
-publish:
+publish: ## Publish build artefacts to development path
 	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
 	aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PRODUCER_LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
@@ -78,20 +78,13 @@ publish:
 # Help Target
 # ==============================================================================
 
-help:
-	@echo "ETL ODS Service Targets:"
+help: ## Show this help message
 	@echo ""
-	@echo "Build & Test:"
-	@echo "  make install              - Install dependencies"
-	@echo "  make lint                 - Run linting checks"
-	@echo "  make test                 - Run tests"
-	@echo "  make build                - Build Lambda package"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)  ETL ODS Service - Available Commands$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
 	@echo ""
-	@echo "Deployment:"
-	@echo "  make publish              - Publish to development"
-	@echo "  make stage-release        - Stage release"
-	@echo "  make promote-rc           - Promote to RC"
-	@echo "  make publish-release      - Publish release"
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
+		sort
 	@echo ""
-	@echo "Cleanup:"
-	@echo "  make clean                - Clean build artifacts"

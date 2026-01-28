@@ -26,7 +26,7 @@ include ../../scripts/services/node-service.mk
 # ==============================================================================
 
 # DoS UI uses npm@latest
-install-dependencies:
+install-dependencies: ## Install all dependencies
 	asdf install
 	npm i -g npm@latest
 	npm install
@@ -35,25 +35,13 @@ install-dependencies:
 # Help Target
 # ==============================================================================
 
-help:
-	@echo "DoS UI Service Targets:"
+help: ## Show this help message
 	@echo ""
-	@echo "Build & Test:"
-	@echo "  make install                      - Install dependencies"
-	@echo "  make lint                         - Run linting checks"
-	@echo "  make format                       - Format and fix code"
-	@echo "  make unit-test                    - Run tests"
-	@echo "  make build                        - Build application"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)  DoS UI Service - Available Commands$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
 	@echo ""
-	@echo "Deployment:"
-	@echo "  make publish                      - Publish to development"
-	@echo "  make deploy                       - Deploy to S3 (ENVIRONMENT required)"
-	@echo "  make invalidate-cloudfront-cache  - Invalidate CloudFront cache"
-	@echo "  make stage-release                - Stage release"
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
+		sort
 	@echo ""
-	@echo "Cleanup:"
-	@echo "  make clean                        - Clean build artifacts"
-	@echo ""
-	@echo "Variables:"
-	@echo "  ENVIRONMENT=$(ENVIRONMENT)"
-	@echo "  DEPLOYMENT_BUCKET=$(DEPLOYMENT_BUCKET)"

@@ -21,7 +21,7 @@ include ../../scripts/services/python-service.mk
 # ==============================================================================
 
 # Override dependency layer export to exclude additional groups
-build-dependency-layer: clean
+build-dependency-layer: ## Build Python dependency layer artefact
 	@echo "Building dependency layer for $(SERVICE)..."
 	@mkdir -p $(DEPENDENCY_DIR)/python
 	poetry export --without dev --without test --without shared --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
@@ -36,13 +36,13 @@ build-dependency-layer: clean
 	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
 	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
 
-_install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
+_install-dependency: ## Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
 	asdf plugin add ${name} ||:
 	asdf plugin update ${name} ||:
 	asdf install ${name} $(or ${version},)
 
-_install-dependencies: # Install all the dependencies listed in .tool-versions
+_install-dependencies: ## Install all the dependencies listed in .tool-versions
 	for plugin in $$(grep ^[a-z] .tool-versions | sed 's/[[:space:]].*//'); do \
 		make _install-dependency name="$${plugin}"; \
 	done
@@ -51,21 +51,13 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 # Help Target
 # ==============================================================================
 
-help:
-	@echo "DoS Search Service Targets:"
+help: ## Show this help message
 	@echo ""
-	@echo "Build & Test:"
-	@echo "  make install              - Install dependencies"
-	@echo "  make lint                 - Run linting checks"
-	@echo "  make lint-fix             - Fix linting issues"
-	@echo "  make test                 - Run tests"
-	@echo "  make build                - Build Lambda package"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)  DoS Search Service - Available Commands$(COLOR_RESET)"
+	@echo "$(COLOR_GREEN)═══════════════════════════════════════════════════════$(COLOR_RESET)"
 	@echo ""
-	@echo "Deployment:"
-	@echo "  make publish              - Publish to development"
-	@echo "  make stage-release        - Stage release"
-	@echo "  make promote-rc           - Promote to RC"
-	@echo "  make publish-release      - Publish release"
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(COLOR_ORANGE)%-30s$(COLOR_RESET) %s\n", $$1, $$2}' | \
+		sort
 	@echo ""
-	@echo "Cleanup:"
-	@echo "  make clean                - Clean build artifacts"
