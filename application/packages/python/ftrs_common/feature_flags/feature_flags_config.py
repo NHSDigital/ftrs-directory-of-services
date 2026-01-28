@@ -93,16 +93,26 @@ class FeatureFlagsClient:
         """Check if a feature flag is enabled."""
         try:
             feature_flags = self.get_feature_flags()
-            flag_enabled = feature_flags.evaluate(
-                name=flag_name,
-                default=default,
-            )
+            store_config = feature_flags.store.get_configuration()
+
+            if not store_config:
+                flag_enabled = default
+            elif flag_name not in store_config:
+                # Flag doesn't exist, use default
+                flag_enabled = default
+                logger.log(
+                    FeatureFlagLogBase.FF_005,
+                    flag_name=flag_name,
+                )
+            else:
+                # Read the enabled value directly from the flag config
+                flag_config = store_config.get(flag_name, {})
+                flag_enabled = flag_config.get("enabled", default)
 
             logger.log(
                 FeatureFlagLogBase.FF_002,
                 flag_name=flag_name,
                 flag_enabled=flag_enabled,
-                source="appconfig",
             )
 
         except ConfigurationStoreError as e:
