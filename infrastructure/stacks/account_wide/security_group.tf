@@ -95,6 +95,9 @@ resource "aws_security_group" "internet_dynamodb_egress_security_group" {
   description = "Security group for egress to internet and DynamoDB VPCE"
 
   vpc_id = data.aws_vpc.vpc.id
+  tags = {
+    "Name" = "${local.resource_prefix}-${var.internet_dynamodb_egress_security_group_name}-sg"
+  }
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_rule" {

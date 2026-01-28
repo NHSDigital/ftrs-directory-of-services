@@ -2,7 +2,6 @@
 organisation_api_lambda_name       = "organisations-lambda"
 healthcare_service_api_lambda_name = "healthcare-service-lambda"
 location_api_lambda_name           = "location-lambda"
-crud_api_security_group_name       = "crud-api"
 
 # Lambda
 organisation_api_lambda_runtime           = "python3.12"
