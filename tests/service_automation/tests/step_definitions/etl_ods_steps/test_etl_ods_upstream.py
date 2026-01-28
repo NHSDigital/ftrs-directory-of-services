@@ -8,6 +8,8 @@ from utilities.common.context import Context
 from utilities.infra.lambda_util import LambdaWrapper
 from datetime import datetime
 from utilities.infra.logs_util import get_logs
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
 
 
 # from utilities.infra.logs_util import CloudWatchLogsWrapper
@@ -89,7 +91,6 @@ def invoke_lambda_with_scenario(
         FunctionName=lambda_name, Payload=json.dumps(event)
     )
     logger.info(f"Correlation-ID: {context.correlation_id}")
-    logger.info(f"lambda response: {response}")
     return json.loads(response["Payload"].read())
 
 
@@ -110,6 +111,7 @@ def trigger_lambda_empty_scenario(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_empty_payload_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with empty payload scenario")
@@ -119,6 +121,7 @@ def trigger_lambda_empty_payload(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_empty_payload_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with happy path scenario")
@@ -128,6 +131,7 @@ def trigger_lambda_happy_path(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_happy_path_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with invalid data scenario")
@@ -139,6 +143,7 @@ def trigger_lambda_invalid_data(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_invalid_data_types_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with missing required fields scenario")
@@ -153,6 +158,7 @@ def trigger_lambda_missing_fields(
         aws_lambda_client,
         ods_missing_required_fields_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with extra unexpected field scenario")
@@ -167,6 +173,7 @@ def trigger_lambda_extra_field(
         aws_lambda_client,
         ods_extra_unexpected_field_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with request too old scenario")
@@ -178,6 +185,7 @@ def trigger_lambda_request_too_old(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_request_too_old_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with unauthorized scenario")
@@ -187,6 +195,7 @@ def trigger_lambda_unauthorized(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_unauthorized_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with server error scenario")
@@ -196,6 +205,7 @@ def trigger_lambda_server_error(
     context.lambda_response = invoke_lambda_with_scenario(
         context, context.lambda_name, aws_lambda_client, ods_server_error_scenario
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @when("I trigger the Lambda with unknown resource type scenario")
@@ -210,6 +220,7 @@ def trigger_lambda_unknown_resource_type(
         aws_lambda_client,
         ods_unknown_resource_type_scenario,
     )
+    logger.info(f"lambda response: {context.lambda_response}")
 
 
 @then("the Lambda should handle the validation error")
@@ -264,6 +275,30 @@ def verify_unexpected_fields_handled(context: Context):
     expected_log = "ETL_PROCESSOR_026"
     generic_lambda_log_check_function(
         context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+
+
+@then("the message should be sent to the queue successfully")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ETL_PROCESSOR_014"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+
+
+@then("the Consumer should log the successful processing of the request")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ETL_CONSUMER_007"
+    generic_lambda_log_check_function(
+        context, "etl-ods-consumer-lambda", "reference", expected_log
+    )
+
+
+@then("the CRUD API should log the update request for the organisation")
+def verify_unexpected_fields_handled(context: Context):
+    expected_log = "ORGANISATION_008"
+    generic_lambda_log_check_function(
+        context, "crud-apis-organisations-lambda", "reference", expected_log
     )
 
 

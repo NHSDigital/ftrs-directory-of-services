@@ -96,36 +96,29 @@ def save_model_as_json(get_model_result: DBModel):
     save_json_file_from_model(get_model_result)
 
 
-def _create_model(model_repo, json_file, ods_code):
-    """Helper to create and return a model with unique ID and ODS code."""
-    model = model_from_json_file(json_file, model_repo)
-    original_code = getattr(model, "identifier_ODS_ODSCode", None)
-    if hasattr(model, "identifier_ODS_ODSCode"):
-        model.identifier_ODS_ODSCode = ods_code
-        logger.info(f"Replacing ODS code '{original_code}' with '{ods_code}'")
-    # Assign unique ID
-    model.id = str(uuid.uuid4())
-    # Ensure repo is clean
-    if not check_record_in_repo(model_repo, model.id):
-        model_repo.delete(model.id)
-    # Save
-    model_repo.create(model)
-    logger.info(f"Created model ID={model.id}, ODS={model.identifier_ODS_ODSCode}")
-    return model
-
-
 @given(
     parsers.parse(
         'I create a model in the repo from json file "{json_file}" using specific ODS codes'
     )
 )
-def create_model_from_json_with_specificods(
+def create_model_from_json_with_specific_ods(
     model_repo: AttributeLevelRepository, json_file: str, context: Context
 ):
     """
     Create a model from JSON file, update its ODS code from context, and save to repo temporarily.
     """
-    model = _create_model(model_repo, json_file, context.ods_codes[0])
+    model = model_from_json_file(json_file, model_repo)
+    if hasattr(model, "identifier_ODS_ODSCode"):
+        original_code = model.identifier_ODS_ODSCode
+        model.identifier_ODS_ODSCode = context.ods_codes[0]
+        logger.info(
+            f"Replacing ODS code '{original_code}' with '{context.ods_codes[0]}'"
+        )
+    model.id = str(uuid.uuid4())
+    if check_record_in_repo(model_repo, model.id):
+        model_repo.delete(model.id)
+    model_repo.create(model)
+    logger.info(f"Created model ID={model.id}, ODS={model.identifier_ODS_ODSCode}")
     context.saved_models[model.id] = model
     yield
     logger.info(f"Deleting model ID={model.id}, ODS={model.identifier_ODS_ODSCode}")
