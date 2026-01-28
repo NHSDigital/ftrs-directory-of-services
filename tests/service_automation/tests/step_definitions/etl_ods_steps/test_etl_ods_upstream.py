@@ -460,7 +460,7 @@ def assert_org_details_match(model_repo: AttributeLevelRepository) -> None:
     )
 
 
-@then("the telecom data should remain unchanged in DynamoDB")
+@then("the telecom data should be updated in DynamoDB")
 def assert_telecom_details_match(model_repo: AttributeLevelRepository) -> None:
     item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
     assert item, "No data found in repository"
