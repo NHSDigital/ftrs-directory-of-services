@@ -12,8 +12,8 @@ on:
           - dev
           - test
           - mgmt
-      tag:
-        description: "The git tag to checkout or, if not passed in, the current branch"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
   schedule:
@@ -58,7 +58,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS credentials"
         if: steps.should-run.outputs.should_run == 'true'
