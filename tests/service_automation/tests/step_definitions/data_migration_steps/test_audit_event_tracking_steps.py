@@ -70,24 +70,10 @@ def get_endpoint_records(dynamodb: Dict[str, Any], service_id: str) -> list[Dict
     Returns:
         List of endpoint records
     """
-    dynamodb_resource = dynamodb["resource"]
-
     # Get organisation first to find endpoint IDs
     org_record = get_entity_record(dynamodb, "organisation", service_id)
-    endpoint_ids = org_record.get("endpoints", [])
-
-    if not endpoint_ids:
-        return []
-
-    endpoint_table = dynamodb_resource.Table(get_table_name("endpoint"))
-    endpoints = []
-
-    for endpoint_id in endpoint_ids:
-        response = endpoint_table.get_item(Key={"id": endpoint_id, "field": "document"})
-        if "Item" in response:
-            endpoints.append(response["Item"])
-
-    return endpoints
+    endpoints = org_record.get("endpoints", [])
+    return endpoints if endpoints else []
 
 
 def get_nested_value(obj: Dict[str, Any], path: str) -> Any:
