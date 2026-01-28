@@ -4,7 +4,7 @@ name: Build Release Candidate Pipeline
 # Intended to run when manually triggered to build a release candidate.
 # The workspace is set to the release tag, and the environment defaults to test.
 # This workflow will:
-# - Build the release candidate
+# - Promote the release candidate
 # - Provision a temporary AWS workspace in the test environment
 # - Run automated tests
 # - Perform cleardown of infrastructure
@@ -12,6 +12,11 @@ name: Build Release Candidate Pipeline
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
   workflow_dispatch:
+    inputs:
+      prerelease_tag:
+        description: "The prerelease tag to build the release artefacts from (if not provided, the latest will be used)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -32,79 +37,52 @@ jobs:
       - metadata
     runs-on: ubuntu-latest
     outputs:
-      release_tag: ${{ steps.set-full-tag.outputs.release_tag }}
+      release_tag: ${{ steps.create-rc.outputs.release_tag }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
 
       - name: "Run Semantic Release"
         id: semantic-release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        with:
+          dry_run: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Set full release tag"
-        id: set-full-tag
+      - name: "Generate next RC tag"
+        id: create-rc
         run: |
-          echo "The last semantic release version was: ${{ steps.semantic-release.outputs.last_release_version }}"
-          echo "The new semantic release version is: ${{ steps.semantic-release.outputs.new_release_version }}"
+          # Get the last and new semantic-release versions
+          LAST_VERSION="${{ steps.semantic-release.outputs.last_release_version }}"
+          NEW_VERSION="${{ steps.semantic-release.outputs.new_release_version }}"
 
-          if [[ "${{ steps.semantic-release.outputs.new_release_version }}" == "${{ steps.semantic-release.outputs.last_release_version }}" ]]; then
-            echo "No new changes since the last release. Skipping release candidate build."
-            exit 78  # special code to skip job in GitHub Actions
+          # If no new version, fallback to last version
+          if [[ -z "$NEW_VERSION" || "$NEW_VERSION" == "$LAST_VERSION" ]]; then
+            echo "No new release detected, using last released version: $LAST_VERSION"
+            VERSION_TO_USE="$LAST_VERSION"
+          else
+            VERSION_TO_USE="$NEW_VERSION"
           fi
 
-          echo "release_tag=v${{ steps.semantic-release.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+          # Generate RC tag using your RC script
+          RC_TAG=$(scripts/workflow/generate-rc-tag.sh "$VERSION_TO_USE")
 
-  quality-checks:
-    name: "Quality checks for release ${{ needs.tag-release.outputs.release_tag }}"
+          # Output for subsequent steps
+          echo "release_tag=$RC_TAG" >> $GITHUB_OUTPUT
+
+  promote-release-candidate:
+    name: "Promote artefacts for release candidate ${{ needs.tag-release.outputs.release_tag }}"
     needs:
       - metadata
       - tag-release
-    uses: ./.github/workflows/quality-checks.yaml
+    uses: ./.github/workflows/promote-artefacts.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: "rc"
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-      type: app
-      build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
-      skip_dirs: "services/dos-ui,services/read-only-viewer"
-    secrets: inherit
-
-  build-release-artefacts:
-    name: "Build ${{ matrix.name }} for release ${{ needs.tag-release.outputs.release_tag }}"
-    needs:
-      - metadata
-      - tag-release
-      - quality-checks
-    strategy:
-      matrix:
-        include:
-          - name: "python"
-            build_type: "package"
-          - name: "crud-apis"
-            build_type: "service"
-          - name: "data-migration"
-            build_type: "service"
-          - name: "read-only-viewer"
-            build_type: "service"
-          - name: "etl-ods"
-            build_type: "service"
-          - name: "dos-search"
-            build_type: "service"
-          - name: "dos-ui"
-            build_type: "service"
-    uses: ./.github/workflows/build-project.yaml
-    with:
-      name: ${{ matrix.name }}
-      build_type: ${{ matrix.build_type }}
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      environment: ${{ needs.metadata.outputs.mgmt_environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: "rc"
-      application_tag: ${{ needs.tag-release.outputs.release_tag }}
-      release_build: true
+      artefact_promotion_type: "release-candidate"
       type: app
+      release_tag: ${{ needs.tag-release.outputs.release_tag }}
+      prerelease_tag: ${{ github.event.inputs.prerelease_tag || '' }}
     secrets: inherit
 
   deploy-application-infrastructure:
@@ -112,14 +90,13 @@ jobs:
     needs:
       - metadata
       - tag-release
-      - build-release-artefacts
+      - promote-release-candidate
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
-      application_tag: ${{ needs.tag-release.outputs.release_tag }}
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -136,6 +113,7 @@ jobs:
       workspace: "rc"
       action: import
       type: app
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   deploy-frontend-services:
@@ -156,13 +134,11 @@ jobs:
     with:
       name: ${{ matrix.name }}
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: "rc"
-      application_tag: ${{ needs.tag-release.outputs.release_tag }}
-      release_build: true
       type: "app"
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   deploy-data-migration-service:
@@ -182,8 +158,8 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: "rc"
-      application_tag: ${{ needs.tag-release.outputs.release_tag }}
       type: "app"
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
@@ -197,11 +173,12 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
+      deployment_type: "release-candidate"
     secrets: inherit
 
   trigger-cleardown-pipeline:
@@ -217,7 +194,7 @@ jobs:
         with:
           repository: ${{ github.repository }}
           event-type: release-build-cleardown
-          client-payload: '{"environment": "${{ needs.metadata.outputs.environment }}", "workspace": "rc", "application_tag": "${{ needs.tag-release.outputs.release_tag }}"}'
+          client-payload: '{"environment": "${{ needs.metadata.outputs.environment }}", "workspace": "rc", "release_tag": "${{ needs.tag-release.outputs.release_tag }}"}'
 
   check-pipeline-status:
     name: "Check pipeline status"
@@ -230,8 +207,7 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - metadata
-      - quality-checks
-      - build-release-artefacts
+      - promote-release-candidate
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - deploy-frontend-services

@@ -1,81 +1,75 @@
+# ETL ODS Service Makefile
+# This service builds producer + consumer lambdas and a shared dependency layer
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
 ENVIRONMENT ?= mgmt
 SERVICE ?= etl-ods
 PYTHON_VERSION ?= 3.12
-BUILD_DIR := ../../build/services/${SERVICE}
-DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
 PLATFORM ?= manylinux2014_x86_64
-ARTEFACT_BUCKET := ${REPO_NAME}-${ENVIRONMENT}-artefacts-bucket
-DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
-PRODUCER_LAMBDA_NAME := ftrs-dos-${SERVICE}-processor-lambda
-CONSUMER_LAMBDA_NAME := ftrs-dos-${SERVICE}-consumer-lambda
-RELEASE_BUILD ?= false
-RELEASE_DIR ?= releases
 
-.PHONY: install lint test build
+BUILD_DIR := ../../build/services/$(SERVICE)
+DEPENDENCY_DIR := $(BUILD_DIR)/dependency-layer
 
-ensure-build-dir:
-	mkdir -p $(BUILD_DIR)
+ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 
-clean:
-	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
-	rm -rf $(BUILD_DIR)
-	rm -rf $(DEPENDENCY_DIR)
+DEPENDENCY_LAYER_NAME := ftrs-dos-$(SERVICE)-python-dependency-layer
+PRODUCER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-processor-lambda
+CONSUMER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-consumer-lambda
 
-install: install-dependencies
+# ------------------------------------------------------------------------------
+# Development artefact path (branch-aware)
+# ------------------------------------------------------------------------------
 
-install-dependencies:
-	asdf install
-	poetry install --no-interaction
+BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
-lint:
-	poetry run ruff check
-	poetry run ruff format --check
+ifeq ($(BRANCH),main)
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
+else
+ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
+endif
 
-test: unit-test
+# ==============================================================================
+# Common targets (reuse shared quality & setup)
+# ==============================================================================
 
-unit-test:
+include ../../scripts/services/python-service.mk
+
+# ==============================================================================
+# Overrides / Service-specific behaviour
+# ==============================================================================
+
+unit-test: ## Run unit tests
 	poetry run pytest tests/unit
 
-build: ensure-build-dir build-producer-lambda build-consumer-lambda build-dependency-layer
+# Override default build to produce producer + consumer artefacts
+build: ensure-build-dir build-dependency-layer build-producer-lambda build-consumer-lambda ## Build all artefacts
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
-build-producer-lambda: ensure-build-dir
+build-producer-lambda: ensure-build-dir ## Build producer lambda artefact
 	mkdir -p $(BUILD_DIR)/producer-tmp
 	cp -r producer $(BUILD_DIR)/producer-tmp/
 	cp -r common $(BUILD_DIR)/producer-tmp/
-	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME)-$(APPLICATION_TAG).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/producer-tmp
 
-build-consumer-lambda: ensure-build-dir
+build-consumer-lambda: ensure-build-dir ## Build consumer lambda artefact
 	mkdir -p $(BUILD_DIR)/consumer-tmp
 	cp -r consumer $(BUILD_DIR)/consumer-tmp/
 	cp -r common $(BUILD_DIR)/consumer-tmp/
-	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME)-$(APPLICATION_TAG).zip . --exclude "*__pycache__/*"
+	cd $(BUILD_DIR)/consumer-tmp && zip -r -q ../$(CONSUMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
 	rm -rf $(BUILD_DIR)/consumer-tmp
 
-build-dependency-layer: ensure-build-dir
-	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-		--platform $(PLATFORM) \
-		--target $(DEPENDENCY_DIR)/python \
-		--implementation cp \
-		--python-version $(PYTHON_VERSION) \
-		--no-deps \
-		--upgrade \
-		-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip . --exclude "*__pycache__/*"
+# ------------------------------------------------------------------------------
+# Publish (service-specific S3 layout)
+# ------------------------------------------------------------------------------
 
-publish:
-	@if [ "$(RELEASE_BUILD)" = "false" ]; then \
-		aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(PRODUCER_LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-		aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(CONSUMER_LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-	else \
-		aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(PRODUCER_LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-		aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(CONSUMER_LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION); \
-	fi
-
-pre-commit: lint
+publish: ## Publish build artefacts to development path
+	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
+	aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PRODUCER_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
+	@echo "Published successfully"

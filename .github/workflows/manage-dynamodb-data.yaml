@@ -24,8 +24,8 @@ on:
         description: "The action to perform (e.g., export, import)"
         required: true
         type: string
-      tag:
-        description: "The git tag identifying the timeline in the repository to deploy from"
+      ref:
+        description: "The branch, tag or SHA to checkout for managing data"
         required: false
         type: string
 
@@ -39,7 +39,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1

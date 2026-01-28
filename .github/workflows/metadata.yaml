@@ -4,8 +4,8 @@ permissions: {}
 on:
   workflow_call:
     inputs:
-      tag:
-        description: "The git tag to checkout, this defaults to the head of the triggering branch"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
       workflow_timeout:
@@ -90,7 +90,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Get metadata"
         id: get_metadata
@@ -106,7 +106,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Derive workspace"
         id: derive_workspace

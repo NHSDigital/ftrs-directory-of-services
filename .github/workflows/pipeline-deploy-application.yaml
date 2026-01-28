@@ -16,13 +16,9 @@ on:
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
-      tag:
-        description: "Specify the tag to be used for deployment"
-        required: true
-        type: string
-      application_tag:
-        description: "Specify the application tag to be used for deployment"
-        required: true
+      ref:
+        description: "Specify the Git tag to be used for deployment (e.g. v1.1.0-pre.1)"
+        required: false
         type: string
       environment:
         description: "Deployment environment"
@@ -41,6 +37,8 @@ jobs:
   metadata:
     name: "Get CI/CD metadata"
     uses: ./.github/workflows/metadata.yaml
+    with:
+      ref: ${{ inputs.ref }}
 
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
@@ -54,6 +52,7 @@ jobs:
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   build-services:
@@ -88,8 +87,8 @@ jobs:
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: app
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   build-sandbox-containers:
@@ -106,7 +105,7 @@ jobs:
       name: ${{ matrix.name }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
+      ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
@@ -119,6 +118,7 @@ jobs:
     uses: ./.github/workflows/static-code-analysis.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   prepare-toggle-artifacts:
@@ -130,7 +130,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      tag: ${{ inputs.tag }}
+      ref: ${{ inputs.ref }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -142,9 +142,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      tag: ${{ inputs.tag }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      ref: ${{ inputs.ref }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -165,6 +163,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       api_name: ${{ matrix.api_name }}
       apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
+      ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -186,6 +185,7 @@ jobs:
   #     function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
   #     queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
   #     type: app
+  #     ref: ${{ inputs.ref }}
   #   secrets: inherit
 
   export-dynamodb-to-s3:
@@ -203,6 +203,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       type: app
       action: export
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   restore-dynamodb-from-s3:
@@ -217,6 +218,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       action: import
       type: app
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   check-stack-toggles:
@@ -228,7 +230,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      tag: ${{ inputs.tag }}
+      ref: ${{ inputs.ref }}
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
@@ -259,13 +261,11 @@ jobs:
     with:
       name: "dos-ui"
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   deploy-read-only-viewer:
@@ -282,13 +282,11 @@ jobs:
     with:
       name: "read-only-viewer"
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   deploy-data-migration-service:
@@ -305,12 +303,11 @@ jobs:
       name: "data-migration"
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   service-automation-tests:
@@ -343,10 +340,11 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      tag: ${{ inputs.tag }}
+      ref: ${{ inputs.ref }}
       test_tag: ${{ matrix.tag }}
       test_type: ${{ matrix.type }}
       type: app
+      deployment_type: "development"
     secrets: inherit
 
   generate-prerelease:
@@ -365,6 +363,20 @@ jobs:
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
 
+  stage-prerelease-artefacts:
+    name: "Stage ${{ matrix.name }} artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
+    needs:
+      - metadata
+      - generate-prerelease
+    uses: ./.github/workflows/promote-artefacts.yaml
+    with:
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      artefact_promotion_type: "stage"
+      type: app
+      prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
+      ref: ${{ inputs.ref }}
+    secrets: inherit
+
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
@@ -373,6 +385,7 @@ jobs:
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
+      - stage-prerelease-artefacts
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -391,6 +404,7 @@ jobs:
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease
+      - stage-prerelease-artefacts
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml

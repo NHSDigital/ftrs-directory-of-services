@@ -44,7 +44,7 @@ jobs:
       - validate-release-tag
     uses: ./.github/workflows/metadata.yaml
     with:
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
 
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   deploy-account-wide-infrastructure:
@@ -64,7 +64,7 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   deploy-application-infrastructure:
@@ -76,9 +76,8 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
       release_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -99,14 +98,11 @@ jobs:
     with:
       name: ${{ matrix.name }}
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
       environment: ${{ inputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
-      release_build: true
       type: "app"
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
@@ -130,10 +126,11 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
+      deployment_type: "release"
     secrets: inherit
 
   check-pipeline-status:

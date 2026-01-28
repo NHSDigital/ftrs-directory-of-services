@@ -35,15 +35,11 @@ on:
         default: "plan"
         type: string
       ref:
-        description: >
-          "The branch, tag or SHA to to deploy for development or testing purposes.
-          Not used for official releases."
+        description: "Specify the branch, tag or SHA to be used for deployment"
         required: false
         type: string
       release_tag:
-        description: >
-          "The release version tag to deploy (e.g. v1.4.0 or v1.4.0-rc.1).
-          Required for release and release-candidate deployments only."
+        description: "The release tag identifying the timeline in the repository to deploy from"
         required: false
         type: string
       workflow_timeout:
@@ -51,6 +47,10 @@ on:
         required: false
         default: 30
         type: number
+      commit_hash:
+        description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
@@ -65,11 +65,6 @@ on:
         required: false
         default: "appconfig_feature_flags"
         type: string
-      toggle_stacks:
-        description: "A list of the infrastructure stacks that consume feature toggle outputs"
-        required: false
-        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
-        type: string  
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -91,7 +86,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || inputs.ref }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
@@ -101,8 +96,8 @@ jobs:
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
 
-      - name: "Download Toggle Artifact"
-        if: ${{ inputs.download_appconfig_artifact == true && contains(fromJSON(inputs.toggle_stacks), matrix.stack) }}
+      - name: "Download AppConfig Feature Flags"
+        if: ${{ inputs.download_appconfig_artifact == true }}
         uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
@@ -125,6 +120,7 @@ jobs:
           action: ${{ inputs.action }}
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
+          commit_hash: ${{ inputs.commit_hash }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
 
       - name: "Upload Terraform Plan Artifact"

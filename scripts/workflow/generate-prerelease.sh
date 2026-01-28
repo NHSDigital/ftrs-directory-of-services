@@ -56,4 +56,11 @@ echo "Next prerelease tag: ${next_tag}"
 git tag "$next_tag"
 git push origin "$next_tag"
 
+export PRERELEASE_TAG="$next_tag"
+
+# Export for GitHub Actions
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "prerelease_tag=${next_tag}" >> "$GITHUB_OUTPUT"
+fi
+
 echo "Prerelease generation complete."

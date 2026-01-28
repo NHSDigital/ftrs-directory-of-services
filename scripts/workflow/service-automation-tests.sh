@@ -31,8 +31,8 @@ if [ -z "$TEST_TYPE" ] ; then
   EXPORTS_SET=1
 fi
 
-if [ -z "$COMMIT_HASH" ] && [ -z "$TAG" ]; then
-  echo Set COMMIT_HASH or TAG
+if [ -z "$COMMIT_HASH" ] && [ -z "$REF" ]; then
+  echo Set COMMIT_HASH or REF
   EXPORTS_SET=1
 fi
 
