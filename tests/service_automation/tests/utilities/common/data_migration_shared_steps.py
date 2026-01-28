@@ -8,7 +8,7 @@ from loguru import logger
 from sqlalchemy import text
 from sqlmodel import Session
 
-from tests.service_automation.tests.utilities.data_migration.migration_context_helper import (
+from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
@@ -37,12 +37,46 @@ from utilities.common.log_helper import (
     verify_transformation_log,
     verify_transformer_selected_log,
 )
+from utilities.common.dynamoDB_tables import get_table_name
+from boto3.dynamodb.types import TypeDeserializer
 
 ServiceAttributes = Dict[str, Any]
 MigrationContext = Dict[str, Any]
 DynamoDBFixture = Dict[str, Any]
 GherkinTable = List[List[str]]
 SQSEvent = Dict[str, Any]
+
+
+def get_state_record_by_id(
+    dynamodb: DynamoDBFixture,
+    state_key: str,
+) -> Dict[str, Any]:
+    """
+    Retrieve and deserialize a state record from DynamoDB by source_record_id.
+
+    Args:
+        dynamodb: DynamoDB client and resource dictionary
+        state_key: The source_record_id to look up
+
+    Returns:
+        Deserialized state record as dictionary
+
+    Raises:
+        AssertionError: If state record does not exist
+    """
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record should exist for key {state_key}"
+
+    item = response["Item"]
+    deserializer = TypeDeserializer()
+    return {k: deserializer.deserialize(v) for k, v in item.items()}
 
 
 def run_test_environment_configured(

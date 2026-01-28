@@ -48,6 +48,14 @@ DYNAMODB_CLIENT = "client"
 DYNAMODB_RESOURCE = "resource"
 DYNAMODB_ENDPOINT = "endpoint_url"
 
+# Maps entity type names used in BDD scenarios to their corresponding
+# field names in the DynamoDB state table record
+STATE_TABLE_ENTITY_ID_FIELDS = {
+    "organisation": "organisation_id",
+    "location": "location_id",
+    "healthcare_service": "healthcare_service_id",
+}
+
 # Environment Variables
 ENV_PROJECT_NAME = "PROJECT_NAME"
 ENV_ENVIRONMENT = "ENVIRONMENT"
