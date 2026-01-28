@@ -5,9 +5,6 @@ inputs:
   ec2-instance-id:
     description: "The EC2 instance ID to connect to"
     required: true
-  test-type:
-    description: "The type of test to run"
-    required: true
   endpoint:
     description: "The endpoint to run the performance test against"
     required: true
@@ -46,8 +43,7 @@ runs:
   using: "composite"
   steps:
 
-    - name: Run Smoke Test on Gateway
-      if: ${{ inputs.test-type == 'smoke' }}
+    - name: Run Test on Gateway
       shell: bash
       id: run
       run: |
