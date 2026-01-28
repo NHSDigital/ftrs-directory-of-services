@@ -3,115 +3,73 @@
 ## Overview
 
 - A lightweight FastAPI app that serves the canned responses defined in `docs/specification/dos-search.yaml` for the
-  Organization (FHIR resource) search endpoint.
-- Intended for APIM Sandbox usage to support example requests and responses without backend services.
-
-## Corporate proxy / TLS interception note (Docker builds)
-
-If you're on a network that intercepts TLS (for example, Zscaler), `docker build` may fail during `pip` installs with:
-
-- `SSLCertVerificationError: unable to get local issuer certificate`
-
-This Dockerfile supports two build modes:
-
-- **Default (no corporate CA)**: suitable for non-intercepting networks
-- **Opt-in corporate CA**: installs a provided CA bundle into the container trust store
-
-### Default build (no corporate CA)
-
-```bash
-cd services/sandbox-dos-search
-docker build -t dos-search:local .
-```
-
-### Corporate CA build (Zscaler / TLS interception)
-
-1. Copy your corporate root CA bundle PEM into the Docker build context (this folder).
-
-Use any filename you like (example uses `corp-proxy-ca.pem`):
-
-```bash
-cd services/sandbox-dos-search
-cp -f ../../your-corp-ca.pem ./corp-proxy-ca.pem
-```
-
-1. Build the corporate-CA target:
-
-```bash
-docker build --target runtime-with-corp-ca -t dos-search:local .
-```
-
-Note: if your CA bundle has a different filename, pass it via `--build-arg CORP_CA_PEM=...`.
-
-```bash
-docker build --target runtime-with-corp-ca --build-arg CORP_CA_PEM=my-ca.pem -t dos-search:local .
-```
+  `Organization` (a FHIR resource) search endpoint.
+- Intended for APIM Sandbox usage; provides example requests and responses without backend services.
 
 ## Endpoints (served by the container)
 
-- GET /_status -> 200 (health check)
-- GET /_ping -> 200 (liveness)
-- GET /Organization
+- `GET /_status` — 200 (health check)
+- `GET /_ping` — 200 (health check)
+- `GET /Organization`
   - 200 example: `?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization`
-  - 400 invalid-identifier-value: `?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization`
-  - 400 missing-revinclude: `?identifier=odsOrganisationCode|ABC123`
-  - 400 invalid-identifier-system: `?identifier=foo|ABC123&_revinclude=Endpoint:organization`
+  - 400 invalid identifier value: `?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization`
+  - 400 missing `_revinclude`: `?identifier=odsOrganisationCode|ABC123`
+  - 400 invalid identifier system: `?identifier=foo|ABC123&_revinclude=Endpoint:organization`
 
 ## Quick start (local)
 
-1. Navigate to the service directory (recommended)
+1. From the repository root, change into the service directory:
 
 ```bash
-# From the repository root
 cd services/sandbox-dos-search
 ```
 
-1. Build
-
-```bash
-docker build -t dos-search:local .
-```
-
-Or build from the repository root without changing directories:
+Alternatively, build from the repository root without changing directories:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -t dos-search:local services/sandbox-dos-search
 ```
 
-1. Run
+Build (when inside `services/sandbox-dos-search`):
 
 ```bash
-docker run --rm -p 9000:9000 dos-search:local
+docker build -t dos-search:local .
 ```
 
-Tip: Add `-d` to run in detached mode so you can use the same terminal to run the curl commands below:
+Run the service locally:
 
 ```bash
+# Run the container (foreground)
+docker run --rm -p 9000:9000 dos-search:local
+
+# Or run in detached mode
 docker run -d --rm -p 9000:9000 dos-search:local
 ```
 
-1. Try it
+## Try it
 
 ```bash
-# 200 status
-curl -i "http://localhost:9000/_status"
+# /_status: 200 (empty response)
+curl -i -H "Accept: application/fhir+json" \
+  "http://localhost:9000/_status"
 
-# 200 ping
-curl -i "http://localhost:9000/_ping"
+# /_ping: 200 (empty response)
+curl -i -H "Accept: application/fhir+json" \
+  "http://localhost:9000/_ping"
 
-# 200 success
+# Organization search — success (200)
 curl -i -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
 
-# 400 invalid-identifier-value
+# Organization search — invalid identifier value (400)
 curl -i -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization"
 
-# 400 missing-revinclude
+# Organization search — missing _revinclude (400)
 curl -i -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC123"
 
-# 400 invalid-identifier-system
+# Organization search — invalid identifier system (400)
 curl -i -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization"
 ```
@@ -119,7 +77,7 @@ curl -i -H "Accept: application/fhir+json" \
 1. Run smoke tests (optional)
 
 ```bash
-# From the services/sandbox-dos-search directory
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
@@ -156,7 +114,7 @@ podman run -d --rm -p 9000:9000 dos-search:local
 - Smoke test (optional):
 
 ```bash
-# From the services/sandbox-dos-search directory
+# From the services/dos-search/sandbox directory
 BASE_URL=http://localhost:9000 ./scripts/smoke.sh
 ```
 
@@ -175,13 +133,13 @@ podman machine start
 ## Expected sandbox requests (via APIM)
 
 ```bash
-# 200 status
-curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/_status'
+# 200 status healthcheck
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/_status'
 
-# 200 ping
-curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/_ping'
+# 200 ping healthcheck
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/_ping'
 
-# 200 example
+# 200 example (Organization search)
 curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization'
 
 # 400 invalid-identifier-value
@@ -194,8 +152,30 @@ curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organizat
 curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization'
 ```
 
-## Notes
+## Behind a corporate proxy (Zscaler) — Dockerfile snippet
 
-- Authentication/authorisation errors (401/403) and server errors (500) are intentionally not generated in sandbox as
-  per the specification notes.
-- Media type is application/fhir+json for all responses.
+If you're building Docker images from behind a corporate TLS-inspecting proxy (e.g., Zscaler), you may need to add the proxy's CA certificate into the image and update Python's certificate store so that pip and the `requests` library (via `certifi`) trust it.
+
+Add the following to your Dockerfile (Debian/Ubuntu-based images):
+
+```dockerfile
+# Add corporate CA cert and ensure Python/pip/certifi use it
+COPY cert.pem /usr/local/share/ca-certificates/cert.pem
+ENV PIP_CERT="/usr/local/share/ca-certificates/cert.pem"
+RUN update-ca-certificates \
+    && pip install --upgrade certifi \
+    && cat /usr/local/share/ca-certificates/cert.pem >> "$(python -c 'import certifi; print(certifi.where())')"
+```
+
+Notes and alternatives:
+- Ensure `cert.pem` is available during `docker build`.
+- The `cat >> certifi` step appends your certificate to certifi's bundle (preferred over hardcoding a path like `/usr/local/lib/python3.12/site-packages/certifi/cacert.pem`, which can vary). It uses `certifi.where()` to locate the correct bundle at build time.
+- You can also set additional env vars (optional) to help other tools pick up the custom bundle:
+
+```dockerfile
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+```
+
+- If your base image uses a different CA store location (Alpine, etc.), adjust the path and `update-ca-certificates` step accordingly.
