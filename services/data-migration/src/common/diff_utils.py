@@ -300,6 +300,7 @@ def get_organisation_diff(previous: Organisation, current: Organisation) -> Deep
         exclude_regex_paths=EXCLUDE_REGEX_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )
 
 
@@ -311,6 +312,7 @@ def get_location_diff(previous: Location, current: Location) -> DeepDiff:
         exclude_paths=EXCLUDE_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )
 
 
@@ -325,4 +327,5 @@ def get_healthcare_service_diff(
         exclude_paths=EXCLUDE_PATHS,
         view="tree",
         threshold_to_diff_deeper=0,
+        ignore_order=True,
     )
