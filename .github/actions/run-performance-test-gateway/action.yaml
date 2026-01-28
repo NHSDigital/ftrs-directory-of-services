@@ -14,10 +14,33 @@ inputs:
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
-  aws_region:
+  aws-region:
     description: 'AWS region for Secrets Manager'
     required: true
-
+  num-threads:
+    description: "Number of threads for the performance test"
+    required: false
+    default: "10"
+  ramp-time:
+    description: "Ramp up time for the performance test"
+    required: false
+    default: "1"
+  startup-delay:
+    description: "Startup delay for the performance test"
+    required: false
+    default: "10"
+  duration:
+    description: "Duration of the performance test"
+    required: false
+    default: "20"
+  throughput:
+    description: "Throughput for the performance test"
+    required: false
+    default: "10"
+  throughput-period:
+    description: "Throughput period for the performance test"
+    required: false
+    default: "60"
 
 runs:
   using: "composite"
@@ -33,23 +56,7 @@ runs:
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
                         "make download-performance-files",
-                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws_region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=10 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=20 THROUGHPUT=10 THROUGHPUT_PERIOD=60"]' \
-            --query "Command.CommandId" \
-            --output text)
-
-          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
-
-    - name: Run Load Test on Gateway
-      if: ${{ inputs.test-type == 'load' }}
-      shell: bash
-      id: run
-      run: |
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ inputs.ec2-instance-id }}" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ssm-user",
-                        "make download-performance-files",
-                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws_region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=100 RAMP_TIME=1 STARTUP_DELAY=10 DURATION=3660 THROUGHPUT=9000 THROUGHPUT_PERIOD=60"]' \
+                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }}"]' \
             --query "Command.CommandId" \
             --output text)
 
