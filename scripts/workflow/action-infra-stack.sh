@@ -228,6 +228,8 @@ rm -f "$STACK_DIR"/locals.tf
 rm -f "$STACK_DIR"/provider.tf
 rm -f "$STACK_DIR"/versions.tf
 rm -f "$STACK_DIR"/common-variables.tf
+rm -f "$STACK_FEATURE_FLAG_FILE"
+rm -f "$STACK_TOGGLE_TF_VARS_FILE"
 
 if [ $TEMP_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
