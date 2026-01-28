@@ -67,7 +67,7 @@ SUCCESS_BUNDLE_ABC123 = {
                     }
                 ],
                 "payloadMimeType": ["application/pdf"],
-                "address": "mailto:dummy-endpoint-email@nhs.net",
+                "address": "dummy-endpoint-email@nhs.net",
             },
             "search": {"mode": "include"},
         },
@@ -109,7 +109,7 @@ SUCCESS_BUNDLE_ABC123 = {
                     }
                 ],
                 "payloadMimeType": ["application/pdf"],
-                "address": "mailto:dummy-endpoint-email@nhs.net",
+                "address": "dummy-endpoint-email@nhs.net",
             },
             "search": {"mode": "include"},
         },
