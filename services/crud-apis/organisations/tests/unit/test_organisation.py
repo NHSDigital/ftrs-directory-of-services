@@ -22,6 +22,8 @@ client = TestClient(test_app)
 
 test_org_id = uuid4()
 
+TEST_PRODUCT_ID = "test-product-id"
+
 
 def get_organisation() -> dict:
     return {
@@ -549,7 +551,9 @@ def test_update_organisation_telecom_phone_validation_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -583,7 +587,9 @@ def test_update_organisation_telecom_email_validation_error_exception(
         "telecom": [{"system": "email", "value": "mailnhs.net"}],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -617,7 +623,9 @@ def test_update_organisation_telecom_url_validation_error_exception(
         "telecom": [{"system": "url", "value": "nhs.net"}],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -655,7 +663,9 @@ def test_update_organisation_telecom_no_type_value_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -692,7 +702,9 @@ def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -728,7 +740,9 @@ def test_update_organisation_telecom_invalid_value_character_value_error_excepti
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:

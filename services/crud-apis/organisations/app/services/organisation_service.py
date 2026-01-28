@@ -38,13 +38,14 @@ class OrganisationService:
         """
         Update an organisation from a FHIR Organisation resource.
         """
-        lastUpdatedBy = AuditEvent(
-            type=AuditEventType.app, value="", display="Data Management"
-        )
+        if not nhse_product_id:
+            outcome = OperationOutcomeHandler.build(
+                diagnostics="Product ID header is required for updating organisation",
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
 
-        if nhse_product_id:
-            lastUpdatedBy.value = nhse_product_id
-            lastUpdatedBy.display = "ODS"
         try:
             fhir_organisation = FhirValidator.validate(fhir_org, FhirOrganisation)
             ods_code = None
@@ -59,7 +60,9 @@ class OrganisationService:
                 organisation_id, ods_code
             )
             organisation = self.organisation_mapper.from_fhir(fhir_organisation)
-            organisation.lastUpdatedBy = lastUpdatedBy
+            organisation.lastUpdatedBy = AuditEvent(
+                type=AuditEventType.app, value=nhse_product_id, display="ODS"
+            )
             outdated_fields = self._get_outdated_fields(
                 stored_organisation, organisation
             )
