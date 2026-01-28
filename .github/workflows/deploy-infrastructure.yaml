@@ -34,9 +34,9 @@ on:
         required: false
         default: "plan"
         type: string
-      tag:
+      ref:
         description: >
-          "The git tag to deploy for development or testing purposes.
+          "The branch, tag or SHA to to deploy for development or testing purposes.
           Not used for official releases."
         required: false
         type: string
@@ -91,7 +91,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.release_tag || inputs.tag }}
+          ref: ${{ inputs.release_tag || inputs.ref }}
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials

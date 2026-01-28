@@ -20,8 +20,8 @@ inputs:
   commit_hash:
     description: "The commit hash, set by the CI/CD pipeline workflow"
     required: false
-  tag:
-    description: "The tag to build and deploy from"
+  ref:
+    description: "The branch, tag or SHA to build and deploy from"
     required: false
 
 runs:
@@ -37,7 +37,7 @@ runs:
         TEST_TAG: ${{ inputs.test_tag }}
         TEST_TYPE: ${{ inputs.test_type }}
         COMMIT_HASH: ${{ inputs.commit_hash }}
-        TAG: ${{ inputs.tag }}
+        REF: ${{ inputs.ref }}
       run: |
         set -euo pipefail
         /bin/bash ./scripts/workflow/service-automation-tests.sh

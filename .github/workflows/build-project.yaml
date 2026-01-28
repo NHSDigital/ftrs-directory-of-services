@@ -35,8 +35,8 @@ on:
         description: "The name of the workspace to deploy the infrastructure into"
         required: true
         type: string
-      tag:
-        description: "The Git tag to build from"
+      ref:
+        description: "The branch, tag or SHA to build from"
         required: false
         type: string
       type:
@@ -55,7 +55,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1

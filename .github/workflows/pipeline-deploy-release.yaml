@@ -44,7 +44,7 @@ jobs:
       - validate-release-tag
     uses: ./.github/workflows/metadata.yaml
     with:
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
 
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   deploy-account-wide-infrastructure:
@@ -64,7 +64,7 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   deploy-application-infrastructure:
@@ -77,7 +77,7 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: default
       release_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -102,7 +102,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
       type: "app"
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
@@ -126,7 +126,7 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app

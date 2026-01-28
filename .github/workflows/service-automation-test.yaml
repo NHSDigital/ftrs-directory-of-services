@@ -20,8 +20,8 @@ on:
         description: "The name of the type of test report that will be generated"
         required: false
         type: string
-      tag:
-        description: "The Git tag to checkout"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
       allure_report_retention:
@@ -65,7 +65,7 @@ on:
         required: false
         default: ""
         type: string
-      test_tag:
+      test_ref:
         description: "The name of the feature tag that identifies the tests to run"
         required: false
         type: string
@@ -74,7 +74,7 @@ on:
         default: "data-migration"
         required: false
         type: string
-      tag:
+      ref:
         description: "The tag to build and deploy from"
         required: false
         default: "data-migration"
@@ -115,7 +115,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1
@@ -167,7 +167,7 @@ jobs:
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
           commit_hash: ${{ inputs.commit_hash || github.sha }}
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: Upload allure report
         if: always()
@@ -195,7 +195,7 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
           DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_ref: ${{ inputs.ref }}
           ENVIRONMENT: ${{ inputs.environment }}
           TEST_TAG: ${{ inputs.test_tag }}
         run: |

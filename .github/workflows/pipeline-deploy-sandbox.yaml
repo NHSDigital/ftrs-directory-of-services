@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
-      tag:
-        description: "Specify the Git tag to be used for deployment (e.g. v1.1.0-pre.1)"
+      ref:
+        description: "Specify the branch, tag or SHA to be used for deployment (e.g. v1.1.0-pre.1)"
         required: false
         type: string
 
@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: Parse tag
         id: parse

@@ -7,8 +7,8 @@ permissions:
 on:
   workflow_call:
     inputs:
-      tag:
-        description: "The Git tag to checkout"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
     outputs:
@@ -26,7 +26,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Generate prerelease tag"
         id: generate-prerelease

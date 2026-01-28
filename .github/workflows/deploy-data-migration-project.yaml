@@ -30,8 +30,8 @@ on:
         description: "The name of the workspace to deploy the infrastructure into"
         required: true
         type: string
-      tag:
-        description: "The tag identifying the release version to checkout and deploy"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
       type:
@@ -49,7 +49,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials

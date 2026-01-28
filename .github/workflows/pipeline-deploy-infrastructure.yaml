@@ -34,12 +34,8 @@ on:
         required: false
         default: "plan"
         type: string
-      tag:
-        description: "The git tag identifying the timeline in the repository to deploy from"
-        required: false
-        type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
+      ref:
+        description: "Specify the branch, tag or SHA to be used for deployment"
         required: false
         type: string
       release_tag:
@@ -90,7 +86,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials

@@ -20,8 +20,8 @@ inputs:
   environment:
     description: "The environment being updated"
     required: true
-  tag:
-    description: "The version of the service to deploy"
+  ref:
+    description: "The branch, tag or SHA to checkout"
     required: false
 
 runs:
@@ -33,7 +33,7 @@ runs:
       run: |
         export SERVICE=${{ inputs.service }}
         export APPLICATION_ROOT_DIR=${{ inputs.directory }}
-        export TAG=${{ inputs.tag }}
+        export TAG=${{ inputs.ref }}
         export WORKSPACE=${{ inputs.workspace }}
         export ARTEFACT_SUB_DIR=${{ inputs.artefact_sub_dir }}
         export ARTEFACT_BUCKET_NAME=${{ inputs.artefact_bucket_name }}

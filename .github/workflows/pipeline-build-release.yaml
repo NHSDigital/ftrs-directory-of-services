@@ -96,7 +96,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -113,7 +113,7 @@ jobs:
       workspace: "rc"
       action: import
       type: app
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   deploy-frontend-services:
@@ -138,7 +138,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: "rc"
       type: "app"
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   deploy-data-migration-service:
@@ -159,7 +159,7 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: "rc"
       type: "app"
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
@@ -173,7 +173,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
-      tag: ${{ needs.tag-release.outputs.release_tag }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       test_tag: "ftrs-pipeline"
       test_type: "api"

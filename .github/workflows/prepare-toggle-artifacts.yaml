@@ -11,8 +11,8 @@ on:
         description: "The workspace name"
         required: true
         type: string
-      tag:
-        description: "The tag to checkout"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
 
@@ -28,7 +28,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install Python dependencies"
         run: |

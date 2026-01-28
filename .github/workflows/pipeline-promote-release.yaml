@@ -35,7 +35,7 @@ jobs:
       - validate-release-tag
     uses: ./.github/workflows/metadata.yaml
     with:
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
 
   promote-release:
     name: "Promote artefacts for release ${{ inputs.release_tag }}"
