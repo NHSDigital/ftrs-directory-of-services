@@ -1,12 +1,12 @@
-@data-migration
-Feature: FTRS-1370 - Store migrated records in DynamoDB state table
+@data-migration @transactional-writes
+Feature: Store migrated records in DynamoDB state table
+  Test TransactWriteItems API for atomic insert/update operations and conflict detection
 
   Background:
     Given the test environment is configured
     And the DoS database has test data
     And DynamoDB tables are ready
 
-  @insert-operation @transactional-writes
   Scenario: Insert operation - Create new service with state record using TransactWriteItems
     Given a 'Service' exists called 'TestGPPracticeInsert' in DoS with attributes:
       | key                 | value                       |
@@ -35,7 +35,6 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the state table contains a record for key 'services#400000' with version 1
     And the metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped, 0 invalid and 0 errors
 
-  @update-operation @skip-existing
   Scenario: Update operation - Skip when state record exists
     Given a 'Service' exists called 'TestGPPracticeUpdate' in DoS with attributes:
       | key                 | value                            |
@@ -62,8 +61,8 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     When a single service migration is run for ID '400001'
     Then the pipeline treats the record as an 'update' operation
     And the metrics should show 0 inserted, 0 updated records for the second run
+    And the state table contains a record for key 'services#400001' with version 1
 
-  @state-table-structure
   Scenario: Verify state table record structure after migration
     Given a 'Service' exists called 'TestGPPracticeStructure' in DoS with attributes:
       | key                 | value                      |
@@ -91,7 +90,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the state table record for "services#400002" has valid location_id
     And the state table record for "services#400002" has valid healthcare_service_id
 
-  @conflict-detection @organisation-exists
+  @conflict-detection
   Scenario: Conflict detection - Organisation already exists
     Given a 'Service' exists called 'TestGPPracticeConflictOrg' in DoS with attributes:
       | key                 | value                         |
@@ -120,7 +119,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the pipeline logs "DynamoDB Transaction Cancelled - one or more items failed to write"
     And the migration records an error for service ID 400003
 
-  @conflict-detection @location-exists
+  @conflict-detection
   Scenario: Conflict detection - Location already exists
     Given a 'Service' exists called 'TestGPPracticeConflictLoc' in DoS with attributes:
       | key                 | value                              |
@@ -149,7 +148,7 @@ Feature: FTRS-1370 - Store migrated records in DynamoDB state table
     And the pipeline logs "DynamoDB Transaction Cancelled - one or more items failed to write"
     And the migration records an error for service ID 400004
 
-  @conflict-detection @healthcare-service-exists
+  @conflict-detection
   Scenario: Conflict detection - Healthcare Service already exists
     Given a 'Service' exists called 'TestGPPracticeConflictHCS' in DoS with attributes:
       | key                 | value                         |
