@@ -23,6 +23,7 @@ on:
         description: "The branch, tag or SHA to to test against"
         required: false
         type: string
+        default: "dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk"
 
 permissions:
   contents: read
@@ -58,3 +59,6 @@ jobs:
         with:
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
           test-file: ${{ inputs.test_file }}
+          aws_region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          endpoint: ${{ inputs.endpoint }}
