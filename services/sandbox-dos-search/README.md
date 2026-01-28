@@ -152,11 +152,11 @@ curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organizat
 curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization'
 ```
 
-## Behind a corporate proxy (Zscaler) — Dockerfile snippet
+## Behind a corporate proxy (Zscaler) — `Dockerfile` snippet
 
-If you're building Docker images from behind a corporate TLS-inspecting proxy (e.g., Zscaler), you may need to add the proxy's CA certificate into the image and update Python's certificate store so that pip and the `requests` library (via `certifi`) trust it.
+If you're building Docker images behind a corporate TLS-inspecting proxy (e.g., Zscaler), add the proxy's CA certificate to the image and update Python's certificate store so that `pip` and the `requests` library (via `certifi`) trust it.
 
-Add the following to your Dockerfile (Debian/Ubuntu-based images):
+Add the following to your `Dockerfile` (Debian/Ubuntu-based images):
 
 ```dockerfile
 # Add corporate CA cert and ensure Python/pip/certifi use it
@@ -169,7 +169,7 @@ RUN update-ca-certificates \
 
 Notes and alternatives:
 - Ensure `cert.pem` is available during `docker build`.
-- The `cat >> certifi` step appends your certificate to certifi's bundle (preferred over hardcoding a path like `/usr/local/lib/python3.12/site-packages/certifi/cacert.pem`, which can vary). It uses `certifi.where()` to locate the correct bundle at build time.
+- The `cat >> certifi` step appends your certificate to the certifi bundle (preferred over specifying a hard-coded path such as `/usr/local/lib/python3.12/site-packages/certifi/cacert.pem`, which can vary). It uses `certifi.where()` to locate the correct bundle at build time.
 - You can also set additional env vars (optional) to help other tools pick up the custom bundle:
 
 ```dockerfile
