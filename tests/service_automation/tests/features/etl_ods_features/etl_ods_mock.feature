@@ -54,16 +54,15 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     And the message should be sent to the queue successfully
     And the Consumer should log the successful processing of the request
     And the CRUD API should log the update request for the organisation
-    And the organisation data should be updated in DynamoDB
+    And the extra unexpected fields should not be saved to DynamoDB
 
   Scenario: ETL ODS handles missing optional fields from upstream API
-    Given I have an organisation repo
+    Given I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with missing optional fields scenario
     Then the Lambda should handle missing optional fields gracefully
     And the message should be sent to the queue successfully
     And the Consumer should log the successful processing of the request
     And the CRUD API should log the update request for the organisation
-    And the organisation data should be updated in DynamoDB
-
+    And the telecom data should remain unchanged in DynamoDB
 

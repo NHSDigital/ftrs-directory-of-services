@@ -3,16 +3,15 @@ import pytest
 from pytest_bdd import given, scenarios, then, when
 from loguru import logger
 import uuid
-
+from ftrs_data_layer.domain import DBModel, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from utilities.common.context import Context
 from utilities.infra.lambda_util import LambdaWrapper
-from datetime import datetime
+from datetime import datetime, date
 from utilities.infra.logs_util import get_logs
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 
-
-# from utilities.infra.logs_util import CloudWatchLogsWrapper
 from utilities.ods.scenario_manager import (
     ods_empty_payload_scenario,
     ods_invalid_data_types_scenario,
@@ -23,10 +22,22 @@ from utilities.ods.scenario_manager import (
     ods_unknown_resource_type_scenario,
     ods_server_error_scenario,
     ods_happy_path_scenario,
+    ods_missing_optional_fields_scenario,
+    ods_invalid_odscode_format_scenario,
     ScenarioManager,
 )
 
 scenarios("./etl_ods_features/etl_ods_mock.feature")
+
+
+def get_from_repo(
+    model_repo: AttributeLevelRepository, model_id: str
+) -> ModelType | None:
+    logger.debug(f"Fetching record with ID: {model_id}")
+    item = model_repo.get(model_id)
+    if item is None:
+        logger.error(f"No data found for model ID: {model_id}")
+    return item
 
 
 def generic_lambda_log_check_function(
@@ -223,6 +234,36 @@ def trigger_lambda_unknown_resource_type(
     logger.info(f"lambda response: {context.lambda_response}")
 
 
+@when("I trigger the Lambda with an invalid ODS format")
+def trigger_lambda_invalid_odscode_format(
+    context: Context,
+    aws_lambda_client: LambdaWrapper,
+    ods_invalid_odscode_format_scenario: str,
+):
+    context.lambda_response = invoke_lambda_with_scenario(
+        context,
+        context.lambda_name,
+        aws_lambda_client,
+        ods_invalid_odscode_format_scenario,
+    )
+    logger.info(f"lambda response: {context.lambda_response}")
+
+
+@when("I trigger the Lambda with missing optional fields scenario")
+def trigger_lambda_missing_optional_fields(
+    context: Context,
+    aws_lambda_client: LambdaWrapper,
+    ods_missing_optional_fields_scenario: str,
+):
+    context.lambda_response = invoke_lambda_with_scenario(
+        context,
+        context.lambda_name,
+        aws_lambda_client,
+        ods_missing_optional_fields_scenario,
+    )
+    logger.info(f"lambda response: {context.lambda_response}")
+
+
 @then("the Lambda should handle the validation error")
 def verify_validation_error_handled(context: Context):
     """Verify Lambda detected and handled invalid data."""
@@ -343,3 +384,141 @@ def verify_authorization_error_handled(context: Context):
     )
     error_message = extract_error_message(context.lambda_response)
     assert "unauthorized" in error_message.lower(), f"{error_message}"
+
+
+@then("the Lambda should handle the invalid ODS format gracefully")
+def verify_invalid_ods_format_handled(context: Context):
+    """Verify Lambda detected and handled invalid data."""
+    assert context.lambda_response.get("statusCode") == 200
+    expected_log = "FHIR_001"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+
+
+@then("the Lambda should handle missing optional fields gracefully")
+def verify_missing_optional_fields_handled(context: Context):
+    assert context.lambda_response.get("statusCode") == 200
+    expected_log = "ETL_PROCESSOR_026"
+    generic_lambda_log_check_function(
+        context, "etl-ods-processor-lambda", "reference", expected_log
+    )
+
+
+@then("the extra unexpected fields should not be saved to DynamoDB")
+def assert_details_match(model_repo: AttributeLevelRepository) -> None:
+    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+    assert item, "No data found in repository"
+    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
+    assert item.name == "Test Practice With Extra Fields", "Mismatch in name"
+    assert item.type == "GP Practice", "Mismatch in type"
+    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+    assert item.active is True, "Expected 'active' to be True"
+    assert item.telecom == [], "Expected 'telecom' to be an empty list"
+    # Legal dates check
+    legal_dates = item.legalDates
+    assert legal_dates and legal_dates.start == date(1974, 4, 1), (
+        "Expected 'start' date to be '1974-04-01'"
+    )
+    assert legal_dates.end is None, "Expected 'end' date to be None"
+    # Non-primary role code check
+    assert "RO76" in item.non_primary_role_codes, (
+        "Expected 'RO76' to be present in non_primary_role_codes"
+    )
+
+
+@then("the organisation data should be updated in DynamoDB")
+def assert_org_details_match(model_repo: AttributeLevelRepository) -> None:
+    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+    assert item, "No data found in repository"
+    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
+    assert item.name == "Test Medical Centre", "Mismatch in name"
+    assert item.type == "GP Practice", "Mismatch in type"
+    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+    assert item.active is True, "Expected 'active' to be True"
+    # Telecom assertions
+    telecom = item.telecom
+    assert telecom, "telecom list is empty"
+    assert isinstance(telecom, list), "telecom should be a list"
+    assert len(telecom) > 0, "Expected at least one telecom entry"
+    telecom_entry = telecom[0]
+    assert telecom_entry.isPublic is True, "Expected 'isPublic' to be True"
+    assert telecom_entry.type == "phone", "Expected 'type' to be 'phone'"
+    assert telecom_entry.value == "01252 723326", (
+        "Expected 'value' to be '01252 723326'"
+    )
+    # Legal dates check
+    legal_dates = item.legalDates
+    assert legal_dates.start == date(1974, 4, 1), (
+        "Expected 'start' date to be '1974-04-01'"
+    )
+    assert legal_dates.end is None, "Expected 'end' date to be None"
+
+    # Non-primary role code check
+    assert "RO76" in item.non_primary_role_codes, (
+        "Expected 'RO76' to be present in non_primary_role_codes"
+    )
+
+
+@then("the telecom data should remain unchanged in DynamoDB")
+def assert_telecom_details_match(model_repo: AttributeLevelRepository) -> None:
+    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+    assert item, "No data found in repository"
+    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
+    assert item.name == "Test Medical Centre", "Mismatch in name"
+    assert item.type == "GP Practice", "Mismatch in type"
+    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+    assert item.active is True, "Expected 'active' to be True"
+    # Telecom assertions
+    telecom = item.telecom
+    assert telecom, "telecom list is empty"
+    assert isinstance(telecom, list), "telecom should be a list"
+    assert len(telecom) > 0, "Expected at least one telecom entry"
+    for telecom_entry in telecom:
+        assert hasattr(telecom_entry, "isPublic"), (
+            "Telecom entry should have 'isPublic' attribute"
+        )
+        assert isinstance(telecom_entry.isPublic, bool), "isPublic should be a boolean"
+
+        assert hasattr(telecom_entry, "type"), (
+            "Telecom entry should have 'type' attribute"
+        )
+        assert isinstance(telecom_entry.type, str), "type should be a string"
+
+        assert hasattr(telecom_entry, "value"), (
+            "Telecom entry should have 'value' attribute"
+        )
+        assert isinstance(telecom_entry.value, str), "value should be a string"
+
+        assert hasattr(telecom_entry, "use"), (
+            "Telecom entry should have 'use' attribute"
+        )
+        assert isinstance(telecom_entry.use, str), "use should be a string"
+
+        # Validate specific types and values
+        if telecom_entry.type == "phone":
+            assert telecom_entry.value == "0300 311 22 33", (
+                "Expected 'value' for phone to be '0300 311 22 33'"
+            )
+        elif telecom_entry.type == "web":
+            assert telecom_entry.value == " https://example123.com", (
+                "Expected 'value' for web to be 'https://example123.com'"
+            )
+        elif telecom_entry.type == "email":
+            assert telecom_entry.value == "test134@nhs.net", (
+                "Expected 'value' for email to be 'test134@nhs.net'"
+            )
+
+        # Check isPublic field value based on type
+        assert telecom_entry.isPublic is True, "Expected 'isPublic' to be True"
+    # Legal dates check
+    legal_dates = item.legalDates
+    assert legal_dates.start == date(1974, 4, 1), (
+        "Expected 'start' date to be '1974-04-01'"
+    )
+    assert legal_dates.end is None, "Expected 'end' date to be None"
+
+    # Non-primary role code check
+    assert "RO76" in item.non_primary_role_codes, (
+        "Expected 'RO76' to be present in non_primary_role_codes"
+    )

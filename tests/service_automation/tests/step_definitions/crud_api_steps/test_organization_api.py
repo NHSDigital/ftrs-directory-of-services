@@ -7,7 +7,7 @@ from utilities.common.json_helper import read_json_file
 from step_definitions.common_steps.api_steps import *  # noqa: F403
 from utilities.common.constants import ENDPOINTS
 from loguru import logger
-from uuid import uuid4
+import uuid
 import ast
 import json
 from _pytest.fixtures import FixtureLookupError
@@ -145,6 +145,7 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
     except (ValueError, AttributeError):
         logger.info(f"Response [{response.status}]: {response.text}")
     return response
+
 
 def update_organisation_apim(
     payload: dict,

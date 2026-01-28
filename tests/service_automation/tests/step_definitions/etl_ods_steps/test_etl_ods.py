@@ -18,7 +18,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from playwright.sync_api import APIRequestContext
 from datetime import datetime
-from uuid import uuid4
+import uuid
 
 
 # Load feature file
