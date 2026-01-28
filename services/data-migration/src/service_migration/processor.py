@@ -52,9 +52,6 @@ class DataMigrationProcessor:
         Run the single record sync process.
         """
         with Session(self.engine) as session:
-            # Force SQLAlchemy to fetch fresh data from database (clear identity map cache)
-            session.expire_all()
-
             record = session.get(legacy.Service, record_id)
             if not record:
                 raise ValueError(f"Service with ID {record_id} not found")
@@ -68,7 +65,6 @@ class DataMigrationProcessor:
                 dispositions=list(record.dispositions),
                 age_range=list(record.age_range),
             )
-
             self._process_service(service)
 
     def _process_service(self, service: legacy.Service) -> None:
