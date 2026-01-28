@@ -11,6 +11,7 @@ from queue_populator.lambda_handler import (
     QueuePopulatorConfig,
     get_dms_event_batches,
     get_record_ids,
+    is_enabled,
     lambda_handler,
     populate_sqs_queue,
     send_message_batch,
@@ -19,13 +20,11 @@ from queue_populator.lambda_handler import (
 
 @pytest.fixture(autouse=True)
 def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
-    """Mock the feature flags client to prevent AppConfig initialization."""
-    mock_ff = mocker.MagicMock()
-    mock_ff.is_enabled.return_value = False
-    mocker.patch(
-        "queue_populator.lambda_handler.get_feature_flags", return_value=mock_ff
+    """Mock the feature flags a client to prevent AppConfig initialization."""
+    mock_is_enabled = mocker.patch(
+        "queue_populator.lambda_handler.is_enabled", return_value=False
     )
-    return mock_ff
+    return mock_is_enabled
 
 
 @pytest.fixture
@@ -472,3 +471,15 @@ def test_populate_sqs_queue_single_service(
             "reference": "DM_QP_999",
         }
     ]
+
+
+def is_enabled_returns_true_when_feature_flag_is_enabled(mocker: MockerFixture) -> None:
+    mocker.patch("queue_populator.lambda_handler.is_enabled", return_value=True)
+    assert is_enabled("data_migration_search_triage_code_enabled") is True
+
+
+def is_enabled_returns_false_when_feature_flag_is_disabled(
+    mocker: MockerFixture,
+) -> None:
+    mocker.patch("queue_populator.lambda_handler.is_enabled", return_value=False)
+    assert is_enabled("data_migration_search_triage_code_enabled") is False

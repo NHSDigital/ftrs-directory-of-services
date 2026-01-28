@@ -27,7 +27,7 @@ class FeatureFlagLogBase(LogBase):
         message="Initializing AppConfigStore with application_id: {application_id}, environment_id: {environment_id}, configuration_profile_id: {configuration_profile_id}, cache_ttl_seconds: {cache_ttl_seconds}",
     )
     FF_002 = LogReference(
-        level=DEBUG,
+        level=INFO,
         message="Feature flag '{flag_name}' evaluated to {flag_enabled}",
     )
     FF_003 = LogReference(
@@ -39,6 +39,6 @@ class FeatureFlagLogBase(LogBase):
         message="Unexpected error evaluating feature flag '{flag_name}': {exception}",
     )
     FF_005 = LogReference(
-        level=DEBUG,
+        level=INFO,
         message="Feature flag '{flag_name}' is not found,so setting default value",
     )
