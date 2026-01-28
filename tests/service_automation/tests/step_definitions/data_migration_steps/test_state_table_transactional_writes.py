@@ -8,6 +8,7 @@ from boto3.dynamodb.types import TypeDeserializer
 from pytest_bdd import parsers, scenarios, then, when
 
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.constants import DYNAMODB_CLIENT
 from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.log_helper import get_mock_logger_from_context
@@ -18,9 +19,31 @@ scenarios(
 )
 
 
-# ============================================================
-# State Table Verification Steps
-# ============================================================
+def get_state_record(dynamodb: Dict[str, Any], state_key: str) -> Dict[str, Any]:
+    """Get and deserialize a state record from DynamoDB.
+
+    Args:
+        dynamodb: DynamoDB client connection
+        state_key: The state table key to look up
+
+    Returns:
+        Deserialized state record dictionary
+
+    Raises:
+        AssertionError: If record doesn't exist
+    """
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record should exist for key {state_key}"
+
+    deserializer = TypeDeserializer()
+    return {k: deserializer.deserialize(v) for k, v in response["Item"].items()}
 
 
 @when(parsers.parse("a record does not exist in the state table for key '{state_key}'"))
@@ -39,11 +62,6 @@ def verify_no_state_record(
 
     # Verify record does NOT exist
     assert "Item" not in response, f"State record should not exist for key {state_key}"
-
-
-# ============================================================
-# Pipeline Behavior Verification Steps
-# ============================================================
 
 
 @then(parsers.parse("the pipeline treats the record as an '{operation}' operation"))
@@ -176,19 +194,7 @@ def verify_state_record_structure(
     state_key: str,
 ) -> None:
     """Verify that the state record has all required fields."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record(dynamodb, state_key)
 
     # Verify required fields exist
     required_fields = [
@@ -217,19 +223,7 @@ def verify_state_record_field(
         state_key: The state table key to look up
         field_name: The field name to verify (e.g. 'organisation_id', 'location_id')
     """
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record(dynamodb, state_key)
 
     # Verify field is a valid UUID
     field_value = deserialized_item.get(field_name)
@@ -272,11 +266,6 @@ def verify_state_record_healthcare_service_id(
 ) -> None:
     """Verify that the state record has a valid healthcare_service_id (UUID format)."""
     verify_state_record_field(dynamodb, state_key, "healthcare_service_id")
-
-
-# ============================================================
-# Conflict Detection Steps
-# ============================================================
 
 
 def create_conflicting_record(
@@ -420,4 +409,80 @@ def verify_migration_error_recorded(
     assert len(error_logs) > 0, (
         f"Expected DM_ETL_022 log for service {service_id}\n"
         f"All ERROR logs: {mock_logger.get_logs(level='ERROR')}"
+    )
+
+
+@then("no differences are found")
+def verify_no_differences_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that no differences were detected (DM_ETL_029 logged)."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_029 (no changes)
+    no_change_logs = mock_logger.get_log("DM_ETL_029")
+    assert len(no_change_logs) > 0, (
+        "Expected DM_ETL_029 log indicating no changes detected"
+    )
+
+    # Should NOT have logged DM_ETL_030 (organisation changes detected)
+    change_logs = mock_logger.get_log("DM_ETL_030")
+    assert len(change_logs) == 0, (
+        f"Should not have logged DM_ETL_030 when no changes detected, but found {len(change_logs)} logs"
+    )
+
+
+@then("a difference is found in the organisation record")
+def verify_organisation_difference_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that organisation differences were detected (DM_ETL_030 logged)."""
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_030 (organisation update detected)
+    change_logs = mock_logger.get_log("DM_ETL_030")
+    assert len(change_logs) > 0, (
+        "Expected DM_ETL_030 log indicating organisation changes detected"
+    )
+
+    # Verify the log contains diff information
+    log = change_logs[0]
+    assert "changes" in log["detail"] or "diff" in log["detail"], (
+        "DM_ETL_030 log should contain change/diff details"
+    )
+
+
+@then("a difference is found in the endpoint record")
+def verify_endpoint_difference_found(
+    migration_context: Dict[str, Any],
+) -> None:
+    """Verify that endpoint differences were detected.
+
+    Endpoints are part of the HealthcareService record, so we check DM_ETL_034
+    and verify the diff contains endpoint-related changes.
+    """
+    mock_logger = get_mock_logger_from_context(migration_context)
+
+    # Should have logged DM_ETL_034 (healthcare service update including endpoints)
+    change_logs = mock_logger.get_log("DM_ETL_034")
+    assert len(change_logs) > 0, (
+        "Expected DM_ETL_034 log indicating healthcare service/endpoint changes detected"
+    )
+
+    # Verify the log contains diff information about endpoints
+    log = change_logs[0]
+    diff_info = log["detail"].get("diff", {})
+    changes_info = log["detail"].get("changes", [])
+
+    # Check if endpoints were modified (in diff or changes)
+    # Endpoints can be referenced as "endpoints", "telecom", or specific endpoint fields
+    has_endpoint_changes = (
+        "endpoints" in str(diff_info).lower() or
+        "telecom" in str(diff_info).lower() or
+        any("endpoints" in str(change).lower() or "telecom" in str(change).lower()
+            for change in changes_info)
+    )
+
+    assert has_endpoint_changes, (
+        "DM_ETL_034 log should contain endpoint changes"
     )
