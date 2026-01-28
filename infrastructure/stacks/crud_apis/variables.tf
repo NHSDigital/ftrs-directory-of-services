@@ -11,6 +11,10 @@ variable "organisation_api_lambda_name" {
   description = "The name of the organisations api Lambda function"
 }
 
+variable "crud_api_security_group_name" {
+  description = "The name of the crud api security group"
+}
+
 variable "organisation_api_lambda_timeout" {
   description = "The timeout for the organisations api Lambda function"
   type        = number
