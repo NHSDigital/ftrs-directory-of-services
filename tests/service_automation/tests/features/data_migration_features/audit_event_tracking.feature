@@ -172,9 +172,9 @@ Feature: Data Migration - Audit Event Tracking
 
     Given I store the organisation audit timestamps for service '700005'
     And the "Service" with id "700005" is updated with attributes
-      | key          | value                           |
-      | publicname   | Audit Test Practice 5 - Updated |
-      | modifiedtime | 2026-06-01 10:00:00.000         |
+      | key          | value                              |
+      | publicname   | Audit Test Practice 5 UPDATED      |
+      | modifiedtime | 2026-06-01 10:00:00.000            |
 
     When the data migration process is run for table 'services', ID '700005' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
