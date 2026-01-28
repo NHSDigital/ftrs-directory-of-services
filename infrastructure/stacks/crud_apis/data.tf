@@ -61,6 +61,6 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
   }
 }
 
-data "aws_prefix_list" "dynamodb" {
-  name = "com.amazonaws.${var.aws_region}.dynamodb"
+data "aws_security_group" "internet_dynamodb_egress_security_group" {
+  name = "${local.resource_prefix}-${var.internet_dynamodb_egress_security_group_name}-sg"
 }

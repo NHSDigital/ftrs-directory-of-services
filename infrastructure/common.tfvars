@@ -25,3 +25,5 @@ s3_trust_store_bucket_name = "truststore"
 organisation_table_name = "organisation"
 
 rds_port = 5432
+
+internet_dynamodb_egress_security_group_name = "internet-dynamodb-egress"

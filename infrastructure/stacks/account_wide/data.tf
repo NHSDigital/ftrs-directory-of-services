@@ -37,3 +37,7 @@ data "aws_subnet" "vpc_private_subnets_by_count" {
   count = length(module.vpc.private_subnets)
   id    = module.vpc.private_subnets[count.index]
 }
+
+data "aws_prefix_list" "dynamodb" {
+  name = "com.amazonaws.${var.aws_region}.dynamodb"
+}

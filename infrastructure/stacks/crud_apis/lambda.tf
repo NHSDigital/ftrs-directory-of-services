@@ -30,7 +30,7 @@ module "organisation_api_lambda" {
   memory_size             = var.organisation_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.crud_api_lambda_security_group.id]
+  security_group_ids = [data.aws_security_group.internet_dynamodb_egress_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
@@ -75,7 +75,7 @@ module "healthcare_service_api_lambda" {
   memory_size             = var.healthcare_service_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.crud_api_lambda_security_group.id]
+  security_group_ids = [data.aws_security_group.internet_dynamodb_egress_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [
@@ -120,7 +120,7 @@ module "location_api_lambda" {
   memory_size             = var.location_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.crud_api_lambda_security_group.id]
+  security_group_ids = [data.aws_security_group.internet_dynamodb_egress_security_group.id]
 
   number_of_policy_jsons = "2"
   policy_jsons = [

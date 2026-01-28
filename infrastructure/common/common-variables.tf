@@ -201,3 +201,7 @@ variable "read_only_viewer_stack_enabled" {
   type        = bool
   default     = true
 }
+
+variable "internet_dynamodb_egress_security_group_name" {
+  description = "The name of the internet DynamoDB egress security group"
+}
