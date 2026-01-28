@@ -32,6 +32,10 @@ on:
         description: "The prerelease tag for the artefact"
         required: false
         type: string
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
 
 jobs:
   promote-artefacts:
@@ -42,6 +46,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || inputs.prerelease_tag || inputs.release_tag }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials

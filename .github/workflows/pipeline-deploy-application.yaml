@@ -374,6 +374,7 @@ jobs:
       artefact_promotion_type: "stage"
       type: app
       prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   check-pipeline-status:
