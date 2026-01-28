@@ -126,6 +126,15 @@ Feature: Data Migration - Audit Event Tracking
       | latitude            | 51.5074                     |
       | longitude           | -0.1278                     |
 
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key              | value                        |
+      | id               | 800004                       |
+      | serviceid        | 700004                       |
+      | address          | mailto:audit4@endpoint.net   |
+      | endpointorder    | 1                            |
+      | transport        | email                        |
+      | businessscenario | Primary                      |
+
     When the data migration process is run for table 'services', ID '700004' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the endpoint records have "createdTime" populated
@@ -163,8 +172,9 @@ Feature: Data Migration - Audit Event Tracking
 
     Given I store the organisation audit timestamps for service '700005'
     And the "Service" with id "700005" is updated with attributes
-      | key        | value                           |
-      | publicname | Audit Test Practice 5 - Updated |
+      | key          | value                           |
+      | publicname   | Audit Test Practice 5 - Updated |
+      | modifiedtime | 2026-06-01 10:00:00.000         |
 
     When the data migration process is run for table 'services', ID '700005' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
@@ -203,9 +213,10 @@ Feature: Data Migration - Audit Event Tracking
 
     Given I store the location audit timestamps for service '700006'
     And the "Service" with id "700006" is updated with attributes
-      | key      | value              |
-      | address  | 99 Changed Address |
-      | postcode | CH9 9AA            |
+      | key          | value              |
+      | address      | 99 Changed Address |
+      | postcode     | CH9 9AA            |
+      | modifiedtime | 2026-06-01 10:00:00.000 |
 
     When the data migration process is run for table 'services', ID '700006' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
@@ -244,8 +255,9 @@ Feature: Data Migration - Audit Event Tracking
 
     Given I store the healthcare service audit timestamps for service '700007'
     And the "Service" with id "700007" is updated with attributes
-      | key  | value                           |
-      | name | Audit Test Practice 7 - Updated |
+      | key          | value                           |
+      | name         | Audit Test Practice 7 - Updated |
+      | modifiedtime | 2026-06-01 10:00:00.000         |
 
     When the data migration process is run for table 'services', ID '700007' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
@@ -279,14 +291,24 @@ Feature: Data Migration - Audit Event Tracking
       | latitude            | 51.5074                     |
       | longitude           | -0.1278                     |
 
+    And a "ServiceEndpoint" exists in DoS with attributes
+      | key              | value                        |
+      | id               | 800008                       |
+      | serviceid        | 700008                       |
+      | address          | mailto:audit8@endpoint.net   |
+      | endpointorder    | 1                            |
+      | transport        | email                        |
+      | businessscenario | Primary                      |
+
     When the data migration process is run for table 'services', ID '700008' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
 
     Given I store the endpoint audit timestamps for service '700008'
     And the "Service" with id "700008" is updated with attributes
-      | key   | value                   |
-      | email | changed_email@nhs.net   |
-      | web   | www.changed-audit8.com  |
+      | key          | value                   |
+      | email        | changed_email@nhs.net   |
+      | web          | www.changed-audit8.com  |
+      | modifiedtime | 2026-06-01 10:00:00.000 |
 
     When the data migration process is run for table 'services', ID '700008' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
