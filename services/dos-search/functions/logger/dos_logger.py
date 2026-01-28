@@ -99,10 +99,16 @@ class DosLogger:
         correlation_id_index = 1
         message_id_index = 2
 
-        mandatory["dos_nhsd_correlation_id"] = (
-            reqid_corr_msgid[correlation_id_index] or PLACEHOLDER
-        )
-        mandatory["dos_message_id"] = reqid_corr_msgid[message_id_index] or PLACEHOLDER
+        correlation_id = PLACEHOLDER
+        message_id = PLACEHOLDER
+
+        if len(reqid_corr_msgid) > correlation_id_index:
+            correlation_id = reqid_corr_msgid[correlation_id_index] or PLACEHOLDER
+        if len(reqid_corr_msgid) > message_id_index:
+            message_id = reqid_corr_msgid[message_id_index] or PLACEHOLDER
+
+        mandatory["dos_nhsd_correlation_id"] = correlation_id
+        mandatory["dos_message_id"] = message_id
 
         # NHSD request id
         mandatory["dos_nhsd_request_id"] = (
