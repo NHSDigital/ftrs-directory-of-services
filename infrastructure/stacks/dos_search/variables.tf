@@ -145,7 +145,7 @@ variable "lambda_alarm_period" {
 variable "search_lambda_duration_threshold_ms" {
   description = "Threshold in milliseconds for search Lambda average duration"
   type        = number
-  default     = 5000 # 5 seconds
+  default     = 1 # 1ms - for testing alarm notifications
 }
 
 variable "search_lambda_concurrent_executions_threshold" {
@@ -162,6 +162,12 @@ variable "search_lambda_errors_threshold" {
 
 variable "search_lambda_invocations_threshold" {
   description = "Minimum threshold for search Lambda invocations (alerts if below)"
+  type        = number
+  default     = 1
+}
+
+variable "search_lambda_throttles_threshold" {
+  description = "Threshold for search Lambda throttles (alerts if >= threshold)"
   type        = number
   default     = 1
 }
@@ -186,6 +192,12 @@ variable "health_check_lambda_errors_threshold" {
 
 variable "health_check_lambda_invocations_threshold" {
   description = "Minimum threshold for health check Lambda invocations (alerts if below)"
+  type        = number
+  default     = 1
+}
+
+variable "health_check_lambda_throttles_threshold" {
+  description = "Threshold for health check Lambda throttles (alerts if >= threshold)"
   type        = number
   default     = 1
 }

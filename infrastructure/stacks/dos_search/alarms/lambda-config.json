@@ -1,0 +1,76 @@
+{
+  "search_lambda": [
+    {
+      "metric_name": "Duration",
+      "statistic": "Average",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-high",
+      "description": "Alert when search Lambda average duration exceeds threshold"
+    },
+    {
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "concurrent-executions-high",
+      "description": "Alert when search Lambda concurrent executions exceed threshold"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "throttles",
+      "description": "Alert when search Lambda is throttled"
+    },
+    {
+      "metric_name": "Invocations",
+      "statistic": "Sum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "invocations-low",
+      "description": "Alert when search Lambda invocations fall below expected threshold"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors",
+      "description": "Alert when search Lambda errors exceed threshold"
+    }
+  ],
+  "health_check_lambda": [
+    {
+      "metric_name": "Duration",
+      "statistic": "Average",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-high",
+      "description": "Alert when health check Lambda average duration exceeds threshold"
+    },
+    {
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "concurrent-executions-high",
+      "description": "Alert when health check Lambda concurrent executions exceed threshold"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "throttles",
+      "description": "Alert when health check Lambda is throttled"
+    },
+    {
+      "metric_name": "Invocations",
+      "statistic": "Sum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "invocations-low",
+      "description": "Alert when health check Lambda invocations fall below expected threshold"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors",
+      "description": "Alert when health check Lambda errors exceed threshold"
+    }
+  ]
+}
