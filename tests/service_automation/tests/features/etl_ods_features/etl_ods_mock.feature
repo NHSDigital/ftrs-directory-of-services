@@ -64,5 +64,5 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     And the message should be sent to the queue successfully
     And the Consumer should log the successful processing of the request
     And the CRUD API should log the update request for the organisation
-    And the telecom data should remain unchanged in DynamoDB
+    And the telecom data should be updated in DynamoDB
 
