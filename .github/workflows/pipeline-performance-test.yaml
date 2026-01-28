@@ -7,10 +7,24 @@ name: Performance Test Pipeline
 on:
   workflow_dispatch:
     inputs:
-      test_file:
-        description: "The test file to run"
-        required: true
-        type: string
+      endpoint_type:
+        description: "Specify the endpoint type for the performance test"
+        required: false
+        default: "gateway"
+        type: choice
+        options:
+          - gateway
+          - proxy
+      test_type:
+        description: "The type of performance test to run"
+        required: false
+        default: "smoke"
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
+          - soak
       environment:
         description: "Specify the environment to the performance test against"
         required: true
@@ -54,11 +68,22 @@ jobs:
         with:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
-      - name: "Run performance test"
-        uses: ./.github/actions/run-performance-test
+      - name: "Run performance test (Gateway)"
+        if: ${{ inputs.endpoint_type == 'gateway' }}
+        uses: ./.github/actions/run-performance-test-gateway
         with:
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-          test-file: ${{ inputs.test_file }}
+          test-file: ${{ inputs.test_type }}
+          aws_region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          endpoint: ${{ inputs.endpoint }}
+
+      - name: "Run performance test (Proxy)"
+        if: ${{ inputs.endpoint_type == 'proxy' }}
+        uses: ./.github/actions/run-performance-test-proxy
+        with:
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          test-file: ${{ inputs.test_type }}
           aws_region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           endpoint: ${{ inputs.endpoint }}
