@@ -30,6 +30,7 @@ class TestBundleMapper:
                 "id": "org-123",
                 "identifier": [
                     {
+                        "use": "official",
                         "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                         "value": "O123",
                     }
@@ -75,6 +76,7 @@ class TestBundleMapper:
                 "id": "org-123",
                 "identifier": [
                     {
+                        "use": "official",
                         "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                         "value": "O123",
                     }
