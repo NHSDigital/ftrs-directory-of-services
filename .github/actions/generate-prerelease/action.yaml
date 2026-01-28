@@ -1,6 +1,11 @@
 name: "Generate prerelease tag action"
 description: "Generate a prerelease tag for the repository."
 
+outputs:
+  prerelease_tag:
+    description: "The generated prerelease tag"
+    value: ${{ steps.generate_prerelease.outputs.prerelease_tag }}
+
 runs:
   using: composite
   steps:

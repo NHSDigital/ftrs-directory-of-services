@@ -4,7 +4,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
 }
 
 resource "aws_lambda_layer_version" "common_packages_layer" {
@@ -13,17 +13,18 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
 }
 
 module "processor_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.processor_name}"
-  description             = "Lambda to process data from ods for etl pipeline"
-  handler                 = var.processor_lambda_handler
-  runtime                 = var.lambda_runtime
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.processor_name}-${var.application_tag}.zip"
+  source         = "../../modules/lambda"
+  function_name  = "${local.resource_prefix}-${var.processor_name}"
+  description    = "Lambda to process data from ods for etl pipeline"
+  handler        = var.processor_lambda_handler
+  runtime        = var.lambda_runtime
+  s3_bucket_name = local.artefacts_bucket
+  s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.processor_name}.zip"
+
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
@@ -70,13 +71,14 @@ module "processor_lambda" {
 }
 
 module "consumer_lambda" {
-  source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.consumer_name}"
-  description             = "Lambda to consume queue data in the etl pipeline"
-  handler                 = var.consumer_lambda_handler
-  runtime                 = var.lambda_runtime
-  s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}-${var.application_tag}.zip"
+  source         = "../../modules/lambda"
+  function_name  = "${local.resource_prefix}-${var.consumer_name}"
+  description    = "Lambda to consume queue data in the etl pipeline"
+  handler        = var.consumer_lambda_handler
+  runtime        = var.lambda_runtime
+  s3_bucket_name = local.artefacts_bucket
+  s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}.zip"
+
   ignore_source_code_hash = false
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size

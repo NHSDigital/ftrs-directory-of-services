@@ -1,89 +1,38 @@
+# Data Migration Service Makefile
+# This service handles data migration and ETL processes for the DoS platform
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
 ENVIRONMENT ?= mgmt
 SERVICE ?= data-migration
-PYTHON_VERSION ?= 3.12
-BUILD_DIR := ../../build/services/${SERVICE}
-DEPENDENCY_DIR := ${BUILD_DIR}/dependency-layer
-PLATFORM ?= manylinux2014_x86_64
-ARTEFACT_BUCKET := ${REPO_NAME}-${ENVIRONMENT}-artefacts-bucket
 POETRY_VERSION := $(shell poetry version -s)
 WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
-DEPENDENCY_LAYER_NAME := ftrs-dos-${SERVICE}-python-dependency-layer
-LAMBDA_NAME := ftrs-dos-${SERVICE}-lambda
-DMS_DB_LAMBDA_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-dms-db-setup
-FULL_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-full-replication-task
-CDC_REPLICATION_TASK_NAME := ftrs-dos-${ENVIRONMENT}-data-migration-etl-cdc-replication-task
+
+# Service-specific Lambda names
+DMS_DB_LAMBDA_NAME := ftrs-dos-$(ENVIRONMENT)-data-migration-dms-db-setup
+FULL_REPLICATION_TASK_NAME := ftrs-dos-$(ENVIRONMENT)-data-migration-etl-full-replication-task
+CDC_REPLICATION_TASK_NAME := ftrs-dos-$(ENVIRONMENT)-data-migration-etl-cdc-replication-task
 WAIT_SECONDS ?= 30
-RELEASE_BUILD ?= false
-RELEASE_DIR ?= releases
 
-.PHONY: install lint test build
+# ==============================================================================
+# Include Shared Python Service Targets
+# ==============================================================================
 
-ensure-build-dir:
-	mkdir -p $(BUILD_DIR)
+include ../../scripts/services/python-service.mk
 
-clean:
-	rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
-	rm -rf $(BUILD_DIR)
-	rm -rf $(DEPENDENCY_DIR)
+# ==============================================================================
+# Service-Specific Targets
+# ==============================================================================
 
-install: install-dependencies
-
-install-dependencies:
-	asdf install
-	poetry install --no-interaction
-
-lint:
-	poetry run ruff check
-	poetry run ruff format --check
-
-lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
-
-test: unit-test
-
-unit-test: coverage
-
-coverage:
-	poetry run pytest --cov-report xml:coverage-${SERVICE}.xml tests/unit
-
-build: ensure-build-dir build-dependency-layer
-	poetry build -f wheel -o $(BUILD_DIR)
-	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
-
-build-dependency-layer: clean
-	mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-	--platform $(PLATFORM) \
-	--target $(DEPENDENCY_DIR)/python \
-	--implementation cp \
-	--python-version $(PYTHON_VERSION) \
-	--no-deps \
-	--upgrade \
-	-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip * --exclude "*__pycache__/*"
-
-publish:
-	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	else \
-		aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(LAMBDA_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-		aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(DEPENDENCY_LAYER_NAME)-$(APPLICATION_TAG).zip --region $(AWS_REGION);\
-	fi
-
-export-to-s3: install
+export-to-s3: install ## Export data from the source database to S3
 	poetry run dos-etl export-to-s3 --env $(ENVIRONMENT)
 
-restore-from-s3: install
+restore-from-s3: install ## Restore data from S3 to the source database
 	poetry run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
 
-pre-commit: lint
-
-invoke-replication-task:
+invoke-replication-task: ## Invoke the DMS replication tasks (full load + CDC)
 	@echo "Checking status of replication task $(FULL_REPLICATION_TASK_NAME)..."
 	$(eval TASK_STATUS := $(shell aws dms describe-replication-tasks --query "ReplicationTasks[?ReplicationTaskIdentifier=='$(FULL_REPLICATION_TASK_NAME)'].Status | [0]" --output text))
 	@echo "Current task status: $(TASK_STATUS)"
@@ -109,3 +58,10 @@ invoke-replication-task:
 	fi
 
 	@echo "Continuing with remaining steps..."
+	@echo "Waiting for $(WAIT_SECONDS) seconds after replication task check..."
+	@sleep $(WAIT_SECONDS)
+
+invoke-lambda: ## Invoke the DMS DB setup Lambda function
+	aws lambda invoke \
+	--function-name $(DMS_DB_LAMBDA_NAME) \
+	/dev/null

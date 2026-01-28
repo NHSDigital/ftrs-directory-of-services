@@ -23,6 +23,10 @@ on:
         description: "JSON array of API names to cleardown"
         required: true
         type: string
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
 
 jobs:
   cleardown-apim-proxy:
@@ -37,6 +41,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials

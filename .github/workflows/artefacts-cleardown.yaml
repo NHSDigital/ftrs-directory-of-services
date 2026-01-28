@@ -27,6 +27,10 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
 
 jobs:
   cleardown-artefacts:
@@ -39,7 +43,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
