@@ -8,6 +8,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict
+from urllib.parse import quote
 
 import urllib3
 
@@ -53,11 +54,6 @@ METRIC_CONTEXT = {
 }
 
 # State formatting for Slack messages
-COLOR_MAP = {
-    "ALARM": "#FF0000",  # Red
-    "OK": "#00AA00",  # Green
-    "INSUFFICIENT_DATA": "#FFAA00",  # Orange
-}
 EMOJI_MAP = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
 
 
@@ -182,6 +178,21 @@ def format_timestamp(timestamp_val: int | float | str) -> str:
         return "Unknown"
 
 
+def build_cloudwatch_url(alarm_name: str, region: str = "eu-west-2") -> str:
+    """
+    Build CloudWatch console URL for the alarm.
+
+    Args:
+        alarm_name: CloudWatch alarm name
+        region: AWS region
+
+    Returns:
+        str: CloudWatch console URL
+    """
+    encoded_name = quote(alarm_name)
+    return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{encoded_name}"
+
+
 def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Build a Slack message with essential alert information.
@@ -219,16 +230,26 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     # Extract lambda name for context
     lambda_name = extract_lambda_name(alarm_name)
 
-    # Simple text format for Slack Workflow webhooks
-    message_text = f"{emoji} *{alarm_name}* - {state_value}\n\n"
-    message_text += f"*Reason:* {state_reason}\n\n"
-    message_text += f"*Metric:* {trigger_metric} ({trigger_statistic})\n"
-    message_text += f"*Threshold:* {trigger_threshold}\n"
-    message_text += f"*API:* {context['api']}\n"
-    message_text += f"*Endpoint:* {context['endpoint']}\n"
-    message_text += f"*Period:* {context['period']}\n"
-    message_text += f"*Timestamp:* {timestamp}\n"
-    message_text += f"*Lambda:* {lambda_name}"
+    # Build CloudWatch console URL
+    aws_region = alarm_data.get("Region", "eu-west-2")
+    cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
+
+    # Plain text formatting for Slack Workflow (no markdown support)
+    message_text = f"{emoji} {alarm_name}\n"
+    message_text += f"Status: {state_value}\n\n"
+    message_text += "━━━━━━━━━━━━━━━━━━━━\n\n"
+    message_text += "📊 Metric Details\n"
+    message_text += f"• Metric: {trigger_metric} ({trigger_statistic})\n"
+    message_text += f"• Threshold: {trigger_threshold}\n\n"
+    message_text += "🔍 Context\n"
+    message_text += f"• API: {context['api']}\n"
+    message_text += f"• Endpoint: {context['endpoint']}\n"
+    message_text += f"• Period: {context['period']}\n\n"
+    message_text += "💬 Reason\n"
+    message_text += f"{state_reason}\n\n"
+    message_text += "━━━━━━━━━━━━━━━━━━━━\n"
+    message_text += f"⏰ {timestamp} | 🔧 {lambda_name}\n"
+    message_text += f"🔗 View in CloudWatch: {cloudwatch_url}"
 
     return {"text": message_text}
 
@@ -246,7 +267,7 @@ def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
     """
     try:
         encoded_msg = json.dumps(message).encode("utf-8")
-        logger.info(f"Sending to Slack: {json.dumps(message, indent=2)}")
+        logger.info("Sending to Slack: %s", json.dumps(message, indent=2))
         resp = http.request(
             "POST",
             webhook_url,
@@ -258,8 +279,8 @@ def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
             logger.info("Successfully sent message to Slack")
             return True
         else:
-            logger.error(f"Failed to send message to Slack: HTTP {resp.status}")
-            logger.error(f"Response: {resp.data.decode('utf-8')}")
+            logger.error("Failed to send message to Slack: HTTP %s", resp.status)
+            logger.error("Response: %s", resp.data.decode("utf-8"))
             return False
     except Exception:
         logger.exception("Exception while sending to Slack")
@@ -277,7 +298,7 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
     Returns:
         Dict: Response with status
     """
-    logger.info(f"Received event: {json.dumps(event)}")
+    logger.info("Received event: %s", json.dumps(event))
 
     try:
         # Extract SNS message
@@ -297,7 +318,7 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
 
         # Flatten the alarm data
         flattened_data = flatten_dict(alarm_data)
-        logger.info(f"Flattened alarm data: {json.dumps(flattened_data)}")
+        logger.info("Flattened alarm data: %s", json.dumps(flattened_data))
 
         # Build Slack message
         slack_message = build_slack_message(flattened_data)
@@ -313,12 +334,11 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
                 "statusCode": 200,
                 "body": json.dumps("Message sent to Slack successfully"),
             }
-        else:
-            return {
-                "statusCode": 500,
-                "body": json.dumps("Failed to send message to Slack"),
-            }
+        return {
+            "statusCode": 500,
+            "body": json.dumps("Failed to send message to Slack"),
+        }
 
     except Exception as e:
-        logger.error(f"Error processing alarm: {str(e)}", exc_info=True)
+        logger.error("Error processing alarm: %s", str(e), exc_info=True)
         return {"statusCode": 500, "body": json.dumps(f"Error: {str(e)}")}
