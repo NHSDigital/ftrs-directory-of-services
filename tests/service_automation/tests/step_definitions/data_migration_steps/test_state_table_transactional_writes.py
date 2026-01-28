@@ -475,11 +475,14 @@ def verify_endpoint_difference_found(
     changes_info = log["detail"].get("changes", [])
 
     # Check if endpoints were modified (in diff or changes)
+    # Endpoints can be referenced as "endpoints", "telecom", or specific endpoint fields
     has_endpoint_changes = (
-        "telecom" in str(diff_info) or
-        any("telecom" in str(change) for change in changes_info)
+        "endpoints" in str(diff_info).lower() or
+        "telecom" in str(diff_info).lower() or
+        any("endpoints" in str(change).lower() or "telecom" in str(change).lower()
+            for change in changes_info)
     )
 
     assert has_endpoint_changes, (
-        "DM_ETL_034 log should contain endpoint/telecom changes"
+        "DM_ETL_034 log should contain endpoint changes"
     )
