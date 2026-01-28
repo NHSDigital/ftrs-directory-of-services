@@ -41,3 +41,10 @@ data "aws_subnet" "vpc_private_subnets_by_count" {
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+data "aws_vpc" "vpc" {
+  filter {
+    name   = "tag:Name"
+    values = ["${local.account_prefix}-vpc"]
+  }
+}
