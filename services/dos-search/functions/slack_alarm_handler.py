@@ -55,6 +55,8 @@ METRIC_CONTEXT = {
 
 # State formatting for Slack messages
 EMOJI_MAP = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
+COLOR_MAP = {"ALARM": "danger", "OK": "good", "INSUFFICIENT_DATA": "warning"}
+ALERT_GROUP_ID = "S09D388PZ7H"
 
 
 def get_slack_webhook_url() -> str:
@@ -158,18 +160,20 @@ def get_metric_context(metric_name: str) -> Dict[str, str]:
 
 def format_timestamp(timestamp_val: int | float | str) -> str:
     """
-    Format timestamp for display.
+    Format timestamp for Slack date formatting.
 
     Args:
         timestamp_val: Timestamp from CloudWatch (various formats)
 
     Returns:
-        str: Formatted timestamp string (e.g., "21/01/2026 at 10:30am")
+        str: Slack-formatted date string or fallback
     """
     try:
         if isinstance(timestamp_val, (int, float)):
-            dt = datetime.fromtimestamp(int(timestamp_val), tz=timezone.utc)
-            return dt.strftime("%d/%m/%Y at %I:%M%p").lower()
+            ts = int(timestamp_val)
+            dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+            fallback = dt.strftime("%B %d, %Y at %I:%M%p %Z")
+            return f"<!date^{ts}^{{date_short_pretty}} at {{time}}|{fallback}>"
         elif isinstance(timestamp_val, str):
             return timestamp_val
         else:
@@ -193,9 +197,37 @@ def build_cloudwatch_url(alarm_name: str, region: str = "eu-west-2") -> str:
     return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{encoded_name}"
 
 
+def build_lambda_logs_url(lambda_name: str, region: str = "eu-west-2") -> str:
+    """
+    Build CloudWatch Logs URL for Lambda function.
+
+    Args:
+        lambda_name: Lambda function name
+        region: AWS region
+
+    Returns:
+        str: CloudWatch Logs console URL
+    """
+    return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logsV2:log-groups/log-group/$252Faws$252Flambda$252F{lambda_name}"
+
+
+def build_lambda_metrics_url(lambda_name: str, region: str = "eu-west-2") -> str:
+    """
+    Build Lambda metrics URL.
+
+    Args:
+        lambda_name: Lambda function name
+        region: AWS region
+
+    Returns:
+        str: Lambda metrics console URL
+    """
+    return f"https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{lambda_name}?tab=monitoring"
+
+
 def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Build a Slack message with essential alert information.
+    Build a Slack message with essential alert information using blocks and attachments.
 
     Includes:
     - Why the alert was triggered (metric and threshold)
@@ -207,7 +239,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
         alarm_data: Flattened alarm data from CloudWatch
 
     Returns:
-        Dict: Slack message payload
+        Dict: Slack message payload with blocks and attachments
     """
     # Extract key fields
     alarm_name = alarm_data.get("AlarmName", "Unknown Alarm")
@@ -234,24 +266,77 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     aws_region = alarm_data.get("Region", "eu-west-2")
     cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
 
-    # Plain text formatting for Slack Workflow (no markdown support)
-    message_text = f"{emoji} {alarm_name}\n"
-    message_text += f"Status: {state_value}\n\n"
-    message_text += "━━━━━━━━━━━━━━━━━━━━\n\n"
-    message_text += "📊 Metric Details\n"
-    message_text += f"• Metric: {trigger_metric} ({trigger_statistic})\n"
-    message_text += f"• Threshold: {trigger_threshold}\n\n"
-    message_text += "🔍 Context\n"
-    message_text += f"• API: {context['api']}\n"
-    message_text += f"• Endpoint: `{context['endpoint']}`\n"
-    message_text += f"• Period: {context['period']}\n\n"
-    message_text += "💬 Reason\n\n"
-    message_text += f"{state_reason}\n\n"
-    message_text += "━━━━━━━━━━━━━━━━━━━━\n"
-    message_text += f"⏰ {timestamp} | 🔧 {lambda_name}\n"
-    message_text += f"🔗 View in CloudWatch: {cloudwatch_url}"
+    # Build action buttons
+    lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
+    lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
 
-    return {"text": message_text}
+    return {
+        "text": f"{emoji} CloudWatch Alarm: {state_value}",
+        "blocks": [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": f"{emoji} {state_value}: {alarm_name}",
+                },
+            },
+            {"type": "divider"},
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Metric:*\n{trigger_metric} ({trigger_statistic})",
+                    },
+                    {"type": "mrkdwn", "text": f"*Threshold:*\n{trigger_threshold}"},
+                    {"type": "mrkdwn", "text": f"*API:*\n{context['api']}"},
+                    {"type": "mrkdwn", "text": f"*Endpoint:*\n{context['endpoint']}"},
+                ],
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {"type": "mrkdwn", "text": f"*Period:*\n{context['period']}"},
+                    {"type": "mrkdwn", "text": f"*Time:*\n{timestamp}"},
+                ],
+            },
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": f"*Reason:*\n{state_reason}"},
+            },
+            {"type": "divider"},
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "View Alarm"},
+                        "url": cloudwatch_url,
+                        "style": "danger" if state_value == "ALARM" else "primary",
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Lambda Logs"},
+                        "url": lambda_logs_url,
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "Lambda Metrics"},
+                        "url": lambda_metrics_url,
+                    },
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"Lambda: {lambda_name} | Region: {aws_region}",
+                    }
+                ],
+            },
+        ],
+    }
 
 
 def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
