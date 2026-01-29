@@ -2,17 +2,17 @@
 Step definitions for audit event tracking in data migration.
 Tests for createdBy, lastUpdatedBy, createdTime, and lastUpdated fields.
 """
+
 from datetime import datetime
 from typing import Any, Dict
+from uuid import UUID, uuid5
 
 import pytest
 from pytest_bdd import given, parsers, scenarios, then
-
-from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
+from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.dynamoDB_tables import get_table_name
-
 
 # Load all scenarios from the feature file
 scenarios("../../tests/features/data_migration_features/audit_event_tracking.feature")
@@ -22,7 +22,9 @@ scenarios("../../tests/features/data_migration_features/audit_event_tracking.fea
 stored_audit_values: Dict[str, Any] = {}
 
 
-def get_entity_record(dynamodb: Dict[str, Any], entity_type: str, service_id: str) -> Dict[str, Any]:
+def get_entity_record(
+    dynamodb: Dict[str, Any], entity_type: str, service_id: str
+) -> Dict[str, Any]:
     """
     Retrieve entity record from DynamoDB based on entity type and service ID.
 
@@ -34,7 +36,6 @@ def get_entity_record(dynamodb: Dict[str, Any], entity_type: str, service_id: st
     Returns:
         Entity record from DynamoDB
     """
-    from uuid import UUID, uuid5
 
     dynamodb_resource = dynamodb["resource"]
 
@@ -53,13 +54,19 @@ def get_entity_record(dynamodb: Dict[str, Any], entity_type: str, service_id: st
     # Get entity record directly
     table_name = get_table_name(entity_type)
     entity_table = dynamodb_resource.Table(table_name)
-    entity_response = entity_table.get_item(Key={"id": entity_uuid, "field": "document"})
-    assert "Item" in entity_response, f"{entity_type} not found for service ID {service_id}"
+    entity_response = entity_table.get_item(
+        Key={"id": entity_uuid, "field": "document"}
+    )
+    assert "Item" in entity_response, (
+        f"{entity_type} not found for service ID {service_id}"
+    )
 
     return entity_response["Item"]
 
 
-def get_endpoint_records(dynamodb: Dict[str, Any], service_id: str) -> list[Dict[str, Any]]:
+def get_endpoint_records(
+    dynamodb: Dict[str, Any], service_id: str
+) -> list[Dict[str, Any]]:
     """
     Retrieve all endpoint records for a service.
 
@@ -100,7 +107,12 @@ def get_nested_value(obj: Dict[str, Any], path: str) -> Any:
 
 # === GIVEN steps for storing audit values ===
 
-@given(parsers.parse("I store the {entity_type} audit timestamps for service '{service_id}'"))
+
+@given(
+    parsers.parse(
+        "I store the {entity_type} audit timestamps for service '{service_id}'"
+    )
+)
 def store_audit_timestamps(
     entity_type: str, service_id: str, dynamodb: Dict[str, Any]
 ) -> None:
@@ -137,9 +149,13 @@ def store_audit_timestamps(
 
 # === THEN steps for checking audit field values ===
 
+
 @then(parsers.parse('the {entity_type} record has "{field}" populated'))
 def check_entity_field_populated(
-    entity_type: str, field: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a field is populated (not None, not empty).
@@ -152,7 +168,9 @@ def check_entity_field_populated(
     """
     entity_type_normalized = entity_type.replace(" ", "-")
     # Get service_id from either sqs_service_id or service_id
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     record = get_entity_record(dynamodb, entity_type_normalized, service_id)
 
     value = record.get(field)
@@ -160,9 +178,16 @@ def check_entity_field_populated(
     assert value != "", f"Field '{field}' is empty for {entity_type}"
 
 
-@then(parsers.parse('the {entity_type} record for healthcare service has "{field}" populated'))
+@then(
+    parsers.parse(
+        'the {entity_type} record for healthcare service has "{field}" populated'
+    )
+)
 def check_organisation_field_populated_by_hs(
-    entity_type: str, field: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a field is populated for organisation via healthcare service lookup.
@@ -178,7 +203,11 @@ def check_organisation_field_populated_by_hs(
 
 @then(parsers.parse('the {entity_type} "{field_path}" is "{expected_value}"'))
 def check_entity_field_value(
-    entity_type: str, field_path: str, expected_value: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field_path: str,
+    expected_value: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a field (including nested) has the expected value.
@@ -191,7 +220,9 @@ def check_entity_field_value(
         dynamodb: DynamoDB fixture
     """
     entity_type_normalized = entity_type.replace(" ", "-")
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     record = get_entity_record(dynamodb, entity_type_normalized, service_id)
 
     actual_value = get_nested_value(record, field_path)
@@ -203,7 +234,11 @@ def check_entity_field_value(
 
 @then(parsers.parse('the {entity_type} "{field1}" equals "{field2}"'))
 def check_entity_fields_equal(
-    entity_type: str, field1: str, field2: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field1: str,
+    field2: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that two fields have the same value.
@@ -216,7 +251,9 @@ def check_entity_fields_equal(
         dynamodb: DynamoDB fixture
     """
     entity_type_normalized = entity_type.replace(" ", "-")
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     record = get_entity_record(dynamodb, entity_type_normalized, service_id)
 
     value1 = record.get(field1)
@@ -230,7 +267,10 @@ def check_entity_fields_equal(
 
 @then(parsers.parse('the {entity_type} "{field}" is unchanged from stored value'))
 def check_entity_field_unchanged(
-    entity_type: str, field: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a field value hasn't changed from the stored value.
@@ -242,7 +282,9 @@ def check_entity_field_unchanged(
         dynamodb: DynamoDB fixture
     """
     entity_type_normalized = entity_type.replace(" ", "-")
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
 
     storage_key = f"{entity_type}_{service_id}"
     assert storage_key in stored_audit_values, f"No stored values for {storage_key}"
@@ -259,9 +301,15 @@ def check_entity_field_unchanged(
     )
 
 
-@then(parsers.parse('the {entity_type} "{field}" is greater than stored "{stored_field}"'))
+@then(
+    parsers.parse('the {entity_type} "{field}" is greater than stored "{stored_field}"')
+)
 def check_entity_field_greater_than_stored(
-    entity_type: str, field: str, stored_field: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    entity_type: str,
+    field: str,
+    stored_field: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a timestamp field is greater than a stored timestamp.
@@ -274,20 +322,24 @@ def check_entity_field_greater_than_stored(
         dynamodb: DynamoDB fixture
     """
     entity_type_normalized = entity_type.replace(" ", "-")
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
 
     storage_key = f"{entity_type}_{service_id}"
     assert storage_key in stored_audit_values, f"No stored values for {storage_key}"
 
     stored_value = stored_audit_values[storage_key].get(stored_field)
-    assert stored_value is not None, f"Field '{stored_field}' not found in stored values"
+    assert stored_value is not None, (
+        f"Field '{stored_field}' not found in stored values"
+    )
 
     record = get_entity_record(dynamodb, entity_type_normalized, service_id)
     current_value = record.get(field)
 
     # Parse timestamps
-    stored_time = datetime.fromisoformat(stored_value.replace("Z", "+00:00"))
-    current_time = datetime.fromisoformat(current_value.replace("Z", "+00:00"))
+    stored_time = datetime.fromisoformat(stored_value)
+    current_time = datetime.fromisoformat(current_value)
 
     assert current_time > stored_time, (
         f"Field '{field}' should be greater than stored '{stored_field}' for {entity_type}: "
@@ -296,6 +348,7 @@ def check_entity_field_greater_than_stored(
 
 
 # === THEN steps for checking endpoint audit fields ===
+
 
 @then(parsers.parse('the endpoint records have "{field}" populated'))
 def check_endpoint_field_populated(
@@ -309,7 +362,9 @@ def check_endpoint_field_populated(
         migration_context: Migration context with service_id
         dynamodb: DynamoDB fixture
     """
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     endpoints = get_endpoint_records(dynamodb, service_id)
 
     assert len(endpoints) > 0, f"No endpoints found for service {service_id}"
@@ -322,7 +377,10 @@ def check_endpoint_field_populated(
 
 @then(parsers.parse('all endpoints "{field_path}" is "{expected_value}"'))
 def check_all_endpoints_field_value(
-    field_path: str, expected_value: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    field_path: str,
+    expected_value: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a field has the expected value in all endpoint records.
@@ -333,7 +391,9 @@ def check_all_endpoints_field_value(
         migration_context: Migration context with service_id
         dynamodb: DynamoDB fixture
     """
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     endpoints = get_endpoint_records(dynamodb, service_id)
 
     assert len(endpoints) > 0, f"No endpoints found for service {service_id}"
@@ -348,7 +408,10 @@ def check_all_endpoints_field_value(
 
 @then(parsers.parse('all endpoints "{field1}" equals "{field2}"'))
 def check_all_endpoints_fields_equal(
-    field1: str, field2: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    field1: str,
+    field2: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that two fields have the same value in all endpoint records.
@@ -359,7 +422,9 @@ def check_all_endpoints_fields_equal(
         migration_context: Migration context with service_id
         dynamodb: DynamoDB fixture
     """
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     endpoints = get_endpoint_records(dynamodb, service_id)
 
     assert len(endpoints) > 0, f"No endpoints found for service {service_id}"
@@ -386,7 +451,9 @@ def check_all_endpoints_field_unchanged(
         migration_context: Migration context with service_id
         dynamodb: DynamoDB fixture
     """
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     storage_key = f"endpoint_{service_id}"
 
     assert storage_key in stored_audit_values, f"No stored values for {storage_key}"
@@ -398,7 +465,9 @@ def check_all_endpoints_field_unchanged(
         f"Number of endpoints changed: stored={len(stored_endpoints)}, current={len(current_endpoints)}"
     )
 
-    for i, (stored_endpoint, current_endpoint) in enumerate(zip(stored_endpoints, current_endpoints)):
+    for i, (stored_endpoint, current_endpoint) in enumerate(
+        zip(stored_endpoints, current_endpoints)
+    ):
         stored_value = stored_endpoint.get(field)
         current_value = current_endpoint.get(field)
 
@@ -410,7 +479,10 @@ def check_all_endpoints_field_unchanged(
 
 @then(parsers.parse('all endpoints "{field}" is greater than stored "{stored_field}"'))
 def check_all_endpoints_field_greater_than_stored(
-    field: str, stored_field: str, migration_context: Dict[str, Any], dynamodb: Dict[str, Any]
+    field: str,
+    stored_field: str,
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
 ) -> None:
     """
     Verify that a timestamp field is greater than stored timestamp in all endpoints.
@@ -421,7 +493,9 @@ def check_all_endpoints_field_greater_than_stored(
         migration_context: Migration context with service_id
         dynamodb: DynamoDB fixture
     """
-    service_id = str(migration_context.get("sqs_service_id") or migration_context["service_id"])
+    service_id = str(
+        migration_context.get("sqs_service_id") or migration_context["service_id"]
+    )
     storage_key = f"endpoint_{service_id}"
 
     assert storage_key in stored_audit_values, f"No stored values for {storage_key}"
@@ -433,13 +507,15 @@ def check_all_endpoints_field_greater_than_stored(
         f"Number of endpoints changed: stored={len(stored_endpoints)}, current={len(current_endpoints)}"
     )
 
-    for i, (stored_endpoint, current_endpoint) in enumerate(zip(stored_endpoints, current_endpoints)):
+    for i, (stored_endpoint, current_endpoint) in enumerate(
+        zip(stored_endpoints, current_endpoints)
+    ):
         stored_value = stored_endpoint.get(stored_field)
         current_value = current_endpoint.get(field)
 
         # Parse timestamps
-        stored_time = datetime.fromisoformat(stored_value.replace("Z", "+00:00"))
-        current_time = datetime.fromisoformat(current_value.replace("Z", "+00:00"))
+        stored_time = datetime.fromisoformat(stored_value)
+        current_time = datetime.fromisoformat(current_value)
 
         assert current_time > stored_time, (
             f"Field '{field}' should be greater than stored '{stored_field}' for endpoint {i}: "
