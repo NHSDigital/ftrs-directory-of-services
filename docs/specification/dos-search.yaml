@@ -624,3 +624,10 @@ x-nhsd-apim:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  target-attributes:
+    - name: application-id
+      required: false
+      header: application-id
+    - name: application-name
+      required: false
+      header: application-name
