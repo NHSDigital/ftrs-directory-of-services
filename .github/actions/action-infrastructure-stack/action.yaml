@@ -18,12 +18,6 @@ inputs:
   project:
     description: "The project - eg dos or cm."
     required: true
-  application_tag:
-    description: "The application tag for deployment"
-    required: false
-  commit_hash:
-    description: "The commit hash, set by the CI/CD pipeline workflow"
-    required: false
   mgmt_account_id:
     description: "The management account ID for the action"
     required: true
@@ -57,7 +51,5 @@ runs:
         export ENVIRONMENT=${{ inputs.environment }}
         export WORKSPACE=${{ inputs.workspace }}
         export PROJECT=${{ inputs.project }}
-        export APPLICATION_TAG=${{ inputs.application_tag }}
         export RELEASE_TAG=${{ inputs.release_tag }}
-        export COMMIT_HASH=${{ inputs.commit_hash }}
         /bin/bash ./scripts/workflow/action-infra-stack.sh

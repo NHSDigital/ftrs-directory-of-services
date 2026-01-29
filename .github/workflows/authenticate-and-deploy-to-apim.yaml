@@ -19,6 +19,10 @@ on:
         description: 'APIM environment to deploy to (e.g., internal-dev, internal-qa, int, ref, prod)'
         required: true
         type: string
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
     secrets:
       ACCOUNT_ID:
         description: 'AWS Account ID'
@@ -44,6 +48,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials

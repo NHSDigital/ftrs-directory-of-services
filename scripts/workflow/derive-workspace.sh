@@ -21,7 +21,16 @@ fi
 # to derive the workspace
 if [ "$TRIGGER_ACTION" == "push" ] || [ "$TRIGGER_ACTION" == "workflow_dispatch" ] ; then
   echo "Triggered by a push or workflow_dispatch - branch name is current branch"
-  BRANCH_NAME="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
+  # Use TRIGGER_REFERENCE if set and not HEAD, otherwise fallback to git command
+  if [ -n "$TRIGGER_REFERENCE" ] && [ "$TRIGGER_REFERENCE" != "HEAD" ]; then
+    BRANCH_NAME="$TRIGGER_REFERENCE"
+  else
+    BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+    # If in detached HEAD state, try to get the branch from symbolic-ref
+    if [ "$BRANCH_NAME" == "HEAD" ]; then
+      BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null || echo "main")
+    fi
+  fi
 # If trigger action is pull_request we will need to derive the workspace from the triggering head reference
 elif [ "$TRIGGER_ACTION" == "pull_request" ] ; then
   echo "Triggered by a pull_request - setting branch name to trigger head ref "
