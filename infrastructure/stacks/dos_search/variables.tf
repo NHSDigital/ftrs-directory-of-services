@@ -139,7 +139,7 @@ variable "lambda_alarm_evaluation_periods" {
 variable "lambda_alarm_period" {
   description = "Period in seconds for the alarm metric evaluation"
   type        = number
-  default     = 300 # 5 minutes
+  default     = 100 # 1 minutes
 }
 
 variable "search_lambda_duration_threshold_ms" {
