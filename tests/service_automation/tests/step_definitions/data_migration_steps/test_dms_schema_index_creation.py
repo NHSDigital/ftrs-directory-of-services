@@ -1,13 +1,13 @@
 """BDD step definitions for DMS schema index creation tests."""
+
 from typing import Dict
 
 import pytest
+from dms_provisioner.dms_service import create_indexes_from_sql_file
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlmodel import Session
-
-from dms_provisioner.dms_service import create_indexes_from_sql_file
 
 scenarios("./data_migration_features/dms_schema_index_creation.feature")
 
@@ -36,10 +36,12 @@ def given_index_already_exists(
             AND indexname = :index_name
             """
         ),
-        {"table_name": table_name, "index_name": index_name}
+        {"table_name": table_name, "index_name": index_name},
     )
     existing_index = result.fetchone()
-    assert existing_index is not None, f"Index {index_name} should already exist on {table_name}"
+    assert existing_index is not None, (
+        f"Index {index_name} should already exist on {table_name}"
+    )
 
 
 @when("the DMS provisioner creates indexes from schema file")
@@ -64,8 +66,10 @@ def then_index_exists_on_table(
             AND indexname = :index_name
             """
         ),
-        {"table_name": table_name, "index_name": index_name}
+        {"table_name": table_name, "index_name": index_name},
     )
 
     existing_index = result.fetchone()
-    assert existing_index is not None, f"Index {index_name} should exist on {table_name}"
+    assert existing_index is not None, (
+        f"Index {index_name} should exist on {table_name}"
+    )
