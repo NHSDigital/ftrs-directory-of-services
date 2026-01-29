@@ -33,6 +33,16 @@ class TestFlattenDict:
         result = flatten_dict({})
         assert result == {}
 
+    def test_flatten_with_custom_separator(self):
+        data = {"parent": {"child": "value"}}
+        result = flatten_dict(data, sep="-")
+        assert result == {"parent-child": "value"}
+
+    def test_flatten_with_parent_key(self):
+        data = {"child": "value"}
+        result = flatten_dict(data, parent_key="parent")
+        assert result == {"parent_child": "value"}
+
 
 class TestParseCloudwatchAlarm:
     def test_parse_valid_json(self):

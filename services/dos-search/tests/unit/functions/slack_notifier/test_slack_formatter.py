@@ -10,6 +10,10 @@ class TestFormatTimestamp:
         assert "<!date^" in result
         assert "1706523000" in result
 
+    def test_valid_timestamp_with_colon(self):
+        result = format_timestamp("2024-01-29T10:30:00+00:00")
+        assert "<!date^" in result
+
     def test_empty_timestamp(self):
         result = format_timestamp("")
         assert result == "Unknown"
@@ -110,3 +114,11 @@ class TestBuildSlackMessage:
         assert "us-east-1.console.aws.amazon.com" in str(links_section)
         assert "Lambda Logs" in str(links_section)
         assert "Lambda Metrics" in str(links_section)
+
+    def test_unknown_state_emoji(self):
+        alarm_data = {
+            "AlarmName": "test-alarm",
+            "NewStateValue": "UNKNOWN_STATE",
+        }
+        result = build_slack_message(alarm_data)
+        assert "📊" in result["text"]

@@ -27,6 +27,18 @@ class TestGetSlackWebhookUrl:
             ):
                 get_slack_webhook_url()
 
+    def test_empty_webhook_url(self):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": ""}):
+            with pytest.raises(
+                ValueError, match="SLACK_WEBHOOK_URL environment variable not set"
+            ):
+                get_slack_webhook_url()
+
+    def test_webhook_url_only_whitespace(self):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "   "}):
+            result = get_slack_webhook_url()
+            assert result == ""
+
 
 class TestSendToSlack:
     def test_successful_send(self):
