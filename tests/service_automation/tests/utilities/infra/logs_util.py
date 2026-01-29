@@ -31,8 +31,8 @@ def get_logs(
     query: str,
     lambda_name: str,
     start_time: Timestamp | None = None,
-    retry_count: int = 1,
-    sleep_per_loop: int = 1,
+    retry_count: int = 3,
+    sleep_per_loop: int = 3,
 ) -> str:
     """Get logs from CloudWatch with simple polling.
 

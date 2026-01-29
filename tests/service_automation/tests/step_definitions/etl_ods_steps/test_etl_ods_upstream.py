@@ -271,7 +271,10 @@ def verify_validation_error_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "FHIR_001"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -281,7 +284,10 @@ def verify_successful_processing(context: Context):
     expected_log = "ETL_PROCESSOR_002"
     assert context.lambda_response.get("statusCode") == 200
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
     body = context.lambda_response.get("body", "")
     if isinstance(body, str) and body != "Processing complete":
@@ -297,7 +303,10 @@ def verify_empty_results_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -306,7 +315,10 @@ def verify_missing_fields_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_027"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -315,7 +327,10 @@ def verify_unexpected_fields_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_026"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -323,7 +338,10 @@ def verify_unexpected_fields_handled(context: Context):
 def verify_unexpected_fields_handled(context: Context):
     expected_log = "ETL_PROCESSOR_014"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -331,7 +349,10 @@ def verify_unexpected_fields_handled(context: Context):
 def verify_unexpected_fields_handled(context: Context):
     expected_log = "ETL_CONSUMER_007"
     generic_lambda_log_check_function(
-        context, "etl-ods-consumer-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -339,7 +360,10 @@ def verify_unexpected_fields_handled(context: Context):
 def verify_unexpected_fields_handled(context: Context):
     expected_log = "ORGANISATION_008"
     generic_lambda_log_check_function(
-        context, "crud-apis-organisations-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-crud-apis-organisations-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -348,7 +372,10 @@ def verify_old_requests_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -357,7 +384,10 @@ def verify_server_errors_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 500
     expected_log = "ETL_UTILS_003"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
     error_message = extract_error_message(context.lambda_response)
     assert any(
@@ -371,7 +401,10 @@ def verify_unknown_resource_types_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_020"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -380,7 +413,10 @@ def verify_authorization_error_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 500
     expected_log = "ETL_UTILS_003"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
     error_message = extract_error_message(context.lambda_response)
     assert "unauthorized" in error_message.lower(), f"{error_message}"
@@ -392,7 +428,10 @@ def verify_invalid_ods_format_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "FHIR_001"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
@@ -401,7 +440,10 @@ def verify_missing_optional_fields_handled(context: Context):
     assert context.lambda_response.get("statusCode") == 200
     expected_log = "ETL_PROCESSOR_026"
     generic_lambda_log_check_function(
-        context, "etl-ods-processor-lambda", "reference", expected_log
+        context,
+        "ftrs-dos-dev-etl-ods-processor-lambda-ftrs-1377",
+        "reference",
+        expected_log,
     )
 
 
