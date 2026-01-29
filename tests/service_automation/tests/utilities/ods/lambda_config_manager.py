@@ -57,11 +57,10 @@ class LambdaConfigManager:
 
         logger.info(f"Restoring original environment for lambda {lambda_name}")
 
-        cleaned_env_vars = self._remove_test_variables(self.original_env_vars)
-
+        # This automatically restores the original ODS_URL and removes test modifications
         lambda_client = self.lambda_client.lambda_client
         lambda_client.update_function_configuration(
-            FunctionName=lambda_name, Environment={"Variables": cleaned_env_vars}
+            FunctionName=lambda_name, Environment={"Variables": self.original_env_vars}
         )
 
         waiter = lambda_client.get_waiter("function_updated")
