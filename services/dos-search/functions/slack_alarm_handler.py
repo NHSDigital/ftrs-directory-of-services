@@ -90,8 +90,13 @@ def flatten_dict(
         if isinstance(v, dict):
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         elif isinstance(v, list):
-            # Convert lists to comma-separated strings
-            items.append((new_key, ", ".join(str(item) for item in v)))
+            for i, item in enumerate(v):
+                if isinstance(item, dict):
+                    items.extend(
+                        flatten_dict(item, f"{new_key}{sep}{i}", sep=sep).items()
+                    )
+                else:
+                    items.append((f"{new_key}{sep}{i}", item))
         else:
             items.append((new_key, v))
 
@@ -146,6 +151,8 @@ def format_timestamp(timestamp_str: str) -> str:
         return "Unknown"
 
     try:
+        # Handle CloudWatch timestamp format: "2026-01-29T17:47:08.980+0000"
+        timestamp_str = timestamp_str.replace("+0000", "+00:00")
         dt = datetime.fromisoformat(timestamp_str)
         unix_ts = int(dt.timestamp())
     except (ValueError, AttributeError):
@@ -165,7 +172,7 @@ def build_cloudwatch_url(alarm_name: str, region: str = "eu-west-2") -> str:
     Returns:
         str: CloudWatch console URL
     """
-    encoded_name = quote(alarm_name)
+    encoded_name = quote(alarm_name, safe="")
     return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#alarmsV2:alarm/{encoded_name}"
 
 
@@ -180,7 +187,8 @@ def build_lambda_logs_url(lambda_name: str, region: str = "eu-west-2") -> str:
     Returns:
         str: CloudWatch Logs console URL
     """
-    return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logsV2:log-groups/log-group/$252Faws$252Flambda$252F{lambda_name}"
+    encoded_name = quote(lambda_name, safe="")
+    return f"https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logsV2:log-groups/log-group/$252Faws$252Flambda$252F{encoded_name}"
 
 
 def build_lambda_metrics_url(lambda_name: str, region: str = "eu-west-2") -> str:
@@ -194,7 +202,29 @@ def build_lambda_metrics_url(lambda_name: str, region: str = "eu-west-2") -> str
     Returns:
         str: Lambda metrics console URL
     """
-    return f"https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{lambda_name}?tab=monitoring"
+    encoded_name = quote(lambda_name, safe="")
+    return f"https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{encoded_name}?tab=monitoring"
+
+
+def extract_region_code(alarm_arn: str) -> str:
+    """
+    Extract AWS region code from alarm ARN.
+
+    Args:
+        alarm_arn: CloudWatch alarm ARN
+
+    Returns:
+        str: AWS region code (e.g., 'eu-west-2')
+    """
+    arn_region_index = 3
+    default_region = "eu-west-2"
+    try:
+        parts = alarm_arn.split(":")
+        return (
+            parts[arn_region_index] if len(parts) > arn_region_index else default_region
+        )
+    except (IndexError, AttributeError):
+        return default_region
 
 
 def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -215,6 +245,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     # Extract key fields from flattened structure
     alarm_name = alarm_data.get("alarmName", "Unknown Alarm")
+    alarm_arn = alarm_data.get("historyData_publishedMessage_default_AlarmArn", "")
     state_value = alarm_data.get(
         "historyData_publishedMessage_default_NewStateValue", "UNKNOWN"
     )
@@ -243,9 +274,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
         "historyData_publishedMessage_default_Trigger_Dimensions_0_value",
         "Unknown Lambda",
     )
-    aws_region = alarm_data.get(
-        "historyData_publishedMessage_default_Region", "eu-west-2"
-    )
+    aws_region = extract_region_code(alarm_arn)
 
     logger.info(f"Extracted state_value: {state_value}")
 
