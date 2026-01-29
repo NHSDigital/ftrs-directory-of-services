@@ -34,6 +34,7 @@ output "configuration_profile_configuration_profile_id" {
 
 # SSM Parameters for cross-stack access
 resource "aws_ssm_parameter" "appconfig_application_id" {
+  # checkov:skip=CKV2_AWS_34: Justification: Application id is not sensitive information
   name  = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
   type  = "String"
   value = module.app_config.application_id

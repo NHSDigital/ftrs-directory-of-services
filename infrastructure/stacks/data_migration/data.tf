@@ -256,10 +256,6 @@ data "aws_ssm_parameter" "appconfig_application_id" {
   name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
 }
 
-data "aws_appconfig_application" "appconfig_application" {
-  id = data.aws_ssm_parameter.appconfig_application_id.value
-}
-
 data "aws_appconfig_configuration_profiles" "appconfig_configuration_profiles" {
   application_id = data.aws_ssm_parameter.appconfig_application_id.value
 }
