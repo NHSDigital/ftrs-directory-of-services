@@ -157,6 +157,7 @@ ERROR_MISSING_REVINCLUDE = {
     ],
 }
 
+# Template: the route handler formats {system} for the actual invalid identifier system received.
 ERROR_INVALID_IDENTIFIER_SYSTEM = {
     "resourceType": "OperationOutcome",
     "issue": [
@@ -173,7 +174,7 @@ ERROR_INVALID_IDENTIFIER_SYSTEM = {
                     }
                 ]
             },
-            "diagnostics": "Invalid identifier system 'foo' - expected 'odsOrganisationCode'",
+            "diagnostics": "Invalid identifier system '{system}' - expected 'odsOrganisationCode'",
         }
     ],
 }

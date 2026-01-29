@@ -1,12 +1,13 @@
 FROM python:3.12-slim
 
-# Install curl for healthcheck
+
+
+# Install curl for healthcheck and create non-root user
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r appuser \
+    && useradd -r -g appuser appuser
 
 WORKDIR /app
 
@@ -19,11 +20,10 @@ RUN pip install --no-cache-dir "poetry>=2,<3" \
     && (poetry check --lock || poetry lock --no-interaction --no-ansi) \
     && poetry install --no-interaction --no-root --no-ansi
 
-# Copy application code
-COPY src /app/src
-
-# Permissions
-RUN chown -R appuser:appuser /app
+# Copy application code as root and make non-writable, then assign ownership and ensure non-writable
+COPY --chown=root:root --chmod=0555 src /app/src
+RUN chown -R appuser:appuser /app/src \
+    && chmod -R a-w /app/src
 
 USER appuser
 
