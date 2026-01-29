@@ -4,6 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from ftrs_common.feature_flags import is_enabled
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.legacy import Service
 from ftrs_data_layer.logbase import DataMigrationLogBase
@@ -154,6 +155,11 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> None:
     """
     AWS Lambda entrypoint for populating the queue with legacy services.
     """
+
+    if is_enabled("data_migration_search_triage_code_enabled"):
+        LOGGER.info("Healthcare service feature flag is enabled")
+    else:
+        LOGGER.info("Healthcare service feature flag is disabled")
     parsed_event = QueuePopulatorEvent(**event)
     config = QueuePopulatorConfig(
         db_config=DatabaseConfig.from_secretsmanager(),
