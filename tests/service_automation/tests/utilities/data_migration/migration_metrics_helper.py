@@ -2,8 +2,6 @@
 
 from service_migration.models import ServiceMigrationMetrics
 
-from loguru import logger
-
 
 def verify_all_metrics(
     actual_metrics: ServiceMigrationMetrics,
