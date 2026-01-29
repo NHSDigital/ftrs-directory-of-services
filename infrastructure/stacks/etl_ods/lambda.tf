@@ -81,7 +81,7 @@ module "transformer_lambda" {
   ignore_source_code_hash        = false
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 2
+  reserved_concurrent_executions = 5
 
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
