@@ -85,12 +85,23 @@ jobs:
       prerelease_tag: ${{ github.event.inputs.prerelease_tag || '' }}
     secrets: inherit
 
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - promote-release-candidate
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      ref: ${{ inputs.ref }}
+
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
       - tag-release
-      - promote-release-candidate
+      - prepare-toggle-artifacts
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -99,6 +110,17 @@ jobs:
       ref: ${{ needs.tag-release.outputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
+
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      ref: ${{ inputs.ref }}
 
   restore-dynamodb-from-s3:
     name: "Restore S3 data to DynamoDB tables for release candidate in the ${{ needs.metadata.outputs.environment }} environment"
@@ -116,23 +138,40 @@ jobs:
       ref: ${{ needs.tag-release.outputs.release_tag }}
     secrets: inherit
 
-  deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
+  deploy-ui:
+    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.tag-release.outputs.release_tag }}-${{ matrix.name }}"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-dos-ui"
       cancel-in-progress: false
     needs:
       - metadata
-      - tag-release
       - deploy-application-infrastructure
-    strategy:
-      matrix:
-        include:
-          - name: "dos-ui"
-          - name: "read-only-viewer"
+      - check-stack-toggles
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: ${{ matrix.name }}
+      name: "dos-ui"
+      build_type: "service"
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: "rc"
+      type: "app"
+      ref: ${{ needs.tag-release.outputs.release_tag }}
+    secrets: inherit
+
+  deploy-read-only-viewer:
+    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-read-only-viewer"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+      - check-stack-toggles
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: "read-only-viewer"
       build_type: "service"
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
@@ -208,9 +247,12 @@ jobs:
     needs:
       - metadata
       - promote-release-candidate
+      - prepare-toggle-artifacts
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
-      - deploy-frontend-services
+      - check-stack-toggles
+      - deploy-ui
+      - deploy-read-only-viewer
       - deploy-data-migration-service
       - service-automation-tests
       - trigger-cleardown-pipeline
