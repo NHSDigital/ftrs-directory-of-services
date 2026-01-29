@@ -93,6 +93,15 @@
             "Resource": "*"
         },
         {
+            "Sid": "IAMListAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListPolicies",
+                "iam:ListRoles"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
             "Action": [
