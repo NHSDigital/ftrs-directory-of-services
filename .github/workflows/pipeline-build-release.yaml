@@ -142,10 +142,11 @@ jobs:
     name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
     if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-dos-ui"
+      group: "${{ needs.metadata.outputs.environment }}-dos-ui-${{ needs.tag-release.outputs.release_tag }}"
       cancel-in-progress: false
     needs:
       - metadata
+      - tag-release
       - deploy-application-infrastructure
       - check-stack-toggles
     uses: ./.github/workflows/deploy-frontend-project.yaml
@@ -163,10 +164,11 @@ jobs:
     name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
     if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-read-only-viewer"
+      group: "${{ needs.metadata.outputs.environment }}-read-only-viewer-${{ needs.tag-release.outputs.release_tag }}"
       cancel-in-progress: false
     needs:
       - metadata
+      - tag-release
       - deploy-application-infrastructure
       - check-stack-toggles
     uses: ./.github/workflows/deploy-frontend-project.yaml
