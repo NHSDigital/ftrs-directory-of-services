@@ -29,8 +29,10 @@ module "lambda" {
   vpc_subnet_ids         = var.subnet_ids
   vpc_security_group_ids = var.security_group_ids
 
-  environment_variables = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
-  layers                = var.layers
+  environment_variables          = merge(var.environment_variables, { WORKSPACE = "${local.environment_workspace}" })
+  layers                         = var.layers
+  reserved_concurrent_executions = var.reserved_concurrent_executions
+
 
   cloudwatch_logs_retention_in_days = var.cloudwatch_logs_retention
   logging_system_log_level          = var.cloudwatch_log_level

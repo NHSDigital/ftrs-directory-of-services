@@ -6,22 +6,20 @@ from ftrs_common.logger import Logger
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
-from common.apim_client import make_apim_request
-from common.url_utils import (
-    build_organization_search_url,
+from common.ods_client import ODSClient
+from common.utils import (
     get_base_apim_api_url,
     get_base_ods_terminology_api_url,
+    make_request,
 )
-from producer.ods_client import ODSClient
 
 DEFAULT_ODS_API_PAGE_LIMIT = 1000
-MAX_PAGES = 100  # Safety limit to prevent infinite loops
 RESOURCE_TYPE_BUNDLE = "Bundle"
 RESOURCE_TYPE_ORGANIZATION = "Organization"
 LINK_RELATION_NEXT = "next"
 ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
 
-ods_processor_logger = Logger.get(service="ods_processor")
+ods_extractor_logger = Logger.get(service="ods_extractor")
 ods_client = ODSClient()
 
 
@@ -34,16 +32,17 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     params = {"_lastUpdated": f"{date}", "_count": _get_page_limit()}
     ods_url = get_base_ods_terminology_api_url()
     page_count = 0
+    max_pages = 100  # Safety limit to prevent infinite loops
 
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_001,
+    ods_extractor_logger.log(
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_001,
         date=date,
     )
 
-    while ods_url and page_count < MAX_PAGES:
+    while ods_url and page_count < max_pages:
         page_count += 1
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_034,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_034,
             date=date,
             page_num=page_count,
         )
@@ -53,8 +52,8 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
 
         if organisations:
             all_organisations.extend(organisations)
-            ods_processor_logger.log(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_035,
+            ods_extractor_logger.log(
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_035,
                 page_num=page_count,
                 page_total=len(organisations),
                 cumulative_total=len(all_organisations),
@@ -64,14 +63,14 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         params = None  # Clear params for subsequent pages
 
     if not all_organisations:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_020,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_020,
             date=date,
         )
         return []
 
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_002,
+    ods_extractor_logger.log(
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_002,
         bundle_total=len(all_organisations),
         total_pages=page_count,
     )
@@ -87,8 +86,8 @@ def _get_page_limit() -> int:
     except (ValueError, TypeError):
         pass
 
-    ods_processor_logger.log(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_021,
+    ods_extractor_logger.log(
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_021,
         invalid_value=raw_value,
         env_var="ODS_API_PAGE_LIMIT",
         default_value=DEFAULT_ODS_API_PAGE_LIMIT,
@@ -114,14 +113,17 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
     validate_ods_code(ods_code)
     base_url = get_base_apim_api_url()
-    organisation_get_uuid_uri = build_organization_search_url(base_url, ods_code)
+    identifier_param = f"odsOrganisationCode|{ods_code}"
+    organisation_get_uuid_uri = (
+        base_url + "/Organization?identifier=" + identifier_param
+    )
 
     try:
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_028,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_028,
             ods_code=ods_code,
         )
-        response = make_apim_request(
+        response = make_request(
             organisation_get_uuid_uri, method="GET", jwt_required=True
         )
         if (
@@ -132,31 +134,31 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
             if organizations:
                 return organizations[0].get("id")
             return None
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_030,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_030,
             ods_code=ods_code,
             type=response.get("resourceType"),
         )
-        raise ValueError(OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message)
+        raise ValueError(OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message)
 
     except HTTPError as http_err:
         if (
             http_err.response is not None
             and http_err.response.status_code == HTTPStatus.NOT_FOUND
         ):
-            ods_processor_logger.log(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_007,
+            ods_extractor_logger.log(
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_007,
             )
             raise ValueError(
-                OdsETLPipelineLogBase.ETL_PROCESSOR_007.value.message
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message
             ) from http_err
         raise
 
 
 def validate_ods_code(ods_code: str) -> None:
     if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
-        ods_processor_logger.log(
-            OdsETLPipelineLogBase.ETL_PROCESSOR_012,
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_012,
             e=f"Invalid ODS code: {ods_code}",
         )
         err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
@@ -169,6 +171,6 @@ def _extract_organizations_from_bundle(bundle: dict) -> list[dict]:
         entries = bundle.get("entry", [])
         for entry in entries:
             resource = entry.get("resource")
-            if resource and resource.get("resourceType") == RESOURCE_TYPE_ORGANIZATION:
+            if resource and resource.get("resourceType") == "Organization":
                 organizations.append(resource)
     return organizations
