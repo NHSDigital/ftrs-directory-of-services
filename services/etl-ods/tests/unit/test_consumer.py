@@ -193,3 +193,37 @@ def test_process_message_and_send_request_with_string_body_and_correlation_id(
         status_code=200
     )
     assert expected_success_log in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "description"),
+    [
+        (None, {"name": "Organization Name"}, "missing path"),
+        ("", {"name": "Organization Name"}, "empty path"),
+        ("uuid", None, "missing body"),
+        ("uuid", {}, "empty body"),
+        (None, None, "missing both path and body"),
+    ],
+)
+def test_process_message_and_send_request_missing_data(
+    path: str | None,
+    body: dict | None,
+    description: str,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test handling of missing or empty path/body data."""
+    record = {
+        "messageId": "test-msg-123",
+        "path": path,
+        "body": body,
+    }
+
+    with pytest.raises(ValueError) as exc_info:
+        process_message_and_send_request(record)
+
+    expected_error_log = OdsETLPipelineLogBase.ETL_CONSUMER_006.value.message.format(
+        message_id="test-msg-123"
+    )
+    assert expected_error_log in caplog.text
+
+    assert expected_error_log in str(exc_info.value)
