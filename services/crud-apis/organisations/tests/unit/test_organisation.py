@@ -318,9 +318,21 @@ def test_update_organisation_success(mock_organisation_service: MockerFixture) -
     )
 
 
-def test_update_organisation_success_no_nhse_product_id(
+def test_update_organisation_fail_no_nhse_product_id(
     mock_organisation_service: MockerFixture,
 ) -> None:
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Product ID header is required for updating organisation",
+                }
+            ],
+        }
+    )
     fhir_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -350,22 +362,21 @@ def test_update_organisation_success_no_nhse_product_id(
         }
     ]
     fhir_payload_expect["extension"] = None
-    response = client.put(
-        f"/Organization/{test_org_id}",
-        json=fhir_payload,
-        headers={"NHSE-Product-ID": TEST_PRODUCT_ID},
-    )
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(
+            f"/Organization/{test_org_id}",
+            json=fhir_payload,
+        )
     mock_organisation_service.process_organisation_update.assert_called_with(
         organisation_id=test_org_id,
         fhir_org=fhir_payload_expect,
-        nhse_product_id=TEST_PRODUCT_ID,
+        nhse_product_id=None,
     )
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()["issue"][0]["code"] == "success"
-    assert response.json()["issue"][0]["severity"] == "information"
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
     assert (
-        response.json()["issue"][0]["diagnostics"]
-        == "Organisation updated successfully"
+        exc_info.value.outcome["issue"][0]["diagnostics"]
+        == "Product ID header is required for updating organisation"
     )
 
 

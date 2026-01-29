@@ -1347,4 +1347,3 @@ x-nhsd-apim:
     - name: product-id
       required: true
       header: NHSE-Product-ID
-      
