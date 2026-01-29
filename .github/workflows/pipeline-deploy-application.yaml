@@ -380,6 +380,7 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
+      - deploy-application-infrastructure
       - deploy-ui
       - deploy-read-only-viewer
       - deploy-data-migration-service
