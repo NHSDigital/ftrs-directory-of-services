@@ -1,7 +1,7 @@
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockFixture
 
-from producer.transform import transform_to_payload
+from transformer.transform import transform_to_payload
 
 
 def test_transform_to_payload_logs_and_returns_organization(
@@ -14,16 +14,16 @@ def test_transform_to_payload_logs_and_returns_organization(
     fake_organization.identifier = [mocker.MagicMock(value=ods_code)]
 
     mock_mapper = mocker.patch(
-        "producer.transform.OrganizationMapper.from_ods_fhir_to_fhir",
+        "transformer.transform.OrganizationMapper.from_ods_fhir_to_fhir",
         return_value=fake_organization,
     )
-    mock_logger = mocker.patch("producer.transform.ods_processor_logger.log")
+    mock_logger = mocker.patch("transformer.transform.ods_transformer_logger.log")
 
     result = transform_to_payload(ods_fhir)
 
     mock_mapper.assert_called_once_with(ods_fhir)
     mock_logger.assert_called_once_with(
-        OdsETLPipelineLogBase.ETL_PROCESSOR_026,
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_026,
         ods_code=ods_code,
     )
     assert result == fake_organization

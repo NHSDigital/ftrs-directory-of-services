@@ -1,4 +1,5 @@
 import json
+import os
 from http import HTTPStatus
 
 import requests
@@ -7,56 +8,143 @@ from ftrs_common.utils.correlation_id import (
     correlation_id_context,
     fetch_or_set_correlation_id,
 )
+from ftrs_common.utils.request_id import fetch_or_set_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from common.apim_client import make_apim_request
-from common.url_utils import build_organization_update_url, get_base_apim_api_url
+from common.utils import get_base_apim_api_url, make_request
 
 ods_consumer_logger = Logger.get(service="ods_consumer")
 
 
-def _parse_message_body(record: dict) -> dict:
-    """Parse message body from SQS record."""
-    if isinstance(record.get("body"), str):
-        body_content = json.loads(json.loads(record.get("body")))
-        return {
-            "path": body_content.get("path"),
-            "body": body_content.get("body"),
-            "correlation_id": body_content.get("correlation_id"),
-        }
-    else:
-        return {
-            "path": record.get("path"),
-            "body": record.get("body"),
-            "correlation_id": record.get("correlation_id"),
-        }
+class RateLimitExceededException(Exception):
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(self.message)
+
+
+def _handle_records(records: dict) -> list[dict]:
+    batch_item_failures = []
+    for record in records:
+        message_id = record["messageId"]
+        receive_count = int(record["attributes"]["ApproximateReceiveCount"])
+
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_003,
+            message_id=record["messageId"],
+            total_records=len(records),
+        )
+        try:
+            process_message_and_send_request(record)
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_004,
+                message_id=record["messageId"],
+            )
+        except RateLimitExceededException as rate_limit_error:
+            max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+            if receive_count >= max_receive_count:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                    message_id=message_id,
+                    receive_count=receive_count,
+                    error_message=f"Rate limit exceeded - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                    exception=rate_limit_error,
+                )
+            else:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                    message_id=message_id,
+                    receive_count=receive_count,
+                    error_message=f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})",
+                )
+            batch_item_failures.append({"itemIdentifier": record["messageId"]})
+        except Exception:
+            max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
+            if receive_count >= max_receive_count:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                    message_id=record["messageId"],
+                    error_message=f"Processing failed - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
+                )
+            else:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_005,
+                    message_id=record["messageId"],
+                    error_message=f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count})",
+                )
+            batch_item_failures.append({"itemIdentifier": record["messageId"]})
+
+    return batch_item_failures
+
+
+def consumer_lambda_handler(event: dict, context: any) -> dict:
+    if event:
+        correlation_id = fetch_or_set_correlation_id(
+            event.get("headers", {}).get("X-Correlation-ID")
+        )
+        request_id = fetch_or_set_request_id(
+            context_id=getattr(context, "aws_request_id", None) if context else None,
+            header_id=event.get("headers", {}).get("X-Request-ID"),
+        )
+        ods_consumer_logger.append_keys(
+            correlation_id=correlation_id, request_id=request_id
+        )
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_001,
+        )
+        batch_item_failures = []
+        sqs_batch_response = {}
+
+        records = event.get("Records")
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_002,
+            total_records=len(records) if records else 0,
+        )
+
+        batch_item_failures = _handle_records(records or [])
+
+        if batch_item_failures:
+            ods_consumer_logger.log(
+                OdsETLPipelineLogBase.ETL_CONSUMER_010,
+                retry_count=len(batch_item_failures),
+                total_records=len(records),
+            )
+
+        sqs_batch_response["batchItemFailures"] = batch_item_failures
+        return sqs_batch_response
 
 
 def process_message_and_send_request(record: dict) -> None:
-    """
-    Process a single SQS message and send PUT request to APIM.
-    """
-    message_data = _parse_message_body(record)
+    if isinstance(record.get("body"), str):
+        body_content = json.loads(record.get("body"))
+        path = body_content.get("path")
+        body = body_content.get("body")
+        correlation_id = body_content.get("correlation_id")
+
+    else:
+        path = record.get("path")
+        body = record.get("body")
+        correlation_id = record.get("correlation_id")
+
     message_id = record["messageId"]
 
-    correlation_id = fetch_or_set_correlation_id(message_data["correlation_id"])
+    correlation_id = fetch_or_set_correlation_id(correlation_id)
 
     with correlation_id_context(correlation_id):
         ods_consumer_logger.append_keys(correlation_id=correlation_id)
 
-        if not message_data["path"] or not message_data["body"]:
+        if not path or not body:
             err_msg = ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_006,
                 message_id=message_id,
             )
             raise ValueError(err_msg)
 
-        base_url = get_base_apim_api_url()
-        api_url = build_organization_update_url(base_url, message_data["path"])
+        api_url = get_base_apim_api_url()
+        api_url = api_url + "/Organization/" + path
 
         try:
-            response_data = make_apim_request(
-                api_url, method="PUT", json=message_data["body"], jwt_required=True
+            response_data = make_request(
+                api_url, method="PUT", json=body, jwt_required=True
             )
             ods_consumer_logger.log(
                 OdsETLPipelineLogBase.ETL_CONSUMER_007,
@@ -68,14 +156,24 @@ def process_message_and_send_request(record: dict) -> None:
                     OdsETLPipelineLogBase.ETL_CONSUMER_008, message_id=message_id
                 )
                 return
-            ods_consumer_logger.log(
-                OdsETLPipelineLogBase.ETL_CONSUMER_009, message_id=record["messageId"]
-            )
-            raise RequestProcessingError(
-                message_id=message_id,
-                status_code=(http_error.response.status_code),
-                response_text=str(http_error),
-            )
+            elif http_error.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_009,
+                    message_id=message_id,
+                    status_code=HTTPStatus.TOO_MANY_REQUESTS,
+                    error_message=f"Rate limit exceeded: {str(http_error)}",
+                )
+                raise RateLimitExceededException()
+            else:
+                ods_consumer_logger.log(
+                    OdsETLPipelineLogBase.ETL_CONSUMER_009,
+                    message_id=record["messageId"],
+                )
+                raise RequestProcessingError(
+                    message_id=message_id,
+                    status_code=(http_error.response.status_code),
+                    response_text=str(http_error),
+                )
 
 
 class RequestProcessingError(Exception):

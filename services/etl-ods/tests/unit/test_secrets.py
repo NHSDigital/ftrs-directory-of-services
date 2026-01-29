@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from botocore.exceptions import ClientError
 
-from producer.ods_client import SecretManager
+from common.ods_client import SecretManager
 
 
 def test_get_resource_prefix() -> None:
@@ -57,7 +57,7 @@ def test_get_ods_terminology_api_key_local_no_keys() -> None:
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_from_secrets_manager(
     mock_boto_client: MagicMock,
 ) -> None:
@@ -84,7 +84,7 @@ def test_get_ods_terminology_api_key_from_secrets_manager(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_client_error_logs(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -116,7 +116,7 @@ def test_get_ods_terminology_api_key_client_error_logs(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_client_error_non_resource_not_found(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -142,7 +142,7 @@ def test_get_ods_terminology_api_key_client_error_non_resource_not_found(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_json_decode_error(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -172,7 +172,7 @@ def test_get_ods_terminology_api_key_json_decode_error(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_with_workspace(
     mock_boto_client: MagicMock,
 ) -> None:
@@ -200,7 +200,7 @@ def test_get_mock_api_key_from_secrets_with_workspace(
     },
     clear=True,
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_without_workspace(
     mock_boto_client: MagicMock,
 ) -> None:
@@ -227,7 +227,7 @@ def test_get_mock_api_key_from_secrets_without_workspace(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_client_error_resource_not_found(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -253,7 +253,7 @@ def test_get_mock_api_key_from_secrets_client_error_resource_not_found(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_other_exception(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -276,7 +276,7 @@ def test_get_mock_api_key_from_secrets_other_exception(
         "AWS_REGION": "eu-west-2",
     },
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_plain_string(
     mock_boto_client: MagicMock,
 ) -> None:
@@ -301,7 +301,7 @@ def test_get_mock_api_key_from_secrets_plain_string(
     },
     clear=True,
 )
-@patch("producer.secrets.boto3.client")
+@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_json_decode_error(
     mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
 ) -> None:
