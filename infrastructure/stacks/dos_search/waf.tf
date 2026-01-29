@@ -11,9 +11,10 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
   }
 
   # Geo restrictions
-  # Block requests that are NOT from allowed countries
-  # IMPORTANT: This rule implements a strict allow-list (default-deny).
-  # It blocks requests that are NOT from values listed in `var.waf_allowed_country_codes`.
+  # Count requests that are NOT from allowed countries (COUNT mode while tuning)
+  # IMPORTANT: This rule implements a strict allow-list (default-deny) when set to BLOCK.
+  # Here we run it in COUNT mode so operators can monitor what would be blocked before enforcing.
+  # It matches requests that are NOT from values listed in `var.waf_allowed_country_codes`.
   # Do NOT deploy with `waf_allowed_country_codes` empty — that will either
   # (a) cause the Web ACL creation to fail or (b) effectively disable the intended default-deny
   # behaviour and allow traffic from all countries. Ensure tfvars provide at least one
@@ -23,7 +24,7 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
     priority = 0
 
     action {
-      block {}
+      count {}
     }
 
     statement {
