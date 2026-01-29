@@ -9,4 +9,3 @@ def oas_spec():
     spec = spec_path + spec_name
     with open(spec, "r") as spec_file:
         return yaml.load(spec_file, Loader=yaml.SafeLoader)
-

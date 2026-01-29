@@ -2,7 +2,7 @@ from loguru import logger
 from pytest_bdd import given, parsers
 
 
-@given(parsers.parse('that the stack is "{stack}"'), target_fixture='fstack_name')
+@given(parsers.parse('that the stack is "{stack}"'), target_fixture="fstack_name")
 def set_stack_name(stack):
     logger.debug(f"Setting stack name to: {stack}")
     fstack_name = stack
