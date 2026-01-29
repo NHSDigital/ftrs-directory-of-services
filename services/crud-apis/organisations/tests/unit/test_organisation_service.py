@@ -18,6 +18,7 @@ from organisations.app.services.organisation_service import OrganisationService
 
 FIXED_CREATED_TIME = datetime(2023, 12, 15, 12, 0, 0, tzinfo=UTC)
 FIXED_MODIFIED_TIME = datetime(2023, 12, 16, 12, 0, 0, tzinfo=UTC)
+TEST_PRODUCT_ID = "test-product-id"
 
 
 def make_service(
@@ -368,11 +369,14 @@ def test_process_organisation_update_no_changes(
     )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("INFO"):
-        result = service.process_organisation_update(organisation_id, fhir_org)
+        result = service.process_organisation_update(
+            organisation_id, fhir_org, TEST_PRODUCT_ID
+        )
         assert result is False
         assert f"No changes detected for organisation {organisation_id}" in caplog.text
 
 
+@freeze_time("2023-12-16T12:00:00Z")
 def test_process_organisation_update_with_changes(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -414,12 +418,166 @@ def test_process_organisation_update_with_changes(
         },
         lastUpdated=FIXED_MODIFIED_TIME,
     )
+    expected_last_updated = datetime.now(UTC)
+    expected_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Changed Name",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": TEST_PRODUCT_ID,
+            "display": "ODS",
+        },
+        lastUpdated=expected_last_updated,
+    )
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("INFO"):
-        result = service.process_organisation_update(organisation_id, fhir_org)
+        result = service.process_organisation_update(
+            organisation_id, fhir_org, TEST_PRODUCT_ID
+        )
         assert result is True
-        org_repository.update.assert_called_once()
+        org_repository.update.assert_called_once_with(
+            organisation_id, expected_organisation
+        )
         assert f"Successfully updated organisation {organisation_id}" in caplog.text
+
+
+@freeze_time("2023-12-16T12:00:00Z")
+def test_process_organisation_update_with_changes_and_nhse_product_id(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        lastUpdated=FIXED_MODIFIED_TIME,
+    )
+    expected_last_updated = datetime.now(UTC)
+    expected_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Changed Name",
+        telecom=[
+            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
+        ],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": TEST_PRODUCT_ID,
+            "display": "ODS",
+        },
+        lastUpdated=expected_last_updated,
+    )
+    org_repository.get.return_value = stored_organisation
+    with caplog.at_level("INFO"):
+        result = service.process_organisation_update(
+            organisation_id, fhir_org, TEST_PRODUCT_ID
+        )
+        assert result is True
+        org_repository.update.assert_called_once_with(
+            organisation_id, expected_organisation
+        )
+        assert f"Successfully updated organisation {organisation_id}" in caplog.text
+
+
+def test_process_organisation_update_with_changes_and_no_nhse_product_id(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    org_repository = MagicMock(spec=AttributeLevelRepository)
+    service = make_service(org_repository=org_repository)
+    organisation_id = "00000000-0000-0000-0000-00000000000a"
+    fhir_org = {
+        "resourceType": "Organization",
+        "id": organisation_id,
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "ODS1"}
+        ],
+        "active": True,
+        "name": "Changed Name",
+        "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
+    }
+    stored_organisation = Organisation(
+        identifier_ODS_ODSCode="ODS1",
+        active=True,
+        name="Test Org",
+        telecom=[Telecom(type=TelecomType.PHONE, value="020 7972 3272", isPublic=True)],
+        endpoints=[],
+        id=organisation_id,
+        createdBy={
+            "type": "user",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        createdTime=FIXED_CREATED_TIME,
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INGRESS_API_ID",
+            "display": "FtRS Ingress API",
+        },
+        lastUpdated=FIXED_MODIFIED_TIME,
+    )
+    org_repository.get.return_value = stored_organisation
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        service.process_organisation_update(organisation_id, fhir_org, None)
+    assert (
+        "Product ID header is required for updating organisation"
+        in exc_info.value.outcome["issue"][0]["diagnostics"]
+    )
 
 
 def test_process_organisation_update_missing_required_field() -> None:
@@ -435,7 +593,7 @@ def test_process_organisation_update_missing_required_field() -> None:
         },
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
-        service.process_organisation_update(organisation_id, fhir_org)
+        service.process_organisation_update(organisation_id, fhir_org, TEST_PRODUCT_ID)
 
     assert exc_info.value.outcome["issue"][0]["code"] == "structure"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
@@ -465,7 +623,9 @@ def test_process_organisation_update_invalid_fhir_structure() -> None:
         "telecom": [{"system": "phone", "value": "0300 311 22 33", "use": "work"}],
     }
     with pytest.raises(OperationOutcomeException) as exc_info:
-        service.process_organisation_update(organisation_id, invalid_fhir)
+        service.process_organisation_update(
+            organisation_id, invalid_fhir, TEST_PRODUCT_ID
+        )
 
     assert exc_info.value.outcome["issue"][0]["code"] == "structure"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
@@ -516,7 +676,9 @@ def test_process_organisation_update_with_invalid_phone_number(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
         assert (
             "Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300"
             in str(exc_info.value)
@@ -567,7 +729,9 @@ def test_process_organisation_update_with_invalid_email_number(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
         assert (
             "Validation failed for the following resources: Telecom value field contains an invalid email address: invalid-email"
             in str(exc_info.value)
@@ -618,7 +782,9 @@ def test_process_organisation_update_with_invalid_url(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
         assert (
             "Validation failed for the following resources: Telecom value field contains an invalid url: nhs.net"
             in str(exc_info.value)
@@ -669,7 +835,9 @@ def test_process_organisation_update_with_invalid_char_in_phone_number(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
         assert (
             "Validation failed for the following resources: Telecom value field contains an invalid phone number: @0300 311 22 33"
             in str(exc_info.value)
@@ -718,7 +886,9 @@ def test_process_organisation_update_with_none_phone_number(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
         assert (
             "Validation failed for the following resources: 'value' field input should be a valid string"
             in str(exc_info.value)
@@ -769,7 +939,9 @@ def test_process_organisation_update_with_invalid_no_telecom_system(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
 
         assert (
             "Validation failed for the following resource: Telecom type (system) cannot be None or empty"
@@ -821,7 +993,9 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
     org_repository.get.return_value = stored_organisation
     with caplog.at_level("ERROR"):
         with pytest.raises(OperationOutcomeException) as exc_info:
-            service.process_organisation_update(organisation_id, fhir_org)
+            service.process_organisation_update(
+                organisation_id, fhir_org, TEST_PRODUCT_ID
+            )
 
         assert (
             "Validation failed for the following resource: invalid telecom type (system): fax"
