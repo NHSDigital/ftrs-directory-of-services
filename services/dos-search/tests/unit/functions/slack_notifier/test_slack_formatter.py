@@ -8,7 +8,7 @@ class TestFormatTimestamp:
     def test_valid_timestamp(self):
         result = format_timestamp("2024-01-29T10:30:00+0000")
         assert "<!date^" in result
-        assert "1706523000" in result
+        assert "1706524200" in result
 
     def test_valid_timestamp_with_colon(self):
         result = format_timestamp("2024-01-29T10:30:00+00:00")
