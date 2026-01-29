@@ -98,7 +98,8 @@
                 "iam:GetInstanceProfile",
                 "iam:TagInstanceProfile",
                 "iam:UntagInstanceProfile",
-                "iam:UpdateAssumeRolePolicy"
+                "iam:UpdateAssumeRolePolicy",
+                "iam:UpdateRoleDescription"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",

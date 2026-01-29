@@ -117,7 +117,8 @@
                 "iam:UntagPolicy",
                 "iam:TagOpenIDConnectProvider",
                 "iam:UpdateOpenIDConnectProviderThumbprint",
-                "iam:UpdateAssumeRolePolicy"
+                "iam:UpdateAssumeRolePolicy",
+                "iam:UpdateRoleDescription"
             ],
             "Resource": [
                 "arn:aws:iam::*:role/${repo_name}-*",
