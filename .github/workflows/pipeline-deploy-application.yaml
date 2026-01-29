@@ -114,7 +114,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: app
       ref: ${{ inputs.ref }}
-      build_enabled: ${{ (matrix.build_enabled == '' || matrix.build_enabled == null) && true || matrix.build_enabled }}
+      build_enabled: ${{ matrix.build_enabled != false }}
     secrets: inherit
 
   build-sandbox-containers:
