@@ -15,17 +15,26 @@ scenarios("./data_migration_features/dms_schema_index_creation.feature")
 @pytest.fixture
 def dms_context(dos_db: Session) -> Dict:
     """Context for storing DMS test state."""
+    bind = dos_db.get_bind()
+    # If get_bind() returns a Connection, get the engine from it
+    engine = bind.engine if hasattr(bind, "engine") else bind
     return {
         "db_session": dos_db,
-        "engine": dos_db.get_bind(),
+        "engine": engine,
     }
 
 
 @given(parsers.parse('the index "{index_name}" already exists on "{table_name}" table'))
 def given_index_already_exists(
-    dos_db: Session, index_name: str, table_name: str
+    dms_context: Dict, index_name: str, table_name: str
 ) -> None:
-    """Verify specific index already exists on table (for idempotency test)."""
+    """Create index to verify idempotency (index already exists scenario)."""
+    engine: Engine = dms_context["engine"]
+    # First create all indexes using the DMS provisioner
+    create_indexes_from_sql_file(engine=engine)
+
+    # Verify the specific index now exists
+    dos_db: Session = dms_context["db_session"]
     result = dos_db.execute(
         text(
             """
@@ -40,7 +49,7 @@ def given_index_already_exists(
     )
     existing_index = result.fetchone()
     assert existing_index is not None, (
-        f"Index {index_name} should already exist on {table_name}"
+        f"Index {index_name} should have been created and exist on {table_name}"
     )
 
 
