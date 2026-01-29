@@ -353,9 +353,12 @@ def test_update_organisation_success_no_nhse_product_id(
     response = client.put(
         f"/Organization/{test_org_id}",
         json=fhir_payload,
+        headers={"NHSE-Product-ID": TEST_PRODUCT_ID},
     )
     mock_organisation_service.process_organisation_update.assert_called_with(
-        organisation_id=test_org_id, fhir_org=fhir_payload_expect, nhse_product_id=None
+        organisation_id=test_org_id,
+        fhir_org=fhir_payload_expect,
+        nhse_product_id=TEST_PRODUCT_ID,
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
@@ -413,7 +416,11 @@ def test_update_organisation_success_no_telecom(
         "name": "Test Organisation",
         "active": False,
     }
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    response = client.put(
+        f"/Organization/{test_org_id}",
+        json=fhir_payload,
+        headers={"NHSE-Product-ID": TEST_PRODUCT_ID},
+    )
     fhir_payload_expect = fhir_payload.copy()
     fhir_payload_expect["telecom"] = []
     fhir_payload_expect["identifier"] = [
@@ -430,7 +437,9 @@ def test_update_organisation_success_no_telecom(
     ]
     fhir_payload_expect["extension"] = None
     mock_organisation_service.process_organisation_update.assert_called_with(
-        organisation_id=test_org_id, fhir_org=fhir_payload_expect, nhse_product_id=None
+        organisation_id=test_org_id,
+        fhir_org=fhir_payload_expect,
+        nhse_product_id=TEST_PRODUCT_ID,
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
