@@ -157,7 +157,7 @@ variable "search_lambda_concurrent_executions_threshold" {
 variable "search_lambda_errors_threshold" {
   description = "Threshold for search Lambda errors (sum over period)"
   type        = number
-  default     = 5
+  default     = 1 # Testing purposes
 }
 
 variable "search_lambda_invocations_threshold" {
