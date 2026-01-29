@@ -157,7 +157,7 @@ jobs:
     needs:
       - metadata
       - build-services
-      - prepare-toggle-artifacts
+      - check-stack-toggles
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -172,7 +172,8 @@ jobs:
     needs:
       - metadata
       - build-services
-      - prepare-toggle-artifacts
+      - check-stack-toggles
+      - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
