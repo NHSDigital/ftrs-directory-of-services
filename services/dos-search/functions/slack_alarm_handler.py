@@ -7,9 +7,9 @@ import json
 import logging
 from typing import Any, Dict
 
-from slack_notifier.alarm_parser import flatten_dict, parse_cloudwatch_alarm
-from slack_notifier.slack_client import get_slack_webhook_url, send_to_slack
-from slack_notifier.slack_formatter import build_slack_message
+from functions.slack_notifier.alarm_parser import flatten_dict, parse_cloudwatch_alarm
+from functions.slack_notifier.slack_client import get_slack_webhook_url, send_to_slack
+from functions.slack_notifier.slack_formatter import build_slack_message
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
