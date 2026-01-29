@@ -569,3 +569,136 @@ def test_put_item_condition_expression(
     assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
     assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
     assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+
+
+def test_update_organisation_includes_audit_timestamps(
+    mock_logger: MockLogger,
+    mock_organisation: Organisation,
+) -> None:
+    """UPDATE operations include audit timestamp fields."""
+    existing_state = ServiceMigrationState(
+        source_record_id="services#123",
+        version=1,
+        organisation_id=mock_organisation.id,
+        organisation=mock_organisation,
+        location_id=None,
+        location=None,
+        healthcare_service_id=None,
+        healthcare_service=None,
+        validation_issues=[],
+    )
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    updated_org = mock_organisation.model_copy(update={"name": "Updated Name"})
+    builder.add_organisation(updated_org)
+
+    update_item = builder.items[0]["Update"]
+
+    # Verify audit fields are in the update expression
+    assert "#lastUpdated" in update_item["UpdateExpression"]
+    assert "#lastUpdatedBy" in update_item["UpdateExpression"]
+
+    # Verify attribute names are registered
+    assert update_item["ExpressionAttributeNames"]["#lastUpdated"] == "lastUpdated"
+    assert update_item["ExpressionAttributeNames"]["#lastUpdatedBy"] == "lastUpdatedBy"
+
+    # Verify values are present
+    assert ":lastUpdated" in update_item["ExpressionAttributeValues"]
+    assert ":lastUpdatedBy" in update_item["ExpressionAttributeValues"]
+
+
+def test_update_location_includes_audit_timestamps(
+    mock_logger: MockLogger,
+    mock_location: Location,
+) -> None:
+    """Location UPDATE operations include audit timestamp fields."""
+    modified_location = mock_location.model_copy(update={"name": "Updated Location"})
+    existing_state = ServiceMigrationState(
+        source_record_id="services#123",
+        version=1,
+        organisation_id=None,
+        organisation=None,
+        location_id=mock_location.id,
+        location=mock_location,
+        healthcare_service_id=None,
+        healthcare_service=None,
+        validation_issues=[],
+    )
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    builder.add_location(modified_location)
+
+    update_item = builder.items[0]["Update"]
+
+    assert "#lastUpdated" in update_item["UpdateExpression"]
+    assert "#lastUpdatedBy" in update_item["UpdateExpression"]
+    assert ":lastUpdated" in update_item["ExpressionAttributeValues"]
+    assert ":lastUpdatedBy" in update_item["ExpressionAttributeValues"]
+
+
+def test_update_healthcare_service_includes_audit_timestamps(
+    mock_logger: MockLogger,
+    mock_healthcare_service: HealthcareService,
+) -> None:
+    """HealthcareService UPDATE operations include audit timestamp fields."""
+    modified_service = mock_healthcare_service.model_copy(
+        update={"name": "Updated Service Name"}
+    )
+    existing_state = ServiceMigrationState(
+        source_record_id="services#123",
+        version=1,
+        organisation_id=None,
+        organisation=None,
+        location_id=None,
+        location=None,
+        healthcare_service_id=mock_healthcare_service.id,
+        healthcare_service=mock_healthcare_service,
+        validation_issues=[],
+    )
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    builder.add_healthcare_service(modified_service)
+
+    update_item = builder.items[0]["Update"]
+
+    assert "#lastUpdated" in update_item["UpdateExpression"]
+    assert "#lastUpdatedBy" in update_item["UpdateExpression"]
+    assert ":lastUpdated" in update_item["ExpressionAttributeValues"]
+    assert ":lastUpdatedBy" in update_item["ExpressionAttributeValues"]
+
+
+def test_audit_updater_metadata_is_correct(
+    mock_logger: MockLogger,
+    mock_organisation: Organisation,
+) -> None:
+    """Audit updater metadata contains correct values."""
+    existing_state = ServiceMigrationState(
+        source_record_id="services#123",
+        version=1,
+        organisation_id=mock_organisation.id,
+        organisation=mock_organisation,
+        location_id=None,
+        location=None,
+        healthcare_service_id=None,
+        healthcare_service=None,
+        validation_issues=[],
+    )
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    updated_org = mock_organisation.model_copy(update={"name": "Updated Name"})
+    builder.add_organisation(updated_org)
+
+    update_item = builder.items[0]["Update"]
+    updated_by = update_item["ExpressionAttributeValues"][":lastUpdatedBy"]["M"]
+
+    assert updated_by["type"]["S"] == "app"
+    assert updated_by["value"]["S"] == "INTERNAL001"
+    assert updated_by["display"]["S"] == "Data Migration"
