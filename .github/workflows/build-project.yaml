@@ -43,6 +43,10 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+      build_enabled:
+        description: "Whether the build is enabled"
+        required: true
+        type: boolean
 
 
 jobs:
@@ -50,6 +54,7 @@ jobs:
     name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    if: ${{ inputs.build_enabled == true }}
 
     steps:
       - name: "Checkout code"
