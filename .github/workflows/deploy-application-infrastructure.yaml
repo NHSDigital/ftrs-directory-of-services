@@ -87,7 +87,7 @@ jobs:
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
-    if: needs.plan-application-infrastructure.outputs.plan_result == 'true' && inputs.skip_manual_approval != 'true' && !contains(format(',{0},', inputs.skip_manual_approval_environments), format(',{0},', inputs.environment))
+    if: needs.plan-application-infrastructure.outputs.plan_result == 'true' && (inputs.skip_manual_approval != 'true' || !contains(format(',{0},', inputs.skip_manual_approval_environments), format(',{0},', inputs.environment)))
     needs:
       - plan-application-infrastructure
     runs-on: ubuntu-latest
