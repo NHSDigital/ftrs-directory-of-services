@@ -16,6 +16,7 @@
         "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
         "identifier": [
           {
+            "use": "official",
             "system": "https://fhir.nhs.uk/Id/ods-organization-code",
             "value": "ABC123"
           }
