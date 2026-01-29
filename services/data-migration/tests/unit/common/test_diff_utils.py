@@ -10,6 +10,7 @@ from ftrs_data_layer.domain import (
     Organisation,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
@@ -113,13 +114,11 @@ def timestamp() -> str:
 
 
 @pytest.fixture
-def updated_by() -> dict[str, str]:
+def updated_by() -> AuditEvent:
     """Provide valid updater metadata."""
-    return {
-        "type": "app",
-        "value": "INTERNAL001",
-        "display": "Data Migration",
-    }
+    return AuditEvent(
+        type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
+    )
 
 
 def make_endpoint(organisation_id: UUID, service_id: UUID) -> Endpoint:
@@ -434,7 +433,7 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
 def test_add_audit_timestamps_to_expressions(
     serializer: TypeSerializer,
     timestamp: str,
-    updated_by: dict[str, str],
+    updated_by: AuditEvent,
     initial_expression: str,
     expected_prefix: str,
 ) -> None:
@@ -452,39 +451,32 @@ def test_add_audit_timestamps_to_expressions(
     assert ":lastUpdatedBy" in expressions.expression_attribute_values
 
 
-@pytest.mark.parametrize(
-    "invalid_timestamp,invalid_updater,error_match",
-    [
-        (
-            "",
-            {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-            "timestamp cannot be empty",
-        ),
-        (
-            "2026-01-28T12:00:00+00:00",
-            {"type": "app"},
-            "updated_by missing required keys",
-        ),
-        ("2026-01-28T12:00:00+00:00", {}, "updated_by missing required keys"),
-    ],
-)
-def test_add_audit_timestamps_validation_errors(
+def test_add_audit_timestamps_empty_timestamp_raises_value_error(
     serializer: TypeSerializer,
-    invalid_timestamp: str,
-    invalid_updater: dict[str, str],
-    error_match: str,
+    updated_by: AuditEvent,
 ) -> None:
-    """Invalid inputs raise ValueError with appropriate messages."""
+    """Empty timestamp raises ValueError."""
     expressions = DynamoDBUpdateExpressions()
 
-    with pytest.raises(ValueError, match=error_match):
-        expressions.add_audit_timestamps(invalid_timestamp, invalid_updater, serializer)
+    with pytest.raises(ValueError, match="timestamp cannot be empty"):
+        expressions.add_audit_timestamps("", updated_by, serializer)
+
+
+def test_add_audit_timestamps_invalid_updater_raises_type_error(
+    serializer: TypeSerializer,
+    timestamp: str,
+) -> None:
+    """Non-AuditEvent updater raises ValueError."""
+    expressions = DynamoDBUpdateExpressions()
+
+    with pytest.raises(TypeError, match="updated_by must be an AuditEvent instance"):
+        expressions.add_audit_timestamps(timestamp, "not_an_audit_event", serializer)
 
 
 def test_add_audit_timestamps_serializes_correctly(
     serializer: TypeSerializer,
     timestamp: str,
-    updated_by: dict[str, str],
+    updated_by: AuditEvent,
 ) -> None:
     """Audit values are properly serialized to DynamoDB format."""
     expressions = DynamoDBUpdateExpressions()

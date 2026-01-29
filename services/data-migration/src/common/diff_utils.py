@@ -11,6 +11,7 @@ from uuid import UUID
 from boto3.dynamodb.types import TypeSerializer
 from deepdiff import DeepDiff
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent
 
 # Type alias for DynamoDB-compatible values
 DynamoDBValue = str | int | float | bool | list | dict | Decimal | None
@@ -72,14 +73,14 @@ class DynamoDBUpdateExpressions:
     def add_audit_timestamps(
         self,
         timestamp: str,
-        updated_by: dict[str, str],
+        updated_by: AuditEvent,
         serializer: TypeSerializer,
     ) -> None:
         """Add audit timestamp fields to the update expression.
 
         Args:
             timestamp: ISO format timestamp string.
-            updated_by: Dictionary with required keys: 'type', 'value', 'display'.
+            updated_by: AuditEvent object with type, value, and display fields.
             serializer: DynamoDB type serializer.
 
         Raises:
@@ -90,17 +91,13 @@ class DynamoDBUpdateExpressions:
         self._serialize_audit_field_values(timestamp, updated_by, serializer)
         self._prepend_audit_clauses_to_expression()
 
-    def _validate_audit_inputs(
-        self, timestamp: str, updated_by: dict[str, str]
-    ) -> None:
+    def _validate_audit_inputs(self, timestamp: str, updated_by: AuditEvent) -> None:
         """Validate audit timestamp inputs."""
         if not timestamp:
             raise ValueError("timestamp cannot be empty")
 
-        required_keys = {"type", "value", "display"}
-        missing = required_keys - updated_by.keys()
-        if missing:
-            raise ValueError(f"updated_by missing required keys: {missing}")
+        if not isinstance(updated_by, AuditEvent):
+            raise TypeError("updated_by must be an AuditEvent instance")
 
     def _register_audit_field_names(self) -> None:
         """Register attribute name placeholders for audit fields."""
@@ -110,7 +107,7 @@ class DynamoDBUpdateExpressions:
     def _serialize_audit_field_values(
         self,
         timestamp: str,
-        updated_by: dict[str, str],
+        updated_by: AuditEvent,
         serializer: TypeSerializer,
     ) -> None:
         """Serialize and store audit field values."""
@@ -118,7 +115,7 @@ class DynamoDBUpdateExpressions:
             timestamp
         )
         self.expression_attribute_values[":lastUpdatedBy"] = serializer.serialize(
-            updated_by
+            updated_by.model_dump()
         )
 
     def _prepend_audit_clauses_to_expression(self) -> None:

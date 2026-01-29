@@ -5,6 +5,7 @@ from boto3.dynamodb.types import TypeSerializer
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_table_name
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
@@ -35,10 +36,6 @@ class ServiceTransactionBuilder:
         items: List of transaction items to be written.
     """
 
-    AUDIT_UPDATER_TYPE = "app"
-    AUDIT_UPDATER_VALUE = "INTERNAL001"
-    AUDIT_UPDATER_DISPLAY = "Data Migration"
-
     def __init__(
         self,
         service_id: int,
@@ -67,7 +64,7 @@ class ServiceTransactionBuilder:
         self.service_id = service_id
         self.serialiser = TypeSerializer()
         self.items = []
-        self.start_time = datetime.now(timezone.utc)
+        self.current_time = datetime.now(timezone.utc)
 
     def add_organisation(self, organisation: Organisation | None) -> Self:
         """
@@ -439,14 +436,6 @@ class ServiceTransactionBuilder:
         )
         return self
 
-    def _get_audit_updater(self) -> dict[str, str]:
-        """Get standardized audit updater metadata."""
-        return {
-            "type": self.AUDIT_UPDATER_TYPE,
-            "value": self.AUDIT_UPDATER_VALUE,
-            "display": self.AUDIT_UPDATER_DISPLAY,
-        }
-
     def _build_update_item(
         self,
         item_id: str,
@@ -462,8 +451,10 @@ class ServiceTransactionBuilder:
         """
         # Add audit timestamps to all UPDATE operations
         expressions.add_audit_timestamps(
-            timestamp=self.start_time.isoformat(),
-            updated_by=self._get_audit_updater(),
+            timestamp=self.current_time.isoformat(),
+            updated_by=AuditEvent(
+                type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
+            ),
             serializer=self.serialiser,
         )
 
