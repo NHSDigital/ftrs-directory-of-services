@@ -243,6 +243,9 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dict: Slack message payload with blocks and attachments
     """
+    # Log all available keys for debugging
+    logger.info(f"Available flattened keys: {list(alarm_data.keys())}")
+
     # Extract key fields from flattened structure
     alarm_name = alarm_data.get("alarmName", "Unknown Alarm")
     alarm_arn = alarm_data.get("historyData_publishedMessage_default_AlarmArn", "")
@@ -274,9 +277,14 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
         "historyData_publishedMessage_default_Trigger_Dimensions_0_value",
         "Unknown Lambda",
     )
+    region_display = alarm_data.get(
+        "historyData_publishedMessage_default_Region", "EU (London)"
+    )
     aws_region = extract_region_code(alarm_arn)
 
-    logger.info(f"Extracted state_value: {state_value}")
+    logger.info(
+        f"Extracted values - state: {state_value}, metric: {trigger_metric}, threshold: {trigger_threshold}, lambda: {lambda_name}, timestamp: {timestamp_val}, reason: {state_reason}"
+    )
 
     # Get context for this metric
     context = get_metric_context(trigger_metric)
@@ -346,7 +354,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": f"Lambda: {lambda_name} | Region: {aws_region}",
+                        "text": f"Lambda: {lambda_name} | Region: {region_display}",
                     }
                 ],
             },
