@@ -27,7 +27,7 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	java -cp $$(asdf where jmeter)/lib/ext/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
 
 	echo "Installing jmeter plugins"
-	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,jmeter-plugins-tst,jmeter-plugins-casutg-3.1.1
+	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,jpgc-casutg,jpgc-tst
 
 install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
