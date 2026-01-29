@@ -16,7 +16,8 @@ DEPENDENCY_DIR := $(BUILD_DIR)/dependency-layer
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 
 DEPENDENCY_LAYER_NAME := ftrs-dos-$(SERVICE)-python-dependency-layer
-PRODUCER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-processor-lambda
+EXTRACTOR_LAMBDA_NAME := ftrs-dos-$(SERVICE)-extractor-lambda
+TRANSFORMER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-transformer-lambda
 CONSUMER_LAMBDA_NAME := ftrs-dos-$(SERVICE)-consumer-lambda
 
 # ------------------------------------------------------------------------------
@@ -44,17 +45,24 @@ include ../../scripts/services/python-service.mk
 unit-test: ## Run unit tests
 	poetry run pytest tests/unit
 
-# Override default build to produce producer + consumer artefacts
-build: ensure-build-dir build-dependency-layer build-producer-lambda build-consumer-lambda ## Build all artefacts
+# Override default build to produce extractor + transformer + consumer artefacts
+build: ensure-build-dir build-dependency-layer build-extractor-lambda build-transformer-lambda build-consumer-lambda
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
 
-build-producer-lambda: ensure-build-dir ## Build producer lambda artefact
-	mkdir -p $(BUILD_DIR)/producer-tmp
-	cp -r producer $(BUILD_DIR)/producer-tmp/
-	cp -r common $(BUILD_DIR)/producer-tmp/
-	cd $(BUILD_DIR)/producer-tmp && zip -r -q ../$(PRODUCER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
-	rm -rf $(BUILD_DIR)/producer-tmp
+build-extractor-lambda: ensure-build-dir ## Build extractor lamdba artefact
+	mkdir -p $(BUILD_DIR)/extractor-tmp
+	cp -r extractor $(BUILD_DIR)/extractor-tmp/
+	cp -r common $(BUILD_DIR)/extractor-tmp/
+	cd $(BUILD_DIR)/extractor-tmp && zip -r -q ../$(EXTRACTOR_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	rm -rf $(BUILD_DIR)/extractor-tmp
+
+build-transformer-lambda: ensure-build-dir
+	mkdir -p $(BUILD_DIR)/transformer-tmp
+	cp -r transformer $(BUILD_DIR)/transformer-tmp/
+	cp -r common $(BUILD_DIR)/transformer-tmp/
+	cd $(BUILD_DIR)/transformer-tmp && zip -r -q ../$(TRANSFORMER_LAMBDA_NAME).zip . --exclude "*__pycache__/*"
+	rm -rf $(BUILD_DIR)/transformer-tmp
 
 build-consumer-lambda: ensure-build-dir ## Build consumer lambda artefact
 	mkdir -p $(BUILD_DIR)/consumer-tmp
@@ -69,7 +77,8 @@ build-consumer-lambda: ensure-build-dir ## Build consumer lambda artefact
 
 publish: ## Publish build artefacts to development path
 	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
-	aws s3 cp $(BUILD_DIR)/$(PRODUCER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PRODUCER_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(EXTRACTOR_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(EXTRACTOR_LAMBDA_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(TRANSFORMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(TRANSFORMER_LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
 	@echo "Published successfully"

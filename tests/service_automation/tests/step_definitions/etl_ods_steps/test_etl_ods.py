@@ -242,11 +242,11 @@ def invoke_lambda_generic(
     date_param: Optional[str] = None,
 ) -> Context:
     """
-    Invokes the 'etl-ods-processor' lambda with optional date parameter.
+    Invokes the 'etl-ods-extractor' lambda with optional date parameter.
     Stores the response in context.lambda_response and sets context.lambda_name.
     """
     lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+        project, workspace, env, "etl-ods-extractor", "lambda"
     )
 
     context.lambda_name = lambda_name

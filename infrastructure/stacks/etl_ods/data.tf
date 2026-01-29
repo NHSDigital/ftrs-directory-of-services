@@ -54,7 +54,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
       "sqs:GetQueueUrl"
     ]
     resources = [
-      aws_sqs_queue.transformed_queue.arn,
+      aws_sqs_queue.load_queue.arn,
+      aws_sqs_queue.transform_queue.arn,
     ]
   }
 }
@@ -135,7 +136,7 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
     ]
 
     resources = [
-      module.processor_lambda.lambda_function_arn
+      module.extractor_lambda.lambda_function_arn
     ]
   }
 }

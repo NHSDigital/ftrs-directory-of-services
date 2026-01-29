@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
 
-from producer.ods_client import ODSClient
+from common.ods_client import ODSClient
 
 
 class TestODSClient:
@@ -15,8 +15,8 @@ class TestODSClient:
         client = ODSClient()
         assert client.logger is not None
 
-    @patch("producer.ods_client.make_common_request")
-    @patch("producer.ods_client.build_common_headers")
+    @patch("common.ods_client.make_common_request")
+    @patch("common.ods_client.build_common_headers")
     @patch.object(ODSClient, "_get_api_key")
     def test_make_request_success(
         self,
@@ -51,8 +51,8 @@ class TestODSClient:
             headers={"Accept": "application/fhir+json", "apikey": "test-api-key"},
         )
 
-    @patch("producer.ods_client.build_common_headers")
-    @patch("producer.ods_client.is_ods_terminology_request")
+    @patch("common.ods_client.build_common_headers")
+    @patch("common.ods_client.is_ods_terminology_request")
     def test_build_headers(
         self,
         mock_is_ods_request: MagicMock,
@@ -72,7 +72,7 @@ class TestODSClient:
             }
             mock_build_headers.assert_called_once()
 
-    @patch("producer.ods_client.is_ods_terminology_request")
+    @patch("common.ods_client.is_ods_terminology_request")
     def test_get_api_key_non_ods_url(self, mock_is_ods_request: MagicMock) -> None:
         """Test _get_api_key returns empty string for non-ODS URLs."""
         client = ODSClient()
@@ -83,9 +83,9 @@ class TestODSClient:
         assert result == ""
         mock_is_ods_request.assert_called_once_with("https://api.example.com/other")
 
-    @patch("producer.ods_client.SecretManager.get_ods_terminology_api_key")
-    @patch("producer.ods_client.is_mock_testing_mode")
-    @patch("producer.ods_client.is_ods_terminology_request")
+    @patch("common.ods_client.SecretManager.get_ods_terminology_api_key")
+    @patch("common.ods_client.is_mock_testing_mode")
+    @patch("common.ods_client.is_ods_terminology_request")
     def test_get_api_key_production_mode(
         self,
         mock_is_ods_request: MagicMock,
@@ -108,9 +108,9 @@ class TestODSClient:
         assert result == "prod-api-key"
         mock_get_prod_key.assert_called_once()
 
-    @patch("producer.ods_client.SecretManager.get_mock_api_key_from_secrets")
-    @patch("producer.ods_client.is_mock_testing_mode")
-    @patch("producer.ods_client.is_ods_terminology_request")
+    @patch("common.ods_client.SecretManager.get_mock_api_key_from_secrets")
+    @patch("common.ods_client.is_mock_testing_mode")
+    @patch("common.ods_client.is_ods_terminology_request")
     def test_get_api_key_mock_mode(
         self,
         mock_is_ods_request: MagicMock,
@@ -148,7 +148,7 @@ class TestODSClient:
         # Verify
         assert headers == {"Accept": "application/fhir+json"}
 
-    @patch("producer.ods_client.is_mock_testing_mode")
+    @patch("common.ods_client.is_mock_testing_mode")
     def test_add_api_key_to_headers_production_mode(
         self, mock_is_mock_mode: MagicMock
     ) -> None:
@@ -167,7 +167,7 @@ class TestODSClient:
             "apikey": "prod-key",
         }
 
-    @patch("producer.ods_client.is_mock_testing_mode")
+    @patch("common.ods_client.is_mock_testing_mode")
     def test_add_api_key_to_headers_mock_mode(
         self, mock_is_mock_mode: MagicMock, mocker: MockerFixture
     ) -> None:
@@ -188,10 +188,10 @@ class TestODSClient:
         }
         mock_logger.log.assert_called_once_with(OdsETLPipelineLogBase.ETL_UTILS_009)
 
-    @patch("producer.ods_client.make_common_request")
-    @patch("producer.ods_client.SecretManager.get_ods_terminology_api_key")
-    @patch("producer.ods_client.is_mock_testing_mode")
-    @patch("producer.ods_client.is_ods_terminology_request")
+    @patch("common.ods_client.make_common_request")
+    @patch("common.ods_client.SecretManager.get_ods_terminology_api_key")
+    @patch("common.ods_client.is_mock_testing_mode")
+    @patch("common.ods_client.is_ods_terminology_request")
     def test_make_request_integration(
         self,
         mock_is_ods_request: MagicMock,
@@ -208,7 +208,7 @@ class TestODSClient:
         mock_make_request.return_value = {"resourceType": "Bundle", "status_code": 200}
 
         # Execute
-        with patch("producer.ods_client.build_common_headers", return_value={}):
+        with patch("common.ods_client.build_common_headers", return_value={}):
             result = client.make_request(
                 url="https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization",
                 params={"_id": "123"},
