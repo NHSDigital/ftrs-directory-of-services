@@ -98,7 +98,7 @@ jobs:
             build_enabled: true
           - name: "read-only-viewer"
             build_type: "service"
-            build_enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
+            build_enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true' }}
           - name: "etl-ods"
             build_type: "service"
             build_enabled: true
@@ -107,7 +107,7 @@ jobs:
             build_enabled: true
           - name: "dos-ui"
             build_type: "service"
-            build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
+            build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled == 'true' }}
     uses: ./.github/workflows/build-project.yaml
     with:
       name: ${{ matrix.name }}
