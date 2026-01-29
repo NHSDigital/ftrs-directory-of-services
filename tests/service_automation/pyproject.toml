@@ -37,6 +37,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 packages = [{ include = "tests" }]
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.14.2"
+
 [tool.poetry.group.shared.dependencies]
 ftrs-python-packages = { path = "../../application/packages/python", develop = true }
 testcontainers = "^3.7.1"
@@ -44,6 +47,23 @@ testcontainers-postgres = "^0.0.1rc1"
 testcontainers-localstack = "^0.0.1rc1"
 pipeline = { path = "../../services/data-migration", develop = true }
 
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "FURB", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"*" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
 
 [tool.pytest.ini_options]
 testpaths = "tests"

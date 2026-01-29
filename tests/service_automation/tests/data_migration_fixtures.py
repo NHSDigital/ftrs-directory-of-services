@@ -1,26 +1,21 @@
 """Pytest fixtures for data migration testing."""
 
 import os
-import subprocess
-import tempfile
-from pathlib import Path
 from typing import Any, Dict, Generator
-from urllib.parse import urlparse
 
 import boto3
 import pytest
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from sqlalchemy import Engine, text
 from sqlmodel import Session, create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
-from utilities.data_migration.dos_db_utils import get_test_data_script
-
-from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
+from utilities.data_migration.dos_db_utils import get_test_data_script
 from utilities.data_migration.migration_helper import MigrationHelper
 
 
@@ -122,7 +117,7 @@ def dos_db_engine(postgres_container: PostgresContainer) -> create_engine:
     engine.dispose()
 
 
-@pytest.fixture(name="dos_db", scope="function")
+@pytest.fixture(name="dos_db")
 def fixture_dos_db(
     dos_db_engine: Engine,
     dos_db_setup_scripts: list[str],
@@ -185,7 +180,7 @@ def fixture_dos_db(
             connection.close()
 
 
-@pytest.fixture(name="dynamodb", scope="function")
+@pytest.fixture(name="dynamodb")
 def fixture_dynamodb(
     localstack_container: LocalStackContainer,
 ) -> Generator[Dict[str, Any], None, None]:
@@ -225,7 +220,7 @@ def fixture_dynamodb(
         _cleanup_dynamodb_tables(client)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def model_repos_local(
     dynamodb,
 ) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
@@ -246,7 +241,7 @@ def model_repos_local(
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_helper(
     postgres_container: PostgresContainer,
     dynamodb: Dict[str, Any],
@@ -289,7 +284,7 @@ def migration_helper(
     )
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_context(dos_db: Session) -> Dict[str, Any]:
     """
     Context to store migration test data across BDD steps.

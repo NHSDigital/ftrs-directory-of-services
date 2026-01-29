@@ -2,6 +2,7 @@ import boto3
 from botocore.exceptions import ClientError
 from loguru import logger
 
+
 class ApiGatewayToService:
     """
     Encapsulates Amazon API Gateway functions that are used to create a REST API that
@@ -32,13 +33,13 @@ class ApiGatewayToService:
             paginator = self.apig_client.get_paginator("get_rest_apis")
             for page in paginator.paginate():
                 rest_api = next(
-                    (item for item in page['items'] if item['name'] == api_name), None
+                    (item for item in page["items"] if item["name"] == api_name), None
                 )
                 if rest_api is not None:
                     break
-            self.api_id = rest_api['id']
+            self.api_id = rest_api["id"]
         except ClientError:
             logger.info("Couldn't find ID for API %s.", api_name)
             raise
         else:
-            return rest_api['id']
+            return rest_api["id"]

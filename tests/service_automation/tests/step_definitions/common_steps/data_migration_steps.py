@@ -4,9 +4,31 @@ from uuid import UUID
 
 import pytest
 from pytest_bdd import given, parsers, then, when
+from service_migration.models import ServiceMigrationMetrics
 from sqlalchemy import text
 from sqlmodel import Session
-
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
+    parse_datatable_value,
+)
+from utilities.common.constants import (
+    DYNAMODB_CLIENT,
+    ENV_ENVIRONMENT,
+    ENV_WORKSPACE,
+    SERVICETYPES_TABLE,
+    STATE_TABLE_ENTITY_ID_FIELDS,
+)
+from utilities.common.data_migration_shared_steps import (
+    get_state_record_by_id,
+)
+from utilities.common.log_helper import (
+    get_mock_logger_from_context,
+    verify_error_log_present,
+    verify_migration_completed_log,
+    verify_service_not_migrated_log,
+    verify_service_skipped_log,
+    verify_transformation_log,
+    verify_transformer_selected_log,
+)
 from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
@@ -20,30 +42,6 @@ from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
 from utilities.data_migration.sqs_helper import build_sqs_event
-from utilities.common.constants import (
-    DYNAMODB_CLIENT,
-    ENV_ENVIRONMENT,
-    ENV_WORKSPACE,
-    SERVICETYPES_TABLE,
-    STATE_TABLE_ENTITY_ID_FIELDS,
-)
-from utilities.common.log_helper import (
-    get_mock_logger_from_context,
-    verify_migration_completed_log,
-    verify_error_log_present,
-    verify_service_not_migrated_log,
-    verify_service_skipped_log,
-    verify_transformation_log,
-    verify_transformer_selected_log,
-)
-from utilities.common.dynamoDB_tables import get_table_name
-from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
-    parse_datatable_value,
-)
-from utilities.common.data_migration_shared_steps import (
-    get_state_record_by_id,
-)
-from service_migration.models import ServiceMigrationMetrics
 
 # ============================================================
 # Setup Steps (Background)
@@ -57,7 +55,7 @@ def environment_configured(
     """Verify test environment is properly configured."""
     try:
         response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
+        response.get("TableNames", [])
         assert "TableNames" in response, "DynamoDB should be accessible"
     except Exception as e:
         pytest.fail(f"Failed to access DynamoDB: {e}")
@@ -509,9 +507,7 @@ def verify_state_record_contains_entity_id(
     )
 
     entity_id = deserialized_item[field_name]
-    assert entity_id is not None and entity_id != "", (
-        f"{field_name} should have a valid UUID value, got: {entity_id}"
-    )
+    assert entity_id, f"{field_name} should have a valid UUID value, got: {entity_id}"
 
     # Validate UUID format by attempting to parse it
     try:

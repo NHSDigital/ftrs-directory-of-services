@@ -1,8 +1,9 @@
-import os
 import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
+
 
 def read_json_file(relative_path):
     """
@@ -18,7 +19,7 @@ def read_json_file(relative_path):
     file_path = os.path.abspath(os.path.join(base_dir, relative_path))
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         logger.error(f"JSON file not found: {file_path}")
@@ -26,6 +27,7 @@ def read_json_file(relative_path):
     except json.JSONDecodeError as e:
         logger.error(f"Error decoding JSON from file {file_path}: {e}")
         raise
+
 
 def write_json_file(data, relative_path):
     """
@@ -41,9 +43,8 @@ def write_json_file(data, relative_path):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     try:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)  # Pretty print with indentation
     except Exception as e:
         logger.error(f"Failed to write JSON to {file_path}: {e}")
         raise
-

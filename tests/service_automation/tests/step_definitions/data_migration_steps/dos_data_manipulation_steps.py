@@ -5,13 +5,12 @@ from decimal import Decimal
 from typing import Any, Type
 
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from ftrs_data_layer.domain import legacy as legacy_model
+from pytest_bdd import given, parsers, then, when
 from sqlalchemy.orm import Session
 from sqlmodel import select
-
-from ftrs_data_layer.domain import legacy as legacy_model
-from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 from utilities.common.constants import STRING_FIELDS
+from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 
 
 def parse_datatable_value(value: str) -> Any:
@@ -487,7 +486,11 @@ def verify_field_value(
     )
 
 
-@when(parsers.parse("the service '{service_name}' has its '{field_name}' updated to '{new_value}'"))
+@when(
+    parsers.parse(
+        "the service '{service_name}' has its '{field_name}' updated to '{new_value}'"
+    )
+)
 def update_service_field(
     dos_db: Session,
     migration_context: dict,
