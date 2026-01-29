@@ -13,7 +13,7 @@ output "environment_ids" {
   value       = module.app_config.environments
 }
 
-output "configuration_profile_id" {
+output "configuration_profile_configuration_profile_id" {
   description = "The ID of the configuration profile in the AppConfig application."
-  value       = module.app_config.configuration_profile_id
+  value       = module.app_config.configuration_profile_configuration_profile_id
 }
