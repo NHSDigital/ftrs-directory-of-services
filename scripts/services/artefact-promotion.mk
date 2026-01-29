@@ -29,10 +29,6 @@ define log_success
 	@echo "$(COLOR_GREEN)✓ $(1)$(COLOR_RESET)"
 endef
 
-define log_error
-	@echo "$(COLOR_RED) $(1)$(COLOR_RESET)"
-endef
-
 define update-build-info
 	tmp_dir=$$(mktemp -d); \
 	aws s3 cp s3://$(1)/build-info.json $$tmp_dir/build-info.json --region $(AWS_REGION); \
@@ -52,7 +48,7 @@ ifeq ($(strip $(PRERELEASE_TAG)),)
 		| tail -1 \
 	))
 	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-		$(call log_error,ERROR: No prerelease versions found in staging)
+        echo "$(COLOR_RED)✗ ERROR: No prerelease versions found in staging$(COLOR_RESET)"; \
 		exit 1; \
 	fi
 	$(call log_success,Using prerelease version: $(PRERELEASE_TAG))
@@ -61,20 +57,20 @@ else
 endif
 
 stage: set-prerelease-version
-    $(call log_start,Staging release $(PRERELEASE_TAG))
-    aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
-    $(call log_success,Release staged successfully)
+	$(call log_start,Staging release $(PRERELEASE_TAG))
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
+	$(call log_success,Release staged successfully)
 
 release-candidate: set-prerelease-version
-    $(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
-    aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
-    $(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG))
-    $(call log_success,Promoted from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
+	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
+	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
+	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG))
+	$(call log_success,Promoted from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 
 release:
-    $(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
-    $(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
-    $(call log_start,Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN))
-    aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
-    $(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN))
-    $(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
+	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
+	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
+	$(call log_start,Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN))
+	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
+	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN))
+	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
