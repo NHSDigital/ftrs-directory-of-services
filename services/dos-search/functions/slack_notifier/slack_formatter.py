@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
-from slack_notifier.aws_url_builder import (
+from functions.slack_notifier.aws_url_builder import (
     build_cloudwatch_url,
     build_lambda_logs_url,
     build_lambda_metrics_url,
