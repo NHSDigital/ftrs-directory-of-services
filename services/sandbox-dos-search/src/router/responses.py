@@ -19,6 +19,7 @@ SUCCESS_BUNDLE_ABC123 = {
                 "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
                 "identifier": [
                     {
+                        "use": "official",
                         "system": "https://fhir.nhs.uk/Id/ods-organization-code",
                         "value": "ABC123",
                     }
@@ -66,7 +67,7 @@ SUCCESS_BUNDLE_ABC123 = {
                     }
                 ],
                 "payloadMimeType": ["application/pdf"],
-                "address": "mailto:dummy-endpoint-email@nhs.net",
+                "address": "dummy-endpoint-email@nhs.net",
             },
             "search": {"mode": "include"},
         },
@@ -108,7 +109,7 @@ SUCCESS_BUNDLE_ABC123 = {
                     }
                 ],
                 "payloadMimeType": ["application/pdf"],
-                "address": "mailto:dummy-endpoint-email@nhs.net",
+                "address": "dummy-endpoint-email@nhs.net",
             },
             "search": {"mode": "include"},
         },
