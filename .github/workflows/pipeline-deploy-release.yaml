@@ -151,7 +151,8 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
     if: |
       always() &&
       ${{ inputs.environment != 'prod' }} &&

@@ -209,7 +209,8 @@ jobs:
       - metadata
       - tag-release
       - deploy-data-migration-service
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
