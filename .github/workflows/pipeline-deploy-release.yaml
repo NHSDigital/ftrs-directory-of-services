@@ -71,7 +71,7 @@ jobs:
     name: "Prepare Toggle artifacts"
     needs:
       - metadata
-      - promote-release-candidate
+      - deploy-account-wide-infrastructure
     uses: ./.github/workflows/prepare-toggle-artifacts.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -82,7 +82,6 @@ jobs:
     name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - validate-release-tag
-      - deploy-account-wide-infrastructure
       - prepare-toggle-artifacts
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
