@@ -6,7 +6,7 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict
 from urllib.parse import quote
 
@@ -20,8 +20,6 @@ http = urllib3.PoolManager()
 # Constants
 DOS_SEARCH_API = "DoS Search API"
 ENDPOINT_TEMPLATE = "/Organization?{query}"
-PERIOD = "5-minute evaluation window"
-MIN_ALARM_NAME_PARTS = 3
 SUCCESS_STATUS_CODE = 200
 
 # API and endpoint mappings for metrics
@@ -29,34 +27,27 @@ METRIC_CONTEXT = {
     "Duration": {
         "api": DOS_SEARCH_API,
         "endpoint": ENDPOINT_TEMPLATE,
-        "period": PERIOD,
     },
     "ConcurrentExecutions": {
         "api": DOS_SEARCH_API,
         "endpoint": ENDPOINT_TEMPLATE,
-        "period": PERIOD,
     },
     "Throttles": {
         "api": DOS_SEARCH_API,
         "endpoint": ENDPOINT_TEMPLATE,
-        "period": PERIOD,
     },
     "Invocations": {
         "api": DOS_SEARCH_API,
         "endpoint": ENDPOINT_TEMPLATE + " & /health",
-        "period": PERIOD,
     },
     "Errors": {
         "api": DOS_SEARCH_API,
         "endpoint": ENDPOINT_TEMPLATE,
-        "period": PERIOD,
     },
 }
 
 # State formatting for Slack messages
 EMOJI_MAP = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
-COLOR_MAP = {"ALARM": "danger", "OK": "good", "INSUFFICIENT_DATA": "warning"}
-ALERT_GROUP_ID = "S09D388PZ7H"
 
 
 def get_slack_webhook_url() -> str:
@@ -124,60 +115,43 @@ def parse_cloudwatch_alarm(message: str) -> Dict[str, Any]:
         return {"raw_message": message}
 
 
-def extract_lambda_name(alarm_name: str) -> str:
-    """
-    Extract Lambda function name from alarm name.
-
-    Args:
-        alarm_name: Full alarm name from CloudWatch
-
-    Returns:
-        str: Extracted Lambda function name
-    """
-    parts = alarm_name.split("-")
-    if len(parts) >= MIN_ALARM_NAME_PARTS and "lambda" in alarm_name.lower():
-        return "-".join(parts[:-2])
-    return alarm_name
-
-
 def get_metric_context(metric_name: str) -> Dict[str, str]:
     """
-    Get API endpoint and period context for a metric.
+    Get API endpoint context for a metric.
 
     Args:
         metric_name: CloudWatch metric name
 
     Returns:
-        Dict: Context with API, endpoint, and period
+        Dict: Context with API and endpoint
     """
     context = METRIC_CONTEXT.get(metric_name, {})
     return {
         "api": context.get("api", DOS_SEARCH_API),
         "endpoint": context.get("endpoint", "Unknown"),
-        "period": context.get("period", "5-minute evaluation window"),
     }
 
 
-def format_timestamp(timestamp_val: int | float | str) -> str:
+def format_timestamp(timestamp_str: str) -> str:
     """
-    Format timestamp for display.
+    Format timestamp for Slack date formatting.
 
     Args:
-        timestamp_val: Timestamp from CloudWatch (various formats)
+        timestamp_str: ISO timestamp string from CloudWatch
 
     Returns:
-        str: Formatted timestamp string
+        str: Slack-formatted date string
     """
-    try:
-        if isinstance(timestamp_val, (int, float)):
-            dt = datetime.fromtimestamp(int(timestamp_val), tz=timezone.utc)
-            return dt.strftime("%B %d, %Y at %I:%M%p %Z")
-        elif isinstance(timestamp_val, str):
-            return timestamp_val
-        else:
-            return "Unknown"
-    except (ValueError, TypeError):
+    if not timestamp_str:
         return "Unknown"
+
+    try:
+        dt = datetime.fromisoformat(timestamp_str)
+        unix_ts = int(dt.timestamp())
+    except (ValueError, AttributeError):
+        return timestamp_str
+    else:
+        return f"<!date^{unix_ts}^{{date_short_pretty}} at {{time}}|{timestamp_str}>"
 
 
 def build_cloudwatch_url(alarm_name: str, region: str = "eu-west-2") -> str:
@@ -241,34 +215,45 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     # Extract key fields from flattened structure
     alarm_name = alarm_data.get("alarmName", "Unknown Alarm")
-    state_value = alarm_data.get("historyData_newState_stateValue", "UNKNOWN")
+    state_value = alarm_data.get(
+        "historyData_publishedMessage_default_NewStateValue", "UNKNOWN"
+    )
     state_reason = alarm_data.get(
-        "historyData_newState_stateReason", "No reason provided"
+        "historyData_publishedMessage_default_NewStateReason", "No reason provided"
     )
     trigger_threshold = alarm_data.get(
-        "historyData_newState_stateReasonData_threshold", "N/A"
+        "historyData_publishedMessage_default_Trigger_Threshold", "N/A"
     )
     trigger_statistic = alarm_data.get(
-        "historyData_newState_stateReasonData_statistic", "N/A"
+        "historyData_publishedMessage_default_Trigger_Statistic", "N/A"
     )
-    timestamp_val = alarm_data.get("timestamp", "Unknown")
+    trigger_metric = alarm_data.get(
+        "historyData_publishedMessage_default_Trigger_MetricName", "Unknown"
+    )
+    trigger_period = alarm_data.get(
+        "historyData_publishedMessage_default_Trigger_Period", 30
+    )
+    trigger_eval_periods = alarm_data.get(
+        "historyData_publishedMessage_default_Trigger_EvaluationPeriods", 1
+    )
+    timestamp_val = alarm_data.get(
+        "historyData_publishedMessage_default_StateChangeTime"
+    )
+    lambda_name = alarm_data.get(
+        "historyData_publishedMessage_default_Trigger_Dimensions_0_value",
+        "Unknown Lambda",
+    )
+    aws_region = alarm_data.get(
+        "historyData_publishedMessage_default_Region", "eu-west-2"
+    )
 
     logger.info(f"Extracted state_value: {state_value}")
 
-    # Extract metric name from alarm name
-    trigger_metric = "Unknown"
-    if "duration" in alarm_name.lower():
-        trigger_metric = "Duration"
-    elif "error" in alarm_name.lower():
-        trigger_metric = "Errors"
-    elif "throttle" in alarm_name.lower():
-        trigger_metric = "Throttles"
-    elif "invocation" in alarm_name.lower():
-        trigger_metric = "Invocations"
-    trigger_metric = alarm_data.get("Trigger_MetricName", trigger_metric)
-
     # Get context for this metric
     context = get_metric_context(trigger_metric)
+
+    # Build period description from trigger data
+    period_desc = f"{trigger_period}s evaluation over {trigger_eval_periods} period(s)"
 
     # Format timestamp
     timestamp = format_timestamp(timestamp_val)
@@ -278,11 +263,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
         state_value.upper() if isinstance(state_value, str) else state_value, "📊"
     )
 
-    # Extract lambda name for context
-    lambda_name = extract_lambda_name(alarm_name)
-
     # Build CloudWatch console URL
-    aws_region = alarm_data.get("Region", "eu-west-2")
     cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
 
     # Build action buttons
@@ -315,7 +296,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
             {
                 "type": "section",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"*Period:*\n{context['period']}"},
+                    {"type": "mrkdwn", "text": f"*Period:*\n{period_desc}"},
                     {"type": "mrkdwn", "text": f"*Time:*\n{timestamp}"},
                 ],
             },
@@ -325,27 +306,11 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
             },
             {"type": "divider"},
             {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "View Alarm"},
-                        "url": cloudwatch_url,
-                        "action_id": "view_alarm",
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Lambda Logs"},
-                        "url": lambda_logs_url,
-                        "action_id": "view_logs",
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Lambda Metrics"},
-                        "url": lambda_metrics_url,
-                        "action_id": "view_metrics",
-                    },
-                ],
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"<{cloudwatch_url}|🔗 View Alarm> | <{lambda_logs_url}|📋 Lambda Logs> | <{lambda_metrics_url}|📊 Lambda Metrics>",
+                },
             },
             {
                 "type": "context",
