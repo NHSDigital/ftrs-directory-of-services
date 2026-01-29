@@ -160,20 +160,18 @@ def get_metric_context(metric_name: str) -> Dict[str, str]:
 
 def format_timestamp(timestamp_val: int | float | str) -> str:
     """
-    Format timestamp for Slack date formatting.
+    Format timestamp for display.
 
     Args:
         timestamp_val: Timestamp from CloudWatch (various formats)
 
     Returns:
-        str: Slack-formatted date string or fallback
+        str: Formatted timestamp string
     """
     try:
         if isinstance(timestamp_val, (int, float)):
-            ts = int(timestamp_val)
-            dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-            fallback = dt.strftime("%B %d, %Y at %I:%M%p %Z")
-            return f"<!date^{ts}^{{date_short_pretty}} at {{time}}|{fallback}>"
+            dt = datetime.fromtimestamp(int(timestamp_val), tz=timezone.utc)
+            return dt.strftime("%B %d, %Y at %I:%M%p %Z")
         elif isinstance(timestamp_val, str):
             return timestamp_val
         else:
@@ -241,14 +239,33 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dict: Slack message payload with blocks and attachments
     """
-    # Extract key fields
-    alarm_name = alarm_data.get("AlarmName", "Unknown Alarm")
-    state_value = alarm_data.get("StateValue", "UNKNOWN")
-    state_reason = alarm_data.get("StateReason", "No reason provided")
-    trigger_metric = alarm_data.get("Trigger_MetricName", "Unknown")
-    trigger_threshold = alarm_data.get("Trigger_Threshold", "N/A")
-    trigger_statistic = alarm_data.get("Trigger_Statistic", "N/A")
-    timestamp_val = alarm_data.get("StateUpdatedTimestamp", "Unknown")
+    # Extract key fields from flattened structure
+    alarm_name = alarm_data.get("alarmName", "Unknown Alarm")
+    state_value = alarm_data.get("historyData_newState_stateValue", "UNKNOWN")
+    state_reason = alarm_data.get(
+        "historyData_newState_stateReason", "No reason provided"
+    )
+    trigger_threshold = alarm_data.get(
+        "historyData_newState_stateReasonData_threshold", "N/A"
+    )
+    trigger_statistic = alarm_data.get(
+        "historyData_newState_stateReasonData_statistic", "N/A"
+    )
+    timestamp_val = alarm_data.get("timestamp", "Unknown")
+
+    logger.info(f"Extracted state_value: {state_value}")
+
+    # Extract metric name from alarm name
+    trigger_metric = "Unknown"
+    if "duration" in alarm_name.lower():
+        trigger_metric = "Duration"
+    elif "error" in alarm_name.lower():
+        trigger_metric = "Errors"
+    elif "throttle" in alarm_name.lower():
+        trigger_metric = "Throttles"
+    elif "invocation" in alarm_name.lower():
+        trigger_metric = "Invocations"
+    trigger_metric = alarm_data.get("Trigger_MetricName", trigger_metric)
 
     # Get context for this metric
     context = get_metric_context(trigger_metric)
@@ -256,8 +273,10 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     # Format timestamp
     timestamp = format_timestamp(timestamp_val)
 
-    # Determine emoji based on state
-    emoji = EMOJI_MAP.get(state_value, "📊")
+    # Determine emoji based on state (handle both uppercase and as-is)
+    emoji = EMOJI_MAP.get(
+        state_value.upper() if isinstance(state_value, str) else state_value, "📊"
+    )
 
     # Extract lambda name for context
     lambda_name = extract_lambda_name(alarm_name)
@@ -290,7 +309,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
                     },
                     {"type": "mrkdwn", "text": f"*Threshold:*\n{trigger_threshold}"},
                     {"type": "mrkdwn", "text": f"*API:*\n{context['api']}"},
-                    {"type": "mrkdwn", "text": f"*Endpoint:*\n{context['endpoint']}"},
+                    {"type": "mrkdwn", "text": f"*Endpoint:*\n`{context['endpoint']}`"},
                 ],
             },
             {
@@ -312,17 +331,19 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
                         "type": "button",
                         "text": {"type": "plain_text", "text": "View Alarm"},
                         "url": cloudwatch_url,
-                        "style": "danger" if state_value == "ALARM" else "primary",
+                        "action_id": "view_alarm",
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "Lambda Logs"},
                         "url": lambda_logs_url,
+                        "action_id": "view_logs",
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "Lambda Metrics"},
                         "url": lambda_metrics_url,
+                        "action_id": "view_metrics",
                     },
                 ],
             },
