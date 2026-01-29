@@ -247,39 +247,18 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     logger.info(f"Available flattened keys: {list(alarm_data.keys())}")
 
     # Extract key fields from flattened structure
-    alarm_name = alarm_data.get("alarmName", "Unknown Alarm")
-    alarm_arn = alarm_data.get("historyData_publishedMessage_default_AlarmArn", "")
-    state_value = alarm_data.get(
-        "historyData_publishedMessage_default_NewStateValue", "UNKNOWN"
-    )
-    state_reason = alarm_data.get(
-        "historyData_publishedMessage_default_NewStateReason", "No reason provided"
-    )
-    trigger_threshold = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_Threshold", "N/A"
-    )
-    trigger_statistic = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_Statistic", "N/A"
-    )
-    trigger_metric = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_MetricName", "Unknown"
-    )
-    trigger_period = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_Period", 30
-    )
-    trigger_eval_periods = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_EvaluationPeriods", 1
-    )
-    timestamp_val = alarm_data.get(
-        "historyData_publishedMessage_default_StateChangeTime"
-    )
-    lambda_name = alarm_data.get(
-        "historyData_publishedMessage_default_Trigger_Dimensions_0_value",
-        "Unknown Lambda",
-    )
-    region_display = alarm_data.get(
-        "historyData_publishedMessage_default_Region", "EU (London)"
-    )
+    alarm_name = alarm_data.get("AlarmName", "Unknown Alarm")
+    alarm_arn = alarm_data.get("AlarmArn", "")
+    state_value = alarm_data.get("NewStateValue", "UNKNOWN")
+    state_reason = alarm_data.get("NewStateReason", "No reason provided")
+    trigger_threshold = alarm_data.get("Trigger_Threshold", "N/A")
+    trigger_statistic = alarm_data.get("Trigger_Statistic", "N/A")
+    trigger_metric = alarm_data.get("Trigger_MetricName", "Unknown")
+    trigger_period = alarm_data.get("Trigger_Period", 30)
+    trigger_eval_periods = alarm_data.get("Trigger_EvaluationPeriods", 1)
+    timestamp_val = alarm_data.get("StateChangeTime")
+    lambda_name = alarm_data.get("Trigger_Dimensions_0_value", "Unknown Lambda")
+    region_display = alarm_data.get("Region", "EU (London)")
     aws_region = extract_region_code(alarm_arn)
 
     logger.info(
