@@ -55,29 +55,59 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}
+
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - prepare-toggle-artifacts
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}    
+
   build-services:
     name: "Build ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+      - check-stack-toggles
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: "python"
             build_type: "package"
+            build_enabled: true
           - name: "crud-apis"
             build_type: "service"
+            build_enabled: true
           - name: "data-migration"
             build_type: "service"
+            build_enabled: true
           - name: "read-only-viewer"
             build_type: "service"
+            build_enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
           - name: "etl-ods"
             build_type: "service"
+            build_enabled: true
           - name: "dos-search"
             build_type: "service"
+            build_enabled: true
           - name: "dos-ui"
             build_type: "service"
+            build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
     uses: ./.github/workflows/build-project.yaml
     with:
       name: ${{ matrix.name }}
@@ -89,6 +119,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: app
       ref: ${{ inputs.ref }}
+      build_enabled: ${{ matrix.build_enabled }}
     secrets: inherit
 
   build-sandbox-containers:
@@ -121,16 +152,20 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
-  prepare-toggle-artifacts:
-    name: "Prepare Toggle artifacts"
+  deploy-toggle-infrastructure:
+    name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
-      - perform-code-analysis
-    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+      - build-services
+      - prepare-toggle-artifacts
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
+      workflow_timeout: 30
+      stacks: "['app_config']"
+    secrets: inherit
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -144,6 +179,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
     secrets: inherit
 
   deploy-proxy-to-apim:
@@ -221,17 +257,6 @@ jobs:
       type: app
       ref: ${{ inputs.ref }}
     secrets: inherit
-
-  check-stack-toggles:
-    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/check-stack-toggles.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      ref: ${{ inputs.ref }}
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
