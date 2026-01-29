@@ -20,7 +20,7 @@ def get_log_group_name(lambda_name: str) -> str:
     Returns:
         str: Log group name
     """
-    project = getenv("PROJECT_NAME", "")
+    project = getenv("PROJECT_NAME", "ftrs-dos")
     environment = getenv("ENVIRONMENT")
     workspace = getenv("WORKSPACE", "")
     workspace_suffix = f"-{workspace}" if workspace else ""
