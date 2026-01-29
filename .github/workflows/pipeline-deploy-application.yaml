@@ -89,17 +89,22 @@ jobs:
         include:
           - name: "python"
             build_type: "package"
+            build_enabled: true
           - name: "crud-apis"
             build_type: "service"
+            build_enabled: true
           - name: "data-migration"
             build_type: "service"
+            build_enabled: true
           - name: "read-only-viewer"
             build_type: "service"
             build_enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true' }}
           - name: "etl-ods"
             build_type: "service"
+            build_enabled: true
           - name: "dos-search"
             build_type: "service"
+            build_enabled: true
           - name: "dos-ui"
             build_type: "service"
             build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled == 'true' }}
@@ -114,7 +119,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: app
       ref: ${{ inputs.ref }}
-      build_enabled: ${{ matrix.build_enabled != false }}
+      build_enabled: ${{ matrix.build_enabled }}
     secrets: inherit
 
   build-sandbox-containers:
