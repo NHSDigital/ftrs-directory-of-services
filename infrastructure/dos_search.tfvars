@@ -13,3 +13,14 @@ lambda_memory_size = 512
 # API Gateway throttling defaults (overridable per-environment)
 api_gateway_throttling_rate_limit  = 200
 api_gateway_throttling_burst_limit = 450
+
+waf_hostile_country_codes = [
+  "BY",
+  "CN",
+  "HK",
+  "IR",
+  "MO",
+  "RU",
+  "SY",
+  "KP",
+]
