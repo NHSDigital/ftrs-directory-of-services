@@ -53,7 +53,7 @@ resource "aws_s3_bucket_policy" "enforce_kms_truststore" {
         Resource  = "${module.s3.s3_bucket_arn}/*",
         Condition = {
           ArnNotEquals = {
-            "3:x-amz-server-side-encryption-aws-kms-key-id" : var.s3_encryption_key_arn # gitleaks:allow
+            "s3:x-amz-server-side-encryption-aws-kms-key-id" : var.s3_encryption_key_arn # gitleaks:allow
           }
         }
       },
