@@ -12,7 +12,6 @@ from ftrs_data_layer.domain.organisation import LegalDates
 
 VALID_PRIMARY_TYPE_CODES = {
     OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
-    OrganisationTypeCode.PHARMACY_ROLE_CODE,
 }
 
 

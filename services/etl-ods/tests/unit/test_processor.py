@@ -244,6 +244,7 @@ def test_processor_processing_organisations_successful(
     assert mock_responses.ods_api.last_request.qs == {
         "_lastupdated": [date],
         "_count": ["1000"],
+        "rolecode": ["ro177", "ro76"],
     }
     assert requests_mock.request_history[0] == mock_responses.ods_api.last_request
 
@@ -456,7 +457,11 @@ def test_processor_continue_on_validation_failure(
     assert requests_mock.call_count == expected_call_count
     # Assert ODS Terminology API Call
     assert ods_api_mock.called_once
-    assert ods_api_mock.last_request.qs == {"_lastupdated": [date], "_count": ["1000"]}
+    assert ods_api_mock.last_request.qs == {
+        "_lastupdated": [date],
+        "_count": ["1000"],
+        "rolecode": ["ro177", "ro76"],
+    }
     assert requests_mock.request_history[0] == ods_api_mock.last_request
 
     # Assert APIM API Call for ABC123 UUID (fails)

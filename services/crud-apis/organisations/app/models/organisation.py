@@ -46,7 +46,6 @@ ACTIVE_EMPTY_ERROR = "Active field is required and cannot be null."
 # Valid primary types (only these can be primary)
 VALID_PRIMARY_TYPE_CODES = {
     OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
-    OrganisationTypeCode.PHARMACY_ROLE_CODE,
 }
 
 
@@ -55,11 +54,8 @@ PERMITTED_ROLE_COMBINATIONS = [
         "primary": OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE,
         "non_primary": [
             OrganisationTypeCode.GP_PRACTICE_ROLE_CODE,
-            OrganisationTypeCode.OUT_OF_HOURS_ROLE_CODE,
-            OrganisationTypeCode.WALK_IN_CENTRE_ROLE_CODE,
         ],
     },
-    {"primary": OrganisationTypeCode.PHARMACY_ROLE_CODE, "non_primary": []},
 ]
 
 
@@ -193,7 +189,7 @@ class OrganisationUpdatePayload(BaseModel):
     def validate_extensions(self) -> "OrganisationUpdatePayload":
         """Validate that extensions follow the required structure for various extensions."""
         if self.extension:
-            role_codes: list[OrganisationTypeCode] = []
+            role_codes: list[OrganisationTypeCode | str] = []
 
             for ext in self.extension:
                 extracted_codes = _validate_organisation_extension(ext)
@@ -242,7 +238,9 @@ def _raise_validation_error(message: str) -> None:
     raise OperationOutcomeException(outcome)
 
 
-def _validate_organisation_extension(ext: Extension) -> list[OrganisationTypeCode]:
+def _validate_organisation_extension(
+    ext: Extension,
+) -> list[OrganisationTypeCode | str]:
     """
     Validate OrganisationRole extension contains required roleCode and TypedPeriod extensions.
     Returns list of role codes found in this extension.
@@ -293,7 +291,7 @@ def _validate_organisation_extension(ext: Extension) -> list[OrganisationTypeCod
 
 def _validate_role_code_extensions_present(
     role_code_extensions: list[Extension],
-) -> list[OrganisationTypeCode]:
+) -> list[OrganisationTypeCode | str]:
     """
     Validate role code extensions are present and return the validated codes.
     """
@@ -302,7 +300,7 @@ def _validate_role_code_extensions_present(
             "OrganisationRole extension must contain at least one roleCode extension"
         )
 
-    role_codes: list[OrganisationTypeCode] = []
+    role_codes: list[OrganisationTypeCode | str] = []
     for ext in role_code_extensions:
         role_code = _validate_role_code(ext)
         role_codes.append(role_code)
@@ -310,7 +308,7 @@ def _validate_role_code_extensions_present(
     return role_codes
 
 
-def _validate_role_code(ext: Extension) -> OrganisationTypeCode:
+def _validate_role_code(ext: Extension) -> OrganisationTypeCode | str:
     """
     Validate roleCode extension contains valid OrganisationTypeCode.
     Returns the validated OrganisationTypeCode.
@@ -328,12 +326,13 @@ def _validate_role_code(ext: Extension) -> OrganisationTypeCode:
     if not role_code:
         _raise_validation_error("roleCode coding must have a code value")
 
+    if not role_code.startswith("RO") or not role_code[2:].isdigit():
+        _raise_validation_error(f"Invalid role code format: '{role_code}'")
+
     try:
         return OrganisationTypeCode(role_code)
     except ValueError:
-        _raise_validation_error(
-            f"Invalid role code: '{role_code}'. Incorrect enum value"
-        )
+        return role_code
 
 
 def _validate_typed_period_structure(ext: Extension) -> tuple[Extension, Extension]:
@@ -406,7 +405,7 @@ def _validate_typed_period_extension(ext: Extension) -> bool:
     return is_legal
 
 
-def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
+def _validate_type_combination(codes: list[OrganisationTypeCode | str]) -> None:
     """
     Validate that a primary type and non-primary roles combination is permitted.
 
@@ -424,15 +423,24 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
 
     # Validate primary role constraints
     if not primary_roles:
-        _raise_validation_error("Primary role code must be provided")
+        valid_primary_codes = ", ".join(code.value for code in VALID_PRIMARY_TYPE_CODES)
+        _raise_validation_error(
+            f"Valid primary role code ({valid_primary_codes}) must be provided"
+        )
 
     if len(primary_roles) > 1:
         _raise_validation_error("Only one primary role is allowed per organisation")
 
     primary_role_code = primary_roles[0]
 
+    # Handle both enum and str types
+    non_primary_values = [
+        code.value if isinstance(code, OrganisationTypeCode) else code
+        for code in non_primary_role_codes
+    ]
+
     # Check for duplicate non-primary roles using set comparison
-    if len(non_primary_role_codes) != len(set(non_primary_role_codes)):
+    if len(non_primary_role_codes) != len(set(non_primary_values)):
         _raise_validation_error("Duplicate non-primary roles are not allowed")
 
     # Find permitted combination (cached lookup)
@@ -450,22 +458,23 @@ def _validate_type_combination(codes: list[OrganisationTypeCode]) -> None:
             f"Invalid primary role code: '{primary_role_code.value}'"
         )
 
-    allowed_non_primary = set(permitted_combination["non_primary"])
-
     # Validate non-primary role requirements
-    if allowed_non_primary:
-        if not non_primary_role_codes:
-            _raise_validation_error(
-                f"{primary_role_code.value} must have at least one non-primary role"
-            )
-
-        # Check for invalid roles using set difference
-        invalid_roles = set(non_primary_role_codes) - allowed_non_primary
-        if invalid_roles:
-            _raise_validation_error(
-                f"Non-primary role '{next(iter(invalid_roles)).value}' is not permitted for primary type '{primary_role_code.value}'"
-            )
-    elif non_primary_role_codes:
+    if not non_primary_role_codes:
         _raise_validation_error(
-            f"{primary_role_code.value} cannot have non-primary roles"
+            f"{primary_role_code.value} must have at least one non-primary role"
+        )
+
+    # Check that all required non-primary roles are present
+    required_non_primary = set(permitted_combination["non_primary"])
+
+    provided_non_primary_values = {
+        code.value if isinstance(code, OrganisationTypeCode) else code
+        for code in non_primary_role_codes
+    }
+    required_non_primary_values = {code.value for code in required_non_primary}
+
+    missing_required_roles = required_non_primary_values - provided_non_primary_values
+    if missing_required_roles:
+        _raise_validation_error(
+            f"{primary_role_code.value} requires the following non-primary roles: {', '.join(sorted(missing_required_roles))}"
         )

@@ -16,8 +16,8 @@
                         "coding": [
                             {
                                 "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                "code": "RO182",
-                                "display": "Pharmacy"
+                                "code": "RO177",
+                                "display": "PRESCRIBING COST CENTRE"
                             }
                         ]
                     }
@@ -36,8 +36,51 @@
                         {
                             "url": "period",
                             "valuePeriod": {
-                                "start": "2020-01-15",
-                                "end": "2025-12-31"
+                                "start": "2020-01-15"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "url": "active",
+                    "valueBoolean": true
+                }
+            ]
+        },
+        {
+            "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+            "extension": [
+                {
+                    "url": "instanceID",
+                    "valueInteger": 12346
+                },
+                {
+                    "url": "roleCode",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                                "code": "RO76",
+                                "display": "GP PRACTICE"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
+                    "extension": [
+                        {
+                            "url": "dateType",
+                            "valueCoding": {
+                                "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
+                                "code": "Legal",
+                                "display": "Legal"
+                            }
+                        },
+                        {
+                            "url": "period",
+                            "valuePeriod": {
+                                "start": "2020-01-15"
                             }
                         }
                     ]
