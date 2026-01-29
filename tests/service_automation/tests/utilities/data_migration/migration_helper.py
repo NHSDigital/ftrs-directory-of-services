@@ -1,27 +1,25 @@
 """Helper utilities for running data migration in tests."""
 
-from datetime import datetime
 import os
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Callable, Dict, Generator, Optional
 from unittest.mock import MagicMock, patch
 from urllib.parse import unquote, urlparse
 
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
+from common.config import DatabaseConfig
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
-
 from reference_data_load.application import (
     ReferenceDataLoadApplication,
     ReferenceDataLoadConfig,
     ReferenceDataLoadEvent,
 )
 from service_migration.application import DataMigrationApplication, DMSEvent
-
 from service_migration.config import DataMigrationConfig
 from service_migration.processor import ServiceMigrationMetrics
-from common.config import DatabaseConfig
 
 # Constants
 TEST_AWS_REGION = "eu-west-2"
