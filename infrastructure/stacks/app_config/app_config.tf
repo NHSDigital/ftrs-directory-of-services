@@ -16,8 +16,6 @@ module "app_config" {
   }
 }
 
-
-
 output "appconfig_read_policy_arn" {
   value = module.app_config.appconfig_read_policy_arn
 }
@@ -30,44 +28,13 @@ output "environment_ids" {
   value = module.app_config.environment_ids
 }
 
-output "configuration_profile_id" {
-  value = module.app_config.configuration_profile_id
-}
-
-output "appconfig_extension_layer_arn" {
-  value = module.app_config.appconfig_extension_layer_arn
-}
-
-data "aws_kms_key" "ssm_kms_key" {
-  key_id = local.kms_aliases.ssm
+output "configuration_profile_configuration_profile_id" {
+  value = module.app_config.configuration_profile_configuration_profile_id
 }
 
 # SSM Parameters for cross-stack access
 resource "aws_ssm_parameter" "appconfig_application_id" {
-  name   = "/${var.project}/${var.environment}/appconfig/application_id"
-  type   = "SecureString"
-  value  = module.app_config.application_id
-  key_id = data.aws_kms_key.ssm_kms_key.arn
+  name  = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
+  type  = "String"
+  value = module.app_config.application_id
 }
-
-resource "aws_ssm_parameter" "appconfig_environment_id" {
-  name   = "/${var.project}/${var.environment}/appconfig/environment_id"
-  type   = "SecureString"
-  value  = module.app_config.environment_ids["environment"].environment_id
-  key_id = data.aws_kms_key.ssm_kms_key.arn
-}
-
-resource "aws_ssm_parameter" "appconfig_configuration_profile_id" {
-  name   = "/${var.project}/${var.environment}/appconfig/configuration_profile_id"
-  type   = "SecureString"
-  value  = module.app_config.configuration_profile_id
-  key_id = data.aws_kms_key.ssm_kms_key.arn
-}
-
-resource "aws_ssm_parameter" "appconfig_extension_layer_arn" {
-  name   = "/${var.project}/${var.environment}/appconfig/extension_layer_arn"
-  type   = "SecureString"
-  value  = module.app_config.appconfig_extension_layer_arn
-  key_id = data.aws_kms_key.ssm_kms_key.arn
-}
-

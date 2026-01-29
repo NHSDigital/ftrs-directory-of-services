@@ -47,6 +47,16 @@ on:
         required: false
         default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config']"
         type: string
+      skip_manual_approval:
+        description: "Whether to skip the manual approval step"
+        required: false
+        default: "false"
+        type: string
+      skip_manual_approval_environments:
+        description: "A comma-separated list of environments where manual approval should be skipped"
+        required: false
+        default: "dev,test,int"
+        type: string
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -77,7 +87,7 @@ jobs:
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
-    if: ${{ needs.plan-application-infrastructure.outputs.plan_result == 'true' }}
+    if: ${{ needs.plan-application-infrastructure.outputs.plan_result == 'true' && inputs.skip_manual_approval != 'true' && !contains(split(',', inputs.skip_manual_approval_environments), inputs.environment) }}
     needs:
       - plan-application-infrastructure
     runs-on: ubuntu-latest

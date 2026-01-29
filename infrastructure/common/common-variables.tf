@@ -196,3 +196,13 @@ variable "read_only_viewer_stack_enabled" {
   type        = bool
   default     = true
 }
+
+variable "appconfig_lambda_extension_aws_account_id" {
+  description = "AWS Account ID that hosts the AppConfig Lambda Extension Layer"
+  type        = string
+}
+
+variable "appconfig_lambda_extension_layer_arn" {
+  description = "ARN of the AWS AppConfig Extension Lambda layer"
+  type        = string
+}

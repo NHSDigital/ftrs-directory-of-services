@@ -39,13 +39,13 @@ module "processor_lambda" {
     data.aws_iam_policy_document.dynamodb_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.lambda_kms_access.json,
-    data.aws_iam_policy_document.appconfig_access_policy.json
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.data_layer.arn],
-    [data.aws_ssm_parameter.appconfig_extension_layer_arn.value]
+    [data.aws_appconfig_application.appconfig_application.arn]
   )
 
   environment_variables = {
@@ -53,8 +53,8 @@ module "processor_lambda" {
     "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"                       = var.project
     "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
-    "APPCONFIG_ENVIRONMENT_ID"           = data.aws_ssm_parameter.appconfig_environment_id.value
-    "APPCONFIG_CONFIGURATION_PROFILE_ID" = data.aws_ssm_parameter.appconfig_configuration_profile_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -112,13 +112,13 @@ module "queue_populator_lambda" {
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.lambda_kms_access.json,
-    data.aws_iam_policy_document.appconfig_access_policy.json
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.data_layer.arn],
-    [data.aws_ssm_parameter.appconfig_extension_layer_arn.value]
+    [data.aws_appconfig_application.appconfig_application.arn]
   )
 
   environment_variables = {
@@ -127,8 +127,8 @@ module "queue_populator_lambda" {
     "SQS_QUEUE_URL"                      = aws_sqs_queue.dms_event_queue.url
     "PROJECT_NAME"                       = var.project
     "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
-    "APPCONFIG_ENVIRONMENT_ID"           = data.aws_ssm_parameter.appconfig_environment_id.value
-    "APPCONFIG_CONFIGURATION_PROFILE_ID" = data.aws_ssm_parameter.appconfig_configuration_profile_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -237,13 +237,13 @@ module "reference_data_lambda" {
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
-    data.aws_iam_policy_document.appconfig_access_policy.json
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
     [aws_lambda_layer_version.data_layer.arn],
-    [data.aws_ssm_parameter.appconfig_extension_layer_arn.value]
+    [data.aws_appconfig_application.appconfig_application.arn]
   )
 
   environment_variables = {
@@ -251,8 +251,8 @@ module "reference_data_lambda" {
     "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"                       = var.project
     "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
-    "APPCONFIG_ENVIRONMENT_ID"           = data.aws_ssm_parameter.appconfig_environment_id.value
-    "APPCONFIG_CONFIGURATION_PROFILE_ID" = data.aws_ssm_parameter.appconfig_configuration_profile_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix

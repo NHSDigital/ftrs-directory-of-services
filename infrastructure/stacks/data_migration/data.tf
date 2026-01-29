@@ -253,56 +253,21 @@ data "aws_kms_key" "dms_kms_alias" {
 
 # AppConfig SSM Parameters
 data "aws_ssm_parameter" "appconfig_application_id" {
-  name = "/${var.project}/${var.environment}/appconfig/application_id"
+  name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
 }
 
-data "aws_ssm_parameter" "appconfig_environment_id" {
-  name = "/${var.project}/${var.environment}/appconfig/environment_id"
+data "aws_appconfig_application" "appconfig_application" {
+  id = data.aws_ssm_parameter.appconfig_application_id.value
 }
 
-data "aws_ssm_parameter" "appconfig_configuration_profile_id" {
-  name = "/${var.project}/${var.environment}/appconfig/configuration_profile_id"
+data "aws_appconfig_configuration_profiles" "appconfig_configuration_profiles" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
 }
 
-data "aws_ssm_parameter" "appconfig_extension_layer_arn" {
-  name = "/${var.project}/${var.environment}/appconfig/extension_layer_arn"
+data "aws_appconfig_environments" "appconfig_environments" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
 }
 
-data "aws_kms_key" "ssm_kms_key" {
-  key_id = local.kms_aliases.ssm
+data "aws_iam_policy" "appconfig_access_policy" {
+  name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
 }
-
-data "aws_iam_policy_document" "appconfig_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "appconfig:GetLatestConfiguration",
-      "appconfig:StartConfigurationSession"
-    ]
-    resources = [
-      "arn:aws:appconfig:${var.aws_region}:${data.aws_caller_identity.current.account_id}:application/${data.aws_ssm_parameter.appconfig_application_id.value}/environment/*/configuration/*"
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters"
-    ]
-    resources = [
-      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project}/${var.environment}/appconfig/*"
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt"
-    ]
-    resources = [
-      data.aws_kms_key.ssm_kms_key.arn
-    ]
-  }
-}
-

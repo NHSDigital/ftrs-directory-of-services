@@ -165,6 +165,7 @@ jobs:
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
       stacks: "['app_config']"
+      skip_manual_approval: "true"
     secrets: inherit
 
   deploy-application-infrastructure:
