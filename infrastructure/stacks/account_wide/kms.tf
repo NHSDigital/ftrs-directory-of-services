@@ -17,6 +17,18 @@ module "sqs_encryption_key" {
         "kms:GenerateDataKey"
       ]
       Resource = "*"
+    },
+    {
+      Sid    = "AllowSNSAccess"
+      Effect = "Allow"
+      Principal = {
+        Service = "sns.amazonaws.com"
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
+      ]
+      Resource = "*"
     }
   ]
 }

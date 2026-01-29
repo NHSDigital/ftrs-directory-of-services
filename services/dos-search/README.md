@@ -1,29 +1,38 @@
-# GP Search Service
+# DoS Search Service
 
-This service provides FHIR-compliant API endpoints for healthcare system integrations, specifically designed to search for GP (General Practitioner) endpoints by ODS code.
+This service provides FHIR-compliant API endpoints for healthcare system integrations, specifically designed to search for Directory of Services (DoS) endpoints by ODS code.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-  - [Initial Setup](#initial-setup)
-  - [Environment Configuration](#environment-configuration)
-- [Development](#development)
-  - [Code Structure](#code-structure)
-  - [Testing](#testing)
-  - [Linting and Formatting](#linting-and-formatting)
-  - [Pre-commit Hooks](#pre-commit-hooks)
-- [Deployment](#deployment)
-- [Usage](#usage)
-  - [Lambda Function Invocation](#lambda-function-invocation)
-  - [Local Testing](#local-testing)
-- [Contributing](#contributing)
+- [DoS Search Service](#dos-search-service)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Architecture](#architecture)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started](#getting-started)
+    - [Initial Setup](#initial-setup)
+    - [Environment Configuration](#environment-configuration)
+  - [Development](#development)
+    - [Code Structure](#code-structure)
+    - [Testing](#testing)
+    - [Linting and Formatting](#linting-and-formatting)
+    - [Pre-commit Hooks](#pre-commit-hooks)
+  - [Deployment](#deployment)
+  - [Usage](#usage)
+    - [Lambda Function Invocation](#lambda-function-invocation)
+    - [Local Testing](#local-testing)
+  - [Contributing](#contributing)
+  - [Dependency Management](#dependency-management)
+  - [Monitoring and Alerting](#monitoring-and-alerting)
+    - [Alarm Configuration](#alarm-configuration)
+    - [Slack Notifications](#slack-notifications)
+    - [Architecture Flow](#architecture-flow)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
 
 ## Overview
 
-The GP Search service retrieves healthcare organization endpoints from a DynamoDB database based on ODS (Organization Data Service) codes and returns them in a FHIR-compliant Bundle format. This allows healthcare systems to discover electronic communication endpoints for specific organizations.
+The DoS Search service retrieves healthcare organization endpoints from a DynamoDB database based on ODS (Organization Data Service) codes and returns them in a FHIR-compliant Bundle format. This allows healthcare systems to discover electronic communication endpoints for specific organizations.
 
 Key capabilities:
 
@@ -102,6 +111,13 @@ The service uses:
 │   ├── unit/                           # Unit tests
 │   ├── conftest.py                     # Test configuration and fixtures
 │   └── manual_test.py                  # Script for local testing
+├── infrastructure/stacks/dos_search/   # Infrastructure as Code
+│   ├── alarms/
+│   │   └── lambda-config.json          # Alarm metric definitions
+│   ├── alarms.tf                       # SNS topic for alarms
+│   ├── cloudwatch_alarms.tf            # CloudWatch alarm resources
+│   ├── slack_notifications.tf          # Slack notification Lambda
+│   └── variables.tf                    # Terraform variables (alarm thresholds)
 └── ...                                 # Configuration files
 ```
 
@@ -213,18 +229,25 @@ The service includes CloudWatch alarms and Slack notifications for operational m
 
 ### Alarm Configuration
 
-Alarm thresholds are centrally managed via AWS AppConfig and defined in `toggles/alarm-thresholds.json`. This enables operational teams to update thresholds without code changes:
+Alarms are configured using Terraform variables and JSON configuration files:
 
-- **Search Lambda**: Duration, concurrent executions, errors, and invocation rate
-- **Health Check Lambda**: Same metrics as search Lambda
-- **Shared Configuration**: Evaluation periods and metric collection intervals
+- **Alarm Definitions**: [`alarms/lambda-config.json`](../../infrastructure/stacks/dos_search/alarms/lambda-config.json) defines which metrics to monitor and alarm conditions
+- **Threshold Values**: Terraform variables in [`variables.tf`](../../infrastructure/stacks/dos_search/variables.tf) set the threshold values for each alarm (`Line 136` onwards)
+- **Alarm Creation**: [`cloudwatch_alarms.tf`](../../infrastructure/stacks/dos_search/cloudwatch_alarms.tf) creates CloudWatch alarms by combining the configuration and thresholds
+
+Monitored metrics for both Search and Health Check Lambdas:
+- **Duration**: Average execution time
+- **Concurrent Executions**: Number of simultaneous executions
+- **Throttles**: Lambda throttling events
+- **Errors**: Error count over evaluation period
+- **Invocations**: Invocation rate (alerts if too low)
 
 ### Slack Notifications
 
 CloudWatch alarms are automatically sent to Slack via:
 
-- **Lambda Function**: `slack_notifications.tf` defines a Lambda that flattens alarm JSON and sends to Slack
-- **SNS Integration**: Alarms publish to SNS, which triggers the Slack notification Lambda
+- **SNS Topic**: [`alarms.tf`](../../infrastructure/stacks/dos_search/alarms.tf) creates the SNS topic for alarm notifications
+- **Lambda Function**: [`slack_notifications.tf`](../../infrastructure/stacks/dos_search/slack_notifications.tf) defines a Lambda that flattens alarm JSON and sends to Slack
 - **Webhook**: Slack webhook URL is managed via Terraform variables (not in code)
 
 ### Architecture Flow
@@ -232,7 +255,7 @@ CloudWatch alarms are automatically sent to Slack via:
 1. CloudWatch detects metric threshold breach
 2. Alarm publishes to SNS topic
 3. SNS triggers Slack notification Lambda
-4. Lambda flattens alarm data and sends to Slack webhook
+4. Lambda flattens alarm data and sends to `#ftrs-dos-search-alerts` slack channel.
 
 ## Troubleshooting
 
