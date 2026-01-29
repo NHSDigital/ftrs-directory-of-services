@@ -19,7 +19,7 @@ Usage:
         pass
 """
 
-from ftrs_common.feature_flags.feature_flags_config import (
+from ftrs_common.feature_flags.feature_flags_client import (
     FeatureFlagError,
     FeatureFlagsClient,
     get_feature_flags,
@@ -27,3 +27,9 @@ from ftrs_common.feature_flags.feature_flags_config import (
 )
 
 __all__ = ["FeatureFlagError", "FeatureFlagsClient", "get_feature_flags", "is_enabled"]
+
+from ftrs_common.feature_flags.feature_flag_config import (
+    FeatureFlag,
+)
+
+__all__ += ["FeatureFlag"]

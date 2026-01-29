@@ -5,7 +5,7 @@ import pytest
 from aws_lambda_powertools.utilities.feature_flags.exceptions import (
     ConfigurationStoreError,
 )
-from ftrs_common.feature_flags.feature_flags_config import (
+from ftrs_common.feature_flags.feature_flags_client import (
     CACHE_TTL_SECONDS,
     FeatureFlagError,
     FeatureFlagsClient,
@@ -32,7 +32,7 @@ def reset_singleton() -> Generator[None, None, None]:
 @pytest.fixture
 def mock_settings(mocker: MockerFixture) -> MagicMock:
     """Mock Settings with valid AppConfig configuration."""
-    mock = mocker.patch("ftrs_common.feature_flags.feature_flags_config.Settings")
+    mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
     mock.return_value.appconfig_application_id = "test-app-id"
     mock.return_value.appconfig_environment_id = "test-env-id"
     mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
@@ -42,19 +42,19 @@ def mock_settings(mocker: MockerFixture) -> MagicMock:
 @pytest.fixture
 def mock_appconfig_store(mocker: MockerFixture) -> MagicMock:
     """Mock AppConfigStore."""
-    return mocker.patch("ftrs_common.feature_flags.feature_flags_config.AppConfigStore")
+    return mocker.patch("ftrs_common.feature_flags.feature_flags_client.AppConfigStore")
 
 
 @pytest.fixture
 def mock_feature_flags_class(mocker: MockerFixture) -> MagicMock:
     """Mock FeatureFlags class."""
-    return mocker.patch("ftrs_common.feature_flags.feature_flags_config.FeatureFlags")
+    return mocker.patch("ftrs_common.feature_flags.feature_flags_client.FeatureFlags")
 
 
 @pytest.fixture
 def mock_logger(mocker: MockerFixture) -> MagicMock:
     """Mock the logger."""
-    return mocker.patch("ftrs_common.feature_flags.feature_flags_config.logger")
+    return mocker.patch("ftrs_common.feature_flags.feature_flags_client.logger")
 
 
 class TestFeatureFlagError:
@@ -105,7 +105,7 @@ class TestFeatureFlagsClient:
     def test_get_appconfig_store_raises_error_when_application_id_missing(
         self, mocker: MockerFixture, mock_logger: MagicMock
     ) -> None:
-        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_config.Settings")
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = None
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
@@ -120,7 +120,7 @@ class TestFeatureFlagsClient:
     def test_get_appconfig_store_raises_error_when_environment_id_missing(
         self, mocker: MockerFixture, mock_logger: MagicMock
     ) -> None:
-        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_config.Settings")
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = "test-app-id"
         mock.return_value.appconfig_environment_id = None
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
@@ -135,7 +135,7 @@ class TestFeatureFlagsClient:
     def test_get_appconfig_store_raises_error_when_configuration_profile_id_missing(
         self, mocker: MockerFixture, mock_logger: MagicMock
     ) -> None:
-        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_config.Settings")
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = "test-app-id"
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = None

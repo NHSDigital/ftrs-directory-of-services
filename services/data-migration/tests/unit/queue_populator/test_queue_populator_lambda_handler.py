@@ -2,16 +2,17 @@ from unittest.mock import MagicMock
 
 import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from ftrs_common.feature_flags import FeatureFlag
 from ftrs_common.mocks.mock_logger import MockLogger
 from pytest_mock import MockerFixture
 from sqlalchemy.engine import create_mock_engine
 
+from queue_populator import lambda_handler as lambda_module
 from queue_populator.lambda_handler import (
     DatabaseConfig,
     QueuePopulatorConfig,
     get_dms_event_batches,
     get_record_ids,
-    is_enabled,
     lambda_handler,
     populate_sqs_queue,
     send_message_batch,
@@ -20,11 +21,10 @@ from queue_populator.lambda_handler import (
 
 @pytest.fixture(autouse=True)
 def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
-    """Mock the feature flags a client to prevent AppConfig initialization."""
-    mock_is_enabled = mocker.patch(
-        "queue_populator.lambda_handler.is_enabled", return_value=False
-    )
-    return mock_is_enabled
+    """Mock the feature flags client to prevent AppConfig initialization."""
+    mock_client = mocker.patch("queue_populator.lambda_handler.FEATURE_FLAGS_CLIENT")
+    mock_client.is_enabled.return_value = False
+    return mock_client
 
 
 @pytest.fixture
@@ -473,13 +473,26 @@ def test_populate_sqs_queue_single_service(
     ]
 
 
-def is_enabled_returns_true_when_feature_flag_is_enabled(mocker: MockerFixture) -> None:
-    mocker.patch("queue_populator.lambda_handler.is_enabled", return_value=True)
-    assert is_enabled("data_migration_search_triage_code_enabled") is True
+def test_feature_flag_client_is_enabled_returns_true(mocker: MockerFixture) -> None:
+    mock_client = mocker.patch("queue_populator.lambda_handler.FEATURE_FLAGS_CLIENT")
+    mock_client.is_enabled.return_value = True
+
+    result = lambda_module.FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    )
+    assert result is True
+    mock_client.is_enabled.assert_called_once_with(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    )
 
 
-def is_enabled_returns_false_when_feature_flag_is_disabled(
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch("queue_populator.lambda_handler.is_enabled", return_value=False)
-    assert is_enabled("data_migration_search_triage_code_enabled") is False
+def test_feature_flag_client_is_enabled_returns_false(mocker: MockerFixture) -> None:
+    mock_client = mocker.patch("queue_populator.lambda_handler.FEATURE_FLAGS_CLIENT")
+    mock_client.is_enabled.return_value = False
+    result = lambda_module.FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    )
+    assert result is False
+    mock_client.is_enabled.assert_called_once_with(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    )

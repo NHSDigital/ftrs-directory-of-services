@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from ftrs_common.feature_flags import is_enabled
+from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.legacy import Service
 from ftrs_data_layer.logbase import DataMigrationLogBase
@@ -18,6 +18,10 @@ from queue_populator.config import QueuePopulatorConfig
 SQS_BATCH_SIZE_LIMIT = 10
 LOGGER = Logger.get(service="data-migration-queue-populator")
 SQS_CLIENT = boto3.client("sqs")
+
+
+# Initialize outside handler - reused across invocations
+FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
 
 
 class QueuePopulatorEvent(BaseModel):
@@ -155,11 +159,13 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> None:
     """
     AWS Lambda entrypoint for populating the queue with legacy services.
     """
-
-    if is_enabled("data_migration_search_triage_code_enabled"):
+    if FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    ):
         LOGGER.info("Healthcare service feature flag is enabled")
     else:
         LOGGER.info("Healthcare service feature flag is disabled")
+
     parsed_event = QueuePopulatorEvent(**event)
     config = QueuePopulatorConfig(
         db_config=DatabaseConfig.from_secretsmanager(),

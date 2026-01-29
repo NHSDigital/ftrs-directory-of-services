@@ -4,7 +4,7 @@
 
 appconfig_flags:
   - id: data_migration_search_triage_code_enabled
-    name: "Data Migration - Select GP Practice Enabled"
+    name: "Data Migration - Select GP Practice Enabled,Create Organisation model"
     description: "Enable the selection of GP Practice services from the current DoS"
     service: data-migration
     owner: "Data Migration Team"
