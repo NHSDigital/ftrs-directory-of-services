@@ -36,11 +36,11 @@ variable "period" {
 }
 
 variable "statistic" {
-  description = "Statistic to use (Average, Sum, Maximum, etc.)"
+  description = "Statistic to use (Average, Sum, Maximum, etc.) or extended statistic (p95, p99)"
   type        = string
   validation {
-    condition     = contains(["SampleCount", "Average", "Sum", "Minimum", "Maximum"], var.statistic)
-    error_message = "statistic must be one of: SampleCount, Average, Sum, Minimum, Maximum"
+    condition     = contains(["SampleCount", "Average", "Sum", "Minimum", "Maximum"], var.statistic) || can(regex("^p(\\d+(\\.\\d+)?)$", var.statistic))
+    error_message = "statistic must be one of: SampleCount, Average, Sum, Minimum, Maximum, or a percentile (p0-p100)"
   }
 }
 
@@ -92,11 +92,15 @@ resource "aws_cloudwatch_metric_alarm" "alarm" {
   metric_name         = var.metric_name
   namespace           = var.namespace
   period              = var.period
-  statistic           = var.statistic
-  threshold           = var.threshold
-  alarm_description   = var.alarm_description
-  alarm_actions       = [var.sns_topic_arn]
-  treat_missing_data  = var.treat_missing_data
+
+  # Use extended_statistic for percentiles (p95, p99), otherwise use statistic
+  statistic          = can(regex("^p(\\d+(\\.\\d+)?)$", var.statistic)) ? null : var.statistic
+  extended_statistic = can(regex("^p(\\d+(\\.\\d+)?)$", var.statistic)) ? var.statistic : null
+
+  threshold          = var.threshold
+  alarm_description  = var.alarm_description
+  alarm_actions      = [var.sns_topic_arn]
+  treat_missing_data = var.treat_missing_data
 
   dimensions = {
     FunctionName = var.function_name

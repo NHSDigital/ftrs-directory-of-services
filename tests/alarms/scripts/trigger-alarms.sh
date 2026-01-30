@@ -20,19 +20,21 @@ if [ -z "$ALARM_TYPE" ]; then
   echo "Usage: $0 <alarm-type> <lambda-type> [iterations]"
   echo ""
   echo "Alarm types:"
-  echo "  errors          - Trigger error alarm by invoking with invalid payload"
-  echo "  duration        - Trigger duration alarm (requires low threshold)"
-  echo "  invocations     - Trigger low invocations alarm (wait for period)"
-  echo "  throttles       - Trigger throttle alarm (requires reserved concurrency)"
-  echo "  concurrent      - Trigger concurrent executions alarm"
+  echo "  errors              - Trigger error alarm by invoking with invalid payload"
+  echo "  duration-p95        - Trigger duration p95 WARNING alarm"
+  echo "  duration-p99        - Trigger duration p99 CRITICAL alarm"
+  echo "  invocations-spike   - Trigger invocations spike CRITICAL alarm"
+  echo "  throttles           - Trigger throttle CRITICAL alarm (requires reserved concurrency)"
+  echo "  concurrent          - Trigger concurrent executions alarm"
   echo ""
   echo "Lambda types:"
   echo "  search          - DoS Search Lambda (default)"
   echo "  health-check    - Health Check Lambda"
   echo ""
   echo "Examples:"
-  echo "  $0 errors search 10"
-  echo "  $0 duration health-check 5"
+  echo "  $0 errors search 2"
+  echo "  $0 duration-p95 search 5"
+  echo "  $0 concurrent search 85"
   exit 1
 fi
 
@@ -68,12 +70,14 @@ case "$ALARM_TYPE" in
         /dev/null 2>&1 || true
       sleep 1
     done
-    echo "✓ Triggered $ITERATIONS errors. Check CloudWatch alarm in ~1 minute."
+    echo "✓ Triggered $ITERATIONS errors. Check CloudWatch alarm in ~2 minutes."
+    echo "  - WARNING alarm: > 1 error over 2 periods (2 minutes)"
+    echo "  - CRITICAL alarm: > 1 error over 2 periods (2 minutes)"
     ;;
 
-  duration)
-    echo "Triggering duration alarm..."
-    echo "Note: This requires the duration threshold to be set low (e.g., 1ms)"
+  duration-p95)
+    echo "Triggering duration p95 WARNING alarm (> 600ms)..."
+    echo "Note: This requires actual execution time > 600ms"
     for i in $(seq 1 "$ITERATIONS"); do
       echo "Invocation $i/$ITERATIONS"
       if [ "$LAMBDA_TYPE" = "search" ]; then
@@ -92,20 +96,65 @@ case "$ALARM_TYPE" in
       fi
       sleep 1
     done
-    echo "✓ Triggered $ITERATIONS invocations. Check CloudWatch alarm in ~1 minute."
+    echo "✓ Triggered $ITERATIONS invocations. Check CloudWatch alarm in ~2 minutes."
     ;;
 
-  invocations)
-    echo "Triggering low invocations alarm..."
-    echo "Note: This alarm triggers when invocations are BELOW threshold"
-    echo "Simply wait for the evaluation period without invoking the Lambda"
-    echo "Current time: $(date)"
-    echo "Wait for ~2 minutes for the alarm to trigger..."
+  duration-p99)
+    echo "Triggering duration p99 CRITICAL alarm (> 800ms)..."
+    echo "Note: This requires actual execution time > 800ms"
+    for i in $(seq 1 "$ITERATIONS"); do
+      echo "Invocation $i/$ITERATIONS"
+      if [ "$LAMBDA_TYPE" = "search" ]; then
+        aws lambda invoke \
+          --function-name "$LAMBDA_NAME" \
+          --payload '{"odsCode": "TEST123"}' \
+          --cli-binary-format raw-in-base64-out \
+          $PROFILE_ARG \
+          /dev/null 2>&1 || true
+      else
+        aws lambda invoke \
+          --function-name "$LAMBDA_NAME" \
+          --cli-binary-format raw-in-base64-out \
+          $PROFILE_ARG \
+          /dev/null 2>&1 || true
+      fi
+      sleep 1
+    done
+    echo "✓ Triggered $ITERATIONS invocations. Check CloudWatch alarm in ~2 minutes."
+    ;;
+
+  invocations-spike)
+    echo "Triggering invocations spike CRITICAL alarm..."
+    echo "Baseline: 300/hour, Critical: > 600/hour (2x baseline)"
+    echo "Invoking Lambda $ITERATIONS times in 1 hour window..."
+    for i in $(seq 1 "$ITERATIONS"); do
+      if [ "$LAMBDA_TYPE" = "search" ]; then
+        aws lambda invoke \
+          --function-name "$LAMBDA_NAME" \
+          --payload '{"odsCode": "TEST123"}' \
+          --cli-binary-format raw-in-base64-out \
+          $PROFILE_ARG \
+          /dev/null 2>&1 &
+      else
+        aws lambda invoke \
+          --function-name "$LAMBDA_NAME" \
+          --cli-binary-format raw-in-base64-out \
+          $PROFILE_ARG \
+          /dev/null 2>&1 &
+      fi
+      
+      # Progress indicator every 50 invocations
+      if [ $((i % 50)) -eq 0 ]; then
+        echo "Progress: $i/$ITERATIONS invocations"
+      fi
+    done
+    wait
+    echo "✓ Triggered $ITERATIONS invocations. Check CloudWatch alarm in ~2 minutes."
     ;;
 
   throttles)
-    echo "Triggering throttle alarm..."
-    echo "Note: This requires reserved concurrency to be set on the Lambda"
+    echo "Triggering throttle CRITICAL alarm..."
+    echo "Note: This requires reserved concurrency to be set on the Lambda function"
     echo "Invoking Lambda rapidly to cause throttling..."
     for i in $(seq 1 "$ITERATIONS"); do
       aws lambda invoke \
@@ -117,11 +166,14 @@ case "$ALARM_TYPE" in
     done
     wait
     echo "✓ Triggered $ITERATIONS concurrent invocations. Check for throttles in CloudWatch."
+    echo "  - CRITICAL alarm: > 0 throttles for 1 minute"
     ;;
 
   concurrent)
     echo "Triggering concurrent executions alarm..."
-    echo "Invoking Lambda concurrently..."
+    echo "  - WARNING: >= 80 concurrent executions"
+    echo "  - CRITICAL: >= 100 concurrent executions"
+    echo "Invoking Lambda concurrently ($ITERATIONS times)..."
     for i in $(seq 1 "$ITERATIONS"); do
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \
@@ -144,7 +196,7 @@ case "$ALARM_TYPE" in
 
   *)
     echo "Error: Unknown alarm type '$ALARM_TYPE'"
-    echo "Valid types: errors, duration, invocations, throttles, concurrent"
+    echo "Valid types: errors, duration-p95, duration-p99, invocations-spike, throttles, concurrent"
     exit 1
     ;;
 esac

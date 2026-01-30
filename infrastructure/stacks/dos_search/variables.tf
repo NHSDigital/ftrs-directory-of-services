@@ -130,74 +130,163 @@ variable "gateway_responses" {
 # Lambda CloudWatch Alarms Configuration
 ################################################################################
 
+############################
+# Global / Shared
+############################
 variable "lambda_alarm_evaluation_periods" {
-  description = "Number of periods over which to evaluate the alarm"
+  description = "Default number of periods over which to evaluate alarms (unless overridden per metric/severity)"
   type        = number
   default     = 2
 }
 
-variable "lambda_alarm_period" {
-  description = "Period in seconds for the alarm metric evaluation"
+variable "lambda_alarm_period_seconds" {
+  description = "Default CloudWatch period in seconds for alarm metric evaluation (Lambda metrics are 60s by default)"
   type        = number
-  default     = 30
+  default     = 60
 }
 
-variable "search_lambda_duration_threshold_ms" {
-  description = "Threshold in milliseconds for search Lambda average duration"
+############################
+# SEARCH LAMBDA
+# Duration (Execution Time)
+# p95 WARNING > 600 ms
+# p99 CRITICAL > 800 ms
+############################
+variable "search_lambda_duration_p95_warning_ms" {
+  description = "Search Lambda duration p95 warning threshold in milliseconds"
   type        = number
-  default     = 1 # 1ms - for testing alarm notifications
+  default     = 600
 }
 
-variable "search_lambda_concurrent_executions_threshold" {
-  description = "Threshold for search Lambda concurrent executions"
+variable "search_lambda_duration_p99_critical_ms" {
+  description = "Search Lambda duration p99 critical threshold in milliseconds"
+  type        = number
+  default     = 800
+}
+
+############################
+# SEARCH LAMBDA
+# Concurrency (In-Flight Load)
+# WARNING >= 80
+# CRITICAL >= 100
+############################
+variable "search_lambda_concurrent_executions_warning" {
+  description = "Search Lambda concurrency warning threshold (ConcurrentExecutions)"
+  type        = number
+  default     = 80
+}
+
+variable "search_lambda_concurrent_executions_critical" {
+  description = "Search Lambda concurrency critical threshold (ConcurrentExecutions)"
   type        = number
   default     = 100
 }
 
-variable "search_lambda_errors_threshold" {
-  description = "Threshold for search Lambda errors (sum over period)"
+############################
+# SEARCH LAMBDA
+# Throttles (Capacity Rejections)
+# CRITICAL: > 0 for 1 minute
+# WARNING: increasing trend over 5 minutes (enable flag + window)
+############################
+# Critical (strict) — use period=60s, evaluation_periods=1
+variable "lambda_throttles_critical_period_seconds" {
+  description = "CloudWatch period in seconds for throttles CRITICAL alarm"
   type        = number
-  default     = 1 # Testing purposes
+  default     = 60
 }
 
-variable "search_lambda_invocations_threshold" {
-  description = "Minimum threshold for search Lambda invocations (alerts if below)"
-  type        = number
-  default     = 1
-}
-
-variable "search_lambda_throttles_threshold" {
-  description = "Threshold for search Lambda throttles (alerts if >= threshold)"
-  type        = number
-  default     = 1
-}
-
-variable "health_check_lambda_duration_threshold_ms" {
-  description = "Threshold in milliseconds for health check Lambda average duration"
-  type        = number
-  default     = 3000 # 3 seconds
-}
-
-variable "health_check_lambda_concurrent_executions_threshold" {
-  description = "Threshold for health check Lambda concurrent executions"
-  type        = number
-  default     = 50
-}
-
-variable "health_check_lambda_errors_threshold" {
-  description = "Threshold for health check Lambda errors (sum over period)"
-  type        = number
-  default     = 3
-}
-
-variable "health_check_lambda_invocations_threshold" {
-  description = "Minimum threshold for health check Lambda invocations (alerts if below)"
+variable "lambda_throttles_critical_evaluation_periods" {
+  description = "Evaluation periods for throttles CRITICAL alarm"
   type        = number
   default     = 1
 }
 
-variable "health_check_lambda_throttles_threshold" {
-  description = "Threshold for health check Lambda throttles (alerts if >= threshold)"
+variable "search_lambda_throttles_critical_threshold" {
+  description = "Search Lambda throttles CRITICAL threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+# Warning (trend) — implement with metric math or anomaly detection in module
+variable "search_lambda_throttles_warning_trend_enabled" {
+  description = "Enable trend-based throttles WARNING alarm for Search Lambda"
+  type        = bool
+  default     = true
+}
+
+variable "lambda_throttles_warning_trend_lookback_minutes" {
+  description = "Lookback window (minutes) to evaluate increasing throttles trend for WARNING"
+  type        = number
+  default     = 5
+}
+
+############################
+# SEARCH LAMBDA
+# Invocations (Workload Volume)
+# Baseline: 300/hour
+# CRITICAL: spike > 2x baseline
+# WARNING: increasing trend above baseline
+############################
+variable "search_lambda_invocations_baseline_per_hour" {
+  description = "Baseline invocations per hour for Search Lambda"
+  type        = number
+  default     = 300
+}
+
+variable "invocations_critical_spike_multiplier" {
+  description = "Multiplier over baseline to trigger CRITICAL spike alarm (e.g., 2 => >2x baseline)"
+  type        = number
+  default     = 2
+}
+
+variable "search_lambda_invocations_warning_trend_enabled" {
+  description = "Enable trend-based invocations WARNING alarm for Search Lambda"
+  type        = bool
+  default     = true
+}
+
+variable "invocations_warning_trend_lookback_minutes" {
+  description = "Lookback window (minutes) for increasing invocations trend WARNING alarm"
+  type        = number
+  default     = 15
+}
+
+############################
+# SEARCH LAMBDA
+# Errors (kept; practical default)
+############################
+variable "search_lambda_errors_warning_threshold" {
+  description = "Search Lambda errors WARNING threshold (sum over period)"
+  type        = number
+  default     = 1
+}
+
+variable "search_lambda_errors_critical_threshold" {
+  description = "Search Lambda errors CRITICAL threshold (sum over period)"
+  type        = number
+  default     = 1
+}
+
+############################
+# HEALTH CHECK LAMBDA (/_status)
+# Only one metric needed per OBS-003:
+# Errors for health_check_function
+# Critical: > 0 for 1 minute
+# Warning: N/A (no warning)
+############################
+variable "health_check_errors_critical_threshold" {
+  description = "Health Check Lambda errors CRITICAL threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+variable "health_check_errors_critical_period_seconds" {
+  description = "CloudWatch period in seconds for Health Check errors CRITICAL alarm"
+  type        = number
+  default     = 60
+}
+
+variable "health_check_errors_critical_evaluation_periods" {
+  description = "Evaluation periods for Health Check errors CRITICAL alarm"
   type        = number
   default     = 1
 }
