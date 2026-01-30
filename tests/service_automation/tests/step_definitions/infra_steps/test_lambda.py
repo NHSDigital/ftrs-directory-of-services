@@ -49,6 +49,7 @@ def invoke_lambda(aws_lambda_client, odscode, flambda_name):
 def lambda_ods_code(fLambda_payload, odscode):
     response = json.loads(fLambda_payload["body"])
     assert fLambda_payload["statusCode"] == 200
+    assert response["entry"][0]["resource"]["identifier"][0]["use"] == "official"
     assert (
         response["entry"][0]["resource"]["identifier"][0]["system"]
         == "https://fhir.nhs.uk/Id/ods-organization-code"
