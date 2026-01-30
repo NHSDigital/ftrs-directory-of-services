@@ -1,7 +1,8 @@
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
-import uuid
+
 import boto3
 import pytest
 from ftrs_data_layer.domain import DBModel

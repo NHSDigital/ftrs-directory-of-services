@@ -1,18 +1,19 @@
+import random
+import string
+from uuid import uuid4
+
 import pytest
 from ftrs_data_layer.domain import DBModel, Organisation
 from ftrs_data_layer.repository.base import ModelType
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from loguru import logger
 from pytest_bdd import given, parsers, then, when
+from utilities.common.context import Context
 from utilities.infra.repo_util import (
+    check_record_in_repo,
     model_from_json_file,
     save_json_file_from_model,
-    check_record_in_repo,
 )
-from utilities.common.context import Context
-from loguru import logger
-from uuid import uuid4
-import random
-import string
 
 
 def generate_ods_code(length: int) -> str:

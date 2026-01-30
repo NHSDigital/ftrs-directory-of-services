@@ -1,17 +1,16 @@
-from pytest_bdd import given, parsers, scenarios, then, when
-from step_definitions.common_steps.data_steps import *  # noqa: F403
-from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from utilities.infra.api_util import get_r53, get_url
-from utilities.infra.dns_util import wait_for_dns
-from utilities.common.json_helper import read_json_file
-from step_definitions.common_steps.api_steps import *  # noqa: F403
-from utilities.common.constants import ENDPOINTS
-from loguru import logger
-import uuid
 import ast
 import json
-from _pytest.fixtures import FixtureLookupError
+from uuid import uuid4
 
+from _pytest.fixtures import FixtureLookupError
+from loguru import logger
+from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps.api_steps import *  # noqa: F403
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from utilities.common.constants import ENDPOINTS
+from utilities.common.json_helper import read_json_file
+from utilities.infra.api_util import get_url
 
 # Load feature file
 scenarios(

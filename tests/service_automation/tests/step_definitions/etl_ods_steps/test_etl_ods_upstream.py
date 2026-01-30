@@ -1,19 +1,18 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import date
+
 import pytest
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from pytest_bdd import given, scenarios, then, when
-from ftrs_data_layer.domain import DBModel, Organisation
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from utilities.common.context import Context
-from utilities.infra.lambda_util import LambdaWrapper
-from utilities.infra.logs_util import CloudWatchLogsWrapper
-from datetime import datetime, date
-from utilities.ods.scenario_manager import *  # noqa: F403
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
+from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
+from utilities.ods.scenario_manager import *  # noqa: F403
 
 scenarios("./etl_ods_features/etl_ods_mock.feature")
 

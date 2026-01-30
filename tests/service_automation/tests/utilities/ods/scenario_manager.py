@@ -1,5 +1,6 @@
-import pytest
 from typing import Dict, List
+
+import pytest
 
 SCENARIO_DATE_MAP: Dict[str, str] = {
     "happy_path": "2025-12-08",  # Returns valid Organization with proper structure
