@@ -10,7 +10,7 @@ Feature: Organization API Endpoint
   Scenario: Update Organization for specific ODS Code
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization details for ODS Code
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -23,7 +23,7 @@ Feature: Organization API Endpoint
   Scenario: Updating an Organisation with identical data returns a successful response
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization details for ODS Code
     Then I receive a status code "200" in response and save the modifiedBy timestamp
     When I update the organisation details using the same data for the ODS Code
@@ -38,7 +38,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Organization names are sanitized to title case with acronym preservation
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "name" field to "<input_name>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -55,7 +55,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Update Organisation with special characters for specific fields
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -68,7 +68,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Update Organisation with valid non-primary roles
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -88,7 +88,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organisation with invalid primary and non-primary role combinations
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -143,7 +143,7 @@ Feature: Organization API Endpoint
   Scenario: Update Organization Telecom by not defining telecom field in payload
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I remove the "telecom" field from the payload and update the organization
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -183,7 +183,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Update organization with valid identifier
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     And I have a valid organization payload with identifier "<identifier_data>"
     When I update the organization details with the identifier
     Then I receive a status code "200" in response
@@ -202,7 +202,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid identifier
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     And I have a valid organization payload with identifier "<identifier_data>"
     When I update the organization details with the identifier
     Then I receive a status code "422" in response
@@ -223,7 +223,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid value in active field
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -241,7 +241,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Successfully update organization with valid telecom fields
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -269,7 +269,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid telecom values
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -320,7 +320,7 @@ Feature: Organization API Endpoint
   Scenario: Reject modification of 'type' field in telecom after creation
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I attempt to update the "<actual_type>" in telecom with "<update_type>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -338,7 +338,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization Update with Invalid Telecom Field
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization with an invalid telecom field "<invalid_scenario>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -367,7 +367,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Update Organization with legal dates
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization with legal dates start "<legal_start>" and end "<legal_end>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -463,7 +463,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Update Organization update with valid ods-code format
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "identifier" field to "<value>"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
@@ -496,7 +496,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid ods-code format
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "identifier" field to "<value>"
     Then I receive a status code "422" in response
     And the response body contains an "OperationOutcome" resource
@@ -520,7 +520,7 @@ Feature: Organization API Endpoint
   Scenario: Successfully update organization with empty telecom list
     Given that the stack is "organisation"
     And I have a organisation repo
-    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization with an invalid telecom field "empty_telecom"
     Then I receive a status code "200" in response
     And the response body contains an "OperationOutcome" resource
