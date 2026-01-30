@@ -118,16 +118,22 @@ module "s3_encryption_key" {
 
   additional_policy_statements = [
     {
-      "Sid" : "AllowAPIGatewayDecrypt",
+      "Sid" : "AllowS3UseOfKeyForTruststore",
       "Effect" : "Allow",
       "Principal" : {
-        "Service" : "apigateway.amazonaws.com"
+        "Service" : "s3.amazonaws.com"
       },
       "Action" : [
         "kms:Decrypt",
         "kms:DescribeKey"
       ],
-      "Resource" : "*"
+      "Resource" : "*",
+      "Condition" : {
+        "StringEquals" : {
+          "aws:SourceAccount" : "${var.var.account_id}",
+          "kms:ViaService" : "s3.${var.var.aws_region}.amazonaws.com"
+        }
+      }
     }
   ]
 }
