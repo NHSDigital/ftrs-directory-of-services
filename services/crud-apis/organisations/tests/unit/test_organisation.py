@@ -22,6 +22,8 @@ client = TestClient(test_app)
 
 test_org_id = uuid4()
 
+TEST_PRODUCT_ID = "test-product-id"
+
 
 def get_organisation() -> dict:
     return {
@@ -267,7 +269,7 @@ def test_get_handle_organisation_requests_unhandled_exception(
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
 
 
-def test_update_organisation_success() -> None:
+def test_update_organisation_success(mock_organisation_service: MockerFixture) -> None:
     fhir_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -281,15 +283,100 @@ def test_update_organisation_success() -> None:
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [{"system": "phone", "value": "0300 311 22 33"}],
     }
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    fhir_payload_expect = fhir_payload.copy()
+    fhir_payload_expect["telecom"] = []
+    fhir_payload_expect["identifier"] = [
+        {
+            "id": None,
+            "extension": None,
+            "use": None,
+            "type": None,
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "12345",
+            "period": None,
+            "assigner": None,
+        }
+    ]
+    fhir_payload_expect["extension"] = None
+    response = client.put(
+        f"/Organization/{test_org_id}",
+        json=fhir_payload,
+        headers={"NHSE-Product-ID": "test-product-id"},
+    )
+    mock_organisation_service.process_organisation_update.assert_called_with(
+        organisation_id=test_org_id,
+        fhir_org=fhir_payload_expect,
+        nhse_product_id="test-product-id",
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
     assert response.json()["issue"][0]["severity"] == "information"
     assert (
         response.json()["issue"][0]["diagnostics"]
         == "Organisation updated successfully"
+    )
+
+
+def test_update_organisation_fail_no_nhse_product_id(
+    mock_organisation_service: MockerFixture,
+) -> None:
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Product ID header is required for updating organisation",
+                }
+            ],
+        }
+    )
+    fhir_payload = {
+        "resourceType": "Organization",
+        "id": str(test_org_id),
+        "meta": {
+            "profile": [
+                "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+            ]
+        },
+        "identifier": [
+            {"system": "https://fhir.nhs.uk/Id/ods-organization-code", "value": "12345"}
+        ],
+        "name": "Test Organisation",
+        "active": False,
+    }
+    fhir_payload_expect = fhir_payload.copy()
+    fhir_payload_expect["telecom"] = []
+    fhir_payload_expect["identifier"] = [
+        {
+            "id": None,
+            "extension": None,
+            "use": None,
+            "type": None,
+            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+            "value": "12345",
+            "period": None,
+            "assigner": None,
+        }
+    ]
+    fhir_payload_expect["extension"] = None
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(
+            f"/Organization/{test_org_id}",
+            json=fhir_payload,
+        )
+    mock_organisation_service.process_organisation_update.assert_called_with(
+        organisation_id=test_org_id,
+        fhir_org=fhir_payload_expect,
+        nhse_product_id=None,
+    )
+    assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
+    assert exc_info.value.outcome["issue"][0]["severity"] == "error"
+    assert (
+        exc_info.value.outcome["issue"][0]["diagnostics"]
+        == "Product ID header is required for updating organisation"
     )
 
 
@@ -340,7 +427,11 @@ def test_update_organisation_success_no_telecom(
         "name": "Test Organisation",
         "active": False,
     }
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    response = client.put(
+        f"/Organization/{test_org_id}",
+        json=fhir_payload,
+        headers={"NHSE-Product-ID": TEST_PRODUCT_ID},
+    )
     fhir_payload_expect = fhir_payload.copy()
     fhir_payload_expect["telecom"] = []
     fhir_payload_expect["identifier"] = [
@@ -357,7 +448,9 @@ def test_update_organisation_success_no_telecom(
     ]
     fhir_payload_expect["extension"] = None
     mock_organisation_service.process_organisation_update.assert_called_with(
-        organisation_id=test_org_id, fhir_org=fhir_payload_expect
+        organisation_id=test_org_id,
+        fhir_org=fhir_payload_expect,
+        nhse_product_id=TEST_PRODUCT_ID,
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json()["issue"][0]["code"] == "success"
@@ -478,7 +571,9 @@ def test_update_organisation_telecom_phone_validation_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -512,7 +607,9 @@ def test_update_organisation_telecom_email_validation_error_exception(
         "telecom": [{"system": "email", "value": "mailnhs.net"}],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -546,7 +643,9 @@ def test_update_organisation_telecom_url_validation_error_exception(
         "telecom": [{"system": "url", "value": "nhs.net"}],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -584,7 +683,9 @@ def test_update_organisation_telecom_no_type_value_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -621,7 +722,9 @@ def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
@@ -657,7 +760,9 @@ def test_update_organisation_telecom_invalid_value_character_value_error_excepti
         ],
     }
     try:
-        organisation_service.process_organisation_update(test_org_id, update_payload)
+        organisation_service.process_organisation_update(
+            test_org_id, update_payload, TEST_PRODUCT_ID
+        )
     except OperationOutcomeException as e:
         mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
