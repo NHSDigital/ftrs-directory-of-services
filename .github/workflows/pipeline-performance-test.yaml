@@ -93,6 +93,7 @@ jobs:
         with:
           s3-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
           environment: ${{ inputs.environment }}
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
 
       - name: "Stop EC2 performance instance"
         if: ${{ inputs.stop_instance == 'true' }}
