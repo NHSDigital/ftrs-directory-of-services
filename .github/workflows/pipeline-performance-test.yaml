@@ -84,19 +84,20 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           endpoint: ${{ inputs.endpoint }}
+          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
 
-      - name: "Temp step to pause pipeline for test end"
-        run: sleep 30
+      # - name: "Temp step to pause pipeline for test end"
+      #   run: sleep 30
 
-      - name: "Upload performance test results"
-        uses: ./.github/actions/upload-performance-test-result
-        with:
-          s3-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
-          environment: ${{ inputs.environment }}
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+      # - name: "Upload performance test results"
+      #   uses: ./.github/actions/upload-performance-test-result
+      #   with:
+      #     s3-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+      #     environment: ${{ inputs.environment }}
+      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
 
-      - name: "Stop EC2 performance instance"
-        if: ${{ inputs.stop_instance == 'true' }}
-        uses: ./.github/actions/stop-ec2
-        with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+      # - name: "Stop EC2 performance instance"
+      #   if: ${{ inputs.stop_instance == 'true' }}
+      #   uses: ./.github/actions/stop-ec2
+      #   with:
+      #     ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"

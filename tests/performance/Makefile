@@ -39,6 +39,15 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
 
+	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
+
+	if [ "${STOP_INSTANCE}" = "true" ]; then
+		echo "Stopping JMeter EC2 instance ${JMETER_INSTANCE_ID}..."
+		make jmeter-stop-instance JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID}
+	else
+		echo "JMeter EC2 instance ${JMETER_INSTANCE_ID} left running."
+	fi
+
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
 	echo "running mtls performance tests against ${ENDPOINT}..."
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="load" \

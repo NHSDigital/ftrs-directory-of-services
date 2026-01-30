@@ -38,6 +38,9 @@ inputs:
     description: "Throughput period for the performance test"
     required: false
     default: "60"
+  performance-results-bucket:
+    description: "The S3 bucket to store performance test results"
+    required: true
 
 runs:
   using: "composite"
@@ -51,7 +54,7 @@ runs:
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }}"]' \
+                        "make performance-test-mtls-jp AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} EC2_INSTANCE_ID=${{ inputs.ec2-instance-id }}"]' \
             --query "Command.CommandId" \
             --output text)
 
