@@ -74,6 +74,14 @@ upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] 
 	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
 	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
 
+upload-performance-test-result:
+	TEST_RUN_DATE=`date +%Y%m%d_%H%M%S`
+	echo "Uploading performance test results to s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/"
+
+	aws s3 cp --region eu-west-2 report s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/report --recursive
+	aws s3 cp --region eu-west-2 ./jmeter.log s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/jmeter.log
+	aws s3 cp --region eu-west-2 ./result.jtl s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/result.jtl
+
 # Get a secret value from Secrets Manager
 secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
 	aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString' --output text > $(OUT)
