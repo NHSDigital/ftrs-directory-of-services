@@ -1,4 +1,4 @@
-# Cloudwatch Alarm Testing
+# CloudWatch Alarm Testing
 
 This directory contains tools for testing CloudWatch alarms by triggering them manually.
 
