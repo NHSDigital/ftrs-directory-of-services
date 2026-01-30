@@ -1,5 +1,5 @@
-name: "Run Performance Test Gateway action"
-description: "Runs a performance test on the Gateway given a test type on a given EC2 instance"
+name: "Run Performance Test Proxy action"
+description: "Runs a performance test on the Proxy given a test type on a given EC2 instance"
 
 inputs:
   ec2-instance-id:
@@ -14,37 +14,21 @@ inputs:
   aws-region:
     description: 'AWS region for Secrets Manager'
     required: true
-  num-threads:
-    description: "Number of threads for the performance test"
-    required: false
-    default: "10"
-  ramp-time:
-    description: "Ramp up time for the performance test"
-    required: false
-    default: "1"
-  startup-delay:
-    description: "Startup delay for the performance test"
-    required: false
-    default: "10"
-  duration:
-    description: "Duration of the performance test"
-    required: false
-    default: "20"
-  throughput:
-    description: "Throughput for the performance test"
-    required: false
-    default: "10"
-  throughput-period:
-    description: "Throughput period for the performance test"
-    required: false
-    default: "60"
+  apim-env:
+    description: "The environment for the APIM proxy"
+    required: true
+  api-key:
+    description: "The API key for the APIM proxy"
+    required: true
+  kid:
+    description: "The name of the key for the JWT token"
+    required: true
   performance-results-bucket:
     description: "The S3 bucket to store performance test results"
     required: true
   stop-instance:
     description: "Whether to stop the EC2 instance after the test"
-    required: false
-    default: "false"
+    required: true
 
 runs:
   using: "composite"
