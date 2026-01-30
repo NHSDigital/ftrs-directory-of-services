@@ -139,6 +139,16 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       module.secrets_manager_encryption_key.arn
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:StopInstances",
+    ]
+    resources = [
+      aws_instance.performance.arn
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "ec2_performance_secrets" {
