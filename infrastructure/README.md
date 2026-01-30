@@ -47,7 +47,7 @@ Both these stacks could be brought into line later - but consideration would hav
 
 ### Application resources
 
-The resources built specifically for business user cases are named slightly differently and should follow this convention.
+The resources built specifically for business user cases are named slightly differently and should follow these conventions.
 
 - the owning project - ie ftrs-dos
 - the environment for which they are built - eg dev/test/prod etc
