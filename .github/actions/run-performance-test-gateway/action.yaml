@@ -16,28 +16,22 @@ inputs:
     required: true
   num-threads:
     description: "Number of threads for the performance test"
-    required: false
-    default: "10"
+    required: true
   ramp-time:
     description: "Ramp up time for the performance test"
-    required: false
-    default: "1"
+    required: true
   startup-delay:
     description: "Startup delay for the performance test"
-    required: false
-    default: "10"
+    required: true
   duration:
     description: "Duration of the performance test"
-    required: false
-    default: "20"
+    required: true
   throughput:
     description: "Throughput for the performance test"
-    required: false
-    default: "10"
+    required: true
   throughput-period:
     description: "Throughput period for the performance test"
-    required: false
-    default: "60"
+    required: true
   performance-results-bucket:
     description: "The S3 bucket to store performance test results"
     required: true
