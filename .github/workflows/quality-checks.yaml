@@ -77,7 +77,6 @@ jobs:
     name: "Check Markdown format"
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    if: false
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -253,7 +252,6 @@ jobs:
     timeout-minutes: ${{ inputs.workflow_timeout }}
     permissions:
       contents: read
-    if: false
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
