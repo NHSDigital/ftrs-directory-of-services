@@ -1,8 +1,3 @@
-variable "application_tag" {
-  description = "The version or tag of the data migration application"
-  type        = string
-}
-
 variable "migration_pipeline_store_bucket_name" {
   description = "The name of the S3 bucket to use for the data migration pipeline"
 }
@@ -119,6 +114,12 @@ variable "dms_event_queue_maximum_concurrency" {
   description = "The maximum concurrency for the DMS event queue"
   type        = number
   default     = 20
+}
+
+variable "dms_event_queue_visibility_timeout_seconds" {
+  description = "The visibility timeout in seconds for the DMS event queue"
+  type        = number
+  default     = 360
 }
 
 variable "dms_replication_instance_class" {

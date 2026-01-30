@@ -48,8 +48,15 @@ Feature: Data Migration
       | nextverificationdue                 |                                                               |
 
     When the data migration process is run for table 'services', ID '100178970' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 migrated, 0 skipped and 0 errors
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     Then there is 0 organisation, 0 location and 1 healthcare services created
+    Then the state table contains a record for key 'services#100178970' with version 1
+    Then the state table contains 3 validation issue(s) for key 'services#100178970'
+    Then the state table contains the following validation issues for key 'services#100178970':
+      | expression     | code           | severity | diagnostics                                    | value                  |
+      | email          | not_nhs_email  | error    | Email address is not a valid NHS email address | 178970-fake@nhs.gov.uk |
+      | publicphone    | empty          | error    | Phone number cannot be empty                   | None                   |
+      | nonpublicphone | invalid_format | error    | Phone number is invalid                        | 99999000000            |
 
     Then the 'healthcare-service' for service ID '100178970' has content:
       """
@@ -58,19 +65,14 @@ Feature: Data Migration
         "field": "document",
         "active": true,
         "category": "GP Services",
-        "createdBy": "DATA_MIGRATION",
+        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "ageEligibilityCriteria": null,
-        "createdDateTime": "2025-10-07T08:38:57.679754Z",
+        "createdTime": "2025-10-07T08:38:57.679754Z",
         "dispositions": [],
         "identifier_oldDoS_uid": "2000094797",
         "location": null,
-        "migrationNotes": [
-          "field:['email'] ,error: not_nhs_email,message:Email address is not a valid NHS email address,value:178970-fake@nhs.gov.uk",
-          "field:['publicphone'] ,error: empty,message:Phone number cannot be empty,value:None",
-          "field:['nonpublicphone'] ,error: invalid_format,message:Phone number is invalid,value:99999000000"
-        ],
-        "modifiedBy": "DATA_MIGRATION",
-        "modifiedDateTime": "2025-10-07T08:38:57.679754Z",
+        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        "lastUpdated": "2025-10-07T08:38:57.679754Z",
         "name": "PCN - Enhanced Access Hub, Sandwell",
         "openingTime": [],
         "providedBy": null,

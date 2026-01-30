@@ -1,0 +1,55 @@
+name: Check Stack Toggles
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The environment to check toggles for"
+        required: true
+        type: string
+      workspace:
+        description: "The workspace name"
+        required: true
+        type: string
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
+    outputs:
+      ui_enabled:
+        description: "Whether UI stack is enabled"
+        value: ${{ jobs.check-toggles.outputs.ui_enabled }}
+      read_only_viewer_enabled:
+        description: "Whether read-only-viewer stack is enabled"
+        value: ${{ jobs.check-toggles.outputs.read_only_viewer_enabled }}
+      open_search_enabled:
+        description: "Whether OpenSearch stack is enabled"
+        value: ${{ jobs.check-toggles.outputs.open_search_enabled }}
+
+permissions:
+  contents: read
+
+jobs:
+  check-toggles:
+    name: "Check stack toggles for ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    outputs:
+      ui_enabled: ${{ steps.get_toggles.outputs.ui_enabled }}
+      read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
+      open_search_enabled: ${{ steps.get_toggles.outputs.open_search_enabled }}
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: "Download AppConfig artifact"
+        uses: actions/download-artifact@v6
+        with:
+          name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
+          path: ./toggles
+
+      - name: "Get stack toggle status from generated tfvars"
+        id: get_toggles
+        run: |
+          /bin/bash ./scripts/workflow/get-stack-toggles.sh "./toggles/stacks.${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}.auto.tfvars"

@@ -1,0 +1,40 @@
+name: Performance Test Pipeline
+
+# Workflow description
+# Run performance test
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    inputs:
+      test_file:
+        description: "The test file to run"
+        required: true
+        type: string
+      environment:
+        description: "Specify the environment to the performance test against"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+      ref:
+        description: "The branch, tag or SHA to to test against"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+
+  run_performance_test:
+    name: "Run performance test"
+    timeout-minutes: 15
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6

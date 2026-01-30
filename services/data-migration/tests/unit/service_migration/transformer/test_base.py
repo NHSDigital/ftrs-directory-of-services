@@ -35,8 +35,11 @@ from service_migration.transformer import ServiceTransformer
 
 
 class BasicServiceTransformer(ServiceTransformer):
-    def transform(self, service: Service) -> dict:
-        return super().transform(service, validation_issues=[])
+    def transform(
+        self,
+        service: Service,
+    ) -> dict:
+        return super().transform(service)
 
     @classmethod
     def is_service_supported(cls, service: Service) -> tuple[bool, str | None]:
@@ -91,28 +94,40 @@ def test_service_transformer_build_organisation(
     assert result == Organisation(
         id="4539600c-e04e-5b35-a582-9fb36858d0e0",
         identifier_oldDoS_uid="test-uid",
-        name="Test Service",
+        name="Public Test Service",
         type="GP Practice",
         active=True,
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         identifier_ODS_ODSCode="A12345",
         telecom=[],
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
-                createdBy="DATA_MIGRATION",
-                createdDateTime="2025-07-17T12:00:00Z",
-                modifiedBy="DATA_MIGRATION",
-                modifiedDateTime="2025-07-17T12:00:00Z",
+                createdBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                createdTime="2025-07-17T12:00:00Z",
+                lastUpdatedBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                lastUpdated="2025-07-17T12:00:00Z",
                 identifier_oldDoS_id=1,
                 status="active",
                 connectionType="http",
                 name=None,
                 payloadMimeType=None,
-                description="Primary",
+                businessScenario="Primary",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="http://example.com/endpoint",
                 managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
@@ -123,16 +138,24 @@ def test_service_transformer_build_organisation(
             ),
             Endpoint(
                 id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
-                createdBy="DATA_MIGRATION",
-                createdDateTime="2025-07-17T12:00:00Z",
-                modifiedBy="DATA_MIGRATION",
-                modifiedDateTime="2025-07-17T12:00:00Z",
+                createdBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                createdTime="2025-07-17T12:00:00Z",
+                lastUpdatedBy={
+                    "type": "app",
+                    "value": "INTERNAL001",
+                    "display": "Data Migration",
+                },
+                lastUpdated="2025-07-17T12:00:00Z",
                 identifier_oldDoS_id=2,
                 status="active",
                 connectionType="email",
                 name=None,
                 payloadMimeType=None,
-                description="Copy",
+                businessScenario="Copy",
                 payloadType="urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 address="mailto:test@example.com",
                 managedByOrganisation="4539600c-e04e-5b35-a582-9fb36858d0e0",
@@ -176,16 +199,20 @@ def test_build_endpoint(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=12345,
         status="active",
         connectionType="itk",
         name=None,
         payloadMimeType="xml",
-        description="Primary",
+        businessScenario="Primary",
         payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         address="http://example.com/endpoint1",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -223,16 +250,20 @@ def test_build_endpoint_no_comment(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=12345,
         status="active",
         connectionType="itk",
         name=None,
         payloadMimeType="xml",
-        description="Primary",
+        businessScenario="Primary",
         payloadType="urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         address="http://example.com/endpoint1",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -273,16 +304,20 @@ def test_build_endpoint_telno(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="4f1a685e-15da-5324-b596-6090fc90dc49",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=67890,
         status="active",
         connectionType="telno",
         name=None,
         payloadMimeType=None,
-        description="Copy",
+        businessScenario="Copy",
         payloadType=None,
         address="tel:01234567890",
         managedByOrganisation="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -327,10 +362,14 @@ def test_build_location(
             longitude="-0.1278",
         ),
         primaryAddress=True,
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         partOf=None,
     )
 
@@ -371,10 +410,14 @@ def test_build_location_no_position(
         name=None,
         positionGCS=None,
         primaryAddress=True,
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-17T12:00:00Z",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-17T12:00:00Z",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-17T12:00:00Z",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-17T12:00:00Z",
         partOf=None,
     )
 
@@ -399,13 +442,16 @@ def test_build_healthcare_service(
 
     assert result == HealthcareService(
         id="903cd48b-5d0f-532f-94f4-937a4517b14d",
-        createdBy="DATA_MIGRATION",
-        createdDateTime="2025-07-25T12:00:00+00:00",
-        modifiedBy="DATA_MIGRATION",
-        modifiedDateTime="2025-07-25T12:00:00+00:00",
+        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+        createdTime="2025-07-25T12:00:00+00:00",
+        lastUpdatedBy={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+        lastUpdated="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
         active=True,
-        migrationNotes=None,
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",

@@ -7,8 +7,7 @@ from playwright.sync_api import Page
 
 
 class LoginPage:
-
-    URL = 'https://www.directoryofservices.nhs.uk/'
+    URL = "https://www.directoryofservices.nhs.uk/"
 
     def __init__(self, page: Page) -> None:
         self.page = page

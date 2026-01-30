@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any, Self
+from typing import Any, Dict, List, Optional, Self
+
 from ftrs_data_layer.domain import Organisation
 
 
@@ -16,6 +17,7 @@ class Context:
 
     # Lambda-specific fields
     lambda_name: Optional[str] = None
+    lambda_response: Optional[Dict[str, Any]] = None
     lambda_invocation_time: Optional[Any] = None  # datetime object
 
     def __repr__(self: Self) -> str:
@@ -27,6 +29,7 @@ class Context:
             f"saved_models_keys={list(self.saved_models.keys())}, "
             f"extraction_date={self.extraction_date}, "
             f"lambda_name={self.lambda_name}, "
+            f"lambda_response={'present' if self.lambda_response else 'None'}, "
             f"lambda_invocation_time={self.lambda_invocation_time}, "
             f"other_keys={list(self.other.keys())})"
         )

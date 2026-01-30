@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from functions.error_util import (
     INVALID_SEARCH_DATA_CODING,
     REC_BAD_REQUEST_CODING,
+    _create_issue,
     create_invalid_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
@@ -159,12 +160,12 @@ class TestErrorUtil:
         err = ValidationError.from_exception_data(
             "ValidationError",
             [
-                dict(
-                    type="string_type",
-                    loc=("identifier",),
-                    msg="Input should be a valid string",
-                    input=None,
-                )
+                {
+                    "type": "string_type",
+                    "loc": ("identifier",),
+                    "msg": "Input should be a valid string",
+                    "input": None,
+                }
             ],
         )
         result = create_validation_error_operation_outcome(err)
@@ -215,3 +216,150 @@ class TestErrorUtil:
             issue.diagnostics
             == "Invalid request headers supplied: authorization, x-nhsd-z"
         )
+
+    def test_create_invalid_header_operation_outcome_empty_list(self):
+        # Test with empty list of headers
+        result = create_invalid_header_operation_outcome([])
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "value"
+        assert issue.diagnostics == "Invalid request headers supplied"
+
+    def test_create_invalid_header_operation_outcome_single_header(self):
+        # Test with single header
+        headers = ["X-Custom-Header"]
+
+        result = create_invalid_header_operation_outcome(headers)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert "x-custom-header" in result.issue[0].diagnostics
+
+    def test_create_invalid_header_operation_outcome_sorts_headers(self):
+        # Test that headers are sorted alphabetically
+        headers = ["Z-Header", "A-Header", "M-Header"]
+
+        result = create_invalid_header_operation_outcome(headers)
+
+        diagnostics = result.issue[0].diagnostics
+        assert (
+            diagnostics
+            == "Invalid request headers supplied: a-header, m-header, z-header"
+        )
+
+    def test_multiple_validation_errors(self):
+        # Test handling of multiple validation errors at once
+        validation_error = None
+        try:
+            OrganizationQueryParams(
+                identifier="odsOrganisationCode|ABC",  # Too short
+                _revinclude="Wrong:value",  # Wrong revinclude
+            )
+        except ValidationError as e:
+            validation_error = e
+
+        result = create_validation_error_operation_outcome(validation_error)
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 2  # Should have 2 issues
+
+    def test_create_issue_with_all_params(self):
+        # Test _create_issue function through public API
+        issue = _create_issue(
+            "test-code",
+            "warning",
+            details={"test": "details"},
+            diagnostics="Test diagnostics",
+        )
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "warning"
+        assert issue["details"] == {"test": "details"}
+        assert issue["diagnostics"] == "Test diagnostics"
+
+    def test_create_issue_without_optional_params(self):
+        # Test _create_issue without optional parameters
+        issue = _create_issue("test-code", "error")
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "error"
+        assert "details" not in issue
+        assert "diagnostics" not in issue
+
+    def test_create_issue_with_none_diagnostics(self):
+        # Test _create_issue with None diagnostics
+        issue = _create_issue("test-code", "error", diagnostics=None)
+
+        assert issue["code"] == "test-code"
+        assert issue["severity"] == "error"
+        assert "diagnostics" not in issue
+
+    def test_handle_custom_error_with_empty_message(self):
+        # Test custom ValueError with empty message
+        class CustomValueError(ValueError):
+            pass
+
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "value_error",
+                    "loc": ("field",),
+                    "msg": "value error",
+                    "input": None,
+                    "ctx": {"error": CustomValueError("")},
+                }
+            ],
+        )
+        result = create_validation_error_operation_outcome(err)
+        assert isinstance(result, OperationOutcome)
+        assert result.issue[0].diagnostics == "Invalid search parameter value"
+
+    def test_create_validation_error_unexpected_query_param(self) -> None:
+        validation_error = None
+        try:
+            OrganizationQueryParams(
+                identifier="odsOrganisationCode|ABC12345",
+                _revinclude="Endpoint:organization",
+                foo="bar",
+            )
+        except ValidationError as exc:
+            validation_error = exc
+
+        assert validation_error is not None
+
+        result = create_validation_error_operation_outcome(validation_error)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "value"
+
+        diagnostics = issue.diagnostics or ""
+        assert "Unexpected query parameter" in diagnostics
+        assert "foo" in diagnostics
+        assert "identifier" in diagnostics
+        assert "_revinclude" in diagnostics
+
+    def test_unexpected_query_param_diagnostics_uses_last_loc_entry(self) -> None:
+        err = ValidationError.from_exception_data(
+            "ValidationError",
+            [
+                {
+                    "type": "extra_forbidden",
+                    "loc": ("query", "foo"),
+                    "msg": "Extra inputs are not permitted",
+                    "input": "bar",
+                }
+            ],
+        )
+
+        result = create_validation_error_operation_outcome(err)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert "foo" in (result.issue[0].diagnostics or "")

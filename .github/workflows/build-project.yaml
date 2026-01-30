@@ -35,19 +35,15 @@ on:
         description: "The name of the workspace to deploy the infrastructure into"
         required: true
         type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
+      ref:
+        description: "The branch, tag or SHA to build from"
         required: false
         type: string
       type:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
-      release_build:
-        description: "Flag to indicate if this is a release build"
-        required: false
-        type: boolean
-        default: false
+
 
 jobs:
   build-project:
@@ -59,7 +55,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.application_tag && inputs.application_tag != 'latest' && inputs.application_tag || '' }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1
@@ -125,7 +121,6 @@ jobs:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
           PYTHON_VERSION: ${{ inputs.python_version }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
           REPO_NAME: ${{ inputs.repo_name }}
 
       - name: "Publish artefacts to S3"
@@ -134,12 +129,9 @@ jobs:
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}
-          RELEASE_BUILD: ${{ inputs.release_build }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v6

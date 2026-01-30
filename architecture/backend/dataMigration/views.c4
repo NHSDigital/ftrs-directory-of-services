@@ -1,0 +1,32 @@
+views {
+
+  // =========================================================================
+  // Main Data Migration Pipeline View
+  // =========================================================================
+  view of ftrs.dataMigration {
+    title "Data Flow: DoS Data Migration Pipeline"
+    description '
+      Data flow diagram showing how legacy DoS service data is migrated to FtRS.
+
+      The pipeline supports two modes:
+      1. Full Load: Initial bulk migration of all services
+      2. CDC (Change Data Capture): Ongoing synchronisation of changes
+
+      Flow:
+      1. DMS replicates DoS PostgreSQL to staging database
+      2. Queue Populator queries services and triggers processor (manual trigger)
+         OR RDS Event Listener captures CDC changes and triggers processor
+      3. Processor Lambda transforms DoS services to FHIR format
+      4. Writes Organisation, HealthcareService, Location to FTRS data stores
+    '
+
+    include *
+    include dosLegacyDb
+
+    include ftrs.db.orgTable
+    include ftrs.db.healthCareServiceTable
+    include ftrs.db.locationTable
+
+    autoLayout TopBottom 100 100
+  }
+}

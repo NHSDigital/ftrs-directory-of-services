@@ -26,6 +26,10 @@ data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = local.kms_aliases.secrets_manager
 }
 
+data "aws_kms_key" "ssm_kms_key" {
+  key_id = local.kms_aliases.ssm
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -50,7 +54,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
       "sqs:GetQueueUrl"
     ]
     resources = [
-      aws_sqs_queue.transformed_queue.arn,
+      aws_sqs_queue.load_queue.arn,
+      aws_sqs_queue.transform_queue.arn,
     ]
   }
 }
@@ -107,6 +112,20 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
   }
 }
 
+data "aws_iam_policy_document" "ods_mock_api_access_policy" {
+  count = var.environment == "dev" ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${local.project_prefix}/mock-api/api-key${local.workspace_suffix}*"
+    ]
+  }
+}
+
 
 data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
   statement {
@@ -117,7 +136,7 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
     ]
 
     resources = [
-      module.processor_lambda.lambda_function_arn
+      module.extractor_lambda.lambda_function_arn
     ]
   }
 }

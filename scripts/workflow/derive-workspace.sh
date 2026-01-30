@@ -1,4 +1,5 @@
-#! /bin/bash
+#!/bin/bash
+
 echo "Trigger: $TRIGGER"
 echo "Trigger action: $TRIGGER_ACTION"
 echo "Trigger reference: $TRIGGER_REFERENCE"
@@ -8,53 +9,60 @@ echo "Commit hash (for dependabot only): $COMMIT_HASH"
 
 WORKSPACE="Unknown"
 
-# If we are dealing with a tagging action, then the workspace is the name of the tag
+# Tags always use default workspace
 if [ "$TRIGGER" == "tag" ] ; then
-  WORKSPACE="$TRIGGER_REFERENCE"
-  echo "Triggered by tagging - deriving workspace directly from tag: $TRIGGER_REFERENCE"
+  WORKSPACE="default"
+  echo -e "\nTag detected - using default workspace"
   echo "Workspace: $WORKSPACE"
   export WORKSPACE
-  exit
+  exit 0
 fi
 
-# If we are dealing with a push action or workflow_dispatch and the trigger is not a tag, we'll need to look at the branch name
-# to derive the workspace
-if [ "$TRIGGER_ACTION" == "push" ] || [ "$TRIGGER_ACTION" == "workflow_dispatch" ] ; then
-  echo "Triggered by a push or workflow_dispatch - branch name is current branch"
-  BRANCH_NAME="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
-# If trigger action is pull_request we will need to derive the workspace from the triggering head reference
-elif [ "$TRIGGER_ACTION" == "pull_request" ] ; then
-  echo "Triggered by a pull_request - setting branch name to trigger head ref "
-  BRANCH_NAME="$TRIGGER_HEAD_REFERENCE"
-# If trigger action is delete (of branch) we will need to derive the workspace from the event ref
-elif [ "$TRIGGER_ACTION" == "delete" ] ; then
-  echo "Triggered by a branch deletion - setting branch name to trigger event ref "
-  BRANCH_NAME="$TRIGGER_EVENT_REF"
-fi
+# Determine branch name based on trigger
+echo -e "\nDetermining branch name from trigger action..."
+case "$TRIGGER_ACTION" in
+  push|workflow_dispatch)
+    echo "Trigger: push or workflow_dispatch"
+    BRANCH_NAME="${TRIGGER_REFERENCE:-$(git rev-parse --abbrev-ref HEAD)}"
+    [ "$BRANCH_NAME" == "HEAD" ] && BRANCH_NAME="main"
+    echo "Branch name set to: $BRANCH_NAME"
+    ;;
+  pull_request)
+    echo "Trigger: pull_request"
+    BRANCH_NAME="$TRIGGER_HEAD_REFERENCE"
+    echo "Branch name set to: $BRANCH_NAME"
+    ;;
+  delete)
+    echo "Trigger: delete"
+    BRANCH_NAME="$TRIGGER_EVENT_REF"
+    echo "Branch name set to: $BRANCH_NAME"
+    ;;
+  *)
+    echo "Unknown trigger action: $TRIGGER_ACTION"
+    ;;
+esac
 
-echo "Branch name: $BRANCH_NAME"
 BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/refs\/heads\/task/task/g; s/refs\/heads\/dependabot/dependabot/g')
 
+# Derive workspace from branch name
+echo -e "\nDeriving workspace from branch name..."
 if [[ "${BRANCH_NAME:0:10}" == "dependabot" ]]; then
-  # Handle dependabot branches
+  echo "Dependabot branch detected"
   WORKSPACE="bot-$COMMIT_HASH"
-  echo "Workspace from dependabot branch: $WORKSPACE"
-elif [[ "$BRANCH_NAME" == "main" ]]; then
-  # Handle main branch
+  echo "Workspace: $WORKSPACE"
+elif [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" ]]; then
+  echo "main/develop branch detected"
   WORKSPACE="default"
-  echo "Workspace from main branch: $WORKSPACE"
-elif [[ "$BRANCH_NAME" == "develop" ]]; then
-  # Handle develop branch
-  WORKSPACE="default"
-  echo "Workspace from develop branch: $WORKSPACE"
+  echo "Workspace: $WORKSPACE"
 else
-  # Handle task branches
+  echo "Task branch detected"
   IFS='/' read -r -a name_array <<< "$BRANCH_NAME"
   IFS='_-' read -r -a ref <<< "${name_array[1]}"
   WORKSPACE=$(echo "${ref[0]}-${ref[1]}" | tr "[:upper:]" "[:lower:]")
-  echo "Workspace from feature branch: $WORKSPACE"
+  echo "Workspace: $WORKSPACE"
 fi
 
-echo "Branch name: $BRANCH_NAME"
-echo "Workspace: $WORKSPACE"
+echo -e "\nFinal Results:"
+echo "  Branch name: $BRANCH_NAME"
+echo "  Workspace: $WORKSPACE"
 export WORKSPACE

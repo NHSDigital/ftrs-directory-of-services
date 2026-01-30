@@ -1,0 +1,224 @@
+name: AWS Well Architected Framework Checks
+
+# checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Defines the Github environment from which to pull environment variables from"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - mgmt
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 0 * * SAT"  # At 00:00 on Saturdays
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  wafr-checks:
+    name: "AWS Well Architected Framework and Thrifty Checks - ${{ matrix.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        include:
+          - environment: dev
+          - environment: mgmt
+          - environment: test
+      fail-fast: false
+
+    steps:
+      - name: Check if steps should run
+        id: should-run
+        run: |
+          SHOULD_RUN="true"
+
+          # If manually triggered, check if this matrix entry matches the inputs
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+
+            # Check environment matches (if specified)
+            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+              SHOULD_RUN="false"
+            fi
+          fi
+
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "Should run: $SHOULD_RUN"
+
+      - name: Checkout repository
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: "Configure AWS credentials"
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: account
+          environment: ${{ matrix.environment }}
+
+      # Assume steampipe-readonly-role using role chaining
+      - name: Assume steampipe-readonly-role
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
+          role-chaining: true
+          role-session-name: GitHubActionsSteampipe
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Install Steampipe using GitHub Action
+      - name: Setup Steampipe
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/steampipe-action-setup@v1.6.0
+        with:
+          steampipe-version: "latest"
+          plugin-connections: |
+            connection "aws" {
+                plugin     = "aws"
+                regions    = ["${{ vars.AWS_REGION }}", "${{ vars.AWS_REGION_US_EAST_1 }}"]
+            }
+
+      # Install Powerpipe CLI using Github Action
+      - name: Install Powerpipe
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: turbot/powerpipe-action-setup@v1
+
+      - name: Start steampipe service
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          steampipe service start
+          # Wait for service to be ready
+          echo "Waiting for Steampipe service to be ready..."
+          for i in {1..30}; do
+            if steampipe service status 2>&1 | grep -q "running"; then
+              echo "Steampipe service is ready"
+              steampipe service status
+              break
+            fi
+            echo "Waiting for Steampipe service to start... ($i/30)"
+            sleep 2
+          done
+          # Final check
+          if ! steampipe service status 2>&1 | grep -q "running"; then
+            echo "::error::Steampipe service failed to start"
+            steampipe service status
+            exit 1
+          fi
+
+        # Install the AWS Well-Architected Framework and Thrifty mod
+      - name: Install AWS Well Architected and Thrifty mod
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          mkdir -p mods
+          cd mods
+          powerpipe mod init
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-well-architected
+          powerpipe mod install github.com/turbot/steampipe-mod-aws-thrifty
+
+      # Run Powerpipe benchmarks (WAFR and Thrifty)
+      - name: Run Powerpipe benchmarks
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: ./.github/actions/run-powerpipe-benchmarks
+        with:
+          benchmarks: |
+            [
+              {
+                "name": "wafr",
+                "benchmark": "aws_well_architected.benchmark.well_architected_framework"
+              },
+              {
+                "name": "thrifty_apigateway",
+                "benchmark": "aws_thrifty.benchmark.apigateway"
+              },
+              {
+                "name": "thrifty_cloudfront",
+                "benchmark": "aws_thrifty.benchmark.cloudfront"
+              },
+              {
+                "name": "thrifty_cloudtrail",
+                "benchmark": "aws_thrifty.benchmark.cloudtrail"
+              },
+              {
+                "name": "thrifty_cost_explorer",
+                "benchmark": "aws_thrifty.benchmark.cost_explorer"
+              },
+              {
+                "name": "thrifty_dynamodb",
+                "benchmark": "aws_thrifty.benchmark.dynamodb"
+              },
+              {
+                "name": "thrifty_ebs",
+                "benchmark": "aws_thrifty.benchmark.ebs"
+              },
+              {
+                "name": "thrifty_ec2",
+                "benchmark": "aws_thrifty.benchmark.ec2"
+              },
+              {
+                "name": "thrifty_ecr",
+                "benchmark": "aws_thrifty.benchmark.ecr"
+              },
+              {
+                "name": "thrifty_elasticache",
+                "benchmark": "aws_thrifty.benchmark.elasticache"
+              },
+              {
+                "name": "thrifty_lambda",
+                "benchmark": "aws_thrifty.benchmark.lambda"
+              },
+              {
+                "name": "thrifty_network",
+                "benchmark": "aws_thrifty.benchmark.network"
+              },
+              {
+                "name": "thrifty_rds",
+                "benchmark": "aws_thrifty.benchmark.rds"
+              },
+              {
+                "name": "thrifty_route53",
+                "benchmark": "aws_thrifty.benchmark.route53"
+              },
+              {
+                "name": "thrifty_c3",
+                "benchmark": "aws_thrifty.benchmark.s3"
+              },
+              {
+                "name": "thrifty_csecretsmanager",
+                "benchmark": "aws_thrifty.benchmark.secretsmanager"
+              }
+            ]
+          reports-dir: "reports"
+          mods-dir: "mods"
+
+      # Upload report artifacts for download
+      - name: Upload reports
+        if: steps.should-run.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: aws-wafr-thrifty-reports-${{ matrix.environment }}
+          path: reports/
+          if-no-files-found: warn
+          retention-days: 30
+
+  slack-notifications:
+    name: "Send Notification to Slack"
+    needs:
+      - wafr-checks
+    if: always()
+    uses: ./.github/workflows/slack-notifications.yaml
+    with:
+      env: ${{ matrix.environment }}
+    secrets: inherit

@@ -8,7 +8,18 @@ locals {
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
   s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
 
-  artefact_base_path = var.release_tag != "" ? "releases/${var.release_tag}" : "${terraform.workspace}/${var.commit_hash}"
+  is_release_candidate = var.release_tag != "" && can(regex("^v\\d+\\.\\d+\\.\\d+-rc\\.\\d+$", var.release_tag))
+  is_release           = var.release_tag != "" && !local.is_release_candidate
+
+  artefact_base_path = (
+    local.is_release_candidate
+    ? "release-candidates/${var.release_tag}" :
+    local.is_release
+    ? "releases/${var.release_tag}" :
+    terraform.workspace == "default"
+    ? "development/latest" :
+    "development/${terraform.workspace}"
+  )
 
   # Deploy certain resources (e.g., databases, backup SSM) only in default Terraform workspace.
   is_primary_environment = terraform.workspace == "default"
@@ -44,4 +55,7 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
   }
+
+  # Will be used by dos-search stack
+  opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
 }

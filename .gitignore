@@ -49,3 +49,16 @@ scans/*
 
 # vscode settings
 .vscode
+
+# Local Jira story cache
+requirements/user-stories/backlog/jira/
+
+# Local secrets (do not commit)
+scripts/nfr/confluence_secrets.sh
+scripts/nfr/confluence_env.sh
+
+# NFR Maintenance UI
+services/nfrs-maintenance/node_modules/
+
+# Generated NFR documentation (rebuilt from YAML/scripts)
+docs/nfrs/

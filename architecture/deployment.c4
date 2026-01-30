@@ -1,50 +1,450 @@
 deployment {
 
-  environment gcp "Google Cloud Platform" {
-    region europe-west2 "London" {
+  // ============================================================================
+  // NHS API MANAGEMENT (External)
+  // ============================================================================
 
-      vpc proxyVpc "Proxy Service VPC" {
-        subnet publicSubnet "Public Subnet" {
-          apigateway gcpApiGateway "GCP API Gateway" {
-            description "Handles API requests and routes them to backend services"
-          }
+  environment nhsApim "NHS API Management" {
+    zone apimZone "APIM Proxies" {
+      description "NHS England managed API proxies"
 
-          cloudfunction readProxyFunction "DoS Read Proxy Function" {
-            description "Processes incoming requests and forwards them to the appropriate backend"
-            instanceOf apim.dosReadProxy
-          }
-
-          cloudfunction writeProxyFunction "DoS Read Proxy Function" {
-            description "Processes incoming requests and forwards them to the appropriate backend"
-            instanceOf apim.dosWriteProxy
-          }
-        }
-      }
+      instanceOf apim.dosReadProxy
+      instanceOf apim.dosWriteProxy
     }
   }
 
+  // ============================================================================
+  // AWS CLOUD - Production Environment
+  // ============================================================================
+
   environment aws "AWS Cloud" {
-    zone eu {
-      description "London"
+    zone prod "Production (eu-west-2)" {
+      description "Production environment in London region (eu-west-2)"
 
-      vpc gpVpc "DoS VPC" {
+      // ======================================================================
+      // REGIONAL AWS SERVICES (Outside VPC)
+      // ======================================================================
 
-        subnet privateSubnet "Private Subnet" {
-          instanceOf ftrs.assuranceEngine
+      // DNS & Certificates
+      route53 = instanceOf ftrs.dns.route53Zone {
+        title "Route 53"
+        description "ftrs.nhs.uk hosted zone with dos-search DNS records"
+        technology "Route 53 Public Hosted Zone, Shield Advanced protected"
+      }
 
-          instanceOf ftrs.etl
-          instanceOf ftrs.sourcingEtlConsumer
-          instanceOf ftrs.orgController.orgByOdsCode
-          instanceOf ftrs.updateOrgController.addOrg
-          instanceOf ftrs.updateOrgController.updateOrg
-          instanceOf ftrs.updateOrgController.deleteOrg
-          instanceOf ftrs.tasksAPI.tasksController.getTasks
+      acm = instanceOf ftrs.dns.acmCertificate {
+        title "ACM Certificate"
+        description "*.ftrs.nhs.uk wildcard certificate"
+        technology "ACM, DNS validated, auto-renewal"
+      }
+
+      // Security
+      secretsManager = instanceOf ftrs.security.secretsManager {
+        title "Secrets Manager"
+        description "JWT credentials and ODS API key"
+        technology "Secrets Manager, KMS encrypted"
+      }
+
+      kms = instanceOf ftrs.security.kms {
+        title "KMS"
+        description "Customer managed keys for SQS and Secrets Manager"
+        technology "KMS CMK, automatic rotation"
+      }
+
+      shield = instanceOf ftrs.security.shieldAdvanced {
+        title "Shield Advanced"
+        description "DDoS protection for Route 53 hosted zone"
+        technology "Shield Advanced, proactive engagement enabled"
+      }
+
+      // Operations
+      eventBridge = instanceOf ftrs.operations.eventBridge {
+        title "EventBridge Scheduler"
+        description "Daily ODS ETL trigger at 01:10 AM London time"
+        technology "EventBridge Scheduler, cron(10 1 * * ? *)"
+      }
+
+      ssm = instanceOf ftrs.operations.ssmParameterStore {
+        title "SSM Parameter Store"
+        description "CRUD APIs endpoint configuration"
+        technology "SSM Parameter Store"
+      }
+
+      cloudWatch = instanceOf ftrs.operations.cloudWatch {
+        title "CloudWatch"
+        description "Lambda logs and X-Ray traces"
+        technology "CloudWatch Logs, X-Ray"
+      }
+
+      // Storage
+      s3 = instanceOf ftrs.storage.s3Bucket {
+        title "S3 Buckets"
+        description "ETL pipeline store, artefacts, and mTLS trust store"
+        technology "S3, versioning enabled"
+      }
+
+      // API Gateway
+      apiGateway = instanceOf ftrs.apiGateway {
+        title "API Gateway"
+        description "DoS Search REST API with mTLS"
+        technology "API Gateway REST, Regional endpoint, custom domain"
+      }
+
+      // Data stores
+      transformQueue = instanceOf ftrs.etlOds.transformQueue {
+        title "Transform Queue"
+        description "Raw ODS data awaiting transformation"
+        technology "SQS Standard, KMS encrypted"
+      }
+
+      loadQueue = instanceOf ftrs.etlOds.loadQueue {
+        title "Load Queue"
+        description "Transformed FHIR payloads ready for CRUD APIs"
+        technology "SQS Standard, KMS encrypted"
+      }
+
+      orgTable = instanceOf ftrs.db.orgTable {
+        title "Organisation Table"
+        description "Organisation data with ODS code GSI"
+        technology "DynamoDB, On-demand, PITR enabled"
+      }
+
+      healthcareServiceTable = instanceOf ftrs.db.healthCareServiceTable {
+        title "Healthcare Service Table"
+        description "Healthcare service data"
+        technology "DynamoDB, On-demand, PITR enabled"
+      }
+
+      locationTable = instanceOf ftrs.db.locationTable {
+        title "Location Table"
+        description "Location data"
+        technology "DynamoDB, On-demand, PITR enabled"
+      }
+
+      // ======================================================================
+      // DATA MIGRATION - Regional Services
+      // ======================================================================
+
+      // DMS Components
+      dms dmsReplicationInstance "DMS Replication Instance" {
+        description "Replicates DoS data from source to target RDS"
+        technology "AWS DMS, Multi-AZ"
+      }
+
+      rds targetRds "Target Aurora PostgreSQL" {
+        description "Staging database for migrated DoS data"
+        technology "Aurora PostgreSQL Serverless v2"
+      }
+
+      // Data Migration Queues
+      sqs dmsEventQueue "DMS Event Queue" {
+        description "Service migration events queue"
+        technology "SQS Standard, KMS encrypted"
+      }
+
+      dynamodb migrationStateTable "Migration State Table" {
+        description "Tracks migration progress per service"
+        technology "DynamoDB, On-demand"
+      }
+
+      s3 pipelineStore "Pipeline Store" {
+        description "Sanitised data clones and pipeline artefacts"
+        technology "S3 Bucket"
+      }
+
+      // ======================================================================
+      // VPC - Lambda Functions
+      // ======================================================================
+      vpc ftrsVpc "FtRS VPC" {
+        description "Private subnets across multiple AZs with VPC Endpoints"
+        technology "VPC with NAT Gateway and VPC Endpoints"
+
+        // ETL ODS Lambdas (Extract-Transform-Load pipeline)
+        odsExtractor = instanceOf ftrs.etlOds.odsExtractor {
+          title "ODS Extractor Lambda"
+          description "Extracts from ODS API, queues raw data to Transform Queue"
+          technology "Python 3.12, 512MB, 720s timeout"
+        }
+
+        odsTransformer = instanceOf ftrs.etlOds.odsTransformer {
+          title "ODS Transformer Lambda"
+          description "Transforms to FHIR, looks up UUID, queues to Load Queue"
+          technology "Python 3.12, 512MB, reserved concurrency 2"
+        }
+
+        odsLoader = instanceOf ftrs.etlOds.odsLoader {
+          title "ODS Loader Lambda"
+          description "Loads FHIR organisations to CRUD APIs via APIM"
+          technology "Python 3.12, 512MB, reserved concurrency 2"
+        }
+
+        // DoS Search Lambda
+        dosSearchLambda = instanceOf ftrs.dosSearch.getOrganizationByOds {
+          title "DoS Search Lambda"
+          description "FHIR search returning Organisation/Endpoint Bundle"
+          technology "Python 3.12, 512MB, X-Ray enabled"
+        }
+
+        // CRUD APIs - Three separate Lambda functions
+        lambda organisationApiLambda "Organisation API Lambda" {
+          description "FastAPI Lambda for Organisation CRUD operations"
+          technology "Python 3.12, FastAPI + Mangum"
+        }
+
+        lambda healthcareServiceApiLambda "HealthcareService API Lambda" {
+          description "FastAPI Lambda for HealthcareService CRUD operations"
+          technology "Python 3.12, FastAPI + Mangum"
+        }
+
+        lambda locationApiLambda "Location API Lambda" {
+          description "FastAPI Lambda for Location CRUD operations"
+          technology "Python 3.12, FastAPI + Mangum"
+        }
+
+        // Data Migration Lambdas
+        migrationProcessor = instanceOf ftrs.dataMigration.processor {
+          title "Migration Processor Lambda"
+          description "Transforms DoS services to FHIR, writes to DynamoDB"
+          technology "Python 3.12, 512MB"
+        }
+
+        queuePopulator = instanceOf ftrs.dataMigration.queuePopulator {
+          title "Queue Populator Lambda"
+          description "Seeds SQS queue with service IDs for migration"
+          technology "Python 3.12"
+        }
+
+        referenceDataLoad = instanceOf ftrs.dataMigration.referenceDataLoad {
+          title "Reference Data Load Lambda"
+          description "Loads triage codes and reference data"
+          technology "Python 3.12"
+        }
+
+        dmsDbSetup = instanceOf ftrs.dataMigration.dmsDbSetup {
+          title "DMS DB Setup Lambda"
+          description "Configures target RDS for DMS replication"
+          technology "Python 3.12"
+        }
+
+        rdsEventListener = instanceOf ftrs.dataMigration.rdsEventListener {
+          title "RDS Event Listener Lambda"
+          description "Captures CDC events, routes to workspace queues"
+          technology "Python 3.12"
         }
       }
-      instanceOf ftrs.apiGateway
-      instanceOf ftrs.db
-      instanceOf ftrs.assuranceQueue
-      instanceOf ftrs.sourcingEtlQueue
+
+      // Deployment-level relationships
+      // ETL ODS Lambdas -> Operations/Storage
+      ftrsVpc.odsExtractor -> cloudWatch "logs to"
+      ftrsVpc.odsExtractor -> secretsManager "fetches ODS API key from"
+      ftrsVpc.odsTransformer -> cloudWatch "logs to"
+      ftrsVpc.odsTransformer -> secretsManager "fetches credentials from"
+      ftrsVpc.odsLoader -> cloudWatch "logs to"
+      ftrsVpc.odsLoader -> ssm "reads config from"
+      ftrsVpc.odsLoader -> secretsManager "fetches JWT credentials from"
+
+      // DoS Search and CRUD APIs
+      ftrsVpc.dosSearchLambda -> cloudWatch "logs to"
+      ftrsVpc.dosSearchLambda -> orgTable "queries"
+      ftrsVpc.organisationApiLambda -> cloudWatch "logs to"
+      ftrsVpc.organisationApiLambda -> orgTable "reads/writes"
+      ftrsVpc.healthcareServiceApiLambda -> cloudWatch "logs to"
+      ftrsVpc.healthcareServiceApiLambda -> healthcareServiceTable "reads/writes"
+      ftrsVpc.locationApiLambda -> cloudWatch "logs to"
+      ftrsVpc.locationApiLambda -> locationTable "reads/writes"
+
+      // API Gateway connections
+      apiGateway -> s3 "reads trust store from"
+      apiGateway -> ftrsVpc.dosSearchLambda "invokes"
+      apiGateway -> ftrsVpc.organisationApiLambda "invokes for /Organization"
+      apiGateway -> ftrsVpc.healthcareServiceApiLambda "invokes for /healthcare-service"
+      apiGateway -> ftrsVpc.locationApiLambda "invokes for /location"
+      apiGateway -> acm "uses certificate"
+
+      // DNS & Security chain
+      route53 -> apiGateway "routes to"
+      shield -> route53 "protects"
+      eventBridge -> ftrsVpc.odsExtractor "triggers"
+      ftrsVpc.odsExtractor -> transformQueue "sends to"
+      transformQueue -> ftrsVpc.odsTransformer "triggers"
+      ftrsVpc.odsTransformer -> loadQueue "sends to"
+      loadQueue -> ftrsVpc.odsLoader "triggers"
+      secretsManager -> kms "encrypted by"
+      transformQueue -> kms "encrypted by"
+      loadQueue -> kms "encrypted by"
+
+      // Data Migration relationships
+      dmsReplicationInstance -> targetRds "replicates to"
+      ftrsVpc.queuePopulator -> targetRds "queries service IDs"
+      ftrsVpc.queuePopulator -> dmsEventQueue "sends to"
+      ftrsVpc.rdsEventListener -> dmsEventQueue "routes CDC events"
+      dmsEventQueue -> ftrsVpc.migrationProcessor "triggers"
+      ftrsVpc.migrationProcessor -> targetRds "reads from"
+      ftrsVpc.migrationProcessor -> orgTable "writes to"
+      ftrsVpc.migrationProcessor -> healthcareServiceTable "writes to"
+      ftrsVpc.migrationProcessor -> locationTable "writes to"
+      ftrsVpc.migrationProcessor -> migrationStateTable "tracks state"
+      ftrsVpc.migrationProcessor -> cloudWatch "logs to"
+      ftrsVpc.referenceDataLoad -> targetRds "reads reference data"
+      ftrsVpc.referenceDataLoad -> orgTable "writes to"
+      ftrsVpc.dmsDbSetup -> targetRds "configures"
+      dmsEventQueue -> kms "encrypted by"
     }
+  }
+
+  // ============================================================================
+  // EXTERNAL - Legacy DoS
+  // ============================================================================
+
+  environment legacy "Legacy Systems" {
+    zone dosDb "DoS Database" {
+      description "Existing Directory of Services PostgreSQL on Azure"
+
+      legacyDos = instanceOf dosLegacyDb {
+        title "Legacy DoS PostgreSQL"
+        description "Source database for data migration"
+        technology "PostgreSQL on Azure"
+      }
+    }
+
+    // Legacy to AWS DMS relationship
+    dosDb.legacyDos -> aws.prod.dmsReplicationInstance "DMS replicates via logical replication"
+  }
+}
+
+// ============================================================================
+// DEPLOYMENT VIEWS
+// ============================================================================
+
+views {
+
+  deployment view prodDeployment {
+    title "Production Deployment Overview"
+    description "
+      High-level production deployment showing main AWS components and data flows.
+
+      Key architecture decisions:
+      - Lambda functions run in private subnets within VPC
+      - AWS managed services (DynamoDB, SQS, S3) are regional and accessed via VPC Endpoints
+      - API Gateway is regional with custom domain and mTLS
+      - All encryption uses KMS customer managed keys
+      - Shield Advanced protects Route 53
+
+      See detailed views for specific service data flows:
+      - etlOdsDeployment: ODS ETL pipeline (Extract-Transform-Load)
+      - dosSearchDeployment: DoS Search API
+      - dataMigrationDeployment: DoS to FtRS data migration
+      - crudApisDeployment: CRUD APIs for Organisation, HealthcareService, Location
+    "
+
+    // Include main infrastructure (not individual lambdas)
+    include aws.prod
+    include aws.prod.ftrsVpc
+    include nhsApim.*
+    include legacy.*
+
+    // External access flow
+    include nhsApim.apimZone.* -> aws.prod.apiGateway
+    include aws.prod.route53 -> aws.prod.apiGateway
+
+    // Main data stores
+    include aws.prod.orgTable
+    include aws.prod.healthcareServiceTable
+    include aws.prod.locationTable
+
+    // Key integration points (simplified)
+    include legacy.dosDb.legacyDos -> aws.prod.dmsReplicationInstance
+    include aws.prod.eventBridge
+
+    autoLayout TopBottom 100 100
+  }
+
+  deployment view etlOdsDeployment {
+    title "ETL ODS Pipeline - Production Deployment"
+    description "
+      Production deployment for the ODS ETL Pipeline (Extract-Transform-Load):
+      - EventBridge Scheduler (triggers daily at 01:10 AM)
+      - Extractor Lambda (fetches from ODS API, queues raw data)
+      - Transform Queue (raw data awaiting transformation)
+      - Transformer Lambda (transforms to FHIR, looks up UUID, queues payload)
+      - Load Queue (transformed FHIR ready for loading)
+      - Loader Lambda (sends PUT to CRUD APIs via APIM)
+      - Secrets Manager (JWT credentials, ODS API key)
+    "
+
+    include aws.prod.eventBridge
+    include aws.prod.ftrsVpc.odsExtractor
+    include aws.prod.transformQueue
+    include aws.prod.ftrsVpc.odsTransformer
+    include aws.prod.loadQueue
+    include aws.prod.ftrsVpc.odsLoader
+    include aws.prod.orgTable
+    include aws.prod.secretsManager
+    include aws.prod.kms
+    include aws.prod.cloudWatch
+    include nhsApim.apimZone.*
+
+    autoLayout TopBottom 70 77
+  }
+
+  deployment view dosSearchDeployment {
+    title "DoS Search Service - Production Deployment"
+    description "
+      Production deployment for the DoS Search service showing:
+      - Route 53 (custom domain DNS)
+      - ACM Certificate (TLS)
+      - API Gateway (REST, regional, mTLS)
+      - Search Lambda in VPC (FHIR endpoint)
+      - DynamoDB (organisation data)
+      - CloudWatch (logs and X-Ray tracing)
+    "
+
+    include aws.prod.route53
+    include aws.prod.acm
+    include aws.prod.shield
+    include aws.prod.apiGateway
+    include aws.prod.ftrsVpc.dosSearchLambda
+    include aws.prod.orgTable
+    include aws.prod.cloudWatch
+    include aws.prod.s3
+    include nhsApim.apimZone.*
+
+    autoLayout TopBottom 70 77
+  }
+
+  deployment view dataMigrationDeployment {
+    title "Data Migration Pipeline - Production Deployment"
+    description "
+      Production deployment for the DoS Data Migration Pipeline showing:
+      - Legacy DoS PostgreSQL (source on Azure)
+      - DMS Replication Instance (full load + CDC)
+      - Target Aurora PostgreSQL Serverless v2
+      - Queue Populator Lambda (seeds migration queue)
+      - RDS Event Listener Lambda (CDC events)
+      - Migration Processor Lambda (transforms to FHIR)
+      - Reference Data Load Lambda (triage codes, etc.)
+      - DynamoDB tables (Organisation, HealthcareService, Location)
+    "
+
+    include legacy.dosDb.*
+    include aws.prod.dmsReplicationInstance
+    include aws.prod.targetRds
+    include aws.prod.dmsEventQueue
+    include aws.prod.migrationStateTable
+    include aws.prod.pipelineStore
+    include aws.prod.ftrsVpc.migrationProcessor
+    include aws.prod.ftrsVpc.queuePopulator
+    include aws.prod.ftrsVpc.referenceDataLoad
+    include aws.prod.ftrsVpc.dmsDbSetup
+    include aws.prod.ftrsVpc.rdsEventListener
+    include aws.prod.orgTable
+    include aws.prod.healthcareServiceTable
+    include aws.prod.locationTable
+    include aws.prod.secretsManager
+    include aws.prod.kms
+    include aws.prod.cloudWatch
+    include aws.prod.ssm
+
+    autoLayout TopBottom 100 100
   }
 }

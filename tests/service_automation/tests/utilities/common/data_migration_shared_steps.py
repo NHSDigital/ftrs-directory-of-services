@@ -1,50 +1,80 @@
 """Shared step definitions for data migration BDD tests."""
+
 import os
 from typing import Any, Dict, List, Literal
 
 import pytest
+from boto3.dynamodb.types import TypeDeserializer
 from loguru import logger
+from service_migration.models import ServiceMigrationMetrics
 from sqlalchemy import text
 from sqlmodel import Session
-
-from tests.service_automation.tests.utilities.common.data_migration.migration_context_helper import (
+from utilities.common.constants import (
+    DYNAMODB_CLIENT,
+    ENV_ENVIRONMENT,
+    ENV_WORKSPACE,
+    SERVICES_TABLE,
+)
+from utilities.common.dynamoDB_tables import get_table_name
+from utilities.common.log_helper import (
+    get_mock_logger_from_context,
+    verify_migration_completed_log,
+    verify_service_not_migrated_log,
+    verify_service_skipped_log,
+    verify_transformation_log,
+    verify_transformer_selected_log,
+)
+from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
     store_migration_result,
     store_sqs_result,
 )
-from utilities.common.constants import (
-    DYNAMODB_CLIENT,
-    ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
-    ENV_WORKSPACE,
-    SERVICES_TABLE,
-)
-from utilities.common.data_migration.migration_helper import MigrationHelper
-from utilities.common.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
-    verify_all_metrics,
-)
-from utilities.common.data_migration.migration_service_helper import (
+from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.migration_metrics_helper import verify_all_metrics
+from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import build_sqs_event
-from utilities.common.log_helper import (
-    get_mock_logger_from_context,
-    verify_migration_completed_log,
-    verify_error_log_present,
-    verify_service_not_migrated_log,
-    verify_service_skipped_log,
-    verify_transformation_log,
-    verify_transformer_selected_log,
-)
+from utilities.data_migration.sqs_helper import build_sqs_event
 
 ServiceAttributes = Dict[str, Any]
 MigrationContext = Dict[str, Any]
 DynamoDBFixture = Dict[str, Any]
 GherkinTable = List[List[str]]
 SQSEvent = Dict[str, Any]
+
+
+def get_state_record_by_id(
+    dynamodb: DynamoDBFixture,
+    state_key: str,
+) -> Dict[str, Any]:
+    """
+    Retrieve and deserialize a state record from DynamoDB by source_record_id.
+
+    Args:
+        dynamodb: DynamoDB client and resource dictionary
+        state_key: The source_record_id to look up
+
+    Returns:
+        Deserialized state record as dictionary
+
+    Raises:
+        AssertionError: If state record does not exist
+    """
+    state_table_name = get_table_name(resource="state", stack_name="data-migration")
+    client = dynamodb[DYNAMODB_CLIENT]
+
+    response = client.get_item(
+        TableName=state_table_name,
+        Key={"source_record_id": {"S": state_key}},
+    )
+
+    assert "Item" in response, f"State record should exist for key {state_key}"
+
+    item = response["Item"]
+    deserializer = TypeDeserializer()
+    return {k: deserializer.deserialize(v) for k, v in item.items()}
 
 
 def run_test_environment_configured(
@@ -61,16 +91,16 @@ def run_test_environment_configured(
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
     logger.info("Environment configuration verified")
 
 
-def run_dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def run_dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+    result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
     count = result.fetchone()[0]
     assert count >= 0, "Should be able to query services table"
     logger.info(f"DoS database ready with {count} services")
@@ -88,14 +118,13 @@ def run_dynamodb_tables_ready(dynamodb: DynamoDBFixture) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
         environment = os.getenv(ENV_ENVIRONMENT)
         workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+            f"Expected pattern: ftrs-dos-{environment}-database-{{resource}}-{workspace}"
         )
 
     logger.info("All required DynamoDB tables are ready")
@@ -130,7 +159,7 @@ def run_full_service_migration(
         "Full service migration completed",
         extra={
             "success": result.success,
-            "total_records": result.metrics.total_records if result.metrics else 0,
+            "total_records": result.metrics.total if result.metrics else 0,
         },
     )
 
@@ -177,9 +206,8 @@ def run_sqs_event_migration_with_params(
         "SQS event migration completed",
         extra={
             "success": result.success,
-            "migrated_records": (
-                result.metrics.migrated_records if result.metrics else 0
-            ),
+            "inserted_records": (result.metrics.inserted if result.metrics else 0),
+            "updated_records": (result.metrics.updated if result.metrics else 0),
             "table_name": table_name,
             "record_id": record_id,
             "method": method,
@@ -208,7 +236,7 @@ def run_verify_migration_metrics_inline(
     migration_type = get_migration_type_description(migration_context)
     additional_context = build_supported_records_context(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -220,7 +248,7 @@ def run_verify_migration_metrics_inline(
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
         additional_context=additional_context,
     )
@@ -253,7 +281,7 @@ def run_verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
@@ -265,7 +293,7 @@ def run_verify_sqs_event_metrics(
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
     )
 

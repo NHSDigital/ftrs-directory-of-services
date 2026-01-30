@@ -1,0 +1,29 @@
+# Canonical service display names for documentation
+# key: codebase service id; value: human-friendly display name
+services:
+  crud-apis: Ingress API
+  dos-search: DoS Search
+  dos-ui: DoS UI
+  etl-ods: ODS ETL
+  data-migration: Data Migration
+  read-only-viewer: Read-only Viewer
+  sandbox-dos-search: Sandbox DoS Search
+  infrastructure: Infrastructure
+
+operations:
+  dos-search:
+    dos-search: Search (GP)
+    dos-lookup-ods: Search by ODS code
+    dos-nearby: Nearby Services
+  crud-apis:
+    org-get: Get Organisation
+    org-update: Update Organisation
+    healthcare-service-get: Get HealthcareService
+    org-search-ods: Search by ODS
+  etl-ods:
+    ods-daily-sync: ODS Daily Sync
+    ods-batch-transform: ODS Batch Transform
+    ods-sqs-batch-send: ODS SQS Batch Send
+  data-migration:
+    dm-record-transform: Record Transform
+    dm-full-sync: Full Sync

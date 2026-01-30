@@ -28,12 +28,6 @@ variable "lambda_timeout" {
   type        = number
 }
 
-variable "application_tag" {
-  description = "The version or tag of the gp search application"
-  type        = string
-  default     = "latest"
-}
-
 variable "vpc_private_subnet_cidr_range" {
   description = "The CIDR range for the VPC private subnets"
   type        = string

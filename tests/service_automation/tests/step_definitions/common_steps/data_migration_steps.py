@@ -1,44 +1,47 @@
 import os
 from typing import Any, Dict, Literal
+from uuid import UUID
 
 import pytest
 from pytest_bdd import given, parsers, then, when
+from service_migration.models import ServiceMigrationMetrics
 from sqlalchemy import text
 from sqlmodel import Session
-
-from utilities.common.data_migration.migration_context_helper import (
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
+    parse_datatable_value,
+)
+from utilities.common.constants import (
+    DYNAMODB_CLIENT,
+    ENV_ENVIRONMENT,
+    ENV_WORKSPACE,
+    SERVICETYPES_TABLE,
+    STATE_TABLE_ENTITY_ID_FIELDS,
+)
+from utilities.common.data_migration_shared_steps import (
+    get_state_record_by_id,
+)
+from utilities.common.log_helper import (
+    get_mock_logger_from_context,
+    verify_error_log_present,
+    verify_migration_completed_log,
+    verify_service_not_migrated_log,
+    verify_service_skipped_log,
+    verify_transformation_log,
+    verify_transformer_selected_log,
+)
+from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
     get_migration_type_description,
     store_migration_result,
     store_sqs_result,
 )
-from utilities.common.data_migration.migration_helper import MigrationHelper
-from utilities.common.data_migration.migration_metrics_helper import (
-    ExpectedMetrics,
-    verify_all_metrics,
-)
-from utilities.common.data_migration.migration_service_helper import (
+from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.migration_metrics_helper import verify_all_metrics
+from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
-from utilities.common.data_migration.sqs_helper import build_sqs_event
-from utilities.common.constants import (
-    DYNAMODB_CLIENT,
-    ENV_ENVIRONMENT,
-    ENV_PROJECT_NAME,
-    ENV_WORKSPACE,
-    SERVICES_TABLE,
-)
-from utilities.common.log_helper import (
-    get_mock_logger_from_context,
-    verify_migration_completed_log,
-    verify_error_log_present,
-    verify_service_not_migrated_log,
-    verify_service_skipped_log,
-    verify_transformation_log,
-    verify_transformer_selected_log,
-)
-
+from utilities.data_migration.sqs_helper import build_sqs_event
 
 # ============================================================
 # Setup Steps (Background)
@@ -52,24 +55,24 @@ def environment_configured(
     """Verify test environment is properly configured."""
     try:
         response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
+        response.get("TableNames", [])
         assert "TableNames" in response, "DynamoDB should be accessible"
     except Exception as e:
         pytest.fail(f"Failed to access DynamoDB: {e}")
 
     assert migration_helper is not None, "Migration helper should be configured"
     assert migration_helper.db_uri is not None, "Database URI should be set"
-    assert (
-        migration_helper.dynamodb_endpoint is not None
-    ), "DynamoDB endpoint should be set"
+    assert migration_helper.dynamodb_endpoint is not None, (
+        "DynamoDB endpoint should be set"
+    )
 
 
 @given("the DoS database has test data")
-def dos_database_has_test_data(dos_db_with_migration: Session) -> None:
+def dos_database_has_test_data(dos_db: Session) -> None:
     """Verify DoS database is accessible and has tables."""
-    result = dos_db_with_migration.exec(text(f"SELECT COUNT(*) FROM {SERVICES_TABLE}"))
+    result = dos_db.exec(text(f"SELECT COUNT(*) FROM {SERVICETYPES_TABLE}"))
     count = result.fetchone()[0]
-    assert count >= 0, "Should be able to query services table"
+    assert count >= 0, "Should be able to query servicetypes table"
 
 
 @given("DynamoDB tables are ready")
@@ -83,14 +86,13 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     missing_tables = [table for table in expected_tables if table not in table_names]
 
     if missing_tables:
-        project_name = os.getenv(ENV_PROJECT_NAME)
         environment = os.getenv(ENV_ENVIRONMENT)
         workspace = os.getenv(ENV_WORKSPACE)
 
         pytest.fail(
             f"Missing required DynamoDB tables: {', '.join(missing_tables)}\n"
             f"Found tables: {', '.join(table_names)}\n"
-            f"Expected pattern: {project_name}-{environment}-database-{{resource}}-{workspace}"
+            f"Expected pattern: ftrs-dos-{environment}-database-{{resource}}-{workspace}"
         )
 
 
@@ -106,7 +108,7 @@ def dynamodb_tables_ready(dynamodb: Dict[str, Any]) -> None:
     target_fixture="service_created",
 )
 def create_service_with_attributes(
-    dos_db_with_migration: Session,
+    dos_db: Session,
     migration_context: Dict[str, Any],
     entity_type: str,
     entity_name: str,
@@ -114,7 +116,7 @@ def create_service_with_attributes(
 ) -> Dict[str, Any]:
     """Create a service in DoS database with attributes from Gherkin table."""
     return parse_and_create_service(
-        dos_db_with_migration,
+        dos_db,
         migration_context,
         entity_type,
         entity_name,
@@ -125,6 +127,7 @@ def create_service_with_attributes(
 # ============================================================
 # Migration Execution Steps (When)
 # ============================================================
+
 
 @when("triage code full migration is executed")
 def triage_code_full_migration(migration_helper: MigrationHelper, dynamodb):
@@ -195,8 +198,10 @@ def sqs_event_migration_with_params(
         "{supported:d} supported, "
         "{unsupported:d} unsupported, "
         "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
-        "{skipped:d} skipped and "
+        "{inserted:d} inserted, "
+        "{updated:d} updated, "
+        "{skipped:d} skipped, "
+        "{invalid:d} invalid and "
         "{errors:d} errors"
     )
 )
@@ -206,8 +211,10 @@ def verify_migration_metrics(
     supported: int,
     unsupported: int,
     transformed: int,
-    migrated: int,
+    inserted: int,
+    updated: int,
     skipped: int,
+    invalid: int,
     errors: int,
 ) -> None:
     """Verify migration metrics match expected values."""
@@ -219,19 +226,21 @@ def verify_migration_metrics(
     migration_type = get_migration_type_description(migration_context)
     additional_context = build_supported_records_context(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
         transformed=transformed,
-        migrated=migrated,
+        inserted=inserted,
+        updated=updated,
         skipped=skipped,
+        invalid=invalid,
         errors=errors,
     )
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
         additional_context=additional_context,
     )
@@ -244,7 +253,8 @@ def verify_migration_metrics(
         "{supported:d} supported, "
         "{unsupported:d} unsupported, "
         "{transformed:d} transformed, "
-        "{migrated:d} migrated, "
+        "{inserted:d} inserted, "
+        "{updated:d} updated, "
         "{skipped:d} skipped and "
         "{errors:d} errors"
     )
@@ -255,7 +265,8 @@ def verify_sqs_event_metrics(
     supported: int,
     unsupported: int,
     transformed: int,
-    migrated: int,
+    inserted: int,
+    updated: int,
     skipped: int,
     errors: int,
 ) -> None:
@@ -267,19 +278,20 @@ def verify_sqs_event_metrics(
 
     migration_type = get_migration_type_description(migration_context)
 
-    expected = ExpectedMetrics(
+    expected = ServiceMigrationMetrics(
         total=total,
         supported=supported,
         unsupported=unsupported,
         transformed=transformed,
-        migrated=migrated,
+        inserted=inserted,
+        updated=updated,
         skipped=skipped,
         errors=errors,
     )
 
     verify_all_metrics(
         actual_metrics=result.metrics,
-        expected=expected,
+        expected_metrics=expected,
         migration_type=migration_type,
     )
 
@@ -374,7 +386,9 @@ def verify_service_skipped(
     )
 
 
-@then(parsers.parse("error log containing message: '{error_message_fragment}' was found"))
+@then(
+    parsers.parse("error log containing message: '{error_message_fragment}' was found")
+)
 def verify_error_level_log(
     migration_context: Dict[str, Any],
     error_message_fragment: str,
@@ -386,3 +400,119 @@ def verify_error_level_log(
         mock_logger=mock_logger,
         error_fragment=error_message_fragment,
     )
+
+
+@then(
+    parsers.parse(
+        "the state table contains a record for key '{state_key}' with version {version:d}"
+    )
+)
+def verify_state_record_details(
+    migration_context: Dict[str, Any],
+    dynamodb: Dict[str, Any],
+    state_key: str,
+    version: int,
+) -> None:
+    """Verify state record exists with correct version."""
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
+
+    assert deserialized_item["version"] == version, (
+        f"Version should be {version}, got {deserialized_item['version']}"
+    )
+
+    migration_context["migration_state"] = deserialized_item
+
+
+@then(
+    parsers.parse(
+        "the state table contains the following validation issues for key '{state_key}':"
+    )
+)
+def verify_state_record_validation_issues_details(
+    migration_context: Dict[str, Any],
+    state_key: str,
+    datatable: Any,
+) -> None:
+    """Verify state record has expected validation issues."""
+    migration_state = migration_context.get("migration_state")
+
+    assert migration_state is not None, "Migration state should exist in context"
+    assert migration_state["source_record_id"] == state_key, (
+        f"State record key should be {state_key}, got {migration_state['source_record_id']}"
+    )
+
+    actual_issues = migration_state.get("validation_issues", [])
+
+    expected_issues = []
+    header_row = datatable[0]
+    for row in datatable[1:]:
+        issue = {header_row[i]: row[i] for i in range(len(header_row))}
+        if "expression" in issue:
+            issue["expression"] = [issue["expression"]]
+        if "value" in issue:
+            issue["value"] = parse_datatable_value(issue["value"])
+
+        expected_issues.append(issue)
+
+    assert len(actual_issues) == len(expected_issues), (
+        f"Expected {len(expected_issues)} validation issues, got {len(actual_issues)}"
+    )
+    assert actual_issues == expected_issues, (
+        f"Validation issues do not match.\nExpected: {expected_issues}\nGot: {actual_issues}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the state table contains {expected_issue_count:d} validation issue(s) for key '{state_key}'"
+    )
+)
+def verify_state_record_validation_issues(
+    migration_context: Dict[str, Any],
+    expected_issue_count: int,
+    state_key: str,
+) -> None:
+    """Verify state record has expected number of validation issues."""
+    migration_state = migration_context.get("migration_state")
+
+    assert migration_state is not None, "Migration state should exist in context"
+    assert migration_state["source_record_id"] == state_key, (
+        f"State record key should be {state_key}, got {migration_state['source_record_id']}"
+    )
+
+    actual_issues = migration_state.get("validation_issues", [])
+    assert len(actual_issues) == expected_issue_count, (
+        f"Expected {expected_issue_count} validation issues, got {len(actual_issues)}"
+    )
+
+
+@then(
+    parsers.parse(
+        "the state table record for key '{state_key}' contains {entity_type} ID"
+    )
+)
+def verify_state_record_contains_entity_id(
+    dynamodb: Dict[str, Any],
+    state_key: str,
+    entity_type: str,
+) -> None:
+    """Verify state record contains the specified entity ID (organisation, location, healthcare_service)."""
+    field_name = STATE_TABLE_ENTITY_ID_FIELDS.get(entity_type.lower())
+    assert field_name is not None, f"Unknown entity type: {entity_type}"
+
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
+
+    assert field_name in deserialized_item, (
+        f"State record should contain {field_name} field"
+    )
+
+    entity_id = deserialized_item[field_name]
+    assert entity_id, f"{field_name} should have a valid UUID value, got: {entity_id}"
+
+    # Validate UUID format by attempting to parse it
+    try:
+        UUID(str(entity_id))
+    except (ValueError, AttributeError) as e:
+        raise AssertionError(
+            f"{field_name} should be a valid UUID format, got: {entity_id}"
+        ) from e

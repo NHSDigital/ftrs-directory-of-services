@@ -1,21 +1,22 @@
-from pytest_bdd import given, parsers, scenarios, then, when
-from step_definitions.common_steps.data_steps import *  # noqa: F403
-from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from typing import Optional, List, Dict, Tuple
-from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
-from utilities.common.context import Context
-from utilities.infra.api_util import make_api_request_with_retries
-from utilities.infra.lambda_util import *
-from loguru import logger
+import time
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Optional, Tuple
+
+import boto3
 import pytest
 from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from utilities.common.resource_name import get_resource_name
-import boto3
-import time
-import re
-from datetime import datetime, timedelta, timezone
+from loguru import logger
 from playwright.sync_api import APIRequestContext
+from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps import data_steps
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
+from utilities.common.context import Context
+from utilities.common.resource_name import get_resource_name
+from utilities.infra.api_util import make_api_request_with_retries
+from utilities.infra.lambda_util import LambdaWrapper
 
 # Load feature file
 scenarios(
@@ -105,7 +106,10 @@ def fetch_ods_organizations(
 
         # Check if organization has a valid ODS code
         for identifier in resource.get("identifier", []):
-            if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code":
+            if (
+                identifier.get("system")
+                == "https://fhir.nhs.uk/Id/ods-organization-code"
+            ):
                 ods_code = identifier.get("value")
                 if ods_code:
                     org_resources.append(resource)
@@ -121,9 +125,10 @@ def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[st
                 (
                     identifier.get("value")
                     for identifier in org.get("identifier", [])
-                    if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
+                    if identifier.get("system")
+                    == "https://fhir.nhs.uk/Id/ods-organization-code"
                 ),
-                None
+                None,
             ),
             "type": extract_primary_role_display(org),
             "active": org.get("active"),
@@ -142,9 +147,10 @@ def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[st
             (
                 identifier.get("value")
                 for identifier in org.get("identifier", [])
-                if identifier.get("system") == "https://fhir.nhs.uk/Id/ods-organization-code"
+                if identifier.get("system")
+                == "https://fhir.nhs.uk/Id/ods-organization-code"
             ),
-            None
+            None,
         )
     ]
 
@@ -156,7 +162,7 @@ def assert_org_details_match(item: DBModel, expected_org: dict) -> None:
     assert getattr(item, "type", None) == expected_org["type"]
     assert getattr(item, "active", None) == expected_org["active"]
     assert getattr(item, "telecom", None) == expected_org["phone"]
-    assert getattr(item, "modifiedBy", None) == "ODS_ETL_PIPELINE"
+    assert getattr(item, "lastUpdatedBy", None) == "ODS_ETL_PIPELINE"
 
 
 def verify_organisation_in_repo(
@@ -171,7 +177,7 @@ def verify_organisation_in_repo(
     for attempt in range(1, retries + 1):
         try:
             for ods_code in ods_codes:
-                item = get_from_repo(model_repo, ods_code)
+                item = data_steps.get_from_repo(model_repo, ods_code)
                 if item is None:
                     raise AssertionError(
                         f"No record found in repository for {ods_code}"
@@ -190,18 +196,16 @@ def verify_organisation_in_repo(
                 raise
 
 
-def validate_lambda_logs_for_extraction(
-    context: Context, cloudwatch_logs
-):
+def validate_lambda_logs_for_extraction(context: Context, cloudwatch_logs):
     time.sleep(30)  # Central wait_for_logs()
-    extraction_pattern = f'"Fetching outdated organizations for date: {context.extraction_date}."'
+    extraction_pattern = (
+        f'"Fetching outdated organizations for date: {context.extraction_date}."'
+    )
     transformation_pattern = '"Fetching ODS Data returned .* outdated organisations."'
     publishing_pattern = "Succeeded to send"
 
     assert cloudwatch_logs.find_log_message(context.lambda_name, extraction_pattern)
-    assert cloudwatch_logs.find_log_message(
-        context.lambda_name, transformation_pattern
-    )
+    assert cloudwatch_logs.find_log_message(context.lambda_name, transformation_pattern)
     assert cloudwatch_logs.find_log_message(context.lambda_name, publishing_pattern)
 
 
@@ -219,14 +223,14 @@ def shared_ods_data(api_request_context_ods_terminology):
     selector = OdsDateSelector(
         request_context=api_request_context_ods_terminology,
         lookback_days=7,
-        min_codes=10
+        min_codes=10,
     )
     chosen_date, org_resources = selector.find_valid_date()
     organisation_details = extract_org_details(org_resources)
 
     ods_codes = [org["ods_code"] for org in organisation_details]
 
-    yield {
+    return {
         "ods_codes": ods_codes,
         "organisation_details": organisation_details,
         "date": chosen_date,
@@ -242,11 +246,11 @@ def invoke_lambda_generic(
     date_param: Optional[str] = None,
 ) -> Context:
     """
-    Invokes the 'etl-ods-processor' lambda with optional date parameter.
+    Invokes the 'etl-ods-extractor' lambda with optional date parameter.
     Stores the response in context.lambda_response and sets context.lambda_name.
     """
     lambda_name = get_resource_name(
-        project, workspace, env, "etl-ods-processor", "lambda"
+        project, workspace, env, "etl-ods-extractor", "lambda"
     )
 
     context.lambda_name = lambda_name

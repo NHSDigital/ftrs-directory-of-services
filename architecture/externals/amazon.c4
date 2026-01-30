@@ -2,32 +2,112 @@ model {
   extend ftrs {
 
     component apiGateway "API Gateway" {
-      description 'Routes requests to the appropriate service'
+      description "Routes requests to the appropriate service"
       style {
         icon aws:api-gateway
       }
     }
 
+    container dns "DNS & Certificates" {
+      description "Public DNS and TLS certificates for FtRS external endpoints"
+
+      component route53Zone "Route 53 Hosted Zone" {
+        description "Public hosted zone for ftrs.nhs.uk and service records"
+        style {
+          icon aws:route-53
+        }
+      }
+
+      component acmCertificate "ACM Certificate" {
+        description "Wildcard TLS certificate for FtRS domains"
+        style {
+          icon aws:certificate-manager
+        }
+      }
+    }
+
+    component openSearch "OpenSearch Service" {
+      description "Search service for FTRS"
+      style {
+        icon aws:open-search-service
+        shape storage
+      }
+    }
+
+    container storage "Storage" {
+      description "Object storage for ETL artefacts and trust stores"
+
+      component s3Bucket "S3 Bucket" {
+        description "Buckets for ETL pipeline, artefacts and mTLS trust store"
+        style {
+          icon aws:simple-storage-service
+          shape storage
+        }
+      }
+    }
+
     container db "FTRS Database" {
-      description 'Stores FTRS data'
+      description "Stores FTRS data"
       style {
         icon aws:dynamo-db
         shape storage
       }
 
-      component orgTable "Organisations" {
-        description 'Organisation table'
+      component orgTable "Organizations" {
+        description "Organization table"
         style {
           icon aws:dynamo-db
+          shape storage
         }
       }
 
-      component tasksTable "Tasks" {
-        description 'Tasks table'
+      component healthCareServiceTable "Healthcare Services" {
+        description "Healthcare Services table"
         style {
           icon aws:dynamo-db
+          shape storage
+        }
+      }
+
+      component locationTable "Locations" {
+        description "Locations table"
+        style {
+          icon aws:dynamo-db
+          shape storage
+        }
+
+        component tasksTable "Tasks" {
+          description "Tasks table"
+          style {
+            icon aws:dynamo-db
+            shape storage
+          }
         }
       }
     }
+
+    container liveDosDb "Live Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
+    container awsMigrationService "AWS Data Migration Service" {
+      style {
+        icon aws:database-migration-service
+      }
+    }
+
+    container etlStagingDosDb "ETL Staging Dos Database" {
+      style {
+        icon aws:rds
+        shape storage
+      }
+    }
+
+    ftrs.db.healthCareServiceTable -> ftrs.openSearch "Updates index in"
+    ftrs.db.locationTable -> ftrs.openSearch "Updates index in"
+    ftrs.db.orgTable -> ftrs.openSearch "Updates index in"
   }
 }

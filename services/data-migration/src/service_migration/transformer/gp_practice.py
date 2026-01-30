@@ -29,14 +29,11 @@ class GPPracticeTransformer(ServiceTransformer):
     - The service must be active
     """
 
-    def transform(
-        self, service: legacy_model.Service, validation_issues: list[str]
-    ) -> ServiceTransformOutput:
+    def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         """
         Transform the given GP practice service into the new data model format.
         """
         organisation = self.build_organisation(service)
-        organisation.name = self.clean_name(service.publicname)
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,
@@ -44,7 +41,6 @@ class GPPracticeTransformer(ServiceTransformer):
             location.id,
             category=HealthcareServiceCategory.GP_SERVICES,
             type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
-            validation_issues=validation_issues,
         )
 
         return ServiceTransformOutput(
@@ -82,9 +78,3 @@ class GPPracticeTransformer(ServiceTransformer):
             return False, "Service is not active"
 
         return True, None
-
-    @classmethod
-    def clean_name(cls, publicname: str) -> str:
-        if publicname:
-            return publicname.split("-", maxsplit=1)[0].rstrip()
-        raise ValueError("publicname is not set")

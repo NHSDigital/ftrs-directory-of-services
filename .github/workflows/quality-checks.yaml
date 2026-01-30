@@ -14,8 +14,8 @@ on:
         description: "The name of the workspace to validate the infrastructure against."
         required: true
         type: string
-      tag:
-        description: "The git tag to checkout or, if not passed in, the current branch"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
       stacks:
@@ -40,6 +40,11 @@ on:
         description: "The build timestamp"
         required: false
         type: string
+      skip_dirs:
+        description: "Comma seperated list of directories where traversal is skipped"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   scan-secrets:
@@ -50,7 +55,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
@@ -63,7 +68,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
@@ -76,7 +81,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check Markdown format"
         uses: ./.github/actions/check-markdown-format
@@ -89,7 +94,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0 # Full history is needed to compare branches
       - name: "Check English usage"
         uses: ./.github/actions/check-english-usage
@@ -103,7 +108,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
       - name: "Count lines of code"
         uses: ./.github/actions/create-lines-of-code-report
         with:
@@ -122,7 +127,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
@@ -146,7 +151,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
@@ -173,7 +178,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Check format of Terraform code"
         uses: ./.github/actions/check-format-terraform
@@ -188,7 +193,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Checkov scan"
         id: "checkov"
@@ -207,6 +212,40 @@ jobs:
           path: "checkov.sarif/"
           if-no-files-found: ignore
 
+  lint-service-automation-tests:
+    name: "Lint service automation tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.1
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.1
+
+      - name: "Install project"
+        run: make install
+        working-directory: "tests/service_automation"
+
+      - name: "Run linting"
+        run: make lint
+        working-directory: "tests/service_automation"
+
   trivy-scan:
     name: "Trivy scan"
     runs-on: ubuntu-latest
@@ -217,7 +256,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Trivy scan"
         id: "trivy"
@@ -232,6 +271,7 @@ jobs:
           limit-severities-for-sarif: true
           trivyignores: 'services/.trivyignore'
           exit-code: 1
+          skip-dirs: ${{ inputs.skip_dirs }}
 
       - name: "Publish Trivy report"
         uses: actions/upload-artifact@v6

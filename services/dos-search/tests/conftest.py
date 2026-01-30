@@ -9,14 +9,14 @@ from uuid import UUID, uuid4
 import pytest
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from fhir.resources.R4B.organization import Organization
-from ftrs_data_layer.domain import Endpoint, Organisation, Telecom
+from ftrs_data_layer.domain import Endpoint, Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
+    EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointDescription,
     EndpointPayloadMimeType,
     EndpointPayloadType,
     EndpointStatus,
-    TelecomType,
 )
 
 
@@ -29,13 +29,21 @@ def create_endpoint():
         identifier_old_dos_id: int = 123456,
         status: EndpointStatus = EndpointStatus.ACTIVE,
         connection_type: EndpointConnectionType = EndpointConnectionType.ITK,
-        description: EndpointDescription = EndpointDescription.COPY,
+        business_scenario: EndpointBusinessScenario = EndpointBusinessScenario.COPY,
         payload_mime_type: EndpointPayloadMimeType = EndpointPayloadMimeType.FHIR,
         is_compression_enabled: bool = True,
         managed_by_organisation=None,
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         name: str = "Test Endpoint Name",
         payload_type: EndpointPayloadType = EndpointPayloadType.ED,
@@ -48,14 +56,14 @@ def create_endpoint():
             identifier_oldDoS_id=identifier_old_dos_id,
             status=status,
             connectionType=connection_type,
-            description=description,
+            businessScenario=business_scenario,
             payloadMimeType=payload_mime_type,
             isCompressionEnabled=is_compression_enabled,
             managedByOrganisation=managed_by_organisation or uuid4(),
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             name=name,
             payloadType=payload_type,
             service=service,
@@ -82,13 +90,18 @@ def create_organisation():
         identifier_ods_code: str = "123456",
         active: bool = True,
         name: str = "Test Organisation",
-        telecom: list[Telecom] = [
-            Telecom(type=TelecomType.PHONE, value="0300 311 22 33", isPublic=True)
-        ],
         org_type: str = "GP Practice",
-        created_by: str = "test_user",
+        created_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         created_date_time: datetime = datetime(2023, 10, 1),
-        modified_by: str = "test_user",
+        modified_by: AuditEvent = {
+            "type": "user",
+            "value": "test_user",
+            "display": "Test User",
+        },
         modified_date_time: datetime = datetime(2023, 10, 1),
         endpoints: list[Endpoint] | None = None,
     ) -> Organisation:
@@ -97,12 +110,12 @@ def create_organisation():
             identifier_ODS_ODSCode=identifier_ods_code,
             active=active,
             name=name,
-            telecom=telecom,
+            telecom=[],
             type=org_type,
             createdBy=created_by,
-            createdDateTime=created_date_time,
-            modifiedBy=modified_by,
-            modifiedDateTime=modified_date_time,
+            createdTime=created_date_time,
+            lastUpdatedBy=modified_by,
+            lastUpdated=modified_date_time,
             endpoints=endpoints or [],
         )
 

@@ -44,7 +44,7 @@ async def get_organization(
             error_content = ERROR_INVALID_IDENTIFIER_SYSTEM
         elif not re.fullmatch(r"[A-Za-z0-9]{5,12}", code or ""):
             error_content = ERROR_INVALID_IDENTIFIER_VALUE
-        elif code == "ABC123":
+        elif code.upper() == "ABC123":
             bundle = deepcopy(SUCCESS_BUNDLE_ABC123)
             bundle["link"][0]["url"] = (
                 "https://api.service.nhs.uk/FHIR/R4/Organization?"

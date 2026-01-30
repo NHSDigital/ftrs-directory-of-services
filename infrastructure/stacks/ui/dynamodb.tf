@@ -1,5 +1,6 @@
 #trivy:ignore:AVD-AWS-0024
 module "ui_session_store" {
+  count  = local.stack_enabled
   source = "../../modules/dynamodb"
 
   table_name         = "${local.resource_prefix}-session-store"

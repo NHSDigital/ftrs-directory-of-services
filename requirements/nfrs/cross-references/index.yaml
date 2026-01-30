@@ -1,0 +1,1068 @@
+# Canonical NFR Registry
+# Each entry defines: code, title, domain, intent, verification, maturity
+# Maturity: draft|review|approved|deprecated
+
+nfrs:
+  - code: SEC-001
+    domain: security
+    title: Use NHSE approved cryptographic algorithms for all encryption
+    intent: Prevent weak cipher usage
+    verification: Automated crypto config audit
+    maturity: draft
+  - code: SEC-003
+    domain: security
+    title: Encrypt all data in transit (TLS1.2+) and at rest
+    intent: Protect confidentiality & integrity
+    verification: Endpoint scans + storage encryption flags
+    maturity: draft
+  - code: SEC-007
+    domain: security
+    title: Enforce least-privilege network firewall rules (deny by default)
+    intent: Minimise lateral movement
+    verification: SG rule lint & diff scanning
+    maturity: draft
+  - code: SEC-025
+    domain: security
+    title: PID encrypted in transit with mutual auth
+    intent: Safeguard patient data
+    verification: mTLS tests & response inspection
+    maturity: draft
+  - code: SEC-027
+    domain: security
+    title: Automated dependency vulnerability scanning each build
+    intent: Early detection of outdated components
+    verification: CI scan report; failing build on high severity
+    maturity: draft
+  - code: SEC-002
+    domain: security
+    title: Apply cloud Well-Architected security pillar across lifecycle
+    intent: Embed best practice & reduce security debt
+    verification: Design review checklist & periodic gap analysis
+    maturity: draft
+  - code: SEC-004
+    domain: security
+    title: Encrypt all data at rest across persistence layers
+    intent: Mitigate exposure on media compromise
+    verification: Storage encryption flags & KMS config audit
+    maturity: draft
+  - code: SEC-005
+    domain: security
+    title: Enforce environment data isolation (no cross-env access)
+    intent: Limit impact radius & protect test data
+    verification: IAM negative tests & policy diff
+    maturity: draft
+  - code: SEC-006
+    domain: security
+    title: Prohibit direct human console queries on prod data stores
+    intent: Reduce insider & accidental risk
+    verification: Access logs show absence; break-glass audit
+    maturity: draft
+  - code: SEC-008
+    domain: security
+    title: Secure inbound/outbound connectivity with auth & encryption
+    intent: Prevent unauthorised ingress/egress
+    verification: Config scan; pen test of perimeter
+    maturity: draft
+  - code: SEC-009
+    domain: security
+    title: Implement OWASP ASVS L1+L2 & monitor CIS benchmarks
+    intent: Reduce common vulnerability classes
+    verification: Automated checklist mapping & benchmark report
+    maturity: draft
+  - code: SEC-010
+    domain: security
+    title: Annual external penetration test & on major perimeter change
+    intent: Detect unknown vulnerabilities early
+    verification: Archived reports & remediation tracking
+    maturity: draft
+  - code: SEC-011
+    domain: security
+    title: Security controls preserve user experience within SLAs
+    intent: Maintain usability & adoption
+    verification: Performance & UX regression tests
+    maturity: draft
+  - code: SEC-012
+    domain: security
+    title: IAM policies govern all human & system resource access
+    intent: Centralised auditable access control
+    verification: Policy review & access attempt tests
+    maturity: draft
+  - code: SEC-013
+    domain: security
+    title: RBAC-controlled key lifecycle (gen, rotate, archive, delete)
+    intent: Prevent key compromise & ensure hygiene
+    verification: KMS rotation config & access audit
+    maturity: draft
+  - code: SEC-014
+    domain: security
+    title: Mutual certificate authentication between relevant resources
+    intent: Assure endpoint identity
+    verification: mTLS handshake tests
+    maturity: draft
+  - code: SEC-015
+    domain: security
+    title: Proactive certificate expiry alerting & seamless renewal
+    intent: Avoid outage from expired certs
+    verification: Alert simulation & renewal runbook test
+    maturity: draft
+  - code: SEC-016
+    domain: security
+    title: Enforce MFA for privileged human infra roles
+    intent: Reduce credential compromise impact
+    verification: IAM analytics & MFA enforcement report
+    maturity: draft
+  - code: SEC-017
+    domain: security
+    title: Eliminate long-lived unmanaged credentials
+    intent: Limit secret sprawl & stale access
+    verification: Credential inventory & TTL policy checks
+    maturity: draft
+  - code: SEC-018
+    domain: security
+    title: Supplier networks protected; only approved entities allowed
+    intent: Maintain contractual security boundaries
+    verification: Supplier audit attestation
+    maturity: draft
+  - code: SEC-019
+    domain: security
+    title: Logical separation between Authority workloads & other tenants
+    intent: Prevent cross-tenant leakage
+    verification: Segmentation test & isolation evidence
+    maturity: draft
+  - code: SEC-020
+    domain: security
+    title: Remote server/app connections use Authority-issued certificates
+    intent: Preserve trust chain integrity
+    verification: Certificate fingerprint audits
+    maturity: draft
+  - code: SEC-021
+    domain: security
+    title: Secure diagnostic ports/tools per joint security policy
+    intent: Prevent exploitation of mgmt interfaces
+    verification: Port scan diff vs approved list
+    maturity: draft
+  - code: SEC-022
+    domain: security
+    title: Restrict system utility program access to approved entities
+    intent: Avoid privilege escalation
+    verification: Access logs & role permission diff
+    maturity: draft
+  - code: SEC-023
+    domain: security
+    title: Applications deployed under unique traceable user accounts
+    intent: Strengthen non-repudiation & integrity
+    verification: CI/CD provenance attestations
+    maturity: draft
+  - code: SEC-024
+    domain: security
+    title: Secure code/data transfer across supplier systems
+    intent: Prevent tampering/exfiltration
+    verification: Checksums & secure transport scan
+    maturity: draft
+  - code: SEC-026
+    domain: security
+    title: External APIs never expose unencrypted PID fields
+    intent: Prevent accidental PID leakage
+    verification: Contract scan & response sampling
+    maturity: draft
+  - code: SEC-028
+    domain: security
+    title: Block release on unresolved critical pen/vuln findings
+    intent: Enforce remediation discipline
+    verification: Release gate logs & ticket closure metrics
+    maturity: draft
+  - code: PERF-001
+    domain: performance
+    title: GP search endpoint median latency < 300ms @ p50 under nominal load
+    intent: Ensure responsive clinical queries
+    verification: Load test results (k6) in CI
+    maturity: draft
+  - code: REL-001
+    domain: reliability
+    title: Critical APIs achieve >= 99.9% monthly availability
+    intent: Minimise downtime impact
+    verification: Availability report from monitoring (CloudWatch + synthetic)
+    maturity: draft
+  - code: OBS-001
+    domain: observability
+    title: Health monitoring across app/infra/OS/system layers
+    intent: Early detection of faults
+    verification: Synthetic probe results & health dashboards
+    maturity: draft
+  - code: OBS-002
+    domain: observability
+    title: Remote accessible health monitoring interface
+    intent: Central operations oversight
+    verification: Remote access test succeeds
+    maturity: draft
+  - code: OBS-003
+    domain: observability
+    title: Health telemetry near-real-time (<=60s)
+    intent: Timely incident response
+    verification: Event-to-visibility latency measurement
+    maturity: draft
+  - code: OBS-004
+    domain: observability
+    title: Automated health monitoring maintenance tasks
+    intent: Reduce manual toil
+    verification: Automation scripts inventory review
+    maturity: draft
+  - code: OBS-005
+    domain: observability
+    title: Performance monitoring across all layers
+    intent: Capacity & SLA assurance
+    verification: Metric presence per layer
+    maturity: draft
+  - code: OBS-006
+    domain: observability
+    title: Remote accessible performance monitoring interface
+    intent: Central performance analysis
+    verification: Remote metric query success
+    maturity: draft
+  - code: OBS-007
+    domain: observability
+    title: Performance telemetry near-real-time (<=60s)
+    intent: Fast degradation detection
+    verification: Latency test to dashboard timing
+    maturity: draft
+  - code: OBS-008
+    domain: observability
+    title: TPS per API endpoint recorded
+    intent: Throughput insight
+    verification: Load test metrics exported
+    maturity: draft
+  - code: OBS-009
+    domain: observability
+    title: Endpoint latency distributions recorded
+    intent: User experience assurance
+    verification: Histogram panels p50/p95/p99
+    maturity: draft
+  - code: OBS-010
+    domain: observability
+    title: Aggregate latency across all endpoints recorded
+    intent: Global performance view
+    verification: Dashboard aggregate panel
+    maturity: draft
+  - code: OBS-011
+    domain: observability
+    title: Failure classification (type, code, detail) recorded
+    intent: Rapid root cause analysis
+    verification: Injected error classification log
+    maturity: draft
+  - code: OBS-012
+    domain: observability
+    title: Error percentage vs total responses recorded
+    intent: Error budget tracking
+    verification: Error rate panel accuracy
+    maturity: draft
+  - code: OBS-013
+    domain: observability
+    title: Infrastructure log repository secure & queryable
+    intent: Forensics & compliance
+    verification: Permission & query tests
+    maturity: draft
+  - code: OBS-014
+    domain: observability
+    title: Infra event fields persisted (params,response,changes,datetime,sequence)
+    intent: Tamper detection & replay
+    verification: Schema validation of sample
+    maturity: draft
+  - code: OBS-015
+    domain: observability
+    title: Infra log retention meets NHS Records Management
+    intent: Regulatory compliance
+    verification: Policy config review
+    maturity: draft
+  - code: OBS-016
+    domain: observability
+    title: Infra logs forwardable to central SIEM
+    intent: Central threat monitoring
+    verification: Forwarding test event appears
+    maturity: draft
+  - code: OBS-017
+    domain: observability
+    title: Support ERROR/WARN/INFO/DEBUG/TRACE levels
+    intent: Noise control & diagnostics
+    verification: Dynamic level change test
+    maturity: draft
+  - code: OBS-018
+    domain: observability
+    title: Log level changes apply <2min
+    intent: Responsive diagnostics
+    verification: Timing measurement after change
+    maturity: draft
+  - code: OBS-019
+    domain: observability
+    title: Operational event logging per component
+    intent: End-to-end transaction visibility
+    verification: Multi-step request log chain
+    maturity: draft
+  - code: OBS-020
+    domain: observability
+    title: Operations log repository correlatable & queryable
+    intent: Incident triage
+    verification: Correlation reconstruction test
+    maturity: draft
+  - code: OBS-021
+    domain: observability
+    title: Operational event fields incl. transaction id
+    intent: Subject access support
+    verification: Schema & sample validation
+    maturity: draft
+  - code: OBS-022
+    domain: observability
+    title: Audit event logging for user-centric actions
+    intent: Compliance & SAR support
+    verification: SAR simulation audit trail
+    maturity: draft
+  - code: OBS-023
+    domain: observability
+    title: Audit events share transaction id & clustered timestamp
+    intent: Trace integrity
+    verification: Transaction multi-event test
+    maturity: draft
+  - code: OBS-024
+    domain: observability
+    title: Configurable alert conditions
+    intent: Proactive incident response
+    verification: Test rule triggers alert
+    maturity: draft
+  - code: OBS-025
+    domain: observability
+    title: Multi-channel alert delivery with context
+    intent: Fast stakeholder notification
+    verification: Email/IM/webhook receipt test
+    maturity: draft
+  - code: OBS-026
+    domain: observability
+    title: Analytics pattern discovery capability
+    intent: Continuous improvement
+    verification: Query suite returns insights
+    maturity: draft
+  - code: OBS-027
+    domain: observability
+    title: Analytics failure non-impacting to transactions
+    intent: Resilience
+    verification: Disabled analytics test
+    maturity: draft
+  - code: OBS-028
+    domain: observability
+    title: Role-based monitoring dashboards
+    intent: Focused operational insight
+    verification: RBAC dashboard access test
+    maturity: draft
+  - code: OBS-029
+    domain: observability
+    title: Dashboard data freshness <60s
+    intent: Accurate decisions
+    verification: Timestamp delta measurement
+    maturity: draft
+  - code: OBS-030
+    domain: observability
+    title: Distributed traces with span & transaction IDs
+    intent: Deep root cause analysis
+    verification: Trace from ingress to storage
+    maturity: draft
+  - code: OBS-031
+    domain: observability
+    title: Anonymised end user behaviour metrics
+    intent: Product usage insight w/ privacy
+    verification: Pseudonymisation validation
+    maturity: draft
+  - code: SCAL-001
+    domain: scalability
+    title: Horizontal scaling for stateless service tiers
+    intent: Increase throughput by adding instances
+    verification: Load test TPS gain with added replicas
+    maturity: draft
+  - code: SCAL-002
+    domain: scalability
+    title: Vertical scaling for stateful components without re-engineering
+    intent: Handle growth in storage/compute needs
+    verification: Instance size change retains data & functionality
+    maturity: draft
+  - code: SCAL-003
+    domain: scalability
+    title: Multi-layer scalability (compute, storage, pipeline, cache)
+    intent: Avoid costly migrations under growth
+    verification: Architecture scalability checklist
+    maturity: draft
+  - code: SCAL-004
+    domain: scalability
+    title: Bidirectional scaling adjusts to demand increases & decreases
+    intent: Optimise cost during low utilisation
+    verification: Autoscaling logs show scale-down after low usage
+    maturity: draft
+  - code: SCAL-005
+    domain: scalability
+    title: Automated scaling policies with triggers & guardrails
+    intent: Prevent oscillation & ensure predictability
+    verification: Policy config lint + event simulation
+    maturity: draft
+  - code: SCAL-006
+    domain: scalability
+    title: Scaling events preserve performance within SLA
+    intent: Maintain user experience during scale changes
+    verification: Load test during scale event latency/error check
+    maturity: draft
+  - code: SCAL-007
+    domain: scalability
+    title: Maintain ≥30% capacity headroom for growth
+    intent: Avoid emergency scaling crisis
+    verification: Capacity utilisation report <70%
+    maturity: draft
+  - code: SCAL-008
+    domain: scalability
+    title: Typical demand variance handled without manual intervention
+    intent: Reduce operational toil
+    verification: Ops logs show zero manual scale tickets
+    maturity: draft
+  - code: SCAL-009
+    domain: scalability
+    title: Scaling actions fully auditable
+    intent: Provide governance & traceability
+    verification: Audit entries with timestamp/actor/reason
+    maturity: draft
+  - code: SCAL-010
+    domain: scalability
+    title: Predictive alert when projected utilisation >80% for 15min
+    intent: Enable proactive scaling planning
+    verification: Forecast engine test triggers alert
+    maturity: draft
+  - code: AVAIL-001
+    domain: availability
+    title: ≥99.90% monthly availability via multi-AZ deployment
+    intent: Meet user demand & SLA
+    verification: Availability report & multi-AZ config audit
+    maturity: draft
+  - code: AVAIL-002
+    domain: availability
+    title: Region-scoped DR scenarios documented & tested
+    intent: Prepare for regional failure
+    verification: DR runbook & simulation results
+    maturity: draft
+  - code: AVAIL-003
+    domain: availability
+    title: 24x7 operational availability excluding scheduled maintenance
+    intent: Continuous service access
+    verification: Uptime monitoring coverage
+    maturity: draft
+  - code: AVAIL-004
+    domain: availability
+    title: Maintenance ≤150 min/month; single activity ≤60 min
+    intent: Minimise planned downtime impact
+    verification: Change calendar audit & duration metrics
+    maturity: draft
+  - code: AVAIL-005
+    domain: availability
+    title: Weekly Tue 09:00-10:00 maintenance window with minimal impairment
+    intent: Predictable maintenance communication
+    verification: Calendar entry & smoke test results
+    maturity: draft
+  - code: AVAIL-006
+    domain: availability
+    title: RTO ≤2h for Platinum classification
+    intent: Rapid restoration post-incident
+    verification: DR exercise timing measurement
+    maturity: draft
+  - code: AVAIL-007
+    domain: availability
+    title: RPO ≤60s (near-zero) via continuous replication
+    intent: Minimise permanent data loss
+    verification: Replication lag metrics & failover delta test
+    maturity: draft
+  - code: AVAIL-008
+    domain: availability
+    title: API uptime aligned with core availability periods
+    intent: Consistent external experience
+    verification: API uptime report comparison
+    maturity: draft
+  - code: AVAIL-009
+    domain: availability
+    title: Restrict access to UK IP ranges + authentication
+    intent: First-line defence & jurisdiction alignment
+    verification: Geo-IP access logs & blocked non-UK test
+    maturity: draft
+  - code: AVAIL-010
+    domain: availability
+    title: Zero-downtime blue/green planned deployments
+    intent: Avoid user-facing deployment interruption
+    verification: Deployment log traffic shift without failed requests
+    maturity: draft
+  - code: REL-002
+    domain: reliability
+    title: Multi-AZ deployment with no single points of failure
+    intent: Sustain service during AZ or node loss
+    verification: Architecture review & AZ failure simulation
+    maturity: draft
+  - code: REL-003
+    domain: reliability
+    title: Adopt cloud reliability pillar practices across lifecycle
+    intent: Embed reliability best practice early
+    verification: Pillar checklist design/delivery/maintenance reviews
+    maturity: draft
+  - code: REL-004
+    domain: reliability
+    title: Resilience to volumetric DoS attacks (rate limiting & shielding)
+    intent: Maintain service under traffic floods
+    verification: WAF/DDoS simulation & metrics
+    maturity: draft
+  - code: REL-005
+    domain: reliability
+    title: Resilience against code injection (validation & sandboxing)
+    intent: Prevent malicious code execution
+    verification: Static analysis & injection tests
+    maturity: draft
+  - code: REL-006
+    domain: reliability
+    title: Side-channel isolation for sensitive workloads
+    intent: Prevent leakage via co-residency
+    verification: Placement policy & scan results
+    maturity: draft
+  - code: REL-007
+    domain: reliability
+    title: Resilience to authentication attacks (rate limiting/MFA)
+    intent: Protect credential integrity
+    verification: Auth anomaly alerts & brute force tests
+    maturity: draft
+  - code: REL-008
+    domain: reliability
+    title: MITM prevention via strict TLS & cert pinning
+    intent: Ensure channel integrity
+    verification: TLS scan & pinning verification
+    maturity: draft
+  - code: REL-009
+    domain: reliability
+    title: Clickjacking prevention (X-Frame-Options/CSP)
+    intent: Protect user interactions
+    verification: Header inspection & iframe attempt test
+    maturity: draft
+  - code: REL-010
+    domain: reliability
+    title: Suspend & resume batch processes without data corruption
+    intent: Safe housekeeping operations
+    verification: Interruption test & checksum compare
+    maturity: draft
+  - code: REL-011
+    domain: reliability
+    title: Continuous compute health checks & auto replacement
+    intent: Avoid degraded performance from bad nodes
+    verification: Health probe logs & replacement events
+    maturity: draft
+  - code: REL-012
+    domain: reliability
+    title: Single node loss tolerance without perf/data degradation
+    intent: Maintain SLA under partial failure
+    verification: Chaos test node removal metrics stability
+    maturity: draft
+  - code: REL-013
+    domain: reliability
+    title: Tier resilience with graceful degradation & recovery
+    intent: Preserve core functionality during tier failure
+    verification: Simulated tier outages & UX tests
+    maturity: draft
+  - code: REL-014
+    domain: reliability
+    title: External system failure resilience & graceful fallback
+    intent: Minimise dependency impact
+    verification: Stub outage simulations & fallback validation
+    maturity: draft
+  - code: REL-015
+    domain: reliability
+    title: Load balancer failure resilience without session loss
+    intent: Maintain session continuity
+    verification: LB failure simulation & session integrity test
+    maturity: draft
+  - code: REL-016
+    domain: reliability
+    title: Graceful server-side error handling (logout/message)
+    intent: Improve UX & security posture
+    verification: Error injection displays proper action
+    maturity: draft
+  - code: REL-017
+    domain: reliability
+    title: Backup & recovery strategy w/ ransomware defenses meets RPO/RTO
+    intent: Recover from catastrophic events quickly
+    verification: Backup schedule audit & restore drill
+    maturity: draft
+
+  - code: COMP-001
+    domain: compatibility
+    title: Supported OS & browser matrix aligns with NHS Spine Warrantied spec
+    intent: Ensure predictable end-user platform experience
+    verification: Published compatibility doc & test report coverage
+    maturity: draft
+  - code: COMP-002
+    domain: compatibility
+    title: MFA (CIS2) login flows function across all supported platforms
+    intent: Maintain secure access without platform-specific failures
+    verification: Cross-platform auth test pass rate ≥99.9%
+    maturity: draft
+  - code: COMP-003
+    domain: compatibility
+    title: Regression tests cover ≥90% critical journeys per supported platform
+    intent: Detect platform-specific breakage early
+    verification: Test coverage report & failing journey alerts
+    maturity: draft
+  - code: ACC-001
+    domain: accessibility
+    title: WCAG 2.2 Level AA compliance for all web UIs
+    intent: Ensure inclusive & legally compliant user experience
+    verification: Automated scan reports & manual audit checklist
+    maturity: draft
+  - code: ACC-002
+    domain: accessibility
+    title: Automated accessibility scans on critical pages across supported browsers
+    intent: Detect common accessibility issues early
+    verification: CI scan artifacts (axe/pa11y/lighthouse)
+    maturity: draft
+  - code: ACC-003
+    domain: accessibility
+    title: Manual accessibility test per feature or major UI release
+    intent: Catch issues beyond automated tooling scope
+    verification: Test session report & defect tickets
+    maturity: draft
+  - code: ACC-004
+    domain: accessibility
+    title: Accessibility defects tracked with parity to functional defects
+    intent: Prevent neglect of critical accessibility issues
+    verification: Defect tracker priority & SLA comparison
+    maturity: draft
+  - code: ACC-005
+    domain: accessibility
+    title: Accessibility tooling available in dev, integration & reference envs
+    intent: Enable early accessibility validation
+    verification: Tool execution logs across envs
+    maturity: draft
+  - code: ACC-006
+    domain: accessibility
+    title: Assistive tech not blocked by headers or CSP in any environment
+    intent: Maintain accessibility features functionality
+    verification: CSP/header scan & assistive tech test passes
+    maturity: draft
+  - code: ACC-007
+    domain: accessibility
+    title: Test data includes representative dummy examples (tables, forms, status messages)
+    intent: Valid accessibility assessment across UI patterns
+    verification: Dataset review & coverage checklist
+    maturity: draft
+  - code: ACC-008
+    domain: accessibility
+    title: CI pipeline includes automated accessibility scan step
+    intent: Prevent regressions entering main branch
+    verification: CI job presence & pass/fail status
+    maturity: draft
+  - code: ACC-009
+    domain: accessibility
+    title: Keyboard tab order regression tests maintained
+    intent: Ensure logical navigation sequence
+    verification: Automated tab traversal test results
+    maturity: draft
+  - code: ACC-010
+    domain: accessibility
+    title: Focus trap regression tests for overlays & modals
+    intent: Prevent user lock-in within components
+    verification: Modal focus trap simulation tests
+    maturity: draft
+  - code: ACC-011
+    domain: accessibility
+    title: ARIA role announcements verified for custom components
+    intent: Provide semantic context to assistive tech
+    verification: Screen reader role announcement test logs
+    maturity: draft
+  - code: ACC-012
+    domain: accessibility
+    title: Accessibility test results documented with feature acceptance tests
+    intent: Maintain transparency & audit trail
+    verification: Repo artifacts & doc presence
+    maturity: draft
+  - code: ACC-013
+    domain: accessibility
+    title: Central accessibility issue log maintained
+    intent: Track defects, exceptions & remediation progress
+    verification: Issue log review & update cadence
+    maturity: draft
+  - code: ACC-014
+    domain: accessibility
+    title: Accessibility champion/workgroup oversight established
+    intent: Provide governance & continuous improvement
+    verification: Meeting notes & role assignment record
+    maturity: draft
+  - code: ACC-015
+    domain: accessibility
+    title: Monthly accessibility report (compliance, trends, remediation, risk)
+    intent: Stakeholder visibility & risk management
+    verification: Report artifact & distribution log
+    maturity: draft
+  - code: ACC-016
+    domain: accessibility
+    title: Documented exception process for WCAG non-compliance
+    intent: Controlled handling of unavoidable gaps
+    verification: Exception records & approvals
+    maturity: draft
+  - code: ACC-017
+    domain: accessibility
+    title: Exception records include justification, alternative access, mitigation & review schedule
+    intent: Minimise impact of exceptions
+    verification: Exception template completeness audit
+    maturity: draft
+  - code: ACC-018
+    domain: accessibility
+    title: Pre-commit accessibility checks <30s execution time
+    intent: Preserve developer velocity
+    verification: Hook timing benchmark
+    maturity: draft
+  - code: ACC-019
+    domain: accessibility
+    title: CI accessibility checks <5min execution time
+    intent: Efficient pipeline performance
+    verification: CI job duration metrics
+    maturity: draft
+  - code: ACC-020
+    domain: accessibility
+    title: Overnight full-app accessibility scans <2h
+    intent: Timely comprehensive coverage
+    verification: Scheduled scan duration logs
+    maturity: draft
+  - code: ACC-021
+    domain: accessibility
+    title: Accessibility test results integrated with monitoring & alerting
+    intent: Prompt notification of regressions
+    verification: Alert firing on regression event
+    maturity: draft
+  - code: ACC-022
+    domain: accessibility
+    title: False positive rate minimized via tool configuration & rule updates
+    intent: Improve signal quality & reduce noise
+    verification: Periodic FP ratio report
+    maturity: draft
+  - code: GOV-001
+    domain: governance
+    title: Pre-live service acceptance by NHS England Service Management
+    intent: Confirm readiness for transition to Live Service
+    verification: Signed acceptance record & checklist
+    maturity: draft
+  - code: GOV-002
+    domain: governance
+    title: Well-Architected Framework review by certified Cloud Expert
+    intent: Validate scalable, resilient cloud architecture
+    verification: Review report & remediation actions closed
+    maturity: draft
+  - code: GOV-003
+    domain: governance
+    title: Solution Architecture Framework assessment approved
+    intent: Align with NHS England solution maturity criteria
+    verification: Approved assessment artifact
+    maturity: draft
+  - code: GOV-004
+    domain: governance
+    title: Engineering Red-lines compliance confirmed by Principal System Engineer
+    intent: Enforce consistent best-practice engineering standards
+    verification: Compliance checklist & sign-off
+    maturity: draft
+  - code: GOV-005
+    domain: governance
+    title: Data Protection Act (UK GDPR) compliance sign-off by Information Governance
+    intent: Ensure lawful & compliant data handling
+    verification: IG assessment & approval record
+    maturity: draft
+  - code: GOV-006
+    domain: governance
+    title: Medical Device Directive scope assessment (out-of-scope confirmation)
+    intent: Maintain regulatory clarity & trigger re-assessment on scope change
+    verification: Formal scope statement & periodic review log
+    maturity: draft
+  - code: GOV-007
+    domain: governance
+    title: FtRS Architects approval of solution & documentation
+    intent: Validate technical correctness & test coverage
+    verification: Architecture review minutes & sign-off
+    maturity: draft
+  - code: GOV-008
+    domain: governance
+    title: Cloud Expert approval of deployed solution
+    intent: Confirm cloud implementation matches reviewed design
+    verification: Post-deployment checklist signed
+    maturity: draft
+  - code: GOV-009
+    domain: governance
+    title: NHS England Solution Assurance approval
+    intent: Ensure solution meets organisational assurance standards
+    verification: Assurance ticket closed & sign-off
+    maturity: draft
+  - code: GOV-010
+    domain: governance
+    title: Clinical Safety Assurance approval
+    intent: Mitigate clinical safety risks
+    verification: Clinical safety case & approval record
+    maturity: draft
+  - code: GOV-011
+    domain: governance
+    title: Information Governance approval
+    intent: Uphold data governance & privacy controls
+    verification: IG approval ticket & evidences
+    maturity: draft
+  - code: GOV-012
+    domain: governance
+    title: Technical Review & Governance (TRG) approval
+    intent: Confirm adherence to technical standards & policies
+    verification: TRG session notes & outcome
+    maturity: draft
+  - code: GOV-013
+    domain: governance
+    title: SIRO approval for FtRS
+    intent: Ensure senior accountability for information risk
+    verification: SIRO sign-off document
+    maturity: draft
+  - code: GOV-014
+    domain: governance
+    title: Caldicott Guardian (or representative) approval
+    intent: Protect confidentiality & ethical handling of data
+    verification: Approval statement & minutes
+    maturity: draft
+  - code: GOV-015
+    domain: governance
+    title: DUEC Assurance Board acceptance
+    intent: Satisfy domain-specific assurance criteria
+    verification: Board decision log & conditions tracked
+    maturity: draft
+  - code: GOV-016
+    domain: governance
+    title: Live Services Board approval for go-live/transition
+    intent: Authorise production operation readiness
+    verification: Board approval record & action closure
+    maturity: draft
+  - code: GOV-017
+    domain: governance
+    title: ITOC approval
+    intent: Ensure oversight by Information Technology Oversight Committee
+    verification: ITOC decision log & sign-off
+    maturity: draft
+  - code: GOV-018
+    domain: governance
+    title: CSOC approval
+    intent: Ensure Cyber Security Operations Centre sign-off and onboarding
+    verification: CSOC onboarding / approval record
+    maturity: draft
+  - code: PERF-002
+    domain: performance
+    title: Adopt Well-Architected Performance Efficiency pillar lifecycle
+    intent: Embed performance best practice across design/delivery/maintenance
+    verification: Pillar checklist reports & remediation closure
+    maturity: draft
+  - code: PERF-003
+    domain: performance
+    title: Performance expectation specification (95th percentile per action)
+    intent: Define measurable latency targets for significant use cases
+    verification: Versioned performance expectations table & test alignment
+    maturity: draft
+  - code: PERF-004
+    domain: performance
+    title: Live-like anonymised dataset for performance tests
+    intent: Ensure realistic performance profiling without exposing PID
+    verification: Dataset composition review & anonymisation audit
+    maturity: draft
+  - code: PERF-005
+    domain: performance
+    title: Automated performance test suite for defined actions only
+    intent: Focus load tests on priority scenarios & exclude agreed actions
+    verification: Test manifest matches expectation table & exclusion list
+    maturity: draft
+  - code: PERF-006
+    domain: performance
+    title: Batch/secondary processing latency impact ≤5% p95 delta
+    intent: Prevent user-facing degradation during background tasks
+    verification: Comparative latency report (baseline vs batch window)
+    maturity: draft
+  - code: PERF-007
+    domain: performance
+    title: Observability/logging overhead ≤3% CPU & ≤50ms p95 added latency
+    intent: Balance telemetry with application usability
+    verification: Overhead benchmark & differential profiling
+    maturity: draft
+  - code: PERF-008
+    domain: performance
+    title: Peak 8h window performance stability (≤10% variance p95)
+    intent: Flatten spikes & assure predictable experience
+    verification: Rolling 8h window variance report
+    maturity: draft
+  - code: PERF-009
+    domain: performance
+    title: Performance regression alert on >10% p95 increase
+    intent: Early detection of degradations
+    verification: Alert simulation & incident ticket linkage
+    maturity: draft
+  - code: PERF-010
+    domain: performance
+    title: Standardised percentile calculation methodology documented
+    intent: Consistent interpretation of latency metrics
+    verification: Method document presence & tool config audit
+    maturity: draft
+  - code: INT-001
+    domain: interoperability
+    title: FHIR R4 resources validated against UKCore profiles
+    intent: Assure standards compliance & downstream interoperability
+    verification: Automated profile validation report in CI
+    maturity: draft
+  - code: INT-002
+    domain: interoperability
+    title: Canonical API versioning & deprecation policy published
+    intent: Provide predictable evolution path for integrators
+    verification: Version policy doc & changelog diff checks
+    maturity: draft
+  - code: INT-003
+    domain: interoperability
+    title: Backward-compatible minor releases (no breaking changes ≤12 months)
+    intent: Reduce integration churn & upgrade risk
+    verification: Release diff analysis & consumer contract tests
+    maturity: draft
+  - code: INT-004
+    domain: interoperability
+    title: Semantic mapping fidelity (no material data loss in FHIR transform)
+    intent: Preserve clinical meaning across conversions
+    verification: Round-trip mapping tests & field coverage report
+    maturity: draft
+  - code: INT-005
+    domain: interoperability
+    title: Standard OperationOutcome error structure & codes
+    intent: Enable consistent error handling by clients
+    verification: Negative test suite validating code/severity/details schema
+    maturity: draft
+  - code: INT-006
+    domain: interoperability
+    title: Identifier normalization (ODS codes uppercase, trimmed, system-prefixed)
+    intent: Prevent mismatches & lookup failures
+    verification: Input normalization tests & sample log inspection
+    maturity: draft
+  - code: INT-007
+    domain: interoperability
+    title: Strict content negotiation (accept application/fhir+json; reject unsupported)
+    intent: Avoid ambiguous media handling
+    verification: HTTP negotiation tests & header compliance scan
+    maturity: draft
+  - code: INT-008
+    domain: interoperability
+    title: Reference data sync latency ≤24h for ODS updates
+    intent: Maintain currency of organisation endpoint data
+    verification: Sync job timestamp audit & delta latency metric
+    maturity: draft
+  - code: INT-009
+    domain: interoperability
+    title: Discoverability via standard FHIR search params only
+    intent: Keep API surface minimal & predictable
+    verification: API spec & grep confirms no undocumented params
+    maturity: draft
+  - code: INT-010
+    domain: interoperability
+    title: Published, version-controlled integration contract
+    intent: Ensure consumers rely on authoritative spec
+    verification: Contract repository presence & version tag diff
+    maturity: draft
+  - code: INT-011
+    domain: interoperability
+    title: Machine-readable changelog (structured diff per release)
+    intent: Automate consumer impact assessment
+    verification: Changelog schema validation & CI generation job
+    maturity: draft
+  - code: INT-012
+    domain: interoperability
+    title: Mandatory terminology bindings validated (codesystems & valuesets)
+    intent: Prevent invalid coded data exchange
+    verification: Terminology validation test pass rate report
+    maturity: draft
+  - code: INT-013
+    domain: interoperability
+    title: Correlation IDs preserved across outbound calls
+    intent: Enable end-to-end cross-system traceability
+    verification: Trace sample shows matching transaction IDs
+    maturity: draft
+  - code: INT-014
+    domain: interoperability
+    title: Null vs absent data handled per FHIR guidelines
+    intent: Avoid semantic ambiguity for clients
+    verification: Test matrix covering empty, null, absent fields
+    maturity: draft
+  - code: INT-015
+    domain: interoperability
+    title: ≥90% critical exchange scenarios covered by interop test suite
+    intent: Reduce production integration defects
+    verification: Coverage report & scenario manifest
+    maturity: draft
+  - code: INT-016
+    domain: interoperability
+    title: Stateless, sequence-independent API operations (atomic per call)
+    intent: Enable horizontal scalability & resilient retry without side-effects
+    verification: Architectural review (no server-held conversational state) & idempotent failure tests
+    maturity: draft
+  - code: INT-017
+    domain: interoperability
+    title: Complete field-level input validation every request
+    intent: Prevent malformed/unsafe data from propagating
+    verification: Negative input fuzz test suite coverage report
+    maturity: draft
+  - code: INT-018
+    domain: interoperability
+    title: Central NHS CIS2 identity integration as single source of user identity
+    intent: Ensure consistent authentication & access governance
+    verification: CIS2 auth flow test & token claim validation
+    maturity: draft
+  - code: INT-019
+    domain: interoperability
+    title: All external APIs exposed via NHS England API Management gateway
+    intent: Standardise security, analytics & traffic governance
+    verification: Gateway config audit & successful policy enforcement tests
+    maturity: draft
+  - code: INT-020
+    domain: interoperability
+    title: SNOMED CT coding adopted for service/triage classification
+    intent: Support standard clinical terminology driven search
+    verification: Terminology validation test (SNOMED codeset) & mapping coverage
+    maturity: draft
+  - code: INT-021
+    domain: interoperability
+    title: Dual-stack & IPv6-only client support
+    intent: Future-proof network interoperability & meet NHS mandates
+    verification: IPv6-only integration test & connectivity report
+    maturity: draft
+  - code: COST-001
+    domain: cost
+    title: Standard tagging applied to all AWS resources
+    intent: Enable accurate cost attribution, governance & reporting across environments
+    verification: Automated tag compliance scan & Cost Explorer filter accuracy test
+    maturity: draft
+  - code: COST-002
+    domain: cost
+    title: Monthly Cost Explorer review & anomaly monitoring
+    intent: Detect spend trends & anomalies early to drive optimisation actions
+    verification: Review meeting notes & anomaly report retention
+    maturity: draft
+  - code: COST-003
+    domain: cost
+    title: CloudHealth access provisioned for each team infra engineer
+    intent: Ensure teams can self-serve deeper cost & utilisation insights
+    verification: Access roster audit vs team list
+    maturity: draft
+  - code: COST-004
+    domain: cost
+    title: CloudHealth used for tagging compliance & underutilisation identification
+    intent: Improve resource efficiency & tagging hygiene continuously
+    verification: Monthly CloudHealth optimisation & tag compliance report
+    maturity: draft
+  - code: COST-005
+    domain: cost
+    title: AWS Budgets with multi-channel threshold alerts
+    intent: Provide proactive notification before material overspend occurs
+    verification: Budget configuration export & SNS / Slack alert test
+    maturity: draft
+  - code: COST-006
+    domain: cost
+    title: Central ftrs-cost-alerts Slack channel operational
+    intent: Consolidate cost signals for rapid triage & visibility
+    verification: Channel existence & test alert message capture
+    maturity: draft
+  - code: COST-007
+    domain: cost
+    title: Quarterly formal cost review with documented actions
+    intent: Institutionalise optimisation cadence & accountability
+    verification: Quarterly review minutes & action tracker updates
+    maturity: draft

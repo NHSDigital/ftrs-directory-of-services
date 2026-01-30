@@ -5,13 +5,12 @@ from decimal import Decimal
 from typing import Any, Type
 
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from ftrs_data_layer.domain import legacy as legacy_model
+from pytest_bdd import given, parsers, then, when
 from sqlalchemy.orm import Session
 from sqlmodel import select
-
-from ftrs_data_layer.domain import legacy as legacy_model
-from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 from utilities.common.constants import STRING_FIELDS
+from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 
 
 def parse_datatable_value(value: str) -> Any:
@@ -65,17 +64,15 @@ def get_entity_class(entity_name: str) -> Type[legacy_model.LegacyDoSModel]:
     entity_cls = getattr(legacy_model, entity_name, None)
 
     assert entity_cls is not None, f"Legacy data model not found: {entity_name}"
-    assert issubclass(
-        entity_cls, legacy_model.LegacyDoSModel
-    ), f"{entity_name} does not inherit from LegacyDoSModel"
+    assert issubclass(entity_cls, legacy_model.LegacyDoSModel), (
+        f"{entity_name} does not inherit from LegacyDoSModel"
+    )
 
     return entity_cls
 
 
 def normalize_value_for_comparison(
-    actual_value: Any,
-    expected_value: Any,
-    field_name: str
+    actual_value: Any, expected_value: Any, field_name: str
 ) -> tuple[Any, Any]:
     """
     Normalize two values for comparison.
@@ -94,7 +91,10 @@ def normalize_value_for_comparison(
         Tuple of (normalized_actual, normalized_expected)
     """
     # Convert Decimal to int if it's a whole number
-    if isinstance(actual_value, Decimal) and actual_value == actual_value.to_integral_value():
+    if (
+        isinstance(actual_value, Decimal)
+        and actual_value == actual_value.to_integral_value()
+    ):
         actual_value = int(actual_value)
 
     # Normalize datetime comparisons (remove timezone info)
@@ -128,7 +128,9 @@ def normalize_value_for_comparison(
     return actual_value, expected_value
 
 
-def validate_datatable(datatable: list[list[str]] | None, step_description: str) -> None:
+def validate_datatable(
+    datatable: list[list[str]] | None, step_description: str
+) -> None:
     """
     Validate that datatable is present and has data.
 
@@ -140,13 +142,15 @@ def validate_datatable(datatable: list[list[str]] | None, step_description: str)
         AssertionError: If datatable is invalid
     """
     assert datatable is not None, f"Datatable is required for {step_description}"
-    assert len(datatable) > 1, f"Datatable must contain at least one row of data for {step_description}"
+    assert len(datatable) > 1, (
+        f"Datatable must contain at least one row of data for {step_description}"
+    )
 
 
 def create_model_data_from_datatable(
     entity_cls: Type[legacy_model.LegacyDoSModel],
     datatable: list[list[str]],
-    entity_name: str
+    entity_name: str,
 ) -> dict[str, Any]:
     """
     Create model data dictionary from datatable.
@@ -188,7 +192,7 @@ def create_model_data_from_datatable(
 )
 def dos_data_insert_step(
     migration_context: dict,
-    dos_db_with_migration: Session,
+    dos_db: Session,
     datatable,
     entity_name: str,
 ) -> legacy_model.LegacyDoSModel:
@@ -200,7 +204,7 @@ def dos_data_insert_step(
 
     Args:
         migration_context: Shared context for storing test data
-        dos_db_with_migration: Database session fixture
+        dos_db: Database session fixture
         datatable: pytest-bdd datatable with entity attributes
         entity_name: Name of the legacy model class (e.g., 'Service', 'ServiceAgeRange')
 
@@ -232,29 +236,78 @@ def dos_data_insert_step(
         )
 
     # Insert into database
-    dos_db_with_migration.add(model_obj)
-    dos_db_with_migration.commit()
-    dos_db_with_migration.refresh(model_obj)
+    dos_db.add(model_obj)
+    dos_db.commit()
+    dos_db.refresh(model_obj)
 
     # Store in context for future reference
     if "created_entities" not in migration_context:
         migration_context["created_entities"] = []
 
-    migration_context["created_entities"].append({
-        "type": entity_name,
-        "instance": model_obj
-    })
+    migration_context["created_entities"].append(
+        {"type": entity_name, "instance": model_obj}
+    )
 
     return model_obj
 
 
 @given(
-    parsers.parse('the "{entity_name}" with id "{entity_id}" is updated with attributes'),
+    parsers.parse('the "{entity_name}" with id "{entity_id}" is deleted from DoS'),
+    target_fixture="deleted_dos_entity",
+)
+def dos_data_delete_step(
+    migration_context: dict,
+    dos_db: Session,
+    entity_name: str,
+    entity_id: str,
+) -> None:
+    """
+    Delete an existing record from the DoS source database.
+
+    This step deletes a record based on its ID.
+
+    Args:
+        migration_context: Shared context for storing test data
+        dos_db: Database session fixture
+        entity_name: Name of the legacy model class
+        entity_id: ID of the entity to delete
+
+    Raises:
+        AssertionError: If entity not found
+
+    Example:
+        Given the "ServiceEndpoint" with id "500001" is deleted from DoS
+    """
+    entity_cls = get_entity_class(entity_name)
+
+    # Parse entity_id and fetch existing entity
+    parsed_id = parse_datatable_value(entity_id)
+    model_obj = dos_db.get(entity_cls, parsed_id)
+
+    assert model_obj is not None, (
+        f"{entity_name} with id '{entity_id}' not found in database"
+    )
+
+    # Delete the entity
+    dos_db.delete(model_obj)
+    dos_db.commit()
+
+    # Store in context
+    if "deleted_entities" not in migration_context:
+        migration_context["deleted_entities"] = []
+
+    migration_context["deleted_entities"].append({"type": entity_name, "id": entity_id})
+
+
+@given(
+    parsers.parse(
+        'the "{entity_name}" with id "{entity_id}" is updated with attributes'
+    ),
     target_fixture="updated_dos_entity",
 )
 def dos_data_update_step(
     migration_context: dict,
-    dos_db_with_migration: Session,
+    dos_db: Session,
     datatable,
     entity_name: str,
     entity_id: str,
@@ -267,7 +320,7 @@ def dos_data_update_step(
 
     Args:
         migration_context: Shared context for storing test data
-        dos_db_with_migration: Database session fixture
+        dos_db: Database session fixture
         datatable: pytest-bdd datatable with entity attributes to update
         entity_name: Name of the legacy model class
         entity_id: ID of the entity to update
@@ -289,9 +342,11 @@ def dos_data_update_step(
 
     # Parse entity_id and fetch existing entity
     parsed_id = parse_datatable_value(entity_id)
-    model_obj = dos_db_with_migration.get(entity_cls, parsed_id)
+    model_obj = dos_db.get(entity_cls, parsed_id)
 
-    assert model_obj is not None, f"{entity_name} with id '{entity_id}' not found in database"
+    assert model_obj is not None, (
+        f"{entity_name} with id '{entity_id}' not found in database"
+    )
 
     # Update with values from datatable
     for row in datatable[1:]:
@@ -308,26 +363,26 @@ def dos_data_update_step(
         setattr(model_obj, key, value)
 
     # Commit changes
-    dos_db_with_migration.commit()
-    dos_db_with_migration.refresh(model_obj)
+    dos_db.commit()
+    dos_db.refresh(model_obj)
 
     # Store in context
     if "updated_entities" not in migration_context:
         migration_context["updated_entities"] = []
 
-    migration_context["updated_entities"].append({
-        "type": entity_name,
-        "id": entity_id,
-        "instance": model_obj
-    })
+    migration_context["updated_entities"].append(
+        {"type": entity_name, "id": entity_id, "instance": model_obj}
+    )
 
     return model_obj
 
 
-@when(parsers.parse('I query the "{table_name}" table for "{field_name}" "{field_value}"'))
+@when(
+    parsers.parse('I query the "{table_name}" table for "{field_name}" "{field_value}"')
+)
 def query_table_by_field(
     migration_context: dict,
-    dos_db_with_migration: Session,
+    dos_db: Session,
     table_name: str,
     field_name: str,
     field_value: str,
@@ -337,7 +392,7 @@ def query_table_by_field(
 
     Args:
         migration_context: Shared context for storing test data
-        dos_db_with_migration: Database session fixture
+        dos_db: Database session fixture
         table_name: Name of the table to query (e.g., 'services')
         field_name: Name of the field to filter by (e.g., 'id')
         field_value: Value to search for
@@ -361,15 +416,17 @@ def query_table_by_field(
     statement = select(entity_cls).where(
         getattr(entity_cls, field_name) == parsed_value
     )
-    result = dos_db_with_migration.exec(statement).first()
+    result = dos_db.exec(statement).first()
 
     # Store result in context
-    migration_context.update({
-        "queried_entity": result,
-        "queried_table": table_name,
-        "queried_field": field_name,
-        "queried_value": parsed_value,
-    })
+    migration_context.update(
+        {
+            "queried_entity": result,
+            "queried_table": table_name,
+            "queried_field": field_name,
+            "queried_value": parsed_value,
+        }
+    )
 
 
 @then("the record should exist in the database")
@@ -427,3 +484,45 @@ def verify_field_value(
         f"  Actual:   '{actual_normalized}' (type: {type(actual_normalized).__name__})\n"
         f"  Expected: '{expected_normalized}' (type: {type(expected_normalized).__name__})"
     )
+
+
+@when(
+    parsers.parse(
+        "the service '{service_name}' has its '{field_name}' updated to '{new_value}'"
+    )
+)
+def update_service_field(
+    dos_db: Session,
+    migration_context: dict,
+    service_name: str,
+    field_name: str,
+    new_value: str,
+) -> None:
+    """
+    Update a specific field of a service in the DoS database.
+
+    Args:
+        dos_db: DoS database session
+        migration_context: Shared context
+        service_name: Name of the service to update
+        field_name: Field name to update
+        new_value: New value for the field
+    """
+    # Find the service by name
+    statement = select(legacy_model.Service).where(
+        legacy_model.Service.name == service_name
+    )
+    service = dos_db.exec(statement).first()
+
+    assert service is not None, f"Service '{service_name}' not found in DoS database"
+
+    # Parse and set the new value
+    parsed_value = parse_datatable_value(new_value)
+    setattr(service, field_name, parsed_value)
+
+    # Update modifiedtime to reflect the change
+    service.modifiedtime = datetime.now()
+
+    dos_db.add(service)
+    dos_db.commit()
+    dos_db.refresh(service)

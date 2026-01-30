@@ -92,9 +92,9 @@ class EndpointMapper:
                 self._create_compression_extension(endpoint.isCompressionEnabled)
             )
 
-        if endpoint.description:
+        if endpoint.businessScenario:
             if extension := self._create_business_scenario_extension(
-                endpoint.description
+                endpoint.businessScenario
             ):
                 extensions.append(extension)
 

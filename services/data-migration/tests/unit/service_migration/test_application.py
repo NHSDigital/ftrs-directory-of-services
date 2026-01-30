@@ -18,7 +18,7 @@ def test_application_init(
     assert isinstance(app.processor, DataMigrationProcessor)
 
 
-def test_handle_sqs_record_invalid_method(
+def test_handle_sqs_record_invalid_method_for_services(
     mocker: MockerFixture,
     mock_logger: MockLogger,
     mock_config: DataMigrationConfig,
@@ -29,7 +29,7 @@ def test_handle_sqs_record_invalid_method(
         type="dms_event",
         record_id=123,
         service_id=456,
-        table_name="test_table",
+        table_name="services",
         method="delete",  # Unsupported method
     )
     mock_record = SQSRecord(data={"body": mock_event.model_dump_json()})
@@ -49,7 +49,7 @@ def test_handle_sqs_record_invalid_method(
                     "type": "dms_event",
                     "record_id": 123,
                     "service_id": 456,
-                    "table_name": "test_table",
+                    "table_name": "services",
                     "method": "delete",
                 },
             },

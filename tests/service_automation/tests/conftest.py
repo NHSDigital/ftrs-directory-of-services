@@ -1,12 +1,11 @@
 import ast
+import json
 import os
-from typing import Callable, cast, Dict, Any
+from typing import Any, Callable, Dict, cast
 
 import boto3
 import pytest
 from dotenv import load_dotenv
-from sqlmodel import Session
-
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
@@ -14,15 +13,16 @@ from loguru import logger
 from pages.ui_pages.result import NewAccountPage
 from pages.ui_pages.search import LoginPage
 from playwright.sync_api import Page, sync_playwright
+from sqlmodel import Session
 from utilities.common.constants import ODS_TERMINOLOGY_INT_API_URL
+from utilities.common.context import Context
 from utilities.common.file_helper import delete_download_files
 from utilities.infra.api_util import get_url
-from utilities.infra.repo_util import model_from_json_file, check_record_in_repo
+from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.repo_util import check_record_in_repo, model_from_json_file
 from utilities.infra.secrets_util import GetSecretWrapper
-import json
-from utilities.common.context import Context
 
-pytest_plugins = ["data_migration_fixtures"]
+pytest_plugins = ["data_migration_fixtures", "fixtures.ods_fixtures"]
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -45,6 +45,14 @@ def setup_logging():
     logger.info("Starting test session...")
     yield
     logger.info("Test session completed.")
+
+
+@pytest.fixture(scope="session")
+def aws_lambda_client() -> LambdaWrapper:
+    """Create a Lambda client wrapper for test automation."""
+    iam_resource = boto3.resource("iam")
+    lambda_client = boto3.client("lambda")
+    return LambdaWrapper(lambda_client, iam_resource)
 
 
 @pytest.fixture(scope="session")
@@ -349,17 +357,7 @@ def pytest_bdd_apply_tag(tag: str, function) -> Callable | None:
         return None
 
 
-@pytest.fixture(scope="function")
-def migration_context(dos_db_with_migration: Session) -> Dict[str, Any]:
-    context = {
-        "db_session": dos_db_with_migration,
-        "test_data": {},  # Store any test data created during scenarios
-        "results": {},  # Store query results or other test outcomes
-    }
-    return context
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture
 def regular_context(dos_db: Session) -> Dict[str, Any]:
     context = {
         "db_session": dos_db,

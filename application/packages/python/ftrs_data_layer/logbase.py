@@ -163,27 +163,77 @@ class DataMigrationLogBase(LogBase):
 
     DM_ETL_019 = LogReference(
         level=INFO,
-        message="State record found for Service ID {record_id}, Skipping now...",
+        message="State record found for Service ID {record_id}, proceeding with incremental migration",
     )
     DM_ETL_020 = LogReference(
         level=INFO,
-        message="No State record found for Service ID {record_id}, Proceeding with creating one...",
+        message="No State record found for Service ID {record_id}, proceeding with initial migration",
     )
-
     DM_ETL_021 = LogReference(
         level=INFO,
-        message="Successfully wrote {item_count} items transactionally for Service ID {record_id}",
+        message="Successfully written {item_count} items to DynamoDB",
     )
-
     DM_ETL_022 = LogReference(
         level=ERROR,
-        message="One or more items exist for  Service ID {record_id}",
+        message="DynamoDB Transaction Cancelled - one or more items failed to write",
     )
     DM_ETL_023 = LogReference(
-        level=DEBUG, message="State record found for service ID:{record_id}"
+        level=INFO,
+        message="Skipping organisation creation as no transformed organisation data present",
     )
     DM_ETL_024 = LogReference(
-        level=DEBUG, message="No state record found for service ID:{record_id}"
+        level=INFO, message="Adding organisation create item to transaction"
+    )
+    DM_ETL_025 = LogReference(
+        level=INFO,
+        message="Skipping location creation as no transformed location data present",
+    )
+    DM_ETL_026 = LogReference(
+        level=INFO, message="Adding location create item to transaction"
+    )
+    DM_ETL_027 = LogReference(
+        level=INFO,
+        message="Skipping healthcare service creation as no transformed healthcare service data present",
+    )
+    DM_ETL_028 = LogReference(
+        level=INFO,
+        message="Adding healthcare service create item to transaction",
+    )
+    DM_ETL_029 = LogReference(
+        level=INFO,
+        message="Skipping organisation update as no fields have changed since last migration",
+    )
+    DM_ETL_030 = LogReference(
+        level=INFO,
+        message="Organisation update detected, adding update item to transaction",
+    )
+    DM_ETL_031 = LogReference(
+        level=INFO,
+        message="Skipping location update as no fields have changed since last migration",
+    )
+    DM_ETL_032 = LogReference(
+        level=INFO,
+        message="Location update detected, adding update item to transaction",
+    )
+    DM_ETL_033 = LogReference(
+        level=INFO,
+        message="Skipping healthcare service update as no fields have changed since last migration",
+    )
+    DM_ETL_034 = LogReference(
+        level=INFO,
+        message="Healthcare service update detected, adding update item to transaction",
+    )
+    DM_ETL_035 = LogReference(
+        level=INFO,
+        message="Initial migration detected, added migration state record to records",
+    )
+    DM_ETL_036 = LogReference(
+        level=INFO,
+        message="Incremental migration detected, added migration state update to records",
+    )
+    DM_ETL_037 = LogReference(
+        level=INFO,
+        message="Skipping state record item as no changes were required during migration",
     )
 
     DM_ETL_999 = LogReference(
@@ -304,130 +354,134 @@ class UtilsLogBase(LogBase):
         level=DEBUG, message="No county found for name: {county_name}"
     )
 
+    UTILS_GP_PRACTICE_VALIDATOR_001 = LogReference(
+        level=INFO,
+        message="GP Practice name suffix discarded: original length is {original_length}, sanitized length is {sanitized_length}",
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_002 = LogReference(
+        level=WARNING, message="Disallowed HTML entities detected in GP Practice name"
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_003 = LogReference(
+        level=WARNING, message="Suspicious characters detected in GP practice name"
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_004 = LogReference(
+        level=WARNING,
+        message="GP Practice name exceeds maximum length of {max_chars} characters",
+    )
+    UTILS_GP_PRACTICE_VALIDATOR_005 = LogReference(
+        level=INFO,
+        message="Suspicious encoding or dangerous patterns detected in GP Practice name",
+    )
+
 
 class OdsETLPipelineLogBase(LogBase):
     """
     LogBase for the ODS ETL Pipeline operations
     """
 
-    ETL_PROCESSOR_START = LogReference(
+    ETL_EXTRACTOR_START = LogReference(
         level=INFO,
         message="ETL ODS Processor Lambda started.",
     )
-    ETL_PROCESSOR_COMPLETE = LogReference(
+    ETL_EXTRACTOR_COMPLETE = LogReference(
         level=INFO,
         message="ETL ODS Processor Lambda completed successfully.",
+    )
+    ETL_EXTRACTOR_001 = LogReference(
+        level=INFO, message="Fetching outdated organizations for date {date}."
+    )
+    ETL_EXTRACTOR_002 = LogReference(
+        level=INFO,
+        message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
+    )
+    ETL_EXTRACTOR_003 = LogReference(
+        level=INFO,
+        message="Processing message id: {message_id} from ODS ETL queue.",
+    )
+    ETL_EXTRACTOR_007 = LogReference(
+        level=WARNING, message="Organisation not found in database."
+    )
+    ETL_EXTRACTOR_012 = LogReference(
+        level=WARNING, message="ODS code extraction failed: {e}."
+    )
+    ETL_EXTRACTOR_013 = LogReference(
+        level=WARNING,
+        message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
+    )
+    ETL_EXTRACTOR_014 = LogReference(
+        level=INFO,
+        message="Trying to send {number} messages to sqs queue.",
+    )
+    ETL_EXTRACTOR_015 = LogReference(
+        level=WARNING,
+        message="Failed to send {failed} messages in batch.",
+    )
+    ETL_EXTRACTOR_016 = LogReference(
+        level=WARNING,
+        message="Message {id}: {message} - {code}.",
+    )
+    ETL_EXTRACTOR_017 = LogReference(
+        level=INFO,
+        message="Succeeded to send {successful} messages in batch.",
+    )
+    ETL_EXTRACTOR_018 = LogReference(
+        level=WARNING,
+        message="Error sending data to queue with error: {error_message}.",
+    )
+    ETL_EXTRACTOR_020 = LogReference(
+        level=INFO,
+        message="No organisations found for the given date: {date}.",
+    )
+    ETL_EXTRACTOR_021 = LogReference(
+        level=WARNING,
+        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
+    )
+    ETL_EXTRACTOR_022 = LogReference(
+        level=WARNING,
+        message="Error fetching data: {error_message}.",
+    )
+    ETL_EXTRACTOR_023 = LogReference(
+        level=WARNING,
+        message="Unexpected error: {error_message}.",
+    )
+    ETL_TRANSFORMER_START = LogReference(
+        level=INFO,
+        message="ETL ODS Transformer Lambda started.",
+    )
+    ETL_TRANSFORMER_BATCH_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Transformer Lambda batch processing completed.",
+    )
+    ETL_TRANSFORMER_026 = LogReference(
+        level=INFO,
+        message="Successfully transformed data for ods_code: {ods_code}.",
+    )
+    ETL_TRANSFORMER_027 = LogReference(
+        level=WARNING,
+        message="Error processing organisation with ods_code {ods_code}: {error_message}",
+    )
+    ETL_EXTRACTOR_028 = LogReference(
+        level=INFO,
+        message="Fetching organisation uuid for ods code {ods_code}.",
+    )
+    ETL_EXTRACTOR_029 = LogReference(
+        level=WARNING,
+        message="Error processing date with code: {status_code} and message: {error_message}.",
+    )
+    ETL_EXTRACTOR_030 = LogReference(
+        level=WARNING,
+        message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
+    )
+    ETL_EXTRACTOR_034 = LogReference(
+        level=INFO, message="Processing page {page_num} for date {date}."
+    )
+    ETL_EXTRACTOR_035 = LogReference(
+        level=INFO,
+        message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
     ETL_CONSUMER_BATCH_COMPLETE = LogReference(
         level=INFO,
         message="ETL ODS Consumer Lambda batch processing completed.",
-    )
-    ETL_PROCESSOR_001 = LogReference(
-        level=INFO, message="Fetching outdated organizations for date {date}."
-    )
-    ETL_PROCESSOR_002 = LogReference(
-        level=INFO,
-        message="Fetching ODS Data returned {bundle_total} outdated organisations across {total_pages} pages.",
-    )
-    ETL_PROCESSOR_003 = LogReference(
-        level=INFO, message="Fetching organisation data for code: {ods_code}."
-    )
-    ETL_PROCESSOR_004 = LogReference(
-        level=WARNING,
-        message="OperationOutcome retrieved when fetching Organisation FHIR data - issue code: {code}, issue diagnostics: {diagnostics}.",
-    )
-    ETL_PROCESSOR_007 = LogReference(
-        level=WARNING, message="Organisation not found in database."
-    )
-    ETL_PROCESSOR_012 = LogReference(
-        level=WARNING, message="ODS code extraction failed: {e}."
-    )
-    ETL_PROCESSOR_013 = LogReference(
-        level=WARNING,
-        message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
-    )
-    ETL_PROCESSOR_014 = LogReference(
-        level=INFO,
-        message="Trying to send {number} messages to sqs queue.",
-    )
-    ETL_PROCESSOR_015 = LogReference(
-        level=WARNING,
-        message="Failed to send {failed} messages in batch.",
-    )
-    ETL_PROCESSOR_016 = LogReference(
-        level=WARNING,
-        message="Message {id}: {message} - {code}.",
-    )
-    ETL_PROCESSOR_017 = LogReference(
-        level=INFO,
-        message="Succeeded to send {successful} messages in batch.",
-    )
-    ETL_PROCESSOR_018 = LogReference(
-        level=WARNING,
-        message="Error sending data to queue with error: {error_message}.",
-    )
-    ETL_PROCESSOR_019 = LogReference(
-        level=WARNING,
-        message="Payload validation failed: {error_message}.",
-    )
-    ETL_PROCESSOR_020 = LogReference(
-        level=INFO,
-        message="No organisations found for the given date: {date}.",
-    )
-    ETL_PROCESSOR_021 = LogReference(
-        level=WARNING,
-        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
-    )
-    ETL_PROCESSOR_022 = LogReference(
-        level=WARNING,
-        message="Error fetching data: {error_message}.",
-    )
-    ETL_PROCESSOR_023 = LogReference(
-        level=WARNING,
-        message="Unexpected error: {error_message}.",
-    )
-    ETL_PROCESSOR_024 = LogReference(
-        level=INFO,
-        message="Successfully validated organisation data.",
-    )
-    ETL_PROCESSOR_026 = LogReference(
-        level=INFO,
-        message="Successfully transformed data for ods_code: {ods_code}.",
-    )
-    ETL_PROCESSOR_027 = LogReference(
-        level=WARNING,
-        message="Error processing organisation with ods_code {ods_code}: {error_message}",
-    )
-    ETL_PROCESSOR_028 = LogReference(
-        level=INFO,
-        message="Fetching organisation uuid for ods code {ods_code}.",
-    )
-    ETL_PROCESSOR_029 = LogReference(
-        level=WARNING,
-        message="Error processing date with code: {status_code} and message: {error_message}.",
-    )
-    ETL_PROCESSOR_030 = LogReference(
-        level=WARNING,
-        message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
-    )
-    ETL_PROCESSOR_031 = LogReference(
-        level=INFO,
-        message="Processing organisation {ods_code} as its is identified as {org_type}. {reason}",
-    )
-    ETL_PROCESSOR_032 = LogReference(
-        level=INFO,
-        message="Not processing organisation {ods_code} as it is not a permitted type. {reason}",
-    )
-    ETL_PROCESSOR_033 = LogReference(
-        level=INFO,
-        message="Checking if organisation is permitted type",
-    )
-    ETL_PROCESSOR_034 = LogReference(
-        level=INFO, message="Processing page {page_num} for date {date}."
-    )
-    ETL_PROCESSOR_035 = LogReference(
-        level=INFO,
-        message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,
@@ -465,6 +519,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=ERROR,
         message="Request failed for message id: {message_id}.",
     )
+    ETL_CONSUMER_010 = LogReference(
+        level=ERROR,
+        message="Returning {retry_count} messages to queue due to failure out of {total_records} records.",
+    )
     ETL_UTILS_001 = LogReference(
         level=INFO,
         message="Running in local environment, using LOCAL_CRUD_API_URL environment variable.",
@@ -492,6 +550,26 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_UTILS_007 = LogReference(
         level=ERROR,
         message="Error decoding json with issue: {error_message}.",
+    )
+    ETL_UTILS_008 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, using api key for mock from secret manager.",
+    )
+    ETL_UTILS_009 = LogReference(
+        level=INFO,
+        message="Running in against automated tests, sending request to mock API Gateway with x-api-key header",
+    )
+    ETL_UTILS_010 = LogReference(
+        level=INFO,
+        message="Receiving API key for ODS Terminology API",
+    )
+    ETL_UTILS_011 = LogReference(
+        level=INFO,
+        message="Attempting to use mock ODS api in unauthorized environment: {env}. Mock can only be used in dev and test",
+    )
+    ETL_UTILS_012 = LogReference(
+        level=ERROR,
+        message="Unable to get ODS path with message: {error_message}.",
     )
 
 

@@ -97,7 +97,9 @@
                 "iam:RemoveRoleFromInstanceProfile",
                 "iam:GetInstanceProfile",
                 "iam:TagInstanceProfile",
-                "iam:UntagInstanceProfile"
+                "iam:UntagInstanceProfile",
+                "iam:UpdateAssumeRolePolicy",
+                "iam:UpdateRoleDescription"
             ],
             "Resource": [
                 "arn:aws:iam::aws:policy/PowerUserAccess",
@@ -255,6 +257,15 @@
                 "iam:AWSServiceName": "inspector2.amazonaws.com"
                 }
             }
+        },
+        {
+            "Sid": "AssumeSteamPipeReadOnlyRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole",
+                "sts:TagSession"
+            ],
+            "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
         }
     ]
 }

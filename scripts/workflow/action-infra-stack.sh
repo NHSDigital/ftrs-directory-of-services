@@ -5,8 +5,6 @@
 # ENVIRONMENT - The name of the environment to run the terraform action on, e.g. dev, test
 # WORKSPACE - The name of the workspace to action the terraform into, e.g. DR-123
 # REPOSITORY - The name of the repository to action the terraform on e.g. uec-dos-service-management
-# APPLICATION_TAG - The tag of the application artefact to deploy. This will be required for any stack that deploys a Lambda
-#                   artefact. For development it would usually be latest
 # RELEASE_TAG - The tag of the release being deployed.
 # COMMIT_HASH - The short commit hash that is used to build and store the Lambda functions. This will be required for any
 #               stack that deploys a Lambda artefact. For development it would usually be the latest commit hash of the pushed branch
@@ -26,19 +24,17 @@ export USE_REMOTE_STATE_STORE="${USE_REMOTE_STATE_STORE:-true}"
 export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
 export TF_VAR_release_tag="${RELEASE_TAG:-""}"
-export TF_VAR_application_tag="${APPLICATION_TAG:-""}"
-export TF_VAR_commit_hash="${COMMIT_HASH:-""}"
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
 
 # Override ENVIRONMENT to non-prod for account_policies or account_security stack
-if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] ; } then
+if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] || [ "$ENVIRONMENT" = "test" ]; } then
   export ENVIRONMENT="non-prod"
   echo "Stack is $STACK - overriding ENVIRONMENT to non-prod"
 fi
 
-if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "dev" ] || [ "$ENVIRONMENT" = "test" ] ; } then
+if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "dev" ] ; } then
   export ENVIRONMENT="dev"
   echo "Stack is $STACK - overriding ENVIRONMENT to dev"
 fi
@@ -116,6 +112,7 @@ COMMON_TF_VARS_FILE="common.tfvars"
 STACK_TF_VARS_FILE="$STACK.tfvars"
 ENV_TF_VARS_FILE="environment.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
+TOGGLE_ENVIRONMENT=$( [ "${WORKSPACE}" = "default" ] && echo "${ENVIRONMENT}" || echo "workspace" )
 
 echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
 ROOT_DIR=$PWD
@@ -142,6 +139,20 @@ if [ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ] ; then
   TEMP_STACK_TF_VARS_FILE=1
 fi
 
+STACK_TOGGLE_TF_VARS_FILE="$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/toggles/stacks."$TOGGLE_ENVIRONMENT".auto.tfvars
+TEMP_STACK_TOGGLE_TF_VARS_FILE=0
+if [ ! -f "$STACK_TOGGLE_TF_VARS_FILE" ] ; then
+  touch "$STACK_TOGGLE_TF_VARS_FILE"
+  TEMP_STACK_TOGGLE_TF_VARS_FILE=1
+fi
+
+STACK_FEATURE_FLAG_FILE="$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/toggles/feature-flags.json
+TEMP_STACK_FEATURE_FLAG_FILE=0
+if [ ! -f "$STACK_FEATURE_FLAG_FILE" ] ; then
+  echo '{}' > "$STACK_FEATURE_FLAG_FILE"
+  TEMP_STACK_FEATURE_FLAG_FILE=1
+fi
+
 ENVIRONMENTS_DIR="$ROOT_DIR/$INFRASTRUCTURE_DIR/$ENVIRONMENTS_SUB_DIR/$ENVIRONMENT/"
 
 if [ -d "$ENVIRONMENTS_DIR" ]  ; then
@@ -150,7 +161,6 @@ else
   echo "No environment specific directory found for $ENVIRONMENT. Please create one and try again"
   exit 1
 fi
-
 
 # if no env specific tfvars for stack create temporary one
 TEMP_ENV_STACK_TF_VARS_FILE=0
@@ -169,7 +179,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$STACK_TOGGLE_TF_VARS_FILE"
 
   PLAN_RESULT=$(terraform show -no-color $STACK.tfplan)
 
@@ -200,7 +211,8 @@ if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$COMMON_TF_VARS_FILE" \
     -var-file "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" \
-    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
+    -var-file "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE" \
+    -var-file "$STACK_TOGGLE_TF_VARS_FILE"
 fi
 
 if [ -n "$ACTION" ] && [ "$ACTION" = 'validate' ] ; then

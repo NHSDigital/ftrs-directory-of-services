@@ -134,11 +134,6 @@ variable "release_tag" {
   default     = ""
 }
 
-variable "commit_hash" {
-  description = "The commit hash of the crud api application"
-  type        = string
-}
-
 variable "included_cloudfront_log_fields" {
   description = "List of CloudFront log fields to include in CloudWatch Logs"
   type        = list(string)
@@ -176,4 +171,28 @@ variable "included_cloudfront_log_fields" {
     "sc-range-start",
     "sc-range-end"
   ]
+}
+
+variable "index_base" {
+  description = "Base name of the OpenSearch index (workspace suffix will be appended at runtime)"
+  type        = string
+  default     = "triage_code"
+}
+
+variable "ui_stack_enabled" {
+  description = "Enable or disable the UI stack"
+  type        = bool
+  default     = true
+}
+
+variable "opensearch_stack_enabled" {
+  description = "Enable or disable the opensearch stack"
+  type        = bool
+  default     = true
+}
+
+variable "read_only_viewer_stack_enabled" {
+  description = "Enable or disable the read-only viewer stack"
+  type        = bool
+  default     = true
 }

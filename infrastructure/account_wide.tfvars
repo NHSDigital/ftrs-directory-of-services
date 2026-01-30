@@ -6,12 +6,6 @@ database_dedicated_network_acl         = true
 private_dedicated_network_acl          = true
 public_dedicated_network_acl           = true
 
-opensearch_type                  = "SEARCH"
-opensearch_standby_replicas      = "DISABLED"
-opensearch_create_access_policy  = false
-opensearch_create_network_policy = false
-opensearch_collection_name       = "-osc"
-
 waf_log_group_policy_name        = "waf-log-group-policy"
 osis_apigw_log_group_policy_name = "osis-apigw-log-group-policy"
 
@@ -27,3 +21,5 @@ waf_name            = "frontend-waf-web-acl"
 waf_scope           = "CLOUDFRONT"
 waf_log_group       = "web-acl-logs"
 waf_log_group_class = "STANDARD"
+
+enable_s3_kms_encryption = true

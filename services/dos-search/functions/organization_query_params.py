@@ -52,6 +52,8 @@ class OrganizationQueryParams(BaseModel):
     )
     revinclude: str = Field(alias="_revinclude")
 
+    model_config = {"extra": "forbid"}
+
     @computed_field
     @property
     def ods_code(self) -> str:

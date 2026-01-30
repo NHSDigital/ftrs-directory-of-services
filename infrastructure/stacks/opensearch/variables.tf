@@ -57,3 +57,28 @@ variable "opensearch_pipeline_s3_dlq_prefix" {
   description = "The DLQ bucket prefix for OpenSearch Ingestion Service Pipeline"
   type        = string
 }
+
+variable "opensearch_collection_name" {
+  description = "The OpenSearch Collection name"
+  type        = string
+}
+
+variable "opensearch_type" {
+  description = "The type of OpenSearch"
+  type        = string
+}
+
+variable "opensearch_standby_replicas" {
+  description = "Number of standby replicas for OpenSearch"
+  type        = string
+}
+
+variable "opensearch_create_access_policy" {
+  description = "Flag to create access policy for OpenSearch"
+  type        = bool
+}
+
+variable "opensearch_create_network_policy" {
+  description = "Flag to create network policy for OpenSearch"
+  type        = bool
+}
