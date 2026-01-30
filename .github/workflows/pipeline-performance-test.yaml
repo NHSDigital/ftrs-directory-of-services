@@ -23,8 +23,6 @@ on:
         options:
           - smoke
           - load
-          - stress
-          - soak
       environment:
         description: "Specify the environment to the performance test against"
         required: true
@@ -46,6 +44,30 @@ on:
         options:
           - "true"
           - "false"
+      num_threads:
+        description: "Number of threads for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      ramp_time:
+        description: "Ramp time for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      startup_delay:
+        description: "Startup delay for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      duration:
+        description: "Duration of the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      throughput:
+        description: "Throughput of the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      throughput_period:
+        description: "Throughput period of the performance test (overrides defaults for test type)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -61,6 +83,55 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+
+      - name: "Derive Test Parameters"
+        id: derive-params
+        shell: bash
+        env:
+          TEST_TYPE: ${{ inputs.test_type }}
+          NUM_THREADS: ${{ inputs.num_threads }}
+          RAMP_TIME: ${{ inputs.ramp_time }}
+          STARTUP_DELAY: ${{ inputs.startup_delay }}
+          DURATION: ${{ inputs.duration }}
+          THROUGHPUT: ${{ inputs.throughput }}
+          THROUGHPUT_PERIOD: ${{ inputs.throughput_period }}
+        run: |
+          case "$TEST_TYPE" in
+            "smoke")
+              NUM_THREADS="${NUM_THREADS:-10}"
+              RAMP_TIME="${RAMP_TIME:-1}"
+              STARTUP_DELAY="${STARTUP_DELAY:-10}"
+              DURATION="${DURATION:-20}"
+              THROUGHPUT=${THROUGHPUT:-10}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              ;;
+            "load")
+              NUM_THREADS=${NUM_THREADS:-100}
+              RAMP_TIME=${RAMP_TIME:-1}
+              STARTUP_DELAY=${STARTUP_DELAY:-10}
+              DURATION=${DURATION:-3660}
+              THROUGHPUT=${THROUGHPUT:-9000}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              ;;
+            *)
+              echo "Invalid test type: $TEST_TYPE"
+              exit 1
+              ;;
+          esac
+
+          echo "num_threads=$NUM_THREADS"
+          echo "ramp_time=$RAMP_TIME"
+          echo "startup_delay=$STARTUP_DELAY"
+          echo "duration=$DURATION"
+          echo "throughput=$THROUGHPUT"
+          echo "throughput_period=$THROUGHPUT_PERIOD"
+
+          echo "num_threads=$NUM_THREADS" >> $GITHUB_OUTPUT
+          echo "ramp_time=$RAMP_TIME" >> $GITHUB_OUTPUT
+          echo "startup_delay=$STARTUP_DELAY" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "throughput=$THROUGHPUT" >> $GITHUB_OUTPUT
+          echo "throughput_period=$THROUGHPUT_PERIOD" >> $GITHUB_OUTPUT
 
       - name: "Derive Endpoint URL"
         id: derive-endpoint
@@ -91,6 +162,7 @@ jobs:
             fi
           fi
           echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+          echo "apim_env=$APIM_ENV" >> $GITHUB_OUTPUT
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials
@@ -114,17 +186,23 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
+          num-threads: ${{ steps.derive-params.outputs.num_threads }}
+          ramp-time: ${{ steps.derive-params.outputs.ramp_time }}
+          startup-delay: ${{ steps.derive-params.outputs.startup_delay }}
+          duration: ${{ steps.derive-params.outputs.duration }}
+          throughput: ${{ steps.derive-params.outputs.throughput }}
+          throughput-period: ${{ steps.derive-params.outputs.throughput_period }}
           performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
 
-      # - name: "Run performance test (Proxy)"
-      #   if: ${{ inputs.endpoint_type == 'proxy' }}
-      #   uses: ./.github/actions/run-performance-test-proxy
-      #   with:
-      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-      #     aws-region: ${{ vars.AWS_REGION }}
-      #     environment: ${{ inputs.environment }}
-      #     endpoint: ${{ inputs.endpoint }}
-      #     apim-env: ${{ inputs.environment }}
-      #     api-key: ${{ secrets.APIM_API_KEY }}
-      #     kid: "ftrs-directory-of-services-${{ inputs.environment }}-apim-key"
-      #     performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+      - name: "Run performance test (Proxy)"
+        if: ${{ inputs.endpoint_type == 'proxy' }}
+        uses: ./.github/actions/run-performance-test-proxy
+        with:
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
+          apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
+          api-key: ${{ secrets.APIM_API_KEY }}
+          kid: "ftrs-directory-of-services-${{ inputs.environment }}-apim-key"
+          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
