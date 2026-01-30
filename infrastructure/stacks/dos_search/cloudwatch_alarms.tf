@@ -14,51 +14,51 @@ locals {
   # Threshold mapping by severity
   alarm_thresholds = {
     search_lambda = {
-      duration_p95_warning           = var.search_lambda_duration_p95_warning_ms
-      duration_p99_critical          = var.search_lambda_duration_p99_critical_ms
-      concurrent_executions_warning  = var.search_lambda_concurrent_executions_warning
-      concurrent_executions_critical = var.search_lambda_concurrent_executions_critical
-      throttles_critical             = var.search_lambda_throttles_critical_threshold
-      invocations_spike_critical     = var.search_lambda_invocations_baseline_per_hour * var.invocations_critical_spike_multiplier
-      errors_warning                 = var.search_lambda_errors_warning_threshold
-      errors_critical                = var.search_lambda_errors_critical_threshold
+      "duration-p95-warning"           = var.search_lambda_duration_p95_warning_ms
+      "duration-p99-critical"          = var.search_lambda_duration_p99_critical_ms
+      "concurrent-executions-warning"  = var.search_lambda_concurrent_executions_warning
+      "concurrent-executions-critical" = var.search_lambda_concurrent_executions_critical
+      "throttles-critical"             = var.search_lambda_throttles_critical_threshold
+      "invocations-spike-critical"     = var.search_lambda_invocations_baseline_per_hour * var.invocations_critical_spike_multiplier
+      "errors-warning"                 = var.search_lambda_errors_warning_threshold
+      "errors-critical"                = var.search_lambda_errors_critical_threshold
     }
     health_check_lambda = {
-      errors_critical = var.health_check_errors_critical_threshold
+      "errors-critical" = var.health_check_errors_critical_threshold
     }
   }
 
   # Evaluation periods by severity
   alarm_evaluation_periods = {
     search_lambda = {
-      duration_p95_warning           = var.lambda_alarm_evaluation_periods
-      duration_p99_critical          = var.lambda_alarm_evaluation_periods
-      concurrent_executions_warning  = var.lambda_alarm_evaluation_periods
-      concurrent_executions_critical = var.lambda_alarm_evaluation_periods
-      throttles_critical             = var.lambda_throttles_critical_evaluation_periods
-      invocations_spike_critical     = var.lambda_alarm_evaluation_periods
-      errors_warning                 = var.lambda_alarm_evaluation_periods
-      errors_critical                = var.lambda_alarm_evaluation_periods
+      "duration-p95-warning"           = var.lambda_alarm_evaluation_periods
+      "duration-p99-critical"          = var.lambda_alarm_evaluation_periods
+      "concurrent-executions-warning"  = var.lambda_alarm_evaluation_periods
+      "concurrent-executions-critical" = var.lambda_alarm_evaluation_periods
+      "throttles-critical"             = var.lambda_throttles_critical_evaluation_periods
+      "invocations-spike-critical"     = var.lambda_alarm_evaluation_periods
+      "errors-warning"                 = var.lambda_alarm_evaluation_periods
+      "errors-critical"                = var.lambda_alarm_evaluation_periods
     }
     health_check_lambda = {
-      errors_critical = var.health_check_errors_critical_evaluation_periods
+      "errors-critical" = var.health_check_errors_critical_evaluation_periods
     }
   }
 
   # Period (seconds) by severity
   alarm_periods = {
     search_lambda = {
-      duration_p95_warning           = var.lambda_alarm_period_seconds
-      duration_p99_critical          = var.lambda_alarm_period_seconds
-      concurrent_executions_warning  = var.lambda_alarm_period_seconds
-      concurrent_executions_critical = var.lambda_alarm_period_seconds
-      throttles_critical             = var.lambda_throttles_critical_period_seconds
-      invocations_spike_critical     = 3600 # 1 hour for invocations
-      errors_warning                 = var.lambda_alarm_period_seconds
-      errors_critical                = var.lambda_alarm_period_seconds
+      "duration-p95-warning"           = var.lambda_alarm_period_seconds
+      "duration-p99-critical"          = var.lambda_alarm_period_seconds
+      "concurrent-executions-warning"  = var.lambda_alarm_period_seconds
+      "concurrent-executions-critical" = var.lambda_alarm_period_seconds
+      "throttles-critical"             = var.lambda_throttles_critical_period_seconds
+      "invocations-spike-critical"     = 3600 # 1 hour for invocations
+      "errors-warning"                 = var.lambda_alarm_period_seconds
+      "errors-critical"                = var.lambda_alarm_period_seconds
     }
     health_check_lambda = {
-      errors_critical = var.health_check_errors_critical_period_seconds
+      "errors-critical" = var.health_check_errors_critical_period_seconds
     }
   }
 
