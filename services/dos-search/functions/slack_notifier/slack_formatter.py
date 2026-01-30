@@ -101,13 +101,17 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
         severity = get_severity_from_alarm_name(alarm_name)
         emoji = SEVERITY_EMOJI_MAP.get(severity, "🚨")
         display_state = severity.upper() if severity != "unknown" else state_value
-        logger.info(f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}")
+        logger.info(
+            f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}"
+        )
     else:
         emoji = EMOJI_MAP.get(
             state_value.upper() if isinstance(state_value, str) else state_value, "📊"
         )
         display_state = state_value
-        logger.info(f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}")
+        logger.info(
+            f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}"
+        )
 
     cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
