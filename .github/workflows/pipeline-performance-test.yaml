@@ -38,6 +38,14 @@ on:
         required: false
         type: string
         default: "dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk"
+      stop_instance:
+        description: "Whether to stop the EC2 instance after the test"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
@@ -77,3 +85,17 @@ jobs:
           environment: ${{ inputs.environment }}
           endpoint: ${{ inputs.endpoint }}
 
+      - name: "Temp step to pause pipeline for test end"
+        run: sleep 30
+
+      - name: "Upload performance test results"
+        uses: ./.github/actions/upload-performance-test-result
+        with:
+          s3-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+          environment: ${{ inputs.environment }}
+
+      - name: "Stop EC2 performance instance"
+        if: ${{ inputs.stop_instance == 'true' }}
+        uses: ./.github/actions/stop-ec2
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
