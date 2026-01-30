@@ -33,8 +33,8 @@ on:
         options:
           - dev
           - test
-      endpoint:
-        description: "The endpoint URI to run the performance test against"
+      workspace:
+        description: "Workspace identifier (if required)"
         required: false
         type: string
         default: "dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk"
@@ -62,42 +62,62 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
 
-      - name: "Configure AWS credentials"
-        uses: ./.github/actions/configure-credentials
-        with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
-          type: app
-          environment: ${{ inputs.environment }}
+      - name: "Derive Endpoint URL"
+        id: derive-endpoint
+        run: |
+          if [ "${{ inputs.endpoint_type }}" == "gateway" ]; then
+            if [ "${{ inputs.workspace }}" ==  "default"]; then
+              ENDPOINT="dos-search.${{ inputs.environment }}.ftrs.cloud.nhs.uk"
+            else
+              ENDPOINT="dos-search-${{ inputs.workspace }}.${{ inputs.environment }}.ftrs.cloud.nhs.uk"
+            fi
+          else
+            declare -A apim_envs
+            APIM_ENVS=( ["dev"]="internal-dev" ["test"]="internal-qa" ["int"]="int" )
 
-      - name: "Start EC2 performance instance"
-        id: start-ec2
-        uses: ./.github/actions/start-ec2
-        with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+            APIM_ENV=${APIM_ENVS[${{ inputs.environment }}]}
 
-      - name: "Run performance test (Gateway)"
-        if: ${{ inputs.endpoint_type == 'gateway' }}
-        uses: ./.github/actions/run-performance-test-gateway
-        with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          environment: ${{ inputs.environment }}
-          endpoint: ${{ inputs.endpoint }}
-          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+            if [ "${{ inputs.workspace }}" ==  "default"]; then
+              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search/FHIR/R4"
+            else
+              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-${{ inputs.workspace }}/FHIR/R4"
+            fi
+          fi
+          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
 
-      # - name: "Temp step to pause pipeline for test end"
-      #   run: sleep 30
-
-      # - name: "Upload performance test results"
-      #   uses: ./.github/actions/upload-performance-test-result
+      # - name: "Configure AWS credentials"
+      #   uses: ./.github/actions/configure-credentials
       #   with:
-      #     s3-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+      #     aws_account_id: ${{ secrets.ACCOUNT_ID }}
+      #     aws_region: ${{ vars.AWS_REGION }}
+      #     type: app
       #     environment: ${{ inputs.environment }}
-      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
 
-      # - name: "Stop EC2 performance instance"
-      #   if: ${{ inputs.stop_instance == 'true' }}
-      #   uses: ./.github/actions/stop-ec2
+      # - name: "Start EC2 performance instance"
+      #   id: start-ec2
+      #   uses: ./.github/actions/start-ec2
       #   with:
       #     ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+
+      # - name: "Run performance test (Gateway)"
+      #   if: ${{ inputs.endpoint_type == 'gateway' }}
+      #   uses: ./.github/actions/run-performance-test-gateway
+      #   with:
+      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+      #     environment: ${{ inputs.environment }}
+      #     endpoint: ${{ inputs.endpoint }}
+      #     performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+
+      # - name: "Run performance test (Proxy)"
+      #   if: ${{ inputs.endpoint_type == 'proxy' }}
+      #   uses: ./.github/actions/run-performance-test-proxy
+      #   with:
+      #     ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+      #     environment: ${{ inputs.environment }}
+      #     endpoint: ${{ inputs.endpoint }}
+      #     apim-env: ${{ inputs.environment }}
+      #     api-key: ${{ secrets.APIM_API_KEY }}
+      #     kid: "ftrs-directory-of-services-${{ inputs.environment }}-apim-key"
+      #     performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
