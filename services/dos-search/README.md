@@ -231,6 +231,7 @@ Alarms are configured using Terraform variables and JSON configuration files:
 - **Alarm Creation**: [`cloudwatch_alarms.tf`](../../infrastructure/stacks/dos_search/cloudwatch_alarms.tf) creates CloudWatch alarms by combining the configuration and thresholds
 
 Monitored metrics for both Search and Health Check Lambdas:
+
 - **Duration**: Average execution time
 - **Concurrent Executions**: Maximum number of simultaneous executions
 - **Throttles**: Lambda throttling events (sum over period)

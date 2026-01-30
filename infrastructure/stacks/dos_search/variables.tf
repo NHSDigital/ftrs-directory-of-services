@@ -6,6 +6,11 @@ variable "s3_bucket_name" {
   description = "The name of the gp search bucket"
 }
 
+variable "application_tag" {
+  description = "The version or tag of the application"
+  type        = string
+}
+
 variable "lambda_name" {
   description = "The name of the gp search lambda"
 }
