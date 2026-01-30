@@ -85,8 +85,8 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
     lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
 
-    api_path = "Unknown"
-    api_service = "N/A"
+    api_path = "/Organization"  # Needs to be fetched from relevant data source
+    api_service = "DoS Search"  # Needs to be fetched from relevant data source
 
     return {
         "text": f"{emoji} CloudWatch Alarm: {state_value}",
