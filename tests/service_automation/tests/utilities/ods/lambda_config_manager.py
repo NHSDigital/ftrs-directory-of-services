@@ -1,7 +1,7 @@
 import time
-from typing import Dict, Any
-from loguru import logger
+from typing import Any, Dict
 
+from loguru import logger
 from utilities.infra.apigateway_ods_mock import ODSMockClient
 from utilities.infra.lambda_util import LambdaWrapper
 
@@ -16,16 +16,22 @@ class LambdaConfigManager:
         self.lambda_client = lambda_client
         self.original_env_vars: Dict[str, Any] = {}
 
-    def configure_for_ods_mock(self, lambda_name: str, mock_client: ODSMockClient) -> None:
+    def configure_for_ods_mock(
+        self, lambda_name: str, mock_client: ODSMockClient
+    ) -> None:
         """Configure Lambda to use ODS mock API Gateway."""
         mock_url = mock_client.get_mock_endpoint_url()
 
         # Get current lambda configuration
         lambda_client = self.lambda_client.lambda_client
-        current_config = lambda_client.get_function_configuration(FunctionName=lambda_name)
+        current_config = lambda_client.get_function_configuration(
+            FunctionName=lambda_name
+        )
 
         # Store original environment for restoration
-        self.original_env_vars = current_config.get("Environment", {}).get("Variables", {}).copy()
+        self.original_env_vars = (
+            current_config.get("Environment", {}).get("Variables", {}).copy()
+        )
 
         # Update environment to enable mock testing mode
         env_vars = self.original_env_vars.copy()
@@ -85,8 +91,12 @@ class LambdaConfigManager:
     def _remove_test_vars_only(self, lambda_name: str) -> None:
         """Remove only test variables from Lambda environment."""
         lambda_client = self.lambda_client.lambda_client
-        current_config = lambda_client.get_function_configuration(FunctionName=lambda_name)
-        current_env_vars = current_config.get("Environment", {}).get("Variables", {}).copy()
+        current_config = lambda_client.get_function_configuration(
+            FunctionName=lambda_name
+        )
+        current_env_vars = (
+            current_config.get("Environment", {}).get("Variables", {}).copy()
+        )
 
         cleaned_env_vars = self._remove_test_variables(current_env_vars)
 

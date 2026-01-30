@@ -127,7 +127,7 @@ build: ensure-build-dir build-dependency-layer generate-build-info ### Build the
 publish: ## Publish artifacts to S3 development path
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
 	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 
