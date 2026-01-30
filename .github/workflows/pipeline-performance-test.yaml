@@ -71,7 +71,7 @@ jobs:
           ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
         run: |
           if [ "$ENDPOINT_TYPE" == "gateway" ]; then
-            if [ "$WORKSPACE" ==  "default"]; then
+            if [ "$WORKSPACE" ==  "default" ]; then
               ENDPOINT="dos-search.$ENVIRONMENT.ftrs.cloud.nhs.uk"
             else
               ENDPOINT="dos-search-$WORKSPACE.$ENVIRONMENT.ftrs.cloud.nhs.uk"
@@ -84,7 +84,7 @@ jobs:
 
             APIM_ENV=${APIM_ENVS[$ENVIRONMENT]}
 
-            if [ "$WORKSPACE" ==  "default"]; then
+            if [ "$WORKSPACE" ==  "default" ]; then
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search/FHIR/R4"
             else
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-$WORKSPACE/FHIR/R4"
