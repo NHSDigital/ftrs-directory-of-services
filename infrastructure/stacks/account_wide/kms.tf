@@ -130,8 +130,8 @@ module "s3_encryption_key" {
       "Resource" : "*",
       "Condition" : {
         "StringEquals" : {
-          "aws:SourceAccount" : "${var.var.account_id}",
-          "kms:ViaService" : "s3.${var.var.aws_region}.amazonaws.com"
+          "aws:SourceAccount" : "${var.account_id}",
+          "kms:ViaService" : "s3.${var.aws_region}.amazonaws.com"
         }
       }
     }
