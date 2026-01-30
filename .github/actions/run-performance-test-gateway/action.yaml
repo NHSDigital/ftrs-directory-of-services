@@ -56,4 +56,5 @@ runs:
             --query "Command.CommandId" \
             --output text)
 
+          echo "command_id=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
