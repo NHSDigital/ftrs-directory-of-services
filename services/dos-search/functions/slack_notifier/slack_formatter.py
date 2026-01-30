@@ -19,10 +19,10 @@ SEVERITY_EMOJI_MAP = {"warning": "⚠️", "critical": "🚨"}
 
 def get_severity_from_alarm_name(alarm_name: str) -> str:
     """Extract severity from alarm name.
-    
+
     Args:
         alarm_name: CloudWatch alarm name
-        
+
     Returns:
         str: Severity level ('warning', 'critical', or 'unknown')
     """
@@ -95,7 +95,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
 
     period_desc = f"{trigger_period}s evaluation over {trigger_eval_periods} period(s)"
     timestamp = format_timestamp(timestamp_val)
-    
+
     # Determine emoji and display state based on severity
     if state_value == "ALARM":
         severity = get_severity_from_alarm_name(alarm_name)

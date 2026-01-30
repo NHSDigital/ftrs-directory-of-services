@@ -7,12 +7,20 @@ from functions.slack_notifier.slack_formatter import (
 
 class TestGetSeverityFromAlarmName:
     def test_warning_severity(self):
-        assert get_severity_from_alarm_name("test-lambda-duration-p95-warning") == "warning"
+        assert (
+            get_severity_from_alarm_name("test-lambda-duration-p95-warning")
+            == "warning"
+        )
         assert get_severity_from_alarm_name("search-lambda-errors-warning") == "warning"
 
     def test_critical_severity(self):
-        assert get_severity_from_alarm_name("test-lambda-duration-p99-critical") == "critical"
-        assert get_severity_from_alarm_name("search-lambda-errors-critical") == "critical"
+        assert (
+            get_severity_from_alarm_name("test-lambda-duration-p99-critical")
+            == "critical"
+        )
+        assert (
+            get_severity_from_alarm_name("search-lambda-errors-critical") == "critical"
+        )
 
     def test_unknown_severity(self):
         assert get_severity_from_alarm_name("test-alarm") == "unknown"
@@ -62,7 +70,10 @@ class TestBuildSlackMessage:
         result = build_slack_message(alarm_data)
 
         assert result["text"] == "🚨 CloudWatch Alarm: CRITICAL"
-        assert result["blocks"][0]["text"]["text"] == "🚨 CRITICAL: test-lambda-errors-critical"
+        assert (
+            result["blocks"][0]["text"]["text"]
+            == "🚨 CRITICAL: test-lambda-errors-critical"
+        )
         assert any("Errors" in str(block) for block in result["blocks"])
         assert any("100" in str(block) for block in result["blocks"])
 
@@ -85,7 +96,10 @@ class TestBuildSlackMessage:
         result = build_slack_message(alarm_data)
 
         assert result["text"] == "⚠️ CloudWatch Alarm: WARNING"
-        assert result["blocks"][0]["text"]["text"] == "⚠️ WARNING: test-lambda-duration-p95-warning"
+        assert (
+            result["blocks"][0]["text"]["text"]
+            == "⚠️ WARNING: test-lambda-duration-p95-warning"
+        )
         assert any("Duration" in str(block) for block in result["blocks"])
         assert any("600" in str(block) for block in result["blocks"])
 
