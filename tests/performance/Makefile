@@ -9,6 +9,8 @@ JMETER_PLUGINS_MANAGER_VERSION := 1.11
 CMDRUNNER_VERSION := 2.3
 AWS_REGION ?= eu-west-2
 
+.ONESHELL:
+
 install: config
 
 config:
