@@ -37,8 +37,7 @@ inputs:
     required: true
   stop-instance:
     description: "Whether to stop the EC2 instance after the test"
-    required: false
-    default: "false"
+    required: true
 
 runs:
   using: "composite"
