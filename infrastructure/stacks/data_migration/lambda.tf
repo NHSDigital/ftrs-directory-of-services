@@ -3,8 +3,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
 }
 
 resource "aws_lambda_layer_version" "data_layer" {
@@ -12,8 +13,9 @@ resource "aws_lambda_layer_version" "data_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common data dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  source_code_hash = data.aws_s3_object.data_layer.checksum_sha256
 }
 
 module "processor_lambda" {

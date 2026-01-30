@@ -73,13 +73,13 @@ unit-test:
 
 publish:
 	@echo "Publishing Python packages layer to $(ARTEFACT_DEVELOPMENT_PATH)..."
-	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PACKAGES_LAYER_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PACKAGES_LAYER_NAME).zip --checksum-algorithm SHA256  --region $(AWS_REGION)
 	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --region $(AWS_REGION)
 	@echo "Published successfully"
 
 stage-release:
 	@echo "Staging release $(RELEASE_TAG) for Python packages..."
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --metadata-directive COPY --region $(AWS_REGION)
 	@echo "Release staged successfully"
 
 help:
