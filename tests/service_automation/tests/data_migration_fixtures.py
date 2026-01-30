@@ -1,26 +1,21 @@
 """Pytest fixtures for data migration testing."""
 
 import os
-import subprocess
-import tempfile
-from pathlib import Path
 from typing import Any, Dict, Generator
-from urllib.parse import urlparse
 
 import boto3
 import pytest
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from sqlalchemy import Engine, text
 from sqlmodel import Session, create_engine
 from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
-from utilities.data_migration.dos_db_utils import get_test_data_script
-
-from ftrs_common.utils.db_service import get_service_repository
-from ftrs_data_layer.domain import HealthcareService, Location, Organisation, legacy
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
+from utilities.data_migration.dos_db_utils import get_test_data_script
 from utilities.data_migration.migration_helper import MigrationHelper
 
 
@@ -93,11 +88,16 @@ def _cleanup_dynamodb_tables(client: Any) -> None:
 
 
 @pytest.fixture(scope="session")
-def dos_db_setup_scripts() -> list[str]:
+def dos_db_setup_scripts() -> list[tuple[str, str]]:
+    """Return list of (script_name, script_content) tuples for setup."""
     schema_sql = get_test_data_script("schema.sql")
     metadata_sql = get_test_data_script("metadata.sql")
     clinical_sql = get_test_data_script("clinical.sql")
-    return [schema_sql, metadata_sql, clinical_sql]
+    return [
+        ("schema.sql", schema_sql),
+        ("metadata.sql", metadata_sql),
+        ("clinical.sql", clinical_sql),
+    ]
 
 
 @pytest.fixture(scope="session")
@@ -117,7 +117,7 @@ def dos_db_engine(postgres_container: PostgresContainer) -> create_engine:
     engine.dispose()
 
 
-@pytest.fixture(name="dos_db", scope="function")
+@pytest.fixture(name="dos_db")
 def fixture_dos_db(
     dos_db_engine: Engine,
     dos_db_setup_scripts: list[str],
@@ -131,24 +131,56 @@ def fixture_dos_db(
     Yields:
         Database session with schema and data from source DB
     """
+    # Create a new connection for this test to ensure isolation
+    connection = dos_db_engine.connect()
+    session = Session(bind=connection)
 
     try:
         logger.debug("Initializing database with migrated data")
-        session = Session(dos_db_engine)
 
-        for script in dos_db_setup_scripts:
-            session.exec(text(script))
+        # Clean up any existing schema from previous test
+        logger.debug("Cleaning up existing schema")
+        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
         session.commit()
+
+        try:
+            for script_name, script_content in dos_db_setup_scripts:
+                if script_content and script_content.strip():
+                    try:
+                        logger.debug(f"Executing setup script: {script_name}")
+                        session.exec(text(script_content))
+                    except Exception as script_error:
+                        logger.error(
+                            f"Failed to execute setup script '{script_name}': {script_error}"
+                        )
+                        session.rollback()
+                        raise RuntimeError(
+                            f"Database setup failed while executing '{script_name}'"
+                        ) from script_error
+            session.commit()
+        except Exception as setup_error:
+            logger.error(f"Database setup failed: {setup_error}")
+            session.rollback()
+            raise
 
         yield session
 
+    except Exception as e:
+        logger.error(f"Error in dos_db fixture: {e}")
+        raise
     finally:
-        session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
-        session.commit()
-        session.close()
+        # Clean up: drop schema and close connections
+        try:
+            session.exec(text("DROP SCHEMA IF EXISTS pathwaysdos CASCADE"))
+            session.commit()
+        except Exception:
+            pass  # Ignore cleanup errors - container will be destroyed anyway
+        finally:
+            session.close()
+            connection.close()
 
 
-@pytest.fixture(name="dynamodb", scope="function")
+@pytest.fixture(name="dynamodb")
 def fixture_dynamodb(
     localstack_container: LocalStackContainer,
 ) -> Generator[Dict[str, Any], None, None]:
@@ -188,7 +220,7 @@ def fixture_dynamodb(
         _cleanup_dynamodb_tables(client)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def model_repos_local(
     dynamodb,
 ) -> dict[str, AttributeLevelRepository[Organisation | Location | HealthcareService]]:
@@ -209,7 +241,7 @@ def model_repos_local(
     }
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_helper(
     postgres_container: PostgresContainer,
     dynamodb: Dict[str, Any],
@@ -252,7 +284,7 @@ def migration_helper(
     )
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def migration_context(dos_db: Session) -> Dict[str, Any]:
     """
     Context to store migration test data across BDD steps.

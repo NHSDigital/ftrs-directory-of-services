@@ -5,13 +5,12 @@ from decimal import Decimal
 from typing import Any, Type
 
 import pytest
-from pytest_bdd import given, when, then, parsers, scenarios
+from ftrs_data_layer.domain import legacy as legacy_model
+from pytest_bdd import given, parsers, then, when
 from sqlalchemy.orm import Session
 from sqlmodel import select
-
-from ftrs_data_layer.domain import legacy as legacy_model
-from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 from utilities.common.constants import STRING_FIELDS
+from utilities.common.legacy_dos_rds_tables import TABLE_TO_ENTITY
 
 
 def parse_datatable_value(value: str) -> Any:
@@ -485,3 +484,45 @@ def verify_field_value(
         f"  Actual:   '{actual_normalized}' (type: {type(actual_normalized).__name__})\n"
         f"  Expected: '{expected_normalized}' (type: {type(expected_normalized).__name__})"
     )
+
+
+@when(
+    parsers.parse(
+        "the service '{service_name}' has its '{field_name}' updated to '{new_value}'"
+    )
+)
+def update_service_field(
+    dos_db: Session,
+    migration_context: dict,
+    service_name: str,
+    field_name: str,
+    new_value: str,
+) -> None:
+    """
+    Update a specific field of a service in the DoS database.
+
+    Args:
+        dos_db: DoS database session
+        migration_context: Shared context
+        service_name: Name of the service to update
+        field_name: Field name to update
+        new_value: New value for the field
+    """
+    # Find the service by name
+    statement = select(legacy_model.Service).where(
+        legacy_model.Service.name == service_name
+    )
+    service = dos_db.exec(statement).first()
+
+    assert service is not None, f"Service '{service_name}' not found in DoS database"
+
+    # Parse and set the new value
+    parsed_value = parse_datatable_value(new_value)
+    setattr(service, field_name, parsed_value)
+
+    # Update modifiedtime to reflect the change
+    service.modifiedtime = datetime.now()
+
+    dos_db.add(service)
+    dos_db.commit()
+    dos_db.refresh(service)

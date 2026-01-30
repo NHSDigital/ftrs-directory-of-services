@@ -9,8 +9,8 @@ on:
         description: "The deployment environment"
         required: true
         type: string
-      tag:
-        description: "The git tag to checkout or, if not passed in, the current branch"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
 
@@ -24,7 +24,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis

@@ -15,11 +15,26 @@ data "aws_subnets" "private_subnets" {
     name   = "tag:Name"
     values = ["${local.account_prefix}-vpc-private-*"]
   }
+
+  filter {
+    name   = "tag:CidrRange"
+    values = [var.vpc_private_subnet_cidr_range]
+  }
 }
 
 data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
+}
+
+data "aws_s3_object" "common_packages_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
+data "aws_s3_object" "python_dependency_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
 }
 
 data "aws_iam_policy_document" "s3_access_policy" {

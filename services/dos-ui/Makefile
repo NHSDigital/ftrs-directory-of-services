@@ -1,61 +1,32 @@
+# DoS UI Service Makefile
+# This service provides the main user interface for the Directory of Services
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-ui
-BUILD_DIR := ../../build/services/${SERVICE}
-ARTEFACT_BUCKET := ${REPO_NAME}-mgmt-artefacts-bucket
-TEMP_DIRECTORY ?= ./temp
-DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),$(if $(filter default,$(WORKSPACE)),,-$(WORKSPACE)),)
-DEPLOYMENT_BUCKET ?= ftrs-dos-${ENVIRONMENT}-ui-frontend-bucket${DEPLOYMENT_WORKSPACE}
-UI_DOMAIN_NAME = ${DEPLOYMENT_BUCKET}.s3.${AWS_REGION}.amazonaws.com
-CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(UI_DOMAIN_NAME)')].Id" --output text)
-RELEASE_BUILD ?= false
-RELEASE_DIR ?= releases
 
-ensure-build-dir:
-	mkdir -p $(BUILD_DIR)
+# Deployment bucket configuration
+DEPLOYMENT_BUCKET ?= ftrs-dos-$(ENVIRONMENT)-ui-frontend-bucket$(DEPLOYMENT_WORKSPACE)
+UI_DOMAIN_NAME = $(DEPLOYMENT_BUCKET).s3.$(AWS_REGION).amazonaws.com
+CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions \
+	--query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(UI_DOMAIN_NAME)')].Id" \
+	--output text)
 
-clean:
-	rm -rf .eslintcache .jest .tmp .coverage coverage.xml .vinxi .output
-	rm -rf $(BUILD_DIR)
+# ==============================================================================
+# Include Shared Node Service Targets
+# ==============================================================================
 
-install: install-dependencies
+include ../../scripts/services/node-service.mk
 
-install-dependencies:
+# ==============================================================================
+# Service-Specific Overrides
+# ==============================================================================
+
+# DoS UI uses npm@latest
+install-dependencies: ## Install all dependencies
 	asdf install
 	npm i -g npm@latest
 	npm install
-
-format:
-	npm run format -- --fix
-	npm run lint -- --fix
-
-lint:
-	npm run check
-	npm run build:types -- --noEmit
-
-unit-test:
-	npm run test
-
-build: clean ensure-build-dir
-	npm run build
-	cd .output/public && zip -r -q ../../$(BUILD_DIR)/$(SERVICE)-assets-$(APPLICATION_TAG).zip *
-	cd .output/server && zip -r -q ../../$(BUILD_DIR)/$(SERVICE)-server-$(APPLICATION_TAG).zip *
-
-publish:
-	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/ --region $(AWS_REGION);\
-	else \
-		aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/ --region $(AWS_REGION);\
-	fi
-
-deploy:
-	if [ "$(RELEASE_BUILD)" = "false" ] ; then \
-		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(WORKSPACE)/$(COMMIT_HASH)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .;\
-	else \
-		aws s3 cp s3://$(ARTEFACT_BUCKET)/$(RELEASE_DIR)/$(APPLICATION_TAG)/$(SERVICE)-assets-$(APPLICATION_TAG).zip .;\
-	fi
-	unzip $(SERVICE)-assets-$(APPLICATION_TAG).zip -d ${TEMP_DIRECTORY}
-	aws s3 sync --delete $(TEMP_DIRECTORY)/  s3://$(DEPLOYMENT_BUCKET)/
-
-invalidate-cloudfront-cache:
-	@echo "CLOUDFRONT_DISTRIBUTION_ID: $(CLOUDFRONT_DISTRIBUTION_ID)"
-	aws cloudfront create-invalidation --distribution-id $(shell aws cloudfront list-distributions --query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(UI_DOMAIN_NAME)')].Id" --output text) --paths "/*"

@@ -19,8 +19,8 @@ on:
         options:
           - dev
           - test
-      tag:
-        description: "The application tag to test against"
+      ref:
+        description: "The branch, tag or SHA to to test against"
         required: false
         type: string
 

@@ -52,8 +52,20 @@ resource "aws_s3_bucket_policy" "enforce_kms_truststore" {
         Action    = "s3:PutObject"
         Resource  = "${module.s3.s3_bucket_arn}/*",
         Condition = {
-          StringNotEquals = {
-            "s3:x-amz-server-side-encryption" : var.s3_encryption_key_arn
+          ArnNotEquals = {
+            "s3:x-amz-server-side-encryption-aws-kms-key-id" : var.s3_encryption_key_arn # gitleaks:allow
+          }
+        }
+      },
+      {
+        Sid       = "DenyUnencryptedUploadsKMS"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:PutObject"
+        Resource  = "${module.s3.s3_bucket_arn}/*"
+        Condition = {
+          "StringNotEquals" : {
+            "s3:x-amz-server-side-encryption" : "aws:kms"
           }
         }
       }

@@ -18,10 +18,6 @@ on:
         description: "The version of Python"
         required: true
         type: string
-      commit_hash:
-        description: "The commit hash, set by the CI/CD pipeline workflow"
-        required: false
-        type: string
       environment:
         description: "The deployment environment"
         required: true
@@ -34,8 +30,8 @@ on:
         description: "The name of the workspace to deploy the infrastructure into"
         required: true
         type: string
-      application_tag:
-        description: "The application tag identifying the timeline in the repository to deploy from"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         type: string
       type:
@@ -52,6 +48,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
@@ -81,8 +79,6 @@ jobs:
         env:
           SERVICE: ${{ inputs.name }}
           PACKAGE: ${{ inputs.name }}
-          COMMIT_HASH: ${{ inputs.commit_hash }}
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           WORKSPACE: ${{ inputs.workspace }}
-          APPLICATION_TAG: ${{ inputs.application_tag }}

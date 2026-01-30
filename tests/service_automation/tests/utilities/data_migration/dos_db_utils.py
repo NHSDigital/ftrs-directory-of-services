@@ -2,17 +2,28 @@
 Utility functions for DoS DB data migration tests
 """
 
-import boto3
 import os
-from utilities.common.constants import ENV_ENVIRONMENT
+
+import boto3
 import pytest
+from utilities.common.constants import ENV_ENVIRONMENT
 
 
 def get_test_data_script(filename: str) -> str:
     """
     Get a test data script from test-data/integration-tests/
+
+    Uses AWS_PROFILE environment variable if set, otherwise uses default AWS credentials.
     """
-    s3_client = boto3.client("s3")
+    # Use session to support AWS profiles from environment
+    profile_name = os.getenv("AWS_PROFILE")
+    if profile_name:
+        session = boto3.Session(profile_name=profile_name)
+    else:
+        session = boto3.Session()
+
+    s3_client = session.client("s3", region_name="eu-west-2")
+
     if not (env := os.getenv(ENV_ENVIRONMENT)):
         pytest.fail(f"{ENV_ENVIRONMENT} environment variable is not set")
 

@@ -70,6 +70,7 @@ class GPPracticeValidator(ServiceValidator):
         "&apos;": "'",  # Named apostrophe
         "&#x27;": "'",  # Hex apostrophe
         "&amp;": "&",  # Ampersand
+        "&#38;": "&",  # Numeric ampersand
     }
 
     def validate(self, data: Service) -> ValidationResult[Service]:

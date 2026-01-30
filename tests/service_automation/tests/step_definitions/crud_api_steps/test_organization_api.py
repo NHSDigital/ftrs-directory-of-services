@@ -1,16 +1,15 @@
-from pytest_bdd import given, parsers, scenarios, then, when
-from step_definitions.common_steps.data_steps import *  # noqa: F403
-from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from utilities.infra.api_util import get_r53, get_url
-from utilities.infra.dns_util import wait_for_dns
-from utilities.common.json_helper import read_json_file
-from step_definitions.common_steps.api_steps import *  # noqa: F403
-from utilities.common.constants import ENDPOINTS
-from loguru import logger
-from uuid import uuid4
 import ast
 import json
+from uuid import uuid4
 
+from loguru import logger
+from pytest_bdd import given, parsers, scenarios, then, when
+from step_definitions.common_steps.api_steps import *  # noqa: F403
+from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.setup_steps import *  # noqa: F403
+from utilities.common.constants import ENDPOINTS
+from utilities.common.json_helper import read_json_file
+from utilities.infra.api_util import get_url
 
 # Load feature file
 scenarios(
@@ -134,6 +133,7 @@ def update_organisation_generic(payload: dict, api_context, base_url: str):
     except (ValueError, AttributeError):
         logger.info(f"Response [{response.status}]: {response.text}")
     return response
+
 
 def update_organisation_apim(
     payload: dict,
@@ -397,7 +397,7 @@ def build_organisation_role_extension_with_typed_period(
         ],
     }
 
-    # Non-primary role: RO76 (GP Practice) with same typed period  
+    # Non-primary role: RO76 (GP Practice) with same typed period
     non_primary_role = {
         "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
         "extension": [
@@ -421,6 +421,7 @@ def build_organisation_role_extension_with_typed_period(
 
     return [primary_role, non_primary_role]
 
+
 @when(
     parsers.parse(
         'I update the organization with legal dates start "{legal_start}" and end "{legal_end}"'
@@ -439,7 +440,9 @@ def step_update_with_legal_dates(
 
     if start or end:
         # This now returns a complete GP Practice structure
-        payload["extension"] = build_organisation_role_extension_with_typed_period(start, end)
+        payload["extension"] = build_organisation_role_extension_with_typed_period(
+            start, end
+        )
     else:
         payload.pop("extension", None)
 
@@ -1052,7 +1055,9 @@ def step_update_with_legal_dates(
     end = None if legal_end == "null" else legal_end
 
     if start or end:
-        payload["extension"] = build_organisation_role_extension_with_typed_period(start, end)
+        payload["extension"] = build_organisation_role_extension_with_typed_period(
+            start, end
+        )
     else:
         payload.pop("extension", None)
 
@@ -1075,7 +1080,9 @@ def step_update_with_invalid_date_format(
     start = invalid_date if date_field == "start" else "2020-01-15"
     end = invalid_date if date_field == "end" else "2025-12-31"
 
-    payload["extension"] = build_organisation_role_extension_with_typed_period(start, end)
+    payload["extension"] = build_organisation_role_extension_with_typed_period(
+        start, end
+    )
 
     logger.info(
         f"Payload with invalid {date_field} date '{invalid_date}':\n{json.dumps(payload, indent=2)}"

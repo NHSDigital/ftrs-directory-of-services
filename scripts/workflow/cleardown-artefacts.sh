@@ -25,14 +25,15 @@ if [ "$WORKSPACE" == "default" ] ; then
   exit 1
 fi
 
-echo "Clearing down artefacts at or below $ARTEFACT_BUCKET_NAME/$WORKSPACE"
+ARTEFACT_DEVELOPMENT_PATH=$ARTEFACT_BUCKET_NAME/development/$WORKSPACE
+echo "Clearing down artefacts at or below $ARTEFACT_DEVELOPMENT_PATH"
 
-deletion_output=$(aws s3 rm --recursive s3://$ARTEFACT_BUCKET_NAME/$WORKSPACE/ 2>&1)
+deletion_output=$(aws s3 rm --recursive s3://$ARTEFACT_DEVELOPMENT_PATH 2>&1)
 
 if [ -n "$deletion_output" ]; then
-  echo "Sucessfully deleted following artefacts from $ARTEFACT_BUCKET_NAME/$WORKSPACE"
+  echo "Sucessfully deleted following artefacts from $ARTEFACT_DEVELOPMENT_PATH"
   echo "$deletion_output"
 else
-  echo "Problem deleting artefacts at $ARTEFACT_BUCKET_NAME/$WORKSPACE. Does targetted folder exist?"
+  echo "Problem deleting artefacts at $ARTEFACT_DEVELOPMENT_PATH. Does targetted folder exist?"
   echo "$deletion_output"
 fi

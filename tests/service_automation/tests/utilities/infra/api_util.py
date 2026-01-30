@@ -1,12 +1,13 @@
+import json
+import time
+from typing import Any, Dict, Optional, Union
+
+import pytest
 from ftrs_common.utils.api_url_util import get_api_url
 from loguru import logger
+from playwright.sync_api import APIRequestContext
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.api_gateway_util import ApiGatewayToService
-from playwright.sync_api import APIRequestContext
-import pytest
-import time
-import json
-from typing import Optional, Dict, Any, Union
 
 
 def get_api_gateway_url(workspace, stack, project, env):
@@ -34,6 +35,7 @@ def get_r53(workspace, api_name, env):
     r53 = f"{api_name}{workspace_suffix}.{env}.ftrs.cloud.nhs.uk"
     logger.debug("R53 URL: {}", r53)
     return r53
+
 
 def make_api_request_with_retries(
     request_context: APIRequestContext,
@@ -85,7 +87,9 @@ def make_api_request_with_retries(
             )
 
             if not response.ok:
-                raise Exception(f"Status code: {response.status}, body: {response.text()}")
+                raise Exception(
+                    f"Status code: {response.status}, body: {response.text()}"
+                )
 
             return response.json()
 

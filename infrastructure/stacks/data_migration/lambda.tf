@@ -3,8 +3,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
 }
 
 resource "aws_lambda_layer_version" "data_layer" {
@@ -12,8 +13,9 @@ resource "aws_lambda_layer_version" "data_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common data dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  source_code_hash = data.aws_s3_object.data_layer.checksum_sha256
 }
 
 module "processor_lambda" {
@@ -23,7 +25,7 @@ module "processor_lambda" {
   handler                 = var.processor_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.processor_lambda_timeout
   memory_size             = var.processor_lambda_memory_size
@@ -92,7 +94,7 @@ module "queue_populator_lambda" {
   handler                 = var.queue_populator_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.queue_populator_lambda_timeout
   memory_size             = var.queue_populator_lambda_memory_size
@@ -138,7 +140,7 @@ module "rds_event_listener_lambda" {
   timeout            = var.rds_event_listener_lambda_connection_timeout
   memory_size        = var.rds_event_listener_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
@@ -176,7 +178,7 @@ module "dms_db_lambda" {
   timeout            = var.dms_db_lambda_connection_timeout
   memory_size        = var.dms_db_lambda_memory_size
   s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
@@ -213,7 +215,7 @@ module "reference_data_lambda" {
   handler                 = var.reference_data_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.reference_data_lambda_timeout
   memory_size             = var.reference_data_lambda_memory_size

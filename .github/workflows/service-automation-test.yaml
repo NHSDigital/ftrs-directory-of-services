@@ -20,10 +20,9 @@ on:
         description: "The name of the type of test report that will be generated"
         required: false
         type: string
-      tag:
-        description: "The tag to build and deploy from"
-        required: true
-        default: ""
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
         type: string
       allure_report_retention:
         description: "The number of days to retain allure reports (in github)"
@@ -41,6 +40,10 @@ on:
         type: string
       commit_hash:
         description: "The commit hash, set by the CI/CD pipeline workflow"
+        required: false
+        type: string
+      deployment_type:
+        description: "The type of deployment (e.g., release-candidate, development)"
         required: false
         type: string
 
@@ -62,7 +65,7 @@ on:
         required: false
         default: ""
         type: string
-      test_tag:
+      test_ref:
         description: "The name of the feature tag that identifies the tests to run"
         required: false
         type: string
@@ -71,8 +74,8 @@ on:
         default: "data-migration"
         required: false
         type: string
-      tag:
-        description: "The tag to build and deploy from"
+      ref:
+        description: "The branch, tag or SHA to checkout"
         required: false
         default: "data-migration"
         type: string
@@ -112,7 +115,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
         uses: asdf-vm/actions/setup@v4.0.1
@@ -164,7 +167,7 @@ jobs:
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
           commit_hash: ${{ inputs.commit_hash || github.sha }}
-          tag: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: Upload allure report
         if: always()
@@ -191,6 +194,9 @@ jobs:
           ARTEFACT_BUCKET_NAME: ftrs-directory-of-services-mgmt-artefacts-bucket
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
+          DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
+          RELEASE_tag: ${{ inputs.ref }}
+          ENVIRONMENT: ${{ inputs.environment }}
           TEST_TAG: ${{ inputs.test_tag }}
         run: |
           set -euo pipefail

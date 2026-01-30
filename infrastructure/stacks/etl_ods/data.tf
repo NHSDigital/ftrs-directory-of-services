@@ -30,6 +30,16 @@ data "aws_kms_key" "ssm_kms_key" {
   key_id = local.kms_aliases.ssm
 }
 
+data "aws_s3_object" "python_dependency_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+}
+
+data "aws_s3_object" "common_packages_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -54,7 +64,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
       "sqs:GetQueueUrl"
     ]
     resources = [
-      aws_sqs_queue.transformed_queue.arn,
+      aws_sqs_queue.load_queue.arn,
+      aws_sqs_queue.transform_queue.arn,
     ]
   }
 }
@@ -135,7 +146,7 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
     ]
 
     resources = [
-      module.processor_lambda.lambda_function_arn
+      module.extractor_lambda.lambda_function_arn
     ]
   }
 }

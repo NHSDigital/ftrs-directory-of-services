@@ -56,6 +56,10 @@ def assert_invalid_name(
         ("Smith &amp; Jones Surgery", "Smith & Jones Surgery"),
         ("O'Brien Medical Practice", "O'Brien Medical Practice"),
         ("Normal Surgery Name", "Normal Surgery Name"),
+        (
+            "Greens Norton &#38; Weedon Medical Practice - Northants",
+            "Greens Norton & Weedon Medical Practice",
+        ),
     ],
 )
 def test_valid_entity_decoding(
@@ -72,6 +76,10 @@ def test_valid_entity_decoding(
         ("St. Mary&#39;s Medical Centre", "St. Mary's Medical Centre"),
         ("Smith, Jones &amp; Partners", "Smith, Jones & Partners"),
         ("Health Centre (Dr O&#39;Brien)", "Health Centre (Dr O'Brien)"),
+        (
+            "Greens Norton &#38; Weedon Medical Practice - Northants",
+            "Greens Norton & Weedon Medical Practice",
+        ),
     ],
 )
 def test_allowed_special_characters(

@@ -1,8 +1,3 @@
-variable "application_tag" {
-  description = "The version or tag of the crud api application"
-  type        = string
-}
-
 variable "organisation_api_lambda_runtime" {
   description = "The runtime environment for the Lambda function"
 }
@@ -115,4 +110,10 @@ variable "crud_api_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs for CRUD apis"
   type        = number
   default     = 14
+}
+
+variable "vpc_private_subnet_cidr_range" {
+  description = "The CIDR range for the VPC private subnets"
+  type        = string
+  default     = "24"
 }

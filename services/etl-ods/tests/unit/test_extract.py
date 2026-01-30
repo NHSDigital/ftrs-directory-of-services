@@ -5,7 +5,7 @@ from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from pytest_mock import MockerFixture
 from requests import HTTPError
 
-from producer.extract import (
+from common.extract import (
     _build_ods_query_params,
     _extract_next_page_url,
     _extract_organizations_from_bundle,
@@ -52,7 +52,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "producer.extract.ods_client.make_request", return_value=mock_bundle
+        "common.extract.ods_client.make_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -79,7 +79,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "producer.extract.ods_client.make_request",
+        "common.extract.ods_client.make_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -136,7 +136,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "producer.extract.ods_client.make_request",
+        "common.extract.ods_client.make_request",
         side_effect=[first_page, second_page],
     )
 
@@ -170,7 +170,7 @@ def test_build_ods_query_params_includes_gp_practice_role_codes() -> None:
 def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
     """Test fetching organisation UUID from APIM."""
     mocker.patch(
-        "producer.extract.get_base_apim_api_url",
+        "common.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -183,7 +183,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
         ],
     }
     make_request_mock = mocker.patch(
-        "producer.extract.make_apim_request", return_value=mock_response
+        "common.extract.make_request", return_value=mock_response
     )
 
     result_bundle = fetch_organisation_uuid("XYZ999")
@@ -200,7 +200,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "producer.extract.get_base_apim_api_url",
+        "common.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -212,9 +212,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         http_err.response = MockResponse()
         raise http_err
 
-    mocker.patch(
-        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
-    )
+    mocker.patch("common.extract.make_request", side_effect=raise_http_error_not_found)
 
     with caplog.at_level("WARNING"):
         with pytest.raises(ValueError) as excinfo:
@@ -228,7 +226,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
     mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     mocker.patch(
-        "producer.extract.get_base_apim_api_url",
+        "common.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
 
@@ -241,9 +239,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         http_err.response = MockResponse()
         raise http_err
 
-    mocker.patch(
-        "producer.extract.make_apim_request", side_effect=raise_http_error_not_found
-    )
+    mocker.patch("common.extract.make_request", side_effect=raise_http_error_not_found)
     with caplog.at_level("ERROR"):
         with pytest.raises(HTTPError) as excinfo:
             fetch_organisation_uuid("ABC123")
@@ -255,11 +251,11 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
 ) -> None:
     """Test fetch_organisation_uuid handles invalid resource type."""
     mocker.patch(
-        "producer.extract.get_base_apim_api_url",
+        "common.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "producer.extract.make_apim_request",
+        "common.extract.make_request",
         return_value={
             "resourceType": "Not Bundle",
             "status_code": 200,
@@ -281,11 +277,11 @@ def test_fetch_organisation_uuid_no_organisation_returned(
 ) -> None:
     """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
     mocker.patch(
-        "producer.extract.get_base_apim_api_url",
+        "common.extract.get_base_apim_api_url",
         return_value="http://apim-proxy",
     )
     mocker.patch(
-        "producer.extract.make_apim_request",
+        "common.extract.make_request",
         return_value={
             "resourceType": "Bundle",
             "status_code": 200,
@@ -306,7 +302,7 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         ("12345", True),
         ("", False),  # Empty string
         ("ABC1234567890", False),  # Too long
-        ("ABC-123", False),  # Invalid characters
+        ("AB-123", False),  # Invalid characters
         (123456, False),  # Not a string
     ],
 )
@@ -369,7 +365,7 @@ def test_get_page_limit(
     else:
         mocker.patch.dict("os.environ", {"ODS_API_PAGE_LIMIT": env_value})
 
-    mock_logger = mocker.patch("producer.extract.ods_processor_logger.log")
+    mock_logger = mocker.patch("common.extract.ods_extractor_logger.log")
 
     result = _get_page_limit()
 

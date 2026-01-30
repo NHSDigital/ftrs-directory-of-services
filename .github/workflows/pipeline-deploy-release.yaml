@@ -44,7 +44,7 @@ jobs:
       - validate-release-tag
     uses: ./.github/workflows/metadata.yaml
     with:
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
 
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -53,7 +53,7 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   deploy-account-wide-infrastructure:
@@ -64,49 +64,85 @@ jobs:
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
+
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - deploy-account-wide-infrastructure
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: default
+      ref: ${{ inputs.ref }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - validate-release-tag
-      - deploy-account-wide-infrastructure
+      - prepare-toggle-artifacts
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
       release_tag: ${{ inputs.release_tag }}
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
     secrets: inherit
 
-  deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} for release ${{ inputs.release_tag }} in the ${{ inputs.environment }} environment"
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      ref: ${{ inputs.ref }}
+
+  deploy-ui:
+    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
     concurrency:
-      group: "${{ inputs.environment }}-default"
+      group: "${{ needs.metadata.outputs.environment }}-dos-ui-${{ needs.tag-release.outputs.release_tag }}"
       cancel-in-progress: false
     needs:
       - metadata
       - deploy-application-infrastructure
-    strategy:
-      matrix:
-        include:
-          - name: "dos-ui"
-          - name: "read-only-viewer"
+      - check-stack-toggles
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: ${{ matrix.name }}
+      name: "dos-ui"
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: default
+      type: "app"
+      ref: ${{ needs.tag-release.outputs.release_tag }}
+    secrets: inherit
+
+  deploy-read-only-viewer:
+    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-read-only-viewer-${{ needs.tag-release.outputs.release_tag }}"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+      - check-stack-toggles
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: "read-only-viewer"
+      build_type: "service"
       environment: ${{ inputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
-      application_tag: ${{ inputs.release_tag }}
-      release_build: true
       type: "app"
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
@@ -114,7 +150,8 @@ jobs:
     needs:
       - metadata
       - deploy-application-infrastructure
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
     if: |
       always() &&
       ${{ inputs.environment != 'prod' }} &&
@@ -130,10 +167,11 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       workspace: default
-      tag: ${{ inputs.release_tag }}
+      ref: ${{ inputs.release_tag }}
       test_tag: "ftrs-pipeline"
       test_type: "api"
       type: app
+      deployment_type: "release"
     secrets: inherit
 
   check-pipeline-status:
@@ -141,10 +179,13 @@ jobs:
     needs:
       - validate-release-tag
       - metadata
+      - prepare-toggle-artifacts
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
       - deploy-application-infrastructure
-      - deploy-frontend-services
+      - check-stack-toggles
+      - deploy-ui
+      - deploy-read-only-viewer
       - service-automation-tests
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
@@ -154,10 +195,13 @@ jobs:
     needs:
       - validate-release-tag
       - metadata
+      - prepare-toggle-artifacts
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
       - deploy-application-infrastructure
-      - deploy-frontend-services
+      - check-stack-toggles
+      - deploy-ui
+      - deploy-read-only-viewer
       - service-automation-tests
       - check-pipeline-status
     if: always()

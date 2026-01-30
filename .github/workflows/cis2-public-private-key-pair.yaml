@@ -14,8 +14,8 @@ on:
           - int
           - ref
           - prod
-      tag:
-        description: "The git tag to checkout or, if not passed in, the current branch"
+      ref:
+        description: "The branch, tag or SHA to checkout, if not passed in, the current branch"
         required: false
         type: string
       project:
@@ -67,7 +67,7 @@ jobs:
         if: steps.should-run.outputs.should_run == 'true'
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref }}
 
       - name: "Configure AWS credentials"
         if: steps.should-run.outputs.should_run == 'true'

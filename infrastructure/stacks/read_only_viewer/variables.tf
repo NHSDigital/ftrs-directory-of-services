@@ -1,8 +1,3 @@
-variable "application_tag" {
-  description = "The version or tag of the etl_ode_code application"
-  type        = string
-}
-
 variable "read_only_viewer_bucket_name" {
   description = "The name of the read-only viewer bucket"
   type        = string

@@ -3,8 +3,9 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   compatible_runtimes = [var.organisation_api_lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer-${var.application_tag}.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  source_code_hash = data.aws_s3_object.common_packages_layer.checksum_sha256
 }
 
 resource "aws_lambda_layer_version" "python_dependency_layer" {
@@ -12,8 +13,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.organisation_api_lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer-${var.application_tag}.zip"
+  s3_bucket        = local.artefacts_bucket
+  s3_key           = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
 }
 
 module "organisation_api_lambda" {
@@ -24,7 +26,7 @@ module "organisation_api_lambda" {
   handler                 = var.organisation_api_lambda_handler
   runtime                 = var.organisation_api_lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.organisation_api_lambda_timeout
   memory_size             = var.organisation_api_lambda_memory_size
@@ -69,7 +71,7 @@ module "healthcare_service_api_lambda" {
   handler                 = var.healthcare_service_api_lambda_handler
   runtime                 = var.healthcare_service_api_lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.healthcare_service_api_lambda_timeout
   memory_size             = var.healthcare_service_api_lambda_memory_size
@@ -114,7 +116,7 @@ module "location_api_lambda" {
   handler                 = var.location_api_lambda_handler
   runtime                 = var.location_api_lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   timeout                 = var.location_api_lambda_timeout
   memory_size             = var.location_api_lambda_memory_size

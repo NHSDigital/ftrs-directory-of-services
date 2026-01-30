@@ -1,11 +1,34 @@
 import os
 from typing import Any, Dict, Literal
+from uuid import UUID
 
 import pytest
 from pytest_bdd import given, parsers, then, when
+from service_migration.models import ServiceMigrationMetrics
 from sqlalchemy import text
 from sqlmodel import Session
-
+from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
+    parse_datatable_value,
+)
+from utilities.common.constants import (
+    DYNAMODB_CLIENT,
+    ENV_ENVIRONMENT,
+    ENV_WORKSPACE,
+    SERVICETYPES_TABLE,
+    STATE_TABLE_ENTITY_ID_FIELDS,
+)
+from utilities.common.data_migration_shared_steps import (
+    get_state_record_by_id,
+)
+from utilities.common.log_helper import (
+    get_mock_logger_from_context,
+    verify_error_log_present,
+    verify_migration_completed_log,
+    verify_service_not_migrated_log,
+    verify_service_skipped_log,
+    verify_transformation_log,
+    verify_transformer_selected_log,
+)
 from utilities.data_migration.migration_context_helper import (
     build_supported_records_context,
     get_expected_dynamodb_table_names,
@@ -19,27 +42,6 @@ from utilities.data_migration.migration_service_helper import (
     parse_and_create_service,
 )
 from utilities.data_migration.sqs_helper import build_sqs_event
-from utilities.common.constants import (
-    DYNAMODB_CLIENT,
-    ENV_ENVIRONMENT,
-    ENV_WORKSPACE,
-    SERVICETYPES_TABLE,
-)
-from utilities.common.log_helper import (
-    get_mock_logger_from_context,
-    verify_migration_completed_log,
-    verify_error_log_present,
-    verify_service_not_migrated_log,
-    verify_service_skipped_log,
-    verify_transformation_log,
-    verify_transformer_selected_log,
-)
-from utilities.common.dynamoDB_tables import get_table_name
-from boto3.dynamodb.types import TypeDeserializer
-from step_definitions.data_migration_steps.dos_data_manipulation_steps import (
-    parse_datatable_value,
-)
-from service_migration.models import ServiceMigrationMetrics
 
 # ============================================================
 # Setup Steps (Background)
@@ -53,7 +55,7 @@ def environment_configured(
     """Verify test environment is properly configured."""
     try:
         response = dynamodb[DYNAMODB_CLIENT].list_tables()
-        table_names = response.get("TableNames", [])
+        response.get("TableNames", [])
         assert "TableNames" in response, "DynamoDB should be accessible"
     except Exception as e:
         pytest.fail(f"Failed to access DynamoDB: {e}")
@@ -412,19 +414,7 @@ def verify_state_record_details(
     version: int,
 ) -> None:
     """Verify state record exists with correct version."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    assert "Item" in response, f"State record should exist for key {state_key}"
-
-    item = response["Item"]
-    deserializer = TypeDeserializer()
-    deserialized_item = {k: deserializer.deserialize(v) for k, v in item.items()}
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
 
     assert deserialized_item["version"] == version, (
         f"Version should be {version}, got {deserialized_item['version']}"
@@ -494,3 +484,35 @@ def verify_state_record_validation_issues(
     assert len(actual_issues) == expected_issue_count, (
         f"Expected {expected_issue_count} validation issues, got {len(actual_issues)}"
     )
+
+
+@then(
+    parsers.parse(
+        "the state table record for key '{state_key}' contains {entity_type} ID"
+    )
+)
+def verify_state_record_contains_entity_id(
+    dynamodb: Dict[str, Any],
+    state_key: str,
+    entity_type: str,
+) -> None:
+    """Verify state record contains the specified entity ID (organisation, location, healthcare_service)."""
+    field_name = STATE_TABLE_ENTITY_ID_FIELDS.get(entity_type.lower())
+    assert field_name is not None, f"Unknown entity type: {entity_type}"
+
+    deserialized_item = get_state_record_by_id(dynamodb, state_key)
+
+    assert field_name in deserialized_item, (
+        f"State record should contain {field_name} field"
+    )
+
+    entity_id = deserialized_item[field_name]
+    assert entity_id, f"{field_name} should have a valid UUID value, got: {entity_id}"
+
+    # Validate UUID format by attempting to parse it
+    try:
+        UUID(str(entity_id))
+    except (ValueError, AttributeError) as e:
+        raise AssertionError(
+            f"{field_name} should be a valid UUID format, got: {entity_id}"
+        ) from e
