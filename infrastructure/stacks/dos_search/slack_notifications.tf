@@ -26,7 +26,7 @@ module "slack_notification_lambda" {
   handler                = "functions.slack_alarm_handler.lambda_handler"
   runtime                = var.lambda_runtime
   s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda-${var.application_tag}.zip"
+  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   attach_tracing_policy  = true
   tracing_mode           = "Active"
   number_of_policy_jsons = "1"
