@@ -90,7 +90,7 @@ jobs:
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-$WORKSPACE/FHIR/R4"
             fi
           fi
-          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+          echo "endpoint=$ENDPOINT"
 
       # - name: "Configure AWS credentials"
       #   uses: ./.github/actions/configure-credentials
