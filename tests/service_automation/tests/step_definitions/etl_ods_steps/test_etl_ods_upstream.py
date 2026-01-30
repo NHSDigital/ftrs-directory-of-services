@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 
 import pytest
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
+from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
 from loguru import logger
 from pytest_bdd import given, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
@@ -27,7 +27,7 @@ def get_from_repo(
     return item
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def cloudwatch_logs():
     """Create CloudWatch logs wrapper for log verification."""
     return CloudWatchLogsWrapper()
@@ -423,7 +423,8 @@ def assert_details_match(model_repo: AttributeLevelRepository) -> None:
     assert item.telecom == [], "Expected 'telecom' to be an empty list"
     # Legal dates check
     legal_dates = item.legalDates
-    assert legal_dates and legal_dates.start == date(1974, 4, 1), (
+    assert legal_dates is not None, "Expected legal_dates to exist"
+    assert legal_dates.start == date(1974, 4, 1), (
         "Expected 'start' date to be '1974-04-01'"
     )
     assert legal_dates.end is None, "Expected 'end' date to be None"
@@ -455,6 +456,7 @@ def assert_org_details_match(model_repo: AttributeLevelRepository) -> None:
     )
     # Legal dates check
     legal_dates = item.legalDates
+    assert legal_dates is not None, "Expected legal_dates to exist"
     assert legal_dates.start == date(1974, 4, 1), (
         "Expected 'start' date to be '1974-04-01'"
     )
@@ -478,6 +480,7 @@ def assert_telecom_details_match(model_repo: AttributeLevelRepository) -> None:
     assert item.telecom == [], "Expected 'telecom' to be an empty list"
     # Legal dates check
     legal_dates = item.legalDates
+    assert legal_dates is not None, "Expected legal_dates to exist"
     assert legal_dates.start == date(1974, 4, 1), (
         "Expected 'start' date to be '1974-04-01'"
     )

@@ -1252,7 +1252,7 @@ def set_field_to_null(payload: dict, field: str) -> dict:
     "I set the active field from the payload to null and update the organization",
     target_fixture="fresponse",
 )
-def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
+def step_set_active_null_crud(api_request_context_mtls_crud, request) -> object:
     """Set active field to null in the payload and update via CRUD API."""
     payload = set_field_to_null(build_payload(request), "active")
     return update_organisation(payload, api_request_context_mtls_crud)

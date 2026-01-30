@@ -218,7 +218,7 @@ def aws_lambda_client():
     return LambdaWrapper(lambda_client, iam_resource)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def cloudwatch_logs():
     """Create CloudWatch logs wrapper for log verification."""
     return CloudWatchLogsWrapper()
