@@ -115,4 +115,19 @@ module "s3_encryption_key" {
   account_id       = data.aws_caller_identity.current.account_id
   aws_service_name = "s3.amazonaws.com"
   description      = "Encryption key for S3 buckets in ${var.environment} environment"
+
+  additional_policy_statements = [
+    {
+      "Sid" : "AllowAPIGatewayDecrypt",
+      "Effect" : "Allow",
+      "Principal" : {
+        "Service" : "apigateway.amazonaws.com"
+      },
+      "Action" : [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource" : "*"
+    }
+  ]
 }

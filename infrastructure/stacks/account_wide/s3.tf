@@ -114,6 +114,47 @@ module "trust_store_s3_bucket" {
   enable_kms_encryption = var.enable_s3_kms_encryption
 }
 
+resource "aws_s3_bucket_policy" "trust_store_bucket_policy" {
+  bucket = module.trust_store_s3_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.trust_store_bucket_policy.json
+}
+
+data "aws_iam_policy_document" "trust_store_bucket_policy" {
+  statement {
+    sid = "AllowAPIGatewayAccess"
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion"
+    ]
+    resources = [
+      "${module.trust_store_s3_bucket.s3_bucket_arn}/*"
+    ]
+  }
+
+  statement {
+    sid     = "AllowSSLRequestsOnly"
+    actions = ["s3:*"]
+    resources = [
+      module.trust_store_s3_bucket.s3_bucket_arn,
+      "${module.trust_store_s3_bucket.s3_bucket_arn}/*"
+    ]
+    effect = "Deny"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
 # IS Performance S3 Bucket
 module "performance_s3" {
   source      = "../../modules/s3"
