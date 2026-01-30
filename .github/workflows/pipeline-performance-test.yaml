@@ -34,10 +34,10 @@ on:
           - dev
           - test
       workspace:
-        description: "Workspace identifier (if required)"
-        required: false
+        description: "Workspace identifier"
+        required: true
         type: string
-        default: "dos-search-ftrs-893.dev.ftrs.cloud.nhs.uk"
+        default: "default"
       stop_instance:
         description: "Whether to stop the EC2 instance after the test"
         required: false
@@ -64,23 +64,30 @@ jobs:
 
       - name: "Derive Endpoint URL"
         id: derive-endpoint
+        shell: bash
+        env:
+          WORKSPACE: ${{ inputs.workspace }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
         run: |
-          if [ "${{ inputs.endpoint_type }}" == "gateway" ]; then
-            if [ "${{ inputs.workspace }}" ==  "default"]; then
-              ENDPOINT="dos-search.${{ inputs.environment }}.ftrs.cloud.nhs.uk"
+          if [ "$ENDPOINT_TYPE" == "gateway" ]; then
+            if [ "$WORKSPACE" ==  "default"]; then
+              ENDPOINT="dos-search.$ENVIRONMENT.ftrs.cloud.nhs.uk"
             else
-              ENDPOINT="dos-search-${{ inputs.workspace }}.${{ inputs.environment }}.ftrs.cloud.nhs.uk"
+              ENDPOINT="dos-search-$WORKSPACE.$ENVIRONMENT.ftrs.cloud.nhs.uk"
             fi
           else
-            declare -A apim_envs
-            APIM_ENVS=( ["dev"]="internal-dev" ["test"]="internal-qa" ["int"]="int" )
+            declare -A APIM_ENVS
+            APIM_ENVS["dev"]="internal-dev"
+            APIM_ENVS["test"]="internal-qa"
+            APIM_ENVS["int"]="int"
 
-            APIM_ENV=${APIM_ENVS[${{ inputs.environment }}]}
+            APIM_ENV=${APIM_ENVS[$ENVIRONMENT]}
 
-            if [ "${{ inputs.workspace }}" ==  "default"]; then
+            if [ "$WORKSPACE" ==  "default"]; then
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search/FHIR/R4"
             else
-              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-${{ inputs.workspace }}/FHIR/R4"
+              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-$WORKSPACE/FHIR/R4"
             fi
           fi
           echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
