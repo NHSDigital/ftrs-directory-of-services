@@ -101,20 +101,12 @@ can import it at runtime.
   `endpoints.organisation.organization_query_params` to import from the `common`
   module. Prefer updating callers to import `common.organization_query_params` so
   the canonical location is used consistently across the codebase.
-- Cleanup: When callers have migrated, remove any deprecated files. Note: the
-  previous `endpoints/organisation/organization_handler.py` was consolidated
-  into `endpoints/organisation/dos_search_ods_code_function.py` (the active
-  handler implementation). Update any legacy imports/references. Recommended
-  changes:
-  - Replace imports like:
-    `from endpoints.organisation.organization_handler import lambda_handler`
-    with:
-    `from endpoints.organisation.dos_search_ods_code_function import lambda_handler`
-  - Prefer referencing the packaged handler path used by Terraform:
-    `endpoints/organisation/handler.lambda_handler` (this file wires the
-    runtime and delegates to `dos_search_ods_code_function`).
-  Removing old references prevents confusion and ensures CI/packaging pick up
-  the correct, single implementation.
+- Cleanup: Update any legacy imports/references.
+- Prefer referencing the packaged handler path used by Terraform:
+  `endpoints/organisation/handler.lambda_handler` (this file wires the
+  runtime and delegates to `dos_search_ods_code_function`).
+Removing old references prevents confusion and ensures CI/packaging pick up
+the correct, single implementation.
 
 ### Next steps
 
