@@ -72,7 +72,7 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_interne
 # Reduces ENI consumption from 2 to 1 per workspace
 resource "aws_security_group" "rds_accessor_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  name        = "${local.resource_prefix}-rds-accessor-lambda${local.workspace_suffix}-sg"
+  name        = "${local.resource_prefix}-rds-accessor-lambda-sg"
   description = "Security group for lambdas that access RDS (queue populator, reference data)"
 
   vpc_id = data.aws_vpc.vpc.id

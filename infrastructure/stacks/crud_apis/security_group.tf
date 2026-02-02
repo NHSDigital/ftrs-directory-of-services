@@ -2,7 +2,7 @@
 # Reduces ENI consumption from 3 to 1 per workspace
 resource "aws_security_group" "crud_apis_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  name        = "${local.resource_prefix}-crud-apis-lambda${local.workspace_suffix}-sg"
+  name        = "${local.resource_prefix}-lambda-sg"
   description = "Security group for all crud api lambdas (organisation, healthcare service, location)"
 
   vpc_id = data.aws_vpc.vpc.id
