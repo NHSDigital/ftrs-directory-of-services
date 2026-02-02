@@ -8,11 +8,6 @@ resource "aws_security_group" "rds_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-data "aws_security_group" "rds_security_group" {
-  count = local.is_primary_environment ? 0 : 1
-  name  = "${local.resource_prefix}-rds-sg"
-}
-
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_vpn" {
   count                        = (local.is_primary_environment && var.environment == "dev") ? 1 : 0
   description                  = "Allow RDS ingress from VPN"
@@ -72,6 +67,8 @@ resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_interne
 # Reduces ENI consumption from 2 to 1 per workspace
 resource "aws_security_group" "rds_accessor_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
+  count = local.is_primary_environment ? 1 : 0
+
   name        = "${local.resource_prefix}-rds-accessor-lambda-sg"
   description = "Security group for lambdas that access RDS (queue populator, reference data)"
 
@@ -81,7 +78,7 @@ resource "aws_security_group" "rds_accessor_lambda_security_group" {
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_rds_accessor_lambdas" {
   description                  = "Allow RDS ingress from RDS accessor lambdas (queue populator, reference data)"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = aws_security_group.rds_accessor_lambda_security_group.id
+  referenced_security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -89,7 +86,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_rds_acces
 
 resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds" {
   description                  = "Allow egress to RDS"
-  security_group_id            = aws_security_group.rds_accessor_lambda_security_group.id
+  security_group_id            = aws_security_group.rds_accessor_lambda_security_group[0].id
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -99,7 +96,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds"
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_internet" {
   description       = "Allow egress to internet"
-  security_group_id = aws_security_group.rds_accessor_lambda_security_group.id
+  security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.https_port
   ip_protocol       = "tcp"
@@ -281,4 +278,3 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_inte
   ip_protocol       = "tcp"
   to_port           = var.https_port
 }
-

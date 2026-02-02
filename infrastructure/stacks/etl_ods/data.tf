@@ -180,3 +180,9 @@ data "aws_iam_policy_document" "lambda_kms_access" {
     resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
 }
+
+data "aws_security_group" "etl_ods_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-lambda-sg"
+}
