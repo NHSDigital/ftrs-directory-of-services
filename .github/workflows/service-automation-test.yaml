@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: The relevant github environment (for secrets and variables)
+        description: "The relevant github environment (for secrets and variables)"
         required: true
         type: string
       workspace:
@@ -17,7 +17,7 @@ on:
         required: false
         type: string
       test_type:
-        description: "The name of the type of test report that will be generated"
+        description: "The name of the type of test report that will be generated (e.g., bdd, apim, ui)"
         required: false
         type: string
       api_name:

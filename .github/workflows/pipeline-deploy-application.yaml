@@ -333,9 +333,9 @@ jobs:
       matrix:
         include:
           - tag: "ftrs-pipeline"
-            type: "api"
+            type: "bdd"
           - tag: "data-migration"
-            type: "data-migration"
+            type: "bdd"
           - tag: "is-apim"
             type: "apim"
             api_name: "dos-search"

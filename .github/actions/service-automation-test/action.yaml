@@ -12,24 +12,23 @@ inputs:
     description: "AWS region"
     required: true
   test_tag:
-    description: "feature tag that identifies tests to be run"
+    description: "The name of the feature tag that identifies the tests to run"
     required: true
   test_type:
-    description: "tag that identifies types of test and reports to be run"
+    description: "The name of the type of test report that will be generated (e.g., bdd, apim, ui)"
     required: true
+  api_name:
+    description: "The name of the API to test (for APIM tests, e.g., dos-search)"
+    required: false
+  apim_env:
+    description: "The APIM environment to test (for APIM tests, e.g., internal-dev, internal-qa)"
+    required: false
   commit_hash:
     description: "The commit hash, set by the CI/CD pipeline workflow"
     required: false
   ref:
     description: "The branch, tag or SHA to build and deploy from"
     required: false
-  api_name:
-    description: "API name for APIM proxy generation, required if test_type is apim"
-    required: false
-  apim_env:
-    description: "APIM environment for proxy generation, required if test_type is apim"
-    required: false
-
 
 runs:
   using: "composite"
