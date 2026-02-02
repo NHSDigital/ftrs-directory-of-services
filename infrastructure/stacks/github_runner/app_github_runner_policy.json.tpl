@@ -93,6 +93,18 @@
             "Resource": "*"
         },
         {
+            "Sid": "IAMListRoleAndPolicyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles",
+                "iam:ListPolicies"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/",
+                "arn:aws:iam::*:policy/"
+            ]
+        },        
+        {
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -166,6 +178,7 @@
                     "kms:ResourceAliases": [
                         "alias/${project}-*-secrets-manager-kms",
                         "alias/${project}-*-ssm-kms",
+                        "alias/${project}-*-s3-kms",
                         "alias/${project}-*-dms-kms"
                     ]
                 }

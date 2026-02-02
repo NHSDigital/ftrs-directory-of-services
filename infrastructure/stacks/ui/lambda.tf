@@ -11,6 +11,7 @@ module "ui_lambda" {
   s3_key         = "${local.artefact_base_path}/dos-ui-server.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.ui_lambda_package[0].version_id
   timeout                 = var.ui_lambda_connection_timeout
   memory_size             = var.ui_lambda_memory_size
 

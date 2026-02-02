@@ -27,29 +27,35 @@ module "processor_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.version_id
   timeout                 = var.processor_lambda_timeout
   memory_size             = var.processor_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "5"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -96,29 +102,35 @@ module "queue_populator_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.version_id
   timeout                 = var.queue_populator_lambda_timeout
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
-    "SQS_QUEUE_URL" = aws_sqs_queue.dms_event_queue.url
-    "PROJECT_NAME"  = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "SQS_QUEUE_URL"                      = aws_sqs_queue.dms_event_queue.url
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -131,18 +143,20 @@ module "queue_populator_lambda" {
 }
 
 module "rds_event_listener_lambda" {
-  count              = local.is_primary_environment ? 1 : 0
-  source             = "../../modules/lambda"
-  function_name      = "${local.resource_prefix}-${var.rds_event_listener_lambda_name}"
-  description        = "Lambda to listen for database events and send notifications"
-  handler            = var.migration_copy_db_lambda_trigger
-  runtime            = var.lambda_runtime
-  timeout            = var.rds_event_listener_lambda_connection_timeout
-  memory_size        = var.rds_event_listener_lambda_memory_size
-  s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
+  count                   = local.is_primary_environment ? 1 : 0
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.rds_event_listener_lambda_name}"
+  description             = "Lambda to listen for database events and send notifications"
+  handler                 = var.migration_copy_db_lambda_trigger
+  runtime                 = var.lambda_runtime
+  timeout                 = var.rds_event_listener_lambda_connection_timeout
+  memory_size             = var.rds_event_listener_lambda_memory_size
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.checksum_sha256
+  subnet_ids              = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids      = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
   number_of_policy_jsons = "3"
   policy_jsons = [
@@ -169,18 +183,20 @@ module "rds_event_listener_lambda" {
 }
 
 module "dms_db_lambda" {
-  count              = local.is_primary_environment ? 1 : 0
-  source             = "../../modules/lambda"
-  function_name      = "${local.resource_prefix}-${var.dms_db_lambda_name}"
-  description        = "Lambda to set up DMS target RDS instance"
-  handler            = var.dms_db_lambda_trigger
-  runtime            = var.lambda_runtime
-  timeout            = var.dms_db_lambda_connection_timeout
-  memory_size        = var.dms_db_lambda_memory_size
-  s3_bucket_name     = local.artefacts_bucket
-  s3_key             = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
+  count                   = local.is_primary_environment ? 1 : 0
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.dms_db_lambda_name}"
+  description             = "Lambda to set up DMS target RDS instance"
+  handler                 = var.dms_db_lambda_trigger
+  runtime                 = var.lambda_runtime
+  timeout                 = var.dms_db_lambda_connection_timeout
+  memory_size             = var.dms_db_lambda_memory_size
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.checksum_sha256
+  subnet_ids              = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids      = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
   number_of_policy_jsons = "3"
   policy_jsons = [
@@ -217,27 +233,33 @@ module "reference_data_lambda" {
   s3_bucket_name          = local.artefacts_bucket
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.version_id
   timeout                 = var.reference_data_lambda_timeout
   memory_size             = var.reference_data_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.reference_data_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
