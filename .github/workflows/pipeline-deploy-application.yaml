@@ -105,7 +105,6 @@ jobs:
       name: ${{ matrix.name }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
@@ -120,19 +119,28 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
+    prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - perform-code-analysis
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}
+
   deploy-application-infrastructure:
     name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
       - build-services
-      - perform-code-analysis
+      - prepare-toggle-artifacts
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
-      tag: ${{ inputs.tag }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      ref: ${{ inputs.ref }}
       workflow_timeout: 30
     secrets: inherit
 
@@ -147,12 +155,14 @@ jobs:
       matrix:
         api_name:
           - dos-search
+          - dos-ingest
           # Add more API names here as needed
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       api_name: ${{ matrix.api_name }}
       apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
+      ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
@@ -174,8 +184,8 @@ jobs:
   #     function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
   #     queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
   #     type: app
+  #     ref: ${{ inputs.ref }}
   #   secrets: inherit
-
 
   export-dynamodb-to-s3:
     name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
@@ -192,6 +202,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       type: app
       action: export
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   restore-dynamodb-from-s3:
@@ -206,13 +217,26 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       action: import
       type: app
+      ref: ${{ inputs.ref }}
     secrets: inherit
+
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
-    if: false
+    if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
     needs:
       - metadata
+      - check-stack-toggles
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
@@ -222,31 +246,46 @@ jobs:
       aws_region: ${{ vars.AWS_REGION }}
     secrets: inherit
 
-  deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
+  deploy-ui:
+    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-dos-ui"
       cancel-in-progress: false
     needs:
       - metadata
+      - check-stack-toggles
       - deploy-application-infrastructure
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "dos-ui"
-          - name: "read-only-viewer"
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: ${{ matrix.name }}
+      name: "dos-ui"
       build_type: "service"
-      python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
+      ref: ${{ inputs.ref }}
+    secrets: inherit
+
+  deploy-read-only-viewer:
+    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
+    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
+    concurrency:
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-read-only-viewer"
+      cancel-in-progress: false
+    needs:
+      - metadata
+      - check-stack-toggles
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/deploy-frontend-project.yaml
+    with:
+      name: "read-only-viewer"
+      build_type: "service"
+      environment: ${{ needs.metadata.outputs.environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      type: "app"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   deploy-data-migration-service:
@@ -263,12 +302,11 @@ jobs:
       name: "data-migration"
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
-      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      application_tag: ${{ inputs.application_tag || 'latest' }}
       type: "app"
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   service-automation-tests:
@@ -320,24 +358,43 @@ jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
     needs:
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
       - service-automation-tests
     if: >
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      needs.deploy-frontend-services.result == 'success' &&
+      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped') &&
+      (needs.deploy-read-only-viewer.result == 'success' || needs.deploy-read-only-viewer.result == 'skipped') &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
+    secrets: inherit
+
+  stage-prerelease-artefacts:
+    name: "Stage ${{ matrix.name }} artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
+    needs:
+      - metadata
+      - generate-prerelease
+    uses: ./.github/workflows/promote-artefacts.yaml
+    with:
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      artefact_promotion_type: "stage"
+      type: app
+      prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
+      ref: ${{ inputs.ref }}
     secrets: inherit
 
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
-      - deploy-frontend-services
+      - deploy-application-infrastructure
+      - deploy-ui
+      - deploy-read-only-viewer
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
+      - stage-prerelease-artefacts
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
 
@@ -351,10 +408,12 @@ jobs:
       # - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
-      - deploy-frontend-services
+      - deploy-ui
+      - deploy-read-only-viewer
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease
+      - stage-prerelease-artefacts
       - check-pipeline-status
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
