@@ -136,12 +136,6 @@ variable "gateway_responses" {
 variable "lambda_alarm_evaluation_periods" {
   description = "Default number of periods over which to evaluate alarms (unless overridden per metric/severity)"
   type        = number
-  default     = 3
-}
-
-variable "lambda_alarm_datapoints_to_alarm" {
-  description = "Number of datapoints that must breach to trigger alarm (2 out of 3 is reasonable for most alarms)"
-  type        = number
   default     = 2
 }
 

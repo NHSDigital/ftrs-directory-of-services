@@ -79,12 +79,6 @@ variable "treat_missing_data" {
   }
 }
 
-variable "datapoints_to_alarm" {
-  description = "Number of datapoints that must breach to trigger alarm (defaults to evaluation_periods if not set)"
-  type        = number
-  default     = null
-}
-
 variable "actions_enabled" {
   description = "Enable or disable alarm actions (useful for placeholder alarms)"
   type        = bool
@@ -101,7 +95,6 @@ resource "aws_cloudwatch_metric_alarm" "alarm" {
   alarm_name          = "${var.alarm_name}${var.workspace_suffix}"
   comparison_operator = var.comparison_operator
   evaluation_periods  = var.evaluation_periods
-  datapoints_to_alarm = var.datapoints_to_alarm
   actions_enabled     = var.actions_enabled
   metric_name         = var.metric_name
   namespace           = var.namespace
