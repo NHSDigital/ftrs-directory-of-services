@@ -47,11 +47,23 @@ lint-fix:
 pre-commit: lint-staged
 
 test:
-	@for marker in $(MARKERS); do \
+	@if [ "$(TEST_TYPE)" = "apim" ]; then \
+		if [ -n "$(WORKSPACE)" ]; then \
+			PROXY_NAME="$(API_NAME)--$(APIM_ENV)--$(API_NAME)-$(WORKSPACE)_FHIR_R4"; \
+		else \
+			PROXY_NAME="$(API_NAME)--$(APIM_ENV)_FHIR_R4"; \
+		fi; \
+	fi; \
+	for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
+		echo "Running tests for test type: $$TEST_TYPE"; \
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
+		elif [ "$(TEST_TYPE)" = "apim" ]; then \
+			echo "Running tests for API name: $(API_NAME)"; \
+			echo "Running tests for proxy name: $$PROXY_NAME"; \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		else \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
