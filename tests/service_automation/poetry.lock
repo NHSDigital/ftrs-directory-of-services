@@ -948,7 +948,7 @@ version = "8.6.1"
 description = "Deep Difference and Search of any Python object/data. Recreate objects by adding adding deltas to each other."
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["main", "shared"]
 files = [
     {file = "deepdiff-8.6.1-py3-none-any.whl", hash = "sha256:ee8708a7f7d37fb273a541fa24ad010ed484192cd0c4ffc0fa0ed5e2d4b9e78b"},
     {file = "deepdiff-8.6.1.tar.gz", hash = "sha256:ec56d7a769ca80891b5200ec7bd41eec300ced91ebcc7797b41eb2b3f3ff643a"},
@@ -1098,6 +1098,7 @@ fhir-resources = ">=8.0.0,<9.0.0"
 phonenumbers = ">=9.0.18,<10.0.0"
 pydantic = ">=2.11.1,<3.0.0"
 pydantic-extra-types = ">=2.10.6,<3.0.0"
+pyjwt = ">=2.10.1,<3.0.0"
 requests = ">=2.32.4,<3.0.0"
 sqlmodel = ">=0.0.24,<0.0.25"
 starlette = ">=0.49.1,<0.50.0"
@@ -1706,7 +1707,7 @@ version = "5.5.0"
 description = "Orderly set"
 optional = false
 python-versions = ">=3.8"
-groups = ["main"]
+groups = ["main", "shared"]
 files = [
     {file = "orderly_set-5.5.0-py3-none-any.whl", hash = "sha256:46f0b801948e98f427b412fcabb831677194c05c3b699b80de260374baa0b1e7"},
     {file = "orderly_set-5.5.0.tar.gz", hash = "sha256:e87185c8e4d8afa64e7f8160ee2c542a475b738bc891dc3f58102e654125e6ce"},
@@ -1802,6 +1803,7 @@ develop = true
 aws-lambda-powertools = ">=3.11.0,<4.0.0"
 boto3-stubs = {version = ">=1.38.1,<2.0.0", extras = ["dynamodb", "s3", "sqs"]}
 chevron = ">=0.14.0,<0.15.0"
+deepdiff = ">=8.6.1,<9.0.0"
 psycopg2-binary = ">=2.9.10,<3.0.0"
 pycountry = ">=24.6.1"
 pydantic = ">=2.10.6,<3.0.0"
@@ -2213,7 +2215,7 @@ version = "2.10.1"
 description = "JSON Web Token implementation in Python"
 optional = false
 python-versions = ">=3.9"
-groups = ["main"]
+groups = ["main", "shared"]
 files = [
     {file = "PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb"},
     {file = "pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953"},
@@ -2342,19 +2344,19 @@ test = ["black (>=22.1.0)", "flake8 (>=4.0.1)", "pre-commit (>=2.17.0)", "tox (>
 
 [[package]]
 name = "pytest-nhsd-apim"
-version = "5.0.3"
+version = "6.0.6"
 description = "Pytest plugin accessing NHSDigital's APIM proxies"
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "pytest_nhsd_apim-5.0.3-py3-none-any.whl", hash = "sha256:1aa230a207fec792ae77959fdb0e0950daa9608a099e0033d00d164c7e18862f"},
-    {file = "pytest_nhsd_apim-5.0.3.tar.gz", hash = "sha256:9fe29e2088194da994b1a506ebf5d0883030ec04fc7423e13f254667654b444e"},
+    {file = "pytest_nhsd_apim-6.0.6-py3-none-any.whl", hash = "sha256:84fba4c8569a300c0b71d626cc61fff9b4b6c2ae97add5f66f7a20694933285a"},
+    {file = "pytest_nhsd_apim-6.0.6.tar.gz", hash = "sha256:2f39c15eb51e613456dd38f86241e4a14ac5bbefe6b90a710383adbdcf117a12"},
 ]
 
 [package.dependencies]
-Authlib = ">=1.3.1,<2.0.0"
-cryptography = ">42.0.0"
+Authlib = ">=1.6.6,<2.0.0"
+cryptography = ">44.0.1"
 lxml = ">=5.3.1,<6.0.0"
 pycryptodome = ">=3.20.0,<4.0.0"
 pydantic = ">=2.9.2,<3.0.0"
@@ -2363,9 +2365,11 @@ PyJWT = ">=2.8.0,<3.0.0"
 pyotp = ">=2.9.0,<3.0.0"
 pytest = ">=8.2.0,<9.0.0"
 requests = ">=2.32.0,<3.0.0"
-toml = ">=0.10.2,<0.11.0"
-typing-extensions = ">=4.11.0,<5.0.0"
-wheel = ">=0.37.1,<0.39.0"
+setuptools = ">=80.0.1,<81.0.0"
+toml = ">=0.10.2,<1.0.0"
+typing-extensions = ">=4.12.2,<5.0.0"
+urllib3 = ">=2.6.3,<3.0.0"
+wheel = ">=0.46.2,<0.47.0"
 
 [[package]]
 name = "pytest-playwright"
@@ -2756,6 +2760,27 @@ botocore = ">=1.37.4,<2.0a.0"
 crt = ["botocore[crt] (>=1.37.4,<2.0a.0)"]
 
 [[package]]
+name = "setuptools"
+version = "80.10.2"
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "setuptools-80.10.2-py3-none-any.whl", hash = "sha256:95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173"},
+    {file = "setuptools-80.10.2.tar.gz", hash = "sha256:8b0e9d10c784bf7d262c4e5ec5d4ec94127ce206e8738f29a437945fbc219b70"},
+]
+
+[package.extras]
+check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1) ; sys_platform != \"cygwin\"", "ruff (>=0.8.0) ; sys_platform != \"cygwin\""]
+core = ["importlib_metadata (>=6) ; python_version < \"3.10\"", "jaraco.functools (>=4)", "jaraco.text (>=3.7)", "more_itertools", "more_itertools (>=8.8)", "packaging (>=24.2)", "platformdirs (>=4.2.2)", "tomli (>=2.0.1) ; python_version < \"3.11\"", "wheel (>=0.43.0)"]
+cover = ["pytest-cov"]
+doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier", "towncrier (<24.7)"]
+enabler = ["pytest-enabler (>=2.2)"]
+test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21) ; python_version >= \"3.9\" and sys_platform != \"cygwin\"", "jaraco.envs (>=2.2)", "jaraco.path (>=3.7.2)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf ; sys_platform != \"cygwin\"", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
+type = ["importlib_metadata (>=7.0.2) ; python_version < \"3.10\"", "jaraco.develop (>=7.21) ; sys_platform != \"cygwin\"", "mypy (==1.14.*)", "pytest-mypy"]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -3084,18 +3109,21 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 
 [[package]]
 name = "wheel"
-version = "0.38.4"
-description = "A built-package format for Python"
+version = "0.46.3"
+description = "Command line tool for manipulating wheel files"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "wheel-0.38.4-py3-none-any.whl", hash = "sha256:b60533f3f5d530e971d6737ca6d58681ee434818fab630c83a734bb10c083ce8"},
-    {file = "wheel-0.38.4.tar.gz", hash = "sha256:965f5259b566725405b05e7cf774052044b1ed30119b5d586b2703aafe8719ac"},
+    {file = "wheel-0.46.3-py3-none-any.whl", hash = "sha256:4b399d56c9d9338230118d705d9737a2a468ccca63d5e813e2a4fc7815d8bc4d"},
+    {file = "wheel-0.46.3.tar.gz", hash = "sha256:e3e79874b07d776c40bd6033f8ddf76a7dad46a7b8aa1b2787a83083519a1803"},
 ]
 
+[package.dependencies]
+packaging = ">=24.0"
+
 [package.extras]
-test = ["pytest (>=3.0.0)"]
+test = ["pytest (>=6.0.0)", "setuptools (>=77)"]
 
 [[package]]
 name = "win32-setctime"
@@ -3207,4 +3235,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0.0"
-content-hash = "30c1309abca52380bb8f87990afdb0f23fd7fb621fb69d70e5edb1cf227cc6f3"
+content-hash = "ac19b57850ee4904cbd9242b9e5adf6b350a0028f00c0209f771b19239cee1ab"
