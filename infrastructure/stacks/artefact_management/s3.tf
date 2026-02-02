@@ -52,7 +52,9 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
       "s3:GetObjectTagging",
       "s3:DeleteObject",
       "s3:PutObject",
-      "s3:PutObjectTagging"
+      "s3:PutObjectTagging",
+      "s3:GetObjectVersion"
+
     ]
     resources = [
       "${module.artefacts_bucket.s3_bucket_arn}/*",
