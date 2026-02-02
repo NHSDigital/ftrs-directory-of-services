@@ -24,6 +24,12 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_s3_object" "read_only_viewer_lambda_package" {
+  count  = local.stack_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/read-only-viewer-server.zip"
+}
+
 data "aws_iam_role" "app_github_runner_iam_role" {
   count = local.stack_enabled
   name  = "${var.repo_name}-${var.environment}-${var.app_github_runner_role_name}"
