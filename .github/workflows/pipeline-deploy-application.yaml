@@ -157,6 +157,7 @@ jobs:
       matrix:
         api_name:
           - dos-search
+          - dos-ingest
           # Add more API names here as needed
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -380,6 +381,7 @@ jobs:
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
+      - deploy-application-infrastructure
       - deploy-ui
       - deploy-read-only-viewer
       - deploy-data-migration-service

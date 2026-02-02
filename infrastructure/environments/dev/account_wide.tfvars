@@ -28,3 +28,5 @@ flow_log_s3_force_destroy = true
 enable_nat_gateway     = true
 single_nat_gateway     = true
 one_nat_gateway_per_az = false
+
+enable_s3_kms_encryption = false

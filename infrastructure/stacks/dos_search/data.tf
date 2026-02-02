@@ -37,6 +37,11 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
+data "aws_s3_object" "truststore" {
+  bucket = local.s3_trust_store_bucket_name
+  key    = local.trust_store_file_path
+}
+
 data "aws_iam_policy_document" "vpc_access_policy" {
   # checkov:skip=CKV_AWS_111: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
   # checkov:skip=CKV_AWS_356: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421

@@ -30,6 +30,16 @@ data "aws_kms_key" "ssm_kms_key" {
   key_id = local.kms_aliases.ssm
 }
 
+data "aws_s3_object" "python_dependency_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+}
+
+data "aws_s3_object" "common_packages_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"

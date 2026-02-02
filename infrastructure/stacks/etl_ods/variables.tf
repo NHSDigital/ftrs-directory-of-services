@@ -85,10 +85,16 @@ variable "max_receive_count" {
   description = "The maximum number of times a message can be received before being sent to the dead letter queue"
 }
 
-variable "apim_url" {
-  description = "The URL of the API Management instance"
+variable "apim_base_url" {
+  description = "The base URL of the API Management instance (without API path)"
   type        = string
-  default     = "https://int.api.service.nhs.uk/dos-ingest/FHIR/R4"
+  default     = "https://int.api.service.nhs.uk"
+}
+
+variable "apim_dos_ingest_path_segment" {
+  description = "The path segment for APIM URL construction"
+  type        = string
+  default     = "dos-ingest"
 }
 
 variable "ods_url" {

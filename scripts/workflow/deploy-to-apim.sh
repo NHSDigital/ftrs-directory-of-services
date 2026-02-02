@@ -32,6 +32,15 @@ if [ -z "$PROXYGEN_URL" ]; then
     exit 1
 fi
 
+# Map internal API names to Proxygen API names
+PROXYGEN_API_NAME="${API_NAME}"
+if [ "$API_NAME" = "dos-ingest" ]; then
+    PROXYGEN_API_NAME="uec-dos-ingestion"
+fi
+
+echo "Using internal API name: $API_NAME" >&2
+echo "Mapped Proxygen API name: $PROXYGEN_API_NAME" >&2
+
 if [ ! -f "$MODIFIED_SPEC_PATH" ]; then
     echo "Error: Modified spec file not found at $MODIFIED_SPEC_PATH" >&2
     exit 1
@@ -65,7 +74,7 @@ for attempt in $(seq 1 $MAX_RETRIES); do
     fi
 
     RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
-        "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
+        "${PROXYGEN_URL}/apis/${PROXYGEN_API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
         -H "Authorization: Bearer $ACCESS_TOKEN" \
         -H "Content-Type: application/json" \
         -d @"$MODIFIED_SPEC_PATH")
