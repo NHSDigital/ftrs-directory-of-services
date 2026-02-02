@@ -153,6 +153,7 @@ jobs:
       - metadata
       - deploy-application-infrastructure
       - deploy-frontend-services
+    if: |
       always() &&
       ${{ inputs.environment != 'prod' }} &&
       !cancelled() &&

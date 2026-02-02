@@ -103,11 +103,12 @@ jobs:
 
   apply-application-infrastructure:
     name: "Apply application infrastructure deployment to ${{ inputs.environment }}"
-    if: always() && (needs.manual-approval-application-infra.result == 'success' || needs.manual-approval-application-infra.result == 'skipped')
+    if: always() && needs.plan-application-infrastructure.result == 'success' && (needs.manual-approval-application-infra.result == 'success' || needs.manual-approval-application-infra.result == 'skipped')
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.ref || inputs.workspace}}"
       cancel-in-progress: false
     needs:
+      - plan-application-infrastructure
       - manual-approval-application-infra
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
