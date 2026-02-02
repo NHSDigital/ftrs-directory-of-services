@@ -119,7 +119,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
 
-    prepare-toggle-artifacts:
+  prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
     needs:
       - metadata
