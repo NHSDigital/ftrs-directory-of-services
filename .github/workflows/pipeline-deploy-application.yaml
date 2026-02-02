@@ -336,10 +336,9 @@ jobs:
             type: "api"
           - tag: "data-migration"
             type: "data-migration"
-          - tag: "apim-dos-search"
+          - tag: "is-apim"
             type: "apim"
             api_name: "dos-search"
-            apim_env: ""
     needs:
       - metadata
       - deploy-application-infrastructure
@@ -365,7 +364,6 @@ jobs:
       test_tag: ${{ matrix.tag }}
       test_type: ${{ matrix.type }}
       api_name: ${{ matrix.api_name || '' }}
-      apim_env: ${{ matrix.type == 'apim' && (needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment) || '' }}
       type: app
       deployment_type: "development"
     secrets: inherit

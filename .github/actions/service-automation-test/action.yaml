@@ -23,6 +23,13 @@ inputs:
   ref:
     description: "The branch, tag or SHA to build and deploy from"
     required: false
+  api_name:
+    description: "API name for APIM proxy generation, required if test_type is apim"
+    required: false
+  apim_env:
+    description: "APIM environment for proxy generation, required if test_type is apim"
+    required: false
+
 
 runs:
   using: "composite"
@@ -38,6 +45,8 @@ runs:
         TEST_TYPE: ${{ inputs.test_type }}
         COMMIT_HASH: ${{ inputs.commit_hash }}
         REF: ${{ inputs.ref }}
+        API_NAME: ${{ inputs.api_name }}
+        APIM_ENV: ${{ inputs.apim_env }}
       run: |
         set -euo pipefail
         /bin/bash ./scripts/workflow/service-automation-tests.sh
