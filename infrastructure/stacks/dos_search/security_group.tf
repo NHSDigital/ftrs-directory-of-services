@@ -1,5 +1,7 @@
 resource "aws_security_group" "dos_search_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
+  count = local.is_primary_environment ? 1 : 0
+
   name        = "${local.resource_prefix}-${var.lambda_name}-sg"
   description = "Security group for gp search lambda"
 
@@ -8,16 +10,16 @@ resource "aws_security_group" "dos_search_lambda_security_group" {
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhere" {
-  security_group_id = aws_security_group.dos_search_lambda_security_group.id
-  from_port         = "443"
-  to_port           = "443"
+  security_group_id = try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)
+  from_port         = var.https_port
+  to_port           = var.https_port
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
   description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_dos_search_lambda" {
-  security_group_id = aws_security_group.dos_search_lambda_security_group.id
+  security_group_id = try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)
   description       = "GP Search egress rule to allow DynamoDB traffic"
   prefix_list_id    = data.aws_prefix_list.dynamodb.id
   ip_protocol       = "tcp"

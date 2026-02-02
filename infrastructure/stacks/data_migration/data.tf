@@ -266,6 +266,11 @@ data "aws_security_group" "rds_accessor_lambda_security_group" {
   name  = "${local.resource_prefix}-rds-accessor-lambda-sg"
 }
 
+data "aws_security_group" "processor_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+  name  = "${local.resource_prefix}-${var.processor_lambda_name}-sg"
+}
+
 # AppConfig SSM Parameters
 data "aws_ssm_parameter" "appconfig_application_id" {
   name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
