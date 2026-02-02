@@ -34,23 +34,28 @@ module "processor_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.processor_lambda_security_group.id]
 
-  number_of_policy_jsons = "4"
+  number_of_policy_jsons = "5"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -104,23 +109,28 @@ module "queue_populator_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "4"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"   = var.environment
-    "WORKSPACE"     = terraform.workspace == "default" ? "" : terraform.workspace
-    "SQS_QUEUE_URL" = aws_sqs_queue.dms_event_queue.url
-    "PROJECT_NAME"  = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "SQS_QUEUE_URL"                      = aws_sqs_queue.dms_event_queue.url
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix
@@ -230,21 +240,26 @@ module "reference_data_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.reference_data_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.secrets_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
   ]
 
   layers = concat(
     [aws_lambda_layer_version.python_dependency_layer.arn],
-    [aws_lambda_layer_version.data_layer.arn]
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
   )
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
   account_id     = data.aws_caller_identity.current.account_id
   account_prefix = local.account_prefix

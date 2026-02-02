@@ -58,4 +58,7 @@ locals {
 
   # Will be used by dos-search stack
   opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
+
+  appconfig_lambda_extension_aws_account_id = "282860088358" # gitleaks:allow
+  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:207"
 }
