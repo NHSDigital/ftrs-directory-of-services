@@ -78,7 +78,7 @@ resource "aws_security_group" "rds_accessor_lambda_security_group" {
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_rds_accessor_lambdas" {
   description                  = "Allow RDS ingress from RDS accessor lambdas (queue populator, reference data)"
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  referenced_security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
+  referenced_security_group_id = try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -86,7 +86,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_rds_acces
 
 resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds" {
   description                  = "Allow egress to RDS"
-  security_group_id            = aws_security_group.rds_accessor_lambda_security_group[0].id
+  security_group_id            = try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)
   referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
@@ -96,7 +96,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds"
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_internet" {
   description       = "Allow egress to internet"
-  security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
+  security_group_id = try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = var.https_port
   ip_protocol       = "tcp"

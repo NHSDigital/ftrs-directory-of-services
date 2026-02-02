@@ -107,7 +107,7 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_security_group[0].id)]
+  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "4"
   policy_jsons = [
@@ -238,7 +238,7 @@ module "reference_data_lambda" {
   memory_size             = var.reference_data_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_security_group[0].id)]
+  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
   policy_jsons = [

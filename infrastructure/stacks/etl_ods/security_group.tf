@@ -12,7 +12,7 @@ resource "aws_security_group" "etl_ods_lambda_security_group" {
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "etl_ods_allow_443" {
-  security_group_id = aws_security_group.etl_ods_lambda_security_group[0].id
+  security_group_id = try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)
   description       = "ETL ODS egress rule to allow HTTPS to internet"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"

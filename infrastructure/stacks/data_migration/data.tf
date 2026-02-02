@@ -261,7 +261,7 @@ data "aws_security_group" "rds_security_group" {
   name  = "${local.resource_prefix}-rds-sg"
 }
 
-data "aws_security_group" "rds_accessor_security_group" {
+data "aws_security_group" "rds_accessor_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
   name  = "${local.resource_prefix}-rds-accessor-lambda-sg"
 }
