@@ -24,7 +24,7 @@ on:
         type: string
         default: "ftrs-dos"
   schedule:
-    - cron: "* * 1 FEB *" # Runs on Feb 1st every year
+    - cron: "0 0 1 2 *" # Runs at midnight UTC on Feb 1st every year
 
 permissions:
   contents: read
@@ -81,7 +81,7 @@ jobs:
       - name: Create, Update or Rotate CIS2 Public and Private Key Pair
         if: steps.should-run.outputs.should_run == 'true'
         run: |
-          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ inputs.project }} -e ${{ matrix.environment }}
+          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ inputs.project || 'ftrs-dos' }} -e ${{ matrix.environment }}
 
   slack-notifications:
     name: "Send Notification to Slack"
