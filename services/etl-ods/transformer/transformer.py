@@ -208,7 +208,6 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_TRANSFORMER_START,
         lambda_name="etl-ods-transformer",
-        etl_stage="transformer_start",
     )
 
     batch_item_failures = []
@@ -248,7 +247,6 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_TRANSFORMER_BATCH_COMPLETE,
         lambda_name="etl-ods-transformer",
-        etl_stage="transformer_batch_complete",
         duration_ms=duration_ms,
         total_records=len(records),
         successful_count=successful_count,

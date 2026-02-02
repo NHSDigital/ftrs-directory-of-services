@@ -87,7 +87,6 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
         ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_START,
             lambda_name="etl-ods-extractor",
-            etl_stage="extractor_start",
         )
 
         is_scheduled = event.get("is_scheduled", False)
@@ -109,7 +108,6 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             ods_extractor_logger.log(
                 OdsETLPipelineLogBase.ETL_EXTRACTOR_COMPLETE,
                 lambda_name="etl-ods-extractor",
-                etl_stage="extractor_complete",
                 duration_ms=duration_ms,
                 date_processed=date,
             )
@@ -125,7 +123,6 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             OdsETLPipelineLogBase.ETL_EXTRACTOR_023,
             error_message=str(e),
             lambda_name="etl-ods-extractor",
-            etl_stage="extractor_error",
             duration_ms=duration_ms,
         )
         return _error_response(500, f"Unexpected error: {e}")

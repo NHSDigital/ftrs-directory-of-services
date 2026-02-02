@@ -479,6 +479,10 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
+    ETL_CONSUMER_START = LogReference(
+        level=INFO,
+        message="ETL ODS Consumer Lambda started.",
+    )
     ETL_CONSUMER_BATCH_COMPLETE = LogReference(
         level=INFO,
         message="ETL ODS Consumer Lambda batch processing completed.",

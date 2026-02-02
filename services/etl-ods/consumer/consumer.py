@@ -109,9 +109,8 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
 
         # Log Consumer start
         ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_001,
+            OdsETLPipelineLogBase.ETL_CONSUMER_START,
             lambda_name="etl-ods-consumer",
-            etl_stage="consumer_start",
         )
 
         sqs_batch_response = {}
@@ -140,7 +139,6 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
         ods_consumer_logger.log(
             OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE,
             lambda_name="etl-ods-consumer",
-            etl_stage="consumer_batch_complete",
             duration_ms=duration_ms,
             total_records=len(records) if records else 0,
             successful_count=successful_count,
