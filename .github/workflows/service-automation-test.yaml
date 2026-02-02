@@ -135,19 +135,21 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions', 'tests/service_automation/.tool-versions') }}
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v4.0.1
 
       - name: "Cache Poetry dependencies"
+        id: poetry-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
 
       - name: "Cache Playwright browsers"
+        id: playwright-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -162,6 +164,7 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Install project"
+        if: steps.asdf-cache.outputs.cache-hit != 'true' || steps.poetry-cache.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
         run: make install
         working-directory: "tests/service_automation"
 
