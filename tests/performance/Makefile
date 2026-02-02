@@ -1,6 +1,7 @@
 PROJECT_NAME := ftrs-dos
 ENV_LEVEL_PROJECT := ftrs-directory-of-services
 ENVIRONMENT ?= dev
+STACK := dos-search
 PYTHON_VERSION ?= 3.12
 LOCAL_DIR := parameter_files
 MAIN_FILES_BUCKET := ${PROJECT_NAME}-${ENVIRONMENT}-account-wide-is-performance-files-bucket
@@ -26,19 +27,33 @@ install-jmeter-plugins: ## Installs jmeter plugin manager, tools and required pl
 	java -cp $$(asdf where jmeter)/lib/ext/jmeter-plugins-manager-${JMETER_PLUGINS_MANAGER_VERSION}.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
 
 	echo "Installing jmeter plugins"
-	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,kg.apc:jmeter-plugins-tst,jmeter-plugins-casutg-3.1.1
+	/bin/bash $$(asdf where jmeter)/bin/PluginsManagerCMD.sh install jpgc-graphs-basic,jpgc-graphs-additional,jpgc-casutg,jpgc-tst
 
 install-jmeter-dependencies: ## Installs jmeter dependencies
 	echo "Installing jmeter dependencies"
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/auth0/java-jwt/4.5.0/java-jwt-4.5.0.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.529/aws-java-sdk-core-1.12.529.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
-performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs]
-	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}";
 
-performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token]
-	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J apikey=${APIKEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
+performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
+	echo "running mtls performance tests against ${ENDPOINT}..."
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="load" \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENV=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
+	echo "running proxy performance tests against ${APIM_ENV}..."
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENV} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+
+performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
+	echo "running mtls performance stress tests against ${ENDPOINT}..."
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="stress" \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J throughput_step=${THROUGHPUT_STEP} -J step_duration=${STEP_DURATION};
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
@@ -73,17 +88,17 @@ _install-dependencies: # Install all the dependencies listed in .tool-versions
 		make _install-dependency name="$${plugin}"; \
 	done
 
-jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME=cert_name] [KEY_NAME=key_name] [PFX_NAME=pfx_name]
+jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME=cert_name] [KEY_NAME=key_name] [PFX_NAME=pfx_name] [ENVIRONMENT=dev|test|int|ref]
 
 	aws secretsmanager get-secret-value \
 	--region eu-west-2 \
-	--secret-id /ftrs-directory-of-services/dev/api-ca-cert \
+	--secret-id /ftrs-directory-of-services/${ENVIRONMENT}/api-ca-cert \
 	--query 'SecretString' \
 	--output text > ${LOCAL_DIR}/${CERT_NAME}.crt
 
 	aws secretsmanager get-secret-value \
 		--region eu-west-2 \
-		--secret-id /ftrs-directory-of-services/dev/api-ca-pk \
+		--secret-id /ftrs-directory-of-services/${ENVIRONMENT}/api-ca-pk \
 		--query 'SecretString' \
 		--output text > ${LOCAL_DIR}/${KEY_NAME}.pem
 
@@ -101,6 +116,13 @@ jmeter-generate-pks-file: ## Generate PKCS#12 file from existing cert [CERT_NAME
 		-passout pass:$$PASSKEY; \
 	echo "Created ${LOCAL_DIR}/${PFX_NAME}.pfx"; \
 
+jmeter-setup-jwt-certs:
+	echo "/ftrs-dos/$(ENVIRONMENT)/$(STACK)/jwt-credentials";
+	aws secretsmanager get-secret-value \
+		--region $(AWS_REGION) \
+		--secret-id /ftrs-dos/$(ENVIRONMENT)/$(STACK)/jwt-credentials \
+		--query 'SecretString' \
+		--output text > ./parameter_files/jwt-credentials.json;
 
 
 
