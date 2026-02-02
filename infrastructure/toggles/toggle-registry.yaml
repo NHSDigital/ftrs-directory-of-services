@@ -9,12 +9,12 @@ appconfig_flags:
     service: data-migration
     owner: "Data Migration Team"
     environments:
-      workspace: false
-      dev: false
-      test: false
-      int: true
-      ref: true
-      prod: true
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
 
 stack_toggles:
   - id: stack_opensearch_enabled
