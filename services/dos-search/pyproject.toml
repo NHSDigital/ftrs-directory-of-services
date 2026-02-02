@@ -83,8 +83,3 @@ addopts = [
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
 ]
-
-[tool.coverage.run]
-omit = [
-    "functions/slack_alarm_handler.py"
-]

@@ -71,12 +71,12 @@ case "$ALARM_TYPE" in
       sleep 1
     done
     echo "✓ Triggered $ITERATIONS errors. Check CloudWatch alarm in ~2 minutes."
-    echo "  - WARNING alarm: > 1 error over 2 periods (2 minutes)"
+    echo "  - WARNING alarm: TBC once baseline is defined"
     echo "  - CRITICAL alarm: > 1 error over 2 periods (2 minutes)"
     ;;
 
   duration-p95)
-    echo "Triggering duration p95 WARNING alarm (> 600ms)..."
+    echo "Triggering duration p95 WARNING alarm (> TBC)..."
     echo "Note: This requires actual execution time > 600ms"
     for i in $(seq 1 "$ITERATIONS"); do
       echo "Invocation $i/$ITERATIONS"
@@ -142,7 +142,7 @@ case "$ALARM_TYPE" in
           $PROFILE_ARG \
           /dev/null 2>&1 &
       fi
-      
+
       # Progress indicator every 50 invocations
       if [ $((i % 50)) -eq 0 ]; then
         echo "Progress: $i/$ITERATIONS invocations"
@@ -171,7 +171,7 @@ case "$ALARM_TYPE" in
 
   concurrent)
     echo "Triggering concurrent executions alarm..."
-    echo "  - WARNING: >= 80 concurrent executions"
+    echo "  - WARNING: >= TBC concurrent executions"
     echo "  - CRITICAL: >= 100 concurrent executions"
     echo "Invoking Lambda concurrently ($ITERATIONS times)..."
     for i in $(seq 1 "$ITERATIONS"); do
