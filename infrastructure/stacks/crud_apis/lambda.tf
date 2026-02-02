@@ -42,12 +42,16 @@ module "organisation_api_lambda" {
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {
@@ -87,12 +91,16 @@ module "healthcare_service_api_lambda" {
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {
@@ -132,12 +140,16 @@ module "location_api_lambda" {
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {
