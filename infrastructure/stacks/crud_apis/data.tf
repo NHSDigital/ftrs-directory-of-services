@@ -37,6 +37,11 @@ data "aws_s3_object" "python_dependency_layer" {
   key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
 }
 
+data "aws_s3_object" "crud_apis_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+}
+
 data "aws_s3_object" "truststore" {
   bucket = local.s3_trust_store_bucket_name
   key    = local.trust_store_file_path
