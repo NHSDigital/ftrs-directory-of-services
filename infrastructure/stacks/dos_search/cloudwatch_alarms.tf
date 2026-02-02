@@ -76,6 +76,7 @@ locals {
         description         = alarm.description
         evaluation_periods  = local.alarm_evaluation_periods[lambda_type][alarm.alarm_suffix]
         period              = local.alarm_periods[lambda_type][alarm.alarm_suffix]
+        actions_enabled     = alarm.severity == "warning" ? var.enable_warning_alarms : true
       }
     }
   ]...)
@@ -88,6 +89,8 @@ module "cloudwatch_alarms" {
   alarm_name          = each.value.alarm_name
   comparison_operator = each.value.comparison_operator
   evaluation_periods  = each.value.evaluation_periods
+  datapoints_to_alarm = var.lambda_alarm_datapoints_to_alarm
+  actions_enabled     = each.value.actions_enabled
   metric_name         = each.value.metric_name
   period              = each.value.period
   statistic           = each.value.statistic

@@ -16,7 +16,7 @@ This directory contains tools for testing CloudWatch alarms by triggering them m
 
    ```bash
    export ENVIRONMENT=dev  # or test, prod, etc.
-   export WORKSPACE=your-workspace  # optional, if using workspaces
+   export WORKSPACE=your-workspace  # optional, if using workspaces i.e ftrs-765
    ```
 
 ## Quick Start
@@ -77,62 +77,88 @@ This targets: `ftrs-dos-dev-dos-search-ods-code-lambda-ftrs-765`
 
 ## Alarm Configuration
 
-Alarm thresholds are configured in [`infrastructure/stacks/dos_search/variables.tf`](../../infrastructure/stacks/dos_search/variables.tf):
+Alarm thresholds are configured in [`infrastructure/stacks/dos_search/variables.tf`](../../infrastructure/stacks/dos_search/variables.tf).
 
-### Search Lambda Alarms
+**Note**: WARNING severity alarms are currently **disabled** (actions_enabled = false) and serve as placeholders. Only CRITICAL alarms are active. WARNING thresholds will be defined after establishing baselines during private beta.
 
-| Metric | Severity | Threshold | Evaluation | Period |
-|--------|----------|-----------|------------|--------|
-| Duration (p95) | WARNING | > 600ms | 2 periods | 60s |
-| Duration (p99) | CRITICAL | > 800ms | 2 periods | 60s |
-| Concurrent Executions | WARNING | >= 80 | 2 periods | 60s |
-| Concurrent Executions | CRITICAL | >= 100 | 2 periods | 60s |
-| Throttles | CRITICAL | > 0 | 1 period | 60s |
-| Invocations | CRITICAL | > 600/hour | 2 periods | 3600s |
-| Errors | WARNING | > 1 | 2 periods | 60s |
-| Errors | CRITICAL | > 1 | 2 periods | 60s |
+### Search Lambda Alarms (Active)
+
+| Metric | Severity | Threshold | Evaluation | Period | Status |
+|--------|----------|-----------|------------|--------|--------|
+| Duration (p99) | CRITICAL | > 800ms | 2/3 periods | 60s | ✅ Active |
+| Concurrent Executions | CRITICAL | >= 100 | 2/3 periods | 60s | ✅ Active |
+| Throttles | CRITICAL | > 0 | 1/1 period | 60s | ✅ Active |
+| Invocations | CRITICAL | > 600/hour | 2/3 periods | 3600s | ✅ Active |
+| Errors | CRITICAL | > 1 | 2/3 periods | 60s | ✅ Active |
+
+### Search Lambda Alarms (Placeholders - Disabled)
+
+| Metric | Severity | Threshold | Status |
+|--------|----------|-----------|--------|
+| Duration (p95) | WARNING | TBD (placeholder: 600ms) | ⏸️ Disabled |
+| Concurrent Executions | WARNING | TBD (placeholder: 80) | ⏸️ Disabled |
+| Errors | WARNING | TBD (placeholder: 5) | ⏸️ Disabled |
 
 ### Health Check Lambda Alarms
 
-| Metric | Severity | Threshold | Evaluation | Period |
-|--------|----------|-----------|------------|--------|
-| Errors | CRITICAL | > 0 | 1 period | 60s |
+| Metric | Severity | Threshold | Evaluation | Period | Status |
+|--------|----------|-----------|------------|--------|--------|
+| Errors | CRITICAL | > 0 | 1/1 period | 60s | ✅ Active |
 
 ## Alarm Details
 
-### Errors (WARNING & CRITICAL)
+### Errors (WARNING - DISABLED)
+
+**Status**: Placeholder alarm - actions disabled until baseline established.
+
+**Placeholder threshold**: 5
+**Time to trigger**: N/A (disabled)
+**Variable**: `search_lambda_errors_warning_threshold`
+**Enable**: Set `enable_warning_alarms = true` in variables.tf
+
+### Errors (CRITICAL - ACTIVE)
 
 Triggers by invoking Lambda with invalid payloads that cause errors.
 
 **Requirements**: None
-**Time to trigger**: ~2 minutes after invocations
-**Variables**: `search_lambda_errors_warning_threshold`, `search_lambda_errors_critical_threshold`
+**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
+**Variable**: `search_lambda_errors_critical_threshold`
 
-### Duration p95 (WARNING)
+### Duration p95 (WARNING - DISABLED)
 
-Triggers when Lambda p95 execution time exceeds 600ms.
+**Status**: Placeholder alarm - actions disabled until baseline established.
 
-**Requirements**: Actual execution time must exceed 600ms
-**Time to trigger**: ~2 minutes after invocations
+**Placeholder threshold**: 600ms
+**Time to trigger**: N/A (disabled)
 **Variable**: `search_lambda_duration_p95_warning_ms`
+**Enable**: Set `enable_warning_alarms = true` in variables.tf
 
-### Duration p99 (CRITICAL)
+### Duration p99 (CRITICAL - ACTIVE)
 
 Triggers when Lambda p99 execution time exceeds 800ms.
 
 **Requirements**: Actual execution time must exceed 800ms
-**Time to trigger**: ~2 minutes after invocations
+**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
 **Variable**: `search_lambda_duration_p99_critical_ms`
 
-### Concurrent Executions (WARNING & CRITICAL)
+### Concurrent Executions (WARNING - DISABLED)
+
+**Status**: Placeholder alarm - actions disabled until baseline established.
+
+**Placeholder threshold**: 80
+**Time to trigger**: N/A (disabled)
+**Variable**: `search_lambda_concurrent_executions_warning`
+**Enable**: Set `enable_warning_alarms = true` in variables.tf
+
+### Concurrent Executions (CRITICAL - ACTIVE)
 
 Triggers when too many Lambda instances run simultaneously.
 
-**Requirements**: Sufficient concurrent invocations
-**Time to trigger**: Immediate during concurrent invocations
-**Variables**: `search_lambda_concurrent_executions_warning` (80), `search_lambda_concurrent_executions_critical` (100)
+**Requirements**: Sufficient concurrent invocations (>= 100)
+**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
+**Variable**: `search_lambda_concurrent_executions_critical` (100)
 
-### Throttles (CRITICAL)
+### Throttles (CRITICAL - ACTIVE)
 
 Triggers when Lambda is throttled due to concurrency limits.
 
@@ -140,15 +166,15 @@ Triggers when Lambda is throttled due to concurrency limits.
 **Time to trigger**: Immediate when throttling occurs (1 minute evaluation)
 **Variable**: `search_lambda_throttles_critical_threshold` (0)
 
-### Invocations Spike (CRITICAL)
+### Invocations Spike (CRITICAL - ACTIVE)
 
 Triggers when Lambda invocations exceed 2x baseline (600/hour).
 
 **Requirements**: > 600 invocations in 1 hour
-**Time to trigger**: ~2 minutes after threshold exceeded
+**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
 **Variables**: `search_lambda_invocations_baseline_per_hour` (300), `invocations_critical_spike_multiplier` (2)
 
-### Health Check Errors (CRITICAL)
+### Health Check Errors (CRITICAL - ACTIVE)
 
 Triggers when health check Lambda has any errors.
 
@@ -177,7 +203,7 @@ After triggering alarms, view them in the AWS Console:
 
 - [CloudWatch Alarms Console](https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#alarmsV2:)
 
-Or check Slack notifications in the configured alerts channel.
+Or check Slack notifications in the configured alerts channel (#ftrs-dos-search-alarms)
 
 ## Troubleshooting
 
@@ -202,3 +228,14 @@ Or check Slack notifications in the configured alerts channel.
 - Check alarm thresholds in Terraform configuration
 - Verify alarm evaluation periods and thresholds are appropriate for testing
 - For duration alarms, ensure Lambda execution time actually exceeds thresholds
+
+**Lambda Logging**:
+
+- Check CloudWatch Logs for the Lambda function to see invocation details and errors using:
+
+```shell
+aws lambda get-function --function-name ftrs-dos-dev-dos-search-slack-notification-ftrs-765 --profile dos-search-dev
+```
+
+`ftrs-765` is your workspace and will need to adjusted according to yours.
+`--profile <your-profile name>` is your AWS CLI name that you used when you configured AWS CLI using `aws configure sso`.

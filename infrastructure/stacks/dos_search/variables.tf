@@ -136,6 +136,12 @@ variable "gateway_responses" {
 variable "lambda_alarm_evaluation_periods" {
   description = "Default number of periods over which to evaluate alarms (unless overridden per metric/severity)"
   type        = number
+  default     = 3
+}
+
+variable "lambda_alarm_datapoints_to_alarm" {
+  description = "Number of datapoints that must breach to trigger alarm (2 out of 3 is reasonable for most alarms)"
+  type        = number
   default     = 2
 }
 
@@ -148,11 +154,11 @@ variable "lambda_alarm_period_seconds" {
 ############################
 # SEARCH LAMBDA
 # Duration (Execution Time)
-# p95 WARNING > 600 ms
-# p99 CRITICAL > 800 ms
+# CRITICAL: p99 > 800 ms (active)
+# WARNING: p95 placeholder (disabled until baseline established)
 ############################
 variable "search_lambda_duration_p95_warning_ms" {
-  description = "Search Lambda duration p95 warning threshold in milliseconds"
+  description = "Search Lambda duration p95 warning threshold in milliseconds (placeholder - disabled)"
   type        = number
   default     = 600
 }
@@ -166,11 +172,11 @@ variable "search_lambda_duration_p99_critical_ms" {
 ############################
 # SEARCH LAMBDA
 # Concurrency (In-Flight Load)
-# WARNING >= 80
-# CRITICAL >= 100
+# CRITICAL: >= 100 (active)
+# WARNING: placeholder (disabled until baseline established)
 ############################
 variable "search_lambda_concurrent_executions_warning" {
-  description = "Search Lambda concurrency warning threshold (ConcurrentExecutions)"
+  description = "Search Lambda concurrency warning threshold (placeholder - disabled)"
   type        = number
   default     = 80
 }
@@ -184,8 +190,7 @@ variable "search_lambda_concurrent_executions_critical" {
 ############################
 # SEARCH LAMBDA
 # Throttles (Capacity Rejections)
-# CRITICAL: > 0 for 1 minute
-# WARNING: increasing trend over 5 minutes (enable flag + window)
+# CRITICAL: > 0 for 1 minute (active)
 ############################
 # Critical (strict) — use period=60s, evaluation_periods=1
 variable "lambda_throttles_critical_period_seconds" {
@@ -206,25 +211,10 @@ variable "search_lambda_throttles_critical_threshold" {
   default     = 0
 }
 
-# Warning (trend) — implement with metric math or anomaly detection in module
-variable "search_lambda_throttles_warning_trend_enabled" {
-  description = "Enable trend-based throttles WARNING alarm for Search Lambda"
-  type        = bool
-  default     = true
-}
-
-variable "lambda_throttles_warning_trend_lookback_minutes" {
-  description = "Lookback window (minutes) to evaluate increasing throttles trend for WARNING"
-  type        = number
-  default     = 5
-}
-
 ############################
 # SEARCH LAMBDA
 # Invocations (Workload Volume)
-# Baseline: 300/hour
-# CRITICAL: spike > 2x baseline
-# WARNING: increasing trend above baseline
+# CRITICAL: spike > 2x baseline (active)
 ############################
 variable "search_lambda_invocations_baseline_per_hour" {
   description = "Baseline invocations per hour for Search Lambda"
@@ -238,26 +228,16 @@ variable "invocations_critical_spike_multiplier" {
   default     = 2
 }
 
-variable "search_lambda_invocations_warning_trend_enabled" {
-  description = "Enable trend-based invocations WARNING alarm for Search Lambda"
-  type        = bool
-  default     = true
-}
-
-variable "invocations_warning_trend_lookback_minutes" {
-  description = "Lookback window (minutes) for increasing invocations trend WARNING alarm"
-  type        = number
-  default     = 15
-}
-
 ############################
 # SEARCH LAMBDA
-# Errors (kept; practical default)
+# Errors
+# CRITICAL: > 1 (active)
+# WARNING: placeholder (disabled until baseline established)
 ############################
 variable "search_lambda_errors_warning_threshold" {
-  description = "Search Lambda errors WARNING threshold (sum over period)"
+  description = "Search Lambda errors WARNING threshold (placeholder - disabled)"
   type        = number
-  default     = 1
+  default     = 5
 }
 
 variable "search_lambda_errors_critical_threshold" {
@@ -289,6 +269,16 @@ variable "health_check_errors_critical_evaluation_periods" {
   description = "Evaluation periods for Health Check errors CRITICAL alarm"
   type        = number
   default     = 1
+}
+
+################################################################################
+# Alarm Actions Control
+################################################################################
+
+variable "enable_warning_alarms" {
+  description = "Enable actions for WARNING severity alarms (set to false to create placeholders)"
+  type        = bool
+  default     = false
 }
 
 ################################################################################
