@@ -22,8 +22,9 @@ module "lambda" {
   allowed_triggers        = var.allowed_triggers
 
   s3_existing_package = var.s3_bucket_name != "" ? {
-    bucket = var.s3_bucket_name
-    key    = var.s3_key
+    bucket     = var.s3_bucket_name
+    key        = var.s3_key
+    version_id = var.s3_key_version_id != null ? null : null # Force dependency on s3_key_version_id
   } : null
 
   vpc_subnet_ids         = var.subnet_ids

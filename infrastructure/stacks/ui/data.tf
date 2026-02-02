@@ -24,6 +24,12 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_s3_object" "ui_lambda_package" {
+  count  = local.stack_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/dos-ui-server.zip"
+}
+
 data "aws_kms_key" "secrets_manager_kms_key" {
   count  = local.stack_enabled
   key_id = local.kms_aliases.secrets_manager

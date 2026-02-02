@@ -45,6 +45,12 @@ variable "ignore_source_code_hash" {
   default     = true
 }
 
+variable "s3_key_version_id" {
+  description = "S3 object version ID for the Lambda package"
+  type        = string
+  default     = null
+}
+
 variable "attach_tracing_policy" {
   default = false
 }

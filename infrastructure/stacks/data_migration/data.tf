@@ -49,6 +49,11 @@ data "aws_s3_object" "data_layer" {
   key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
 }
 
+data "aws_s3_object" "data_migration_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+}
+
 data "aws_subnet" "private_subnets_details" {
   for_each = toset(data.aws_subnets.private_subnets.ids)
   id       = each.value
