@@ -250,3 +250,20 @@ data "aws_iam_policy_document" "lambda_kms_access" {
 data "aws_kms_key" "dms_kms_alias" {
   key_id = local.kms_aliases.dms
 }
+
+# AppConfig SSM Parameters
+data "aws_ssm_parameter" "appconfig_application_id" {
+  name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
+}
+
+data "aws_appconfig_configuration_profiles" "appconfig_configuration_profiles" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_appconfig_environments" "appconfig_environments" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_iam_policy" "appconfig_access_policy" {
+  name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
+}

@@ -28,10 +28,14 @@ output "environment_ids" {
   value = module.app_config.environment_ids
 }
 
-output "configuration_profile_id" {
-  value = module.app_config.configuration_profile_id
+output "configuration_profile_configuration_profile_id" {
+  value = module.app_config.configuration_profile_configuration_profile_id
 }
 
-output "appconfig_extension_layer_arn" {
-  value = module.app_config.appconfig_extension_layer_arn
+# SSM Parameters for cross-stack access
+resource "aws_ssm_parameter" "appconfig_application_id" {
+  # checkov:skip=CKV2_AWS_34: Justification: Application id is not sensitive information
+  name  = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
+  type  = "String"
+  value = module.app_config.application_id
 }

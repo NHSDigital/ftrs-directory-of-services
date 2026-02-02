@@ -13,12 +13,7 @@ output "environment_ids" {
   value       = module.app_config.environments
 }
 
-output "configuration_profile_id" {
+output "configuration_profile_configuration_profile_id" {
   description = "The ID of the configuration profile in the AppConfig application."
-  value       = module.app_config.configuration_profile_id
-}
-
-output "appconfig_extension_layer_arn" {
-  description = "The ARN of the AWS AppConfig Extension Lambda layer."
-  value       = local.appconfig_extension_layer_arn
+  value       = module.app_config.configuration_profile_configuration_profile_id
 }
