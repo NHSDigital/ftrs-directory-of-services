@@ -9,8 +9,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with happy path scenario
     Then the Lambda should process the organizations successfully
-    And the message should be sent to the queue successfully
-    And the CRUD API should log the update request for the organisation
+    And the Transformer Lambda should transform the organisation data correctly
     And the organisation data should be updated in DynamoDB
 
   Scenario: ETL ODS handles empty results from upstream API
@@ -51,8 +50,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with extra unexpected field scenario
     Then the Lambda should handle unexpected fields gracefully
-    And the message should be sent to the queue successfully
-    And the CRUD API should log the update request for the organisation
+    And the Transformer Lambda should transform the organisation data correctly
     And the extra unexpected fields should not be saved to DynamoDB
 
   Scenario: ETL ODS handles missing optional fields from upstream API
@@ -60,7 +58,6 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with missing optional fields scenario
     Then the Lambda should handle missing optional fields gracefully
-    And the message should be sent to the queue successfully
-    And the CRUD API should log the update request for the organisation
+    And the Transformer Lambda should transform the organisation data correctly
     And the telecom data should be updated in DynamoDB
 

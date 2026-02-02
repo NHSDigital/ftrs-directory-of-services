@@ -76,7 +76,7 @@ class CloudWatchLogsWrapper:
             logger.error(f"Error retrieving CloudWatch logs: {e}")
             return []
 
-    def find_log_message(self, lambda_name, message_pattern, correlation_id):
+    def find_log_message(self, lambda_name, message_pattern):
         """
         Search for a specific message pattern in Lambda logs
 
@@ -89,7 +89,6 @@ class CloudWatchLogsWrapper:
         Returns:
             True if message pattern is found, False otherwise
         """
-        filter_pattern = f'{{ $.correlation_id = "{correlation_id}" && $.message = "{message_pattern}" }}'
         log_events = self.get_lambda_logs(lambda_name, filter_pattern=message_pattern)
 
         return len(log_events) > 0

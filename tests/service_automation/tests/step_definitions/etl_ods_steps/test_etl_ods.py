@@ -290,15 +290,10 @@ def context(shared_ods_data) -> Context:
 
 
 def assert_cloudwatch_logs(
-    lambda_name: str,
-    cloudwatch_logs: CloudWatchLogsWrapper,
-    expected_log: str,
-    correlation_id: str,
+    lambda_name: str, cloudwatch_logs: CloudWatchLogsWrapper, expected_log: str
 ):
     """Validate a log message exists in CloudWatch for the given Lambda."""
-    found_log = cloudwatch_logs.find_log_message(
-        lambda_name, expected_log, correlation_id
-    )
+    found_log = cloudwatch_logs.find_log_message(lambda_name, expected_log)
     assert found_log, f"Expected log '{expected_log}' not found in Lambda {lambda_name}"
 
 
@@ -419,5 +414,4 @@ def verify_validation_error_logged(
         lambda_name=context.lambda_name,
         cloudwatch_logs=cloudwatch_logs,
         expected_log=error_code,
-        correlation_id=context.correlation_id,
     )

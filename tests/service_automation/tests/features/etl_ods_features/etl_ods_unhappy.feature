@@ -18,7 +18,7 @@ Feature: ETL Event Flow - Error Handling
     Given I invoke the lambda without required parameters
     Then the lambda should return status code 400
     And the error message should be "Date parameter is required"
-    Then the Lambda should log the validation error "ETL_EXTRACTOR_001"
+    Then the Lambda should log the validation error "ETL_EXTRACTOR_029"
 
 
   Scenario: ETL processor lambda invoked with a long past date

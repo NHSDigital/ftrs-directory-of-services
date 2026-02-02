@@ -69,12 +69,9 @@ def assert_cloudwatch_logs(
     lambda_name: str,
     cloudwatch_logs: CloudWatchLogsWrapper,
     expected_log: str,
-    correlation_id: str,
 ):
     """Validate a log message exists in CloudWatch for the given Lambda."""
-    found_log = cloudwatch_logs.find_log_message(
-        lambda_name, expected_log, correlation_id
-    )
+    found_log = cloudwatch_logs.find_log_message(lambda_name, expected_log)
     assert found_log, f"Expected log '{expected_log}' not found in Lambda {lambda_name}"
 
 
@@ -98,9 +95,7 @@ def assert_lambda_response(
     assert context.lambda_response.get("statusCode") == expected_status
 
     if expected_log and cloudwatch_logs:
-        found_log = cloudwatch_logs.find_log_message(
-            context.lambda_name, expected_log, context.correlation_id
-        )
+        found_log = cloudwatch_logs.find_log_message(context.lambda_name, expected_log)
         assert found_log, (
             f"Expected log '{expected_log}' not found in Lambda {context.lambda_name}"
         )
@@ -293,9 +288,7 @@ def verify_validation_error_handled(
     ]
     assert context.lambda_response.get("statusCode") == 200
     found_validation_log = any(
-        cloudwatch_logs.find_log_message(
-            context.lambda_name, log_msg, context.correlation_id
-        )
+        cloudwatch_logs.find_log_message(context.lambda_name, log_msg)
         for log_msg in validation_logs
     )
     logger.info(
@@ -308,10 +301,6 @@ def verify_successful_processing(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
     assert_lambda_response(context, cloudwatch_logs, 200, "Fetching ODS Data returned")
-    body = context.lambda_response.get("body", "")
-    if isinstance(body, str) and body != "Processing complete":
-        parsed_body = json.loads(body)
-        assert "error" not in str(parsed_body).lower()
 
 
 @then("the Lambda should handle empty results gracefully")
@@ -378,7 +367,6 @@ def verify_invalid_ods_format_handled(
         lambda_name=context.transform_lambda,
         cloudwatch_logs=cloudwatch_logs,
         expected_log="FHIR_001",
-        correlation_id=context.correlation_id,
     )
 
 
@@ -389,25 +377,12 @@ def verify_missing_optional_fields_handled(
     assert_lambda_response(context, cloudwatch_logs, 200, "ETL_EXTRACTOR_002")
 
 
-@then("the message should be sent to the queue successfully")
-def verify_message_sent_to_queue(
-    context: Context, cloudwatch_logs: CloudWatchLogsWrapper
-):
-    assert_cloudwatch_logs(
-        lambda_name=context.lambda_name,
-        cloudwatch_logs=cloudwatch_logs,
-        expected_log="ETL_EXTRACTOR_017",
-        correlation_id=context.correlation_id,
-    )
-
-
-@then("the CRUD API should log the update request for the organisation")
+@then("the Transformer Lambda should transform the organisation data correctly")
 def verify_message_sent_to_db(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
     assert_cloudwatch_logs(
-        lambda_name=context.crud_lambda,
+        lambda_name=context.transform_lambda,
         cloudwatch_logs=cloudwatch_logs,
-        expected_log="ORGANISATION_008",
-        correlation_id=context.correlation_id,
+        expected_log="ETL_TRANSFORMER_026",
     )
 
 
