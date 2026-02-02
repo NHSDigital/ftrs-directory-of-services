@@ -256,7 +256,6 @@ jobs:
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - check-stack-toggles
-      - deploy-toggle-infrastructure
       - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
