@@ -233,11 +233,11 @@ if [ $TEMP_ENV_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
 fi
 
-if [ $TEMP_STACK_TOGGLE_TF_VARS_FILE = 1 ] ; then
+if [ -f "$STACK_TOGGLE_TF_VARS_FILE" ] ; then
   rm -f "$STACK_TOGGLE_TF_VARS_FILE"
 fi
 
-if [ $TEMP_STACK_FEATURE_FLAG_FILE = 1 ] ; then
+if [ -f "$STACK_FEATURE_FLAG_FILE" ] ; then
   rm -f "$STACK_FEATURE_FLAG_FILE"
 fi
 
