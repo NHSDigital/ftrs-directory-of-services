@@ -52,7 +52,8 @@ test:
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
-		else \
+		elif [ "$$marker" = "is-apim" ]; then \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$(PROXY_NAME) -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
