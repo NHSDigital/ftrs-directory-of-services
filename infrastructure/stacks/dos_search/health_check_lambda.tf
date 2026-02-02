@@ -1,17 +1,19 @@
 module "health_check_lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
-  function_name          = "${local.resource_prefix}-${var.health_check_lambda_name}"
-  description            = "This lambda provides a health check for the search lambda"
-  handler                = "health_check/health_check_function.lambda_handler"
-  runtime                = var.lambda_runtime
-  s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
-  attach_tracing_policy  = true
-  tracing_mode           = "Active"
-  number_of_policy_jsons = "2"
-  policy_jsons           = [data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
-  timeout                = var.lambda_timeout
-  memory_size            = var.lambda_memory_size
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.health_check_lambda_name}"
+  description             = "This lambda provides a health check for the search lambda"
+  handler                 = "health_check/health_check_function.lambda_handler"
+  runtime                 = var.lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.dos_search_lambda_package.version_id
+  attach_tracing_policy   = true
+  tracing_mode            = "Active"
+  number_of_policy_jsons  = "2"
+  policy_jsons            = [data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
+  timeout                 = var.lambda_timeout
+  memory_size             = var.lambda_memory_size
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
