@@ -16,6 +16,6 @@ resource "aws_vpc_security_group_egress_rule" "etl_ods_allow_443" {
   description       = "ETL ODS egress rule to allow HTTPS to internet"
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "tcp"
-  from_port         = 443
-  to_port           = 443
+  from_port         = var.https_port
+  to_port           = var.https_port
 }
