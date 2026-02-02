@@ -1,7 +1,7 @@
 resource "aws_security_group" "dos_search_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
   name        = "${local.resource_prefix}-${var.lambda_name}${local.workspace_suffix}-sg"
-  description = "Security group for gp search lambda"
+  description = "Security group for DoS Search lambda"
 
   vpc_id = data.aws_vpc.vpc.id
 }
@@ -13,12 +13,12 @@ resource "aws_vpc_security_group_egress_rule" "lambda_allow_443_egress_to_anywhe
   to_port           = "443"
   ip_protocol       = "tcp"
   cidr_ipv4         = "0.0.0.0/0"
-  description       = "A rule to allow outgoing connections AWS APIs from the gp search lambda security group"
+  description       = "A rule to allow outgoing connections AWS APIs from the DoS Search lambda security group"
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_dos_search_lambda" {
   security_group_id = aws_security_group.dos_search_lambda_security_group.id
-  description       = "GP Search egress rule to allow DynamoDB traffic"
+  description       = "DoS Search egress rule to allow DynamoDB traffic"
   prefix_list_id    = data.aws_prefix_list.dynamodb.id
   ip_protocol       = "tcp"
   from_port         = var.https_port
