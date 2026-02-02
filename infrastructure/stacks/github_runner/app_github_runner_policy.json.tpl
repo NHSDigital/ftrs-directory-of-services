@@ -93,14 +93,17 @@
             "Resource": "*"
         },
         {
-            "Sid": "IAMListAccess",
+            "Sid": "IAMListRoleAndPolicyAccess",
             "Effect": "Allow",
             "Action": [
-                "iam:ListPolicies",
-                "iam:ListRoles"
+                "iam:ListRoles",
+                "iam:ListPolicies"
             ],
-            "Resource": "*"
-        },
+            "Resource": [
+                "arn:aws:iam::*:role/",
+                "arn:aws:iam::*:policy/"
+            ]
+        },        
         {
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
