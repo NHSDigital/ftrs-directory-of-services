@@ -34,10 +34,11 @@ module "organisation_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -83,10 +84,11 @@ module "healthcare_service_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
@@ -132,10 +134,11 @@ module "location_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
