@@ -166,6 +166,7 @@ jobs:
         working-directory: "tests/service_automation"
 
       - name: Authenticate with APIM
+        if: inputs.test_type == 'apim'
         uses: ./.github/actions/authenticate-apim
         id: apim-auth
         with:
@@ -174,6 +175,7 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
 
       - name: Get Apigee access token
+        if: inputs.test_type == 'apim'
         uses: ./.github/actions/authenticate-apim-pytest
         with:
           api_name: ${{ inputs.api_name }}
