@@ -38,3 +38,12 @@ module "lambda" {
   cloudwatch_logs_retention_in_days = var.cloudwatch_logs_retention
   logging_system_log_level          = var.cloudwatch_log_level
 }
+
+resource "aws_cloudwatch_log_subscription_filter" "to_splunk" {
+  count           = var.build_splunk_subscription ? 1 : 0
+  name            = "${var.function_name}${local.workspace_suffix}-splunk-subscription"
+  log_group_name  = module.lambda.lambda_cloudwatch_log_group_name
+  filter_pattern  = "" # empty = all logs
+  destination_arn = data.aws_kinesis_firehose_delivery_stream.firehose_stream[0].arn
+  role_arn        = data.aws_iam_role.firehose_role[0].arn
+}
