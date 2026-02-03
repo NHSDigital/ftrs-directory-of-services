@@ -119,6 +119,7 @@ def api_request_context_mtls_crud(api_request_context_mtls_factory):
         headers={
             "Content-Type": "application/fhir+json",
             "Accept": "application/fhir+json",
+            "NHSE-Product-ID": "test-product-id",
         },
     )
 
