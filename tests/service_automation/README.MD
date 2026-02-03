@@ -111,12 +111,28 @@ The workspace is defined as:
 
 ```shell
 WORKSPACE= # when running against the main branch
-WORKSPACE=dr-xxx  # when running against task branch dr-xxx
+WORKSPACE=ftrs-xxx  # when running against task branch ftrs-xxx
 ```
 
 Note that if the branch has not been pushed with the dev pipeline successfully deployed the app then the script will fail as there will not be any infrastructure built that relates to the branch.
 
 ## Running Tests
+
+### Running APIM tests
+
+Ensure your `.env` file is populated for `API_NAME`, `APIM_ENV` and optionally `WORKSPACE`.
+
+Then fetch an APIGEE_ACCESS_TOKEN for the API via Proxygen:
+
+```shell
+export APIGEE_ACCESS_TOKEN=$(proxygen pytest-nhsd-apim get-token | jq -r .pytest_nhsd_apim_token | tr -d '\n')
+```
+
+Then run the tests:
+
+```shell
+make test MARKERS="your markers here" TEST_TYPE="apim"
+```
 
 ### Running UI tests
 
@@ -124,22 +140,45 @@ Note that if the branch has not been pushed with the dev pipeline successfully d
 make test MARKERS="ui"
 ```
 
+### Running all IS tests
+
+Pre-requisite: [Running APIM tests](#running-apim-tests)
+
+```shell
+make test MARKERS="integrated-search" TEST_TYPE="apim"
+```
+
 ### Running IS API tests
 
 ```shell
 make test MARKERS="is-api"
 ```
-### Running crud-api tests
 
-### Running crud-api for organization tests
+### Running IS APIM tests
+
+Pre-requisite: [Running APIM tests](#running-apim-tests)
+
 ```shell
-make test MARKERS="crud-org-api"
+make test MARKERS="is-apim" TEST_TYPE="apim"
 ```
 
 ### Running IS Infrastructure tests
 
 ```shell
 make test MARKERS="is-infra"
+```
+
+### Running all Data Sourcing tests
+
+```shell
+make test MARKERS="data-sourcing"
+```
+
+### Running crud-api tests
+
+### Running crud-api for organization tests
+```shell
+make test MARKERS="crud-org-api"
 ```
 
 ### Running specific marked tests
@@ -266,17 +305,21 @@ To integrate with CI/CD pipelines, use:
 This script expects the variables `ENVIRONMENT`, `WORKSPACE`, `TEST_TAG`, `TEST_TYPE`, `COMMIT_HASH` to be set if running locally.
 These variables are set in the pipeline and passed through to the script.
 
-- `TEST_TAG` is the tag used to identify the tests that should be run, e.g. `is-pipeline`
-- `TEST_TYPE` identifies the type of Allure report to generate, e.g. `ui` or `feature`
+- `TEST_TAG` is the tag used to identify the tests that should be run, e.g., `integrated-search`, `data-migration`, `data-sourcing`
+- `TEST_TYPE` identifies the type of Allure report to generate, e.g., `bdd`, `apim`, `ui`
 
 To set these if wanting to run the service-automated-tests script locally use:
 
 ```shell
-export WORKSPACE=dosis-xxx  # replacing dosis-xxx with the relevant workspace
-export ENVIRONMENT=dev      # replacing dev with the relevant environment
-export TEST_TAG=is-pipeline # replacing is-pipeline with the relevant tag
-export TEST_TYPE=api        # replace with ui if want to run the playwright ui tests
-export COMMIT_HASH=abc123   # replacing with actual 6-character commit hash
+export WORKSPACE=ftrs-xxx    # replacing ftrs-xxx with the relevant workspace
+export ENVIRONMENT=dev       # replacing dev with the relevant environment
+export TEST_TAG=is-pipeline  # replacing is-pipeline with the relevant tag
+export TEST_TYPE=bdd         # replace with bdd if want to run the playwright ui tests
+export COMMIT_HASH=abc123    # replacing with actual 6-character commit hash
+
+# if TEST_TYPE is "apim", then also:
+export APIM_ENV=internal-dev # replacing internal-dev with the relevant apim env
+export API_NAME=dos-search   # replacing dos-search with the matching api name of the tests
 ```
 
 ## Troubleshooting
@@ -284,19 +327,3 @@ export COMMIT_HASH=abc123   # replacing with actual 6-character commit hash
 - If reports are blank, ensure that the command to generate the report has been run in the same directory as the allure-results directory
 - If you encounter issues with asdf tools, try `asdf reshim` to update the shims
 - For Playwright issues, try `poetry run playwright install --with-deps` to install all system dependencies
-
-## NOTE - TODO
-
-The Feature: API DoS Service Search APIM has been defined with the tag manual as the supporting APIM proxy infrastructure is not yet available.
-
-These tests can only be run from command line for the main workspace at current and with the api-name and proxy-name passed in.
-First export the APIGEE_ACCESS_TOKEN
-```
-export APIGEE_ACCESS_TOKEN=$(proxygen pytest-nhsd-apim --api dos-search get-token | jq -r .pytest_nhsd_apim_token | tr -d '\n')
-```
-
-Then add a test tag to the feature file and then run the command below replacing "api-name" and "api proxy name" for the relevant data
-
-```
-poetry run pytest -m "test" --api-name=<api-name>  --proxy-name=<api proxy name> -p allure_pytest_bdd --alluredir=allure-results
-```
