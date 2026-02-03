@@ -6,8 +6,8 @@ database_dedicated_network_acl         = true
 private_dedicated_network_acl          = true
 public_dedicated_network_acl           = true
 
-waf_log_group_policy_name        = "waf-log-group-policy"
-osis_apigw_log_group_policy_name = "osis-apigw-log-group-policy"
+waf_log_group_policy_name          = "waf-log-group-policy"
+osis_apigw_log_group_policy_name   = "osis-apigw-log-group-policy"
 regional_waf_log_group_policy_name = "regional-waf-log-group-policy"
 
 vpc_flow_logs_bucket_name    = "vpc-flow-logs"
