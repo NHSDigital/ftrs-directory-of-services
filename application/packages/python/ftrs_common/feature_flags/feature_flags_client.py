@@ -1,4 +1,7 @@
+import os
+from enum import Enum
 from functools import lru_cache
+from typing import Protocol
 
 from aws_lambda_powertools.utilities.feature_flags import AppConfigStore, FeatureFlags
 from aws_lambda_powertools.utilities.feature_flags.exceptions import (
@@ -7,12 +10,33 @@ from aws_lambda_powertools.utilities.feature_flags.exceptions import (
 from ftrs_common.logbase import FeatureFlagLogBase
 from ftrs_common.logger import Logger
 from ftrs_common.utils.config import Settings
+from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 
 logger = Logger.get(service="feature_flags")
 
 
 # Cache TTL in seconds - matches AppConfig extension default poll interval
 CACHE_TTL_SECONDS = 45
+
+
+class FeatureFlagsClientProtocol(Protocol):
+    """Protocol defining the interface for feature flag clients."""
+
+    def is_enabled(self, flag_name: str, default: bool = False) -> bool:
+        """Check if a feature flag is enabled."""
+        ...
+
+
+class LocalFlagsClient:
+    """Local feature flags client for development and testing."""
+
+    def __init__(self) -> None:
+        self.flags: dict[str, bool] = {
+            FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED.value: os.getenv("DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "false").lower() == "true"
+        }
+
+    def is_enabled(self, flag_name: str, default: bool = False) -> bool:
+        return self.flags.get(flag_name, default)
 
 
 class FeatureFlagError(Exception):
@@ -144,14 +168,14 @@ class FeatureFlagsClient:
 
 
 @lru_cache(maxsize=1)
-def _get_client() -> FeatureFlagsClient:
-    """Get a cached FeatureFlagsClient instance."""
+def _get_client() -> FeatureFlagsClientProtocol:
+    """Get a cached feature flags client instance."""
+    settings = Settings()
+    if settings.env == "local":
+        return LocalFlagsClient()
     return FeatureFlagsClient()
 
 
-def get_feature_flags() -> FeatureFlags:
-    return _get_client().get_feature_flags()
-
-
 def is_enabled(flag_name: str, default: bool = False) -> bool:
+    """Check if a feature flag is enabled."""
     return _get_client().is_enabled(flag_name, default)

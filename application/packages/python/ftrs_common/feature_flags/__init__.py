@@ -22,11 +22,10 @@ Usage:
 from ftrs_common.feature_flags.feature_flags_client import (
     FeatureFlagError,
     FeatureFlagsClient,
-    get_feature_flags,
     is_enabled,
 )
 
-__all__ = ["FeatureFlagError", "FeatureFlagsClient", "get_feature_flags", "is_enabled"]
+__all__ = ["FeatureFlagError", "FeatureFlagsClient", "is_enabled"]
 
 from ftrs_common.feature_flags.feature_flag_config import (
     FeatureFlag,

@@ -10,7 +10,6 @@ from ftrs_common.feature_flags.feature_flags_client import (
     FeatureFlagError,
     FeatureFlagsClient,
     _get_client,
-    get_feature_flags,
     is_enabled,
 )
 from ftrs_common.logbase import FeatureFlagLogBase
@@ -367,16 +366,6 @@ class TestModuleFunctions:
         client1 = _get_client()
         client2 = _get_client()
         assert client1 is client2
-
-    def test_get_feature_flags_function_returns_feature_flags(
-        self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
-        mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
-    ) -> None:
-        result = get_feature_flags()
-        assert result is mock_feature_flags_class.return_value
 
     def test_is_enabled_function_checks_flag(
         self,
