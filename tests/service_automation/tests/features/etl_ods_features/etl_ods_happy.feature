@@ -1,4 +1,4 @@
-@etl-ods
+@etl-ods @ftrs-pipeline
 Feature: ETL Event Flow - Happy Path
 Feature: Ensure messages from Lambda are processed and stored correctly in DynamoDB
 
