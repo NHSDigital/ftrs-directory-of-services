@@ -33,7 +33,7 @@ module "extractor_lambda" {
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.extractor_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = var.environment == "dev" ? "6" : "5"
   policy_jsons = var.environment == "dev" ? [
@@ -89,7 +89,7 @@ module "transformer_lambda" {
 
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.transformer_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
   policy_jsons = [
@@ -154,7 +154,7 @@ module "consumer_lambda" {
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
   policy_jsons = [
