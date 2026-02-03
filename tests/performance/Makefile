@@ -62,7 +62,7 @@ run-performance-test-proxy: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environm
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
 	echo "running proxy performance tests against ${APIM_ENV}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENV} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
 
