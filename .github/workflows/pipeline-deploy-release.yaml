@@ -76,7 +76,7 @@ jobs:
     with:
       environment: ${{ inputs.environment }} 
       workspace: default
-      ref: ${{ inputs.ref }}
+      ref: ${{ inputs.release_tag }}
 
   check-stack-toggles:
     name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
@@ -87,7 +87,7 @@ jobs:
     with:
       environment:  ${{ inputs.environment }}
       workspace: default
-      ref: ${{ inputs.ref }}    
+      ref: ${{ inputs.release_tag }} 
 
   deploy-toggle-infrastructure:
     name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -98,7 +98,7 @@ jobs:
     with:
       environment:  ${{ inputs.environment }}
       workspace: default
-      ref: ${{ inputs.ref }}
+      ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
       stacks: "['app_config']"
       skip_manual_approval: "true"
@@ -145,35 +145,31 @@ jobs:
       repo_name: ${{ needs.metadata.outputs.reponame }}
       workspace: default
       type: "app"
-      ref: ${{ inputs.ref }}
+      ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ inputs.environment }}"
+    name: "Run ${{ matrix.tag }} service automation tests on ${{ inputs.environment }} environment"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: "ftrs-pipeline"
+            type: "api"
+          - tag: "data-migration"
+            type: "data-migration"
     needs:
       - metadata
-      - deploy-application-infrastructure
       - deploy-frontend-services
-    if: |
-      always() &&
-      ${{ inputs.environment != 'prod' }} &&
-      !cancelled() &&
-      (
-        needs.restore-dynamodb-from-s3.result == 'success' ||
-        (
-          needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
-        )
-      )
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}
       workspace: default
       ref: ${{ inputs.release_tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
+      test_tag: ${{ matrix.tag }}
+      test_type: ${{ matrix.type }}
       type: app
-      deployment_type: "release"
+      deployment_type: "release-candidate"
     secrets: inherit
 
   check-pipeline-status:
