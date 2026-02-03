@@ -1,4 +1,5 @@
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 
@@ -18,6 +19,7 @@ from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.api_util import make_api_request_with_retries
 from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
 
 # Load feature file
 scenarios(
@@ -264,6 +266,12 @@ def aws_lambda_client():
     return LambdaWrapper(lambda_client, iam_resource)
 
 
+@pytest.fixture
+def cloudwatch_logs():
+    """Create CloudWatch logs wrapper for log verification."""
+    return CloudWatchLogsWrapper()
+
+
 @pytest.fixture(scope="module")
 def shared_ods_data(api_request_context_ods_terminology):
     """Fetch and prepare ODS organization data for testing."""
@@ -290,25 +298,25 @@ def invoke_lambda_generic(
     project: str,
     workspace: str,
     env: str,
-    aws_lambda_client,  # type: LambdaWrapper
+    aws_lambda_client,
     date_param: Optional[str] = None,
 ) -> Context:
-    """
-    Invokes the 'etl-ods-extractor' lambda with optional date parameter.
-    Stores the response in context.lambda_response and sets context.lambda_name.
-    """
     lambda_name = get_resource_name(
         project, workspace, env, "etl-ods-extractor", "lambda"
     )
-
     context.lambda_name = lambda_name
+    context.correlation_id = str(uuid.uuid4())
+    payload = {
+        "headers": {"X-Correlation-ID": context.correlation_id},
+    }
+    if date_param:
+        payload["date"] = date_param
 
-    payload = {"date": date_param} if date_param else {}
     logger.info(
         f"[STEP] Invoking Lambda '{lambda_name}'"
         + (f" with date: {date_param}" if date_param else " without parameters")
+        + f" and correlation_id: {context.correlation_id}"
     )
-
     try:
         response = aws_lambda_client.invoke_function(lambda_name, payload)
         logger.info(f"[INFO] Lambda response received: {response}")
@@ -327,6 +335,14 @@ def context(shared_ods_data) -> Context:
     ctx.organisation_details = shared_ods_data["organisation_details"]
     ctx.extraction_date = shared_ods_data["date"]
     return ctx
+
+
+def assert_cloudwatch_logs(
+    lambda_name: str, cloudwatch_logs: CloudWatchLogsWrapper, expected_log: str
+):
+    """Validate a log message exists in CloudWatch for the given Lambda."""
+    found_log = cloudwatch_logs.find_log_message(lambda_name, expected_log)
+    assert found_log, f"Expected log '{expected_log}' not found in Lambda {lambda_name}"
 
 
 @given(
@@ -433,4 +449,17 @@ def assert_lambda_error_message(context: Context, expected_message):
     )
     assert expected_message in actual_message, (
         f"[FAIL] Expected error message '{expected_message}', got '{actual_message}'"
+    )
+
+
+@then(parsers.parse('the Lambda should log the validation error "{error_code}"'))
+def verify_validation_error_logged(
+    context: Context,
+    cloudwatch_logs: CloudWatchLogsWrapper,
+    error_code: str,
+):
+    assert_cloudwatch_logs(
+        lambda_name=context.lambda_name,
+        cloudwatch_logs=cloudwatch_logs,
+        expected_log=error_code,
     )
