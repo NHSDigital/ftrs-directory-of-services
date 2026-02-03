@@ -138,7 +138,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
 }
 
 data "aws_iam_policy_document" "ods_mock_api_access_policy" {
-  count = var.environment == "dev" ? 1 : 0
+  count = contains(["dev", "test"], var.environment) ? 1 : 0
 
   statement {
     effect = "Allow"
