@@ -3,8 +3,8 @@ PYTHON_VERSION ?= 3.12
 BUILD_DIR := build
 ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
-MARKERS ?= ui is-api is-infra
-TEST_TYPE ?= non-ui
+MARKERS ?=
+TEST_TYPE ?= bdd
 LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
 
 # ==============================================================================

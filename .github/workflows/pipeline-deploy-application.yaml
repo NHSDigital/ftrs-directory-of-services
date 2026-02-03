@@ -332,13 +332,13 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - tag: "ftrs-pipeline"
-            type: "bdd"
-          - tag: "data-migration"
-            type: "bdd"
-          - tag: "is-apim"
+          - tag: "integrated-search"
             type: "apim"
             api_name: "dos-search"
+          - tag: "data-migration"
+            type: "bdd"
+          - tag: "data-sourcing"
+            type: "bdd"
     needs:
       - metadata
       - deploy-application-infrastructure

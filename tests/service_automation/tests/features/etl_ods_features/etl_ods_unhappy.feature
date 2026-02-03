@@ -1,4 +1,4 @@
-@etl-ods @ftrs-pipeline
+@etl-ods @data-sourcing
 Feature: ETL Event Flow - Error Handling
 
   Scenario Outline: Verify error handling when invalid date parameter is sent to ETL processor lambda
