@@ -440,7 +440,7 @@ def build_organisation_role_extension_with_typed_period(
     target_fixture="fresponse",
 )
 def step_update_with_legal_dates(
-    legal_start: str, legal_end: str, api_request_context_mtls_crud
+    legal_start: str, legal_end: str, api_request_context_mtls_crud, request
 ) -> None:
     """Update organization with legal start and end dates in YYYY-MM-DD format."""
     payload = build_payload(request)
