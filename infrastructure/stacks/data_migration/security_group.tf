@@ -317,3 +317,49 @@ resource "aws_vpc_security_group_egress_rule" "reference_data_allow_egress_to_in
   ip_protocol       = "tcp"
   to_port           = var.https_port
 }
+
+# Consolidated security group for lambdas that access RDS (queue_populator, reference_data)
+# Reduces ENI consumption from 2 to 1 per workspace
+resource "aws_security_group" "rds_accessor_lambda_security_group" {
+  # checkov:skip=CKV2_AWS_5: False positive due to module reference
+  count = local.is_primary_environment ? 1 : 0
+
+  name        = "${local.resource_prefix}-rds-accessor-lambda-sg"
+  description = "Security group for lambdas that access RDS (queue populator, reference data)"
+
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_rds_accessor_lambdas" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow RDS ingress from RDS accessor lambdas (queue populator, reference data)"
+  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  referenced_security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
+}
+
+resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow egress to RDS"
+  security_group_id            = aws_security_group.rds_accessor_lambda_security_group[0].id
+  referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  from_port                    = var.rds_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.rds_port
+}
+
+# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_internet" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description       = "Allow egress to internet"
+  security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = var.https_port
+  ip_protocol       = "tcp"
+  to_port           = var.https_port
+}
