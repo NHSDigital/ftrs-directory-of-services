@@ -371,11 +371,12 @@ def build_typed_period_extension(
 
 def build_organisation_role_extension_with_typed_period(
     start_date: str = None, end_date: str = None, date_type_code: str = "Legal"
-) -> dict:
-    """Create an OrganisationRole extension containing a TypedPeriod extension."""
+) -> list[dict]:
+    """Create complete GP Practice OrganisationRole extensions with legal dates."""
     typed_period = build_typed_period_extension(start_date, end_date, date_type_code)
 
-    return {
+    # Primary role: RO177 (Prescribing Cost Centre) with typed period
+    primary_role = {
         "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
         "extension": [
             {"url": "instanceID", "valueInteger": 12345},
@@ -385,8 +386,8 @@ def build_organisation_role_extension_with_typed_period(
                     "coding": [
                         {
                             "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                            "code": "RO182",
-                            "display": "Pharmacy",
+                            "code": "RO177",
+                            "display": "PRESCRIBING COST CENTRE",
                         }
                     ]
                 },
@@ -395,6 +396,58 @@ def build_organisation_role_extension_with_typed_period(
             {"url": "active", "valueBoolean": True},
         ],
     }
+
+    # Non-primary role: RO76 (GP Practice) with same typed period
+    non_primary_role = {
+        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
+        "extension": [
+            {"url": "instanceID", "valueInteger": 12346},
+            {
+                "url": "roleCode",
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
+                            "code": "RO76",
+                            "display": "GP PRACTICE",
+                        }
+                    ]
+                },
+            },
+            typed_period,
+            {"url": "active", "valueBoolean": True},
+        ],
+    }
+
+    return [primary_role, non_primary_role]
+
+
+@when(
+    parsers.parse(
+        'I update the organization with legal dates start "{legal_start}" and end "{legal_end}"'
+    ),
+    target_fixture="fresponse",
+)
+def step_update_with_legal_dates(
+    legal_start: str, legal_end: str, api_request_context_mtls_crud
+) -> None:
+    """Update organization with legal start and end dates in YYYY-MM-DD format."""
+    payload = _load_default_payload()
+
+    # Convert "null" string to None
+    start = None if legal_start == "null" else legal_start
+    end = None if legal_end == "null" else legal_end
+
+    if start or end:
+        # This now returns a complete GP Practice structure
+        payload["extension"] = build_organisation_role_extension_with_typed_period(
+            start, end
+        )
+    else:
+        payload.pop("extension", None)
+
+    logger.info(f"Payload with legal dates:\n{json.dumps(payload, indent=2)}")
+    return update_organisation(payload, api_request_context_mtls_crud)
 
 
 def validate_db_entry_against_payload(item, payload):
@@ -1002,9 +1055,9 @@ def step_update_with_legal_dates(
     end = None if legal_end == "null" else legal_end
 
     if start or end:
-        payload["extension"] = [
-            build_organisation_role_extension_with_typed_period(start, end)
-        ]
+        payload["extension"] = build_organisation_role_extension_with_typed_period(
+            start, end
+        )
     else:
         payload.pop("extension", None)
 
@@ -1027,9 +1080,9 @@ def step_update_with_invalid_date_format(
     start = invalid_date if date_field == "start" else "2020-01-15"
     end = invalid_date if date_field == "end" else "2025-12-31"
 
-    payload["extension"] = [
-        build_organisation_role_extension_with_typed_period(start, end)
-    ]
+    payload["extension"] = build_organisation_role_extension_with_typed_period(
+        start, end
+    )
 
     logger.info(
         f"Payload with invalid {date_field} date '{invalid_date}':\n{json.dumps(payload, indent=2)}"
