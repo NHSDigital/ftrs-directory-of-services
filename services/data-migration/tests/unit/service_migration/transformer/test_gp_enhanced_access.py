@@ -1,10 +1,23 @@
+from unittest.mock import MagicMock
+
 import pytest
+from ftrs_common.feature_flags import FeatureFlag
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain.legacy import Service
+from pytest_mock import MockerFixture
 
 from common.cache import DoSMetadataCache
 from service_migration.transformer.gp_enhanced_access import GPEnhancedAccessTransformer
+
+
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags to prevent AppConfig initialization."""
+    return mocker.patch(
+        "service_migration.transformer.gp_enhanced_access.is_enabled",
+        return_value=True,
+    )
 
 
 @pytest.mark.parametrize(
@@ -267,3 +280,51 @@ def test_regex_pattern_validation(
         assert match_result is None, (
             f"Expected '{ods_code}' to NOT match ({pattern_description})"
         )
+
+
+def test_is_service_supported_returns_false_when_feature_flag_disabled(
+    mocker: MockerFixture,
+    mock_legacy_service: Service,
+) -> None:
+    """
+    Test that is_service_supported returns False when feature flag is disabled.
+    """
+    mocker.patch(
+        "service_migration.transformer.gp_enhanced_access.is_enabled",
+        return_value=False,
+    )
+
+    # Set up a valid GP Enhanced Access service
+    mock_legacy_service.typeid = 136  # GP Access Hub
+    mock_legacy_service.odscode = "U12345"
+
+    is_supported, message = GPEnhancedAccessTransformer.is_service_supported(
+        mock_legacy_service
+    )
+
+    assert is_supported is False
+    assert message == "GP Enhanced Access service selection is disabled by feature flag"
+
+
+def test_is_service_supported_validates_normally_when_feature_flag_enabled(
+    mocker: MockerFixture,
+    mock_legacy_service: Service,
+) -> None:
+    """
+    Test that is_service_supported performs normal validation when feature flag is enabled.
+    """
+    mocker.patch(
+        "service_migration.transformer.gp_enhanced_access.is_enabled",
+        return_value=True,
+    )
+
+    # Set up a valid GP Enhanced Access service
+    mock_legacy_service.typeid = 136  # GP Access Hub
+    mock_legacy_service.odscode = "U12345"
+
+    is_supported, message = GPEnhancedAccessTransformer.is_service_supported(
+        mock_legacy_service
+    )
+
+    assert is_supported is True
+    assert message is None

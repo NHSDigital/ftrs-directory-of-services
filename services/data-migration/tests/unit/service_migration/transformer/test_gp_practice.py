@@ -1,10 +1,23 @@
+from unittest.mock import MagicMock
+
 import pytest
+from ftrs_common.feature_flags import FeatureFlag
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain.legacy import Service
+from pytest_mock import MockerFixture
 
 from common.cache import DoSMetadataCache
 from service_migration.transformer.gp_practice import GPPracticeTransformer
+
+
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags to prevent AppConfig initialization."""
+    return mocker.patch(
+        "service_migration.transformer.gp_practice.is_enabled",
+        return_value=True,
+    )
 
 
 @pytest.mark.parametrize(
@@ -89,6 +102,70 @@ def test_transform(
     assert len(result.location) == 1
 
     assert len(result.healthcare_service) == 1
+    assert (
+        result.healthcare_service[0].category == HealthcareServiceCategory.GP_SERVICES
+    )
+    assert (
+        result.healthcare_service[0].type
+        == HealthcareServiceType.GP_CONSULTATION_SERVICE
+    )
+
+
+def test_transform_with_feature_flag_disabled(
+    mocker: MockerFixture,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """
+    Test that transform method returns only organisation when feature flag is disabled.
+    """
+    mocker.patch(
+        "service_migration.transformer.gp_practice.is_enabled",
+        return_value=False,
+    )
+
+    mock_legacy_service.typeid = 100  # GP Practice type ID
+    mock_legacy_service.odscode = "A12345"  # Valid ODS code
+    mock_legacy_service.statusid = 1  # Active status
+
+    transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    # Only organisation should be created when feature flag is disabled
+    assert len(result.organisation) == 1
+    assert result.organisation[0].identifier_ODS_ODSCode == "A12345"
+    assert result.organisation[0].name == "Public Test Service"
+
+    # Location and healthcare_service should be empty
+    assert len(result.location) == 0
+    assert len(result.healthcare_service) == 0
+
+
+def test_transform_with_feature_flag_enabled(
+    mocker: MockerFixture,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """
+    Test that transform method returns all resources when feature flag is enabled.
+    """
+    mocker.patch(
+        "service_migration.transformer.gp_practice.is_enabled",
+        return_value=True,
+    )
+
+    mock_legacy_service.typeid = 100  # GP Practice type ID
+    mock_legacy_service.odscode = "A12345"  # Valid ODS code
+    mock_legacy_service.statusid = 1  # Active status
+
+    transformer = GPPracticeTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    # All resources should be created when feature flag is enabled
+    assert len(result.organisation) == 1
+    assert len(result.location) == 1
+    assert len(result.healthcare_service) == 1
+
     assert (
         result.healthcare_service[0].category == HealthcareServiceCategory.GP_SERVICES
     )

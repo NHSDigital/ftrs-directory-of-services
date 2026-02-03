@@ -134,3 +134,7 @@ def restore_from_s3_handler(
     Handler for restoring data from S3 to all DynamoDB tables.
     """
     asyncio.run(run_s3_restore(env, workspace))
+
+
+if __name__ == "__main__":
+    typer_app()
