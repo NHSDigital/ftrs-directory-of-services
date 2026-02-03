@@ -89,7 +89,7 @@ api_gateway_toggles:
       message: "Organisation create endpoint is currently disabled"
     owner: "CRUD API Team"
     environments:
-      workspace: false
+      workspace: true
       dev: true
       test: true
       int: false
@@ -251,7 +251,7 @@ api_gateway_toggles:
       message: "HealthcareService read endpoint is currently disabled"
     owner: "CRUD API Team"
     environments:
-      workspace: false
+      workspace: true
       dev: true
       test: true
       int: false
