@@ -443,7 +443,7 @@ def step_update_with_legal_dates(
     legal_start: str, legal_end: str, api_request_context_mtls_crud
 ) -> None:
     """Update organization with legal start and end dates in YYYY-MM-DD format."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     # Convert "null" string to None
     start = None if legal_start == "null" else legal_start
