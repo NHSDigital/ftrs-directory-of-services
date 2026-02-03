@@ -1,6 +1,6 @@
 from typing import Type
 
-from fhir.resources import FHIRAbstractModel
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
@@ -15,7 +15,7 @@ fhir_logger = Logger.get(service="common_fhir_logger")
 class FhirValidator:
     @staticmethod
     def _validate_resource_structure(
-        resource: dict, fhir_model: Type[FHIRAbstractModel]
+        resource: dict, fhir_model: Type[FHIRResourceModel]
     ) -> dict:
         """
         Validates that the resource is a properly structured JSON object.
@@ -38,7 +38,7 @@ class FhirValidator:
 
     @staticmethod
     def _log_and_raise(
-        msg: str, code: str, fhir_model: Type[FHIRAbstractModel]
+        msg: str, code: str, fhir_model: Type[FHIRResourceModel]
     ) -> None:
         fhir_logger.log(
             FhirLogBase.FHIR_001,
@@ -55,8 +55,8 @@ class FhirValidator:
 
     @staticmethod
     def validate(
-        resource: dict, fhir_model: Type[FHIRAbstractModel]
-    ) -> FHIRAbstractModel:
+        resource: dict, fhir_model: Type[FHIRResourceModel]
+    ) -> FHIRResourceModel:
         """
         Validates the given resource against the provided FHIR model.
         Returns an instance of the model if validation is successful.
