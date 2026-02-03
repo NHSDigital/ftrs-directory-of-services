@@ -3,8 +3,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  s3_object_version = data.aws_s3_object.python_dependency_layer.version_id
 }
 
 resource "aws_lambda_layer_version" "common_packages_layer" {
@@ -12,8 +13,9 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket = local.artefacts_bucket
-  s3_key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_object_version = data.aws_s3_object.common_packages_layer.version_id
 }
 
 module "extractor_lambda" {
@@ -26,6 +28,7 @@ module "extractor_lambda" {
   s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.extractor_name}.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.extractor_lambda_package.version_id
   timeout                 = var.extractor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
@@ -57,7 +60,7 @@ module "extractor_lambda" {
     "ENVIRONMENT"        = var.environment
     "WORKSPACE"          = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"       = var.project
-    "APIM_URL"           = var.apim_url
+    "APIM_URL"           = "${var.apim_base_url}/${var.apim_dos_ingest_path_segment}${local.workspace_suffix}/FHIR/R4"
     "ODS_URL"            = var.ods_url
     "ODS_API_PAGE_LIMIT" = tostring(var.ods_api_page_limit)
   }
@@ -79,6 +82,7 @@ module "transformer_lambda" {
   s3_bucket_name                 = local.artefacts_bucket
   s3_key                         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.transformer_name}.zip"
   ignore_source_code_hash        = false
+  s3_key_version_id              = data.aws_s3_object.transformer_lambda_package.version_id
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
   reserved_concurrent_executions = 5
@@ -105,7 +109,7 @@ module "transformer_lambda" {
     "ENVIRONMENT"       = var.environment
     "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"      = var.project
-    "APIM_URL"          = var.apim_url
+    "APIM_URL"          = "${var.apim_base_url}/${var.apim_dos_ingest_path_segment}${local.workspace_suffix}/FHIR/R4"
     "MAX_RECEIVE_COUNT" = tostring(var.max_receive_count)
   }
 
@@ -145,6 +149,7 @@ module "consumer_lambda" {
   s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.consumer_lambda_package.version_id
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
@@ -169,7 +174,7 @@ module "consumer_lambda" {
     "ENVIRONMENT"       = var.environment
     "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
     "PROJECT_NAME"      = var.project
-    "APIM_URL"          = var.apim_url
+    "APIM_URL"          = "${var.apim_base_url}/${var.apim_dos_ingest_path_segment}${local.workspace_suffix}/FHIR/R4"
     "MAX_RECEIVE_COUNT" = tostring(var.max_receive_count)
   }
 

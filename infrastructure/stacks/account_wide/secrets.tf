@@ -54,3 +54,11 @@ resource "aws_secretsmanager_secret" "dos_search_jwt_credentials" {
   description = "JWT credentials for NHS Digital Onboarding test application in ${var.environment} environment"
   kms_key_id  = module.secrets_manager_encryption_key.key_id
 }
+
+resource "aws_secretsmanager_secret" "dos_ingest_proxygen_jwt_credentials" {
+  # checkov:skip=CKV2_AWS_57: Justification: This is generated manually.
+  count       = local.is_primary_environment ? 1 : 0
+  name        = "/${var.project}/${var.environment}/dos-ingest-proxygen-jwt-credentials"
+  description = "JWT credentials for DOS Ingest Proxygen in ${var.environment} environment"
+  kms_key_id  = module.secrets_manager_encryption_key.key_id
+}

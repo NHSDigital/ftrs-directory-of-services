@@ -27,6 +27,21 @@ data "aws_subnet" "private_subnets_details" {
   id       = each.value
 }
 
+data "aws_s3_object" "common_packages_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
+data "aws_s3_object" "python_dependency_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+}
+
+data "aws_s3_object" "dos_search_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+}
+
 data "aws_route53_zone" "dev_ftrs_cloud" {
   name         = local.env_domain_name
   private_zone = false
@@ -35,6 +50,11 @@ data "aws_acm_certificate" "domain_cert" {
   domain      = "*.${local.env_domain_name}"
   statuses    = ["ISSUED"]
   most_recent = true
+}
+
+data "aws_s3_object" "truststore" {
+  bucket = local.s3_trust_store_bucket_name
+  key    = local.trust_store_file_path
 }
 
 data "aws_iam_policy_document" "vpc_access_policy" {

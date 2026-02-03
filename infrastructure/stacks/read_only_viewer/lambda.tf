@@ -11,6 +11,7 @@ module "frontend_lambda" {
   s3_key         = "${local.artefact_base_path}/read-only-viewer-server.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.read_only_viewer_lambda_package[0].version_id
   timeout                 = var.frontend_lambda_connection_timeout
   memory_size             = var.frontend_lambda_memory_size
 

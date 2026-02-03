@@ -39,7 +39,7 @@ locals {
 
   s3_trust_store_bucket_name = "${local.account_prefix}-${var.s3_trust_store_bucket_name}"
 
-  trust_store_file_path = "${var.environment}/truststore.pem"
+  trust_store_file_path = "${var.environment}/truststore-${var.stack_name}.pem"
 
   env_sso_roles = [
     for role in var.sso_roles : "arn:aws:iam::${local.account_id}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/${role}"
@@ -58,4 +58,7 @@ locals {
 
   # Will be used by dos-search stack
   opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
+
+  appconfig_lambda_extension_aws_account_id = "282860088358" # gitleaks:allow
+  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:207"
 }

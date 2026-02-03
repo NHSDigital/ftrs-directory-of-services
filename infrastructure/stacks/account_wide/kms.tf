@@ -115,4 +115,25 @@ module "s3_encryption_key" {
   account_id       = data.aws_caller_identity.current.account_id
   aws_service_name = "s3.amazonaws.com"
   description      = "Encryption key for S3 buckets in ${var.environment} environment"
+
+  additional_policy_statements = [
+    {
+      "Sid" : "AllowS3UseOfKeyForTruststore",
+      "Effect" : "Allow",
+      "Principal" : {
+        "Service" : "s3.amazonaws.com"
+      },
+      "Action" : [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource" : "*",
+      "Condition" : {
+        "StringEquals" : {
+          "aws:SourceAccount" : "${local.account_id}",
+          "kms:ViaService" : "s3.${var.aws_region}.amazonaws.com"
+        }
+      }
+    }
+  ]
 }

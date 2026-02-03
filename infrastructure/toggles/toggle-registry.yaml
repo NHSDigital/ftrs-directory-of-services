@@ -3,59 +3,7 @@
 # Organized into three categories: AppConfig Flags, Stack Toggles, and API Gateway Toggles
 
 appconfig_flags:
-  - id: data_migration_organisation_enabled
-    name: "Data Migration - Organisation Enabled"
-    description: "Enable the migration of Organisation (+ Endpoint) resources from the current DoS"
-    service: data-migration
-    owner: "Data Migration Team"
-    environments:
-      workspace: true
-      dev: true
-      test: true
-      int: true
-      ref: true
-      prod: true
-
-  - id: data_migration_location_enabled
-    name: "Data Migration - Location Enabled"
-    description: "Enable the migration of Location resources from the current DoS"
-    service: data-migration
-    owner: "Data Migration Team"
-    environments:
-      workspace: true
-      dev: true
-      test: true
-      int: false
-      ref: false
-      prod: false
-
-  - id: data_migration_healthcareservice_enabled
-    name: "Data Migration - HealthcareService Enabled"
-    description: "Enable the migration of HealthcareService (+ Variant) resources from the current DoS"
-    service: data-migration
-    owner: "Data Migration Team"
-    environments:
-      workspace: true
-      dev: true
-      test: true
-      int: false
-      ref: false
-      prod: false
-
-  - id: data_migration_triagecode_enabled
-    name: "Data Migration - Triage Code Enabled"
-    description: "Enable the migration of Triage Code resources from the current DoS"
-    service: data-migration
-    owner: "Data Migration Team"
-    environments:
-      workspace: true
-      dev: true
-      test: true
-      int: false
-      ref: false
-      prod: false
-
-  - id: data_migration_select_gp_practice_enabled
+  - id: data_migration_search_triage_code_enabled
     name: "Data Migration - Select GP Practice Enabled"
     description: "Enable the selection of GP Practice services from the current DoS"
     service: data-migration
@@ -64,9 +12,9 @@ appconfig_flags:
       workspace: true
       dev: true
       test: true
-      int: true
-      ref: true
-      prod: true
+      int: false
+      ref: false
+      prod: false
 
 stack_toggles:
   - id: stack_opensearch_enabled
@@ -91,8 +39,8 @@ stack_toggles:
     owner: "Infrastructure Team"
     environments:
       workspace: false
-      dev: true
-      test: true
+      dev: false
+      test: false
       int: false
       ref: false
       prod: false
@@ -105,8 +53,8 @@ stack_toggles:
     owner: "Infrastructure Team"
     environments:
       workspace: false
-      dev: true
-      test: true
+      dev: false
+      test: false
       int: false
       ref: false
       prod: false
