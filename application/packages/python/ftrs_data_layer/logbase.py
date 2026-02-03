@@ -726,7 +726,8 @@ class CrudApisLogBase(LogBase):
         level=INFO, message="SEARCH TRIAGE CODE is ENABLED,Processing API request."
     )
     CRUD_API_002 = LogReference(
-        level=INFO, message="SEARCH TRIAGE CODE is DISABLED,Returning 502 for API request."
+        level=INFO,
+        message="SEARCH TRIAGE CODE is DISABLED,Returning 502 for API request.",
     )
     LOCATION_001 = LogReference(
         level=INFO,

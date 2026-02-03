@@ -2,8 +2,6 @@ from http import HTTPStatus
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fastapi import FastAPI
-
-
 from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
 from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
