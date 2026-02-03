@@ -42,7 +42,16 @@ on:
         type: string
 
 jobs:
+  prepare-toggles-artifacts:
+    name: "Prepare Toggle artifacts"
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: ${{ inputs.workspace }}
+      ref: ${{ inputs.ref }}
+
   destroy-application-infrastructure:
+    needs: prepare-toggles-artifacts
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -54,6 +63,8 @@ jobs:
       action: destroy
       type: ${{ inputs.type }}
       release_tag: ${{ inputs.release_tag }}
+      download_appconfig_artifact: true
+      appconfig_artifact_name: "appconfig_feature_flags"
     secrets: inherit
 
   cleardown-os-policies:
