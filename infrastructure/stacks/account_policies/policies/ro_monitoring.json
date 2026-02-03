@@ -23,6 +23,8 @@
                 "cloudwatch:DescribeAlarms",
                 "cloudwatch:DescribeAlarmsForMetric",
                 "cloudwatch:GetInsightRuleReport",
+                "firehose:ListDeliveryStreams",
+                "firehose:DescribeDeliveryStream",
                 "logs:Describe*",
                 "logs:FilterLogEvents",
                 "logs:Get*",

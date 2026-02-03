@@ -7,8 +7,8 @@
             "Action": [
                 "application-autoscaling:*",
                 "application-signals:*",
-                "cloudwatch:*",
                 "logs:*",
+                "firehose:*",
                 "oam:ListSinks",
                 "rum:*",
                 "synthetics:*",

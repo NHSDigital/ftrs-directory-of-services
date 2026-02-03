@@ -65,7 +65,7 @@
                 "route53domains:*"
             ],
             "Resource": "*"
-        },        
+        },
         {
             "Sid": "IAMListRolesAccess",
             "Effect": "Allow",
@@ -276,6 +276,18 @@
                 "sts:TagSession"
             ],
             "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
+        },
+        {
+          "Sid": "AssumeSteamPipeReadOnlyRole",
+          "Effect": "Allow",
+          "Action": [
+            "firehose:CreateDeliveryStream",
+            "firehose:DeleteDeliveryStream",
+            "firehose:DescribeDeliveryStream",
+            "firehose:UpdateDestination",
+            "firehose:ListDeliveryStreams"
+          ],
+          "Resource": "*"
         }
-    ]
+  ]
 }
