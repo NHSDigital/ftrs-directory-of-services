@@ -11,6 +11,12 @@ LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to 
 
 .PHONY: clean install config lint lint-staged lint-fix pre-commit test report _install-dependency _install-dependencies
 
+# import dotenv file if exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
 	rm -rf $(BUILD_DIR)
