@@ -44,7 +44,6 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     When I trigger the Lambda with an invalid ODS format
     Then the Lambda should handle the invalid ODS format gracefully
 
-
   Scenario: ETL ODS handles extra unexpected fields from upstream API
     Given I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"

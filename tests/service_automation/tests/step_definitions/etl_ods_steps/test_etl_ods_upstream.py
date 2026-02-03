@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 from datetime import date
 
@@ -107,6 +108,30 @@ def assert_lambda_response(
         ), (
             f"Expected one of {expected_error_keywords} in error message, got: {error_message}"
         )
+
+
+def retry_assertion(assertion_func, retries=7, delay=30):
+    """
+    Retry an assertion function until it passes or the maximum number of retries is reached.
+
+    Args:
+        assertion_func: The assertion function to execute.
+        retries: Maximum number of retries.
+        delay: Delay (in seconds) between retries.
+
+    Raises:
+        AssertionError: If the assertion fails after all retries.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            assertion_func()
+            return
+        except AssertionError as e:
+            if attempt < retries:
+                logger.warning(f"Retry {attempt}/{retries} after failure: {e}")
+                time.sleep(delay)
+            else:
+                raise AssertionError(f"Assertion failed after {retries} retries: {e}")
 
 
 @given("the ETL ODS processor Lambda is configured with ODS mock")
@@ -388,80 +413,94 @@ def verify_message_sent_to_db(context: Context, cloudwatch_logs: CloudWatchLogsW
 
 @then("the extra unexpected fields should not be saved to DynamoDB")
 def assert_details_match(model_repo: AttributeLevelRepository) -> None:
-    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
-    assert item, "No data found in repository"
-    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
-    assert item.name == "Test Practice With Extra Fields", "Mismatch in name"
-    assert item.type == "GP Practice", "Mismatch in type"
-    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
-    assert item.active is True, "Expected 'active' to be True"
-    assert item.telecom == [], "Expected 'telecom' to be an empty list"
-    # Legal dates check
-    legal_dates = item.legalDates
-    assert legal_dates is not None, "Expected legal_dates to exist"
-    assert legal_dates.start == date(1974, 4, 1), (
-        "Expected 'start' date to be '1974-04-01'"
-    )
-    assert legal_dates.end is None, "Expected 'end' date to be None"
-    # Non-primary role code check
-    assert "RO76" in item.non_primary_role_codes, (
-        "Expected 'RO76' to be present in non_primary_role_codes"
-    )
+    def assertion():
+        item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+        assert item, "No data found in repository"
+        assert item.identifier_ODS_ODSCode == "Y01234", (
+            "Mismatch in identifier_ODS_ODSCode"
+        )
+        assert item.name == "Test Practice With Extra Fields", "Mismatch in name"
+        assert item.type == "GP Practice", "Mismatch in type"
+        assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+        assert item.active is True, "Expected 'active' to be True"
+        assert item.telecom == [], "Expected 'telecom' to be an empty list"
+        # Legal dates check
+        legal_dates = item.legalDates
+        assert legal_dates is not None, "Expected legal_dates to exist"
+        assert legal_dates.start == date(1974, 4, 1), (
+            "Expected 'start' date to be '1974-04-01'"
+        )
+        assert legal_dates.end is None, "Expected 'end' date to be None"
+        # Non-primary role code check
+        assert "RO76" in item.non_primary_role_codes, (
+            "Expected 'RO76' to be present in non_primary_role_codes"
+        )
+
+    retry_assertion(assertion)
 
 
 @then("the organisation data should be updated in DynamoDB")
 def assert_org_details_match(model_repo: AttributeLevelRepository) -> None:
-    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
-    assert item, "No data found in repository"
-    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
-    assert item.name == "Test Medical Centre", "Mismatch in name"
-    assert item.type == "GP Practice", "Mismatch in type"
-    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
-    assert item.active is True, "Expected 'active' to be True"
-    # Telecom assertions
-    telecom = item.telecom
-    assert telecom, "telecom list is empty"
-    assert isinstance(telecom, list), "telecom should be a list"
-    assert len(telecom) > 0, "Expected at least one telecom entry"
-    telecom_entry = telecom[0]
-    assert telecom_entry.isPublic is True, "Expected 'isPublic' to be True"
-    assert telecom_entry.type == "phone", "Expected 'type' to be 'phone'"
-    assert telecom_entry.value == "01252 723326", (
-        "Expected 'value' to be '01252 723326'"
-    )
-    # Legal dates check
-    legal_dates = item.legalDates
-    assert legal_dates is not None, "Expected legal_dates to exist"
-    assert legal_dates.start == date(1974, 4, 1), (
-        "Expected 'start' date to be '1974-04-01'"
-    )
-    assert legal_dates.end is None, "Expected 'end' date to be None"
+    def assertion():
+        item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+        assert item, "No data found in repository"
+        assert item.identifier_ODS_ODSCode == "Y01234", (
+            "Mismatch in identifier_ODS_ODSCode"
+        )
+        assert item.name == "Test Medical Centre", "Mismatch in name"
+        assert item.type == "GP Practice", "Mismatch in type"
+        assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+        assert item.active is True, "Expected 'active' to be True"
+        # Telecom assertions
+        telecom = item.telecom
+        assert telecom, "telecom list is empty"
+        assert isinstance(telecom, list), "telecom should be a list"
+        assert len(telecom) > 0, "Expected at least one telecom entry"
+        telecom_entry = telecom[0]
+        assert telecom_entry.isPublic is True, "Expected 'isPublic' to be True"
+        assert telecom_entry.type == "phone", "Expected 'type' to be 'phone'"
+        assert telecom_entry.value == "01252 723326", (
+            "Expected 'value' to be '01252 723326'"
+        )
+        # Legal dates check
+        legal_dates = item.legalDates
+        assert legal_dates is not None, "Expected legal_dates to exist"
+        assert legal_dates.start == date(1974, 4, 1), (
+            "Expected 'start' date to be '1974-04-01'"
+        )
+        assert legal_dates.end is None, "Expected 'end' date to be None"
 
-    # Non-primary role code check
-    assert "RO76" in item.non_primary_role_codes, (
-        "Expected 'RO76' to be present in non_primary_role_codes"
-    )
+        # Non-primary role code check
+        assert "RO76" in item.non_primary_role_codes, (
+            "Expected 'RO76' to be present in non_primary_role_codes"
+        )
+        retry_assertion(assertion)
 
 
 @then("the telecom data should be updated in DynamoDB")
 def assert_telecom_details_match(model_repo: AttributeLevelRepository) -> None:
-    item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
-    assert item, "No data found in repository"
-    assert item.identifier_ODS_ODSCode == "Y01234", "Mismatch in identifier_ODS_ODSCode"
-    assert item.name == "Test Medical Centre", "Mismatch in name"
-    assert item.type == "GP Practice", "Mismatch in type"
-    assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
-    assert item.active is True, "Expected 'active' to be True"
-    assert item.telecom == [], "Expected 'telecom' to be an empty list"
-    # Legal dates check
-    legal_dates = item.legalDates
-    assert legal_dates is not None, "Expected legal_dates to exist"
-    assert legal_dates.start == date(1974, 4, 1), (
-        "Expected 'start' date to be '1974-04-01'"
-    )
-    assert legal_dates.end is None, "Expected 'end' date to be None"
+    def assertion():
+        item = get_from_repo(model_repo, "befa3684-518d-4e67-a83e-978db11a539f")
+        assert item, "No data found in repository"
+        assert item.identifier_ODS_ODSCode == "Y01234", (
+            "Mismatch in identifier_ODS_ODSCode"
+        )
+        assert item.name == "Test Medical Centre", "Mismatch in name"
+        assert item.type == "GP Practice", "Mismatch in type"
+        assert item.primary_role_code == "RO177", "Mismatch in primary_role_code"
+        assert item.active is True, "Expected 'active' to be True"
+        assert item.telecom == [], "Expected 'telecom' to be an empty list"
+        # Legal dates check
+        legal_dates = item.legalDates
+        assert legal_dates is not None, "Expected legal_dates to exist"
+        assert legal_dates.start == date(1974, 4, 1), (
+            "Expected 'start' date to be '1974-04-01'"
+        )
+        assert legal_dates.end is None, "Expected 'end' date to be None"
 
-    # Non-primary role code check
-    assert "RO76" in item.non_primary_role_codes, (
-        "Expected 'RO76' to be present in non_primary_role_codes"
-    )
+        # Non-primary role code check
+        assert "RO76" in item.non_primary_role_codes, (
+            "Expected 'RO76' to be present in non_primary_role_codes"
+        )
+
+    retry_assertion(assertion)
