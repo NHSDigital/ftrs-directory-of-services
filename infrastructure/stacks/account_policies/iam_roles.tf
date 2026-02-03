@@ -52,8 +52,8 @@ resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_policy_attachm
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-data "aws_iam_role" "github_account_role" {
-  name = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}"
+data "aws_iam_roles" "github_account_roles" {
+  name_regex = "^${var.repo_name}(?:-[a-z0-9-]+)?-${var.account_github_runner_role_name}$"
 }
 
 data "aws_iam_policy_document" "trust_github_runner_roles" {
@@ -62,7 +62,7 @@ data "aws_iam_policy_document" "trust_github_runner_roles" {
 
     principals {
       type        = "AWS"
-      identifiers = [data.aws_iam_role.github_account_role.arn]
+      identifiers = data.aws_iam_roles.github_account_roles.arns
     }
 
     actions = ["sts:AssumeRole", "sts:TagSession"]

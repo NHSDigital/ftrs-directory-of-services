@@ -6,6 +6,11 @@ permissions:
 on:
   workflow_call:
     inputs:
+      enabled:
+        description: "Whether to run the deployment job"
+        required: false
+        type: string
+        default: "true"
       build_type:
         description: "The type of project to build (service, package)"
         required: true
@@ -42,6 +47,7 @@ on:
 jobs:
   deploy-project:
     name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
+    if: inputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 

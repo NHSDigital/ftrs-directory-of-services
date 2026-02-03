@@ -1,7 +1,16 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    Header,
+    HTTPException,
+    Path,
+    Query,
+    Request,
+)
 from fastapi.responses import JSONResponse, Response
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
@@ -130,15 +139,18 @@ def update_organisation(
     update_payload_validator: UpdatePayloadValidator = Body(
         ..., media_type=FHIR_MEDIA_TYPE
     ),
+    NHSE_Product_ID: str | None = Header(default=None),
 ) -> JSONResponse:
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_005,
         organisation_id=organisation_id,
     )
     try:
+        fhir_org = update_payload_validator.model_dump()
         processed = organisation_service.process_organisation_update(
             organisation_id=organisation_id,
-            fhir_org=update_payload_validator.model_dump(),
+            fhir_org=fhir_org,
+            nhse_product_id=NHSE_Product_ID,
         )
         if not processed:
             crud_organisation_logger.log(

@@ -65,6 +65,16 @@
                 "route53domains:*"
             ],
             "Resource": "*"
+        },        
+        {
+            "Sid": "IAMListRolesAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/"
+            ]
         },
         {
             "Sid": "IAMFullAccess",
