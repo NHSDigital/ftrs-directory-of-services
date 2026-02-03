@@ -21,8 +21,9 @@ on:
         type: string
       stacks:
         description: "Name of the stacks"
-        required: true
+        required: false
         type: string
+        default: "['database','crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config']"
       ref:
         description: "The branch, tag or SHA to checkout for cleardown"
         required: false
@@ -57,7 +58,6 @@ jobs:
       environment: ${{ inputs.environment }}
       workspace: ${{ inputs.workspace }}
       project: ${{ inputs.project }}
-      stacks: ${{ inputs.stacks }}
       ref: ${{ inputs.ref }}
       workflow_timeout: ${{ inputs.workflow_timeout }}
       action: destroy
@@ -65,6 +65,26 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+    secrets: inherit
+
+  destroy-toggle-infrastructure:
+    needs: 
+      - prepare-toggles-artifacts
+      - destroy-application-infrastructure
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: ${{ inputs.workspace }}
+      project: ${{ inputs.project }}
+      ref: ${{ inputs.ref }}
+      workflow_timeout: ${{ inputs.workflow_timeout }}
+      action: destroy
+      type: ${{ inputs.type }}
+      release_tag: ${{ inputs.release_tag }}
+      download_appconfig_artifact: true
+      appconfig_artifact_name: "appconfig_feature_flags"
+      stacks: "['app_config']"
     secrets: inherit
 
   cleardown-os-policies:
