@@ -43,9 +43,9 @@ run-performance-test-gateway: ## PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECR
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
 	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString')
-	STRIPPED_PFX_PASSWORD=$$(echo $${PFX_PASSWORD} | tr -d '"')
+	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
 
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${STRIPPED_PFX_PASSWORD}" -Jtest_mode="load" \
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="$$STRIPPED_PFX_PASSWORD" -Jtest_mode="load" \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
 
