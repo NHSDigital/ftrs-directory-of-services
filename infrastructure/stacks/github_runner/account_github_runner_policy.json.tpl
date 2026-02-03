@@ -278,7 +278,7 @@
             "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
         },
         {
-          "Sid": "AssumeSteamPipeReadOnlyRole",
+          "Sid": "FirehoseAccess",
           "Effect": "Allow",
           "Action": [
             "firehose:CreateDeliveryStream",
