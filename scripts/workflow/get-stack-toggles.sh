@@ -21,11 +21,11 @@ if [[ -z "${TFVARS_FILE}" || ! -f "${TFVARS_FILE}" ]]; then
 fi
 
 UI_ENABLED=$(awk -F'= *' '/^ui_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
-UI_ENABLED=${UI_ENABLED:-false}
+UI_ENABLED=${UI_ENABLED:-true}
 READ_ONLY_VIEWER_ENABLED=$(awk -F'= *' '/^read_only_viewer_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
-READ_ONLY_VIEWER_ENABLED=${READ_ONLY_VIEWER_ENABLED:-false}
+READ_ONLY_VIEWER_ENABLED=${READ_ONLY_VIEWER_ENABLED:-true}
 OPEN_SEARCH_ENABLED=$(awk -F'= *' '/^opensearch_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
-OPEN_SEARCH_ENABLED=${OPEN_SEARCH_ENABLED:-false}
+OPEN_SEARCH_ENABLED=${OPEN_SEARCH_ENABLED:-true}
 
 echo "ui_enabled=$UI_ENABLED" >> "$GITHUB_OUTPUT"
 echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> "$GITHUB_OUTPUT"

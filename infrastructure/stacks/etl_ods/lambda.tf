@@ -28,6 +28,7 @@ module "extractor_lambda" {
   s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.extractor_name}.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.extractor_lambda_package.version_id
   timeout                 = var.extractor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
@@ -81,6 +82,7 @@ module "transformer_lambda" {
   s3_bucket_name                 = local.artefacts_bucket
   s3_key                         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.transformer_name}.zip"
   ignore_source_code_hash        = false
+  s3_key_version_id              = data.aws_s3_object.transformer_lambda_package.version_id
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
   reserved_concurrent_executions = 5
@@ -147,6 +149,7 @@ module "consumer_lambda" {
   s3_key         = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}.zip"
 
   ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.consumer_lambda_package.version_id
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 

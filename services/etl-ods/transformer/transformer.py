@@ -56,7 +56,7 @@ def _process_organisation(organisation: dict) -> str | None:
         return json.dumps(
             {
                 "path": org_uuid,
-                "body": fhir_organisation.model_dump(),
+                "body": fhir_organisation.model_dump(mode="json"),
                 "correlation_id": correlation_id,
                 "request_id": request_id,
             }
