@@ -24,9 +24,9 @@ waf_log_group       = "web-acl-logs"
 waf_log_group_class = "STANDARD"
 
 # WAF (regional)
-regional_waf_name                     = "regional-waf-web-acl"
-regional_waf_scope                    = "REGIONAL"
-regional_waf_log_group                = "regional-web-acl-logs"
-regional_waf_log_group_class          = "STANDARD"
+regional_waf_name            = "regional-waf-web-acl"
+regional_waf_scope           = "REGIONAL"
+regional_waf_log_group       = "regional-web-acl-logs"
+regional_waf_log_group_class = "STANDARD"
 
 enable_s3_kms_encryption = true
