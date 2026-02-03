@@ -33,7 +33,7 @@ module "organisation_api_lambda" {
   memory_size             = var.organisation_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.organisation_api_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
   policy_jsons = [
@@ -84,7 +84,7 @@ module "healthcare_service_api_lambda" {
   memory_size             = var.healthcare_service_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.healthcare_service_api_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
   policy_jsons = [
@@ -135,7 +135,7 @@ module "location_api_lambda" {
   memory_size             = var.location_api_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.location_api_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
   policy_jsons = [

@@ -101,3 +101,8 @@ data "aws_iam_policy" "appconfig_access_policy" {
   name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
 }
 
+data "aws_security_group" "crud_apis_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-lambda-sg"
+}
