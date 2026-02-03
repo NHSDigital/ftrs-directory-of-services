@@ -116,7 +116,7 @@ def create_model_from_json_with_specific_ods(
             f"Replacing ODS code '{original_code}' with '{context.ods_codes[0]}'"
         )
     model.id = str(uuid4())
-    if check_record_in_repo(model_repo, model.id):
+    if not check_record_in_repo(model_repo, model.id):
         model_repo.delete(model.id)
     model_repo.create(model)
     logger.info(f"Created model ID={model.id}, ODS={model.identifier_ODS_ODSCode}")
