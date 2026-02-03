@@ -285,7 +285,8 @@
             "firehose:DeleteDeliveryStream",
             "firehose:DescribeDeliveryStream",
             "firehose:UpdateDestination",
-            "firehose:ListDeliveryStreams"
+            "firehose:ListDeliveryStreams",
+            "firehose:ListTagsForDeliveryStream"
           ],
           "Resource": "*"
         }

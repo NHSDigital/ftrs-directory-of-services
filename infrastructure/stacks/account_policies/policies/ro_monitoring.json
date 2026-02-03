@@ -25,6 +25,7 @@
                 "cloudwatch:GetInsightRuleReport",
                 "firehose:ListDeliveryStreams",
                 "firehose:DescribeDeliveryStream",
+                "firehose:ListTagsForDeliveryStream",
                 "logs:Describe*",
                 "logs:FilterLogEvents",
                 "logs:Get*",
