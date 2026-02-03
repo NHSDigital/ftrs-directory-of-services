@@ -39,6 +39,16 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
 
+run-performance-test-gateway: ## PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_ID= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID STOP_INSTANCE=
+	echo "running mtls performance tests against ${ENDPOINT}..."
+
+	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString')
+	STRIPPED_PFX_PASSWORD=$$(echo $${PFX_PASSWORD} | tr -d '"')
+
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${STRIPPED_PFX_PASSWORD}" -Jtest_mode="load" \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 
 	if [ "${STOP_INSTANCE}" = "true" ]; then
@@ -49,8 +59,12 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	fi
 
 run-performance-test-proxy: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token]
-	echo "running performance tests against ${PLAN_NAME}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J apikey=${API_KEY} -J kid=${KID} -f -l result.jtl -e -o "report" ;
+	echo "running mtls performance tests against ${ENDPOINT}..."
+
+	echo "running proxy performance tests against ${APIM_ENV}..."
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENV} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
 
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 

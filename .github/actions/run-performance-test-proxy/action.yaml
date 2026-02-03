@@ -11,17 +11,26 @@ inputs:
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
-  aws-region:
-    description: 'AWS region for Secrets Manager'
-    required: true
   apim-env:
     description: "The environment for the APIM proxy"
     required: true
-  api-key:
-    description: "The API key for the APIM proxy"
+  num-threads:
+    description: "Number of threads for the performance test"
     required: true
-  kid:
-    description: "The name of the key for the JWT token"
+  ramp-time:
+    description: "Ramp up time for the performance test"
+    required: true
+  startup-delay:
+    description: "Startup delay for the performance test"
+    required: true
+  duration:
+    description: "Duration of the performance test"
+    required: true
+  throughput:
+    description: "Throughput for the performance test"
+    required: true
+  throughput-period:
+    description: "Throughput period for the performance test"
     required: true
   performance-results-bucket:
     description: "The S3 bucket to store performance test results"
@@ -42,8 +51,9 @@ runs:
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make run-performance-test-gateway AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
+                        "make run-performance-test-proxy PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} SECRET_NAME=/ftrs-dos/${{ inputs.environment }}/dos-search/jwt-credentials/ ENV=${{ inputs.environment }} APIM_ENV=${{ inputs.apim-env }} NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
             --query "Command.CommandId" \
             --output text)
 
+          echo "command_id=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
