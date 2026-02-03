@@ -93,3 +93,9 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
 data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+data "aws_security_group" "dos_search_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-${var.lambda_name}-sg"
+}

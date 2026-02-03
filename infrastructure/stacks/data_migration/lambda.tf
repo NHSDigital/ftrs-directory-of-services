@@ -3,9 +3,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket        = local.artefacts_bucket
-  s3_key           = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
-  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  s3_object_version = data.aws_s3_object.python_dependency_layer.version_id
 }
 
 resource "aws_lambda_layer_version" "data_layer" {
@@ -13,9 +13,9 @@ resource "aws_lambda_layer_version" "data_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common data dependencies for Lambda functions"
 
-  s3_bucket        = local.artefacts_bucket
-  s3_key           = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
-  source_code_hash = data.aws_s3_object.data_layer.checksum_sha256
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_object_version = data.aws_s3_object.data_layer.version_id
 }
 
 module "processor_lambda" {
@@ -32,7 +32,7 @@ module "processor_lambda" {
   memory_size             = var.processor_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.processor_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.processor_lambda_security_group[0].id, data.aws_security_group.processor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
   policy_jsons = [
@@ -107,7 +107,7 @@ module "queue_populator_lambda" {
   memory_size             = var.queue_populator_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.queue_populator_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "4"
   policy_jsons = [
@@ -238,7 +238,7 @@ module "reference_data_lambda" {
   memory_size             = var.reference_data_lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.reference_data_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
   policy_jsons = [

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from fhir.resources import FHIRAbstractModel
+from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 
 
 class FhirMapper(ABC):
@@ -10,6 +10,6 @@ class FhirMapper(ABC):
         pass
 
     @abstractmethod
-    def from_fhir(self, fhir_resource: FHIRAbstractModel) -> object:
+    def from_fhir(self, fhir_resource: FHIRResourceModel) -> object:
         """Convert FHIR resource dict to internal model."""
         pass

@@ -3,9 +3,9 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket        = local.artefacts_bucket
-  s3_key           = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
-  source_code_hash = data.aws_s3_object.python_dependency_layer.checksum_sha256
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+  s3_object_version = data.aws_s3_object.python_dependency_layer.version_id
 }
 
 resource "aws_lambda_layer_version" "common_packages_layer" {
@@ -13,9 +13,9 @@ resource "aws_lambda_layer_version" "common_packages_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
-  s3_bucket        = local.artefacts_bucket
-  s3_key           = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
-  source_code_hash = data.aws_s3_object.common_packages_layer.checksum_sha256
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_object_version = data.aws_s3_object.common_packages_layer.version_id
 }
 
 module "extractor_lambda" {
@@ -33,10 +33,10 @@ module "extractor_lambda" {
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.extractor_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = var.environment == "dev" ? "6" : "5"
-  policy_jsons = var.environment == "dev" ? [
+  number_of_policy_jsons = var.environment == "dev" || var.environment == "test" ? "6" : "5"
+  policy_jsons = var.environment == "dev" || var.environment == "test" ? [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
@@ -89,7 +89,7 @@ module "transformer_lambda" {
 
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.transformer_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
   policy_jsons = [
@@ -154,7 +154,7 @@ module "consumer_lambda" {
   memory_size             = var.lambda_memory_size
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.consumer_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
   policy_jsons = [
