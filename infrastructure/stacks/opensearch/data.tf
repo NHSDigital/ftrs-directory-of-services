@@ -25,12 +25,12 @@ data "aws_subnet" "private_subnets_details" {
 }
 
 data "aws_opensearchserverless_collection" "opensearch_serverless_collection" {
-  count = local.stack_enabled == 1 && local.is_primary_environment ? 0 : 1
+  count = local.stack_enabled == 1 && !local.is_primary_environment ? 1 : 0
   name  = "${local.project_prefix}-osc"
 }
 
 data "aws_opensearchserverless_security_policy" "opensearch_serverless_network_access_policy" {
-  count = local.stack_enabled == 1 && local.is_primary_environment ? 0 : 1
+  count = local.stack_enabled == 1 && !local.is_primary_environment ? 1 : 0
   name  = "${var.environment}-${var.stack_name}-nap"
   type  = "network"
 }

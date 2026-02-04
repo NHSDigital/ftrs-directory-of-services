@@ -41,6 +41,18 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: "Check branch is up to date with main"
+        run: |
+          git fetch origin main --prune
+          BEHIND_COUNT=$(git rev-list --count HEAD..origin/main)
+          if [[ "$BEHIND_COUNT" -gt 0 ]]; then
+            echo "Branch is behind origin/main. Please rerun the pipeline to use the latest commit."
+            exit 1
+          fi
 
       - name: "Run Semantic Release"
         id: semantic-release
