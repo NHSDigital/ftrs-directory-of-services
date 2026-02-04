@@ -74,17 +74,3 @@ data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
 
-data "aws_iam_policy_document" "slack_notification_policy" {
-  statement {
-    sid    = "AllowKMSEncryption"
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:GenerateDataKey"
-    ]
-    resources = [
-      "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alias/aws/lambda"
-    ]
-  }
-}
-

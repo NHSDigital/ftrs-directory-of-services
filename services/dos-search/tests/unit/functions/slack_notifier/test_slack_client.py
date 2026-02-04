@@ -36,8 +36,10 @@ class TestGetSlackWebhookUrl:
 
     def test_webhook_url_only_whitespace(self):
         with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "   "}):
-            result = get_slack_webhook_url()
-            assert result == ""
+            with pytest.raises(
+                ValueError, match="SLACK_WEBHOOK_URL environment variable not set"
+            ):
+                get_slack_webhook_url()
 
 
 class TestSendToSlack:
@@ -69,3 +71,9 @@ class TestSendToSlack:
             result = send_to_slack("https://hooks.slack.com/test", {"text": "test"})
 
             assert result is False
+
+    def test_json_serialization_failure(self):
+        non_serializable = {"text": object()}
+        result = send_to_slack("https://hooks.slack.com/test", non_serializable)
+
+        assert result is False

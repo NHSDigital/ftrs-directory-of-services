@@ -2,14 +2,14 @@
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 def flatten_dict(
-    data: Dict[str, Any], parent_key: str = "", sep: str = "_"
-) -> Dict[str, Any]:
+    data: dict[str, Any], parent_key: str = "", sep: str = "_"
+) -> dict[str, Any]:
     """
     Flatten nested dictionary to single level.
 
@@ -42,7 +42,7 @@ def flatten_dict(
     return dict(items)
 
 
-def parse_cloudwatch_alarm(message: str) -> Dict[str, Any]:
+def parse_cloudwatch_alarm(message: str) -> dict[str, Any]:
     """
     Parse CloudWatch alarm SNS message.
 

@@ -126,7 +126,7 @@ case "$ALARM_TYPE" in
   invocations-spike)
     echo "Triggering invocations spike CRITICAL alarm..."
     echo "Baseline: 300/hour, Critical: > 600/hour (2x baseline)"
-    echo "Invoking Lambda $ITERATIONS times in 1 hour window..."
+    echo "Invoking Lambda $ITERATIONS times immediately..."
     for i in $(seq 1 "$ITERATIONS"); do
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \

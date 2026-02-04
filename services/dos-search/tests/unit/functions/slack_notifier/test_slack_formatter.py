@@ -103,43 +103,6 @@ class TestBuildSlackMessage:
         assert any("Duration" in str(block) for block in result["blocks"])
         assert any("600" in str(block) for block in result["blocks"])
 
-    def test_ok_state_message(self):
-        alarm_data = {
-            "AlarmName": "test-alarm",
-            "NewStateValue": "OK",
-            "NewStateReason": "Back to normal",
-            "Trigger_MetricName": "Errors",
-            "Trigger_Statistic": "Sum",
-            "Trigger_Threshold": 0,
-            "Trigger_Period": 30,
-            "Trigger_EvaluationPeriods": 1,
-            "AlarmArn": "arn:aws:cloudwatch:eu-west-2:000000000000:alarm:test",  # gitleaks:allow
-            "Trigger_Dimensions_0_value": "lambda-func",
-        }
-
-        result = build_slack_message(alarm_data)
-
-        assert "✅" in result["text"]
-        assert result["blocks"][0]["text"]["text"] == "✅ OK: test-alarm"
-
-    def test_insufficient_data_state(self):
-        alarm_data = {
-            "AlarmName": "test-alarm",
-            "NewStateValue": "INSUFFICIENT_DATA",
-            "NewStateReason": "Not enough data",
-            "Trigger_MetricName": "Invocations",
-            "Trigger_Statistic": "Sum",
-            "Trigger_Threshold": 10,
-            "Trigger_Period": 300,
-            "Trigger_EvaluationPeriods": 1,
-            "AlarmArn": "",
-            "Trigger_Dimensions_0_value": "my-lambda",
-        }
-
-        result = build_slack_message(alarm_data)
-
-        assert "⚠️" in result["text"]
-
     def test_missing_optional_fields(self):
         alarm_data = {
             "AlarmName": "minimal-alarm-critical",
@@ -170,11 +133,3 @@ class TestBuildSlackMessage:
         assert "us-east-1.console.aws.amazon.com" in str(links_section)
         assert "Lambda Logs" in str(links_section)
         assert "Lambda Metrics" in str(links_section)
-
-    def test_unknown_state_emoji(self):
-        alarm_data = {
-            "AlarmName": "test-alarm",
-            "NewStateValue": "UNKNOWN_STATE",
-        }
-        result = build_slack_message(alarm_data)
-        assert "📊" in result["text"]

@@ -1,4 +1,4 @@
-resource "aws_sns_topic" "dos_search_lambda_alarms" {
+resource "aws_sns_topic" "topic" {
   name              = var.topic_name
   display_name      = var.display_name
   kms_master_key_id = var.kms_key_id
@@ -6,8 +6,8 @@ resource "aws_sns_topic" "dos_search_lambda_alarms" {
   tags = var.tags
 }
 
-resource "aws_sns_topic_policy" "dos_search_lambda_alarms_policy" {
-  arn = aws_sns_topic.dos_search_lambda_alarms.arn
+resource "aws_sns_topic_policy" "topic_policy" {
+  arn = aws_sns_topic.topic.arn
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -18,7 +18,7 @@ resource "aws_sns_topic_policy" "dos_search_lambda_alarms_policy" {
           Service = "cloudwatch.amazonaws.com"
         }
         Action   = "SNS:Publish"
-        Resource = aws_sns_topic.dos_search_lambda_alarms.arn
+        Resource = aws_sns_topic.topic.arn
       }
     ]
   })

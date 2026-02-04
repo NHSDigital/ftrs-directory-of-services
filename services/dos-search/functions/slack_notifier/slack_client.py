@@ -3,13 +3,13 @@
 import json
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 import urllib3
 
 logger = logging.getLogger(__name__)
 
-http = urllib3.PoolManager()
+http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=5.0, read=10.0))
 
 SUCCESS_STATUS_CODE = 200
 
@@ -24,15 +24,16 @@ def get_slack_webhook_url() -> str:
     Raises:
         ValueError: If SLACK_WEBHOOK_URL environment variable is not set
     """
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
 
-    if webhook_url:
-        return webhook_url.strip()
-    msg = "SLACK_WEBHOOK_URL environment variable not set"
-    raise ValueError(msg)
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "").strip()
+
+    if not webhook_url:
+        msg = "SLACK_WEBHOOK_URL environment variable not set"
+        raise ValueError(msg)
+    return webhook_url
 
 
-def send_to_slack(webhook_url: str, message: Dict[str, Any]) -> bool:
+def send_to_slack(webhook_url: str, message: dict[str, Any]) -> bool:
     """
     Send message to Slack webhook.
 

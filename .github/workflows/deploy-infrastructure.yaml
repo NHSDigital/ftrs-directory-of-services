@@ -118,6 +118,8 @@ jobs:
       - name: "Deploy infrastructure stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
+        env:
+          TF_VAR_slack_webhook_alarms_url: ${{ matrix.stack == 'dos_search' && secrets.SLACK_WEBHOOK_ALARMS_URL || '' }}
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
@@ -126,7 +128,6 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
-          slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6

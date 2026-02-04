@@ -5,19 +5,17 @@
 
 # Lambda function for Slack notifications
 module "slack_notification_lambda" {
-  source                 = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
-  function_name          = "${local.resource_prefix}-slack-notification"
-  description            = "Lambda to send CloudWatch alarms to Slack"
-  handler                = "functions.slack_alarm_handler.lambda_handler"
-  runtime                = var.lambda_runtime
-  s3_bucket_name         = local.artefacts_bucket
-  s3_key                 = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
-  attach_tracing_policy  = true
-  tracing_mode           = "Active"
-  number_of_policy_jsons = "1"
-  policy_jsons           = [data.aws_iam_policy_document.slack_notification_policy.json]
-  timeout                = 30
-  memory_size            = 128
+  source                = "github.com/NHSDigital/ftrs-directory-of-services?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8/infrastructure/modules/lambda"
+  function_name         = "${local.resource_prefix}-slack-notification"
+  description           = "Lambda to send CloudWatch alarms to Slack"
+  handler               = "functions.slack_alarm_handler.lambda_handler"
+  runtime               = var.lambda_runtime
+  s3_bucket_name        = local.artefacts_bucket
+  s3_key                = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  attach_tracing_policy = true
+  tracing_mode          = "Active"
+  timeout               = 30
+  memory_size           = 128
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,

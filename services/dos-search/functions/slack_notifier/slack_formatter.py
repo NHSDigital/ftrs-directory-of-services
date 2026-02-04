@@ -13,7 +13,6 @@ from functions.slack_notifier.aws_url_builder import (
 
 logger = logging.getLogger(__name__)
 
-EMOJI_MAP = {"ALARM": "🚨", "OK": "✅", "INSUFFICIENT_DATA": "⚠️"}
 SEVERITY_EMOJI_MAP = {"warning": "⚠️", "critical": "🚨"}
 
 
@@ -105,9 +104,7 @@ def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
             f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}"
         )
     else:
-        emoji = EMOJI_MAP.get(
-            state_value.upper() if isinstance(state_value, str) else state_value, "📊"
-        )
+        emoji = "📊"
         display_state = state_value
         logger.info(
             f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}"

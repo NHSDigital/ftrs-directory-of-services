@@ -29,42 +29,47 @@ def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
     logger.info("Received event: %s", json.dumps(event))
 
     try:
-        # Extract SNS message
         records = event.get("Records", [])
         if not records:
             logger.error("No records found in event")
             return {"statusCode": 400, "body": "No records found in event"}
 
-        sns_message = records[0].get("Sns", {}).get("Message", "")
-
-        if not sns_message:
-            logger.error("No SNS message found in event")
-            return {"statusCode": 400, "body": "No SNS message found"}
-
-        # Parse CloudWatch alarm
-        alarm_data = parse_cloudwatch_alarm(sns_message)
-
-        # Flatten the alarm data
-        flattened_data = flatten_dict(alarm_data)
-        logger.info("Flattened alarm data: %s", json.dumps(flattened_data))
-
-        # Build Slack message
-        slack_message = build_slack_message(flattened_data)
-
-        # Get Slack webhook URL
         webhook_url = get_slack_webhook_url()
+        processed = 0
+        failed = 0
 
-        # Send to Slack
-        success = send_to_slack(webhook_url, slack_message)
+        for record in records:
+            sns_message = record.get("Sns", {}).get("Message", "")
 
-        if success:
-            return {
-                "statusCode": 200,
-                "body": json.dumps("Message sent to Slack successfully"),
-            }
+            if not sns_message:
+                logger.warning("Skipping record with no SNS message")
+                continue
+
+            try:
+                alarm_data = parse_cloudwatch_alarm(sns_message)
+                flattened_data = flatten_dict(alarm_data)
+                logger.info("Flattened alarm data: %s", json.dumps(flattened_data))
+
+                slack_message = build_slack_message(flattened_data)
+
+                if send_to_slack(webhook_url, slack_message):
+                    processed += 1
+                else:
+                    failed += 1
+                    logger.error("Failed to send alarm to Slack")
+
+            except Exception as e:
+                failed += 1
+                logger.error("Error processing record: %s", str(e), exc_info=True)
+
+        if failed > 0:
+            logger.error(
+                f"Failed to process {failed} of {processed + failed} record(s)"
+            )
+
         return {
-            "statusCode": 500,
-            "body": json.dumps("Failed to send message to Slack"),
+            "statusCode": 200,
+            "body": json.dumps(f"Processed {processed} record(s), failed {failed}"),
         }
 
     except Exception as e:
