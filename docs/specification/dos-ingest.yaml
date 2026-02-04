@@ -140,13 +140,13 @@ paths:
         Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
         ## Request requirements
-        - if the `identifier` query parameter is provided, it must be in the format `odsOrganisationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
+        - if the `identifier` query parameter is provided, it must be in the format `https://fhir.nhs.uk/Id/ods-organization-code|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
         - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
-        - identifier=odsOrganisationCode|{CODE}
+        - identifier={system}|{CODE}
 
-        Example: /Organization?identifier=odsOrganisationCode|ABC123
+        Example: /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
         Example (all): /Organization
 
       operationId: searchOrganizations
@@ -183,13 +183,13 @@ paths:
       - in: query
         name: identifier
         description: >
-          ODS code in the format "odsOrganisationCode|{CODE}" (FHIR identifier search).
+          ODS code in the format "{system}|{CODE}" (FHIR identifier search).
           If omitted, all organizations will be returned.
           required: false
         schema:
             type: string
-            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{1,12}$'
-            example: "odsOrganisationCode|ABC123"
+            pattern: '^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)\|[A-Za-z0-9]{1,12}$'
+            example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
         '200':
@@ -217,7 +217,7 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
                 entry:
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
@@ -355,7 +355,7 @@ paths:
                               code: MSG_PARAM_INVALID
                               display: Parameter content is invalid
                           text: Identifier format is invalid
-                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
                 invalid-identifier-system:
                   summary: Invalid identifier system
                   value:
@@ -369,7 +369,7 @@ paths:
                               code: MSG_PARAM_INVALID
                               display: Parameter content is invalid
                           text: Identifier system is invalid
-                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'odsOrganisationCode'"
+                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
                 invalid-identifier-format:
                   summary: Invalid ODS code format
                   value:

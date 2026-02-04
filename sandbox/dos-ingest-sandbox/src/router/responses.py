@@ -5,7 +5,7 @@ GET_SUCCESS_RESPONSE = {
     "link": [
         {
             "relation": "self",
-            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123"
+            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
         }
     ],
     "entry": [
@@ -120,7 +120,7 @@ INVALID_IDENTIFIER_SYSTEM_RESPONSE = {
         {
             "severity": "error",
             "code": "invalid",
-            "diagnostics": "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+            "diagnostics": "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
         }
     ]
 }

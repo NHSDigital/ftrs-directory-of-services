@@ -123,7 +123,7 @@ def fetch_organisation_uuid(ods_code: str) -> str | None:
     """
     validate_ods_code(ods_code)
     base_url = get_base_apim_api_url()
-    identifier_param = f"odsOrganisationCode|{ods_code}"
+    identifier_param = f"https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
     organisation_get_uuid_uri = (
         base_url + "/Organization?identifier=" + identifier_param
     )

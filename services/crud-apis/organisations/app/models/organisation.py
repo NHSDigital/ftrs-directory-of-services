@@ -17,7 +17,7 @@ from ftrs_data_layer.logbase import CrudApisLogBase
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 # Constants
-IDENTIFIER_SYSTEM = "odsOrganisationCode"
+IDENTIFIER_SYSTEM = "https://fhir.nhs.uk/Id/ods-organization-code"
 IDENTIFIER_SEPARATOR = "|"
 ODS_SYSTEM_URL = "https://fhir.nhs.uk/Id/ods-organization-code"
 ODS_REGEX = r"^[A-Za-z0-9]{1,12}$"
@@ -67,7 +67,7 @@ class LegalDateField(Enum):
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
         ...,
-        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+        description="Organization identifier in format 'https://fhir.nhs.uk/Id/ods-organization-code|{code}'",
     )
 
     @computed_field

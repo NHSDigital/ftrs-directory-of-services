@@ -42,7 +42,7 @@ views {
 
     // ---- TRANSFORM: Process and lookup UUID ----
     ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "3. SQS event triggers transformer (batch size 10)"
-    ftrs.etlOds.odsTransformer -> apim.dosReadProxy "4. GET /Organization?identifier=odsOrganisationCode|{code} to lookup UUID"
+    ftrs.etlOds.odsTransformer -> apim.dosReadProxy "4. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code} to lookup UUID"
     apim.dosReadProxy -> ftrs.apiGateway "5. Proxy GET request to internal API"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "6. Route to CRUD API query endpoint"
     ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "7. Query DynamoDB by ODS code index"
