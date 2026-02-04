@@ -1,6 +1,6 @@
+import json
 import os
-import re
-from http import HTTPStatus
+from typing import Any, Dict, Union
 
 import requests
 from ftrs_common.logger import Logger
@@ -8,40 +8,123 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from common.exceptions import (
     PermanentProcessingError,
-    RateLimitError,
     RetryableProcessingError,
-    UnrecoverableError,
 )
 
 
-def handle_rate_limit_error(
-    message_id: str,
-    receive_count: int,
-    error: RateLimitError,
-    logger: Logger,
-) -> None:
-    max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT", "3"))
-    if receive_count >= max_receive_count:
-        error_message = (
-            "Rate limit exceeded - final attempt, message will be sent to DLQ"
-        )
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_001,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
-            exception=error,
-        )
+def extract_operation_outcome(response: requests.Response) -> Dict[str, Any]:
+    """Extract FHIR OperationOutcome information from HTTP response.
+
+    Args:
+        response: HTTP response that may contain FHIR OperationOutcome
+
+    Returns:
+        Dictionary with operation outcome details for logging
+    """
+    outcome_info = {
+        "resource_type": "Unknown",
+        "issues_count": 0,
+        "severity_levels": [],
+        "issue_codes": [],
+        "issue_details": [],
+    }
+
+    try:
+        if response.headers.get("content-type", "").startswith("application/"):
+            response_data = response.json()
+
+            if (
+                isinstance(response_data, dict)
+                and response_data.get("resourceType") == "OperationOutcome"
+            ):
+                outcome_info["resource_type"] = "OperationOutcome"
+                issues = response_data.get("issue", [])
+                outcome_info["issues_count"] = len(issues)
+
+                for issue in issues:
+                    if isinstance(issue, dict):
+                        severity = issue.get("severity", "unknown")
+                        code = issue.get("code", "unknown")
+                        details = issue.get("details", {}).get("text", "No details")
+
+                        outcome_info["severity_levels"].append(severity)
+                        outcome_info["issue_codes"].append(code)
+                        outcome_info["issue_details"].append(
+                            details[:100]
+                        )  # Limit detail length
+            else:
+                outcome_info["resource_type"] = response_data.get(
+                    "resourceType", "Non-FHIR"
+                )
+
+    except (json.JSONDecodeError, AttributeError, KeyError):
+        outcome_info["resource_type"] = "Invalid JSON or Non-JSON response"
+
+    return outcome_info
+
+
+def _build_troubleshooting_info(
+    error: Exception, receive_count: int = None, max_receive_count: int = None
+) -> str:
+    """Build standardized troubleshooting information for errors.
+
+    Args:
+        error: The exception to extract info from
+        receive_count: Current retry attempt (for retryable errors)
+        max_receive_count: Maximum retry attempts (for retryable errors)
+
+    Returns:
+        Formatted troubleshooting string
+    """
+    if hasattr(error, "status_code"):
+        parts = _build_permanent_error_info(error)
     else:
-        error_message = f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})"
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_001,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
-        )
+        parts = _build_general_error_info(error, receive_count, max_receive_count)
+
+    return " | ".join(parts)
+
+
+def _build_permanent_error_info(error: "PermanentProcessingError") -> list:
+    """Build troubleshooting info for permanent processing errors."""
+    parts = [f"Status: {error.status_code}"]
+
+    error_category = getattr(error, "error_category", None)
+    if error_category:
+        parts.append(f"Category: {error_category}")
+
+    if hasattr(error, "response_text") and "OperationOutcome" in str(
+        error.response_text
+    ):
+        parts.append(f"FHIR: {error.response_text}")
+
+    custom_info = getattr(error, "troubleshooting_info", None)
+    if custom_info and custom_info != "No additional troubleshooting info":
+        parts.extend(_format_custom_info(custom_info))
+
+    return parts
+
+
+def _build_general_error_info(
+    error: Exception, receive_count: int, max_receive_count: int
+) -> list:
+    """Build troubleshooting info for general exceptions."""
+    parts = [
+        f"Exception: {type(error).__name__}",
+        f"Details: {str(error)[:200]}",
+    ]
+
+    if receive_count is not None and max_receive_count is not None:
+        parts.append(f"Attempt: {receive_count}/{max_receive_count}")
+
+    return parts
+
+
+def _format_custom_info(custom_info: Union[Dict[str, Any], str]) -> list:
+    """Format custom troubleshooting info into list of strings."""
+    if isinstance(custom_info, dict):
+        return [f"{key}: {value}" for key, value in custom_info.items()]
+    else:
+        return [str(custom_info)]
 
 
 def handle_permanent_error(
@@ -51,31 +134,17 @@ def handle_permanent_error(
 
     Typically for expected business scenarios like 404 Not Found.
     """
-    error_message = f"Permanent failure (status {error.status_code}): {error.response_text}. Message will be consumed immediately."
+    error_category = getattr(error, "error_category", "UNKNOWN")
+    troubleshooting_info = _build_troubleshooting_info(error)
 
     logger.log(
         OdsETLPipelineLogBase.ETL_COMMON_002,
         message_id=message_id,
         receive_count=1,
         max_receive_count=1,
-        error_message=error_message,
-    )
-
-
-def handle_unrecoverable_error(
-    message_id: str, error: "UnrecoverableError", logger: Logger
-) -> None:
-    """Handle unrecoverable failures that should go to DLQ immediately (no retry).
-
-    Typically indicates bugs in our code or configuration issues that need investigation.
-    """
-    error_message = f"Unrecoverable failure ({error.error_type}): {error.details}. Sending to DLQ immediately."
-    logger.log(
-        OdsETLPipelineLogBase.ETL_COMMON_002,
-        message_id=message_id,
-        receive_count=1,
-        max_receive_count=1,
-        error_message=error_message,
+        error_message=f"Permanent failure (status {error.status_code}) - consumed immediately",
+        error_category=error_category,
+        troubleshooting_info=troubleshooting_info,
     )
 
 
@@ -85,245 +154,123 @@ def handle_retryable_error(
     error: RetryableProcessingError,
     logger: Logger,
 ) -> None:
+    """Handle retryable failures that may be retried with backoff."""
     max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT", "3"))
+
     if receive_count >= max_receive_count:
-        error_message = f"Retryable failure (status {error.status_code}): {error.response_text}. Final attempt, message will be sent to DLQ"
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_002,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
-        )
+        error_message = f"Retryable failure (status {error.status_code}) - final attempt, sending to DLQ"
     else:
-        error_message = f"Retryable failure (status {error.status_code}): {error.response_text}. Message will be retried (attempt {receive_count}/{max_receive_count})"
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_002,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
-        )
+        error_message = f"Retryable failure (status {error.status_code}) - retry {receive_count}/{max_receive_count}"
+
+    logger.log(
+        OdsETLPipelineLogBase.ETL_COMMON_002,
+        message_id=message_id,
+        receive_count=receive_count,
+        max_receive_count=max_receive_count,
+        error_message=error_message,
+    )
 
 
 def handle_general_error(
-    message_id: str, receive_count: int, error: Exception, logger: Logger
+    message_id: str,
+    receive_count: int,
+    error: Exception,
+    logger: Logger,
 ) -> None:
+    """Handle general exceptions as retryable errors."""
     max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT", "3"))
-    error_details = f"{type(error).__name__}: {str(error)}"
+
+    troubleshooting_info = _build_troubleshooting_info(
+        error, receive_count, max_receive_count
+    )
 
     if receive_count >= max_receive_count:
-        error_message = f"Processing failed - final attempt, message will be sent to DLQ. Error: {error_details}"
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_002,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
+        error_message = (
+            f"General failure ({type(error).__name__}) - final attempt, sending to DLQ"
         )
     else:
-        error_message = f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count}). Error: {error_details}"
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_002,
-            message_id=message_id,
-            receive_count=receive_count,
-            max_receive_count=max_receive_count,
-            error_message=error_message,
-        )
+        error_message = f"General failure ({type(error).__name__}) - retry {receive_count}/{max_receive_count}"
 
-
-def _build_error_message(
-    error_type: str, status_code: int, error: Exception, context: str = None
-) -> str:
-    """Build error message with optional context."""
-    if status_code:
-        base_message = f"{error_type} (status {status_code}): {str(error)}"
-        context_message = (
-            f"{error_type} for {context} (status {status_code}): {str(error)}"
-        )
-    else:
-        base_message = f"{error_type}: {str(error)}"
-        context_message = f"{error_type} for {context}: {str(error)}"
-
-    return context_message if context else base_message
-
-
-def _log_and_raise_permanent(
-    message_id: str,
-    status_code: int,
-    http_error: Exception,
-    logger: Logger,
-    context: str = None,
-) -> None:
-    """Log and raise permanent processing error."""
-    error_message = _build_error_message(
-        "Permanent HTTP error", status_code, http_error, context
-    )
     logger.log(
-        OdsETLPipelineLogBase.ETL_COMMON_009,
+        OdsETLPipelineLogBase.ETL_COMMON_002,
         message_id=message_id,
-        status_code=status_code,
+        receive_count=receive_count,
+        max_receive_count=max_receive_count,
         error_message=error_message,
-    )
-    raise PermanentProcessingError(
-        message_id=message_id,
-        status_code=status_code or 0,
-        response_text=str(http_error),
+        troubleshooting_info=troubleshooting_info,
     )
 
 
 def handle_http_error(
     http_error: requests.exceptions.HTTPError,
     message_id: str,
-    logger: Logger,
-    error_context: str = None,
-) -> None:
-    """
-    Handle HTTP errors with standard logging and exception raising patterns.
-
-    Classification:
-    - Unrecoverable (DLQ immediately, no retry): 400, 401, 403, 405, 406, 422
-    - Retryable (retry with backoff, DLQ after max): 408, 409, 410, 412, 429, 500, 502, 503, 504
-    - Permanent (consume immediately, no retry, no DLQ): 404
-
-    Args:
-        http_error: The HTTP error that occurred
-        message_id: Message ID for logging context
-        logger: Logger instance
-        error_context: Context information (like ODS code) for logging
-
-    Raises:
-        UnrecoverableError: For bugs/config issues that need immediate investigation
-        PermanentProcessingError: For expected permanent failures (404)
-        RateLimitError: For rate limit errors (429) - retryable
-        RetryableProcessingError: For transient errors that should be retried
-    """
-    # Try to get status code from response, fallback to parsing from error message
-    status_code = None
-    if http_error.response is not None:
-        status_code = http_error.response.status_code
-
-    # If status_code is still None, try parsing from error message
-    if status_code is None:
-        error_str = str(http_error)
-        match = re.search(r"(\d{3})\s+(?:Client|Server)\s+Error", error_str)
-        if match:
-            status_code = int(match.group(1))
-
-    RETRYABLE_STATUS_CODES = {408, 409, 410, 412, 429, 500, 502, 503, 504}
-    PERMANENT_STATUS_CODES = {404}
-    UNRECOVERABLE_STATUS_CODES = {400, 401, 403, 405, 406, 422}
-
-    if status_code == HTTPStatus.BAD_REQUEST:
-        error_message = _build_error_message(
-            "Bad Request - invalid payload", 400, http_error, error_context
-        )
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_009,
-            message_id=message_id,
-            status_code=status_code,
-            error_message=error_message,
-        )
-        raise UnrecoverableError(
-            message_id=message_id,
-            error_type="HTTP_400_BAD_REQUEST",
-            details=str(http_error),
-        )
-
-    if status_code == HTTPStatus.TOO_MANY_REQUESTS:
-        error_message = _build_error_message(
-            "Rate limit exceeded", 429, http_error, error_context
-        )
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_009,
-            message_id=message_id,
-            status_code=status_code,
-            error_message=error_message,
-        )
-        err_msg = "Rate limit exceeded"
-        raise RateLimitError(err_msg)
-
-    if status_code in RETRYABLE_STATUS_CODES:
-        error_message = _build_error_message(
-            "Retryable HTTP error", status_code, http_error, error_context
-        )
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_009,
-            message_id=message_id,
-            status_code=status_code,
-            error_message=error_message,
-        )
-        raise RetryableProcessingError(
-            message_id=message_id,
-            status_code=status_code,
-            response_text=str(http_error),
-        )
-
-    if status_code in PERMANENT_STATUS_CODES:
-        _log_and_raise_permanent(
-            message_id, status_code, http_error, logger, error_context
-        )
-
-    if status_code in UNRECOVERABLE_STATUS_CODES:
-        error_message = _build_error_message(
-            "Unrecoverable HTTP error", status_code, http_error, error_context
-        )
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_009,
-            message_id=message_id,
-            status_code=status_code,
-            error_message=error_message,
-        )
-        raise UnrecoverableError(
-            message_id=message_id,
-            error_type=f"HTTP_{status_code}",
-            details=str(http_error),
-        )
-
-    error_message = _build_error_message(
-        "Unknown HTTP error", status_code or 0, http_error, error_context
-    )
-
-    if not status_code:
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_014,
-            method="HTTP",
-            url=error_context or "unknown",
-            error_message=error_message,
-        )
-    else:
-        logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_009,
-            message_id=message_id,
-            status_code=status_code,
-            error_message=error_message,
-        )
-
-    raise UnrecoverableError(
-        message_id=message_id,
-        error_type=f"HTTP_{status_code or 0}_UNKNOWN",
-        details=str(http_error),
-    )
-
-
-def handle_general_exception(
-    exception: Exception,
-    message_id: str,
-    logger: Logger,
     error_context: str = "unknown",
 ) -> None:
     """
-    Handle general exceptions with consistent logging.
+    Handle HTTP errors by classifying them as permanent or retryable.
 
-    Args:
-        exception: The exception that occurred
-        message_id: Message ID for logging context
-        logger: Logger instance
-        error_context: Context information for logging
+    Classification:
+    - Permanent (consume immediately, no retry, no DLQ): 400, 401, 403, 404, 405, 406, 422
+    - Retryable (retry with backoff, DLQ after max): 408, 409, 410, 412, 429, 500, 502, 503, 504
     """
-    logger.log(
-        OdsETLPipelineLogBase.ETL_COMMON_009,
+    response = http_error.response
+    status_code = response.status_code if response else 0
+
+    operation_outcome = extract_operation_outcome(http_error.response)
+    outcome_summary = _get_operation_outcome_summary(operation_outcome)
+
+    permanent_status_codes = {400, 401, 403, 404, 405, 406, 422}
+    retryable_status_codes = {408, 409, 410, 412, 429, 500, 502, 503, 504}
+
+    if status_code in permanent_status_codes:
+        _raise_permanent_http_error(
+            message_id, status_code, error_context, outcome_summary
+        )
+    elif status_code in retryable_status_codes:
+        _raise_retryable_http_error(
+            message_id, status_code, error_context, outcome_summary
+        )
+    else:
+        _raise_unknown_http_error(
+            message_id, status_code, error_context, outcome_summary
+        )
+
+
+def _get_operation_outcome_summary(operation_outcome: Dict[str, Any]) -> str:
+    """Get formatted summary of operation outcome."""
+    if operation_outcome["resource_type"] == "OperationOutcome":
+        return f"OperationOutcome: {operation_outcome['issues_count']} issues"
+    return "Non-FHIR response"
+
+
+def _raise_permanent_http_error(
+    message_id: str, status_code: int, error_context: str, outcome_summary: str
+) -> None:
+    """Raise permanent processing error for HTTP errors."""
+    raise PermanentProcessingError(
         message_id=message_id,
-        status_code=0,
-        error_message=f"Error in {error_context}: {str(exception)}",
+        status_code=status_code,
+        response_text=f"HTTP {status_code} in {error_context}: {outcome_summary}",
+    )
+
+
+def _raise_retryable_http_error(
+    message_id: str, status_code: int, error_context: str, outcome_summary: str
+) -> None:
+    """Raise retryable processing error for HTTP errors."""
+    raise RetryableProcessingError(
+        message_id=message_id,
+        status_code=status_code,
+        response_text=f"HTTP {status_code} in {error_context}: {outcome_summary}",
+    )
+
+
+def _raise_unknown_http_error(
+    message_id: str, status_code: int, error_context: str, outcome_summary: str
+) -> None:
+    """Raise permanent processing error for unknown HTTP status codes."""
+    raise PermanentProcessingError(
+        message_id=message_id,
+        status_code=status_code,
+        response_text=f"Unknown HTTP {status_code} in {error_context}: {outcome_summary}",
     )

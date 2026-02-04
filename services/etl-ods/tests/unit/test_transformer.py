@@ -6,8 +6,7 @@ from pytest_mock import MockerFixture
 
 from common.exceptions import (
     PermanentProcessingError,
-    RateLimitError,
-    UnrecoverableError,
+    RetryableProcessingError,
 )
 from transformer.transformer import (
     _process_record,
@@ -132,7 +131,7 @@ class TestTransformOrganisation:
     def test_missing_identifier_raises_permanent_error(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that organisation with no identifier raises UnrecoverableError."""
+        """Test that organisation with no identifier raises PermanentProcessingError."""
         mock_fhir_org = MagicMock()
         mock_fhir_org.identifier = []
 
@@ -143,11 +142,10 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        # Invalid FHIR (no identifier) raises UnrecoverableError
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _transform_organisation(organisation, "test-msg-123")
 
-        assert exc_info.value.error_type == "INVALID_FHIR_NO_IDENTIFIER"
+        assert exc_info.value.message_id == "test-msg-123"
         mock_logger.log.assert_called()
         call_kwargs = mock_logger.log.call_args[1]
         assert call_kwargs["ods_code"] == "<no identifier>"
@@ -178,7 +176,7 @@ class TestTransformOrganisation:
         assert str(exc_info.value.status_code) == "404"
 
     def test_rate_limit_exception_is_reraised(self, mocker: MockerFixture) -> None:
-        """Test that RateLimitError is re-raised for retry."""
+        """Test that RetryableProcessingError is re-raised for retry."""
         mock_fhir_org = MagicMock()
         mock_fhir_org.identifier = [MagicMock(value="ABC123")]
 
@@ -187,17 +185,21 @@ class TestTransformOrganisation:
         )
         mocker.patch(
             "transformer.transformer.fetch_organisation_uuid",
-            side_effect=RateLimitError("Rate limit exceeded"),
+            side_effect=RetryableProcessingError(
+                "Rate limit exceeded",
+                status_code=429,
+                response_text="Too many requests",
+            ),
         )
         mocker.patch("transformer.transformer.ods_transformer_logger")
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        with pytest.raises(RateLimitError, match="Rate limit exceeded"):
+        with pytest.raises(RetryableProcessingError, match="Rate limit exceeded"):
             _transform_organisation(organisation, "test-msg-123")
 
     def test_message_integrity_error_is_reraised(self, mocker: MockerFixture) -> None:
-        """Test that UnrecoverableError wraps transformation failures."""
+        """Test that PermanentProcessingError wraps transformation failures."""
         mocker.patch(
             "transformer.transformer.transform_to_payload",
             side_effect=ValueError("Invalid FHIR structure"),
@@ -206,10 +208,8 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(ValueError, match="Invalid FHIR structure"):
             _transform_organisation(organisation, "test-msg-123")
-
-        assert exc_info.value.error_type == "TRANSFORMATION_FAILURE"
 
     def test_http_error_404_raises_permanent_error(self, mocker: MockerFixture) -> None:
         """Test that 404 error (PermanentProcessingError) is re-raised by _transform_organisation."""
@@ -241,7 +241,7 @@ class TestTransformOrganisation:
         assert str(exc_info.value.status_code) == "404"
 
     def test_general_exception_propagates(self, mocker: MockerFixture) -> None:
-        """Test that general exceptions are wrapped in UnrecoverableError."""
+        """Test that general exceptions are wrapped in PermanentProcessingError."""
         mocker.patch(
             "transformer.transformer.transform_to_payload",
             side_effect=ValueError("Transform failed"),
@@ -250,12 +250,9 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        # Transform failures are now wrapped in UnrecoverableError
-        with pytest.raises(UnrecoverableError) as exc_info:
+        # Transform failures are now propagated as-is
+        with pytest.raises(ValueError, match="Transform failed"):
             _transform_organisation(organisation, "test-msg-123")
-
-        assert exc_info.value.error_type == "TRANSFORMATION_FAILURE"
-        assert "Transform failed" in exc_info.value.details
 
     def test_context_variables_none(self, mocker: MockerFixture) -> None:
         """Test processing when context variables are None."""
@@ -314,12 +311,9 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        # Early failures are wrapped in UnrecoverableError
-        with pytest.raises(UnrecoverableError) as exc_info:
+        # Early failures are now propagated as-is
+        with pytest.raises(ValueError, match="Early failure"):
             _transform_organisation(organisation, "test-msg-123")
-
-        assert exc_info.value.error_type == "TRANSFORMATION_FAILURE"
-        assert "Early failure" in exc_info.value.details
 
     def test_exception_propagates_after_ods_extraction(
         self, mocker: MockerFixture
@@ -388,10 +382,10 @@ class TestProcessTransformerRecord:
         )
         mocker.patch(
             "transformer.transformer.validate_required_fields",
-            side_effect=UnrecoverableError(
+            side_effect=PermanentProcessingError(
                 message_id="msg-123",
-                error_type="MissingRequiredFields",
-                details="organisation",
+                status_code=400,
+                response_text="organisation field missing",
             ),
         )
 
@@ -400,7 +394,7 @@ class TestProcessTransformerRecord:
             "body": json.dumps({"incomplete": "data"}),
         }
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _process_record(record)
 
         assert exc_info.value.message_id == "msg-123"
@@ -470,25 +464,21 @@ class TestTransformerLambdaHandler:
 
     def test_empty_event_returns_empty_failures(self) -> None:
         """Test handler returns empty failures for empty event."""
-        response = transformer_lambda_handler({}, {})
+        response = transformer_lambda_handler({"Records": []})
         assert response["batchItemFailures"] == []
 
     def test_successful_single_record_processing(
         self, mocker: MockerFixture, sample_event_single_record: dict
     ) -> None:
         """Test successful processing of single record."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         mocker.patch(
-            "transformer.transformer._transform_organisation",
+            "transformer.transformer._process_record",
             return_value="processed_data",
         )
         mock_send = mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        response = transformer_lambda_handler(sample_event_single_record, {})
+        response = transformer_lambda_handler(sample_event_single_record)
 
         assert response["batchItemFailures"] == []
         mock_send.assert_called_once_with(["processed_data"], queue_suffix="load-queue")
@@ -497,18 +487,14 @@ class TestTransformerLambdaHandler:
         self, mocker: MockerFixture, sample_event_multiple_records: dict
     ) -> None:
         """Test batch processing with 15 records (BATCH_SIZE = 10)."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         mocker.patch(
-            "transformer.transformer._transform_organisation",
+            "transformer.transformer._process_record",
             return_value="processed_data",
         )
         mock_send = mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        response = transformer_lambda_handler(sample_event_multiple_records, {})
+        response = transformer_lambda_handler(sample_event_multiple_records)
 
         assert response["batchItemFailures"] == []
         # Should be called twice: once for batch of 10, once for remaining 5
@@ -518,14 +504,10 @@ class TestTransformerLambdaHandler:
         self, mocker: MockerFixture
     ) -> None:
         """Test that permanent errors are consumed without adding to batch failures."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         # Raise PermanentProcessingError to indicate permanent failure (will be consumed)
         mocker.patch(
-            "transformer.transformer._transform_organisation",
+            "transformer.transformer._process_record",
             side_effect=PermanentProcessingError(
                 message_id="msg-1",
                 status_code=404,
@@ -544,7 +526,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event, {})
+        response = transformer_lambda_handler(event)
 
         # No batch failures since error was permanent and consumed by process_sqs_records
         assert response["batchItemFailures"] == []
@@ -555,13 +537,9 @@ class TestTransformerLambdaHandler:
         self, mocker: MockerFixture
     ) -> None:
         """Test that retryable errors are added to batch failures."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         mocker.patch(
-            "transformer.transformer._transform_organisation",
+            "transformer.transformer._process_record",
             side_effect=ValueError("Retryable error"),
         )
 
@@ -575,19 +553,19 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event, {})
+        response = transformer_lambda_handler(event)
 
         assert len(response["batchItemFailures"]) == 1
         assert response["batchItemFailures"][0]["itemIdentifier"] == "msg-retry"
 
     def test_mixed_success_and_failure(self, mocker: MockerFixture) -> None:
         """Test processing with mixed success and failures."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
 
-        def mock_process_side_effect(org: dict, message_id: str) -> str:
+        def mock_process_side_effect(record: dict) -> str:
+            body_str = record.get("body", "{}")
+            body = json.loads(body_str) if isinstance(body_str, str) else body_str
+            org = body.get("organisation", {})
             org_id = org.get("id", "")
             if org_id == "org-fail":
                 err_msg = "Processing failed"
@@ -595,7 +573,7 @@ class TestTransformerLambdaHandler:
             return f"processed_{org_id}"
 
         mocker.patch(
-            "transformer.transformer._transform_organisation",
+            "transformer.transformer._process_record",
             side_effect=mock_process_side_effect,
         )
         mock_send = mocker.patch("transformer.transformer.send_messages_to_queue")
@@ -615,7 +593,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event, {})
+        response = transformer_lambda_handler(event)
 
         # Only failed message in batch failures
         assert len(response["batchItemFailures"]) == 1
@@ -629,38 +607,15 @@ class TestTransformerLambdaHandler:
         self, mocker: MockerFixture, sample_event_single_record: dict
     ) -> None:
         """Test that request context is properly set up."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch(
-            "transformer.transformer._transform_organisation", return_value="data"
-        )
+        mocker.patch("transformer.transformer._process_record", return_value="data")
         mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        mock_extract_correlation = mocker.patch(
-            "transformer.transformer.extract_correlation_id_from_sqs_records",
-            return_value="correlation-123",
-        )
-        mock_setup_context = mocker.patch(
-            "transformer.transformer.setup_request_context"
-        )
-
-        context = {"awsRequestId": "request-123"}
-
-        transformer_lambda_handler(sample_event_single_record, context)
-
-        mock_extract_correlation.assert_called_once()
-        mock_setup_context.assert_called_once()
-        call_args = mock_setup_context.call_args[0]
-        assert call_args[0] == "correlation-123"
-        assert call_args[1] == context
+        transformer_lambda_handler(sample_event_single_record)
 
     def test_remaining_batch_sent_at_end(self, mocker: MockerFixture) -> None:
         """Test that remaining items in batch are sent at the end."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         mocker.patch(
             "transformer.transformer._transform_organisation",
             return_value="processed_data",
@@ -679,7 +634,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        transformer_lambda_handler(event, {})
+        transformer_lambda_handler(event)
 
         # Should send remaining batch at the end
         mock_send.assert_called_once()
@@ -687,19 +642,16 @@ class TestTransformerLambdaHandler:
         assert str(len(call_args[0])) == "3"
 
     def test_poison_message_sent_to_dlq(self, mocker: MockerFixture) -> None:
-        """Test that poison messages (UnrecoverableError) are manually sent to DLQ."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+        """Test that poison messages (PermanentProcessingError) are consumed and not retried."""
         mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
 
-        # Mock _process_record to raise UnrecoverableError directly
+        # Mock _process_record to raise PermanentProcessingError directly
         mocker.patch(
             "transformer.transformer._process_record",
-            side_effect=UnrecoverableError(
+            side_effect=PermanentProcessingError(
                 message_id="msg-poison",
-                error_type="INVALID_DATA",
-                details="Malformed data",
+                status_code=400,
+                response_text="Malformed data",
             ),
         )
 
@@ -713,17 +665,14 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event, {})
+        response = transformer_lambda_handler(event)
 
-        assert len(response["batchItemFailures"]) == 1
+        # Permanent errors are consumed and not retried
+        assert len(response["batchItemFailures"]) == 0
 
     def test_logging_failure_summary(self, mocker: MockerFixture) -> None:
         """Test that failure summary is logged when there are batch failures."""
-        mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
         mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
-        mocker.patch("transformer.transformer.extract_correlation_id_from_sqs_records")
-        mocker.patch("transformer.transformer.setup_request_context")
-
         mocker.patch(
             "transformer.transformer._transform_organisation",
             side_effect=ValueError("Error"),
@@ -740,9 +689,9 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        transformer_lambda_handler(event, {})
+        transformer_lambda_handler(event)
 
         # Verify failure logging occurred
         log_calls = [str(call) for call in mock_logger.log.call_args_list]
-        failure_log_found = any("ETL_TRANSFORMER_030" in call for call in log_calls)
+        failure_log_found = any("ETL_TRANSFORMER_027" in call for call in log_calls)
         assert failure_log_found

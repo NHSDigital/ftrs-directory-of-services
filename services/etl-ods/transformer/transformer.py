@@ -3,16 +3,11 @@ from ftrs_common.utils.correlation_id import current_correlation_id
 from ftrs_common.utils.request_id import current_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from common.exceptions import UnrecoverableError
+from common.exceptions import PermanentProcessingError
 from common.message_utils import create_message_payload
 from common.sqs_processor import (
     extract_record_metadata,
-    process_sqs_records,
     validate_required_fields,
-)
-from common.sqs_request_context import (
-    extract_correlation_id_from_sqs_records,
-    setup_request_context,
 )
 from common.sqs_sender import send_messages_to_queue
 from transformer.transform import transform_to_payload
@@ -22,36 +17,20 @@ BATCH_SIZE = 10
 ods_transformer_logger = Logger.get(service="ods_transformer")
 
 
-def _raise_transformation_error(
-    message_id: str, transform_error: Exception, ods_code: str = "<unknown>"
-) -> None:
-    """Raise UnrecoverableError for transformation failures."""
-    error_message = f"Transformation failed: {type(transform_error).__name__}: {str(transform_error)}"
-    ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-        ods_code=ods_code,
-        error_message=error_message,
-    )
-    raise UnrecoverableError(
-        message_id=message_id,
-        error_type="TRANSFORMATION_FAILURE",
-        details=error_message,
-    )
+def _send_batch_safely(batch: list[str], queue_suffix: str) -> None:
+    """
+    Send batch to queue with error handling to prevent loss of messages and ensure visibility of failures.
+    """
+    if not batch:
+        return
 
-
-def _raise_no_identifier_error(message_id: str) -> None:
-    """Raise UnrecoverableError when organisation has no identifier."""
-    error_message = "Organisation has no identifier after transformation"
-    ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-        ods_code="<no identifier>",
-        error_message=error_message,
-    )
-    raise UnrecoverableError(
-        message_id=message_id,
-        error_type="INVALID_FHIR_NO_IDENTIFIER",
-        details=error_message,
-    )
+    try:
+        send_messages_to_queue(batch, queue_suffix=queue_suffix)
+    except Exception as err:
+        ods_transformer_logger.log(
+            OdsETLPipelineLogBase.ETL_COMMON_020,
+            error_message=f"Failed to send batch to {queue_suffix}: {str(err)}. Transformed messages lost.",
+        )
 
 
 def _transform_organisation(organisation: dict, message_id: str) -> str:
@@ -62,10 +41,7 @@ def _transform_organisation(organisation: dict, message_id: str) -> str:
         str: JSON payload if successful
 
     Raises:
-        PermanentProcessingError: For permanent failures (404) - consumed by sqs_processor
-        UnrecoverableError: For transformation/validation failures - goes to DLQ
-        RateLimitError: For rate limits - retries then DLQ
-        Exception: For other errors - retries then DLQ
+        Exception: For transformation or validation failures - handled by SQS handler
     """
     ods_code = "<unknown>"
 
@@ -73,11 +49,30 @@ def _transform_organisation(organisation: dict, message_id: str) -> str:
     try:
         fhir_organisation = transform_to_payload(organisation)
     except Exception as transform_error:
-        _raise_transformation_error(message_id, transform_error, ods_code)
+        ods_transformer_logger.log(
+            OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
+            ods_code=ods_code,
+            error_message=f"Transformation failed: {type(transform_error).__name__}: {str(transform_error)}",
+            exception_type=type(transform_error).__name__,
+            exception_details=str(transform_error)[:500],
+            troubleshooting_info=f"Transformation failed for ODS {ods_code} in message {message_id}. Review data structure and transformation logic.",
+        )
+        raise
 
     # Validate identifier exists - invalid FHIR = code bug, treat like 400
     if not fhir_organisation.identifier:
-        _raise_no_identifier_error(message_id)
+        ods_transformer_logger.log(
+            OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
+            ods_code="<no identifier>",
+            error_message="Organisation has no identifier after transformation",
+            troubleshooting_info=f"Message {message_id} resulted in FHIR organisation without identifier. Review transformation logic and source data.",
+            validation_failure="MISSING_IDENTIFIER",
+        )
+        raise PermanentProcessingError(
+            message_id=message_id,
+            status_code=400,
+            response_text="Organisation has no identifier after transformation",
+        )
 
     ods_code = fhir_organisation.identifier[0].value
 
@@ -110,16 +105,14 @@ def _process_record(record: dict) -> str:
         str: Transformed payload if successful
 
     Raises:
-        PermanentProcessingError: Permanent failure - consumed by sqs_processor
-        UnrecoverableError: Unrecoverable failure - goes to DLQ
-        RateLimitError: Rate limited - retries then DLQ
+        PermanentProcessingError: Permanent failure - consumed immediately
+        RetryableProcessingError: Retryable failure - retries then DLQ
         Exception: Processing error - retries then DLQ
     """
     metadata = extract_record_metadata(record)
     message_id = metadata["message_id"]
     body = metadata["body"]
 
-    # Validate required fields - raises UnrecoverableError if missing
     validate_required_fields(
         body,
         ["organisation"],
@@ -132,82 +125,54 @@ def _process_record(record: dict) -> str:
         message_id=message_id,
     )
 
-    # Transform organisation - raises PermanentProcessingError for permanent failures
     return _transform_organisation(body["organisation"], message_id)
 
 
-def _send_batch_safely(batch: list[str], queue_suffix: str) -> None:
-    """
-    Send batch to queue without crashing the lambda.
-
-    If sending fails, logs error but doesn't raise to prevent
-    retrying already-processed source messages.
-    """
-    if not batch:
-        return
-
-    try:
-        send_messages_to_queue(batch, queue_suffix=queue_suffix)
-    except Exception as err:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_020,
-            error_message=f"Failed to send batch to {queue_suffix}: {str(err)}. Transformed messages lost.",
-        )
-
-
-def transformer_lambda_handler(event: dict, context: any) -> dict:
-    """
-    Lambda handler for transforming organisations from SQS.
-
-    Error handling strategy:
-    - Permanent failures (404, 422): Consumed immediately, never go to DLQ
-    - Message integrity errors: Go directly to DLQ
-    - Rate limits: Retry, then DLQ after max attempts
-    - Other errors: Retry, then DLQ after max attempts
-    """
-    start_time = time.time()
-
+def process_transformation_message_with_batching(event: dict) -> dict:
+    """Process SQS event with request-scoped batching for safety and performance."""
     if not event:
         return {"batchItemFailures": []}
 
     records = event.get("Records", [])
-    correlation_id = extract_correlation_id_from_sqs_records(records)
-    setup_request_context(correlation_id, context, ods_transformer_logger)
-
-    ods_transformer_logger.log(OdsETLPipelineLogBase.ETL_TRANSFORMER_028)
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_TRANSFORMER_029,
         total_records=len(records),
     )
 
-    transformed_batch = []
+    message_batch = []
+    batch_item_failures = []
 
-    def process_and_batch(record: dict) -> None:
-        """Process record and batch successful transformations."""
-        payload = _process_record(record)
+    def send_batch_if_full() -> None:
+        """Send batch when it reaches batch size."""
+        if len(message_batch) >= BATCH_SIZE:
+            _send_batch_safely(message_batch.copy(), "load-queue")
+            message_batch.clear()
 
-        # Add to batch and send when full
-        transformed_batch.append(payload)
-        if len(transformed_batch) >= BATCH_SIZE:
-            _send_batch_safely(transformed_batch, "load-queue")
-            transformed_batch.clear()
+    for record in records:
+        try:
+            payload = _process_record(record)
 
-    # Process all records with standardized error handling
-    batch_item_failures = process_sqs_records(
-        records,
-        process_and_batch,
-        ods_transformer_logger,
-    )
+            message_batch.append(payload)
+            send_batch_if_full()
 
-    # Send any remaining messages
-    _send_batch_safely(transformed_batch, "load-queue")
+        except PermanentProcessingError:
+            message_id = record.get("messageId", "unknown")
+            # Permanent errors are consumed immediately (no retry, no DLQ)
+            # Already logged in the error handling chain
 
-    if batch_item_failures:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_TRANSFORMER_030,
-            retry_count=len(batch_item_failures),
-            total_records=len(records),
-        )
+        except Exception as e:
+            message_id = record.get("messageId", "unknown")
+            ods_transformer_logger.log(
+                OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
+                message_id=message_id,
+                error_message=f"Transformation processing failed: {str(e)}",
+                exception_type=type(e).__name__,
+                troubleshooting_info="Record processing failed and will be retried. Check transformation logic and data format.",
+            )
+            batch_item_failures.append({"itemIdentifier": message_id})
+
+    if message_batch:
+        _send_batch_safely(message_batch, "load-queue")
 
     # Log batch processing completion
     duration_ms = round((time.time() - start_time) * 1000, 2)
@@ -222,3 +187,6 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     )
 
     return {"batchItemFailures": batch_item_failures}
+
+
+transformer_lambda_handler = process_transformation_message_with_batching

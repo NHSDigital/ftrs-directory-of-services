@@ -7,7 +7,7 @@ from requests.exceptions import HTTPError
 
 from common.apim_client import make_apim_request
 from common.error_handling import handle_http_error
-from common.exceptions import UnrecoverableError
+from common.exceptions import PermanentProcessingError
 from common.url_config import get_base_apim_api_url
 
 ODS_CODE_PATTERN = r"^[A-Za-z0-9]{1,12}$"
@@ -46,10 +46,10 @@ def fetch_organisation_uuid(ods_code: str, message_id: str) -> str | None:
             type=response.get("resourceType"),
         )
         err_msg = f"Unexpected response type: {response.get('resourceType')}"
-        raise UnrecoverableError(
+        raise PermanentProcessingError(
             message_id=message_id,
-            error_type="INVALID_RESPONSE_TYPE",
-            details=err_msg,
+            status_code=400,
+            response_text=err_msg,
         )
 
     except HTTPError as http_err:
@@ -66,21 +66,22 @@ def fetch_organisation_uuid(ods_code: str, message_id: str) -> str | None:
         # Delegate to centralized error handler for consistent classification
         # - Retryable: 408, 429, 500, 502, 503, 504
         # - Permanent: 400, 401, 403, 404, 405, 406, 409, 410, 412, 422
-        handle_http_error(http_err, message_id, transformer_uuid_logger, ods_code)
+        handle_http_error(http_err, message_id, ods_code)
 
 
 def validate_ods_code(ods_code: str, message_id: str) -> None:
     """Validate ODS code format."""
     if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
+        err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
         transformer_uuid_logger.log(
             OdsETLPipelineLogBase.ETL_TRANSFORMER_034,
-            e=f"Invalid ODS code: {ods_code}",
+            ods_code=ods_code,
+            e=err_message,
         )
-        err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
-        raise UnrecoverableError(
+        raise PermanentProcessingError(
             message_id=message_id,
-            error_type="INVALID_ODS_CODE",
-            details=err_message,
+            status_code=400,
+            response_text=err_message,
         )
 
 

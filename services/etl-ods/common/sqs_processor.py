@@ -9,15 +9,11 @@ from common.error_handling import (
     handle_general_error,
     handle_http_error,
     handle_permanent_error,
-    handle_rate_limit_error,
     handle_retryable_error,
-    handle_unrecoverable_error,
 )
 from common.exceptions import (
     PermanentProcessingError,
-    RateLimitError,
     RetryableProcessingError,
-    UnrecoverableError,
 )
 from common.sqs_request_context import (
     extract_correlation_id_from_sqs_records,
@@ -29,15 +25,20 @@ def extract_record_metadata(record: Dict[str, Any]) -> Dict[str, Any]:
     body = record.get("body")
     message_id = record.get("messageId", "unknown")
 
-    # Handle malformed JSON - this is unrecoverable
     if isinstance(body, str):
         try:
             parsed_body = json.loads(body)
         except json.JSONDecodeError as e:
-            raise UnrecoverableError(
+            logger = Logger.get(service="sqs_processor")
+            logger.log(
+                OdsETLPipelineLogBase.ETL_COMMON_007,
                 message_id=message_id,
-                error_type="MalformedJSON",
-                details=f"Failed to parse JSON: {str(e)}",
+                error_message=f"JSON parsing failed in extract_record_metadata: {str(e)}",
+            )
+            raise PermanentProcessingError(
+                message_id=message_id,
+                status_code=400,
+                response_text=f"Failed to parse JSON: {str(e)}",
             )
     elif body is None:
         parsed_body = {}
@@ -131,24 +132,13 @@ def process_sqs_records(
                 http_error, record, logger, batch_item_failures
             )
 
-        except UnrecoverableError as unrecoverable_error:
-            message_id, receive_count = _extract_message_metadata_for_error(record)
-            handle_unrecoverable_error(message_id, unrecoverable_error, logger)
-            _add_to_batch_failures(message_id, batch_item_failures)
-
         except PermanentProcessingError as permanent_error:
             message_id = record.get("messageId", "unknown")
             handle_permanent_error(message_id, permanent_error, logger)
-            # Permanent errors are consumed immediately (no DLQ)
 
         except RetryableProcessingError as retryable_error:
             message_id, receive_count = _extract_message_metadata_for_error(record)
             handle_retryable_error(message_id, receive_count, retryable_error, logger)
-            _add_to_batch_failures(message_id, batch_item_failures)
-
-        except RateLimitError as rate_limit_error:
-            message_id, receive_count = _extract_message_metadata_for_error(record)
-            handle_rate_limit_error(message_id, receive_count, rate_limit_error, logger)
             _add_to_batch_failures(message_id, batch_item_failures)
 
         except Exception as error:
@@ -222,8 +212,8 @@ def validate_required_fields(
             OdsETLPipelineLogBase.ETL_COMMON_007,
             message_id=message_id,
         )
-        raise UnrecoverableError(
+        raise PermanentProcessingError(
             message_id=message_id,
-            error_type="MissingRequiredFields",
-            details=f"Missing required field(s): {', '.join(missing_fields)}",
+            status_code=400,
+            response_text=f"Missing required field(s): {', '.join(missing_fields)}",
         )

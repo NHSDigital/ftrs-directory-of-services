@@ -6,7 +6,7 @@ import pytest
 from pytest_mock import MockerFixture
 from requests import HTTPError
 
-from common.exceptions import PermanentProcessingError, UnrecoverableError
+from common.exceptions import PermanentProcessingError
 from transformer.uuid_fetcher import (
     fetch_organisation_uuid,
     validate_ods_code,
@@ -93,9 +93,9 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         side_effect=raise_http_error_not_found,
     )
     with caplog.at_level("ERROR"):
-        with pytest.raises(UnrecoverableError) as excinfo:
+        with pytest.raises(PermanentProcessingError) as excinfo:
             fetch_organisation_uuid("ABC123", "test-msg-123")
-        assert excinfo.value.error_type == "HTTP_422"
+        assert str(excinfo.value.status_code) == "422"
         assert excinfo.value.message_id == "test-msg-123"
 
 
@@ -110,16 +110,16 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
     mocker.patch(
         "transformer.uuid_fetcher.make_apim_request",
         return_value={
-            "resourceType": "Not Bundle",
+            "resourceType": "OperationOutcome",
             "status_code": 200,
         },
     )
 
     with caplog.at_level("WARNING"):
-        with pytest.raises(UnrecoverableError) as excinfo:
+        with pytest.raises(PermanentProcessingError) as excinfo:
             fetch_organisation_uuid("XYZ999", "test-msg-123")
-        assert excinfo.value.error_type == "INVALID_RESPONSE_TYPE"
-        assert "Unexpected response type" in excinfo.value.details
+        assert str(excinfo.value.status_code) == "400"
+        assert "Unexpected response type" in excinfo.value.response_text
 
 
 def test_fetch_organisation_uuid_no_organisation_returned(
@@ -161,7 +161,7 @@ def test_validate_ods_code(ods_code: str, should_pass: bool) -> None:
     if should_pass:
         validate_ods_code(ods_code, "test-msg-123")  # Should not raise
     else:
-        with pytest.raises(UnrecoverableError) as excinfo:
+        with pytest.raises(PermanentProcessingError) as excinfo:
             validate_ods_code(ods_code, "test-msg-123")
-        assert excinfo.value.error_type == "INVALID_ODS_CODE"
-        assert "must match" in excinfo.value.details
+        assert str(excinfo.value.status_code) == "400"
+        assert "must match" in excinfo.value.response_text

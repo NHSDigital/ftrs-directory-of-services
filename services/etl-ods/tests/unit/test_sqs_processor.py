@@ -10,9 +10,7 @@ from pytest_mock import MockerFixture
 
 from common.exceptions import (
     PermanentProcessingError,
-    RateLimitError,
     RetryableProcessingError,
-    UnrecoverableError,
 )
 from common.sqs_processor import (
     _add_to_batch_failures,
@@ -92,20 +90,20 @@ class TestExtractRecordMetadata:
         assert result["body"] == {}
 
     def test_malformed_json_body_raises_unrecoverable_error(self) -> None:
-        """Test handling when JSON body is malformed raises UnrecoverableError."""
+        """Test handling when JSON body is malformed raises PermanentProcessingError."""
         record = {
             "messageId": "test-malformed",
             "attributes": {"ApproximateReceiveCount": "1"},
             "body": "{invalid json",
         }
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             extract_record_metadata(record)
 
         error = exc_info.value
         assert error.message_id == "test-malformed"
-        assert error.error_type == "MalformedJSON"
-        assert "Failed to parse JSON" in error.details
+        assert str(error.status_code) == "400"
+        assert "Failed to parse JSON" in error.response_text
 
     def test_none_body_handling(self) -> None:
         """Test handling when body is None."""
@@ -256,12 +254,12 @@ class TestValidateRequiredFields:
     def test_validation_logs_and_raises_for_missing_field(
         self, mock_logger: MagicMock
     ) -> None:
-        """Test validation logs error and raises UnrecoverableError for missing field."""
+        """Test validation logs error and raises PermanentProcessingError for missing field."""
         mock_logger.reset_mock()
         data = {"path": "test-path"}
         required_fields = ["path", "body"]
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             validate_required_fields(data, required_fields, "test-msg", mock_logger)
 
         # Verify error was logged
@@ -273,8 +271,8 @@ class TestValidateRequiredFields:
         # Verify correct exception details
         error = exc_info.value
         assert error.message_id == "test-msg"
-        assert error.error_type == "MissingRequiredFields"
-        assert "body" in error.details
+        assert str(error.status_code) == "400"
+        assert "body" in error.response_text
 
     def test_multiple_missing_fields(self, mock_logger: MagicMock) -> None:
         """Test validation with multiple missing fields."""
@@ -282,13 +280,13 @@ class TestValidateRequiredFields:
         data = {"other_field": "value"}
         required_fields = ["path", "body", "method"]
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             validate_required_fields(data, required_fields, "test-msg", mock_logger)
 
         error = exc_info.value
-        assert "path" in error.details
-        assert "body" in error.details
-        assert "method" in error.details
+        assert "path" in error.response_text
+        assert "body" in error.response_text
+        assert "method" in error.response_text
 
     def test_none_value_field(self, mock_logger: MagicMock) -> None:
         """Test validation when required field is None."""
@@ -296,7 +294,7 @@ class TestValidateRequiredFields:
         data = {"path": "test-path", "body": None}
         required_fields = ["path", "body"]
 
-        with pytest.raises(UnrecoverableError):
+        with pytest.raises(PermanentProcessingError):
             validate_required_fields(data, required_fields, "test-msg", mock_logger)
 
     def test_empty_string_field(self, mock_logger: MagicMock) -> None:
@@ -305,7 +303,7 @@ class TestValidateRequiredFields:
         data = {"path": "", "body": {"test": "data"}}
         required_fields = ["path", "body"]
 
-        with pytest.raises(UnrecoverableError):
+        with pytest.raises(PermanentProcessingError):
             validate_required_fields(data, required_fields, "test-message", mock_logger)
 
     def test_zero_value_is_valid(self, mock_logger: MagicMock) -> None:
@@ -356,17 +354,17 @@ class TestProcessSqsRecords:
     def test_message_integrity_error_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test handling of UnrecoverableError."""
+        """Test handling of PermanentProcessingError."""
         mock_logger.reset_mock()
-        mock_handle_unrecoverable = mocker.patch(
-            "common.sqs_processor.handle_unrecoverable_error"
+        mock_handle_permanent = mocker.patch(
+            "common.sqs_processor.handle_permanent_error"
         )
 
         def raise_integrity_error(record: dict) -> None:
-            raise UnrecoverableError(
+            raise PermanentProcessingError(
                 message_id=record["messageId"],
-                error_type="INVALID_DATA",
-                details="Test integrity error",
+                status_code=400,
+                response_text="Test integrity error",
             )
 
         records = [
@@ -379,10 +377,9 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_integrity_error, mock_logger)
 
-        # Should add to batch failures for retry instead of going to DLQ
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "poison-msg"
-        mock_handle_unrecoverable.assert_called_once()
+        # Should consume permanent errors without retrying
+        assert len(failures) == 0
+        mock_handle_permanent.assert_called_once()
 
     def test_permanent_processing_error_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
@@ -417,17 +414,17 @@ class TestProcessSqsRecords:
     def test_unrecoverable_error_400_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test handling of UnrecoverableError from 400 Bad Request."""
+        """Test handling of PermanentProcessingError from 400 Bad Request."""
         mock_logger.reset_mock()
-        mock_handle_unrecoverable = mocker.patch(
-            "common.sqs_processor.handle_unrecoverable_error"
+        mock_handle_permanent = mocker.patch(
+            "common.sqs_processor.handle_permanent_error"
         )
 
         def raise_unrecoverable_error(record: dict) -> None:
-            raise UnrecoverableError(
+            raise PermanentProcessingError(
                 message_id=record["messageId"],
-                error_type="HTTP_400_BAD_REQUEST",
-                details="Bad Request",
+                status_code=400,
+                response_text="Bad Request",
             )
 
         records = [
@@ -440,25 +437,24 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_unrecoverable_error, mock_logger)
 
-        # Should add to batch failures for retry
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "unrecoverable-400-msg"
-        mock_handle_unrecoverable.assert_called_once()
+        # Should consume permanent errors without retrying
+        assert len(failures) == 0
+        mock_handle_permanent.assert_called_once()
 
     def test_unrecoverable_error_401_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test handling of UnrecoverableError with 401."""
+        """Test handling of PermanentProcessingError with 401."""
         mock_logger.reset_mock()
-        mock_handle_unrecoverable = mocker.patch(
-            "common.sqs_processor.handle_unrecoverable_error"
+        mock_handle_permanent = mocker.patch(
+            "common.sqs_processor.handle_permanent_error"
         )
 
         def raise_unrecoverable_error(record: dict) -> None:
-            raise UnrecoverableError(
+            raise PermanentProcessingError(
                 message_id=record["messageId"],
-                error_type="HTTP_401",
-                details="Unauthorized",
+                status_code=401,
+                response_text="Unauthorized",
             )
 
         records = [
@@ -471,18 +467,17 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_unrecoverable_error, mock_logger)
 
-        # Should add to batch failures for retry
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "unrecoverable-401-msg"
-        mock_handle_unrecoverable.assert_called_once()
+        # Should consume permanent errors without retrying
+        assert len(failures) == 0
+        mock_handle_permanent.assert_called_once()
 
     def test_rate_limit_exception_handling(self, mock_logger: MagicMock) -> None:
-        """Test handling of RateLimitError."""
+        """Test handling of RetryableProcessingError."""
         mock_logger.reset_mock()
 
         def raise_rate_limit(record: dict) -> None:
             err_msg = "Rate limit exceeded"
-            raise RateLimitError(err_msg)
+            raise RetryableProcessingError(err_msg, status_code=429)
 
         records = [
             {
@@ -569,7 +564,7 @@ class TestProcessSqsRecords:
 
         def raise_rate_limit(record: dict) -> None:
             err_msg = "Rate limit exceeded"
-            raise RateLimitError(err_msg)
+            raise RetryableProcessingError(err_msg, status_code=429)
 
         records = [
             {
@@ -1023,7 +1018,6 @@ class TestCreateSqsLambdaHandler:
     ) -> None:
         """Test handler with different error types in batch."""
         mock_logger.reset_mock()
-        mocker.patch("common.sqs_processor.handle_unrecoverable_error")
         mocker.patch("common.sqs_processor.handle_permanent_error")
 
         call_count = {"value": 0}
@@ -1033,12 +1027,12 @@ class TestCreateSqsLambdaHandler:
             msg_id = record["messageId"]
 
             if msg_id == "integrity-error":
-                raise UnrecoverableError(msg_id, "INVALID", "Invalid data")
+                raise PermanentProcessingError(msg_id, 400, "Invalid data")
             elif msg_id == "permanent-error":
                 raise PermanentProcessingError(msg_id, 404, "Not found")
             elif msg_id == "rate-limit":
                 err_msg = "Rate limit exceeded"
-                raise RateLimitError(err_msg)
+                raise RetryableProcessingError(err_msg, status_code=429)
             elif msg_id == "general-error":
                 err_msg = "General error occurred"
                 raise ValueError(err_msg)
@@ -1080,10 +1074,9 @@ class TestCreateSqsLambdaHandler:
         with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
             result = handler(event, context)
 
-        # Only rate-limit, general-error, and integrity-error should be in batch failures (retryable)
-        # permanent-error is consumed, success is processed
-        assert str(len(result["batchItemFailures"])) == "3"
+        # Only rate-limit and general-error should be in batch failures (retryable)
+        # permanent-error and integrity-error are consumed, success is processed
+        assert str(len(result["batchItemFailures"])) == "2"
         failure_ids = [f["itemIdentifier"] for f in result["batchItemFailures"]]
         assert "rate-limit" in failure_ids
         assert "general-error" in failure_ids
-        assert "integrity-error" in failure_ids

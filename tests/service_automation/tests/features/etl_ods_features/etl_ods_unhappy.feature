@@ -38,41 +38,41 @@ Feature: ETL Event Flow - Error Handling
     When the "transform" lambda processes the message
     Then the logs for the message should contain "Organisation not found in database for ods code"
     And the logs for the message should contain "Permanent failure (status 404)"
-    And the logs for the message should contain "Message will be consumed immediately"
+    And the logs for the message should contain "consumed immediately"
     And the "transform" queue should not have message
     And the "transform" DLQ should not have message
 
-  # ==================== Transform Unrecoverable Errors - DLQ ====================
+  # ==================== Transform General/Retryable Errors - DLQ ====================
   Scenario: Transform message with malformed JSON errors
     Given I have a transform message with malformed JSON
     When the "transform" lambda processes the message
     Then the logs for the message should contain "JSON"
     And the logs for the message should contain "error"
 
-  Scenario: Transform message with missing required fields goes straight to DLQ
+  Scenario: Transform message with missing required fields goes to DLQ after retries
     Given I have a transform message with missing required fields
     When the "transform" lambda processes the message
-    Then the logs for the message should contain "Unrecoverable failure (MissingRequiredFields)"
-    And the logs for the message should contain "Sending to DLQ immediately"
+    Then the logs for the message should contain "General failure"
+    And the logs for the message should contain "sending to DLQ"
     And the logs for the message should contain "missing required fields"
     And the "transform" queue should not have message
     And the "transform" DLQ should have message
 
-  # ==================== Consumer Unrecoverable Errors - DLQ ====================
-  Scenario: Consumer message with 422 error goes to DLQ
+  # ==================== Consumer General/Retryable Errors - DLQ ====================
+  Scenario: Consumer message with 422 error is consumed immediately
     Given I have a consumer message that will fail with 422
     When the "load" lambda processes the message
-    Then the logs for the message should contain "Unrecoverable failure"
-    And the logs for the message should contain "Sending to DLQ immediately"
+    Then the logs for the message should contain "Permanent failure (status 422)"
+    And the logs for the message should contain "consumed immediately"
     And the logs for the message should contain "failed for message id"
     And the "load" queue should not have message
-    And the "load" DLQ should have message
+    And the "load" DLQ should not have message
 
-  Scenario: Consumer message with malformed JSON
+  Scenario: Consumer message with malformed JSON goes to DLQ after retries
     Given I have a consumer message with malformed JSON
     When the "load" lambda processes the message
-    Then the logs for the message should contain "Unrecoverable failure (MalformedJSON)"
-    And the logs for the message should contain "Sending to DLQ immediately"
+    Then the logs for the message should contain "General failure"
+    And the logs for the message should contain "sending to DLQ"
     And the logs for the message should contain "failed for message id"
 
   # ==================== Business Logic Validation ====================
@@ -81,10 +81,12 @@ Feature: ETL Event Flow - Error Handling
     When the "transform" lambda processes the message
     Then the logs for the message should contain "ODS code validation failed"
     And the logs for the message should contain "Invalid ODS code"
-    Then the logs for the message should contain "Sending to DLQ immediately"
+    Then the logs for the message should contain "Permanent failure"
+    And the logs for the message should contain "consumed immediately"
 
   Scenario: Transformer handles organisation with no identifier
     Given I have a transform message with organisation missing identifier
     When the "transform" lambda processes the message
     Then the logs for the message should contain "No ODS code identifier found in"
-    Then the logs for the message should contain "Sending to DLQ immediately"
+    Then the logs for the message should contain "Permanent failure"
+    And the logs for the message should contain "consumed immediately"
