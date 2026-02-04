@@ -464,7 +464,7 @@ class TestTransformerLambdaHandler:
 
     def test_empty_event_returns_empty_failures(self) -> None:
         """Test handler returns empty failures for empty event."""
-        response = transformer_lambda_handler({"Records": []})
+        response = transformer_lambda_handler({"Records": []}, {})
         assert response["batchItemFailures"] == []
 
     def test_successful_single_record_processing(
@@ -478,7 +478,7 @@ class TestTransformerLambdaHandler:
         )
         mock_send = mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        response = transformer_lambda_handler(sample_event_single_record)
+        response = transformer_lambda_handler(sample_event_single_record, {})
 
         assert response["batchItemFailures"] == []
         mock_send.assert_called_once_with(["processed_data"], queue_suffix="load-queue")
@@ -494,7 +494,7 @@ class TestTransformerLambdaHandler:
         )
         mock_send = mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        response = transformer_lambda_handler(sample_event_multiple_records)
+        response = transformer_lambda_handler(sample_event_multiple_records, {})
 
         assert response["batchItemFailures"] == []
         # Should be called twice: once for batch of 10, once for remaining 5
@@ -526,7 +526,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event)
+        response = transformer_lambda_handler(event, {})
 
         # No batch failures since error was permanent and consumed by process_sqs_records
         assert response["batchItemFailures"] == []
@@ -553,7 +553,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event)
+        response = transformer_lambda_handler(event, {})
 
         assert len(response["batchItemFailures"]) == 1
         assert response["batchItemFailures"][0]["itemIdentifier"] == "msg-retry"
@@ -593,7 +593,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event)
+        response = transformer_lambda_handler(event, {})
 
         # Only failed message in batch failures
         assert len(response["batchItemFailures"]) == 1
@@ -611,7 +611,7 @@ class TestTransformerLambdaHandler:
         mocker.patch("transformer.transformer._process_record", return_value="data")
         mocker.patch("transformer.transformer.send_messages_to_queue")
 
-        transformer_lambda_handler(sample_event_single_record)
+        transformer_lambda_handler(sample_event_single_record, {})
 
     def test_remaining_batch_sent_at_end(self, mocker: MockerFixture) -> None:
         """Test that remaining items in batch are sent at the end."""
@@ -634,14 +634,14 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        transformer_lambda_handler(event)
+        transformer_lambda_handler(event, {})
 
         # Should send remaining batch at the end
         mock_send.assert_called_once()
         call_args = mock_send.call_args[0]
         assert str(len(call_args[0])) == "3"
 
-    def test_poison_message_sent_to_dlq(self, mocker: MockerFixture) -> None:
+    def test_poison_message_consumed(self, mocker: MockerFixture) -> None:
         """Test that poison messages (PermanentProcessingError) are consumed and not retried."""
         mocker.patch("transformer.transformer.ods_transformer_logger")
 
@@ -665,9 +665,8 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        response = transformer_lambda_handler(event)
+        response = transformer_lambda_handler(event, {})
 
-        # Permanent errors are consumed and not retried
         assert len(response["batchItemFailures"]) == 0
 
     def test_logging_failure_summary(self, mocker: MockerFixture) -> None:
@@ -689,7 +688,7 @@ class TestTransformerLambdaHandler:
             ]
         }
 
-        transformer_lambda_handler(event)
+        transformer_lambda_handler(event, {})
 
         # Verify failure logging occurred
         log_calls = [str(call) for call in mock_logger.log.call_args_list]

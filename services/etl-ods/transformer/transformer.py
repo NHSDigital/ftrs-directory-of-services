@@ -1,3 +1,4 @@
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import current_correlation_id
 from ftrs_common.utils.request_id import current_request_id
@@ -128,7 +129,9 @@ def _process_record(record: dict) -> str:
     return _transform_organisation(body["organisation"], message_id)
 
 
-def process_transformation_message_with_batching(event: dict) -> dict:
+def process_transformation_message_with_batching(
+    event: dict, context: LambdaContext
+) -> dict:
     """Process SQS event with request-scoped batching for safety and performance."""
     if not event:
         return {"batchItemFailures": []}
