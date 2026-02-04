@@ -8,7 +8,6 @@ from pytest_mock import MockerFixture
 
 from common.exceptions import (
     PermanentProcessingError,
-    UnrecoverableError,
 )
 from consumer.consumer import (
     consumer_lambda_handler,
@@ -142,20 +141,20 @@ class TestProcessMessageAndSendRequest:
     def test_missing_required_fields_raises_message_integrity_error(
         self, missing_field: str, body_data: dict
     ) -> None:
-        """Test that missing required fields raises UnrecoverableError."""
+        """Test that missing required fields raises PermanentProcessingError."""
         record = {
             "messageId": "test-message-id",
             "attributes": {"ApproximateReceiveCount": "1"},
             "body": json.dumps(body_data),
         }
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             process_message_and_send_request(record)
 
         error = exc_info.value
         assert error.message_id == "test-message-id"
-        assert error.error_type == "MissingRequiredFields"
-        assert missing_field in error.details
+        assert str(error.status_code) == "400"
+        assert missing_field in error.response_text
 
     @pytest.mark.parametrize(
         "status_code,error_message",
@@ -213,19 +212,19 @@ class TestProcessMessageAndSendRequest:
     def test_message_integrity_error_is_reraised(
         self, mock_consumer_dependencies: dict, sample_record: dict
     ) -> None:
-        """Test that UnrecoverableError is re-raised for proper handling."""
+        """Test that PermanentProcessingError is re-raised for proper handling."""
         mocks = mock_consumer_dependencies
-        mocks["validate_fields"].side_effect = UnrecoverableError(
+        mocks["validate_fields"].side_effect = PermanentProcessingError(
             message_id="test-msg",
-            error_type="INVALID_DATA",
-            details="Test error",
+            status_code=400,
+            response_text="Test error",
         )
 
-        with pytest.raises(UnrecoverableError) as exc_info:
+        with pytest.raises(PermanentProcessingError) as exc_info:
             process_message_and_send_request(sample_record)
 
         assert exc_info.value.message_id == "test-msg"
-        assert exc_info.value.error_type == "INVALID_DATA"
+        assert str(exc_info.value.status_code) == "400"
 
     def test_permanent_processing_error_is_reraised(
         self, mock_consumer_dependencies: dict, sample_record: dict
@@ -251,11 +250,11 @@ class TestProcessMessageAndSendRequest:
                 },
             ),
             (
-                UnrecoverableError,
+                PermanentProcessingError,
                 {
                     "message_id": "test-message-id",
-                    "error_type": "INVALID_PAYLOAD",
-                    "details": "Invalid data format",
+                    "status_code": 400,
+                    "response_text": "Invalid data format",
                 },
             ),
         ],
