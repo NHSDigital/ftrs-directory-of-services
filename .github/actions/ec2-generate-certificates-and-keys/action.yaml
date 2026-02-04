@@ -1,0 +1,41 @@
+name: "EC2 Generate Certificates and Keys Action"
+description: "Generates certificates and keys for a performance test on an EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The EC2 instance ID to connect to"
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  cert-name:
+    description: "The name of the certificate to generate"
+    required: false
+    default: "api-ca-cert"
+  key-name:
+    description: "The name of the key to generate"
+    required: false
+    default: "api-ca-pk"
+  pfx-name:
+    description: "The name of the PFX file to generate"
+    required: false
+    default: "jmeter_pfx"
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Generate Certificates and Keys on EC2
+      shell: bash
+      id: run
+      run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["cd /home/ssm-user",
+                        "make jmeter-generate-pks-file ENVIRONMENT=${{ inputs.environment }} CERT_NAME=${{ inputs.cert-name }} KEY_NAME=${{ inputs.key-name }} PFX_NAME=${{ inputs.pfx-name }}"]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
