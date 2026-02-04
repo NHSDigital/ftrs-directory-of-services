@@ -9,6 +9,12 @@ inputs:
     description: "The endpoint to run the performance test against"
     required: false
     default: ""
+  endpoint-type:
+    description: "Specify the endpoint type for the performance test"
+    required: true
+  test-type:
+    description: "The type of performance test to run"
+    required: true
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
@@ -61,7 +67,7 @@ runs:
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make run-performance-test-gateway AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_NAME=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
+                        "make run-performance-test AWS_REGION=${{ inputs.aws-region }} ENVIRONMENT=${{ inputs.environment }} APIM_ENV=${{ inputs.apim-env }} WORKSPACE=${{ inputs.workspace }} PLAN_NAME=IS_Test_Plan ENDPOINT_TYPE=${{ inputs.endpoint-type }} TEST_TYPE=${{ inputs.test-type }} ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
             --query "Command.CommandId" \
             --output text)
 

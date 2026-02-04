@@ -224,6 +224,8 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
+          endpoint-type: ${{ inputs.endpoint_type }}
+          test-type: ${{ inputs.test_type }}
           endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
           workspace: ${{ inputs.workspace }}
           num-threads: ${{ steps.derive-params.outputs.num_threads }}

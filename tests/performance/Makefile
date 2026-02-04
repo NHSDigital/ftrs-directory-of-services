@@ -38,11 +38,11 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
-run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [PLAN_NAME=name of jmeter plan] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [SECRET_NAME=Name of the AWS secret] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [STOP_INSTANCE=true|false]
+run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [PLAN_NAME=name of jmeter plan] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [STOP_INSTANCE=true|false]
 	if [ "${ENDPOINT_TYPE}" = "gateway" ]; then \
-		make run-performance-test-gateway TEST_TYPE=${TEST_TYPE} PLAN_NAME=${PLAN_NAME} ENDPOINT=${ENDPOINT} PFX_PATH=${PFX_PATH} SECRET_NAME=${SECRET_NAME} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
+		make run-performance-test-gateway ENVIRONMENT=${ENVIRONMENT} TEST_TYPE=${TEST_TYPE} PLAN_NAME=${PLAN_NAME} ENDPOINT=${ENDPOINT} PFX_PATH=${PFX_PATH} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
 	elif [ "${ENDPOINT_TYPE}" = "proxy" ]; then \
-		make performance-test-jwt TEST_TYPE=${TEST_TYPE}PLAN_NAME=${PLAN_NAME} APIM_ENV=${APIM_ENV} SECRET_NAME=${SECRET_NAME} ENVIRONMENT=${ENVIRONMENT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} WORKSPACE=${WORKSPACE} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
+		make performance-test-jwt TEST_TYPE=${TEST_TYPE}PLAN_NAME=${PLAN_NAME} APIM_ENV=${APIM_ENV} ENVIRONMENT=${ENVIRONMENT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} WORKSPACE=${WORKSPACE} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
 	else \
 		echo "Invalid ENDPOINT_TYPE specified: ${ENDPOINT_TYPE}. Must be 'gateway' or 'proxy'."; exit 1; \
 	fi
@@ -59,7 +59,7 @@ run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|pr
 run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_NAME= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID STOP_INSTANCE=
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
-	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_NAME) --query 'SecretString')
+	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id /ftrs-directory-of-services/$(ENVIRONMENT)/api-jmeter-pks-key --query 'SecretString')
 	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
 
 	if [ "${TEST_TYPE}" = "stress" ]; then
@@ -74,9 +74,9 @@ performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk f
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
 
-performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENV=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [WORKSPACE=workspace; default for main]
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENVIRONMENT=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [WORKSPACE=workspace; default for main]
 	echo "running proxy performance tests against ${APIM_ENV}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENV} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
+	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=/ftrs-dos/$(ENVIRONMENT)/dos-search/jwt-credentials -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
 
