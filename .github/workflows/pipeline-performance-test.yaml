@@ -7,6 +7,22 @@ name: Performance Test Pipeline
 on:
   workflow_dispatch:
     inputs:
+      download_performance_config:
+        description: "Whether to download the performance config from S3"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      generate_certificates_and_keys:
+        description: "Whether to generate new certificates and keys for the performance test"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
       endpoint_type:
         description: "Specify the endpoint type for the performance test"
         required: false
@@ -69,22 +85,6 @@ on:
         description: "Throughput Period (or Step Duration) of the performance test (overrides defaults for test type)"
         required: false
         type: string
-      download_performance_config:
-        description: "Whether to download the performance config from S3"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "true"
-          - "false"
-      generate_certificates_and_keys:
-        description: "Whether to generate new certificates and keys for the performance test"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 permissions:
   contents: read
@@ -98,6 +98,14 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
+      - name: "Validate Inputs"
+        shell: bash
+        run: |
+          if [[ "${{ inputs.endpoint_type }}" == "proxy" && "${{ inputs.test_type }}" != "smoke" ]]; then
+            echo "Invalid combination of endpoint_type and test_type. Must be 'smoke' for proxy endpoint type."
+            exit 1
+          fi
+
       - name: "Checkout code"
         uses: actions/checkout@v6
 
