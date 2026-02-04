@@ -195,7 +195,7 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
           COMMIT_HASH: ${{ inputs.commit_hash || github.sha }}
           DEPLOYMENT_TYPE: ${{ inputs.deployment_type }}
-          RELEASE_tag: ${{ inputs.ref }}
+          RELEASE_TAG: ${{ inputs.ref }}
           ENVIRONMENT: ${{ inputs.environment }}
           TEST_TAG: ${{ inputs.test_tag }}
         run: |
