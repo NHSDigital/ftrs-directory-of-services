@@ -15,6 +15,7 @@ from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
 from utilities.infra.logs_util import CloudWatchLogsWrapper
+from utilities.ods.fixtures import *  # noqa: F403
 from utilities.ods.log_utils import (
     assert_cloudwatch_logs,
     verify_all_messages_share_correlation_id,
