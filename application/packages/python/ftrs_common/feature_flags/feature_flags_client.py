@@ -31,7 +31,10 @@ class LocalFlagsClient:
 
     def __init__(self) -> None:
         self.flags: dict[str, bool] = {
-            FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED.value: os.getenv("DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "false").lower() == "true"
+            FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED.value: os.getenv(
+                "DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "false"
+            ).lower()
+            == "true"
         }
 
     def is_enabled(self, flag_name: str, default: bool = False) -> bool:

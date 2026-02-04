@@ -259,7 +259,10 @@ def test_process_service_skipped_service(
     mock_transformer = mocker.MagicMock()
     mock_transformer.__name__ = "MockTransformer"
     mock_transformer.is_service_supported.return_value = (True, None)
-    mock_transformer.should_include_service.return_value = (False, "Service is not active")
+    mock_transformer.should_include_service.return_value = (
+        False,
+        "Service is not active",
+    )
     mock_transformer.return_value = mock_transformer
     mocker.patch(
         "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]

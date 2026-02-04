@@ -1,4 +1,3 @@
-
 from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from pytest_mock import MockerFixture
 

@@ -18,6 +18,7 @@ SQS_BATCH_SIZE_LIMIT = 10
 LOGGER = Logger.get(service="data-migration-queue-populator")
 SQS_CLIENT = boto3.client("sqs")
 
+
 class QueuePopulatorEvent(BaseModel):
     table_name: str = "services"
     service_id: Optional[int] = None
