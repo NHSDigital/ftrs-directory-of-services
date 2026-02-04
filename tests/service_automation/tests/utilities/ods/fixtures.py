@@ -2,12 +2,12 @@ import boto3
 import pytest
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
-from tests.service_automation.tests.utilities.infra.sqs_util import purge_queue
 
 from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
 from utilities.infra.logs_util import CloudWatchLogsWrapper
+from utilities.infra.sqs_util import purge_queue
 
 from .ods_data_utils import OdsDateSelector, extract_org_details
 

@@ -10,24 +10,24 @@ from pytest_bdd import given, parsers, scenarios, then, when
 # Common Steps
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from tests.service_automation.tests.utilities.ods.log_utils import (
+from utilities.common.constants import ENV_WORKSPACE
+from utilities.common.context import Context
+from utilities.common.resource_name import get_resource_name
+from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
+from utilities.ods.log_utils import (
     assert_cloudwatch_logs,
     verify_all_messages_share_correlation_id,
     verify_lambda_logs,
     verify_message_in_logs,
     verify_validation_error_logged,
 )
-from tests.service_automation.tests.utilities.ods.queue_utils import (
+from utilities.ods.queue_utils import (
     create_problem_message,
     process_message_in_queue,
     setup_queue_config,
     verify_message_in_queue_by_id,
 )
-from utilities.common.constants import ENV_WORKSPACE
-from utilities.common.context import Context
-from utilities.common.resource_name import get_resource_name
-from utilities.infra.lambda_util import LambdaWrapper
-from utilities.infra.logs_util import CloudWatchLogsWrapper
 from utilities.ods.validation_utils import (
     assert_lambda_error_message,
     verify_consumer_success,
