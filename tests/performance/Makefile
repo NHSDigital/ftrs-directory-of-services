@@ -58,13 +58,13 @@ run-performance-test-gateway: ## PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECR
 		echo "JMeter EC2 instance ${JMETER_INSTANCE_ID} left running."
 	fi
 
-run-performance-test-proxy: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token]
+run-performance-test-proxy: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token] [WORKSPACE=workspace; default for main]
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
 	echo "running proxy performance tests against ${APIM_ENV}..."
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
-	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD}  -J workspace=${WORKSPACE};;
 
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 
@@ -81,11 +81,11 @@ performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk f
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
 
-performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENV=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
+performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENV=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [WORKSPACE=workspace; default for main]
 	echo "running proxy performance tests against ${APIM_ENV}..."
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENV} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
-	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
 
 performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
 	echo "running mtls performance stress tests against ${ENDPOINT}..."
@@ -109,7 +109,7 @@ upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name +/]
 upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [LOCAL_DIR=local folder]
 	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
 	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
-
+e
 upload-performance-test-result:
 	TEST_RUN_DATE=`date +%Y%m%d_%H%M%S`
 	echo "Uploading performance test results to s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/"

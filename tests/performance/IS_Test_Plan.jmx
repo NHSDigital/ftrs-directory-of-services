@@ -24,11 +24,16 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments">
           <elementProp name="Apim_Domain" elementType="Argument">
             <stringProp name="Argument.name">Apim_Domain</stringProp>
             <stringProp name="Argument.value">.api.service.nhs.uk</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="Apim_Workspace" elementType="Argument">
+            <stringProp name="Argument.name">Apim_Workspace</stringProp>
+            <stringProp name="Argument.value">dos-search-${__groovy(props.get(&quot;workspace&quot;))}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -67,7 +72,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
         </JSR223Sampler>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration+10,30)}</stringProp>
@@ -81,13 +86,13 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? (props.get(&quo
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller">
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Generate JWT and Bearer Token  Transaction Controller" enabled="true">
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
@@ -331,7 +336,7 @@ if (iteration == 1) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Backend - Precise Throughput">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Backend - Precise Throughput" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -345,7 +350,7 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isLoadMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -391,7 +396,7 @@ if (iteration == 1) {
             <hashTree/>
           </hashTree>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop If Not Load Mode">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop If Not Load Mode" enabled="true">
           <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isLoadMode&apos;) || props.get(&apos;isLoadMode&apos;) == &apos;false&apos;)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -405,7 +410,7 @@ if (iteration == 1) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Proxy - Precise Throughput">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Search Proxy - Precise Throughput" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -419,7 +424,7 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -431,7 +436,7 @@ if (iteration == 1) {
           </TransactionController>
           <hashTree>
             <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
-              <stringProp name="HTTPSampler.path">/dos-search/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
+              <stringProp name="HTTPSampler.path">/${Apim_Workspace}/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
               <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
@@ -531,7 +536,7 @@ if (iteration == 1) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -545,7 +550,7 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isStressMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
