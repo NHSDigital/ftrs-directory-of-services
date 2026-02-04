@@ -1,0 +1,29 @@
+name: "EC2 Download Performance Config Action"
+description: "Downloads performance config from S3 to the EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The EC2 instance ID to connect to"
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: EC2 Download Performance Config
+      shell: bash
+      id: run
+      run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["cd /home/ssm-user",
+                        "aws s3 cp s3://ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket --region eu-west-2 ./ --recursive --exclude "test-results/*""]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT

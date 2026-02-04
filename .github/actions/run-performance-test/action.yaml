@@ -1,5 +1,5 @@
-name: "Run Performance Test Gateway action"
-description: "Runs a performance test on the Gateway given a test type on a given EC2 instance"
+name: "Run Performance Test action"
+description: "Runs a performance test given an endpoint type and test type on the EC2 instance"
 
 inputs:
   ec2-instance-id:
@@ -7,13 +7,23 @@ inputs:
     required: true
   endpoint:
     description: "The endpoint to run the performance test against"
-    required: true
+    required: false
+    default: ""
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
+  apim-env:
+    description: "The environment for the APIM gateway"
+    required: false
+    default: ""
+  workspace:
+    description: "The workspace for the performance test"
+    required: false
+    default: ""
   aws-region:
     description: 'AWS region for Secrets Manager'
-    required: true
+    required: false
+    default: "eu-west-2"
   num-threads:
     description: "Number of threads for the performance test"
     required: true
@@ -51,7 +61,7 @@ runs:
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make run-performance-test-gateway AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_ID=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
+                        "make run-performance-test-gateway AWS_REGION=${{ inputs.aws-region }} PLAN_NAME=IS_Test_Plan ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx SECRET_NAME=/ftrs-directory-of-services/${{ inputs.environment }}/api-jmeter-pks-key NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }}"]' \
             --query "Command.CommandId" \
             --output text)
 

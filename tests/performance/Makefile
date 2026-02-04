@@ -38,16 +38,14 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
-
-run-performance-test-gateway: ## PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_ID= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID STOP_INSTANCE=
-	echo "running mtls performance tests against ${ENDPOINT}..."
-
-	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString')
-	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
-
-	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="$$STRIPPED_PFX_PASSWORD" -Jtest_mode="load" \
-	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
-	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [PLAN_NAME=name of jmeter plan] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [SECRET_NAME=Name of the AWS secret] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [STOP_INSTANCE=true|false]
+	if [ "${ENDPOINT_TYPE}" = "gateway" ]; then \
+		make run-performance-test-gateway TEST_TYPE=${TEST_TYPE} PLAN_NAME=${PLAN_NAME} ENDPOINT=${ENDPOINT} PFX_PATH=${PFX_PATH} SECRET_NAME=${SECRET_NAME} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
+	elif [ "${ENDPOINT_TYPE}" = "proxy" ]; then \
+		make performance-test-jwt TEST_TYPE=${TEST_TYPE}PLAN_NAME=${PLAN_NAME} APIM_ENV=${APIM_ENV} SECRET_NAME=${SECRET_NAME} ENVIRONMENT=${ENVIRONMENT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} WORKSPACE=${WORKSPACE} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
+	else \
+		echo "Invalid ENDPOINT_TYPE specified: ${ENDPOINT_TYPE}. Must be 'gateway' or 'proxy'."; exit 1; \
+	fi
 
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 
@@ -58,21 +56,16 @@ run-performance-test-gateway: ## PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECR
 		echo "JMeter EC2 instance ${JMETER_INSTANCE_ID} left running."
 	fi
 
-run-performance-test-proxy: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy][APIKEY=API key for APIM proxy [KID=Name of key for JWT token] [WORKSPACE=workspace; default for main]
+run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_NAME= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID STOP_INSTANCE=
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
-	echo "running proxy performance tests against ${APIM_ENV}..."
-	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=${SECRET_NAME} -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
-	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
-	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD}  -J workspace=${WORKSPACE};;
+	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_NAME) --query 'SecretString')
+	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
 
-	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
-
-	if [ "${STOP_INSTANCE}" = "true" ]; then
-		echo "Stopping JMeter EC2 instance ${JMETER_INSTANCE_ID}..."
-		make jmeter-stop-instance JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID}
+	if [ "${TEST_TYPE}" = "stress" ]; then
+		make performance-stress-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT_STEP=${THROUGHPUT} STEP_DURATION=${THROUGHPUT_PERIOD}
 	else
-		echo "JMeter EC2 instance ${JMETER_INSTANCE_ID} left running."
+		make performance-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD}
 	fi
 
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
@@ -109,7 +102,7 @@ upload-performance-file: ##[AWS_REGION=aws region] [WORKSPACE=workspace name +/]
 upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] [MAIN_FILES_BUCKET=main bucket for performance files] [LOCAL_DIR=local folder]
 	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
 	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
-e
+
 upload-performance-test-result:
 	TEST_RUN_DATE=`date +%Y%m%d_%H%M%S`
 	echo "Uploading performance test results to s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/"

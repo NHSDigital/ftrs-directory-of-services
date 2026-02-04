@@ -23,6 +23,7 @@ on:
         options:
           - smoke
           - load
+          - stress
       environment:
         description: "Specify the environment to the performance test against"
         required: true
@@ -61,13 +62,29 @@ on:
         required: false
         type: string
       throughput:
-        description: "Throughput of the performance test (overrides defaults for test type)"
+        description: "Throughput (or Throughput Step) of the performance test (overrides defaults for test type)"
         required: false
         type: string
       throughput_period:
-        description: "Throughput period of the performance test (overrides defaults for test type)"
+        description: "Throughput Period (or Step Duration) of the performance test (overrides defaults for test type)"
         required: false
         type: string
+      download_performance_config:
+        description: "Whether to download the performance config from S3"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      generate_certificates_and_keys:
+        description: "Whether to generate new certificates and keys for the performance test"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
@@ -113,6 +130,14 @@ jobs:
               THROUGHPUT=${THROUGHPUT:-9000}
               THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
               ;;
+            "stress")
+              NUM_THREADS=${NUM_THREADS:-10}
+              RAMP_TIME=${RAMP_TIME:-1}
+              STARTUP_DELAY=${STARTUP_DELAY:-10}
+              DURATION=${DURATION:-70}
+              THROUGHPUT=${THROUGHPUT:-1}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-5}
+              ;;
             *)
               echo "Invalid test type: $TEST_TYPE"
               exit 1
@@ -123,8 +148,8 @@ jobs:
           echo "ramp_time=$RAMP_TIME"
           echo "startup_delay=$STARTUP_DELAY"
           echo "duration=$DURATION"
-          echo "throughput=$THROUGHPUT"
-          echo "throughput_period=$THROUGHPUT_PERIOD"
+          echo "throughput/throughput_step=$THROUGHPUT"
+          echo "throughput_period/step_duration=$THROUGHPUT_PERIOD"
 
           echo "num_threads=$NUM_THREADS" >> $GITHUB_OUTPUT
           echo "ramp_time=$RAMP_TIME" >> $GITHUB_OUTPUT
@@ -178,14 +203,29 @@ jobs:
         with:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
-      - name: "Run performance test (Gateway)"
-        if: ${{ inputs.endpoint_type == 'gateway' }}
-        uses: ./.github/actions/run-performance-test-gateway
+      - name: "Download performance config"
+        if: inputs.download_performance_config == 'true'
+        uses: ./.github/actions/ec2-download-performance-config
+        with:
+          environment: ${{ inputs.environment }}
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+
+      - name: "Generate certificates and keys"
+        if: inputs.generate_certificates_and_keys == 'true'
+        uses: ./.github/actions/ec2-generate-certificates-and-keys
+        with:
+          environment: ${{ inputs.environment }}
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+
+      - name: "Run performance test"
+        uses: ./.github/actions/run-performance-test
         with:
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
+          apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
           endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
+          workspace: ${{ inputs.workspace }}
           num-threads: ${{ steps.derive-params.outputs.num_threads }}
           ramp-time: ${{ steps.derive-params.outputs.ramp_time }}
           startup-delay: ${{ steps.derive-params.outputs.startup_delay }}
@@ -194,16 +234,3 @@ jobs:
           throughput-period: ${{ steps.derive-params.outputs.throughput_period }}
           performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
           stop-instance: ${{ inputs.stop_instance }}
-
-      - name: "Run performance test (Proxy)"
-        if: ${{ inputs.endpoint_type == 'proxy' }}
-        uses: ./.github/actions/run-performance-test-proxy
-        with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          environment: ${{ inputs.environment }}
-          endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
-          apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
-          api-key: ${{ secrets.APIM_API_KEY }}
-          kid: "ftrs-directory-of-services-${{ inputs.environment }}-apim-key"
-          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
