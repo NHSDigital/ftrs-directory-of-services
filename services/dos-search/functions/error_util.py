@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Type
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
@@ -32,7 +32,7 @@ REC_BAD_REQUEST_CODING: dict[str, list] = {
     ]
 }
 
-VALUE_ERROR_MAPPINGS: dict[type[ValueError], dict[str, str]] = {
+VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
