@@ -214,7 +214,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
 
   # Geo restrictions
   rule {
-    name     = "regional-waf-block-disallowed-countries"
+    name     = "regional-waf-count-disallowed-countries"
     priority = 0
 
     action {
@@ -233,7 +233,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
 
     visibility_config {
       cloudwatch_metrics_enabled = false
-      metric_name                = "${local.resource_prefix}-regional-waf-block-disallowed-countries"
+      metric_name                = "${local.resource_prefix}-regional-waf-count-disallowed-countries"
       sampled_requests_enabled   = true
     }
   }
