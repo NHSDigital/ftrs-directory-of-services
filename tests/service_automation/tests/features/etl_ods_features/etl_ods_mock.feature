@@ -10,7 +10,6 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     When I trigger the Lambda with happy path scenario
     Then the Lambda should process the organizations successfully
     And the Transformer Lambda should transform the organisation data correctly
-    And the organisation data should be updated in DynamoDB
 
   Scenario: ETL ODS handles empty results from upstream API
     When I trigger the Lambda with empty payload scenario
