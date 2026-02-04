@@ -1,5 +1,4 @@
 import json
-import os
 from typing import Any, Callable, Dict, List, Union
 
 import requests

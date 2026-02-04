@@ -15,7 +15,7 @@ from common.exceptions import (
     UnrecoverableError,
 )
 from common.sqs_processor import (
-    _add_to_batch_failures_if_under_max,
+    _add_to_batch_failures,
     _log_processing_start,
     _log_processing_success,
     create_sqs_lambda_handler,
@@ -194,65 +194,33 @@ class TestLogProcessingSuccess:
         )
 
 
-class TestHandleRetryableError:
-    """Test _add_to_batch_failures_if_under_max function."""
+class TestAddToBatchFailures:
+    """Test _add_to_batch_failures function."""
 
-    def test_adds_to_failures_when_under_max(self, mock_logger: MagicMock) -> None:
-        """Test that message is added to failures when under max receive count."""
+    def test_adds_message_to_failures(self, mock_logger: MagicMock) -> None:
+        """Test that message is added to batch failures list."""
         mock_logger.reset_mock()
         batch_item_failures = []
         message_id = "test-msg"
-        receive_count = 2
 
-        with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
-            _add_to_batch_failures_if_under_max(
-                message_id, receive_count, batch_item_failures
-            )
+        _add_to_batch_failures(message_id, batch_item_failures)
 
         assert len(batch_item_failures) == 1
         assert batch_item_failures[0]["itemIdentifier"] == message_id
 
-    def test_does_not_add_when_at_max(self, mock_logger: MagicMock) -> None:
-        """Test that message is not added to failures when at max receive count."""
+    def test_adds_multiple_messages(self, mock_logger: MagicMock) -> None:
+        """Test that multiple messages can be added to failures list."""
         mock_logger.reset_mock()
         batch_item_failures = []
-        message_id = "test-msg"
-        receive_count = 3
+        message_id_1 = "test-msg-1"
+        message_id_2 = "test-msg-2"
 
-        with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
-            _add_to_batch_failures_if_under_max(
-                message_id, receive_count, batch_item_failures
-            )
+        _add_to_batch_failures(message_id_1, batch_item_failures)
+        _add_to_batch_failures(message_id_2, batch_item_failures)
 
-        assert len(batch_item_failures) == 0
-
-    def test_does_not_add_when_exceeds_max(self, mock_logger: MagicMock) -> None:
-        """Test that message is not added when receive count exceeds max."""
-        mock_logger.reset_mock()
-        batch_item_failures = []
-        message_id = "test-msg"
-        receive_count = 5
-
-        with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
-            _add_to_batch_failures_if_under_max(
-                message_id, receive_count, batch_item_failures
-            )
-
-        assert len(batch_item_failures) == 0
-
-    def test_uses_default_max_receive_count(self, mock_logger: MagicMock) -> None:
-        """Test that default MAX_RECEIVE_COUNT of 3 is used when not set."""
-        mock_logger.reset_mock()
-        batch_item_failures = []
-        message_id = "test-msg"
-        receive_count = 2
-
-        with patch.dict(os.environ, {}, clear=True):
-            _add_to_batch_failures_if_under_max(
-                message_id, receive_count, batch_item_failures
-            )
-
-        assert len(batch_item_failures) == 1
+        assert str(len(batch_item_failures)) == "2"
+        assert batch_item_failures[0]["itemIdentifier"] == message_id_1
+        assert batch_item_failures[1]["itemIdentifier"] == message_id_2
 
 
 class TestValidateRequiredFields:
@@ -564,7 +532,7 @@ class TestProcessSqsRecords:
     def test_retryable_processing_error_max_receive_count_reached(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test RetryableProcessingError does not retry when max receive count reached."""
+        """Test RetryableProcessingError is added to failures even when max receive count reached."""
         mock_logger.reset_mock()
         mock_handle_retryable = mocker.patch(
             "common.sqs_processor.handle_retryable_error"
@@ -588,14 +556,15 @@ class TestProcessSqsRecords:
         with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
             failures = process_sqs_records(records, raise_retryable_error, mock_logger)
 
-        # Should NOT retry when max receive count reached (will go to DLQ)
-        assert failures == []
+        # Message is always added to failures; SQS will handle DLQ routing based on maxReceiveCount
+        assert len(failures) == 1
+        assert failures[0]["itemIdentifier"] == "retryable-max-msg"
         mock_handle_retryable.assert_called_once()
 
     def test_rate_limit_exception_max_receive_count_reached(
         self, mock_logger: MagicMock
     ) -> None:
-        """Test rate limit error does not retry when max receive count reached."""
+        """Test rate limit error is added to failures even when max receive count reached."""
         mock_logger.reset_mock()
 
         def raise_rate_limit(record: dict) -> None:
@@ -613,8 +582,9 @@ class TestProcessSqsRecords:
         with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
             failures = process_sqs_records(records, raise_rate_limit, mock_logger)
 
-        # Should NOT return as failure when max receive count reached (will go to DLQ)
-        assert len(failures) == 0
+        # Message is added to failures; SQS will handle DLQ routing
+        assert len(failures) == 1
+        assert failures[0]["itemIdentifier"] == "rate_limit_max_msg"
 
     def test_general_exception_handling(self, mock_logger: MagicMock) -> None:
         """Test handling of general exceptions."""
@@ -638,7 +608,7 @@ class TestProcessSqsRecords:
     def test_general_exception_max_receive_count_reached(
         self, mock_logger: MagicMock
     ) -> None:
-        """Test general exception does not retry when max receive count reached."""
+        """Test general exception is added to failures even when max receive count reached."""
         mock_logger.reset_mock()
 
         records = [
@@ -652,8 +622,9 @@ class TestProcessSqsRecords:
         with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
             failures = process_sqs_records(records, self.failure_processor, mock_logger)
 
-        # Should not return as failure when max receive count reached
-        assert len(failures) == 0
+        # Message is added to failures; SQS will handle DLQ routing based on maxReceiveCount
+        assert len(failures) == 1
+        assert failures[0]["itemIdentifier"] == "persistent_error"
 
     def test_mixed_success_and_failure(self, mock_logger: MagicMock) -> None:
         """Test processing with mix of successes and failures."""
