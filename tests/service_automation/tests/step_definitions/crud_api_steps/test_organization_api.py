@@ -2,6 +2,7 @@ import ast
 import json
 from uuid import uuid4
 
+from _pytest.fixtures import FixtureLookupError
 from loguru import logger
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.api_steps import *  # noqa: F403
@@ -20,6 +21,13 @@ scenarios(
 DEFAULT_PAYLOAD_PATH = "../../json_files/Organisation/organisation-payload.json"
 
 
+def get_seeded_model_or_none(request):
+    try:
+        return request.getfixturevalue("seeded_model")
+    except FixtureLookupError:
+        return None
+
+
 @when(
     parsers.re(
         r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)"'
@@ -33,9 +41,13 @@ def send_get(api_request_context_mtls_crud, api_name, resource_name):
     return response
 
 
-def _load_default_payload() -> dict:
-    """Load the default organisation payload."""
-    return read_json_file(DEFAULT_PAYLOAD_PATH)
+def build_payload(request) -> dict:
+    payload = read_json_file(DEFAULT_PAYLOAD_PATH)
+    seeded_model = get_seeded_model_or_none(request)
+    if seeded_model:
+        payload["id"] = str(seeded_model.id)
+        payload["identifier"][0]["value"] = seeded_model.identifier_ODS_ODSCode
+    return payload
 
 
 def update_name(payload: dict, value: str):
@@ -77,9 +89,8 @@ FIELD_UPDATERS = {
 }
 
 
-def update_payload_field(field: str, value: str) -> dict:
+def update_payload_field(field: str, value: str, payload: dict) -> dict:
     """Update a single field in the default organisation payload."""
-    payload = _load_default_payload()
     if field in ["phone", "email", "url"]:
         system = field
         update_telecom(payload, system, value)
@@ -331,8 +342,8 @@ def run_diagnostic_check(
     ),
     target_fixture="payload",
 )
-def step_given_valid_payload_with_identifier(identifier_data):
-    payload = _load_default_payload()
+def step_given_valid_payload_with_identifier(identifier_data, request):
+    payload = build_payload(request)
     try:
         identifier = json.loads(identifier_data)
     except json.JSONDecodeError as e:
@@ -429,10 +440,10 @@ def build_organisation_role_extension_with_typed_period(
     target_fixture="fresponse",
 )
 def step_update_with_legal_dates(
-    legal_start: str, legal_end: str, api_request_context_mtls_crud
+    legal_start: str, legal_end: str, api_request_context_mtls_crud, request
 ) -> None:
     """Update organization with legal start and end dates in YYYY-MM-DD format."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     # Convert "null" string to None
     start = None if legal_start == "null" else legal_start
@@ -578,8 +589,8 @@ def validate_legal_dates(item, payload):
     "I update the organization details for ODS Code via APIM",
     target_fixture="fresponse",
 )
-def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
-    payload = _load_default_payload()
+def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url, request):
+    payload = build_payload(request)
     return update_organisation_apim(
         payload, new_apim_request_context, nhsd_apim_proxy_url
     )
@@ -590,8 +601,8 @@ def step_update_apim(new_apim_request_context, nhsd_apim_proxy_url):
     "I update the organisation details using the same data for the ODS Code",
     target_fixture="fresponse",
 )
-def step_update_crud(api_request_context_mtls_crud):
-    payload = _load_default_payload()
+def step_update_crud(api_request_context_mtls_crud, request):
+    payload = build_payload(request)
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -599,8 +610,9 @@ def step_update_crud(api_request_context_mtls_crud):
     parsers.cfparse('I set the "{field}" field to "{value}"'),
     target_fixture="fresponse",
 )
-def step_set_field(field: str, value: str, api_request_context_mtls_crud):
-    payload = update_payload_field(field, value)
+def step_set_field(field: str, value: str, api_request_context_mtls_crud, request):
+    payload = build_payload(request)
+    payload = update_payload_field(field, value, payload)
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -610,8 +622,8 @@ def step_set_field(field: str, value: str, api_request_context_mtls_crud):
     ),
     target_fixture="fresponse",
 )
-def step_remove_field(field: str, api_request_context_mtls_crud):
-    payload = remove_field(_load_default_payload(), field)
+def step_remove_field(field: str, api_request_context_mtls_crud, request):
+    payload = remove_field(build_payload(request), field)
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -621,16 +633,18 @@ def step_remove_field(field: str, api_request_context_mtls_crud):
     ),
     target_fixture="fresponse",
 )
-def step_remove_field_apim(field: str, new_apim_request_context, nhsd_apim_proxy_url):
-    payload = remove_field(_load_default_payload(), field)
+def step_remove_field_apim(
+    field: str, new_apim_request_context, nhsd_apim_proxy_url, seeded_model
+):
+    payload = remove_field(build_payload(seeded_model), field)
     return update_organisation_apim(
         payload, new_apim_request_context, nhsd_apim_proxy_url
     )
 
 
 @when("I update the organization with a non-existent ID", target_fixture="fresponse")
-def step_nonexistent_id(api_request_context_mtls_crud):
-    payload = set_nonexistent_id(_load_default_payload())
+def step_nonexistent_id(api_request_context_mtls_crud, request):
+    payload = set_nonexistent_id(build_payload(request))
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -640,8 +654,10 @@ def step_nonexistent_id(api_request_context_mtls_crud):
     ),
     target_fixture="fresponse",
 )
-def step_add_extra_field(extra_field: str, value: str, api_request_context_mtls_crud):
-    payload = add_extra_field(_load_default_payload(), extra_field, value)
+def step_add_extra_field(
+    extra_field: str, value: str, api_request_context_mtls_crud, request
+):
+    payload = add_extra_field(build_payload(request), extra_field, value)
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -651,8 +667,8 @@ def step_add_extra_field(extra_field: str, value: str, api_request_context_mtls_
     ),
     target_fixture="fresponse",
 )
-def step_send_invalid_content_type(api_request_context_mtls_crud):
-    payload = _load_default_payload()
+def step_send_invalid_content_type(api_request_context_mtls_crud, request):
+    payload = build_payload(request)
     org_id = payload.get("id")
     url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
     headers = {"Content-Type": "application/json"}
@@ -674,9 +690,9 @@ def step_send_invalid_content_type(api_request_context_mtls_crud):
     target_fixture="fresponse",
 )
 def step_update_telecom_type(
-    actual_type: str, update_type: str, api_request_context_mtls_crud
+    actual_type: str, update_type: str, api_request_context_mtls_crud, request
 ):
-    payload = _load_default_payload()
+    payload = build_payload(request)
     org_id = payload.get("id")
     url = f"{get_url('crud').rstrip('/')}{ENDPOINTS['organization']}/{org_id}"
     modified_payload = modify_telecom_type(payload, actual_type, update_type)
@@ -1004,10 +1020,10 @@ def _build_role_extension_with_invalid_typed_period(invalid_typed_period: dict) 
     target_fixture="fresponse",
 )
 def step_update_with_invalid_extension(
-    invalid_scenario: str, api_request_context_mtls_crud
+    invalid_scenario: str, api_request_context_mtls_crud, request
 ):
     """Update organization with various invalid extension scenarios."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     # Handle role-level validation scenarios (URL and roleCode structure)
     role_level_scenarios = (
@@ -1045,10 +1061,13 @@ def step_update_with_invalid_extension(
     target_fixture="fresponse",
 )
 def step_update_with_legal_dates(
-    legal_start: str, legal_end: str, api_request_context_mtls_crud
+    legal_start: str,
+    legal_end: str,
+    api_request_context_mtls_crud,
+    request,
 ):
     """Update organization with legal start and end dates in YYYY-MM-DD format."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     # Convert "null" string to None
     start = None if legal_start == "null" else legal_start
@@ -1072,10 +1091,10 @@ def step_update_with_legal_dates(
     target_fixture="fresponse",
 )
 def step_update_with_invalid_date_format(
-    date_field: str, invalid_date: str, api_request_context_mtls_crud
+    date_field: str, invalid_date: str, api_request_context_mtls_crud, request
 ):
     """Update organization with invalid date format to test validation."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     start = invalid_date if date_field == "start" else "2020-01-15"
     end = invalid_date if date_field == "end" else "2025-12-31"
@@ -1108,9 +1127,11 @@ def step_check_operation_outcome_code(fresponse, code):
     target_fixture="fresponse",
 )
 def step_update_invalid_telecom_field(
-    invalid_scenario: str, api_request_context_mtls_crud
+    invalid_scenario: str,
+    api_request_context_mtls_crud,
+    request,
 ):
-    payload = _load_default_payload()
+    payload = build_payload(request)
     if invalid_scenario == "missing_type":
         payload["telecom"] = [{"value": "0300 311 22 34", "use": "work"}]
     elif invalid_scenario == "missing_value":
@@ -1284,9 +1305,9 @@ def set_field_to_null(payload: dict, field: str) -> dict:
     "I set the active field from the payload to null and update the organization",
     target_fixture="fresponse",
 )
-def step_set_active_null_crud(api_request_context_mtls_crud) -> object:
+def step_set_active_null_crud(api_request_context_mtls_crud, request) -> object:
     """Set active field to null in the payload and update via CRUD API."""
-    payload = set_field_to_null(_load_default_payload(), "active")
+    payload = set_field_to_null(build_payload(request), "active")
     return update_organisation(payload, api_request_context_mtls_crud)
 
 
@@ -1317,9 +1338,10 @@ def step_set_role_extensions(
     api_request_context_mtls_crud: object,
     primary_role_code: str,
     non_primary_role_codes: str,
+    request,
 ) -> object:
     """Set role extensions with primary and non-primary role codes and update organization."""
-    payload = _load_default_payload()
+    payload = build_payload(request)
 
     role_url = "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
     payload["extension"] = []
