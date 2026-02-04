@@ -21,7 +21,7 @@ runs:
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "aws s3 cp s3://ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket --region eu-west-2 ./ --recursive --exclude "test-results/*""]' \
+                        "aws s3 cp s3://ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket --region eu-west-2 ./ --recursive --exclude test-results/*"]' \
             --query "Command.CommandId" \
             --output text)
 
