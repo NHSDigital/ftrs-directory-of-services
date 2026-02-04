@@ -31,11 +31,14 @@ variable "splunk_collector_url" {
   type        = string
 }
 
-# variable "log_groups" {
-#   type = set(string)
-#   default = [
-#     "/aws/lambda/service-a",
-#     "/aws/lambda/service-b",
-#     "/aws/ec2/app"
-#   ]
-# }
+variable "firehose_logs_retention_in_days" {
+  description = "Number of days to retain Firehose logs in CloudWatch Log Group"
+  type        = number
+  default     = 14
+}
+# TODO remove default when moving to account wide stack
+variable "firehose_error_log_group_name" {
+  description = "The name of the CloudWatch Log Group to store Firehose error logs"
+  type        = string
+  default     = "firehose-error-log-group"
+}
