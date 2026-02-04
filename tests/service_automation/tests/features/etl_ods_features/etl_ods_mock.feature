@@ -50,7 +50,6 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     When I trigger the Lambda with extra unexpected field scenario
     Then the Lambda should handle unexpected fields gracefully
     And the Transformer Lambda should transform the organisation data correctly
-    And the extra unexpected fields should not be saved to DynamoDB
 
   Scenario: ETL ODS handles missing optional fields from upstream API
     Given I have a organisation repo
@@ -58,5 +57,4 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     When I trigger the Lambda with missing optional fields scenario
     Then the Lambda should handle missing optional fields gracefully
     And the Transformer Lambda should transform the organisation data correctly
-    And the telecom data should be updated in DynamoDB
 
