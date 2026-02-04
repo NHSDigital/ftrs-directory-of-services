@@ -1,274 +1,233 @@
-"""BDD step definitions for feature flags integration tests."""
+"""BDD step definitions for feature flags integration tests with real Lambda handlers."""
 
+import sys
+from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
+from uuid import uuid4
 
 import pytest
-from ftrs_common.feature_flags.feature_flags_client import (
-    CACHE_TTL_SECONDS,
-    FeatureFlagsClient,
-)
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from pytest_bdd import given, parsers, scenarios, then, when
 
 # Import common step definitions for Background steps
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 
+# Add data-migration service to path to import Lambda handlers
+DATA_MIGRATION_PATH = Path(__file__).parents[5] / "services" / "data-migration" / "src"
+sys.path.insert(0, str(DATA_MIGRATION_PATH))
+
 scenarios("../features/data_migration_features/feature_flags_integration.feature")
 
 
 @pytest.fixture
-def feature_flag_context() -> Dict[str, Any]:
-    """Context for storing feature flag test state."""
-    return {
-        "flag_value": None,
-        "error": None,
-        "client_instances": [],
-        "appconfig_query_count": 0,
-        "logs": [],
-        "cached_value": None,
-    }
+def lambda_context() -> LambdaContext:
+    """Create a mock Lambda context for testing."""
+    context = MagicMock(spec=LambdaContext)
+    context.function_name = "test-function"
+    context.function_version = "1"
+    # gitleaks:allow
+    context.invoked_function_arn = "arn:aws:lambda:us-east-1:123456789012:function:test"
+    context.memory_limit_in_mb = 128
+    context.aws_request_id = str(uuid4())
+    context.log_group_name = "/aws/lambda/test-function"
+    context.log_stream_name = "2026/02/04/[$LATEST]test"
+    context.get_remaining_time_in_millis = lambda: 300000
+    return context
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def reset_feature_flags_client() -> None:
-    """Reset FeatureFlagsClient singleton before each test."""
+    """Reset FeatureFlagsClient singleton before test (use explicitly when needed)."""
+    from ftrs_common.feature_flags.feature_flags_client import (  # noqa: PLC0415
+        FeatureFlagsClient,
+    )
+
     FeatureFlagsClient._instance = None
     FeatureFlagsClient._feature_flags = None
 
 
 @pytest.fixture
-def mock_appconfig_store() -> MagicMock:
-    """Mock AppConfigStore for testing."""
-    mock_store = MagicMock()
-    mock_store.get_configuration.return_value = {}
-    return mock_store
-
-
-@given(parsers.parse('AppConfig has feature flag "{flag_name}" set to {flag_value}'))
-def given_appconfig_has_flag(
-    feature_flag_context: Dict[str, Any],
-    mock_appconfig_store: MagicMock,
-    flag_name: str,
-    flag_value: str,
-) -> None:
-    """Set up AppConfig mock to return specific flag value."""
-    # Convert string to boolean
-    flag_value_bool = flag_value.lower() == "true"
-    # AppConfig expects flags in format: {"flag_name": {"enabled": true}}
-    mock_appconfig_store.get_configuration.return_value = {
-        flag_name: {"enabled": flag_value_bool}
+def integration_context() -> Dict[str, Any]:
+    """Context for storing integration test state."""
+    return {
+        "appconfig_mock": None,
+        "lambda_exception": None,
+        "logs": "",
+        "appconfig_call_count": 0,
     }
-    feature_flag_context["mock_store"] = mock_appconfig_store
-    feature_flag_context["expected_flag_name"] = flag_name
-    feature_flag_context["expected_flag_value"] = flag_value_bool
 
 
-@given(parsers.parse("logging is configured to {level} level"))
-def given_logging_level(level: str) -> None:
-    """Configure logging level (for log validation tests)."""
-    # This step is mainly documentation - logging level is controlled by environment
-    pass
+@pytest.fixture
+def mock_dependencies(monkeypatch: pytest.MonkeyPatch) -> Dict[str, Any]:
+    """Mock external AWS dependencies that are not part of feature flags integration."""
+    from common.config import DatabaseConfig  # noqa: PLC0415
+    from pydantic import SecretStr  # noqa: PLC0415
 
+    mocks = {}
 
-@given("the queue populator Lambda is deployed with AppConfig integration")
-def given_queue_populator_deployed(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Set up environment variables for queue populator Lambda."""
-    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
-    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
-    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
+    # Create real DatabaseConfig object with test values
+    mock_db_config = DatabaseConfig(
+        host="localhost",
+        port=5432,
+        username="test",
+        password=SecretStr("test"),
+        dbname="test",
+    )
 
-
-@given("the processor Lambda is deployed with AppConfig integration")
-def given_processor_lambda_deployed(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Set up environment variables for processor Lambda."""
-    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
-    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
-    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
-
-
-@when("the queue populator Lambda reads the feature flag")
-def when_lambda_reads_flag(
-    feature_flag_context: Dict[str, Any],
-    mock_appconfig_store: MagicMock,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Lambda reads feature flag using FeatureFlagsClient."""
-    # Set up environment variables
-    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
-    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
-    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
-
-    # Patch AppConfigStore to use our mock
-    with patch(
-        "ftrs_common.feature_flags.feature_flags_client.AppConfigStore",
-        return_value=mock_appconfig_store,
+    # Mock the from_secretsmanager classmethod to return our test config
+    with patch.object(
+        DatabaseConfig, "from_secretsmanager", return_value=mock_db_config
     ):
-        client = FeatureFlagsClient()
-        flag_name = feature_flag_context.get("expected_flag_name", "TEST_FLAG")
+        mocks["db_config"] = mock_db_config
 
-        try:
-            result = client.is_enabled(flag_name)
-            feature_flag_context["flag_value"] = result
-            feature_flag_context["error"] = None
-        except Exception as e:
-            feature_flag_context["error"] = e
+    # Mock database engine to avoid real database connections
+    mock_engine = MagicMock()
+    mocks["engine"] = mock_engine
+
+    # Mock SQS client to avoid real SQS calls
+    mock_sqs = MagicMock()
+    mocks["sqs"] = mock_sqs
+
+    # Set required environment variable for SQS
+    monkeypatch.setenv("SQS_QUEUE_URL", "https://sqs.test.amazonaws.com/test-queue")
+
+    return mocks
 
 
-@when(parsers.parse('the Lambda reads flag "{flag_name}"'))
-def when_lambda_reads_specific_flag(
-    feature_flag_context: Dict[str, Any],
-    mock_appconfig_store: MagicMock,
+@given(parsers.parse('AppConfig returns "{flag_name}" as enabled'))
+def given_appconfig_returns_flag_enabled(
+    integration_context: Dict[str, Any],
     flag_name: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Lambda reads a specific feature flag."""
+    """Mock AppConfig to return specific flag as enabled."""
+    # Set required environment variables for AppConfig
     monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
     monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
     monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
 
-    with patch(
-        "ftrs_common.feature_flags.feature_flags_client.AppConfigStore",
-        return_value=mock_appconfig_store,
-    ):
-        client = FeatureFlagsClient()
-        try:
-            result = client.is_enabled(flag_name)
-            feature_flag_context["flag_value"] = result
-            feature_flag_context["appconfig_query_count"] += 1
-        except Exception as e:
-            feature_flag_context["error"] = e
+    # Mock AppConfigStore to return flag as enabled
+    # Flag name must be lowercase as per FeatureFlag enum values
+    mock_store = MagicMock()
+    original_get_config = MagicMock(return_value={flag_name.lower(): {"enabled": True}})
+
+    # Setup tracking wrapper
+    def track_calls(*args: Any, **kwargs: Any) -> Any:
+        integration_context["appconfig_call_count"] += 1
+        return original_get_config(*args, **kwargs)
+
+    mock_store.get_configuration = track_calls
+
+    integration_context["appconfig_mock"] = mock_store
+    integration_context["expected_flag_name"] = flag_name
 
 
-@when("the queue populator Lambda handler is invoked")
+@given(parsers.parse('AppConfig returns "{flag_name}" as disabled'))
+def given_appconfig_returns_flag_disabled(
+    integration_context: Dict[str, Any],
+    flag_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Mock AppConfig to return specific flag as disabled."""
+    # Set required environment variables for AppConfig
+    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
+    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
+    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
+
+    # Mock AppConfigStore to return flag as disabled
+    # Flag name must be lowercase as per FeatureFlag enum values
+    mock_store = MagicMock()
+    original_get_config = MagicMock(
+        return_value={flag_name.lower(): {"enabled": False}}
+    )
+
+    # Setup tracking wrapper
+    def track_calls(*args: Any, **kwargs: Any) -> Any:
+        integration_context["appconfig_call_count"] += 1
+        return original_get_config(*args, **kwargs)
+
+    mock_store.get_configuration = track_calls
+
+    integration_context["appconfig_mock"] = mock_store
+    integration_context["expected_flag_name"] = flag_name
+
+
+@when("the queue populator Lambda handler is invoked with an empty event")
 def when_queue_populator_invoked(
-    feature_flag_context: Dict[str, Any],
-    mock_appconfig_store: MagicMock,
-    monkeypatch: pytest.MonkeyPatch,
+    integration_context: Dict[str, Any],
+    lambda_context: LambdaContext,
+    mock_dependencies: Dict[str, Any],
+    capsys: pytest.CaptureFixture,
+    reset_feature_flags_client: None,
 ) -> None:
-    """Invoke queue populator Lambda handler (simulated)."""
-    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
-    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
-    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
+    """Invoke the real queue_populator Lambda handler with mocked AppConfig and dependencies."""
+    from common.config import DatabaseConfig  # noqa: PLC0415
 
-    with patch(
-        "ftrs_common.feature_flags.feature_flags_client.AppConfigStore",
-        return_value=mock_appconfig_store,
+    # Patch AppConfigStore and other dependencies
+    with (
+        patch(
+            "ftrs_common.feature_flags.feature_flags_client.AppConfigStore",
+            return_value=integration_context["appconfig_mock"],
+        ),
+        patch.object(
+            DatabaseConfig,
+            "from_secretsmanager",
+            return_value=mock_dependencies["db_config"],
+        ),
+        patch(
+            "queue_populator.lambda_handler.create_engine",
+            return_value=mock_dependencies["engine"],
+        ),
+        patch("queue_populator.lambda_handler.Session"),
+        patch("queue_populator.lambda_handler.SQS_CLIENT", mock_dependencies["sqs"]),
     ):
-        # Simulate Lambda handler behavior
-        client = FeatureFlagsClient()
+        # Import Lambda handler AFTER patching to ensure patches are applied
+        from queue_populator.lambda_handler import lambda_handler  # noqa: PLC0415
+
         try:
-            result = client.is_enabled("DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED")
-            feature_flag_context["flag_value"] = result
-            feature_flag_context["lambda_execution_error"] = None
+            event = {"table_name": "services", "full_sync": False}
+            lambda_handler(event, lambda_context)
+            integration_context["lambda_exception"] = None
         except Exception as e:
-            feature_flag_context["lambda_execution_error"] = e
+            integration_context["lambda_exception"] = e
+
+    # Capture stdout (where Lambda Powertools Logger outputs)
+    captured = capsys.readouterr()
+    integration_context["logs"] = captured.out + captured.err
 
 
-@when("the processor Lambda initializes FeatureFlagsClient")
-def when_processor_lambda_initializes(
-    feature_flag_context: Dict[str, Any],
-    mock_appconfig_store: MagicMock,
-    monkeypatch: pytest.MonkeyPatch,
+@when("the queue populator Lambda handler is invoked again within 45 seconds")
+def when_queue_populator_invoked_again(
+    integration_context: Dict[str, Any],
+    lambda_context: LambdaContext,
+    mock_dependencies: Dict[str, Any],
+    capsys: pytest.CaptureFixture,
 ) -> None:
-    """Processor Lambda initializes FeatureFlagsClient."""
-    monkeypatch.setenv("APPCONFIG_APPLICATION_ID", "test-app-id")
-    monkeypatch.setenv("APPCONFIG_ENVIRONMENT_ID", "test-env-id")
-    monkeypatch.setenv("APPCONFIG_CONFIGURATION_PROFILE_ID", "test-profile-id")
-
-    with patch(
-        "ftrs_common.feature_flags.feature_flags_client.AppConfigStore",
-        return_value=mock_appconfig_store,
-    ):
-        try:
-            client = FeatureFlagsClient()
-            _ = client.get_feature_flags()
-            feature_flag_context["client"] = client
-            feature_flag_context["error"] = None
-        except Exception as e:
-            feature_flag_context["error"] = e
+    """Invoke the Lambda handler again (reuses same mocks as first invocation)."""
+    # Reuse the same invocation logic as the first call
+    # This simulates multiple Lambda invocations with consistent configuration
+    when_queue_populator_invoked(
+        integration_context, lambda_context, mock_dependencies, capsys, None
+    )
 
 
-@then("the feature flag should be evaluated as enabled")
-def then_flag_is_enabled(feature_flag_context: Dict[str, Any]) -> None:
-    """Verify flag is evaluated as enabled."""
-    assert feature_flag_context["flag_value"] is True
-    assert feature_flag_context["error"] is None
+@then("the Lambda handler should execute successfully")
+def then_lambda_executes_successfully(integration_context: Dict[str, Any]) -> None:
+    """Verify Lambda handler executed without exceptions."""
+    if integration_context["lambda_exception"]:
+        raise integration_context["lambda_exception"]
 
 
-@then("the feature flag should be evaluated as disabled")
-def then_flag_is_disabled(feature_flag_context: Dict[str, Any]) -> None:
-    """Verify flag is evaluated as disabled."""
-    assert feature_flag_context["flag_value"] is False
-    assert feature_flag_context["error"] is None
-
-
-@then("the flag evaluation should be logged in CloudWatch")
-def then_flag_logged() -> None:
-    """Verify flag evaluation is logged (mocked verification)."""
-    # In real integration test, this would check CloudWatch logs
-    # For unit test, we verify the logging mechanism exists
-    pass
-
-
-@then(parsers.parse("the flag should be evaluated as {expected_result}"))
-def then_flag_evaluated_as(
-    feature_flag_context: Dict[str, Any], expected_result: str
+@then(parsers.parse('the Lambda logs should contain "{expected_message}"'))
+def then_logs_contain_message(
+    integration_context: Dict[str, Any],
+    expected_message: str,
 ) -> None:
-    """Verify flag was evaluated to expected result."""
-    expected_bool = expected_result.lower() == "enabled"
-    assert feature_flag_context["flag_value"] == expected_bool
-
-
-@then(parsers.parse('the CloudWatch logs should contain flag name "{flag_name}"'))
-def then_logs_contain_flag_name(flag_name: str) -> None:
-    """Verify logs contain flag name."""
-    # In real integration test, this would query CloudWatch logs
-    pass
-
-
-@then(parsers.parse('the CloudWatch logs should contain evaluation result "{result}"'))
-def then_logs_contain_result(result: str) -> None:
-    """Verify logs contain evaluation result."""
-    # In real integration test, this would query CloudWatch logs
-    pass
-
-
-@then("the CloudWatch logs should contain the flag source")
-def then_logs_contain_source() -> None:
-    """Verify logs contain flag source."""
-    # In real integration test, this would query CloudWatch logs
-    pass
-
-
-@then("the Lambda should successfully read the feature flag")
-def then_lambda_reads_successfully(feature_flag_context: Dict[str, Any]) -> None:
-    """Verify Lambda successfully read the feature flag."""
-    assert feature_flag_context.get("flag_value") is not None
-    assert feature_flag_context.get("lambda_execution_error") is None
-
-
-@then("the Lambda should log whether the feature is enabled or disabled")
-def then_lambda_logs_feature_status() -> None:
-    """Verify Lambda logs feature status."""
-    # In real integration test, this would check CloudWatch logs
-    pass
-
-
-@then("the Lambda execution should complete without errors")
-def then_lambda_completes_successfully(feature_flag_context: Dict[str, Any]) -> None:
-    """Verify Lambda execution completed without errors."""
-    assert feature_flag_context.get("lambda_execution_error") is None
-
-
-@then("the Lambda should successfully retrieve the AppConfig configuration")
-def then_lambda_retrieves_config(feature_flag_context: Dict[str, Any]) -> None:
-    """Verify Lambda retrieved AppConfig configuration."""
-    assert feature_flag_context.get("client") is not None
-    assert feature_flag_context.get("error") is None
-
-
-@then(parsers.parse("the feature flag value should be cached for {ttl:d} seconds"))
-def then_value_cached_for_ttl(ttl: int) -> None:
-    """Verify feature flag value is cached for specified TTL."""
-    # This is verified by the cache TTL constant (45 seconds)
-    assert CACHE_TTL_SECONDS == ttl
+    """Verify Lambda logs contain expected message."""
+    log_output = integration_context.get("logs", "")
+    assert expected_message in log_output, (
+        f"Expected log message not found.\n"
+        f"Expected: '{expected_message}'\n"
+        f"Logs:\n{log_output[:500]}"  # Show first 500 chars for readability
+    )
