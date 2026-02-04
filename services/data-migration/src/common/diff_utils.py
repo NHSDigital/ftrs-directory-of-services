@@ -91,7 +91,9 @@ class DynamoDBUpdateExpressions:
         self._serialize_audit_field_values(timestamp, updated_by, serializer)
         self._prepend_audit_clauses_to_expression()
 
-    def _validate_audit_inputs(self, timestamp: str, updated_by: AuditEvent) -> None:
+    def _validate_audit_inputs(
+        self, timestamp: datetime, updated_by: AuditEvent
+    ) -> None:
         """Validate audit timestamp inputs."""
         if not timestamp:
             raise ValueError("timestamp cannot be empty")
@@ -106,7 +108,7 @@ class DynamoDBUpdateExpressions:
 
     def _serialize_audit_field_values(
         self,
-        timestamp: str,
+        timestamp: datetime,
         updated_by: AuditEvent,
         serializer: TypeSerializer,
     ) -> None:
