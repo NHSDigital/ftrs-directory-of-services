@@ -74,13 +74,14 @@ def assert_message_in_logs(
     expected_message: str,
     case_sensitive: bool = True,
     log_group_name: str = None,
+    wait_time: int = 30,
 ):
     """Assert that a specific message appears in logs for the given correlation_id."""
     # Retry logic for log availability
     max_retries = 3
     for attempt in range(max_retries):
         if attempt > 0:
-            time.sleep(15)  # Wait longer between retries
+            time.sleep(wait_time)  # Configurable wait time between retries
             # Clear cache to force fresh log retrieval
             if (
                 hasattr(context, "correlation_id_logs_cache")
@@ -111,10 +112,10 @@ def assert_message_in_logs(
 
 
 def validate_lambda_logs_for_extraction(
-    context: Context, cloudwatch_logs: CloudWatchLogsWrapper
+    context: Context, cloudwatch_logs: CloudWatchLogsWrapper, wait_time: int = 30
 ):
     """Validate lambda logs contain expected extraction patterns."""
-    time.sleep(30)  # Central wait_for_logs()
+    time.sleep(wait_time)  # Configurable wait_for_logs()
     extraction_pattern = (
         f'"Fetching outdated organizations for date: {context.extraction_date}."'
     )
@@ -131,9 +132,10 @@ def verify_malformed_json_logs(
     expected_text: str,
     cloudwatch_logs: CloudWatchLogsWrapper,
     log_group_name: str,
+    wait_time: int = 30,
 ):
     """Handle malformed JSON message log verification."""
-    time.sleep(10)  # Wait for logs to be available
+    time.sleep(wait_time)  # Configurable wait for logs to be available
     logs = cloudwatch_logs.get_logs_by_filter(
         log_group_name=log_group_name, filter_pattern="", minutes=15
     )
@@ -165,7 +167,9 @@ def verify_validation_error_logged(
     )
 
 
-def verify_all_messages_share_correlation_id(context, cloudwatch_logs) -> None:
+def verify_all_messages_share_correlation_id(
+    context, cloudwatch_logs, wait_time: int = 30
+) -> None:
     """Verify all messages in extractor, transformer, and consumer lambdas share the same correlation_id."""
     # Get correlation ID from extractor lambda logs
     extractor_log_group = f"/aws/lambda/{context.lambda_name}"
@@ -192,6 +196,7 @@ def verify_all_messages_share_correlation_id(context, cloudwatch_logs) -> None:
             "",
             case_sensitive=False,
             log_group_name=transformer_log_group,
+            wait_time=wait_time,
         )
 
     # Check consumer lambda logs for the same correlation ID
@@ -206,11 +211,12 @@ def verify_all_messages_share_correlation_id(context, cloudwatch_logs) -> None:
             "",
             case_sensitive=False,
             log_group_name=consumer_log_group,
+            wait_time=wait_time,
         )
 
 
 def verify_message_in_logs(
-    context: Context, expected_text: str, cloudwatch_logs
+    context: Context, expected_text: str, cloudwatch_logs, wait_time: int = None
 ) -> None:
     """Verify expected text appears in logs for the test message's correlation_id."""
     log_group_name = get_log_group_name(context)
@@ -218,7 +224,7 @@ def verify_message_in_logs(
     # Handle malformed JSON separately
     if hasattr(context, "test_message_raw"):
         verify_malformed_json_logs(
-            context, expected_text, cloudwatch_logs, log_group_name
+            context, expected_text, cloudwatch_logs, log_group_name, wait_time or 30
         )
         return
 
@@ -233,9 +239,10 @@ def verify_message_in_logs(
         expected_text,
         case_sensitive=False,
         log_group_name=log_group_name,
+        wait_time=wait_time or 30,
     )
 
 
-def verify_lambda_logs(context: Context, cloudwatch_logs) -> None:
+def verify_lambda_logs(context: Context, cloudwatch_logs, wait_time: int = 30) -> None:
     """Verify lambda logs for extraction process."""
-    validate_lambda_logs_for_extraction(context, cloudwatch_logs)
+    validate_lambda_logs_for_extraction(context, cloudwatch_logs, wait_time)

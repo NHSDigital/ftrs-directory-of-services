@@ -42,23 +42,26 @@ Feature: ETL Event Flow - Error Handling
     And the "transform" queue should not have message
     And the "transform" DLQ should not have message
 
-  # ==================== Transform General/Retryable Errors - DLQ ====================
-  Scenario: Transform message with malformed JSON errors
+  # ==================== Transform Permanent Errors - Consumed Immediately ====================
+  Scenario: Transform message with malformed JSON is consumed immediately
     Given I have a transform message with malformed JSON
     When the "transform" lambda processes the message
-    Then the logs for the message should contain "JSON"
-    And the logs for the message should contain "error"
+    Then the logs for the message should contain "Error decoding json"
+    And the logs for the message should contain "Permanent failure (status 400)"
+    And the logs for the message should contain "consumed immediately"
+    And the "transform" queue should not have message
+    And the "transform" DLQ should not have message
 
-  Scenario: Transform message with missing required fields goes to DLQ after retries
+  Scenario: Transform message with missing required fields is consumed immediately  
     Given I have a transform message with missing required fields
     When the "transform" lambda processes the message
-    Then the logs for the message should contain "General failure"
-    And the logs for the message should contain "sending to DLQ"
-    And the logs for the message should contain "missing required fields"
+    Then the logs for the message should contain "is missing required fields"
+    And the logs for the message should contain "Permanent failure (status 400)"
+    And the logs for the message should contain "consumed immediately"
     And the "transform" queue should not have message
-    And the "transform" DLQ should have message
+    And the "transform" DLQ should not have message
 
-  # ==================== Consumer General/Retryable Errors - DLQ ====================
+  # ==================== Consumer Permanent Errors - Consumed Immediately ====================
   Scenario: Consumer message with 422 error is consumed immediately
     Given I have a consumer message that will fail with 422
     When the "load" lambda processes the message
@@ -68,12 +71,14 @@ Feature: ETL Event Flow - Error Handling
     And the "load" queue should not have message
     And the "load" DLQ should not have message
 
-  Scenario: Consumer message with malformed JSON goes to DLQ after retries
+  Scenario: Consumer message with malformed JSON is consumed immediately
     Given I have a consumer message with malformed JSON
     When the "load" lambda processes the message
-    Then the logs for the message should contain "General failure"
-    And the logs for the message should contain "sending to DLQ"
-    And the logs for the message should contain "failed for message id"
+    Then the logs for the message should contain "Error decoding json"
+    And the logs for the message should contain "Permanent failure (status 400)"
+    And the logs for the message should contain "consumed immediately"
+    And the "load" queue should not have message
+    And the "load" DLQ should not have message
 
   # ==================== Business Logic Validation ====================
   Scenario: Transformer handles invalid ODS code format

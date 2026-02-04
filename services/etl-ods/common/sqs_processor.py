@@ -31,8 +31,7 @@ def extract_record_metadata(record: Dict[str, Any]) -> Dict[str, Any]:
         except json.JSONDecodeError as e:
             logger = Logger.get(service="sqs_processor")
             logger.log(
-                OdsETLPipelineLogBase.ETL_COMMON_007,
-                message_id=message_id,
+                OdsETLPipelineLogBase.ETL_COMMON_012,
                 error_message=f"JSON parsing failed in extract_record_metadata: {str(e)}",
             )
             raise PermanentProcessingError(

@@ -43,7 +43,7 @@ scenarios(
 )
 
 # Test Configuration Constants
-MESSAGE_PROCESSING_DELAY = 5  # Seconds to wait for message processing
+MESSAGE_PROCESSING_DELAY = 30  # Seconds to wait for message processing
 
 
 def invoke_lambda_generic(
