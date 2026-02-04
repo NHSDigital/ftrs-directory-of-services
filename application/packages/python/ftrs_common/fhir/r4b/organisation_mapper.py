@@ -123,6 +123,8 @@ class OrganizationMapper(FhirMapper):
         )
         if typed_period_ext:
             extension_list.append(typed_period_ext.model_dump())
+        
+        extension_list.append(self._build_active_extension().model_dump())
 
         return Extension.model_validate(
             {
@@ -159,6 +161,15 @@ class OrganizationMapper(FhirMapper):
                         "valuePeriod": period_data,
                     },
                 ],
+            }
+        )
+    
+    def _build_active_extension(
+        self
+    ) -> Extension | None:
+        return Extension.model_validate(
+            {
+                "active": true
             }
         )
 
