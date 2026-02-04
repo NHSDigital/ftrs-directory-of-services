@@ -103,7 +103,7 @@
                 "arn:aws:iam::*:role/",
                 "arn:aws:iam::*:policy/"
             ]
-        },        
+        },
         {
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
@@ -179,6 +179,7 @@
                         "alias/${project}-*-secrets-manager-kms",
                         "alias/${project}-*-ssm-kms",
                         "alias/${project}-*-s3-kms",
+                        "alias/${project}-*-sqs-kms",
                         "alias/${project}-*-dms-kms"
                     ]
                 }
