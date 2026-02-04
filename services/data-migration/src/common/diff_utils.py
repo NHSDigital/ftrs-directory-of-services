@@ -72,14 +72,14 @@ class DynamoDBUpdateExpressions:
 
     def add_audit_timestamps(
         self,
-        timestamp: str,
+        timestamp: datetime,
         updated_by: AuditEvent,
         serializer: TypeSerializer,
     ) -> None:
         """Add audit timestamp fields to the update expression.
 
         Args:
-            timestamp: ISO format timestamp string.
+            timestamp: ISO format timestamp datetime.
             updated_by: AuditEvent object with type, value, and display fields.
             serializer: DynamoDB type serializer.
 

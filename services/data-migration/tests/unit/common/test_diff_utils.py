@@ -432,7 +432,7 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
 )
 def test_add_audit_timestamps_to_expressions(
     serializer: TypeSerializer,
-    timestamp: str,
+    timestamp: datetime,
     updated_by: AuditEvent,
     initial_expression: str,
     expected_prefix: str,
@@ -464,7 +464,7 @@ def test_add_audit_timestamps_empty_timestamp_raises_value_error(
 
 def test_add_audit_timestamps_invalid_updater_raises_type_error(
     serializer: TypeSerializer,
-    timestamp: str,
+    timestamp: datetime,
 ) -> None:
     """Non-AuditEvent updater raises ValueError."""
     expressions = DynamoDBUpdateExpressions()
@@ -475,7 +475,7 @@ def test_add_audit_timestamps_invalid_updater_raises_type_error(
 
 def test_add_audit_timestamps_serializes_correctly(
     serializer: TypeSerializer,
-    timestamp: str,
+    timestamp: datetime,
     updated_by: AuditEvent,
 ) -> None:
     """Audit values are properly serialized to DynamoDB format."""
