@@ -19,6 +19,8 @@ class Context:
     lambda_name: Optional[str] = None
     lambda_response: Optional[Dict[str, Any]] = None
     lambda_invocation_time: Optional[Any] = None  # datetime object
+    transform_lambda: Optional[str] = None
+    crud_lambda: Optional[str] = None
 
     def __repr__(self: Self) -> str:
         """Return a readable string representation of the Context."""
@@ -31,5 +33,7 @@ class Context:
             f"lambda_name={self.lambda_name}, "
             f"lambda_response={'present' if self.lambda_response else 'None'}, "
             f"lambda_invocation_time={self.lambda_invocation_time}, "
+            f"transform_lambda={self.transform_lambda}, "
+            f"crud_lambda={self.crud_lambda}, "
             f"other_keys={list(self.other.keys())})"
         )
