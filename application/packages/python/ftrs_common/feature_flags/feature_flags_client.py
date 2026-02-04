@@ -1,5 +1,4 @@
 import os
-from enum import Enum
 from functools import lru_cache
 from typing import Protocol
 
@@ -7,10 +6,10 @@ from aws_lambda_powertools.utilities.feature_flags import AppConfigStore, Featur
 from aws_lambda_powertools.utilities.feature_flags.exceptions import (
     ConfigurationStoreError,
 )
+from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 from ftrs_common.logbase import FeatureFlagLogBase
 from ftrs_common.logger import Logger
 from ftrs_common.utils.config import Settings
-from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 
 logger = Logger.get(service="feature_flags")
 
