@@ -214,6 +214,9 @@ The ETL mock includes the following test scenarios:
 | **Unauthorized** | API returns 401 unauthorized error | Tests authentication handling |
 | **Server Error** | API returns 500 server error | Tests upstream error handling |
 | **Unknown Resource Type** | API returns Location instead of Organization | Tests filtering of invalid resource types |
+| **Missing Optional Fields**| API response missing optional fields|Tests the system's ability to handle missing optional fields|
+| **Invalid ODSCode Format**|API returns an invalid format for the ODSCode field|Verifies validation of the ODSCode format|
+
 
 Each scenario is designed to test specific error conditions and edge cases that might occur when interacting with the real ODS API.
 

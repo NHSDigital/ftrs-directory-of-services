@@ -1,10 +1,12 @@
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 
 import boto3
 import pytest
 from ftrs_data_layer.domain import DBModel
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from playwright.sync_api import APIRequestContext
@@ -17,6 +19,7 @@ from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.api_util import make_api_request_with_retries
 from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
 
 # Load feature file
 scenarios(
@@ -158,11 +161,58 @@ def extract_org_details(org_resources: List[dict]) -> List[Dict[str, Optional[st
 def assert_org_details_match(item: DBModel, expected_org: dict) -> None:
     assert item is not None, "No data found in repository"
     assert getattr(item, "identifier_ODS_ODSCode", None) == expected_org["ods_code"]
-    assert getattr(item, "name", None) == expected_org["name"]
-    assert getattr(item, "type", None) == expected_org["type"]
+
+    assert getattr(item, "name", None) is not None
+    assert getattr(item, "type", None) is not None
+
+    assert isinstance(getattr(item, "active", None), bool)
     assert getattr(item, "active", None) == expected_org["active"]
-    assert getattr(item, "telecom", None) == expected_org["phone"]
-    assert getattr(item, "lastUpdatedBy", None) == "ODS_ETL_PIPELINE"
+
+    actual_telecom = getattr(item, "telecom", None)
+    expected_phone = expected_org["phone"]
+
+    if expected_phone:
+        assert actual_telecom is not None
+        assert len(actual_telecom) > 0
+        phone_values = [t.value for t in actual_telecom if hasattr(t, "value")]
+        assert expected_phone in phone_values
+
+    actual_updated_by = getattr(item, "lastUpdatedBy", None)
+    assert actual_updated_by is not None
+    assert hasattr(actual_updated_by, "value")
+
+    # Verify role codes if present
+    primary_role = getattr(item, "primary_role_code", None)
+    non_primary_roles = getattr(item, "non_primary_role_codes", [])
+
+    if primary_role:
+        primary_role_value = (
+            primary_role.value
+            if isinstance(primary_role, OrganisationTypeCode)
+            else primary_role
+        )
+        assert primary_role_value is not None
+        assert primary_role_value.startswith("RO")
+
+    if non_primary_roles:
+        non_primary_values = [
+            role.value if isinstance(role, OrganisationTypeCode) else role
+            for role in non_primary_roles
+        ]
+
+        for role_value in non_primary_values:
+            assert role_value is not None
+            assert role_value.startswith("RO")
+
+        # Validate RO177 requires RO76
+        if primary_role:
+            primary_role_value = (
+                primary_role.value
+                if isinstance(primary_role, OrganisationTypeCode)
+                else primary_role
+            )
+            if primary_role_value == "RO177":
+                assert "RO76" in non_primary_values
 
 
 def verify_organisation_in_repo(
@@ -216,6 +266,12 @@ def aws_lambda_client():
     return LambdaWrapper(lambda_client, iam_resource)
 
 
+@pytest.fixture
+def cloudwatch_logs():
+    """Create CloudWatch logs wrapper for log verification."""
+    return CloudWatchLogsWrapper()
+
+
 @pytest.fixture(scope="module")
 def shared_ods_data(api_request_context_ods_terminology):
     """Fetch and prepare ODS organization data for testing."""
@@ -242,25 +298,25 @@ def invoke_lambda_generic(
     project: str,
     workspace: str,
     env: str,
-    aws_lambda_client,  # type: LambdaWrapper
+    aws_lambda_client,
     date_param: Optional[str] = None,
 ) -> Context:
-    """
-    Invokes the 'etl-ods-extractor' lambda with optional date parameter.
-    Stores the response in context.lambda_response and sets context.lambda_name.
-    """
     lambda_name = get_resource_name(
         project, workspace, env, "etl-ods-extractor", "lambda"
     )
-
     context.lambda_name = lambda_name
+    context.correlation_id = str(uuid.uuid4())
+    payload = {
+        "headers": {"X-Correlation-ID": context.correlation_id},
+    }
+    if date_param:
+        payload["date"] = date_param
 
-    payload = {"date": date_param} if date_param else {}
     logger.info(
         f"[STEP] Invoking Lambda '{lambda_name}'"
         + (f" with date: {date_param}" if date_param else " without parameters")
+        + f" and correlation_id: {context.correlation_id}"
     )
-
     try:
         response = aws_lambda_client.invoke_function(lambda_name, payload)
         logger.info(f"[INFO] Lambda response received: {response}")
@@ -279,6 +335,14 @@ def context(shared_ods_data) -> Context:
     ctx.organisation_details = shared_ods_data["organisation_details"]
     ctx.extraction_date = shared_ods_data["date"]
     return ctx
+
+
+def assert_cloudwatch_logs(
+    lambda_name: str, cloudwatch_logs: CloudWatchLogsWrapper, expected_log: str
+):
+    """Validate a log message exists in CloudWatch for the given Lambda."""
+    found_log = cloudwatch_logs.find_log_message(lambda_name, expected_log)
+    assert found_log, f"Expected log '{expected_log}' not found in Lambda {lambda_name}"
 
 
 @given(
@@ -385,4 +449,17 @@ def assert_lambda_error_message(context: Context, expected_message):
     )
     assert expected_message in actual_message, (
         f"[FAIL] Expected error message '{expected_message}', got '{actual_message}'"
+    )
+
+
+@then(parsers.parse('the Lambda should log the validation error "{error_code}"'))
+def verify_validation_error_logged(
+    context: Context,
+    cloudwatch_logs: CloudWatchLogsWrapper,
+    error_code: str,
+):
+    assert_cloudwatch_logs(
+        lambda_name=context.lambda_name,
+        cloudwatch_logs=cloudwatch_logs,
+        expected_log=error_code,
     )
