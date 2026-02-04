@@ -27,6 +27,7 @@ on:
         options:
           - dev
           - test
+          - sandpit
       workspace:
         description: "Specify the workspace to cleardown"
         required: true
