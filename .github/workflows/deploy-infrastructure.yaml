@@ -77,7 +77,7 @@ on:
 
 jobs:
   deploy-infrastructure:
-    name: "Run Terraform ${{ inputs.action }} for infrastructure deployment"
+    name: "Run Terraform ${{ inputs.action }} for ${{ matrix.stack }} deployment"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     timeout-minutes: ${{ inputs.workflow_timeout }}
