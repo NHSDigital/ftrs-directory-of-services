@@ -39,3 +39,11 @@ runs:
 
           echo "command_id=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
+    - name: Wait for Certificate Generation
+      shell: bash
+      run: |
+          echo "Waiting for certificate and key generation to complete..."
+          aws ssm wait command-executed \
+            --command-id "${{ steps.run.outputs.command_id }}" \
+            --instance-id "${{ inputs.ec2-instance-id }}"
