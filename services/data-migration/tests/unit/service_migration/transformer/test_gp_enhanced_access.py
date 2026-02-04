@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from ftrs_common.feature_flags import FeatureFlag
 from ftrs_common.mocks.mock_logger import MockLogger
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain.legacy import Service
