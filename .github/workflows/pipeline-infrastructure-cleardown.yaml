@@ -27,6 +27,7 @@ on:
         options:
           - dev
           - test
+          - sandpit
       workspace:
         description: "Specify the workspace to cleardown"
         required: true
@@ -38,7 +39,7 @@ jobs:
     name: "Get Metadata"
     uses: ./.github/workflows/metadata.yaml
     with:
-      ref: ${{ inputs.tag}}
+      ref: ${{ inputs.ref }}
 
   cleardown-infrastructure:
     name: "Cleardown Infrastructure"
