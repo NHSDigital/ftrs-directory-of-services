@@ -45,6 +45,8 @@ module "slack_notification_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
+
+  policy_jsons = []
 }
 
 # SNS subscription for Slack notification Lambda
