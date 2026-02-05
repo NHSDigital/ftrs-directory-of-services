@@ -110,6 +110,7 @@ upload-performance-test-result:
 	aws s3 cp --region eu-west-2 report s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/report --recursive
 	aws s3 cp --region eu-west-2 ./jmeter.log s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/jmeter.log
 	aws s3 cp --region eu-west-2 ./result.jtl s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/result.jtl
+	aws s3 cp --region eu-west-2 ./performance_run.log s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/performance_run.log
 
 # Get a secret value from Secrets Manager
 secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
