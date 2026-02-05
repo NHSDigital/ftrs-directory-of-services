@@ -188,6 +188,9 @@ jobs:
           stack: ${{ matrix.stack }}
           action: validate
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          splunk_collector_url: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+          splunk_hec_endpoint: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+          splunk_hec_token: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   check-terraform-format:
     name: "Check Terraform format"
