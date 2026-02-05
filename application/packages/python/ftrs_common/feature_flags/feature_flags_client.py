@@ -32,7 +32,7 @@ class LocalFlagsClient:
     def __init__(self) -> None:
         self.flags: dict[str, bool] = {
             FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED.value: os.getenv(
-                "DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "false"
+                "DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "true"
             ).lower()
             == "true"
         }
@@ -173,7 +173,7 @@ class FeatureFlagsClient:
 def _get_client() -> FeatureFlagsClientProtocol:
     """Get a cached feature flags client instance."""
     settings = Settings()
-    if settings.env == "local":
+    if settings.env == "local" or (settings.env == "dev" and settings.workspace is not None):
         return LocalFlagsClient()
     return FeatureFlagsClient()
 
