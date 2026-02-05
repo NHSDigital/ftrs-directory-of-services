@@ -7,7 +7,6 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from common.error_handling import (
     handle_general_error,
-    handle_http_error,
     handle_permanent_error,
     handle_retryable_error,
 )
@@ -82,6 +81,70 @@ def _extract_message_metadata_for_error(record: Dict[str, Any]) -> tuple[str, in
     return message_id, receive_count
 
 
+def _handle_http_error_with_status_preservation(
+    http_error: requests.exceptions.HTTPError,
+    record: Dict[str, Any],
+    logger: Logger,
+    batch_item_failures: List[Dict[str, str]],
+) -> None:
+    """Handle HTTP errors with proper status code preservation."""
+    # Extract metadata and context
+    message_id, receive_count = _extract_message_metadata_for_error(record)
+    error_context = _extract_error_context_from_record(record)
+    status_code = _extract_status_code_safely(http_error)
+
+    # Create appropriate error and handle it
+    if _is_permanent_status_code(status_code):
+        error = PermanentProcessingError(
+            message_id=message_id,
+            status_code=status_code,
+            response_text=f"HTTP {status_code} in {error_context}: {str(http_error)}",
+        )
+        handle_permanent_error(message_id, error, logger)
+    elif _is_retryable_status_code(status_code):
+        error = RetryableProcessingError(
+            message_id=message_id,
+            status_code=status_code,
+            response_text=f"HTTP {status_code} in {error_context}: {str(http_error)}",
+        )
+        handle_retryable_error(message_id, receive_count, error, logger)
+        _add_to_batch_failures(message_id, batch_item_failures)
+    else:
+        # Unknown status code - treat as permanent
+        error = PermanentProcessingError(
+            message_id=message_id,
+            status_code=status_code,
+            response_text=f"Unknown HTTP {status_code} in {error_context}: {str(http_error)}",
+        )
+        handle_permanent_error(message_id, error, logger)
+
+
+def _extract_error_context_from_record(record: Dict[str, Any]) -> str:
+    """Extract error context from SQS record."""
+    try:
+        body_content = json.loads(record.get("body", "{}"))
+        return body_content.get("path", "unknown")
+    except (json.JSONDecodeError, AttributeError):
+        return "unknown"
+
+
+def _extract_status_code_safely(http_error: requests.exceptions.HTTPError) -> int:
+    """Safely extract status code from HTTPError."""
+    return (
+        getattr(http_error.response, "status_code", 500) if http_error.response else 500
+    )
+
+
+def _is_permanent_status_code(status_code: int) -> bool:
+    """Check if status code indicates a permanent error."""
+    return status_code in {400, 401, 403, 404, 405, 406, 422}
+
+
+def _is_retryable_status_code(status_code: int) -> bool:
+    """Check if status code indicates a retryable error."""
+    return status_code in {408, 409, 410, 412, 429, 500, 502, 503, 504}
+
+
 def process_sqs_records(
     records: List[Dict[str, Any]],
     process_function: Callable[[Dict[str, Any]], Any],
@@ -94,35 +157,15 @@ def process_sqs_records(
         try:
             metadata = extract_record_metadata(record)
             message_id = metadata["message_id"]
-            receive_count = metadata["receive_count"]
 
             _log_processing_start(logger, message_id, len(records))
-
             process_function(record)
             _log_processing_success(logger, message_id)
 
         except requests.exceptions.HTTPError as http_error:
-            # Extract context from record for error logging
-            try:
-                body_content = json.loads(record.get("body", "{}"))
-                error_context = body_content.get("path", "unknown")
-            except (json.JSONDecodeError, AttributeError):
-                error_context = "unknown"
-
-            message_id, receive_count = _extract_message_metadata_for_error(record)
-            try:
-                handle_http_error(
-                    http_error=http_error,
-                    message_id=message_id,
-                    error_context=error_context,
-                )
-            except PermanentProcessingError as permanent_error:
-                handle_permanent_error(message_id, permanent_error, logger)
-            except RetryableProcessingError as retryable_error:
-                handle_retryable_error(
-                    message_id, receive_count, retryable_error, logger
-                )
-                _add_to_batch_failures(message_id, batch_item_failures)
+            _handle_http_error_with_status_preservation(
+                http_error, record, logger, batch_item_failures
+            )
 
         except PermanentProcessingError as permanent_error:
             message_id = record.get("messageId", "unknown")

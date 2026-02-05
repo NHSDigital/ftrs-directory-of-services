@@ -146,8 +146,8 @@ class TestExtractOperationOutcome:
 
 
 class TestHandleHttpError:
-    def test_permanent_status_codes(self) -> None:
-        """Test permanent status codes raise PermanentProcessingError."""
+    def test_permanent_status_codes_with_default_context(self) -> None:
+        """Test permanent status codes with default context."""
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.text = "Not found"
@@ -161,10 +161,30 @@ class TestHandleHttpError:
             handle_http_error(mock_http_error, "test-msg-123")
 
         assert str(exc_info.value.status_code) == "404"
-        assert "HTTP 404 in unknown" in exc_info.value.response_text
+        assert exc_info.value.response_text == "HTTP 404 in unknown: Non-FHIR response"
 
-    def test_retryable_status_codes(self) -> None:
-        """Test retryable status codes raise RetryableProcessingError."""
+    def test_permanent_status_codes_with_custom_context(self) -> None:
+        """Test permanent status codes with custom context."""
+        mock_response = MagicMock()
+        mock_response.status_code = 422
+        mock_response.text = "Validation failed"
+        mock_response.headers = {"content-type": "text/plain"}
+        mock_response.json.side_effect = Exception("Not JSON")
+
+        mock_http_error = MagicMock(spec=requests.exceptions.HTTPError)
+        mock_http_error.response = mock_response
+
+        with pytest.raises(PermanentProcessingError) as exc_info:
+            handle_http_error(mock_http_error, "test-msg-123", "organization creation")
+
+        assert str(exc_info.value.status_code) == "422"
+        assert (
+            exc_info.value.response_text
+            == "HTTP 422 in organization creation: Non-FHIR response"
+        )
+
+    def test_retryable_status_codes_with_default_context(self) -> None:
+        """Test retryable status codes with default context."""
         mock_response = MagicMock()
         mock_response.status_code = 500
         mock_response.text = "Internal server error"
@@ -178,7 +198,26 @@ class TestHandleHttpError:
             handle_http_error(mock_http_error, "test-msg-123")
 
         assert str(exc_info.value.status_code) == "500"
-        assert "HTTP 500 in unknown" in exc_info.value.response_text
+        assert exc_info.value.response_text == "HTTP 500 in unknown: Non-FHIR response"
+
+    def test_retryable_status_codes_with_custom_context(self) -> None:
+        """Test retryable status codes with custom context."""
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.text = "Too Many Requests"
+        mock_response.headers = {"content-type": "text/plain"}
+        mock_response.json.side_effect = Exception("Not JSON")
+
+        mock_http_error = MagicMock(spec=requests.exceptions.HTTPError)
+        mock_http_error.response = mock_response
+
+        with pytest.raises(RetryableProcessingError) as exc_info:
+            handle_http_error(mock_http_error, "test-msg-123", "bulk import")
+
+        assert str(exc_info.value.status_code) == "429"
+        assert (
+            exc_info.value.response_text == "HTTP 429 in bulk import: Non-FHIR response"
+        )
 
     def test_unknown_status_codes(self) -> None:
         """Test unknown status codes raise PermanentProcessingError."""
@@ -195,7 +234,10 @@ class TestHandleHttpError:
             handle_http_error(mock_http_error, "test-msg-123")
 
         assert str(exc_info.value.status_code) == "418"
-        assert "Unknown HTTP 418 in unknown" in exc_info.value.response_text
+        assert (
+            exc_info.value.response_text
+            == "Unknown HTTP 418 in unknown: Non-FHIR response"
+        )
 
     def test_operation_outcome_summary_fhir(self) -> None:
         """Test operation outcome summary for FHIR response."""
@@ -216,10 +258,13 @@ class TestHandleHttpError:
         with pytest.raises(PermanentProcessingError) as exc_info:
             handle_http_error(mock_http_error, "test-msg-123")
 
-        assert "OperationOutcome: 2 issues" in exc_info.value.response_text
+        assert (
+            exc_info.value.response_text
+            == "HTTP 400 in unknown: OperationOutcome: 2 issues"
+        )
 
-    def test_custom_error_context(self) -> None:
-        """Test handle_http_error with custom error context."""
+    def test_custom_error_context_with_organization_lookup(self) -> None:
+        """Test handle_http_error with organization lookup context."""
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.headers = {"content-type": "text/plain"}
@@ -231,7 +276,10 @@ class TestHandleHttpError:
         with pytest.raises(PermanentProcessingError) as exc_info:
             handle_http_error(mock_http_error, "test-msg-123", "organization lookup")
 
-        assert "HTTP 404 in organization lookup" in exc_info.value.response_text
+        assert (
+            exc_info.value.response_text
+            == "HTTP 404 in organization lookup: Non-FHIR response"
+        )
 
     def test_http_error_without_response(self) -> None:
         """Test handle_http_error when HTTPError has no response."""
@@ -243,7 +291,7 @@ class TestHandleHttpError:
 
         # Should default to 500 when no response available
         assert str(exc_info.value.status_code) == "500"
-        assert "HTTP 500 in unknown" in exc_info.value.response_text
+        assert exc_info.value.response_text == "HTTP 500 in unknown: Non-FHIR response"
 
 
 class TestHandlePermanentError:
