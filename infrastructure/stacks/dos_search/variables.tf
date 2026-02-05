@@ -125,3 +125,25 @@ variable "gateway_responses" {
   # Use null default so we can compute from locals (file() not allowed in var defaults)
   default = null
 }
+
+#####################################################
+
+# WAF (REGIONAL) for API Gateway
+
+variable "waf_log_retention_days" {
+  description = "Number of days to retain CloudWatch logs for the dos-search WAF"
+  type        = number
+  default     = 30
+}
+
+variable "waf_allowed_country_codes" {
+  description = "Allowed country codes for dos-search API access (requests from other countries are blocked)"
+  type        = list(string)
+  default     = ["GB", "JE", "IM"]
+}
+
+variable "waf_hostile_country_codes" {
+  description = "Country codes to explicitly block. If empty, no hostile-country rule is created."
+  type        = list(string)
+  default     = []
+}
