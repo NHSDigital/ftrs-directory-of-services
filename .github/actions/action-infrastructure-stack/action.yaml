@@ -69,7 +69,7 @@ runs:
         export WORKSPACE=${{ inputs.workspace }}
         export PROJECT=${{ inputs.project }}
         export RELEASE_TAG=${{ inputs.release_tag }}
-        export SPLUNK_COLLECTOR_URL: ${{ inputs.splunk_collector_url }}
-        export SPLUNK_HEC_ENDPOINT: ${{ inputs.splunk_hec_endpoint }}
-        export SPLUNK_HEC_TOKEN: ${{ inputs.splunk_hec_token }}
+        export SPLUNK_COLLECTOR_URL=${{ inputs.splunk_collector_url }}
+        export SPLUNK_HEC_ENDPOINT=${{ inputs.splunk_hec_endpoint }}
+        export SPLUNK_HEC_TOKEN=${{ inputs.splunk_hec_token }}
         /bin/bash ./scripts/workflow/action-infra-stack.sh
