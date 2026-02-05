@@ -8,8 +8,8 @@ Feature: API DoS Service Search APIM
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-@test
-  Scenario: I search for GP Endpoint by ODS Code via APIM with valid headers and query parameters
+
+  Scenario Outline: I search for GP Endpoint by ODS Code via APIM with valid headers and query parameters
     When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -22,7 +22,7 @@ Feature: API DoS Service Search APIM
 
 
 @manual
-  Scenario: I search for GP Endpoint by ODS Code via APIM with invalid header and valid query parameters
+  Scenario Outline: I search for GP Endpoint by ODS Code via APIM with invalid header and valid query parameters
     When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource

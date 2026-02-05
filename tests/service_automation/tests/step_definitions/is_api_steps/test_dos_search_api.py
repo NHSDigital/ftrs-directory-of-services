@@ -75,6 +75,29 @@ def dns_resolvable(api_name, env, workspace):
 
 @when(
     parsers.re(
+        r'I request data from the "(?P<api_name>[^"]+)" endpoint "(?P<resource_name>[^"]+)" with header "(?P<header_params>[^"]+)" with query params "(?P<params>[^"]+)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_get_with_headers_and_params(
+    api_request_context_mtls,
+    api_name: str,
+    params: str,
+    resource_name: str,
+    header_params: str,
+):
+    """Send request to backend with headers and query params."""
+    url = get_url(api_name) + "/" + resource_name
+
+    # Parse headers - support both "Key: Value" and "Key=Value" formats
+    headers = _convert_params_str_to_dict(header_params)
+    logger.info(f"Requesting URL: {url} with params: {params} and headers: {headers}")
+
+    return _send_api_request(api_request_context_mtls, url, params, headers)
+
+
+@when(
+    parsers.re(
         r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'
     ),
     target_fixture="fresponse",
