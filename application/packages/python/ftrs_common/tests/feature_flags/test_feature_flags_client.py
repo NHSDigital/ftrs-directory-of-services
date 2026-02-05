@@ -9,6 +9,7 @@ from ftrs_common.feature_flags.feature_flags_client import (
     CACHE_TTL_SECONDS,
     FeatureFlagError,
     FeatureFlagsClient,
+    LocalFlagsClient,
     _get_client,
     is_enabled,
 )
@@ -54,6 +55,31 @@ def mock_feature_flags_class(mocker: MockerFixture) -> MagicMock:
 def mock_logger(mocker: MockerFixture) -> MagicMock:
     """Mock the logger."""
     return mocker.patch("ftrs_common.feature_flags.feature_flags_client.logger")
+
+
+class TestLocalFlagsClient:
+    def test_init_sets_default_flags(self, mocker: MockerFixture) -> None:
+        mocker.patch.dict("os.environ", {}, clear=False)
+        client = LocalFlagsClient()
+        assert "data_migration_search_triage_code_enabled" in client.flags
+        assert client.flags["data_migration_search_triage_code_enabled"] is True
+
+    def test_is_enabled_returns_false_when_env_var_is_false(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(
+            "os.environ", {"DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED": "FALSE"}
+        )
+        client = LocalFlagsClient()
+        assert client.is_enabled("data_migration_search_triage_code_enabled") is False
+
+    def test_is_enabled_returns_default_for_missing_flag(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict("os.environ", {}, clear=False)
+        client = LocalFlagsClient()
+        assert client.is_enabled("nonexistent_flag", default=True) is True
+        assert client.is_enabled("nonexistent_flag", default=False) is False
 
 
 class TestFeatureFlagError:
@@ -362,6 +388,42 @@ class TestIsEnabled:
 
 
 class TestModuleFunctions:
+    def test_get_client_returns_local_client_for_local_env(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
+        mock.return_value.env = "local"
+        mock.return_value.workspace = None
+        _get_client.cache_clear()
+
+        client = _get_client()
+        assert isinstance(client, LocalFlagsClient)
+
+    def test_get_client_returns_local_client_for_dev_with_workspace(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
+        mock.return_value.env = "dev"
+        mock.return_value.workspace = "test-workspace"
+        _get_client.cache_clear()
+
+        client = _get_client()
+        assert isinstance(client, LocalFlagsClient)
+
+    def test_get_client_returns_feature_flags_client_for_dev_without_workspace(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
+        mock.return_value.env = "dev"
+        mock.return_value.workspace = None
+        mock.return_value.appconfig_application_id = "test-app"
+        mock.return_value.appconfig_environment_id = "test-env"
+        mock.return_value.appconfig_configuration_profile_id = "test-profile"
+        _get_client.cache_clear()
+
+        client = _get_client()
+        assert isinstance(client, FeatureFlagsClient)
+
     def test_get_client_returns_cached_instance(self, mock_settings: MagicMock) -> None:
         client1 = _get_client()
         client2 = _get_client()

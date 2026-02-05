@@ -173,7 +173,9 @@ class FeatureFlagsClient:
 def _get_client() -> FeatureFlagsClientProtocol:
     """Get a cached feature flags client instance."""
     settings = Settings()
-    if settings.env == "local" or (settings.env == "dev" and settings.workspace is not None):
+    if settings.env == "local" or (
+        settings.env == "dev" and settings.workspace is not None
+    ):
         return LocalFlagsClient()
     return FeatureFlagsClient()
 
