@@ -32,6 +32,10 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
         statement {
           geo_match_statement {
             country_codes = var.waf_allowed_country_codes
+            forwarded_ip_config {
+              header_name       = "X-Forwarded-For"
+              fallback_behavior = "NO_MATCH"
+            }
           }
         }
       }
@@ -58,6 +62,10 @@ resource "aws_wafv2_web_acl" "dos_search_web_acl" {
       statement {
         geo_match_statement {
           country_codes = var.waf_hostile_country_codes
+          forwarded_ip_config {
+            header_name       = "X-Forwarded-For"
+            fallback_behavior = "MATCH"
+          }
         }
       }
 
