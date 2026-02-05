@@ -89,7 +89,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the role extensions to contain "<primary_role_code>" and "<non_primary_role_codes>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -112,7 +112,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid roleCode extension structure
     Given that the stack is "organisation"
     When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -128,7 +128,8 @@ Feature: Organization API Endpoint
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
-    Then I receive a status code "422" in response
+    Then I receive a status code "400
+    " in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -167,7 +168,7 @@ Feature: Organization API Endpoint
 
   Scenario: Update Organization with unexpected field in payload
     When I add an extra field "newfield" with value "foobar" to the payload and update the organization
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -208,7 +209,7 @@ Feature: Organization API Endpoint
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     And I have a valid organization payload with identifier "<identifier_data>"
     When I update the organization details with the identifier
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -228,7 +229,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -274,7 +275,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "<field>" field to "<value>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -325,7 +326,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I attempt to update the "<actual_type>" in telecom with "<update_type>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -343,7 +344,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization with an invalid telecom field "<invalid_scenario>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -360,7 +361,7 @@ Feature: Organization API Endpoint
 
   Scenario: Reject Organization Update with Telecom Field containing extra field
     When I update the organization with an invalid telecom field "additional_field"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
@@ -387,7 +388,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid OrganisationRole extension URL
     Given that the stack is "organisation"
     When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -402,7 +403,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid TypedPeriod extension URL
     Given that the stack is "organisation"
     When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -417,7 +418,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid TypedPeriod extension structure for legal dates content
     Given that the stack is "organisation"
     When I update the organization with an invalid TypedPeriod extension "<invalid_scenario>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -436,7 +437,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update with invalid date format
     Given that the stack is "organisation"
     When I update the organization with invalid date format "<date_field>" value "<invalid_date>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -457,7 +458,7 @@ Feature: Organization API Endpoint
   Scenario Outline: Reject Organization update when start date matches end date
     Given that the stack is "organisation"
     When I update the organization with legal dates start "2025-01-01" and end "2025-01-01"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
@@ -501,7 +502,7 @@ Feature: Organization API Endpoint
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I set the "identifier" field to "<value>"
-    Then I receive a status code "422" in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "invalid"
