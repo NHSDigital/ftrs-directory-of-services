@@ -29,6 +29,9 @@ def extract_operation_outcome(response: requests.Response) -> Dict[str, Any]:
         "issue_details": [],
     }
 
+    if response is None:
+        return outcome_info
+
     try:
         if response.headers.get("content-type", "").startswith("application/"):
             response_data = response.json()
@@ -215,10 +218,8 @@ def handle_http_error(
     """
     response = http_error.response
 
-    if response and hasattr(response, "status_code"):
-        status_code = response.status_code
-    else:
-        status_code = 500
+    # Extract status code - use 'is not None' instead of truthy check since Response can be falsy
+    status_code = getattr(response, "status_code", 500) if response is not None else 500
 
     operation_outcome = extract_operation_outcome(http_error.response)
     outcome_summary = _get_operation_outcome_summary(operation_outcome)
