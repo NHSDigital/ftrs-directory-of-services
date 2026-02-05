@@ -51,6 +51,8 @@ else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 RETENTION_TAG := retention=ephemeral
 endif
+ARTEFACT_DEVELOPMENT_PREFIX := $(patsubst $(ARTEFACT_BUCKET)/%,%,$(ARTEFACT_DEVELOPMENT_PATH))
+RETENTION_VALUE := $(patsubst retention=%,%,$(RETENTION_TAG))
 
 # ==============================================================================
 # Common Targets
@@ -152,14 +154,20 @@ endif
 publish: ## Publish artifacts to S3 development path
 ifdef LAMBDA_SUBDIRS
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
-	$(foreach lambda,$(LAMBDA_SUBDIRS),aws s3 cp $(BUILD_DIR)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION);) aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	$(foreach lambda,$(LAMBDA_SUBDIRS),aws s3 cp $(BUILD_DIR)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip --checksum-algorithm SHA256 --region $(AWS_REGION); aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION);)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(DEPENDENCY_LAYER_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/build-info.json" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 else
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(LAMBDA_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(DEPENDENCY_LAYER_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/build-info.json" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 endif
 

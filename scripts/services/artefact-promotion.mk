@@ -38,7 +38,10 @@ define update-build-info
 	tmp_dir=$$(mktemp -d); \
 	aws s3 cp s3://$(1)/build-info.json $$tmp_dir/build-info.json --region $(AWS_REGION); \
 	jq '.release_version = "$(2)"' $$tmp_dir/build-info.json > $$tmp_dir/build-info.updated.json; \
-	aws s3 cp $$tmp_dir/build-info.updated.json s3://$(1)/build-info.json --tagging "$(3)" --region $(AWS_REGION); \
+	aws s3 cp $$tmp_dir/build-info.updated.json s3://$(1)/build-info.json --region $(AWS_REGION); \
+	key_prefix=$$(echo "$(1)" | sed 's|^$(ARTEFACT_BUCKET)/||'); \
+	retention_value=$$(echo "$(3)" | sed 's/^retention=//'); \
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key_prefix/build-info.json" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION); \
 	rm -rf $$tmp_dir
 endef
 
@@ -63,7 +66,7 @@ endif
 
 stage: set-prerelease-version
 	$(call log_start,Staging release $(PRERELEASE_TAG))
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --metadata-directive COPY --tagging-directive REPLACE --tagging "$(RETENTION_TAG_EPHEMERAL)" --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
 	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
 	@echo "Updating retention tags for staging (keep last $(RETAIN_VERSIONS) versions)..."
@@ -84,7 +87,7 @@ stage: set-prerelease-version
 
 release-candidate: set-prerelease-version
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
-	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --metadata-directive COPY --tagging-directive REPLACE --tagging "$(RETENTION_TAG_EPHEMERAL)" --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))
 	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
 	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
@@ -108,6 +111,10 @@ release:
 	$(eval RELEASE_VERSION_CLEAN := $(shell echo "$(RELEASE_TAG)" | sed 's/-rc\.[0-9]*$$//'))
 	$(eval ARTEFACT_RELEASE_PATH := $(ARTEFACT_BUCKET)/releases/$(RELEASE_VERSION_CLEAN))
 	$(call log_start,Promoting from release-candidates/$(RELEASE_TAG) to releases/$(RELEASE_VERSION_CLEAN))
-	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --metadata-directive COPY --tagging-directive REPLACE --tagging "$(RETENTION_TAG_RELEASE)" --region $(AWS_REGION)
+	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN),$(RETENTION_TAG_RELEASE))
+	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "releases/$(RELEASE_VERSION_CLEAN)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+	for key in $$keys; do \
+		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION); \
+	done
 	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
