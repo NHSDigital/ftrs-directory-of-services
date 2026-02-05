@@ -170,8 +170,5 @@ data "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
 }
 
 data "aws_prefix_list" "cloudfront_prefix_list" {
-  filter {
-    name   = "ui-cloudfront-prefix-list"
-    values = ["com.amazonaws.global.cloudfront.origin-facing"]
-  }
+  name = "com.amazonaws.global.cloudfront.origin-facing"
 }
