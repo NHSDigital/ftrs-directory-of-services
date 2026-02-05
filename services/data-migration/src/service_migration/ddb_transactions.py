@@ -1,9 +1,11 @@
+from datetime import datetime, timezone
 from typing import Self
 
 from boto3.dynamodb.types import TypeSerializer
 from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_table_name
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel
 
@@ -62,6 +64,7 @@ class ServiceTransactionBuilder:
         self.service_id = service_id
         self.serialiser = TypeSerializer()
         self.items = []
+        self.current_time = datetime.now(timezone.utc)
 
     def add_organisation(self, organisation: Organisation | None) -> Self:
         """
@@ -446,6 +449,15 @@ class ServiceTransactionBuilder:
             table_name: The name of the DynamoDB table.
             expressions: The DynamoDB update expressions.
         """
+        # Add audit timestamps to all UPDATE operations
+        expressions.add_audit_timestamps(
+            timestamp=self.current_time,
+            updated_by=AuditEvent(
+                type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
+            ),
+            serializer=self.serialiser,
+        )
+
         update_item: dict = {
             "TableName": get_table_name(table_name),
             "Key": {
