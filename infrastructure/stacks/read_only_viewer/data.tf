@@ -90,8 +90,5 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 data "aws_prefix_list" "cloudfront_prefix_list" {
-  filter {
-    name   = "readonly-viewer-cloudfront-prefix-list"
-    values = ["com.amazonaws.global.cloudfront.origin-facing"]
-  }
+  name = "com.amazonaws.global.cloudfront.origin-facing"
 }
