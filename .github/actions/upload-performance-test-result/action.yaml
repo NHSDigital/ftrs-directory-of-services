@@ -23,6 +23,7 @@ runs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
+            --comment "Upload performance test results to S3 for environment ${{ inputs.environment }}" \
             --parameters 'commands=["cd /home/ssm-user",
                         "make upload-performance-test-result ENVIRONMENT=${{ inputs.environment }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.s3-bucket }}"]' \
             --query "Command.CommandId" \
