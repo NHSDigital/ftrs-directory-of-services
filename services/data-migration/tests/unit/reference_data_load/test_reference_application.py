@@ -22,6 +22,7 @@ def test_application_init_with_config(
         mock_reference_data_config.db_config.connection_string, echo=False
     )
 
+
 def test_handle_triagecode_skips_when_feature_flag_disabled(
     mocker: MockerFixture,
     mock_reference_data_config: ReferenceDataLoadConfig,
