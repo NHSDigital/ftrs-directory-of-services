@@ -21,6 +21,8 @@ else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
 RETENTION_TAG := retention=ephemeral
 endif
+ARTEFACT_DEVELOPMENT_PREFIX := $(patsubst $(ARTEFACT_BUCKET)/%,%,$(ARTEFACT_DEVELOPMENT_PATH))
+RETENTION_VALUE := $(patsubst retention=%,%,$(RETENTION_TAG))
 
 ARTEFACT_STAGING_PATH := $(ARTEFACT_BUCKET)/staging/$(RELEASE_TAG)
 
@@ -76,8 +78,10 @@ unit-test:
 
 publish:
 	@echo "Publishing Python packages layer to $(ARTEFACT_DEVELOPMENT_PATH)..."
-	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PACKAGES_LAYER_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(PACKAGES_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(PACKAGES_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(PACKAGES_LAYER_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --region $(AWS_REGION)
+	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/build-info.json" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
 	@echo "Published successfully"
 
 help:
