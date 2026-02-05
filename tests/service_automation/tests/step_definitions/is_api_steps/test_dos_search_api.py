@@ -56,6 +56,8 @@ CODING_MAP = {
 # Load feature file
 scenarios(
     "./is_api_features/dos_search_backend.feature",
+    "./is_api_features/dos_search_backend_headers.feature",
+    "./is_api_features/dos_search_backend_parameters.feature",
     "./is_api_features/dos_search_apim.feature",
     "./is_api_features/dos_search_apim_security.feature",
 )

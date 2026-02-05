@@ -45,7 +45,7 @@ Feature: API DoS Service Search Backend
     And the bundle contains "4" "Endpoint" resources
 
 
-@test
+
   Scenario Outline: I search for GP Endpoint by ODS Code with valid query parameters and invalid headers
     When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "400" in response
@@ -145,6 +145,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
 
 
+
   # New health check scenario for GET /_status
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
     When I request data from the "dos-search" endpoint "_status" with query params ""
@@ -178,3 +179,4 @@ Feature: API DoS Service Search Backend
       | unexpected_param | unexpected_value |
       | foo              | bar              |
       | junk             | 123              |
+

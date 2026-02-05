@@ -1,0 +1,126 @@
+@is-api @ftrs-pipeline @dos-search-ods-code-api
+Feature: API DoS Service Search Backend
+# Feature: Dos-search api tests against the api-gateway to validate the request parameters and the response
+
+  Background: Set stack and seed repo
+    Given that the stack is "dos-search"
+    And the dns for "dos-search" is resolvable
+    And I have a organisation repo
+    And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
+
+  Scenario: I search for GP Endpoint by ODS Code with for an ODS code that does not exist
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|X000081046"
+    Then I receive a status code "200" in response
+    And the response body contains a bundle
+    And the bundle contains "0" "Organization" resources
+    And the bundle contains "0" "Endpoint" resources
+
+
+  Scenario Outline: I search for GP Endpoint with invalid ODS code
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier value: ODS code '<ods_code>' must follow format ^[A-Za-z0-9]{5,12}$"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                                                          | ods_code      |
+      | identifier=odsOrganisationCode\|&_revinclude=Endpoint:organization              |               |
+      | identifier=odsOrganisationCode\|0123&_revinclude=Endpoint:organization          | 0123          |
+      | identifier=odsOrganisationCode\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
+      | identifier=odsOrganisationCode\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
+
+
+  Scenario Outline: I search for GP Endpoint with invalid _revinclude value
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with diagnostics "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                                                      |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
+      | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
+
+
+  Scenario Outline: I search for GP Endpoint with invalid identifier system
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "code-invalid"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'odsOrganisationCode'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                                                             | identifier_system          |
+      | identifier=\|M00081046&_revinclude=Endpoint:organization                           |                            |
+      | identifier=invalidSystem\|M00081046&_revinclude=Endpoint:organization              | invalidSystem              |
+      | identifier=odsOrganisationCodeInvalid\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCodeInvalid |
+
+
+  Scenario Outline: I search for GP Endpoint with 1 missing parameter
+    When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | params                                    | missing_param |
+      | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
+      | _revinclude=Endpoint:organization         | identifier    |
+
+
+
+  Scenario: I search for GP Endpoint with 2 missing parameters
+    When I request data from the "dos-search" endpoint "Organization" with query params ""
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "2" issues
+    And the OperationOutcome has issues all with severity "error"
+    And the OperationOutcome has issues all with code "required"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+
+
+  Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&<unexpected_param>=<unexpected_value>"
+    Then I receive a status code "400" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with diagnostics "Unexpected query parameter(s): <unexpected_param>. Only 'identifier' and '_revinclude' are allowed."
+    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    Examples:
+      | unexpected_param | unexpected_value |
+      | foo              | bar              |
+      | junk             | 123              |
+
+
+  # New health check scenario for GET /_status
+  Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
+    When I request data from the "dos-search" endpoint "_status" with query params ""
+    Then I receive a status code "200" in response
+
+
+  # New error mapping scenarios at the gateway level
+  Scenario: I call an endpoint that does not exist and receive a 404 OperationOutcome
+    When I request data from the "dos-search" endpoint "DoesNotExist" with query params ""
+    Then I receive a status code "404" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "not-supported"
+    And the OperationOutcome contains an issue with diagnostics "Unsupported service: /DoesNotExist"
+    And the OperationOutcome contains an issue with details for UNSUPPORTED_SERVICE coding
