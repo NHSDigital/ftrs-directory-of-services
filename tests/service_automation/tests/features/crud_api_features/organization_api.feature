@@ -128,8 +128,7 @@ Feature: Organization API Endpoint
 
   Scenario Outline: Update Organization with missing "<field>" field
     When I remove the "<field>" field from the payload and update the organization
-    Then I receive a status code "400
-    " in response
+    Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
