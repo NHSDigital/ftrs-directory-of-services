@@ -15,6 +15,22 @@ Feature: API DoS Service Search Backend
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
 
+  Scenario: I search for GP Endpoint by ODS Code with valid query parameters and headers
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    Then I receive a status code "200" in response
+    And the response body contains a bundle
+    And the bundle contains "1" "Organization" resources
+    And the bundle contains "4" "Endpoint" resources
+
+
+
+  Scenario: I search for GP Endpoint by ODS Code with for an ODS code that does not exist
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|X000081046"
+    Then I receive a status code "200" in response
+    And the response body contains a bundle
+    And the bundle contains "0" "Organization" resources
+    And the bundle contains "0" "Endpoint" resources
+
 
   Scenario Outline: I search for GP Endpoint with invalid ODS code
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"

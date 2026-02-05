@@ -2,3 +2,10 @@
 
 cd9c0efec38c5d63053dd865e5d4e207c0760d91:docs/guides/Perform_static_analysis.md:generic-api-key:37
 bbff5814c684b5d2b05619db96d302f6f6d038fc:application/packages/python/ftrs_data_layer/legacy_model.py:apikey:200
+
+# Test fixtures - not real secrets
+a16b558a:services/dos-search/tests/unit/functions/test_api_gateway_errors.py:generic-api-key:182
+a16b558a:services/dos-search/tests/unit/functions/ftrs_service/fhir_mapper/test_fhir_schema_validation.py:generic-api-key:247
+f42a9cd1:services/dos-search/tests/unit/functions/test_api_gateway_errors.py:generic-api-key:182
+fc58e0cf:services/dos-search/tests/unit/functions/ftrs_service/fhir_mapper/test_fhir_schema_validation.py:generic-api-key:247
+5f14855e:services/dos-search/tests/unit/functions/test_api_gateway_errors.py:generic-api-key:182

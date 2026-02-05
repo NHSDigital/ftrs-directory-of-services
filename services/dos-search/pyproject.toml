@@ -40,6 +40,7 @@ ruff = "^0.14.2"
 pytest = "^8.3.5"
 pytest-mock = "^3.14.0"
 pytest-cov = "^6.1.1"
+requests = "^2.32.0"
 
 [tool.poetry.scripts]
 dos-search-function = "functions.dos_search_ods_code_function:lambda_handler"
@@ -80,4 +81,8 @@ addopts = [
 ]
 filterwarnings = [
     "ignore:.*model_fields.*deprecated.*:DeprecationWarning:fhir_core.*:",
+]
+markers = [
+    "smoke: smoke tests for deployed environments (deselect with '-m \"not smoke\"')",
+    "unit: unit tests (default)",
 ]
