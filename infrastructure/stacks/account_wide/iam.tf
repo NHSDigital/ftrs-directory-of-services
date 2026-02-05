@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
         Action = [
           "logs:PutLogEvents"
         ]
-        Resource = "*"
+        Resource = "${aws_cloudwatch_log_group.firehose_error_log_group.arn}"
       }
     ]
   })

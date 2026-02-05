@@ -276,7 +276,7 @@ variable "enable_firehose_s3_kms_encryption" {
 variable "firehose_logs_retention_in_days" {
   description = "Number of days to retain Firehose logs in CloudWatch Log Group"
   type        = number
-  default     = 14
+  default     = 365
 }
 
 variable "firehose_error_log_group_name" {
