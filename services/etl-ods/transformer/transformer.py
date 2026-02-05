@@ -78,7 +78,7 @@ def _transform_organisation(organisation: dict, message_id: str) -> str:
         raise PermanentProcessingError(
             message_id=message_id,
             status_code=400,
-            response_text="No ODS code identifier found in organisation after transformation",
+            response_text="No ODS code identifier found in organization",
         )
 
     ods_code = fhir_organisation.identifier[0].value

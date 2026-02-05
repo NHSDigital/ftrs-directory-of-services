@@ -92,7 +92,7 @@ Feature: ETL Event Flow - Error Handling
   Scenario: Transformer handles organisation with no identifier
     Given I have a transform message with organisation missing identifier
     When the "transform" lambda processes the message
-    Then the logs for the message should contain "No ODS code identifier found in organisation after transformation"
+    Then the logs for the message should contain "No ODS code identifier"
     Then the logs for the message should contain "Permanent failure (status 400)"
     And the logs for the message should contain "consumed immediately"
     And the "transform" queue should not have message

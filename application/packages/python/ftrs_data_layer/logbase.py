@@ -438,10 +438,7 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Processing {total_records} record(s) in transformer.",
     )
-    ETL_TRANSFORMER_030 = LogReference(
-        level=ERROR,
-        message="Transformer processing completed: {retry_count} out of {total_records} messages failed.",
-    )
+
     ETL_TRANSFORMER_031 = LogReference(
         level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",

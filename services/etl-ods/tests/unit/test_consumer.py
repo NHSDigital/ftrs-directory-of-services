@@ -8,6 +8,7 @@ from pytest_mock import MockerFixture
 
 from common.exceptions import (
     PermanentProcessingError,
+    RetryableProcessingError,
 )
 from consumer.consumer import (
     consumer_lambda_handler,
@@ -157,30 +158,31 @@ class TestProcessMessageAndSendRequest:
         assert missing_field in error.response_text
 
     @pytest.mark.parametrize(
-        "status_code,error_message",
+        "status_code,error_message,expected_exception",
         [
-            (429, "429 Too Many Requests"),
-            (404, "404 Not Found"),
-            (400, "400 Bad Request"),
-            (500, "500 Internal Server Error"),
-            (503, "503 Service Unavailable"),
+            (429, "429 Too Many Requests", RetryableProcessingError),
+            (404, "404 Not Found", PermanentProcessingError),
+            (400, "400 Bad Request", PermanentProcessingError),
+            (500, "500 Internal Server Error", RetryableProcessingError),
+            (503, "503 Service Unavailable", RetryableProcessingError),
         ],
     )
-    def test_http_errors_propagate_to_sqs_processor(
+    def test_http_errors_handled_by_centralized_error_handling(
         self,
         mock_consumer_dependencies: dict,
         sample_record: dict,
         status_code: int,
         error_message: str,
+        expected_exception: type,
     ) -> None:
-        """Test that HTTP errors propagate to sqs_processor for handling."""
+        """Test that HTTP errors are handled by centralized error handling."""
 
         mocks = mock_consumer_dependencies
         http_error = create_http_error(status_code, error_message)
         mocks["make_request"].side_effect = http_error
 
-        # HTTP errors should now propagate instead of being caught and mapped
-        with pytest.raises(requests.HTTPError):
+        # HTTP errors should now be handled by centralized error handling
+        with pytest.raises(expected_exception):
             process_message_and_send_request(sample_record)
 
     def test_successful_processing_with_different_org_id(
@@ -226,16 +228,16 @@ class TestProcessMessageAndSendRequest:
         assert exc_info.value.message_id == "test-msg"
         assert str(exc_info.value.status_code) == "400"
 
-    def test_permanent_processing_error_is_reraised(
+    def test_permanent_processing_error_for_404(
         self, mock_consumer_dependencies: dict, sample_record: dict
     ) -> None:
-        """Test that HTTP errors propagate instead of being converted."""
+        """Test that 404 HTTP errors are converted to PermanentProcessingError."""
         mocks = mock_consumer_dependencies
         http_error = create_http_error(404, "404 Not Found")
         mocks["make_request"].side_effect = http_error
 
-        # HTTP errors should propagate instead of being converted to PermanentProcessingError
-        with pytest.raises(requests.HTTPError):
+        # 404 errors should be converted to PermanentProcessingError by centralized error handling
+        with pytest.raises(PermanentProcessingError):
             process_message_and_send_request(sample_record)
 
     @pytest.mark.parametrize(
