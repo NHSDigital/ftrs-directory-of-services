@@ -66,6 +66,7 @@ runs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
+            --comments "Run performance test for ${{ inputs.test-type }} against ${{ inputs.endpoint-type }} endpoint" \
             --parameters 'commands=["cd /home/ssm-user",
                         "nohup make run-performance-test AWS_REGION=${{ inputs.aws-region }} ENVIRONMENT=${{ inputs.environment }} APIM_ENV=${{ inputs.apim-env }} WORKSPACE=${{ inputs.workspace }} ENDPOINT_TYPE=${{ inputs.endpoint-type }} TEST_TYPE=${{ inputs.test-type }} ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} STOP_INSTANCE=${{ inputs.stop-instance }} > ./performance_run.log"]' \
             --query "Command.CommandId" \
