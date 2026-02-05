@@ -7,47 +7,47 @@
 set -e
 
 # Validate required environment variables
-if [ -z "$API_NAME" ]; then
+if [[ -z "$API_NAME" ]]; then
     echo "Error: API_NAME environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$PROXY_ENV" ]; then
+if [[ -z "$PROXY_ENV" ]]; then
     echo "Error: PROXY_ENV environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$ACCESS_TOKEN" ]; then
+if [[ -z "$ACCESS_TOKEN" ]]; then
     echo "Error: ACCESS_TOKEN environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$MODIFIED_SPEC_PATH" ]; then
+if [[ -z "$MODIFIED_SPEC_PATH" ]]; then
     echo "Error: MODIFIED_SPEC_PATH environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$PROXYGEN_URL" ]; then
+if [[ -z "$PROXYGEN_URL" ]]; then
     echo "Error: PROXYGEN_URL environment variable is required" >&2
     exit 1
 fi
 
 # Map internal API names to Proxygen API names
 PROXYGEN_API_NAME="${API_NAME}"
-if [ "$API_NAME" = "dos-ingest" ]; then
+if [[ "$API_NAME" = "dos-ingest" ]]; then
     PROXYGEN_API_NAME="uec-dos-ingestion"
 fi
 
 echo "Using internal API name: $API_NAME" >&2
 echo "Mapped Proxygen API name: $PROXYGEN_API_NAME" >&2
 
-if [ ! -f "$MODIFIED_SPEC_PATH" ]; then
+if [[ ! -f "$MODIFIED_SPEC_PATH" ]]; then
     echo "Error: Modified spec file not found at $MODIFIED_SPEC_PATH" >&2
     exit 1
 fi
 
 # Set instance name based on workspace
-if [ -n "$WORKSPACE" ]; then
+if [[ -n "$WORKSPACE" ]]; then
     # If workspace is set, deploy a workspaced proxy
     # e.g., dos-search-ftrs-000_FHIR_R4
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
@@ -67,7 +67,7 @@ RETRY_DELAY=2
 
 # Attempt deployment with retries
 for attempt in $(seq 1 $MAX_RETRIES); do
-    if [ $attempt -gt 1 ]; then
+    if [[ $attempt -gt 1 ]]; then
         echo "Retry attempt $attempt of $MAX_RETRIES..." >&2
         sleep $RETRY_DELAY
         RETRY_DELAY=$((RETRY_DELAY * 2))  # Exponential backoff
@@ -84,11 +84,11 @@ for attempt in $(seq 1 $MAX_RETRIES); do
     BODY=$(echo "$RESPONSE" | head -n-1)
 
     # Check if successful
-    if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ] || [ "$HTTP_CODE" -eq 204 ]; then
+    if [[ "$HTTP_CODE" -eq 200 ]] || [[ "$HTTP_CODE" -eq 201 ]] || [[ "$HTTP_CODE" -eq 204 ]]; then
         break
     fi
 
-    if [ $attempt -lt $MAX_RETRIES ]; then
+    if [[ $attempt -lt $MAX_RETRIES ]]; then
         echo "Request failed with HTTP $HTTP_CODE, retrying..." >&2
     fi
 done
@@ -97,11 +97,11 @@ done
 rm -f "$MODIFIED_SPEC_PATH"
 
 # Check response
-if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+if [[ "$HTTP_CODE" -eq 200 ]] || [[ "$HTTP_CODE" -eq 201 ]]; then
     echo "✓ Successfully deployed API spec to Proxygen" >&2
     echo "$BODY"
     exit 0
-elif [ "$HTTP_CODE" -eq 204 ]; then
+elif [[ "$HTTP_CODE" -eq 204 ]]; then
     echo "✓ Successfully deployed API spec to Proxygen (no content returned)" >&2
     exit 0
 else
