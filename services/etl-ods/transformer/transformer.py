@@ -10,6 +10,10 @@ from common.sqs_processor import (
     extract_record_metadata,
     validate_required_fields,
 )
+from common.sqs_request_context import (
+    extract_correlation_id_from_sqs_records,
+    setup_request_context,
+)
 from common.sqs_sender import send_messages_to_queue
 from transformer.transform import transform_to_payload
 from transformer.uuid_fetcher import fetch_organisation_uuid
@@ -137,6 +141,10 @@ def process_transformation_message_with_batching(
         return {"batchItemFailures": []}
 
     records = event.get("Records", [])
+
+    correlation_id = extract_correlation_id_from_sqs_records(records)
+    setup_request_context(correlation_id, context, ods_transformer_logger)
+
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_TRANSFORMER_029,
         total_records=len(records),

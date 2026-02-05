@@ -205,16 +205,22 @@ def _create_load_message(
             }
         )
     elif message_type == "422":
-        base_message["organisation"] = {
-            "resourceType": "Organization",
-            "identifier": [
-                {
-                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
-                    "value": "HTTP422",
-                }
-            ],
-            "name": "HTTP Error Organisation",
-        }
+        base_message.update(
+            {
+                "path": "00000000-0000-0000-0000-00000000000b",
+                "body": {
+                    "resourceType": "Organization",
+                    "id": "00000000-0000-0000-0000-00000000000b",
+                    "identifier": [
+                        {
+                            "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                            "value": "HTTP422",
+                        }
+                    ],
+                    "name": "HTTP Error Organisation",
+                },
+            }
+        )
     elif message_type == "missing_fields":
         base_message["path"] = "00000000-0000-0000-0000-00000000000c"
     elif message_type == "invalid_structure":
