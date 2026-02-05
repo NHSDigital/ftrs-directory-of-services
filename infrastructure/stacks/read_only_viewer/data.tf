@@ -90,6 +90,6 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 data "aws_prefix_list" "cloudfront_prefix_list" {
-  name   = "com.amazonaws.global.cloudfront.origin-facing"
-  region = var.aws_region_us_east_1
+  name     = "com.amazonaws.global.cloudfront.origin-facing"
+  provider = aws.us-east-1
 }
