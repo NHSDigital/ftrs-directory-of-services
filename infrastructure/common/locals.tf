@@ -54,6 +54,7 @@ locals {
     s3              = "alias/${local.project_prefix}-s3-kms"
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
+    firehose        = "alias/${local.project_prefix}-firehose-kms"
   }
 
   # Will be used by dos-search stack
