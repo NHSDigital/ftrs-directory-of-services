@@ -233,6 +233,18 @@ class TestHandleHttpError:
 
         assert "HTTP 404 in organization lookup" in exc_info.value.response_text
 
+    def test_http_error_without_response(self) -> None:
+        """Test handle_http_error when HTTPError has no response."""
+        mock_http_error = MagicMock(spec=requests.exceptions.HTTPError)
+        mock_http_error.response = None
+
+        with pytest.raises(RetryableProcessingError) as exc_info:
+            handle_http_error(mock_http_error, "test-msg-123")
+
+        # Should default to 500 when no response available
+        assert str(exc_info.value.status_code) == "500"
+        assert "HTTP 500 in unknown" in exc_info.value.response_text
+
 
 class TestHandlePermanentError:
     """Test handle_permanent_error function."""
