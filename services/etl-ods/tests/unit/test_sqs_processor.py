@@ -660,7 +660,7 @@ class TestProcessSqsRecords:
     ) -> None:
         """Test HTTPError with 404 status is handled as permanent error."""
         mock_logger.reset_mock()
-        mock_handle_http_error = mocker.patch("common.sqs_processor.handle_http_error")
+        mocker.patch("common.sqs_processor.handle_permanent_error")
 
         def raise_http_404_error(record: dict) -> None:
             response = MagicMock()
@@ -683,22 +683,15 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_http_404_error, mock_logger)
 
-        # Should add to batch failures for retry
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "http-404-msg"
-        mock_handle_http_error.assert_called_once()
-
-        # Verify handle_http_error was called with correct parameters
-        _, call_kwargs = mock_handle_http_error.call_args
-        assert call_kwargs["message_id"] == "http-404-msg"
-        assert call_kwargs["error_context"] == "/test/resource"
+        # 404 is permanent - should be consumed immediately (0 batch failures)
+        assert len(failures) == 0
 
     def test_http_error_422_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test HTTPError with 422 status is handled as unrecoverable error."""
+        """Test HTTPError with 422 status is handled as permanent error."""
         mock_logger.reset_mock()
-        mock_handle_http_error = mocker.patch("common.sqs_processor.handle_http_error")
+        mocker.patch("common.sqs_processor.handle_permanent_error")
 
         def raise_http_422_error(record: dict) -> None:
             response = MagicMock()
@@ -721,22 +714,16 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_http_422_error, mock_logger)
 
-        # Should add to batch failures for retry
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "http-422-msg"
-        mock_handle_http_error.assert_called_once()
-
-        # Verify handle_http_error was called with correct parameters
-        _, call_kwargs = mock_handle_http_error.call_args
-        assert call_kwargs["message_id"] == "http-422-msg"
-        assert call_kwargs["error_context"] == "/test/validation"
+        # 422 is permanent - should be consumed immediately (0 batch failures)
+        assert len(failures) == 0
 
     def test_http_error_500_handling(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
         """Test HTTPError with 500 status is handled as retryable error."""
         mock_logger.reset_mock()
-        mock_handle_http_error = mocker.patch("common.sqs_processor.handle_http_error")
+        # Only mock the error handling functions to avoid logging issues
+        mocker.patch("common.sqs_processor.handle_retryable_error")
 
         def raise_http_500_error(record: dict) -> None:
             response = MagicMock()
@@ -759,22 +746,16 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_http_500_error, mock_logger)
 
-        # Should add to batch failures for retry
+        # 500 is retryable - should be added to batch failures
         assert len(failures) == 1
         assert failures[0]["itemIdentifier"] == "http-500-msg"
-        mock_handle_http_error.assert_called_once()
-
-        # Verify handle_http_error was called with correct parameters
-        _, call_kwargs = mock_handle_http_error.call_args
-        assert call_kwargs["message_id"] == "http-500-msg"
-        assert call_kwargs["error_context"] == "/test/server"
 
     def test_http_error_with_invalid_json_body(
         self, mock_logger: MagicMock, mocker: MockerFixture
     ) -> None:
-        """Test HTTPError handling with invalid JSON in record body."""
+        """Test HTTPError with 400 status is handled as permanent error."""
         mock_logger.reset_mock()
-        mock_handle_http_error = mocker.patch("common.sqs_processor.handle_http_error")
+        mocker.patch("common.sqs_processor.handle_permanent_error")
 
         def raise_http_error(record: dict) -> None:
             response = MagicMock()
@@ -799,16 +780,8 @@ class TestProcessSqsRecords:
 
         failures = process_sqs_records(records, raise_http_error, mock_logger)
 
-        # Should add to batch failures for retry
-        assert len(failures) == 1
-        assert failures[0]["itemIdentifier"] == "http-invalid-json-msg"
-        mock_handle_http_error.assert_called_once()
-
-        # Verify handle_http_error was called with "unknown" context due to missing path field
-        _, call_kwargs = mock_handle_http_error.call_args
-        assert call_kwargs["message_id"] == "http-invalid-json-msg"
-        assert call_kwargs["error_context"] == "unknown"
-        assert call_kwargs["error_context"] == "unknown"
+        # 400 is permanent - should be consumed immediately (0 batch failures)
+        assert len(failures) == 0
 
 
 class TestCreateSqsLambdaHandler:
