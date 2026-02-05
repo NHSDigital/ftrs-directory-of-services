@@ -217,16 +217,6 @@ resource "aws_security_group" "dms_db_setup_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "dms_db_setup_allow_ingress_to_lambda" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
-  description       = "Allow ingress on from anywhere on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
-}
-
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_setup" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
