@@ -38,7 +38,20 @@ def fetch_organisation_uuid(ods_code: str, message_id: str) -> str | None:
             if organizations:
                 uuid = organizations[0].get("id")
                 return uuid
-            return None
+
+            # No organisation found in bundle - this is a permanent error
+            transformer_uuid_logger.log(
+                OdsETLPipelineLogBase.ETL_TRANSFORMER_033,
+                ods_code=ods_code,
+            )
+            err_msg = (
+                f"Organisation with ODS code {ods_code} not found in bundle response"
+            )
+            raise PermanentProcessingError(
+                message_id=message_id,
+                status_code=400,
+                response_text=err_msg,
+            )
 
         transformer_uuid_logger.log(
             OdsETLPipelineLogBase.ETL_TRANSFORMER_032,

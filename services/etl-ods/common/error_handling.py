@@ -215,11 +215,9 @@ def handle_http_error(
     """
     response = http_error.response
 
-    # Ensure we always have a valid status code
     if response and hasattr(response, "status_code"):
         status_code = response.status_code
     else:
-        # If we can't get the status code, treat as a general error (500)
         status_code = 500
 
     operation_outcome = extract_operation_outcome(http_error.response)

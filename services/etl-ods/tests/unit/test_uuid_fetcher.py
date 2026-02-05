@@ -1,7 +1,5 @@
 """Tests for transformer UUID fetcher module."""
 
-from http import HTTPStatus
-
 import pytest
 from pytest_mock import MockerFixture
 from requests import HTTPError
@@ -50,17 +48,20 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         return_value="http://apim-proxy",
     )
 
-    class MockResponse:
-        status_code = HTTPStatus.NOT_FOUND
+    # Create proper mock HTTP error with 404 response
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 404
+    mock_response.headers = {"content-type": "application/fhir+json"}
+    mock_response.json.return_value = {
+        "resourceType": "OperationOutcome",
+        "issue": [{"severity": "error", "code": "not-found"}],
+    }
 
-    def raise_http_error_not_found(*args: object, **kwargs: object) -> None:
-        http_err = HTTPError()
-        http_err.response = MockResponse()
-        raise http_err
+    mock_http_error = HTTPError(response=mock_response)
+    mock_http_error.response = mock_response
 
     mocker.patch(
-        "transformer.uuid_fetcher.make_apim_request",
-        side_effect=raise_http_error_not_found,
+        "transformer.uuid_fetcher.make_apim_request", side_effect=mock_http_error
     )
 
     with caplog.at_level("WARNING"):
@@ -68,6 +69,10 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
             fetch_organisation_uuid("ABC123", "test-msg-123")
         assert str(excinfo.value.status_code) == "404"
         assert excinfo.value.message_id == "test-msg-123"
+        assert (
+            "HTTP 404 in ABC123: OperationOutcome: 1 issues"
+            == excinfo.value.response_text
+        )
 
 
 def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
@@ -79,24 +84,34 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         return_value="http://apim-proxy",
     )
 
-    class MockResponse:
-        response = "Error"
-        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+    # Create proper mock HTTP error with 422 response
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 422
+    mock_response.headers = {"content-type": "application/fhir+json"}
+    mock_response.json.return_value = {
+        "resourceType": "OperationOutcome",
+        "issue": [
+            {"severity": "error", "code": "business-rule"},
+            {"severity": "warning", "code": "invalid"},
+        ],
+    }
 
-    def raise_http_error_not_found(*args: object, **kwargs: object) -> Exception:
-        http_err = HTTPError()
-        http_err.response = MockResponse()
-        raise http_err
+    mock_http_error = HTTPError(response=mock_response)
+    mock_http_error.response = mock_response
 
     mocker.patch(
-        "transformer.uuid_fetcher.make_apim_request",
-        side_effect=raise_http_error_not_found,
+        "transformer.uuid_fetcher.make_apim_request", side_effect=mock_http_error
     )
+
     with caplog.at_level("ERROR"):
         with pytest.raises(PermanentProcessingError) as excinfo:
             fetch_organisation_uuid("ABC123", "test-msg-123")
         assert str(excinfo.value.status_code) == "422"
         assert excinfo.value.message_id == "test-msg-123"
+        assert (
+            "HTTP 422 in ABC123: OperationOutcome: 2 issues"
+            == excinfo.value.response_text
+        )
 
 
 def test_fetch_organisation_uuid_invalid_resource_returned(
@@ -111,7 +126,6 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
         "transformer.uuid_fetcher.make_apim_request",
         return_value={
             "resourceType": "OperationOutcome",
-            "status_code": 200,
         },
     )
 
@@ -119,13 +133,15 @@ def test_fetch_organisation_uuid_invalid_resource_returned(
         with pytest.raises(PermanentProcessingError) as excinfo:
             fetch_organisation_uuid("XYZ999", "test-msg-123")
         assert str(excinfo.value.status_code) == "400"
-        assert "Unexpected response type" in excinfo.value.response_text
+        assert (
+            "Unexpected response type: OperationOutcome" == excinfo.value.response_text
+        )
 
 
 def test_fetch_organisation_uuid_no_organisation_returned(
-    mocker: MockerFixture,
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
+    """Test fetch_organisation_uuid raises error when no Organization found in Bundle."""
     mocker.patch(
         "transformer.uuid_fetcher.get_base_apim_api_url",
         return_value="http://apim-proxy",
@@ -139,8 +155,16 @@ def test_fetch_organisation_uuid_no_organisation_returned(
         },
     )
 
-    result = fetch_organisation_uuid("XYZ999", "test-msg-123")
-    assert result is None
+    with caplog.at_level("INFO"):
+        with pytest.raises(PermanentProcessingError) as excinfo:
+            fetch_organisation_uuid("XYZ999", "test-msg-123")
+
+        assert str(excinfo.value.status_code) == "400"
+        assert excinfo.value.message_id == "test-msg-123"
+        assert (
+            "Organisation with ODS code XYZ999 not found in bundle response"
+            == excinfo.value.response_text
+        )
 
 
 @pytest.mark.parametrize(
