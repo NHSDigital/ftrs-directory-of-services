@@ -79,7 +79,7 @@ class DynamoDBUpdateExpressions:
         """Add audit timestamp fields to the update expression.
 
         Args:
-            timestamp: ISO format timestamp datetime.
+            timestamp: datetime
             updated_by: AuditEvent object with type, value, and display fields.
             serializer: DynamoDB type serializer.
 
@@ -114,7 +114,7 @@ class DynamoDBUpdateExpressions:
     ) -> None:
         """Serialize and store audit field values."""
         self.expression_attribute_values[":lastUpdated"] = serializer.serialize(
-            timestamp
+            timestamp.isoformat()
         )
         self.expression_attribute_values[":lastUpdatedBy"] = serializer.serialize(
             updated_by.model_dump()

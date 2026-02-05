@@ -108,9 +108,9 @@ def serializer() -> TypeSerializer:
 
 
 @pytest.fixture
-def timestamp() -> str:
-    """Provide a valid ISO timestamp."""
-    return "2026-01-28T12:00:00+00:00"
+def timestamp() -> datetime:
+    """Provide a valid datetime timestamp."""
+    return datetime(2026, 1, 28, 12, 0, 0)
 
 
 @pytest.fixture
@@ -483,7 +483,9 @@ def test_add_audit_timestamps_serializes_correctly(
 
     expressions.add_audit_timestamps(timestamp, updated_by, serializer)
 
-    assert expressions.expression_attribute_values[":lastUpdated"] == {"S": timestamp}
+    assert expressions.expression_attribute_values[":lastUpdated"] == {
+        "S": timestamp.isoformat()
+    }
     assert expressions.expression_attribute_values[":lastUpdatedBy"] == {
         "M": {
             "type": {"S": "app"},

@@ -451,7 +451,7 @@ class ServiceTransactionBuilder:
         """
         # Add audit timestamps to all UPDATE operations
         expressions.add_audit_timestamps(
-            timestamp=self.current_time.isoformat(),
+            timestamp=self.current_time,
             updated_by=AuditEvent(
                 type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
             ),
