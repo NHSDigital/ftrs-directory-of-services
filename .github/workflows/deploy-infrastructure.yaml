@@ -67,7 +67,7 @@ on:
         description: "A list of the infrastructure stacks that consume feature toggle outputs"
         required: false
         default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
-        type: string  
+        type: string
     secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
@@ -134,6 +134,9 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          splunk_collector_url: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+          splunk_hec_endpoint: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+          splunk_hec_token: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6
