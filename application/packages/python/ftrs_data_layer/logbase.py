@@ -381,11 +381,11 @@ class OdsETLPipelineLogBase(LogBase):
 
     ETL_EXTRACTOR_START = LogReference(
         level=INFO,
-        message="ETL ODS Processor Lambda started.",
+        message="ETL ODS Extractor Lambda started.",
     )
     ETL_EXTRACTOR_COMPLETE = LogReference(
         level=INFO,
-        message="ETL ODS Processor Lambda completed successfully.",
+        message="ETL ODS Extractor Lambda completed successfully.",
     )
     ETL_EXTRACTOR_001 = LogReference(
         level=INFO, message="Fetching outdated organizations for date {date}."
