@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "Creating signed JWT..." >&2
 SIGNED_JWT=$(PROXYGEN_JWT_SECRETS="$PROXYGEN_JWT_SECRETS" python3 "$SCRIPT_DIR/create_jwt.py")
 
-if [ -z "$SIGNED_JWT" ]; then
+if [[ -z "$SIGNED_JWT" ]]; then
     echo "Error: Failed to create signed JWT" >&2
     exit 1
 fi
@@ -38,7 +38,7 @@ HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
 
 # Check response
-if [ "$HTTP_CODE" -ne 200 ]; then
+if [[ "$HTTP_CODE" -ne 200 ]]; then
     echo "Error: Failed to get access token (HTTP $HTTP_CODE)" >&2
     echo "Response: $BODY" >&2
     exit 1
@@ -47,7 +47,7 @@ fi
 # Extract access token
 ACCESS_TOKEN=$(echo "$BODY" | python3 -c "import sys, json; print(json.load(sys.stdin).get('access_token', ''))")
 
-if [ -z "$ACCESS_TOKEN" ]; then
+if [[ -z "$ACCESS_TOKEN" ]]; then
     echo "Error: No access token in response" >&2
     echo "Response: $BODY" >&2
     exit 1
