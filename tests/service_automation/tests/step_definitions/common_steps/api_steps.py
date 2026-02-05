@@ -75,6 +75,9 @@ def api_check_operation_outcome_issue_count(fresponse, number):
 @then(parsers.parse('the OperationOutcome contains an issue with {key} "{value}"'))
 def api_check_operation_outcome_any_issue_by_key_value(fresponse, key, value):
     response = fresponse.json()
+    for issue in response["issue"]:
+        logger.info(f"issue: {issue.get(key)}")
+        logger.info(f"value: {value}")
     assert any(issue.get(key) == value for issue in response["issue"])
 
 
