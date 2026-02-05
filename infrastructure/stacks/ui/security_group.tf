@@ -17,7 +17,7 @@ resource "aws_vpc_security_group_ingress_rule" "ui_lambda_allow_cloudfront" {
   from_port         = var.https_port
   to_port           = var.https_port
   ip_protocol       = "tcp"
-  prefix_list_id    = data.aws_prefix_list.cloudfront_prefix_list.id
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_prefix_list.id
 }
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386

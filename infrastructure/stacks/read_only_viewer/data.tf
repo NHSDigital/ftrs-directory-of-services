@@ -89,7 +89,6 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
-data "aws_prefix_list" "cloudfront_prefix_list" {
-  name     = "com.amazonaws.global.cloudfront.origin-facing"
-  provider = aws.us-east-1
+data "aws_ec2_managed_prefix_list" "cloudfront_prefix_list" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
 }
