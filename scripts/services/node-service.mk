@@ -35,9 +35,13 @@ BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
+RETENTION_TAG := retention=retain
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
+RETENTION_TAG := retention=ephemeral
 endif
+ARTEFACT_DEVELOPMENT_PREFIX := $(patsubst $(ARTEFACT_BUCKET)/%,%,$(ARTEFACT_DEVELOPMENT_PATH))
+RETENTION_VALUE := $(patsubst retention=%,%,$(RETENTION_TAG))
 
 # ------------------------------------------------------------------------------
 # Promotion paths
@@ -63,7 +67,7 @@ endif
 
 .PHONY: ensure-build-dir clean install install-dependencies format lint \
 		unit-test generate-build-info build publish deploy \
-		invalidate-cloudfront-cache stage-release promote-rc publish-release
+		invalidate-cloudfront-cache stage release-candidate release
 
 ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
@@ -109,7 +113,11 @@ build: clean ensure-build-dir generate-build-info ### Build the service
 
 publish: ## Publish artifacts to S3 development path
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)...)
-	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_DEVELOPMENT_PATH)/ --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/ s3://$(ARTEFACT_DEVELOPMENT_PATH)/ --recursive --region $(AWS_REGION)
+	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(ARTEFACT_DEVELOPMENT_PREFIX)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+	for key in $$keys; do \
+		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION); \
+	done
 	$(call log_success,Published successfully)
 
 # ------------------------------------------------------------------------------
