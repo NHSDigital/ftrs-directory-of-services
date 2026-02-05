@@ -268,7 +268,7 @@ variable "firehose_name" {
 }
 
 variable "enable_firehose_s3_kms_encryption" {
-  description = "Whether to enable KMS encryption for S3 buckets"
+  description = "Whether to enable KMS encryption for firehose S3 buckets"
   type        = bool
   default     = true
 }
