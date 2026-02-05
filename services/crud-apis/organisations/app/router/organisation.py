@@ -12,6 +12,7 @@ from fastapi import (
     Request,
 )
 from fastapi.responses import JSONResponse, Response
+from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
@@ -32,6 +33,7 @@ from organisations.app.services.validators import (
 ERROR_MESSAGE_404 = "Organisation not found"
 FHIR_MEDIA_TYPE = "application/fhir+json"
 ORGANISATION_ID_DESCRIPTION = "The internal id of the organisation"
+FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
 
 router = APIRouter()
 org_repository = get_service_repository(Organisation, "organisation")
@@ -212,6 +214,24 @@ def post_organisation(
         ],
     ),
 ) -> JSONResponse:
+    if FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    ):
+        crud_organisation_logger.log(
+            CrudApisLogBase.CRUD_API_001,
+        )
+    else:
+        crud_organisation_logger.log(
+            CrudApisLogBase.CRUD_API_002,
+        )
+        return JSONResponse(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            content={
+                "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
+                "body": "Service Unavailable: Data Migration Search Triage Code feature is disabled.",
+            },
+        )
+
     organisation = Organisation(**organisation_data.model_dump())
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_011,

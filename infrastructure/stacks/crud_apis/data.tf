@@ -85,6 +85,22 @@ data "aws_prefix_list" "dynamodb" {
   name = "com.amazonaws.${var.aws_region}.dynamodb"
 }
 
+data "aws_ssm_parameter" "appconfig_application_id" {
+  name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
+}
+
+data "aws_appconfig_configuration_profiles" "appconfig_configuration_profiles" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_appconfig_environments" "appconfig_environments" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_iam_policy" "appconfig_access_policy" {
+  name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
+}
+
 data "aws_security_group" "crud_apis_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
 
