@@ -124,12 +124,7 @@ class OrganizationMapper(FhirMapper):
         if typed_period_ext:
             extension_list.append(typed_period_ext.model_dump())
 
-        extension_list.append(
-            {
-                "url": "active",
-                "valueBoolean": True
-            }
-        )
+        extension_list.append({"url": "active", "valueBoolean": True})
 
         return Extension.model_validate(
             {
@@ -168,16 +163,9 @@ class OrganizationMapper(FhirMapper):
                 ],
             }
         )
-    
-    def _build_active_extension(
-        self
-    ) -> Extension | None:
-        return Extension.model_validate(
-            {
-                "url": "active",
-                "value": [True]
-            }
-        )
+
+    def _build_active_extension(self) -> Extension | None:
+        return Extension.model_validate({"url": "active", "value": [True]})
 
     def _build_legal_dates_from_fhir(
         self, fhir_resource: FhirOrganisation
@@ -215,7 +203,9 @@ class OrganizationMapper(FhirMapper):
             fhir_resource
         )
         legal_dates = self._build_legal_dates_from_fhir(fhir_resource)
-        print(f"ML-primary-codes: {primary_code}, non-primary-codes: {non_primary_codes}")
+        print(
+            f"ML-primary-codes: {primary_code}, non-primary-codes: {non_primary_codes}"
+        )
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),

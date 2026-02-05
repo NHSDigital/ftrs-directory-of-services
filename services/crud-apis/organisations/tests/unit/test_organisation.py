@@ -171,7 +171,9 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
         "organisations.app.router.organisation.org_repository.get_by_ods_code",
         return_value=mock_org,
     )
-    response = client.get("/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS54321")
+    response = client.get(
+        "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS54321"
+    )
     assert response.status_code == HTTPStatus.OK
     bundle = response.json()
     assert bundle["resourceType"] == "Bundle"
@@ -186,7 +188,9 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
 
 def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|abc!@")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|abc!@"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
@@ -215,7 +219,9 @@ def test_get_handle_organisation_requests_with_invalid_params(
         ),
     )
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345&abc=extra")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345&abc=extra"
+        )
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -241,7 +247,9 @@ def test_get_handle_organisation_requests_by_identifier_not_found(
         }
     )
     with pytest.raises(OperationOutcomeException) as exc_info:
-        client.get("/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "not-found"
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()
@@ -861,7 +869,9 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
 
 
 def test_organization_query_params_success() -> None:
-    query = OrganizationQueryParams(identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC123")
+    query = OrganizationQueryParams(
+        identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+    )
     assert query.identifier == "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
     assert query.ods_code == "ABC123"
 
@@ -876,7 +886,9 @@ def test_organization_query_params_invalid_system() -> None:
 
 def test_organization_query_params_invalid_ods_code() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="https://fhir.nhs.uk/Id/ods-organization-code|abc!@invalid")
+        OrganizationQueryParams(
+            identifier="https://fhir.nhs.uk/Id/ods-organization-code|abc!@invalid"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
@@ -887,7 +899,9 @@ def test_organization_query_params_invalid_ods_code() -> None:
 
 def test_organization_query_params_missing_separator() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="https://fhir.nhs.uk/Id/ods-organization-codeABC123")
+        OrganizationQueryParams(
+            identifier="https://fhir.nhs.uk/Id/ods-organization-codeABC123"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "invalid"
     assert (
@@ -897,7 +911,9 @@ def test_organization_query_params_missing_separator() -> None:
 
 
 def test_organization_query_params_lowercase_ods_code() -> None:
-    query = OrganizationQueryParams(identifier="https://fhir.nhs.uk/Id/ods-organization-code|abcde")
+    query = OrganizationQueryParams(
+        identifier="https://fhir.nhs.uk/Id/ods-organization-code|abcde"
+    )
     assert query.ods_code == "ABCDE"
 
 
