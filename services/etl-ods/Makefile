@@ -28,8 +28,10 @@ BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
+RETENTION_TAG := retention=retain
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
+RETENTION_TAG := retention=ephemeral
 endif
 
 # ==============================================================================
@@ -77,8 +79,8 @@ build-consumer-lambda: ensure-build-dir ## Build consumer lambda artefact
 
 publish: ## Publish build artefacts to development path
 	@echo "Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)..."
-	aws s3 cp $(BUILD_DIR)/$(EXTRACTOR_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(EXTRACTOR_LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(TRANSFORMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(TRANSFORMER_LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(EXTRACTOR_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(EXTRACTOR_LAMBDA_NAME).zip --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(TRANSFORMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(TRANSFORMER_LAMBDA_NAME).zip --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(CONSUMER_LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(CONSUMER_LAMBDA_NAME).zip --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
 	@echo "Published successfully"

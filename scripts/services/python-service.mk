@@ -46,8 +46,10 @@ BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
+RETENTION_TAG := retention=retain
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
+RETENTION_TAG := retention=ephemeral
 endif
 
 # ==============================================================================
@@ -56,7 +58,7 @@ endif
 
 .PHONY: ensure-build-dir clean install install-dependencies lint lint-fix test \
 		unit-test coverage generate-build-info build build-dependency-layer \
-		publish stage-release promote-rc publish-release
+		publish stage release-candidate release
 
 # ------------------------------------------------------------------------------
 # Setup & housekeeping
@@ -150,14 +152,14 @@ endif
 publish: ## Publish artifacts to S3 development path
 ifdef LAMBDA_SUBDIRS
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
-	$(foreach lambda,$(LAMBDA_SUBDIRS),aws s3 cp $(BUILD_DIR)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip --checksum-algorithm SHA256 --region $(AWS_REGION);)	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
+	$(foreach lambda,$(LAMBDA_SUBDIRS),aws s3 cp $(BUILD_DIR)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION);) aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 else
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
-	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
+	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 endif
 

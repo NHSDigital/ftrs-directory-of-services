@@ -35,8 +35,10 @@ BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
+RETENTION_TAG := retention=retain
 else
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/$(WORKSPACE)
+RETENTION_TAG := retention=ephemeral
 endif
 
 # ------------------------------------------------------------------------------
@@ -63,7 +65,7 @@ endif
 
 .PHONY: ensure-build-dir clean install install-dependencies format lint \
 		unit-test generate-build-info build publish deploy \
-		invalidate-cloudfront-cache stage-release promote-rc publish-release
+		invalidate-cloudfront-cache stage release-candidate release
 
 ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
@@ -109,7 +111,7 @@ build: clean ensure-build-dir generate-build-info ### Build the service
 
 publish: ## Publish artifacts to S3 development path
 	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH)...)
-	aws s3 sync $(BUILD_DIR)/ s3://$(ARTEFACT_DEVELOPMENT_PATH)/ --region $(AWS_REGION)
+	aws s3 cp $(BUILD_DIR)/ s3://$(ARTEFACT_DEVELOPMENT_PATH)/ --recursive --tagging "$(RETENTION_TAG)" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
 
 # ------------------------------------------------------------------------------
