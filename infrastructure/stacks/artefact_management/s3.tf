@@ -1,8 +1,53 @@
 module "artefacts_bucket" {
   source      = "../../modules/s3"
   bucket_name = local.artefacts_bucket
-}
 
+  # Lifecycle rules work with tag-based retention strategy:
+  # - Objects tagged "retention=ephemeral" expire per rules below
+  # - Objects tagged "retention=retain" are kept (used for last X versions, see RETAIN_VERSIONS in Makefiles)
+  # - Objects tagged "retention=permanent" are kept indefinitely (releases)
+  lifecycle_rule_inputs = [
+    {
+      id     = "development-expire-30-days"
+      status = "Enabled"
+      filter = {
+        prefix = "development/"
+        tags = {
+          retention = "ephemeral"
+        }
+      }
+      expiration = {
+        days = 30
+      }
+    },
+    {
+      id     = "staging-expire-90-days"
+      status = "Enabled"
+      filter = {
+        prefix = "staging/"
+        tags = {
+          retention = "ephemeral"
+        }
+      }
+      expiration = {
+        days = 90
+      }
+    },
+    {
+      id     = "release-candidates-expire-90-days"
+      status = "Enabled"
+      filter = {
+        prefix = "release-candidates/"
+        tags = {
+          retention = "ephemeral"
+        }
+      }
+      expiration = {
+        days = 90
+      }
+    }
+  ]
+}
 
 resource "aws_s3_bucket_policy" "artefacts_bucket_policy" {
   depends_on = [module.artefacts_bucket]

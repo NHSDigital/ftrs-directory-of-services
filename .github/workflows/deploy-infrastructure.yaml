@@ -77,7 +77,7 @@ on:
 
 jobs:
   deploy-infrastructure:
-    name: "Deploy infrastructure"
+    name: "Run Terraform ${{ inputs.action }} for ${{ matrix.stack }} deployment"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     timeout-minutes: ${{ inputs.workflow_timeout }}
@@ -101,7 +101,7 @@ jobs:
           type: ${{ inputs.type }}
           environment: ${{ inputs.environment }}
 
-      - name: "Download Toggle Artifact"
+      - name: "Download AppConfig Feature Flags"
         if: ${{ inputs.download_appconfig_artifact == true && contains(fromJSON(inputs.toggle_stacks), matrix.stack) }}
         uses: actions/download-artifact@v7
         with:
@@ -115,7 +115,7 @@ jobs:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
-      - name: "Deploy infrastructure stack"
+      - name: "Run Terraform ${{ inputs.action }} for infrastructure ${{ matrix.stack }} stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
         with:
