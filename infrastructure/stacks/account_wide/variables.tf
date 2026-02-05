@@ -245,3 +245,47 @@ variable "enable_s3_kms_encryption" {
   type        = bool
   default     = false
 }
+
+variable "splunk_collector_url" {
+  description = "The Splunk HEC collector base URL - minus hec endpoint"
+  type        = string
+}
+
+variable "splunk_hec_endpoint" {
+  description = "Splunk HEC endpoint (no trailing slash)"
+  type        = string
+}
+
+variable "splunk_hec_token" {
+  description = "Splunk HEC token"
+  type        = string
+  sensitive   = true
+}
+
+variable "firehose_name" {
+  description = "Name for the Kinesis Firehose delivery stream"
+  type        = string
+}
+
+variable "enable_firehose_s3_kms_encryption" {
+  description = "Whether to enable KMS encryption for S3 buckets"
+  type        = bool
+  default     = true
+}
+
+variable "firehose_logs_retention_in_days" {
+  description = "Number of days to retain Firehose logs in CloudWatch Log Group"
+  type        = number
+  default     = 14
+}
+
+variable "firehose_error_log_group_name" {
+  description = "The name of the CloudWatch Log Group to store Firehose error logs"
+  type        = string
+}
+
+variable "enable_firehose_sse" {
+  description = "Enable encryption using CMK"
+  type        = bool
+  default     = true
+}

@@ -41,3 +41,8 @@ regional_waf_hostile_country_codes = [
 ]
 
 enable_s3_kms_encryption = true
+
+enable_firehose_s3_kms_encryption = true
+firehose_error_log_group_name     = "firehose-error-logs"
+firehose_name                     = "splunk-firehose"
+
