@@ -82,31 +82,6 @@ def _extract_message_metadata_for_error(record: Dict[str, Any]) -> tuple[str, in
     return message_id, receive_count
 
 
-def _handle_http_error_with_context(
-    http_error: requests.exceptions.HTTPError,
-    record: Dict[str, Any],
-    logger: Logger,
-    batch_item_failures: List[Dict[str, str]],
-) -> None:
-    """Handle HTTP errors with context extraction and batch failure logic."""
-    message_id, receive_count = _extract_message_metadata_for_error(record)
-
-    # Extract context from record for logging
-    try:
-        body_content = json.loads(record.get("body", "{}"))
-        error_context = body_content.get("path", "unknown")
-    except (json.JSONDecodeError, AttributeError):
-        error_context = "unknown"
-
-    handle_http_error(
-        http_error=http_error,
-        message_id=message_id,
-        logger=logger,
-        error_context=error_context,
-    )
-    _add_to_batch_failures(message_id, batch_item_failures)
-
-
 def process_sqs_records(
     records: List[Dict[str, Any]],
     process_function: Callable[[Dict[str, Any]], Any],
@@ -127,9 +102,27 @@ def process_sqs_records(
             _log_processing_success(logger, message_id)
 
         except requests.exceptions.HTTPError as http_error:
-            _handle_http_error_with_context(
-                http_error, record, logger, batch_item_failures
-            )
+            # Extract context from record for error logging
+            try:
+                body_content = json.loads(record.get("body", "{}"))
+                error_context = body_content.get("path", "unknown")
+            except (json.JSONDecodeError, AttributeError):
+                error_context = "unknown"
+
+            message_id, receive_count = _extract_message_metadata_for_error(record)
+            try:
+                handle_http_error(
+                    http_error=http_error,
+                    message_id=message_id,
+                    error_context=error_context,
+                )
+            except PermanentProcessingError as permanent_error:
+                handle_permanent_error(message_id, permanent_error, logger)
+            except RetryableProcessingError as retryable_error:
+                handle_retryable_error(
+                    message_id, receive_count, retryable_error, logger
+                )
+                _add_to_batch_failures(message_id, batch_item_failures)
 
         except PermanentProcessingError as permanent_error:
             message_id = record.get("messageId", "unknown")

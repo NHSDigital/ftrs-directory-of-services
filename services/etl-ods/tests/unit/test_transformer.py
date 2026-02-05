@@ -690,7 +690,6 @@ class TestTransformerLambdaHandler:
 
         transformer_lambda_handler(event, {})
 
-        # Verify failure logging occurred
         log_calls = [str(call) for call in mock_logger.log.call_args_list]
-        failure_log_found = any("ETL_TRANSFORMER_027" in call for call in log_calls)
+        failure_log_found = any("ETL_COMMON_002" in call for call in log_calls)
         assert failure_log_found

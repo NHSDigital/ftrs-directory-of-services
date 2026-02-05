@@ -4,7 +4,12 @@ from ftrs_common.utils.correlation_id import current_correlation_id
 from ftrs_common.utils.request_id import current_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from common.exceptions import PermanentProcessingError
+from common.error_handling import (
+    handle_general_error,
+    handle_permanent_error,
+    handle_retryable_error,
+)
+from common.exceptions import PermanentProcessingError, RetryableProcessingError
 from common.message_utils import create_message_payload
 from common.sqs_processor import (
     extract_record_metadata,
@@ -166,20 +171,27 @@ def process_transformation_message_with_batching(
             message_batch.append(payload)
             send_batch_if_full()
 
-        except PermanentProcessingError:
+        except PermanentProcessingError as permanent_error:
             message_id = record.get("messageId", "unknown")
+            handle_permanent_error(message_id, permanent_error, ods_transformer_logger)
             # Permanent errors are consumed immediately (no retry, no DLQ)
-            # Already logged in the error handling chain
+
+        except RetryableProcessingError as retryable_error:
+            message_id = record.get("messageId", "unknown")
+            receive_count = int(
+                record.get("attributes", {}).get("ApproximateReceiveCount", "1")
+            )
+            handle_retryable_error(
+                message_id, receive_count, retryable_error, ods_transformer_logger
+            )
+            batch_item_failures.append({"itemIdentifier": message_id})
 
         except Exception as e:
             message_id = record.get("messageId", "unknown")
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-                message_id=message_id,
-                error_message=f"Transformation processing failed: {str(e)}",
-                exception_type=type(e).__name__,
-                troubleshooting_info="Record processing failed and will be retried. Check transformation logic and data format.",
+            receive_count = int(
+                record.get("attributes", {}).get("ApproximateReceiveCount", "1")
             )
+            handle_general_error(message_id, receive_count, e, ods_transformer_logger)
             batch_item_failures.append({"itemIdentifier": message_id})
 
     if message_batch:
