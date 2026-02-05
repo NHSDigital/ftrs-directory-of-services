@@ -232,6 +232,7 @@ jobs:
             type: "data-migration"
     needs:
       - metadata
+      - tag-release
       - deploy-data-migration-service
     uses: ./.github/workflows/service-automation-test.yaml
     with:
