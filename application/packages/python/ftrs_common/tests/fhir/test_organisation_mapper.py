@@ -2406,7 +2406,7 @@ def test__build_organisation_role_extension_with_role_code_only() -> None:
 
     assert isinstance(result, Extension)
     assert result.url == ORGANISATION_ROLE_URL
-    assert len(result.extension) == 2
+    assert str(len(result.extension)) == "2"
 
     role_code_ext = result.extension[0]
     assert role_code_ext.url == "roleCode"
