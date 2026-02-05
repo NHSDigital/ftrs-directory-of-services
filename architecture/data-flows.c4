@@ -56,7 +56,7 @@ views {
     ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "13. Persist updated organisation to DynamoDB"
 
     // ---- DoS Search: External consumer queries ----
-    healthcareConsumer -> apim.dosReadProxy "14. GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization"
+    healthcareConsumer -> apim.dosReadProxy "14. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
     apim.dosReadProxy -> ftrs.apiGateway "15. Authenticate and proxy search request"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "16. Route to DoS Search Lambda"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "17. Invoke FTRS service layer"
@@ -147,7 +147,7 @@ views {
       Consumer -> APIM -> API Gateway -> DoS Search -> DynamoDB -> FHIR Bundle response
     '
 
-    healthcareConsumer -> apim.dosReadProxy "1. GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization"
+    healthcareConsumer -> apim.dosReadProxy "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
     apim.dosReadProxy -> ftrs.apiGateway "2. Validate API key and proxy to internal gateway"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "3. Route to DoS Search Lambda handler"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "4. Call FTRS service to retrieve organisation"

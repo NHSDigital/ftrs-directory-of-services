@@ -10,9 +10,9 @@
 
 - GET /_status -> 200 (health check)
 - GET /Organization
-  - 200 example: `?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization`
-  - 400 invalid-identifier-value: `?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization`
-  - 400 missing-revinclude: `?identifier=odsOrganisationCode|ABC123`
+  - 200 example: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization`
+  - 400 invalid-identifier-value: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC&_revinclude=Endpoint:organization`
+  - 400 missing-revinclude: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123`
   - 400 invalid-identifier-system: `?identifier=foo|ABC123&_revinclude=Endpoint:organization`
 
 ## Quick start (local)
@@ -57,15 +57,15 @@ docker run -d --rm -p 9000:9000 dos-search:local
 ```bash
 # 200 success
 curl -i -H "Accept: application/fhir+json" \
-  "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization"
 
 # 400 invalid-identifier-value
 curl -i -H "Accept: application/fhir+json" \
-  "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization"
+  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC&_revinclude=Endpoint:organization"
 
 # 400 missing-revinclude
 curl -i -H "Accept: application/fhir+json" \
-  "http://localhost:9000/Organization?identifier=odsOrganisationCode|ABC123"
+  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
 
 # 400 invalid-identifier-system
 curl -i -H "Accept: application/fhir+json" \
@@ -132,13 +132,13 @@ podman machine start
 
 ```bash
 # 200 example
-curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization'
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization'
 
 # 400 invalid-identifier-value
-curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC&_revinclude=Endpoint:organization'
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC&_revinclude=Endpoint:organization'
 
 # 400 missing-revinclude
-curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=odsOrganisationCode|ABC123'
+curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123'
 
 # 400 invalid-identifier-system
 curl --location 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4//Organization?identifier=foo|ABC123&_revinclude=Endpoint:organization'

@@ -10,7 +10,7 @@ if __name__ == "__main__":
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": f"odsOrganisationCode|{ods_code}",
+            "identifier": f"https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {
