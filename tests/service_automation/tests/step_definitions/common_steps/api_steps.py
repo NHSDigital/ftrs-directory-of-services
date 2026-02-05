@@ -1,3 +1,4 @@
+from loguru import logger
 from pytest_bdd import parsers, then
 
 
@@ -9,6 +10,7 @@ def status_code(fresponse, status_code):
 @then(parsers.parse('the response body contains an "{resource_type}" resource'))
 def api_check_resource_type(fresponse, resource_type):
     response = fresponse.json()
+    logger.info(f"response: {response}")
     assert response["resourceType"] == resource_type
 
 

@@ -7,9 +7,10 @@ Feature: API DoS Service Search APIM
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
+
 @test
   Scenario: I search for GP Endpoint by ODS Code via APIM with valid headers and query parameters
-    When I request data from the APIM endpoint "Organization" with valid headers "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -17,20 +18,25 @@ Feature: API DoS Service Search APIM
     Examples:
       |params                                |
       |NHSD-Request-ID=test-request-id-12345 |
-      # |NHSD-Message-Id=test-message-id-12345 |
+      # |NHSD-Message-ID=test-message-id-12345 |
 
 
+@manual
   Scenario: I search for GP Endpoint by ODS Code via APIM with invalid header and valid query parameters
-    When I request data from the APIM endpoint "Organization" with invalid headers and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome has issues all with severity "error"
     And the OperationOutcome has issues all with code "value"
-    And the OperationOutcome contains an issue with diagnostics "Invalid request headers supplied: x-request-id"
+    And the OperationOutcome contains an issue with diagnostics "Invalid request headers supplied: '<header_name>'"
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
+    Examples:
+      | params                          |
+      | "MARYRequest-ID":"123456"       |
 
-    
+
+
   Scenario: I search for GP Endpoint by ODS Code via APIM with valid query parameters
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response

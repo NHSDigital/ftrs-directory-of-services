@@ -81,7 +81,7 @@ def dns_resolvable(api_name, env, workspace):
 )
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     url = get_url(api_name) + "/" + resource_name
-
+    logger.info(f"Requesting URL: {url} with params: {params}")
     return _send_api_request(api_request_context_mtls, url, params)
 
 
@@ -101,11 +101,11 @@ def send_to_apim_get_with_params(
 
 @when(
     parsers.re(
-        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with valid headers "(?P<header_params>.*?)" and query params "(?P<params>.*?)"'
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with header "(?P<header_params>.*?)" and query params "(?P<params>.*?)"'
     ),
     target_fixture="fresponse",
 )
-def send_to_apim_with_valid_headers(
+def send_to_apim_with_header(
     apim_request_context,
     nhsd_apim_auth_headers,
     nhsd_apim_proxy_url,
@@ -113,36 +113,13 @@ def send_to_apim_with_valid_headers(
     resource_name: str,
     header_params: str,
 ):
-    """Send request to APIM with specific valid headers merged with auth headers."""
+    """Send request to APIM with specific header merged with auth headers."""
     url = nhsd_apim_proxy_url + "/" + resource_name
 
-    # Start with auth headers and add additional headers from key=value pairs
+    # Start with auth headers and add header from key=value pairs
     headers = {**nhsd_apim_auth_headers}
     additional_headers = _convert_params_str_to_dict(header_params)
     headers.update(additional_headers)
-
-    return _send_api_request(apim_request_context, url, params, headers)
-
-
-@when(
-    parsers.re(
-        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with invalid headers and query params "(?P<params>.*?)"'
-    ),
-    target_fixture="fresponse",
-)
-def send_to_apim_with_invalid_headers(
-    apim_request_context,
-    nhsd_apim_auth_headers,
-    nhsd_apim_proxy_url,
-    params: str,
-    resource_name: str,
-):
-    """Send request to APIM with invalid headers (empty X-Request-ID) merged with auth headers."""
-    url = nhsd_apim_proxy_url + "/" + resource_name
-
-    # Start with auth headers and add invalid header
-    headers = {**nhsd_apim_auth_headers}
-    headers["X-Request-ID"] = ""  # Invalid: empty header value
 
     return _send_api_request(apim_request_context, url, params, headers)
 
@@ -202,7 +179,7 @@ def _send_api_request(request_context, url, params: str = None, headers=None):
         headers=headers,
     )
 
-    logger.info(f"response: {response.text}")
+    logger.info(f"response: {response.json()}")
 
     return response
 
