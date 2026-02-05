@@ -24,7 +24,7 @@ class InvalidRevincludeError(ValueError):
         )
 
 
-IDENTIFIER_SYSTEM = "odsOrganisationCode"
+IDENTIFIER_SYSTEM = "https://fhir.nhs.uk/Id/ods-organization-code"
 IDENTIFIER_SEPERATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
 REVINCLUDE_VALUE = "Endpoint:organization"
@@ -48,7 +48,7 @@ def _extract_identifier_value(identifier: str) -> str:
 
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
-        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+        description="Organization identifier in format 'https://fhir.nhs.uk/Id/ods-organization-code|{code}'",
     )
     revinclude: str = Field(alias="_revinclude")
 

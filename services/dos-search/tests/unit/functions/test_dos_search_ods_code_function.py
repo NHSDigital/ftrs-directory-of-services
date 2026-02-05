@@ -48,7 +48,7 @@ def _build_event_with_headers(headers: dict[str, str]):
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": "odsOrganisationCode|ABC123",
+            "identifier": "https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {"requestId": "req-id"},

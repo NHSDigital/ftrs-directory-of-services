@@ -8,7 +8,7 @@ SUCCESS_BUNDLE_ABC123 = {
         {
             "relation": "self",
             # Reflect FHIR search parameter and required reverse include
-            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization",
+            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization",
         }
     ],
     "entry": [
@@ -174,7 +174,7 @@ ERROR_INVALID_IDENTIFIER_SYSTEM = {
                     }
                 ]
             },
-            "diagnostics": "Invalid identifier system 'foo' - expected 'odsOrganisationCode'",
+            "diagnostics": "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'",
         }
     ],
 }
