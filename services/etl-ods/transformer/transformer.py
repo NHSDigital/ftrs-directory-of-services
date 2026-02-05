@@ -67,21 +67,18 @@ def _transform_organisation(organisation: dict, message_id: str) -> str:
             exception_details=str(transform_error)[:500],
             troubleshooting_info=f"Transformation failed for ODS {ods_code} in message {message_id}. Review data structure and transformation logic.",
         )
-        raise
-
-    # Validate identifier exists - invalid FHIR = code bug, treat like 400
-    if not fhir_organisation.identifier:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-            ods_code="<no identifier>",
-            error_message="Organisation has no identifier after transformation",
-            troubleshooting_info=f"Message {message_id} resulted in FHIR organisation without identifier. Review transformation logic and source data.",
-            validation_failure="MISSING_IDENTIFIER",
-        )
         raise PermanentProcessingError(
             message_id=message_id,
             status_code=400,
-            response_text="Organisation has no identifier after transformation",
+            response_text=f"Transformation failed: {str(transform_error)}",
+        )
+
+    # Validate identifier exists - invalid FHIR = code bug, treat like 400
+    if not fhir_organisation.identifier:
+        raise PermanentProcessingError(
+            message_id=message_id,
+            status_code=400,
+            response_text="No ODS code identifier found in organisation after transformation",
         )
 
     ods_code = fhir_organisation.identifier[0].value

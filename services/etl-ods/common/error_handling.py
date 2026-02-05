@@ -214,7 +214,13 @@ def handle_http_error(
     - Retryable (retry with backoff, DLQ after max): 408, 409, 410, 412, 429, 500, 502, 503, 504
     """
     response = http_error.response
-    status_code = response.status_code if response else 0
+
+    # Ensure we always have a valid status code
+    if response and hasattr(response, "status_code"):
+        status_code = response.status_code
+    else:
+        # If we can't get the status code, treat as a general error (500)
+        status_code = 500
 
     operation_outcome = extract_operation_outcome(http_error.response)
     outcome_summary = _get_operation_outcome_summary(operation_outcome)

@@ -138,7 +138,6 @@ class TestTransformOrganisation:
         mocker.patch(
             "transformer.transformer.transform_to_payload", return_value=mock_fhir_org
         )
-        mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
 
         organisation = {"id": "org1", "name": "Test Org"}
 
@@ -146,9 +145,11 @@ class TestTransformOrganisation:
             _transform_organisation(organisation, "test-msg-123")
 
         assert exc_info.value.message_id == "test-msg-123"
-        mock_logger.log.assert_called()
-        call_kwargs = mock_logger.log.call_args[1]
-        assert call_kwargs["ods_code"] == "<no identifier>"
+        assert str(exc_info.value.status_code) == "400"
+        assert (
+            "No ODS code identifier found in organisation after transformation"
+            in exc_info.value.response_text
+        )
 
     def test_uuid_not_found_raises_permanent_error(self, mocker: MockerFixture) -> None:
         """Test that missing UUID raises PermanentProcessingError."""
@@ -208,8 +209,15 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        with pytest.raises(ValueError, match="Invalid FHIR structure"):
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _transform_organisation(organisation, "test-msg-123")
+
+        assert exc_info.value.message_id == "test-msg-123"
+        assert str(exc_info.value.status_code) == "400"
+        assert (
+            "Transformation failed: Invalid FHIR structure"
+            in exc_info.value.response_text
+        )
 
     def test_http_error_404_raises_permanent_error(self, mocker: MockerFixture) -> None:
         """Test that 404 error (PermanentProcessingError) is re-raised by _transform_organisation."""
@@ -250,9 +258,12 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        # Transform failures are now propagated as-is
-        with pytest.raises(ValueError, match="Transform failed"):
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _transform_organisation(organisation, "test-msg-123")
+
+        assert exc_info.value.message_id == "test-msg-123"
+        assert str(exc_info.value.status_code) == "400"
+        assert "Transformation failed: Transform failed" in exc_info.value.response_text
 
     def test_context_variables_none(self, mocker: MockerFixture) -> None:
         """Test processing when context variables are None."""
@@ -311,9 +322,13 @@ class TestTransformOrganisation:
 
         organisation = {"id": "org1", "name": "Test Org"}
 
-        # Early failures are now propagated as-is
-        with pytest.raises(ValueError, match="Early failure"):
+        # Early failures are now wrapped in PermanentProcessingError
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _transform_organisation(organisation, "test-msg-123")
+
+        assert exc_info.value.message_id == "test-msg-123"
+        assert str(exc_info.value.status_code) == "400"
+        assert "Transformation failed: Early failure" in exc_info.value.response_text
 
     def test_exception_propagates_after_ods_extraction(
         self, mocker: MockerFixture
@@ -327,15 +342,23 @@ class TestTransformOrganisation:
         )
         mocker.patch(
             "transformer.transformer.fetch_organisation_uuid",
-            side_effect=ValueError("Fetch failed"),
+            side_effect=PermanentProcessingError(
+                message_id="test-msg-123",
+                status_code=404,
+                response_text="Organisation not found",
+            ),
         )
         mocker.patch("transformer.transformer.ods_transformer_logger")
 
         organisation = {"id": "org1", "name": "Test Org"}
 
         # Exception should propagate
-        with pytest.raises(ValueError, match="Fetch failed"):
+        with pytest.raises(PermanentProcessingError) as exc_info:
             _transform_organisation(organisation, "test-msg-123")
+
+        assert exc_info.value.message_id == "test-msg-123"
+        assert str(exc_info.value.status_code) == "404"
+        assert "Organisation not found" in exc_info.value.response_text
 
 
 class TestProcessTransformerRecord:
