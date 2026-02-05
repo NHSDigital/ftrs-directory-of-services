@@ -79,7 +79,7 @@ def fetch_organisation_uuid(ods_code: str, message_id: str) -> str | None:
         # Delegate to centralized error handler for consistent classification
         # - Retryable: 408, 429, 500, 502, 503, 504
         # - Permanent: 400, 401, 403, 404, 405, 406, 409, 410, 412, 422
-        handle_http_error(http_err, message_id, ods_code)
+        handle_http_error(http_err, message_id, "transformer_organization_uuid_fetch")
 
 
 def validate_ods_code(ods_code: str, message_id: str) -> None:

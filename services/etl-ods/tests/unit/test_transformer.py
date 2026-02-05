@@ -147,7 +147,7 @@ class TestTransformOrganisation:
         assert exc_info.value.message_id == "test-msg-123"
         assert str(exc_info.value.status_code) == "400"
         assert (
-            "No ODS code identifier found in organisation after transformation"
+            "No ODS code identifier found in organization"
             in exc_info.value.response_text
         )
 

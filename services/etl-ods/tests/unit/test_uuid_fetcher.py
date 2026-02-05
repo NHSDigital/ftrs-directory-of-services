@@ -70,7 +70,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
         assert str(excinfo.value.status_code) == "404"
         assert excinfo.value.message_id == "test-msg-123"
         assert (
-            "HTTP 404 in ABC123: OperationOutcome: 1 issues"
+            "HTTP 404 in transformer_organization_uuid_fetch: OperationOutcome: 1 issues"
             == excinfo.value.response_text
         )
 
@@ -109,7 +109,7 @@ def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
         assert str(excinfo.value.status_code) == "422"
         assert excinfo.value.message_id == "test-msg-123"
         assert (
-            "HTTP 422 in ABC123: OperationOutcome: 2 issues"
+            "HTTP 422 in transformer_organization_uuid_fetch: OperationOutcome: 2 issues"
             == excinfo.value.response_text
         )
 
