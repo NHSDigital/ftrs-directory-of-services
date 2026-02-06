@@ -289,3 +289,23 @@ variable "enable_firehose_sse" {
   type        = bool
   default     = true
 }
+
+variable "hec_acknowledgment_timeout" {
+  description = "Seconds Firehose waits for acknowledgment from Splunk"
+  type        = number
+}
+
+variable "hec_endpoint_type" {
+  description = "Type of hec endpoint -  Raw or Event"
+  type        = string
+}
+
+variable "retry_duration" {
+  description = "Seconds during which Firehose re-tries delivery after failure"
+  type        = number
+}
+
+variable "s3_backup_mode" {
+  description = "How documents are delivered to backup S3 - FailedEventsOnly or AllEvents"
+  type        = string
+}

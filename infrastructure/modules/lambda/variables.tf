@@ -152,10 +152,11 @@ variable "reserved_concurrent_executions" {
 }
 
 variable "build_splunk_subscription" {
-  description = "Whether to build the CloudWatch to Splunk subscription filter"
+  description = "Whether to build the CloudWatch subscription"
   type        = bool
   default     = false
 }
+
 variable "firehose_name" {
   description = "Name of the Kinesis Firehose delivery stream for Splunk"
   type        = string

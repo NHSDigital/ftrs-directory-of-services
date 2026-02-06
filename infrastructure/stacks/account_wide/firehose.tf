@@ -6,14 +6,13 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
     key_type = var.enable_firehose_sse ? "CUSTOMER_MANAGED_CMK" : null
     key_arn  = var.enable_firehose_sse ? module.firehose_encryption_key.arn : null
   }
-  # TODO
   splunk_configuration {
     hec_endpoint               = "${var.splunk_collector_url}${var.splunk_hec_endpoint}"
     hec_token                  = var.splunk_hec_token
-    hec_acknowledgment_timeout = 300
-    hec_endpoint_type          = "Raw"
+    hec_acknowledgment_timeout = var.hec_acknowledgment_timeout
+    hec_endpoint_type          = var.hec_endpoint_type
 
-    retry_duration = 300
+    retry_duration = vsr.retry_duration
 
     cloudwatch_logging_options {
       enabled         = true
@@ -21,7 +20,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
       log_stream_name = "SplunkDelivery"
     }
 
-    s3_backup_mode = "FailedEventsOnly"
+    s3_backup_mode = var.s3_backup_mode
 
     s3_configuration {
       role_arn           = aws_iam_role.firehose_role.arn

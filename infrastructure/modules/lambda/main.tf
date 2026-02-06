@@ -39,7 +39,7 @@ module "lambda" {
   logging_system_log_level          = var.cloudwatch_log_level
 }
 
-resource "aws_cloudwatch_log_subscription_filter" "to_splunk" {
+resource "aws_cloudwatch_log_subscription_filter" "cw_log_subscription_splunk" {
   count           = var.build_splunk_subscription ? 1 : 0
   name            = "${var.function_name}${local.workspace_suffix}-splunk-subscription"
   log_group_name  = module.lambda.lambda_cloudwatch_log_group_name

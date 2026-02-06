@@ -33,4 +33,4 @@ enable_s3_kms_encryption = false
 
 regional_waf_log_group_retention_days = 30
 
-enable_firehose_s3_kms_encryption = false
+enable_firehose_s3_kms_encryption = true
