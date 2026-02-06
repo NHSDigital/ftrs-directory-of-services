@@ -20,7 +20,7 @@ async def get_organization(
     identifier: Optional[str] = Query(
         None,
         alias="identifier",
-        description="ODS code in the format 'odsOrganisationCode|{CODE}' (FHIR search parameter)",
+        description="ODS code in the format 'https://fhir.nhs.uk/Id/ods-organization-code|{CODE}' (FHIR search parameter)",
     ),
     revinclude: Optional[str] = Query(
         None,
@@ -40,7 +40,7 @@ async def get_organization(
         error_content = ERROR_INVALID_IDENTIFIER_VALUE
     else:
         system, code = identifier.split("|", 1)
-        if system != "odsOrganisationCode":
+        if system != "https://fhir.nhs.uk/Id/ods-organization-code":
             error_content = ERROR_INVALID_IDENTIFIER_SYSTEM
         elif not re.fullmatch(r"[A-Za-z0-9]{5,12}", code or ""):
             error_content = ERROR_INVALID_IDENTIFIER_VALUE

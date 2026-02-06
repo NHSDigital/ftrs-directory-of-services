@@ -42,7 +42,7 @@ class BundleMapper:
         bundle_id = str(uuid4())
         url = (
             f"{get_fhir_url('dos-search', 'Organization')}"
-            f"?identifier=odsOrganisationCode|{ods_code}"
+            f"?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
             f"&_revinclude=Endpoint:organization"
         )
         bundle_link = [

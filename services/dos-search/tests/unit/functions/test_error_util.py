@@ -30,7 +30,7 @@ class TestErrorUtil:
         validation_error = None
         try:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC",
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC",
                 _revinclude="Endpoint:organization",
             )
         except ValidationError as e:
@@ -70,7 +70,7 @@ class TestErrorUtil:
         assert result.issue[0].code == "code-invalid"
         assert (
             result.issue[0].diagnostics
-            == "Invalid identifier system 'wrongSystem' - expected 'odsOrganisationCode'"
+            == "Invalid identifier system 'wrongSystem' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
@@ -79,7 +79,7 @@ class TestErrorUtil:
         validation_error = None
         try:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC12345",
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC12345",
                 _revinclude="Invalid:value",
             )
         except ValidationError as e:
@@ -103,7 +103,9 @@ class TestErrorUtil:
         # Arrange - Missing required _revinclude parameter
         validation_error = None
         try:
-            OrganizationQueryParams(identifier="odsOrganisationCode|ABC12345")
+            OrganizationQueryParams(
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC12345"
+            )
         except ValidationError as e:
             validation_error = e
 
@@ -126,7 +128,7 @@ class TestErrorUtil:
         validation_error = None
         try:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC",
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC",
                 _revinclude="Invalid:value",
             )
         except ValidationError as e:
@@ -255,7 +257,7 @@ class TestErrorUtil:
         validation_error = None
         try:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC",  # Too short
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC",  # Too short
                 _revinclude="Wrong:value",  # Wrong revinclude
             )
         except ValidationError as e:
@@ -321,7 +323,7 @@ class TestErrorUtil:
         validation_error = None
         try:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC12345",
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC12345",
                 _revinclude="Endpoint:organization",
                 foo="bar",
             )

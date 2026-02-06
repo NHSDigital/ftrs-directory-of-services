@@ -9,7 +9,7 @@ Feature: API DoS Service Search APIM
 
 
   Scenario: I search for GP Endpoint by ODS Code via APIM with valid query parameters
-    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -26,11 +26,11 @@ Feature: API DoS Service Search APIM
     And the OperationOutcome contains an issue with diagnostics "Invalid identifier value: ODS code '<ods_code>' must follow format ^[A-Za-z0-9]{5,12}$"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
-      | params                                                                          | ods_code      |
-      | identifier=odsOrganisationCode\|&_revinclude=Endpoint:organization              |               |
-      | identifier=odsOrganisationCode\|0123&_revinclude=Endpoint:organization          | 0123          |
-      | identifier=odsOrganisationCode\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
-      | identifier=odsOrganisationCode\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
+      | params                                                                                                   | ods_code      |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|&_revinclude=Endpoint:organization              |               |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|0123&_revinclude=Endpoint:organization          | 0123          |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
   Scenario Outline: I search for GP Endpoint with via APIM invalid _revinclude value
@@ -44,9 +44,9 @@ Feature: API DoS Service Search APIM
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                      |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=                      |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=Invalid:value         |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
   Scenario Outline: I search for GP Endpoint with via APIM invalid identifier system
@@ -56,13 +56,13 @@ Feature: API DoS Service Search APIM
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "code-invalid"
-    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'odsOrganisationCode'"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                             | identifier_system          |
       | identifier=\|M00081046&_revinclude=Endpoint:organization                           |                            |
       | identifier=invalidSystem\|M00081046&_revinclude=Endpoint:organization              | invalidSystem              |
-      | identifier=odsOrganisationCodeInvalid\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCodeInvalid |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid\|M00081046&_revinclude=Endpoint:organization | https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
 
 
   Scenario Outline: I search for GP Endpoint via APIM with 1 missing parameter
@@ -76,7 +76,7 @@ Feature: API DoS Service Search APIM
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                    | missing_param |
-      | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | _revinclude   |
       | _revinclude=Endpoint:organization         | identifier    |
 
 

@@ -100,7 +100,7 @@ def create_lambda_params(odscode):
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": f"odsOrganisationCode|{odscode}",
+            "identifier": f"https://fhir.nhs.uk/Id/ods-organization-code|{odscode}",
             "_revinclude": "Endpoint:organization",
         },
         "requestContext": {

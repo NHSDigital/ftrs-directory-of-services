@@ -22,7 +22,7 @@ class TestResponses:
         assert len(SUCCESS_BUNDLE_ABC123["link"]) == 1
         assert SUCCESS_BUNDLE_ABC123["link"][0]["relation"] == "self"
         assert (
-            "Organization?identifier=odsOrganisationCode|ABC123"
+            "Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
             in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
         )
         assert "_revinclude=Endpoint:organization" in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
@@ -141,7 +141,7 @@ class TestResponses:
         assert issue["code"] == "code-invalid"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
         assert "Invalid identifier system" in issue["diagnostics"]
-        assert "odsOrganisationCode" in issue["diagnostics"]
+        assert "https://fhir.nhs.uk/Id/ods-organization-code" in issue["diagnostics"]
 
     def test_all_errors_use_spine_error_coding(self):
         """Test that all error responses use UKCore-SpineErrorOrWarningCode"""

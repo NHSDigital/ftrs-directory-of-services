@@ -13,12 +13,18 @@ class TestOrganizationQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_ods_code"),
         [
-            ("odsOrganisationCode|ABC12", "ABC12"),
-            ("odsOrganisationCode|ABC123456789", "ABC123456789"),
-            ("odsOrganisationCode|ABC123", "ABC123"),
-            ("odsOrganisationCode|ABCDEF", "ABCDEF"),
-            ("odsOrganisationCode|123456", "123456"),
-            ("odsOrganisationCode|abc123", "ABC123"),  # lowercase
+            ("https://fhir.nhs.uk/Id/ods-organization-code|ABC12", "ABC12"),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABC123456789",
+                "ABC123456789",
+            ),
+            ("https://fhir.nhs.uk/Id/ods-organization-code|ABC123", "ABC123"),
+            ("https://fhir.nhs.uk/Id/ods-organization-code|ABCDEF", "ABCDEF"),
+            ("https://fhir.nhs.uk/Id/ods-organization-code|123456", "123456"),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|abc123",
+                "ABC123",
+            ),  # lowercase
         ],
         ids=[
             "minimum length",
@@ -43,12 +49,30 @@ class TestOrganizationQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_exception"),
         [
-            ("odsOrganisationCode|", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC1", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABCD123456789", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC-123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC 123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC@123", ODSCodeInvalidFormatError),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABC1",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABCD123456789",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABC-123",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABC 123",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                "https://fhir.nhs.uk/Id/ods-organization-code|ABC@123",
+                ODSCodeInvalidFormatError,
+            ),
             ("", InvalidIdentifierSystem),
             ("wrongPrefix|ABC123", InvalidIdentifierSystem),
             ("ABC123", InvalidIdentifierSystem),
@@ -82,7 +106,8 @@ class TestOrganizationQueryParams:
         # Act
         with pytest.raises(ValidationError) as exc_info:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC123", _revinclude="Invalid:value"
+                identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
+                _revinclude="Invalid:value",
             )
 
         # Assert
@@ -95,7 +120,8 @@ class TestOrganizationQueryParams:
     def test_ods_code_computed_field(self):
         # Act
         params = OrganizationQueryParams(
-            identifier="odsOrganisationCode|abc123", _revinclude="Endpoint:organization"
+            identifier="https://fhir.nhs.uk/Id/ods-organization-code|abc123",
+            _revinclude="Endpoint:organization",
         )
 
         # Assert
