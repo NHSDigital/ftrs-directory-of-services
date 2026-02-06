@@ -8,7 +8,7 @@ Feature: API DoS Service Search Backend Gateway Headers
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-  Scenario Outline: I search for GP Endpoint by ODS Code with valid query parameters and valid headers
+  Scenario Outline:I send a request to the dos-search Organization Endpoint by ODS Code with valid query parameters and valid headers
     When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -40,7 +40,7 @@ Feature: API DoS Service Search Backend Gateway Headers
       |NHSD-Request-ID=req-987654321, NHSD-Api-Version=1.0 |
 
 
-  Scenario: I search for GP Endpoint by ODS Code with valid query parameters and no headers
+  Scenario:I send a request to the dos-search Organization Endpoint by ODS Code with valid query parameters and no headers
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -48,7 +48,7 @@ Feature: API DoS Service Search Backend Gateway Headers
     And the bundle contains "4" "Endpoint" resources
 
 
-  Scenario Outline: I search for GP Endpoint by ODS Code with valid query parameters and invalid headers
+  Scenario Outline:I send a request to the dos-search Organization Endpoint by ODS Code with valid query parameters and invalid headers
     When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
