@@ -287,3 +287,8 @@ data "aws_security_group" "processor_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
   name  = "${local.resource_prefix}-${var.processor_lambda_name}-sg"
 }
+
+data "aws_security_group" "rds_connector_security_group" {
+  count = var.athena_stack_enabled && local.is_primary_environment ? 1 : 0
+  name  = "${local.account_prefix}-rds-connector-sg"
+}

@@ -8,6 +8,7 @@
                 "ec2:*",
                 "autoscaling:*",
                 "lambda:*",
+                "ecr:*",
                 "tag:*"
             ],
             "Resource": "*"

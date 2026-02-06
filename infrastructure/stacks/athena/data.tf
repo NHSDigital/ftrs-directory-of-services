@@ -1,0 +1,36 @@
+data "aws_vpc" "vpc" {
+  filter {
+    name   = "tag:Name"
+    values = ["${local.account_prefix}-vpc"]
+  }
+}
+
+data "aws_subnets" "private_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.vpc.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = ["${local.account_prefix}-vpc-private-*"]
+  }
+}
+
+data "aws_lambda_function" "dynamodb_lambda_connector" {
+  count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
+
+  function_name = "${local.resource_prefix}-dynamodb-connector"
+  depends_on    = [aws_serverlessapplicationrepository_cloudformation_stack.dynamodb_connector]
+}
+
+data "aws_lambda_function" "rds_lambda_connector" {
+  count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
+
+  function_name = "${local.resource_prefix}-rds-connector"
+  depends_on    = [aws_serverlessapplicationrepository_cloudformation_stack.rds_connector]
+}
+
+data "aws_security_group" "dms_replication_security_group" {
+  name = "${local.project_prefix}-account-wide-etl-replication-sg"
+}
