@@ -2,6 +2,8 @@ import os
 
 from ftrs_common.utils.jwt_auth import JWTAuthenticator
 
+from .secrets import SecretManager
+
 _jwt_authenticator: JWTAuthenticator = None
 
 
@@ -10,9 +12,8 @@ def get_jwt_authenticator() -> JWTAuthenticator:
     global _jwt_authenticator  # noqa: PLW0603
 
     if _jwt_authenticator is None:
-        print("Creating new JWTAuthenticator instance")
         environment = os.environ.get("ENVIRONMENT", "local")
-        resource_prefix = get_resource_prefix()
+        resource_prefix = SecretManager.get_resource_prefix()
 
         _jwt_authenticator = JWTAuthenticator(
             environment=environment,
@@ -21,9 +22,3 @@ def get_jwt_authenticator() -> JWTAuthenticator:
         )
 
     return _jwt_authenticator
-
-
-def get_resource_prefix() -> str:
-    project = os.environ.get("PROJECT_NAME")
-    environment = os.environ.get("ENVIRONMENT")
-    return f"{project}/{environment}"

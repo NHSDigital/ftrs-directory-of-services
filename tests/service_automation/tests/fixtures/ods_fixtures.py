@@ -5,7 +5,14 @@ from loguru import logger
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.apigateway_ods_mock import ODSMockClient
 from utilities.infra.lambda_util import LambdaWrapper
+from utilities.infra.logs_util import CloudWatchLogsWrapper
 from utilities.ods.lambda_config_manager import LambdaConfigManager
+
+
+@pytest.fixture
+def cloudwatch_logs():
+    """Create CloudWatch logs wrapper for log verification."""
+    return CloudWatchLogsWrapper()
 
 
 @pytest.fixture(scope="module")

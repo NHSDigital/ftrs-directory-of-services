@@ -3,7 +3,6 @@ import time
 import uuid
 from datetime import date
 
-import pytest
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository, ModelType
 from loguru import logger
 from pytest_bdd import given, scenarios, then, when
@@ -26,12 +25,6 @@ def get_from_repo(
     if item is None:
         logger.error(f"No data found for model ID: {model_id}")
     return item
-
-
-@pytest.fixture
-def cloudwatch_logs():
-    """Create CloudWatch logs wrapper for log verification."""
-    return CloudWatchLogsWrapper()
 
 
 def extract_error_message(lambda_response: dict) -> str:
@@ -348,7 +341,7 @@ def verify_missing_fields_handled(
 def verify_unexpected_fields_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
-    assert_lambda_response(context, cloudwatch_logs, 200, "Succeeded to send")
+    assert_lambda_response(context, cloudwatch_logs, 200, "messages to sqs queue")
 
 
 @then("the Lambda should handle old requests gracefully")
@@ -363,7 +356,11 @@ def verify_server_errors_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
     assert_lambda_response(
-        context, cloudwatch_logs, 500, "ETL_UTILS_003", ["error", "failed", "exception"]
+        context,
+        cloudwatch_logs,
+        500,
+        "ETL_COMMON_013",
+        ["error", "failed", "exception"],
     )
 
 
@@ -379,7 +376,7 @@ def verify_authorization_error_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
     assert_lambda_response(
-        context, cloudwatch_logs, 500, "ETL_UTILS_003", ["unauthorized"]
+        context, cloudwatch_logs, 500, "ETL_COMMON_013", ["unauthorized"]
     )
 
 
