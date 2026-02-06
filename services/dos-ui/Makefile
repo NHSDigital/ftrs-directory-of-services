@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-ui
+DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),-$(WORKSPACE))
 
 # Deployment bucket configuration
 DEPLOYMENT_BUCKET ?= ftrs-dos-$(ENVIRONMENT)-ui-frontend-bucket$(DEPLOYMENT_WORKSPACE)
@@ -14,13 +15,6 @@ UI_DOMAIN_NAME = $(DEPLOYMENT_BUCKET).s3.$(AWS_REGION).amazonaws.com
 CLOUDFRONT_DISTRIBUTION_ID := $(shell aws cloudfront list-distributions \
 	--query "DistributionList.Items[?contains(Origins.Items[*].DomainName, '$(UI_DOMAIN_NAME)')].Id" \
 	--output text)
-
-$(info DEPLOYMENT_BUCKET=$(ENVIRONMENT))
-$(info UI_DOMAIN_NAME=$(AWS_REGION))
-$(info CLOUDFRONT_DISTRIBUTION_ID=$(DEPLOYMENT_WORKSPACE))
-$(info DEPLOYMENT_BUCKET=$(DEPLOYMENT_BUCKET))
-$(info UI_DOMAIN_NAME=$(UI_DOMAIN_NAME))
-$(info CLOUDFRONT_DISTRIBUTION_ID=$(CLOUDFRONT_DISTRIBUTION_ID))
 
 # ==============================================================================
 # Include Shared Node Service Targets
