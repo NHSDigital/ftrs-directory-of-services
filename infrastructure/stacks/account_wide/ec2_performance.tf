@@ -156,3 +156,22 @@ resource "aws_iam_role_policy" "ec2_performance_secrets" {
   role   = aws_iam_role.ec2_performance_role.id
   policy = data.aws_iam_policy_document.ec2_performance_secrets.json
 }
+
+data "aws_iam_policy_document" "ec2_performance_cloudwatch_logs" {
+  statement {
+    sid = "AllowCloudWatchLogsForPerformanceEC2"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "${aws_cloudwatch_log_group.performance_ec2_log_group.arn}:*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_performance_cloudwatch_logs" {
+  name   = "${local.account_prefix}-ec2-performance-cloudwatch-logs"
+  role   = aws_iam_role.ec2_performance_role.id
+  policy = data.aws_iam_policy_document.ec2_performance_cloudwatch_logs.json
+}
