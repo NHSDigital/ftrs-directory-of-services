@@ -3,6 +3,7 @@ import re
 from http import HTTPStatus
 
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from requests.exceptions import HTTPError
 
@@ -29,7 +30,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
     Uses the ODS Terminology API FHIR endpoint with pagination support.
     """
     all_organisations = []
-    params = {"_lastUpdated": f"{date}", "_count": _get_page_limit()}
+    params = _build_ods_query_params(date)
     ods_url = get_base_ods_terminology_api_url()
     page_count = 0
     max_pages = 100  # Safety limit to prevent infinite loops
@@ -75,6 +76,15 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
         total_pages=page_count,
     )
     return all_organisations
+
+
+def _build_ods_query_params(date: str) -> dict:
+    return [
+        ("_lastUpdated", f"{date}"),
+        ("_count", str(_get_page_limit())),
+        ("roleCode", OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value),
+        ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value),
+    ]
 
 
 def _get_page_limit() -> int:

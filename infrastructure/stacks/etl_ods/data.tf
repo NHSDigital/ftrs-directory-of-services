@@ -138,7 +138,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
 }
 
 data "aws_iam_policy_document" "ods_mock_api_access_policy" {
-  count = var.environment == "dev" ? 1 : 0
+  count = contains(["dev", "test"], var.environment) ? 1 : 0
 
   statement {
     effect = "Allow"
@@ -179,4 +179,10 @@ data "aws_iam_policy_document" "lambda_kms_access" {
     ]
     resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
+}
+
+data "aws_security_group" "etl_ods_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-lambda-sg"
 }

@@ -72,7 +72,7 @@ jobs:
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v5.1.1
+        uses: aws-actions/configure-aws-credentials@v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true

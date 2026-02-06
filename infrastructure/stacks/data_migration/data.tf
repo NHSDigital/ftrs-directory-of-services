@@ -272,3 +272,18 @@ data "aws_appconfig_environments" "appconfig_environments" {
 data "aws_iam_policy" "appconfig_access_policy" {
   name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
 }
+
+data "aws_security_group" "rds_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+  name  = "${local.resource_prefix}-rds-sg"
+}
+
+data "aws_security_group" "rds_accessor_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+  name  = "${local.resource_prefix}-rds-accessor-lambda-sg"
+}
+
+data "aws_security_group" "processor_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+  name  = "${local.resource_prefix}-${var.processor_lambda_name}-sg"
+}
