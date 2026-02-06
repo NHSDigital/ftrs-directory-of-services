@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 import pytest
+from boto3.dynamodb.types import TypeSerializer
 from ftrs_data_layer.domain import (
     HealthcareService,
     HealthcareServiceTelecom,
@@ -9,6 +10,7 @@ from ftrs_data_layer.domain import (
     Organisation,
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.auditevent import AuditEvent, AuditEventType
 from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
@@ -23,6 +25,7 @@ from ftrs_data_layer.domain.enums import (
 from ftrs_data_layer.domain.location import Address, PositionGCS
 
 from common.diff_utils import (
+    DynamoDBUpdateExpressions,
     get_healthcare_service_diff,
     get_location_diff,
     get_organisation_diff,
@@ -95,6 +98,26 @@ def healthcare_service() -> HealthcareService:
         createdTime=datetime(2023, 1, 1),
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 1, 1),
+    )
+
+
+@pytest.fixture
+def serializer() -> TypeSerializer:
+    """Provide a TypeSerializer instance."""
+    return TypeSerializer()
+
+
+@pytest.fixture
+def timestamp() -> datetime:
+    """Provide a valid datetime timestamp."""
+    return datetime(2026, 1, 28, 12, 0, 0)
+
+
+@pytest.fixture
+def updated_by() -> AuditEvent:
+    """Provide valid updater metadata."""
+    return AuditEvent(
+        type=AuditEventType.app, value="INTERNAL001", display="Data Migration"
     )
 
 
@@ -391,3 +414,82 @@ def test_healthcare_service_detects_changes_but_excludes_datetimes(
     assert str(change.path()) == "root['name']"
     assert change.t1 == "Test Healthcare Service"
     assert change.t2 == "Changed Service"
+
+
+@pytest.mark.parametrize(
+    "initial_expression,expected_prefix",
+    [
+        ("", "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy"),
+        (
+            "SET #name = :name",
+            "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy, ",
+        ),
+        (
+            "REMOVE #field",
+            "SET #lastUpdated = :lastUpdated, #lastUpdatedBy = :lastUpdatedBy",
+        ),
+    ],
+)
+def test_add_audit_timestamps_to_expressions(
+    serializer: TypeSerializer,
+    timestamp: datetime,
+    updated_by: AuditEvent,
+    initial_expression: str,
+    expected_prefix: str,
+) -> None:
+    """Audit timestamps are correctly added to various expression types."""
+    expressions = DynamoDBUpdateExpressions(update_expression=initial_expression)
+
+    expressions.add_audit_timestamps(timestamp, updated_by, serializer)
+
+    assert expressions.update_expression.startswith(expected_prefix)
+    assert expressions.expression_attribute_names == {
+        "#lastUpdated": "lastUpdated",
+        "#lastUpdatedBy": "lastUpdatedBy",
+    }
+    assert ":lastUpdated" in expressions.expression_attribute_values
+    assert ":lastUpdatedBy" in expressions.expression_attribute_values
+
+
+def test_add_audit_timestamps_empty_timestamp_raises_value_error(
+    serializer: TypeSerializer,
+    updated_by: AuditEvent,
+) -> None:
+    """Empty timestamp raises ValueError."""
+    expressions = DynamoDBUpdateExpressions()
+
+    with pytest.raises(ValueError, match="timestamp cannot be empty"):
+        expressions.add_audit_timestamps("", updated_by, serializer)
+
+
+def test_add_audit_timestamps_invalid_updater_raises_type_error(
+    serializer: TypeSerializer,
+    timestamp: datetime,
+) -> None:
+    """Non-AuditEvent updater raises ValueError."""
+    expressions = DynamoDBUpdateExpressions()
+
+    with pytest.raises(TypeError, match="updated_by must be an AuditEvent instance"):
+        expressions.add_audit_timestamps(timestamp, "not_an_audit_event", serializer)
+
+
+def test_add_audit_timestamps_serializes_correctly(
+    serializer: TypeSerializer,
+    timestamp: datetime,
+    updated_by: AuditEvent,
+) -> None:
+    """Audit values are properly serialized to DynamoDB format."""
+    expressions = DynamoDBUpdateExpressions()
+
+    expressions.add_audit_timestamps(timestamp, updated_by, serializer)
+
+    assert expressions.expression_attribute_values[":lastUpdated"] == {
+        "S": timestamp.isoformat()
+    }
+    assert expressions.expression_attribute_values[":lastUpdatedBy"] == {
+        "M": {
+            "type": {"S": "app"},
+            "value": {"S": "INTERNAL001"},
+            "display": {"S": "Data Migration"},
+        }
+    }

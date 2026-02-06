@@ -129,6 +129,7 @@ jobs:
       matrix:
         stack: ${{ fromJSON(inputs.stacks) }}
     needs:
+      - destroy-toggle-infrastructure
       - destroy-application-infrastructure
     steps:
       - name: "Checkout code"
@@ -157,7 +158,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
-
     needs:
       - delete-tf-state
     steps:
