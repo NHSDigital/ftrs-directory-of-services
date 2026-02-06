@@ -53,12 +53,10 @@ MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset(
 
 
 def _validate_headers(headers: dict[str, str] | None) -> None:
-    if not headers:
-        return
     missing_mandatory_headers = [
-        header_name
-        for header_name in headers
-        if header_name.lower() not in MANDATORY_REQUEST_HEADERS
+        mandatory_header
+        for mandatory_header in MANDATORY_REQUEST_HEADERS
+        if mandatory_header.lower() not in headers
     ]
     if missing_mandatory_headers:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
