@@ -12,7 +12,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
     hec_acknowledgment_timeout = var.hec_acknowledgment_timeout
     hec_endpoint_type          = var.hec_endpoint_type
 
-    retry_duration = vsr.retry_duration
+    retry_duration = var.retry_duration
 
     cloudwatch_logging_options {
       enabled         = true
