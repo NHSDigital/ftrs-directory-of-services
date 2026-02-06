@@ -46,4 +46,3 @@ class FeatureFlagLogBase(LogBase):
         level=INFO,
         message="Triage code loading was disabled by feature flag, skipping execution",
     )
-
