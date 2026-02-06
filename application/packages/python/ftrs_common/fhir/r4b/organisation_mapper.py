@@ -203,9 +203,6 @@ class OrganizationMapper(FhirMapper):
             fhir_resource
         )
         legal_dates = self._build_legal_dates_from_fhir(fhir_resource)
-        print(
-            f"ML-primary-codes: {primary_code}, non-primary-codes: {non_primary_codes}"
-        )
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),
