@@ -11,11 +11,10 @@ Example:
     from utilities.common.dynamoDB_tables import get_table_name, get_dynamodb_tables
 """
 
-# Re-export from shared module for backwards compatibility
-from ftrs_common.testing.table_config import (
-    get_dynamodb_table_configs,
-    get_table_name,
-)
+from ftrs_common.testing import table_config
+
+get_dynamodb_table_configs = table_config.get_dynamodb_table_configs
+get_table_name = table_config.get_table_name
 
 
 def get_dynamodb_tables() -> list[dict]:

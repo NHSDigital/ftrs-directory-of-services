@@ -1,14 +1,32 @@
+import os
+from typing import Optional
+
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from loguru import logger
 
 
 class S3Utils:
-    def __init__(self):
+    """S3 utility class that supports both real AWS and LocalStack.
+
+    Args:
+        endpoint_url: Optional endpoint URL for LocalStack or other S3-compatible services.
+                     If not provided, checks AWS_ENDPOINT_URL environment variable,
+                     then falls back to real AWS.
+    """
+
+    def __init__(self, endpoint_url: Optional[str] = None):
         try:
-            # Use default AWS CLI profile and automatically detect region
+            # Use provided endpoint, environment variable, or default to real AWS
+            endpoint = endpoint_url or os.environ.get("AWS_ENDPOINT_URL")
+
             session = boto3.Session()
-            self.s3_client = session.client("s3")
+            client_kwargs = {}
+            if endpoint:
+                client_kwargs["endpoint_url"] = endpoint
+                logger.debug(f"Using S3 endpoint: {endpoint}")
+
+            self.s3_client = session.client("s3", **client_kwargs)
 
         except (NoCredentialsError, PartialCredentialsError):
             logger.error("Error: AWS credentials not found.")

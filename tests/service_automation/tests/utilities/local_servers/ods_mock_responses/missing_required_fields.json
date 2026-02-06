@@ -1,0 +1,17 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/MISSING1",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "MISSING1"
+        }
+      }
+    ]
+  },
+  "status_code": 200
+}

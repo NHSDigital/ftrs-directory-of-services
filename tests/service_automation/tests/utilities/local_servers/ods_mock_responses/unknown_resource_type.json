@@ -1,0 +1,15 @@
+{
+  "body": {
+    "resourceType": "Location",
+    "id": "WRONG1",
+    "identifier": [
+      {
+        "use": "official",
+        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+        "value": "WRONG1"
+      }
+    ],
+    "name": "This is not an Organization"
+  },
+  "status_code": 200
+}

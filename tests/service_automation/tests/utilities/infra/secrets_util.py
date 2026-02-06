@@ -1,10 +1,26 @@
+import os
+from typing import Optional
+
 import boto3
 from loguru import logger
 
 
 class GetSecretWrapper:
-    def __init__(self):
-        self.client = boto3.client("secretsmanager")
+    """Secrets Manager wrapper that supports both real AWS and LocalStack.
+
+    Args:
+        endpoint_url: Optional endpoint URL for LocalStack or other compatible services.
+                     If not provided, checks AWS_ENDPOINT_URL environment variable,
+                     then falls back to real AWS.
+    """
+
+    def __init__(self, endpoint_url: Optional[str] = None):
+        endpoint = endpoint_url or os.environ.get("AWS_ENDPOINT_URL")
+        client_kwargs = {}
+        if endpoint:
+            client_kwargs["endpoint_url"] = endpoint
+            logger.debug(f"Using Secrets Manager endpoint: {endpoint}")
+        self.client = boto3.client("secretsmanager", **client_kwargs)
 
     def get_secret(self, secret_name):
         try:

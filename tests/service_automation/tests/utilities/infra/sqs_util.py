@@ -1,9 +1,32 @@
+import os
 from json import dumps
+from typing import Any, Optional
 
-from boto3 import client
+import boto3
 from loguru import logger
 
-SQS_CLIENT = client("sqs", region_name="eu-west-2")
+
+def get_sqs_client(endpoint_url: Optional[str] = None) -> Any:
+    """Get an SQS client, optionally configured for LocalStack.
+
+    Args:
+        endpoint_url: Optional endpoint URL for LocalStack or other SQS-compatible services.
+                     If not provided, checks AWS_ENDPOINT_URL environment variable,
+                     then falls back to real AWS.
+
+    Returns:
+        Boto3 SQS client
+    """
+    endpoint = endpoint_url or os.environ.get("AWS_ENDPOINT_URL")
+    client_kwargs = {"region_name": "eu-west-2"}
+    if endpoint:
+        client_kwargs["endpoint_url"] = endpoint
+        logger.debug(f"Using SQS endpoint: {endpoint}")
+    return boto3.client("sqs", **client_kwargs)
+
+
+# Default client for backwards compatibility - uses environment variable if set
+SQS_CLIENT = get_sqs_client()
 
 
 def send_message_to_sqs(queue_url: str, message_body: dict) -> dict:

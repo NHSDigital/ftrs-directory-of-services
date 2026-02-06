@@ -21,8 +21,14 @@ from utilities.infra.api_util import get_url
 from utilities.infra.lambda_util import LambdaWrapper
 from utilities.infra.repo_util import check_record_in_repo, model_from_json_file
 from utilities.infra.secrets_util import GetSecretWrapper
+from utilities.testcontainers.fixtures import is_local_test_mode
 
-pytest_plugins = ["data_migration_fixtures", "fixtures.ods_fixtures"]
+pytest_plugins = [
+    "data_migration_fixtures",
+    "fixtures.ods_fixtures",
+    "utilities.testcontainers.fixtures",
+    "utilities.testcontainers.etl_ods_fixtures",
+]
 
 # Configure Loguru to log into a file and console
 logger.add(
@@ -43,16 +49,22 @@ load_dotenv(".env")
 def setup_logging():
     boto3.set_stream_logger(name="botocore.credentials", level="ERROR")
     logger.info("Starting test session...")
+    if is_local_test_mode():
+        logger.info("Running in LOCAL TEST MODE with LocalStack")
+    else:
+        logger.info("Running against REAL AWS services")
     yield
     logger.info("Test session completed.")
 
 
 @pytest.fixture(scope="session")
-def aws_lambda_client() -> LambdaWrapper:
-    """Create a Lambda client wrapper for test automation."""
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    return LambdaWrapper(lambda_client, iam_resource)
+def aws_lambda_client(aws_test_environment: Dict[str, Any]) -> LambdaWrapper:
+    """Create a Lambda client wrapper for test automation.
+
+    Automatically uses LocalStack if USE_LOCALSTACK=true is set.
+    """
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return LambdaWrapper(endpoint_url=endpoint_url)
 
 
 @pytest.fixture(scope="session")
@@ -63,15 +75,19 @@ def playwright():
 
 
 @pytest.fixture(scope="module")
-def api_request_context_mtls_factory(playwright, workspace, env):
-    """Factory to create API request contexts with different api_names."""
+def api_request_context_mtls_factory(playwright, workspace, env, aws_test_environment):
+    """Factory to create API request contexts with different api_names.
+
+    Automatically uses LocalStack for secrets when USE_LOCALSTACK=true.
+    """
     contexts = []
+    endpoint_url = aws_test_environment.get("endpoint_url")
 
     def _create_context(api_name="dos-search", headers=None, env=env):
         url = get_url(api_name)
         try:
-            # Get mTLS certs
-            client_pem, ca_cert = get_mtls_certs(env)
+            # Get mTLS certs (uses LocalStack in local test mode)
+            client_pem, ca_cert = get_mtls_certs(env, endpoint_url=endpoint_url)
             context_options = {
                 "ignore_https_errors": True,
                 "client_certificates": [
@@ -242,18 +258,25 @@ def write_allure_environment(env, workspace, project, commit_hash):
 
 
 @pytest.fixture(scope="session")
-def organisation_repo() -> AttributeLevelRepository[Organisation]:
-    return get_service_repository(Organisation, "organisation")
+def organisation_repo(aws_test_environment) -> AttributeLevelRepository[Organisation]:
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return get_service_repository(
+        Organisation, "organisation", endpoint_url=endpoint_url
+    )
 
 
 @pytest.fixture(scope="session")
-def location_repo():
-    return get_service_repository(Location, "location")
+def location_repo(aws_test_environment):
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return get_service_repository(Location, "location", endpoint_url=endpoint_url)
 
 
 @pytest.fixture(scope="session")
-def healthcare_service_repo():
-    return get_service_repository(HealthcareService, "healthcare-service")
+def healthcare_service_repo(aws_test_environment):
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return get_service_repository(
+        HealthcareService, "healthcare-service", endpoint_url=endpoint_url
+    )
 
 
 @pytest.fixture(scope="session")
@@ -267,9 +290,17 @@ def organisation_repo_seeded(organisation_repo):
     organisation_repo.delete(organisation.id)
 
 
-def get_mtls_certs(env):
-    # Fetch secrets from AWS
-    gsw = GetSecretWrapper()
+def get_mtls_certs(env: str, endpoint_url: str = None) -> tuple[bytes, bytes]:
+    """Fetch mTLS certificates from Secrets Manager.
+
+    Args:
+        env: Environment name
+        endpoint_url: Optional LocalStack endpoint URL
+
+    Returns:
+        Tuple of (client_pem, ca_cert) as bytes
+    """
+    gsw = GetSecretWrapper(endpoint_url=endpoint_url)
     logger.info(f"Fetching mTLS certs for env: {env}")
     client_pem = gsw.get_secret(
         f"/ftrs-directory-of-services/{env}/api-ca-pk"
@@ -284,9 +315,10 @@ def get_mtls_certs(env):
 
 
 @pytest.fixture(scope="session")
-def ods_terminology_api_key(env: str) -> str:
+def ods_terminology_api_key(env: str, aws_test_environment: Dict[str, Any]) -> str:
     """Return the raw ODS Terminology key string from Secrets Manager."""
-    gsw = GetSecretWrapper()
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    gsw = GetSecretWrapper(endpoint_url=endpoint_url)
     key_json = gsw.get_secret(f"/ftrs-dos/{env}/ods-terminology-api-key")
     key_dict = json.loads(key_json)
     api_key = key_dict.get("api_key")

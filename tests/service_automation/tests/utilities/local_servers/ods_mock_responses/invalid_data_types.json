@@ -1,0 +1,27 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/INVALID1",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "INVALID1",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": 12345
+            }
+          ],
+          "active": "not-a-boolean",
+          "name": 99999,
+          "telecom": "should-be-array"
+        }
+      }
+    ]
+  },
+  "status_code": 200
+}

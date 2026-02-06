@@ -1,12 +1,28 @@
+import os
+from typing import Optional
+
 import boto3
 from botocore.exceptions import ClientError
 from loguru import logger
 
 
 class CloudWatchLogsWrapper:
-    def __init__(self):
+    """CloudWatch Logs wrapper that supports both real AWS and LocalStack.
+
+    Args:
+        endpoint_url: Optional endpoint URL for LocalStack or other compatible services.
+                     If not provided, checks AWS_ENDPOINT_URL environment variable,
+                     then falls back to real AWS.
+    """
+
+    def __init__(self, endpoint_url: Optional[str] = None):
         try:
-            self.logs_client = boto3.client("logs")
+            endpoint = endpoint_url or os.environ.get("AWS_ENDPOINT_URL")
+            client_kwargs = {}
+            if endpoint:
+                client_kwargs["endpoint_url"] = endpoint
+                logger.debug(f"Using CloudWatch Logs endpoint: {endpoint}")
+            self.logs_client = boto3.client("logs", **client_kwargs)
         except ClientError as e:
             logger.error(f"Error initializing CloudWatch Logs client: {e}")
             raise

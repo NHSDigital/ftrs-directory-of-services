@@ -1,0 +1,72 @@
+name: Local Integration Tests (LocalStack)
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
+      workflow_timeout:
+        description: "Timeout duration in minutes"
+        required: false
+        default: 15
+        type: number
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-integration-tests:
+    name: "Run LocalStack integration tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.workflow_timeout || 15 }}
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: "Install asdf"
+        uses: asdf-vm/actions/setup@v4.0.1
+        with:
+          asdf_branch: v0.15.0
+
+      - name: "Cache asdf tools"
+        id: asdf-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.asdf
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+      - name: "Install tools from .tool-versions"
+        if: steps.asdf-cache.outputs.cache-hit != 'true'
+        uses: asdf-vm/actions/install@v4.0.1
+
+      - name: "Cache Poetry dependencies"
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
+
+      - name: "Install project"
+        run: make install
+        working-directory: tests/service_automation
+
+      - name: "Run LocalStack integration tests"
+        run: make test-local-all
+        working-directory: tests/service_automation
+        env:
+          USE_LOCALSTACK: "true"
+
+      - name: "Upload test results"
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: localstack-test-results
+          path: tests/service_automation/allure-results/
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,10 +1,11 @@
 import json
+from typing import Any, Dict
 
-import boto3
 import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from utilities.common.resource_name import get_resource_name
+from utilities.infra.lambda_invoker import LambdaInvoker
 from utilities.infra.lambda_util import LambdaWrapper
 
 # Load feature file
@@ -12,12 +13,19 @@ scenarios("./infra_features/dos-search-ods-code-lambda.feature")
 
 
 @pytest.fixture(scope="module")
-def aws_lambda_client():
-    """Fixture to initialize AWS Lambda utility"""
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    wrapper = LambdaWrapper(lambda_client, iam_resource)
-    return wrapper
+def aws_lambda_client(aws_test_environment: Dict[str, Any]):
+    """Fixture to initialize Lambda invoker.
+
+    In local mode (USE_LOCALSTACK=true), calls Lambda handlers directly.
+    In AWS mode, invokes Lambda functions via AWS Lambda API.
+    """
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    lambda_wrapper = LambdaWrapper(endpoint_url=endpoint_url)
+
+    return LambdaInvoker(
+        lambda_wrapper=lambda_wrapper,
+        endpoint_url=endpoint_url,
+    )
 
 
 @given(

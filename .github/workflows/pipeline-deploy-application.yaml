@@ -55,11 +55,20 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
+  local-integration-tests:
+    name: "LocalStack integration tests"
+    needs:
+      - metadata
+    uses: ./.github/workflows/local-integration-tests.yaml
+    with:
+      ref: ${{ inputs.ref }}
+
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
     needs:
       - metadata
       - quality-checks
+      - local-integration-tests
     uses: ./.github/workflows/prepare-toggle-artifacts.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}

@@ -50,7 +50,8 @@ def get_core_table_configs(
     """
     Get core entity table configurations (organisation, location, healthcare-service).
 
-    These are the primary tables used by CRUD APIs.
+    These are the primary tables used by CRUD APIs and DOS Search.
+    Includes GSIs required for querying by ODS code, location, etc.
 
     Args:
         project_name: Project name override
@@ -60,28 +61,104 @@ def get_core_table_configs(
     Returns:
         List of table configuration dictionaries
     """
-    resources = ["organisation", "location", "healthcare-service"]
+    tables = []
 
-    return [
-        {
-            "TableName": get_table_name(
-                resource,
-                project_name=project_name,
-                environment=environment,
-                workspace=workspace,
-            ),
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"},
-                {"AttributeName": "field", "KeyType": "RANGE"},
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"},
-                {"AttributeName": "field", "AttributeType": "S"},
-            ],
-            "BillingMode": "PAY_PER_REQUEST",
-        }
-        for resource in resources
-    ]
+    # Organisation table with OdsCodeValueIndex GSI
+    tables.append({
+        "TableName": get_table_name(
+            "organisation",
+            project_name=project_name,
+            environment=environment,
+            workspace=workspace,
+        ),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "identifier_ODS_ODSCode", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "OdsCodeValueIndex",
+                "KeySchema": [
+                    {"AttributeName": "identifier_ODS_ODSCode", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    })
+
+    # Healthcare-service table with ProvidedByValueIndex and LocationIndex GSIs
+    tables.append({
+        "TableName": get_table_name(
+            "healthcare-service",
+            project_name=project_name,
+            environment=environment,
+            workspace=workspace,
+        ),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "providedBy", "AttributeType": "S"},
+            {"AttributeName": "location", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "ProvidedByValueIndex",
+                "KeySchema": [
+                    {"AttributeName": "providedBy", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            },
+            {
+                "IndexName": "LocationIndex",
+                "KeySchema": [
+                    {"AttributeName": "location", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    })
+
+    # Location table with managingOrganization GSI
+    tables.append({
+        "TableName": get_table_name(
+            "location",
+            project_name=project_name,
+            environment=environment,
+            workspace=workspace,
+        ),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "managingOrganization", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "ManagingOrganizationIndex",
+                "KeySchema": [
+                    {"AttributeName": "managingOrganization", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    })
+
+    return tables
 
 
 def get_triage_code_table_config(

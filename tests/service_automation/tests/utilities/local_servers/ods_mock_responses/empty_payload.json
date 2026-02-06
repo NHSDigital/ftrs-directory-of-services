@@ -1,0 +1,15 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 0,
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations?_lastUpdated=2025-12-09"
+      }
+    ],
+    "entry": []
+  },
+  "status_code": 200
+}

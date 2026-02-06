@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any
+from typing import Any, Optional
 
 import boto3
 from botocore.client import BaseClient
@@ -9,6 +9,19 @@ from ftrs_common.utils.correlation_id import get_correlation_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 ods_extractor_logger = Logger.get(service="sqs_sender")
+
+
+def _get_sqs_client() -> BaseClient:
+    """Get SQS client with optional endpoint URL for local testing.
+
+    Uses AWS_ENDPOINT_URL environment variable if set (for LocalStack).
+    """
+    endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
+    return boto3.client(
+        "sqs",
+        region_name=os.environ["AWS_REGION"],
+        endpoint_url=endpoint_url,
+    )
 
 
 def get_queue_name(
@@ -63,7 +76,7 @@ def send_messages_to_queue(
         if correlation_id:
             ods_extractor_logger.append_keys(correlation_id=correlation_id)
 
-        sqs = boto3.client("sqs", region_name=os.environ["AWS_REGION"])
+        sqs = _get_sqs_client()
         queue_name = get_queue_name(
             os.environ["ENVIRONMENT"], os.environ.get("WORKSPACE"), queue_suffix
         )

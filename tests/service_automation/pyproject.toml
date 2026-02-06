@@ -28,6 +28,7 @@ dependencies = [
   "pytest-nhsd-apim (>=6.0.6,<7.0.0)",
   "authlib (>=1.6.6,<2.0.0)",
   "deepdiff==8.6.1",
+  "rsa>=4.9",
 ]
 
 [build-system]
@@ -101,5 +102,9 @@ markers = [
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
   "rds_schema_modification: marks test as using RDS schema modification",
+  "local: marks test as local-only test (runs against LocalStack)",
+  "crud_apis_integration: marks test as CRUD APIs integration test",
+  "crud_apis_local_comprehensive: marks test as comprehensive CRUD APIs local test",
+  "aws-smoke: marks test as AWS smoke test (infrastructure verification only)",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

@@ -1,0 +1,134 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 2,
+    "link": [
+      {
+        "relation": "self",
+        "url": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations?_lastUpdated=2025-12-08"
+      }
+    ],
+    "entry": [
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/A12345",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "A12345",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "A12345"
+            }
+          ],
+          "active": true,
+          "name": "Test GP Practice One",
+          "telecom": [
+            {
+              "system": "phone",
+              "value": "01onal 123456",
+              "use": "work"
+            }
+          ],
+          "address": [
+            {
+              "use": "work",
+              "line": ["123 Test Street", "Test Town"],
+              "city": "Test City",
+              "postalCode": "TE1 1ST",
+              "country": "ENGLAND"
+            }
+          ],
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+              "extension": [
+                {
+                  "url": "role",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                    "code": "RO76",
+                    "display": "GP PRACTICE"
+                  }
+                },
+                {
+                  "url": "primaryRole",
+                  "valueBoolean": true
+                },
+                {
+                  "url": "status",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-Status-1",
+                    "code": "Active",
+                    "display": "Active"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/B67890",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "B67890",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "B67890"
+            }
+          ],
+          "active": true,
+          "name": "Test GP Practice Two",
+          "telecom": [
+            {
+              "system": "phone",
+              "value": "02postal 654321",
+              "use": "work"
+            }
+          ],
+          "address": [
+            {
+              "use": "work",
+              "line": ["456 Sample Road", "Sample Village"],
+              "city": "Sample City",
+              "postalCode": "SA2 2MP",
+              "country": "ENGLAND"
+            }
+          ],
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+              "extension": [
+                {
+                  "url": "role",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                    "code": "RO177",
+                    "display": "PRESCRIBING COST CENTRE"
+                  }
+                },
+                {
+                  "url": "primaryRole",
+                  "valueBoolean": true
+                },
+                {
+                  "url": "status",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-Status-1",
+                    "code": "Active",
+                    "display": "Active"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "status_code": 200
+}

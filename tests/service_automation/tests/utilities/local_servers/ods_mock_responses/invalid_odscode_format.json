@@ -1,0 +1,45 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/INVALID-ODS-FORMAT-TOO-LONG-12345",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "INVALID-ODS-FORMAT-TOO-LONG-12345",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "INVALID-ODS-FORMAT-TOO-LONG-12345"
+            }
+          ],
+          "active": true,
+          "name": "Organization with Invalid ODS Code Format",
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+              "extension": [
+                {
+                  "url": "role",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                    "code": "RO76",
+                    "display": "GP PRACTICE"
+                  }
+                },
+                {
+                  "url": "primaryRole",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "status_code": 200
+}

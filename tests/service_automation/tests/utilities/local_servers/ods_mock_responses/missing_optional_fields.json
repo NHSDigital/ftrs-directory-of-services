@@ -1,0 +1,45 @@
+{
+  "body": {
+    "resourceType": "Bundle",
+    "type": "searchset",
+    "total": 1,
+    "entry": [
+      {
+        "fullUrl": "https://directory.spineservices.nhs.uk/ORD/2-0-0/organisations/OPT1",
+        "resource": {
+          "resourceType": "Organization",
+          "id": "OPT1",
+          "identifier": [
+            {
+              "use": "official",
+              "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+              "value": "OPT1"
+            }
+          ],
+          "active": true,
+          "name": "Organization Missing Optional Fields",
+          "extension": [
+            {
+              "url": "https://fhir.nhs.uk/STU3/StructureDefinition/Extension-ODSAPI-OrganizationRole-1",
+              "extension": [
+                {
+                  "url": "role",
+                  "valueCoding": {
+                    "system": "https://directory.spineservices.nhs.uk/STU3/CodeSystem/ODSAPI-OrganizationRole-1",
+                    "code": "RO76",
+                    "display": "GP PRACTICE"
+                  }
+                },
+                {
+                  "url": "primaryRole",
+                  "valueBoolean": true
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "status_code": 200
+}

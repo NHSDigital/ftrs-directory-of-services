@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Tuple
 
-import boto3
 import pytest
 from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
@@ -260,16 +259,20 @@ def validate_lambda_logs_for_extraction(context: Context, cloudwatch_logs):
 
 
 @pytest.fixture(scope="module")
-def aws_lambda_client():
-    iam_resource = boto3.resource("iam")
-    lambda_client = boto3.client("lambda")
-    return LambdaWrapper(lambda_client, iam_resource)
+def aws_lambda_client(aws_test_environment):
+    """Lambda wrapper that uses LocalStack when USE_LOCALSTACK=true."""
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return LambdaWrapper(endpoint_url=endpoint_url)
 
 
 @pytest.fixture
-def cloudwatch_logs():
-    """Create CloudWatch logs wrapper for log verification."""
-    return CloudWatchLogsWrapper()
+def cloudwatch_logs(aws_test_environment):
+    """Create CloudWatch logs wrapper for log verification.
+
+    Uses LocalStack when USE_LOCALSTACK=true is set.
+    """
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return CloudWatchLogsWrapper(endpoint_url=endpoint_url)
 
 
 @pytest.fixture(scope="module")

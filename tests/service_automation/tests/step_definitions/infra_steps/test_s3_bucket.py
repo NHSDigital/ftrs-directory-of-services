@@ -1,4 +1,5 @@
 import subprocess
+from typing import Any, Dict
 
 import pytest
 from loguru import logger
@@ -13,9 +14,13 @@ scenarios("./infra_features/s3.feature")
 
 
 @pytest.fixture(scope="module")
-def aws_s3_client():
-    """Fixture to initialize AWS S3 utility"""
-    return S3Utils()
+def aws_s3_client(aws_test_environment: Dict[str, Any]):
+    """Fixture to initialize AWS S3 utility.
+
+    Automatically uses LocalStack when USE_LOCALSTACK=true is set.
+    """
+    endpoint_url = aws_test_environment.get("endpoint_url")
+    return S3Utils(endpoint_url=endpoint_url)
 
 
 @pytest.fixture
@@ -26,8 +31,15 @@ def fetch_s3_buckets(aws_s3_client):
 
 
 @given("I am authenticated with AWS CLI")
-def check_aws_access():
-    """Ensure AWS CLI authentication works"""
+def check_aws_access(aws_test_environment: Dict[str, Any]):
+    """Ensure AWS CLI authentication works.
+
+    In local test mode (LocalStack), this check is skipped.
+    """
+    if aws_test_environment.get("mode") == "localstack":
+        logger.info("Running in LocalStack mode - skipping AWS CLI auth check")
+        return
+
     result = subprocess.run(
         ["aws", "sts", "get-caller-identity"],
         check=False,

@@ -6,7 +6,29 @@ from ftrs_data_layer.client import get_dynamodb_client
 from ftrs_data_layer.domain import DBModel
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 
-env_variable_settings = Settings()
+# Lazy initialization - Settings is created on first access, not at import time
+_settings: Settings | None = None
+
+
+def _get_settings() -> Settings:
+    """Get or create the Settings instance lazily.
+    
+    This allows tests to set environment variables before Settings is created.
+    """
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
+
+
+def reset_settings() -> None:
+    """Reset the cached Settings instance.
+    
+    This is primarily for testing - allows re-initializing Settings
+    after environment variables have been changed.
+    """
+    global _settings
+    _settings = None
 
 
 DBModelT = TypeVar("DBModelT", bound=DBModel)
@@ -28,10 +50,11 @@ def get_service_repository(
     Returns:
         AttributeLevelRepository[DBModelT]: The repository for the specified model.
     """
+    settings = _get_settings()
     return AttributeLevelRepository[DBModelT](
         table_name=get_table_name(entity_name),
         model_cls=model_cls,
-        endpoint_url=endpoint_url or env_variable_settings.endpoint_url or None,
+        endpoint_url=endpoint_url or settings.endpoint_url or None,
         logger=logger,
     )
 
@@ -46,10 +69,11 @@ def get_table_name(entity_name: str) -> str:
     Returns:
         str: The constructed table name
     """
+    settings = _get_settings()
     return format_table_name(
         entity_name=entity_name,
-        env=env_variable_settings.env,
-        workspace=env_variable_settings.workspace,
+        env=settings.env,
+        workspace=settings.workspace,
     )
 
 

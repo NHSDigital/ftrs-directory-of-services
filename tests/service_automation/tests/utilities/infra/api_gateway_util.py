@@ -1,20 +1,30 @@
+import os
+from typing import Optional
+
 import boto3
 from botocore.exceptions import ClientError
 from loguru import logger
 
 
 class ApiGatewayToService:
-    """
-    Encapsulates Amazon API Gateway functions that are used to create a REST API that
-    integrates with another AWS service.
+    """Encapsulates Amazon API Gateway functions.
+
+    Supports both real AWS and LocalStack for testing.
+
+    Args:
+        endpoint_url: Optional endpoint URL for LocalStack or other compatible services.
+                     If not provided, checks AWS_ENDPOINT_URL environment variable,
+                     then falls back to real AWS.
     """
 
-    def __init__(self):
-        """
-        :param apig_client: A Boto3 API Gateway client.
-        """
+    def __init__(self, endpoint_url: Optional[str] = None):
+        endpoint = endpoint_url or os.environ.get("AWS_ENDPOINT_URL")
+        client_kwargs = {}
+        if endpoint:
+            client_kwargs["endpoint_url"] = endpoint
+            logger.debug(f"Using API Gateway endpoint: {endpoint}")
 
-        self.apig_client = boto3.client("apigateway")
+        self.apig_client = boto3.client("apigateway", **client_kwargs)
         self.api_id = None
         self.root_id = None
         self.stage = None

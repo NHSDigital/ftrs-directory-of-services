@@ -118,6 +118,64 @@ Note that if the branch has not been pushed with the dev pipeline successfully d
 
 ## Running Tests
 
+### Running Tests Locally (without AWS)
+
+You can run tests locally against LocalStack using testcontainers. This requires Docker to be running but does **not** require AWS credentials or a deployed environment.
+
+```shell
+# Run quick smoke test (S3 and DynamoDB tests)
+make test-local-smoke
+
+# Run all local infrastructure tests (includes Lambda tests via direct invocation)
+make test-local
+
+# Run Lambda tests specifically
+make test-local-lambda
+```
+
+**What runs locally:**
+- **S3 tests**: S3 bucket operations using LocalStack
+- **DynamoDB tests**: Data repository tests using LocalStack
+- **Lambda tests**: DOS Search Lambda handler invoked directly (no AWS Lambda required)
+- **Data migration tests**: Use local SQL files from `tests/sql_files/`
+
+**What still requires AWS:**
+- **UI tests**: Require deployed frontend
+- **API tests via API Gateway**: Require deployed API Gateway
+
+**How Lambda tests work locally:**
+
+Instead of invoking Lambda functions via AWS Lambda API, the local test framework:
+1. Imports the Lambda handler function directly from the `services/dos-search` module
+2. Creates a mock Lambda context
+3. Calls the handler with the test event
+4. Returns the response as if it came from AWS Lambda
+
+This allows testing the full Lambda business logic without needing AWS Lambda deployed.
+
+**Benefits of local testing:**
+- No AWS credentials required
+- No deployed infrastructure needed
+- Faster iteration during development
+- Tests can run in CI without AWS access
+- Lambda handler logic tested directly
+
+**Prerequisites:**
+- Docker must be running
+- `testcontainers` Python package (installed via `make config`)
+
+**Environment Variables for Local Testing:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `USE_LOCALSTACK` | `false` | Set to `true` to use LocalStack |
+| `ENVIRONMENT` | - | Set to `local` for local testing |
+| `WORKSPACE` | - | Set to `test` for local testing |
+
+### Running Tests Against AWS
+
+These tests require AWS credentials and a deployed environment:
+
 ### Running UI tests
 
 ```shell

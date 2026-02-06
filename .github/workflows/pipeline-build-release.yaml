@@ -83,11 +83,20 @@ jobs:
           # Output for subsequent steps
           echo "release_tag=$RC_TAG" >> $GITHUB_OUTPUT
 
+  local-integration-tests:
+    name: "LocalStack integration tests"
+    needs:
+      - metadata
+    uses: ./.github/workflows/local-integration-tests.yaml
+    with:
+      ref: ${{ github.sha }}
+
   promote-release-candidate:
     name: "Promote artefacts for release candidate ${{ needs.tag-release.outputs.release_tag }}"
     needs:
       - metadata
       - tag-release
+      - local-integration-tests
     uses: ./.github/workflows/promote-artefacts.yaml
     with:
       repo_name: ${{ needs.metadata.outputs.reponame }}
