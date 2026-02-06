@@ -9,7 +9,7 @@ Feature: API DoS Service Search APIM
 
 
 
-  Scenario Outline:I send a request to the dos-search Organization Endpoint by ODS Code via APIM with valid headers and query parameters
+  Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code via APIM with valid headers and query parameters
     When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -22,7 +22,7 @@ Feature: API DoS Service Search APIM
 
 
 @manual
-  Scenario Outline:I send a request to the dos-search Organization Endpoint by ODS Code via APIM with invalid header and valid query parameters
+  Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code via APIM with invalid header and valid query parameters
     When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -37,7 +37,7 @@ Feature: API DoS Service Search APIM
 
 
 
-  Scenario:I send a request to the dos-search Organization Endpoint by ODS Code via APIM with valid query parameters
+  Scenario:I send a request to the dos-search organization endpoint by ODS Code via APIM with valid query parameters
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -45,7 +45,7 @@ Feature: API DoS Service Search APIM
     And the bundle contains "4" "Endpoint" resources
 
 
-  Scenario Outline:I send a request to the dos-search Organization Endpoint via APIM with invalid ODS code
+  Scenario Outline:I send a request to the dos-search organization endpoint via APIM with invalid ODS code
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -62,7 +62,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
-  Scenario Outline:I send a request to the dos-search Organization Endpoint with via APIM invalid _revinclude value
+  Scenario Outline:I send a request to the dos-search organization endpoint with via APIM invalid _revinclude value
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -78,7 +78,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
-  Scenario Outline:I send a request to the dos-search Organization Endpoint with via APIM invalid identifier system
+  Scenario Outline:I send a request to the dos-search organization endpoint with via APIM invalid identifier system
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -94,7 +94,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid\|M00081046&_revinclude=Endpoint:organization | https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
 
 
-  Scenario Outline:I send a request to the dos-search Organization Endpoint via APIM with 1 missing parameter
+  Scenario Outline:I send a request to the dos-search organization endpoint via APIM with 1 missing parameter
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -109,7 +109,7 @@ Feature: API DoS Service Search APIM
       | _revinclude=Endpoint:organization         | identifier    |
 
 
-  Scenario:I send a request to the dos-search Organization Endpoint via APIM with 2 missing parameters
+  Scenario:I send a request to the dos-search organization endpoint via APIM with 2 missing parameters
     When I request data from the APIM endpoint "Organization" with query params ""
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
