@@ -341,8 +341,23 @@ class ServiceTransactionBuilder:
 
         return self
 
+    # GSI key attributes that must not be serialized as NULL
+    # DynamoDB doesn't allow NULL values for GSI key attributes
+    GSI_KEY_ATTRIBUTES = frozenset(
+        [
+            "providedBy",  # healthcare-service GSI
+            "location",  # healthcare-service GSI
+            "identifier_ODS_ODSCode",  # organisation GSI
+            "managingOrganization",  # location GSI
+        ]
+    )
+
     def _serialise_item(self, item: BaseModel, **additional_fields: dict) -> dict:
         """Serialise a Pydantic model to DynamoDB format.
+
+        Handles the special case of GSI key attributes which cannot be NULL
+        in DynamoDB. If a GSI key attribute is None, it is omitted from
+        the output entirely rather than being serialized as a NULL type.
 
         Args:
             item: The Pydantic model to serialise.
@@ -353,6 +368,13 @@ class ServiceTransactionBuilder:
         """
         item_dict = item.model_dump(mode="json")
         item_dict.update(additional_fields)
+
+        # Remove GSI key attributes that are None to avoid DynamoDB validation errors
+        # (DynamoDB doesn't allow NULL values for GSI key attributes)
+        for attr in self.GSI_KEY_ATTRIBUTES:
+            if attr in item_dict and item_dict[attr] is None:
+                del item_dict[attr]
+
         return self.serialiser.serialize(item_dict)["M"]
 
     def build(self) -> list[dict]:

@@ -70,12 +70,10 @@ Feature: Data Migration
         "createdTime": "2025-10-07T08:38:57.679754Z",
         "dispositions": [],
         "identifier_oldDoS_uid": "2000094797",
-        "location": null,
         "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "lastUpdated": "2025-10-07T08:38:57.679754Z",
         "name": "PCN - Enhanced Access Hub, Sandwell",
         "openingTime": [],
-        "providedBy": null,
         "symptomGroupSymptomDiscriminators": [],
         "telecom": {
           "email": null,
