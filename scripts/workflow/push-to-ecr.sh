@@ -66,12 +66,12 @@ init(){
   REMOTE_IMAGE_TAG="${4:-}"
   VERSION_TAG="${5:-}"
   PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
-  [ -n "$API_NAME" -a -n "$LOCAL_IMAGE" -a -n "$REMOTE_IMAGE_NAME" -a -n "$REMOTE_IMAGE_TAG" ] || usage
+  [[ -n "$API_NAME" && -n "$LOCAL_IMAGE" && -n "$REMOTE_IMAGE_NAME" && -n "$REMOTE_IMAGE_TAG" ]] || usage
 }
 
 fetch_proxygen_registry_credentials(){
   local raw_token="${DOCKER_TOKEN:-}"
-  [ -n "$raw_token" ] || die "DOCKER_TOKEN not provided"
+  [[ -n "$raw_token" ]] || die "DOCKER_TOKEN not provided"
 
   local token
   token=$(normalise_token "$raw_token")
@@ -79,7 +79,7 @@ fetch_proxygen_registry_credentials(){
   local user="" password="" registry=""
   while IFS= read -r segment; do
     segment=$(trim_ws "$segment")
-    [ -n "$segment" ] || continue
+    [[ -n "$segment" ]] || continue
     local key=$(strip_quotes "$(trim_ws "${segment%%:*}")")
     local value=$(strip_quotes "$(trim_ws "${segment#*:}")")
     case "$key" in
@@ -89,9 +89,9 @@ fetch_proxygen_registry_credentials(){
     esac
   done <<< "$(printf '%s' "$token" | tr ',' '\n')"
 
-  [ -n "$user" ] || die "Failed to parse user from DOCKER_TOKEN"
-  [ -n "$password" ] || die "Failed to parse password from DOCKER_TOKEN"
-  [ -n "$registry" ] || die "Failed to parse registry from DOCKER_TOKEN"
+  [[ -n "$user" ]] || die "Failed to parse user from DOCKER_TOKEN"
+  [[ -n "$password" ]] || die "Failed to parse password from DOCKER_TOKEN"
+  [[ -n "$registry" ]] || die "Failed to parse registry from DOCKER_TOKEN"
 
   USER="$user"
   PASSWORD="$password"
@@ -100,7 +100,7 @@ fetch_proxygen_registry_credentials(){
 }
 
 docker_login(){
-  [ -n "$USER" -a -n "$PASSWORD" ] || die "No usable login credentials returned from Proxygen"
+  [[ -n "$USER" && -n "$PASSWORD" ]] || die "No usable login credentials returned from Proxygen"
   printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
 }
 
@@ -118,7 +118,7 @@ push_image(){
 }
 
 re_tag_image(){
-  [ -n "${VERSION_TAG:-}" ] || return 0
+  [[ -n "${VERSION_TAG:-}" ]] || return 0
   local source_ref="$(remote_image_ref "$REMOTE_IMAGE_TAG")"
   local version_ref="$(remote_image_ref "$VERSION_TAG")"
   log "Re-tagging ${source_ref} as ${version_ref}"
@@ -137,14 +137,14 @@ fetch_manifest_header(){
 print_manifest_metadata(){
   log "Accessing repository via Docker Registry HTTP API: ${REGISTRY_HOST}/${REMOTE_IMAGE_NAME}"
   local manifest_tag
-  if [ -n "${VERSION_TAG:-}" ]; then
+  if [[ -n "${VERSION_TAG:-}" ]]; then
     manifest_tag="${VERSION_TAG}"
   else
     manifest_tag="${REMOTE_IMAGE_TAG}"
   fi
 
   DIGEST=$(REMOTE_IMAGE_TAG="$manifest_tag" fetch_manifest_header || true)
-  if [ -z "${DIGEST:-}" ]; then
+  if [[ -z "${DIGEST:-}" ]]; then
     die "Failed to determine digest for ${REMOTE_IMAGE_NAME}:${manifest_tag} via manifest header"
   fi
   DIGEST="${DIGEST#sha256:}"
@@ -159,7 +159,7 @@ main(){
   init "$@"
   fetch_proxygen_registry_credentials
   docker_login
-  if [ -z "${VERSION_TAG:-}" ]; then
+  if [[ -z "${VERSION_TAG:-}" ]]; then
     push_image
     log "No version tag supplied; skipping re-tag"
   else
