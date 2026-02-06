@@ -21,6 +21,7 @@ Usage:
 import os
 from typing import Any, Generator
 
+import boto3
 import pytest
 from loguru import logger
 
@@ -118,6 +119,8 @@ def aws_test_environment(
         "ENDPOINT_URL": os.environ.get("ENDPOINT_URL"),
         "AWS_ACCESS_KEY_ID": os.environ.get("AWS_ACCESS_KEY_ID"),
         "AWS_SECRET_ACCESS_KEY": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "WORKSPACE": os.environ.get("WORKSPACE"),
+        "AWS_REGION": os.environ.get("AWS_REGION"),
         "AWS_DEFAULT_REGION": os.environ.get("AWS_DEFAULT_REGION"),
     }
 
@@ -125,7 +128,18 @@ def aws_test_environment(
     os.environ["ENDPOINT_URL"] = endpoint_url  # For ftrs_common.utils.config.Settings
     os.environ["AWS_ACCESS_KEY_ID"] = "test"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+    # Ensure table naming is consistent across helpers:
+    # - ftrs_common.utils.config.Settings defaults WORKSPACE to None (no suffix)
+    # - ftrs_common.testing.table_config defaults WORKSPACE to "test" if missing
+    # Setting WORKSPACE to an empty string ensures both produce no suffix.
+    os.environ.setdefault("WORKSPACE", "")
+    os.environ["AWS_REGION"] = "eu-west-2"
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
+
+    # Boto3 caches a default session; if it was created before the region
+    # env vars were set, later `boto3.resource(...)` calls can still raise
+    # NoRegionError. Reset the default session explicitly for LocalStack mode.
+    boto3.setup_default_session(region_name=os.environ["AWS_DEFAULT_REGION"])
 
     logger.info(f"Configured AWS environment for LocalStack: {endpoint_url}")
 

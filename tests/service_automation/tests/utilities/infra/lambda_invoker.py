@@ -192,7 +192,44 @@ class LambdaInvoker:
 
         aws_xray_sdk_core = types.ModuleType("aws_xray_sdk.core")
 
+        class _DummySubsegment:
+            def put_metadata(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
+                return
+
+            def put_annotation(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
+                return
+
         class _XRayRecorder:
+            def in_subsegment(self, *args: Any, **kwargs: Any):  # noqa: ANN201,ARG002
+                class _Ctx:
+                    def __enter__(self) -> _DummySubsegment:
+                        return _DummySubsegment()
+
+                    def __exit__(
+                        self,
+                        exc_type: object,
+                        exc: object,
+                        tb: object,
+                    ) -> bool:
+                        return False
+
+                return _Ctx()
+
+            def in_segment(self, *args: Any, **kwargs: Any):  # noqa: ANN201,ARG002
+                class _Ctx:
+                    def __enter__(self) -> _DummySubsegment:
+                        return _DummySubsegment()
+
+                    def __exit__(
+                        self,
+                        exc_type: object,
+                        exc: object,
+                        tb: object,
+                    ) -> bool:
+                        return False
+
+                return _Ctx()
+
             def configure(self, *args: Any, **kwargs: Any) -> None:  # noqa: ARG002
                 return
 
