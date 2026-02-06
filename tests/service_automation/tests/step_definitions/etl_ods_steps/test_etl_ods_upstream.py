@@ -341,7 +341,7 @@ def verify_missing_fields_handled(
 def verify_unexpected_fields_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
-    assert_lambda_response(context, cloudwatch_logs, 200, "Succeeded to send")
+    assert_lambda_response(context, cloudwatch_logs, 200, "messages to sqs queue")
 
 
 @then("the Lambda should handle old requests gracefully")
@@ -356,7 +356,11 @@ def verify_server_errors_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
     assert_lambda_response(
-        context, cloudwatch_logs, 500, "ETL_UTILS_003", ["error", "failed", "exception"]
+        context,
+        cloudwatch_logs,
+        500,
+        "ETL_COMMON_013",
+        ["error", "failed", "exception"],
     )
 
 
@@ -372,7 +376,7 @@ def verify_authorization_error_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
     assert_lambda_response(
-        context, cloudwatch_logs, 500, "ETL_UTILS_003", ["unauthorized"]
+        context, cloudwatch_logs, 500, "ETL_COMMON_013", ["unauthorized"]
     )
 
 
