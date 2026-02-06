@@ -38,18 +38,10 @@ jobs:
             echo "Release tag format is valid: $RELEASE_TAG"
           fi
 
-  metadata:
-    name: "Get CI/CD metadata"
-    needs:
-      - validate-release-tag
-    uses: ./.github/workflows/metadata.yaml
-    with:
-      ref: ${{ inputs.release_tag }}
-
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
-      - metadata
+      - validate-release-tag
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -59,7 +51,6 @@ jobs:
   deploy-account-wide-infrastructure:
     name: "Deploy account wide infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
-      - metadata
       - deploy-account-wide-policies
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
@@ -70,21 +61,45 @@ jobs:
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
     needs:
-      - metadata
       - deploy-account-wide-infrastructure
     uses: ./.github/workflows/prepare-toggle-artifacts.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: ${{ inputs.environment }} 
       workspace: default
-      ref: ${{ inputs.ref }}
+      ref: ${{ inputs.release_tag }}
 
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ inputs.environment }}"
+    needs:
+      - prepare-toggle-artifacts
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment:  ${{ inputs.environment }}
+      workspace: default
+      ref: ${{ inputs.release_tag }} 
+
+  deploy-toggle-infrastructure:
+    name: "Deploy toggle infrastructure to the ${{ inputs.environment }}environment"
+    needs:
+      - check-stack-toggles
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
+    with:
+      environment:  ${{ inputs.environment }}
+      workspace: default
+      ref: ${{ inputs.release_tag }}
+      workflow_timeout: 30
+      stacks: "['app_config']"
+      skip_manual_approval: "true"
+    secrets: inherit
+      
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
       - validate-release-tag
-      - prepare-toggle-artifacts
+      - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
       environment: ${{ inputs.environment }}
       workspace: default
       release_tag: ${{ inputs.release_tag }}
@@ -92,100 +107,68 @@ jobs:
       workflow_timeout: 30
     secrets: inherit
 
-  check-stack-toggles:
-    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/check-stack-toggles.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: "rc"
-      ref: ${{ inputs.ref }}
-
-  deploy-ui:
-    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
-    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} to ${{ inputs.environment }}"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-dos-ui-${{ needs.tag-release.outputs.release_tag }}"
+      group: "${{ inputs.environment }}-${{ matrix.name }}"
       cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "dos-ui"
+            enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
+          - name: "read-only-viewer"
+            enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
     needs:
-      - metadata
-      - deploy-application-infrastructure
       - check-stack-toggles
+      - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: "dos-ui"
-      build_type: "service"
-      environment: ${{ needs.metadata.outputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: default
-      type: "app"
-      ref: ${{ needs.tag-release.outputs.release_tag }}
-    secrets: inherit
-
-  deploy-read-only-viewer:
-    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
-    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-read-only-viewer-${{ needs.tag-release.outputs.release_tag }}"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-      - check-stack-toggles
-    uses: ./.github/workflows/deploy-frontend-project.yaml
-    with:
-      name: "read-only-viewer"
+      name: ${{ matrix.name }}
+      enabled: ${{ matrix.enabled }}
       build_type: "service"
       environment: ${{ inputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
+      repo_name: ${{ github.event.repository.name }}
       workspace: default
       type: "app"
       ref: ${{ inputs.release_tag }}
     secrets: inherit
 
   service-automation-tests:
-    name: "Run service automation tests on ${{ inputs.environment }}"
+    name: "Run ${{ matrix.tag }} service automation tests on ${{ inputs.environment }} environment"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tag: "ftrs-pipeline"
+            type: "api"
+          - tag: "data-migration"
+            type: "data-migration"
     needs:
-      - metadata
-      - deploy-application-infrastructure
-      - deploy-ui
-      - deploy-read-only-viewer
-    if: |
-      always() &&
-      ${{ inputs.environment != 'prod' }} &&
-      !cancelled() &&
-      (
-        needs.restore-dynamodb-from-s3.result == 'success' ||
-        (
-          needs.restore-dynamodb-from-s3.result == 'skipped' &&
-          (needs.export-dynamodb-to-s3.result == 'success' || needs.deploy-application-infrastructure.result == 'success')
-        )
-      )
+      - deploy-frontend-services
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}
       workspace: default
       ref: ${{ inputs.release_tag }}
-      test_tag: "ftrs-pipeline"
-      test_type: "api"
+      test_tag: ${{ matrix.tag }}
+      test_type: ${{ matrix.type }}
       type: app
-      deployment_type: "release"
+      deployment_type: "release-candidate"
     secrets: inherit
 
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
       - validate-release-tag
-      - metadata
       - prepare-toggle-artifacts
+      - check-stack-toggles
+      - deploy-toggle-infrastructure
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
       - deploy-application-infrastructure
-      - check-stack-toggles
-      - deploy-ui
-      - deploy-read-only-viewer
+      - deploy-frontend-services
       - service-automation-tests
     if: always()
     uses: ./.github/workflows/pipeline-status-check.yaml
@@ -194,14 +177,14 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - validate-release-tag
-      - metadata
       - prepare-toggle-artifacts
+      - check-stack-toggles
+      - deploy-toggle-infrastructure
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
       - deploy-application-infrastructure
       - check-stack-toggles
-      - deploy-ui
-      - deploy-read-only-viewer
+      - deploy-frontend-services
       - service-automation-tests
       - check-pipeline-status
     if: always()

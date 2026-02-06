@@ -30,6 +30,31 @@ data "aws_kms_key" "ssm_kms_key" {
   key_id = local.kms_aliases.ssm
 }
 
+data "aws_s3_object" "python_dependency_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
+}
+
+data "aws_s3_object" "common_packages_layer" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
+data "aws_s3_object" "extractor_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.extractor_name}.zip"
+}
+
+data "aws_s3_object" "transformer_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.transformer_name}.zip"
+}
+
+data "aws_s3_object" "consumer_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}.zip"
+}
+
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -113,7 +138,7 @@ data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
 }
 
 data "aws_iam_policy_document" "ods_mock_api_access_policy" {
-  count = var.environment == "dev" ? 1 : 0
+  count = contains(["dev", "test"], var.environment) ? 1 : 0
 
   statement {
     effect = "Allow"
@@ -154,4 +179,10 @@ data "aws_iam_policy_document" "lambda_kms_access" {
     ]
     resources = [data.aws_kms_key.sqs_kms_alias.arn]
   }
+}
+
+data "aws_security_group" "etl_ods_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-lambda-sg"
 }

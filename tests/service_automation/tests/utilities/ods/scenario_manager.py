@@ -12,6 +12,8 @@ SCENARIO_DATE_MAP: Dict[str, str] = {
     "unauthorized": "2025-12-15",  # Returns 401 unauthorized response
     "server_error": "2025-12-16",  # Returns 500 internal server error
     "unknown_resource_type": "2025-12-17",  # Returns wrong resourceType (Location)
+    "missing_optional_fields": "2025-12-18",  # Returns Organization missing optional fields
+    "invalid_odscode_format": "2025-12-19",  # Returns Organization with invalid odsCode format
 }
 
 
@@ -85,3 +87,13 @@ def ods_server_error_scenario() -> str:
 @pytest.fixture
 def ods_happy_path_scenario() -> str:
     return ScenarioManager.get_scenario_date("happy_path")
+
+
+@pytest.fixture
+def ods_missing_optional_fields_scenario() -> str:
+    return ScenarioManager.get_scenario_date("missing_optional_fields")
+
+
+@pytest.fixture
+def ods_invalid_odscode_format_scenario() -> str:
+    return ScenarioManager.get_scenario_date("invalid_odscode_format")

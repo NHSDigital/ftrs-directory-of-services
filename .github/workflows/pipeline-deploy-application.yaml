@@ -55,29 +55,59 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}
+
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - prepare-toggle-artifacts
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}    
+
   build-services:
     name: "Build ${{ matrix.name }}"
     needs:
       - metadata
       - quality-checks
+      - check-stack-toggles
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: "python"
             build_type: "package"
+            build_enabled: true
           - name: "crud-apis"
             build_type: "service"
+            build_enabled: true
           - name: "data-migration"
             build_type: "service"
+            build_enabled: true
           - name: "read-only-viewer"
             build_type: "service"
+            build_enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true' }}
           - name: "etl-ods"
             build_type: "service"
+            build_enabled: true
           - name: "dos-search"
             build_type: "service"
+            build_enabled: true
           - name: "dos-ui"
             build_type: "service"
+            build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled == 'true' }}
     uses: ./.github/workflows/build-project.yaml
     with:
       name: ${{ matrix.name }}
@@ -89,6 +119,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: app
       ref: ${{ inputs.ref }}
+      build_enabled: ${{ matrix.build_enabled }}
     secrets: inherit
 
   build-sandbox-containers:
@@ -121,29 +152,36 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
-  prepare-toggle-artifacts:
-    name: "Prepare Toggle artifacts"
-    needs:
-      - metadata
-      - perform-code-analysis
-    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      ref: ${{ inputs.ref }}
-
-  deploy-application-infrastructure:
-    name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
+  deploy-toggle-infrastructure:
+    name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
     needs:
       - metadata
       - build-services
-      - prepare-toggle-artifacts
+      - check-stack-toggles
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
+      stacks: "['app_config']"
+      skip_manual_approval: "true"
+    secrets: inherit
+
+  deploy-application-infrastructure:
+    name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
+    needs:
+      - metadata
+      - build-services
+      - check-stack-toggles
+      - deploy-toggle-infrastructure
+    uses: ./.github/workflows/deploy-application-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: ${{ needs.metadata.outputs.workspace }}
+      ref: ${{ inputs.ref }}
+      workflow_timeout: 30
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
     secrets: inherit
 
   deploy-proxy-to-apim:
@@ -222,17 +260,6 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets: inherit
 
-  check-stack-toggles:
-    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
-    needs:
-      - metadata
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/check-stack-toggles.yaml
-    with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      ref: ${{ inputs.ref }}
-
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
     if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
@@ -248,40 +275,27 @@ jobs:
       aws_region: ${{ vars.AWS_REGION }}
     secrets: inherit
 
-  deploy-ui:
-    name: "Deploy dos-ui to ${{ needs.metadata.outputs.environment }}"
-    if: needs.check-stack-toggles.outputs.ui_enabled == 'true'
+  deploy-frontend-services:
+    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-dos-ui"
+      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
       cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "dos-ui"
+            enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
+          - name: "read-only-viewer"
+            enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
     needs:
       - metadata
       - check-stack-toggles
       - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
-      name: "dos-ui"
-      build_type: "service"
-      environment: ${{ needs.metadata.outputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
-      type: "app"
-      ref: ${{ inputs.ref }}
-    secrets: inherit
-
-  deploy-read-only-viewer:
-    name: "Deploy read-only-viewer to ${{ needs.metadata.outputs.environment }}"
-    if: needs.check-stack-toggles.outputs.read_only_viewer_enabled == 'true'
-    concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-read-only-viewer"
-      cancel-in-progress: false
-    needs:
-      - metadata
-      - check-stack-toggles
-      - deploy-application-infrastructure
-    uses: ./.github/workflows/deploy-frontend-project.yaml
-    with:
-      name: "read-only-viewer"
+      name: ${{ matrix.name }}
+      enabled: ${{ matrix.enabled }}
       build_type: "service"
       environment: ${{ needs.metadata.outputs.environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
@@ -351,15 +365,13 @@ jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
     needs:
-      - deploy-ui
-      - deploy-read-only-viewer
+      - deploy-frontend-services
       - service-automation-tests
     if: >
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      (needs.deploy-ui.result == 'success' || needs.deploy-ui.result == 'skipped') &&
-      (needs.deploy-read-only-viewer.result == 'success' || needs.deploy-read-only-viewer.result == 'skipped') &&
+      (needs.deploy-frontend-services.result == 'success' || needs.deploy-frontend-services.result == 'skipped') &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
     secrets: inherit
@@ -382,8 +394,7 @@ jobs:
     name: "Check Pipeline Status"
     needs:
       - deploy-application-infrastructure
-      - deploy-ui
-      - deploy-read-only-viewer
+      - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
       - export-dynamodb-to-s3
@@ -401,8 +412,7 @@ jobs:
       # - migrate-data
       - export-dynamodb-to-s3
       - restore-dynamodb-from-s3
-      - deploy-ui
-      - deploy-read-only-viewer
+      - deploy-frontend-services
       - deploy-data-migration-service
       - service-automation-tests
       - generate-prerelease

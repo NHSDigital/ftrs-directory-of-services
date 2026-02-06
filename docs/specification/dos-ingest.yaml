@@ -518,12 +518,12 @@ paths:
             - `period`: Contains `start` and/or `end` dates in YYYY-MM-DD format
 
         **Allowed Role Combinations**:
-        - Exactly one role is designated as the primary role
+        - Organizations must be GP Practices with exactly one primary role (RO177 - Prescribing Cost Centre)
+        - Must have RO76 (GP Practice) as one of the non-primary roles
+        - May have additional non-primary roles alongside RO76
+        - Duplicate non-primary role codes are not allowed
         - The primary role includes TypedPeriod extension with legal dates
         - Non-primary roles may optionally include TypedPeriod extensions
-        - If the primary role is `RO177`, at least one non-primary role must be present and must be one of: `RO76`, `RO80`, or `RO87`
-        - If the primary role is `RO182`, the non-primary roles array may be empty
-        - Duplicate non-primary role codes are not allowed
 
         **General Validation Rules**:
         - OrganisationRole extension must contain `roleCode` sub-extensions
@@ -536,7 +536,7 @@ paths:
         - Start and end dates must not be equal if both are provided
         - Extension URLs must exactly match the expected NHS England structure definitions
 
-        **Example with Primary Role (RO177) and Non-Primary Roles**:
+        **Example with Primary Role (RO177) and Multiple Non-Primary Roles**:
         ```json
         "extension": [
           {
@@ -597,13 +597,13 @@ paths:
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
               {
-                "url": "roleCode",
+                "url": "roleCode", 
                 "valueCodeableConcept": {
                   "coding": [
                     {
                       "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                      "code": "RO80",
-                      "display": "BRANCH SURGERY"
+                      "code": "RO268",
+                      "display": "MEDICINE SUPPLIER"
                     }
                   ]
                 }
@@ -929,7 +929,15 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "Primary role RO177 must have at least one non-primary role from [RO76, RO80, RO87]"
+                        diagnostics: "RO177 requires the following non-primary roles: RO76"
+                invalid-primary-role-code:
+                  summary: Invalid primary role code (e.g., RO182)
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        diagnostics: "Valid primary role code (RO177) must be provided"
                 invalid-non-primary-role-code:
                   summary: Invalid non-primary role code (e.g., RO268)
                   value:
@@ -937,7 +945,7 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "Invalid non-primary role code: RO268 is not allowed"
+                        diagnostics: "RO177 requires the following non-primary roles: RO76"
                 duplicate-non-primary-roles:
                   summary: Duplicate non-primary role codes
                   value:
@@ -953,7 +961,7 @@ paths:
                     issue:
                       - severity: error
                         code: invalid
-                        diagnostics: "Primary role code must be provided"
+                        diagnostics: "Valid primary role code (RO177) must be provided"
 components:
   parameters:
     AcceptFHIR:
@@ -1353,3 +1361,7 @@ x-nhsd-apim:
     proxy:
       timeunit: "minute"
       limit: 300
+  target-attributes:
+    - name: product-id
+      required: true
+      header: NHSE-Product-ID

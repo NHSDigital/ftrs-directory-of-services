@@ -25,7 +25,7 @@ dependencies = [
   "pyyaml>=6.0.2",
   "python.dotenv>=1.1.1",
   "requests>=2.32.4",
-  "pytest-nhsd-apim (>=5.0.3,<6.0.0)",
+  "pytest-nhsd-apim (>=6.0.6,<7.0.0)",
   "authlib (>=1.6.6,<2.0.0)",
   "deepdiff==8.6.1",
 ]
@@ -98,6 +98,7 @@ markers = [
   "location-exists: marks test as location exists conflict related",
   "healthcare-service-exists: marks test as healthcare service exists conflict related",
   "incremental-update: marks test as incremental update (data changes between migrations) related",
+  "audit-events: marks test as audit event tracking (createdBy, lastUpdatedBy) related",
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
   "rds_schema_modification: marks test as using RDS schema modification",

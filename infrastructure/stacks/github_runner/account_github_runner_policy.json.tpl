@@ -67,6 +67,16 @@
             "Resource": "*"
         },
         {
+            "Sid": "IAMListRolesAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/"
+            ]
+        },
+        {
             "Sid": "IAMFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -266,6 +276,19 @@
                 "sts:TagSession"
             ],
             "Resource": "arn:aws:iam::*:role/${repo_name}-steampipe-readonly-role"
+        },
+        {
+          "Sid": "FirehoseAccess",
+          "Effect": "Allow",
+          "Action": [
+            "firehose:CreateDeliveryStream",
+            "firehose:DeleteDeliveryStream",
+            "firehose:DescribeDeliveryStream",
+            "firehose:UpdateDestination",
+            "firehose:ListDeliveryStreams",
+            "firehose:ListTagsForDeliveryStream"
+          ],
+          "Resource": "*"
         }
-    ]
+  ]
 }

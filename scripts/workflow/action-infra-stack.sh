@@ -233,4 +233,12 @@ if [ $TEMP_ENV_STACK_TF_VARS_FILE = 1 ] ; then
   rm -f "$ENVIRONMENTS_DIR/$STACK_TF_VARS_FILE"
 fi
 
+if [ -f "$STACK_TOGGLE_TF_VARS_FILE" ] ; then
+  rm -f "$STACK_TOGGLE_TF_VARS_FILE"
+fi
+
+if [ -f "$STACK_FEATURE_FLAG_FILE" ] ; then
+  rm -f "$STACK_FEATURE_FLAG_FILE"
+fi
+
 echo "Completed terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for account type $ENVIRONMENT and project $PROJECT"

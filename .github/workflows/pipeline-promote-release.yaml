@@ -1,7 +1,7 @@
 name: Promote Release Artefacts Pipeline
 # checkov:skip=CKV_GHA_7:Workflow dispatch inputs are required for manual triggering with environment selection
 on:
-  workflow_call:
+  workflow_dispatch:
     # checkov:skip=CKV_GHA_7:Inputs reviewed and approved
     inputs:
       release_tag:
