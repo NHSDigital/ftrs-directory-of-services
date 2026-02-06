@@ -640,6 +640,6 @@ x-nhsd-apim:
       limit: 9000
     # Per-application (per-subscription / per-api-key) quota to ensure fair usage between clients.
     # 10 transactions per second -> 10 * 60 = 600 per minute per application
-    app-default:
+    app_default:
       timeunit: "minute"
       limit: 600
