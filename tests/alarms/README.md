@@ -105,83 +105,6 @@ Alarm thresholds are configured in [`infrastructure/stacks/dos_search/variables.
 |--------|----------|-----------|------------|--------|--------|
 | Errors | CRITICAL | > 0 | 1/1 period | 60s | ✅ Active |
 
-## Alarm Details
-
-### Errors (WARNING - DISABLED)
-
-**Status**: Placeholder alarm - actions disabled until baseline established.
-
-**Placeholder threshold**: 5
-**Time to trigger**: N/A (disabled)
-**Variable**: `search_lambda_errors_warning_threshold`
-**Enable**: Set `enable_warning_alarms = true` in variables.tf
-
-### Errors (CRITICAL - ACTIVE)
-
-Triggers by invoking Lambda with invalid payloads that cause errors.
-
-**Requirements**: None
-**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
-**Variable**: `search_lambda_errors_critical_threshold`
-
-### Duration p95 (WARNING - DISABLED)
-
-**Status**: Placeholder alarm - actions disabled until baseline established.
-
-**Placeholder threshold**: 600ms
-**Time to trigger**: N/A (disabled)
-**Variable**: `search_lambda_duration_p95_warning_ms`
-**Enable**: Set `enable_warning_alarms = true` in variables.tf
-
-### Duration p99 (CRITICAL - ACTIVE)
-
-Triggers when Lambda p99 execution time exceeds 800ms.
-
-**Requirements**: Actual execution time must exceed 800ms
-**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
-**Variable**: `search_lambda_duration_p99_critical_ms`
-
-### Concurrent Executions (WARNING - DISABLED)
-
-**Status**: Placeholder alarm - actions disabled until baseline established.
-
-**Placeholder threshold**: 80
-**Time to trigger**: N/A (disabled)
-**Variable**: `search_lambda_concurrent_executions_warning`
-**Enable**: Set `enable_warning_alarms = true` in variables.tf
-
-### Concurrent Executions (CRITICAL - ACTIVE)
-
-Triggers when too many Lambda instances run simultaneously.
-
-**Requirements**: Sufficient concurrent invocations (>= 100)
-**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
-**Variable**: `search_lambda_concurrent_executions_critical` (100)
-
-### Throttles (CRITICAL - ACTIVE)
-
-Triggers when Lambda is throttled due to concurrency limits.
-
-**Requirements**: Reserved concurrency must be set on the Lambda function
-**Time to trigger**: Immediate when throttling occurs (1 minute evaluation)
-**Variable**: `search_lambda_throttles_critical_threshold` (0)
-
-### Invocations Spike (CRITICAL - ACTIVE)
-
-Triggers when Lambda invocations exceed 2x baseline (600/hour).
-
-**Requirements**: > 600 invocations in 1 hour
-**Time to trigger**: ~3 minutes (2 out of 3 periods must breach)
-**Variables**: `search_lambda_invocations_baseline_per_hour` (300), `invocations_critical_spike_multiplier` (2)
-
-### Health Check Errors (CRITICAL - ACTIVE)
-
-Triggers when health check Lambda has any errors.
-
-**Requirements**: None
-**Time to trigger**: ~1 minute after error
-**Variable**: `health_check_errors_critical_threshold` (0)
-
 ## Direct Script Usage
 
 You can also use the script directly for more control:
@@ -227,16 +150,179 @@ Or check Slack notifications in the configured alerts channel (#ftrs-dos-search-
 - Wait 1-2 minutes for CloudWatch to evaluate metrics
 - Check alarm thresholds in Terraform configuration
 - Verify alarm evaluation periods and thresholds are appropriate for testing
-- For duration alarms, ensure Lambda execution time actually exceeds thresholds
+- Use the troubleshooting commands below for specific alarm types
 
-**Lambda Logging**:
+### Troubleshooting Errors Alarms
 
-- Check CloudWatch Logs for the Lambda function to see invocation details and errors using:
+Check if errors are being recorded:
 
-```shell
-aws lambda get-function --function-name ftrs-dos-dev-dos-search-slack-notification-ftrs-765 --profile dos-search-dev
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# View recent errors in CloudWatch Logs
+aws logs tail /aws/lambda/${LAMBDA_NAME} \
+  --follow \
+  --filter-pattern "ERROR" \
+  --profile ${AWS_PROFILE}
+
+# Check error metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name Errors \
+  --dimensions Name=FunctionName,Value=${LAMBDA_NAME} \
+  --start-time $(date -u -v-10M +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 60 \
+  --statistics Sum \
+  --profile ${AWS_PROFILE}
 ```
 
-`ftrs-765` is your workspace and will need to adjusted according to yours.
-`--profile <your-profile name>` is your AWS CLI name that you used when you configured AWS CLI using `aws configure sso`.
-Test comment
+### Troubleshooting Duration Alarms
+
+Verify actual execution time:
+
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# Check execution time for a single invocation
+aws lambda invoke \
+  --function-name ${LAMBDA_NAME} \
+  --payload '{"odsCode": "TEST123"}' \
+  --cli-binary-format raw-in-base64-out \
+  --log-type Tail \
+  --profile ${AWS_PROFILE} \
+  response.json | jq -r '.LogResult' | base64 -d | grep "Duration"
+
+# Check p99 duration metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name Duration \
+  --dimensions Name=FunctionName,Value=${LAMBDA_NAME} \
+  --start-time $(date -u -v-10M +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 60 \
+  --statistics Average,Maximum \
+  --profile ${AWS_PROFILE}
+```
+
+If execution time is below the threshold (600ms for p95, 800ms for p99), the alarm won't trigger.
+
+### Troubleshooting Concurrent Executions Alarms
+
+Check current concurrency levels:
+
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# Check concurrent executions metric
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name ConcurrentExecutions \
+  --dimensions Name=FunctionName,Value=${LAMBDA_NAME} \
+  --start-time $(date -u -v-10M +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 60 \
+  --statistics Maximum \
+  --profile ${AWS_PROFILE}
+
+# Check account-level concurrency
+aws lambda get-account-settings --profile ${AWS_PROFILE}
+```
+
+**Lowering the threshold for easier testing:**
+
+The default threshold of 100 concurrent executions can be difficult to trigger. To make testing easier, temporarily lower it:
+
+1. Edit `infrastructure/stacks/dos_search/variables.tf` line 178-182:
+   ```terraform
+   variable "search_lambda_concurrent_executions_critical" {
+     description = "Search Lambda concurrency critical threshold (ConcurrentExecutions)"
+     type        = number
+     default     = 10  # Lowered from 100 for testing
+   }
+   ```
+
+2. Apply the change: Running the workspace via pipeline.
+
+3. Update the test to match: `./scripts/trigger-alarms.sh concurrent search 15`
+
+4. After testing, revert the threshold back to 100
+
+### Troubleshooting Throttles Alarms
+
+Check if throttling is occurring:
+
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# Check if reserved concurrency is set
+aws lambda get-function-concurrency \
+  --function-name ${LAMBDA_NAME} \
+  --profile ${AWS_PROFILE}
+
+# Check throttle metrics
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name Throttles \
+  --dimensions Name=FunctionName,Value=${LAMBDA_NAME} \
+  --start-time $(date -u -v-10M +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 60 \
+  --statistics Sum \
+  --profile ${AWS_PROFILE}
+```
+
+**Setting up reserved concurrency for testing:**
+
+Throttles alarm requires reserved concurrency to be set. To enable testing:
+
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# Set reserved concurrency to 5 (limits Lambda to 5 concurrent executions)
+aws lambda put-function-concurrency \
+  --function-name ${LAMBDA_NAME} \
+  --reserved-concurrent-executions 5 \
+  --profile ${AWS_PROFILE}
+
+# Run the test (20 concurrent invocations will cause throttling)
+make test-lambda-alarm-throttles-critical
+
+# Remove reserved concurrency after testing
+aws lambda delete-function-concurrency \
+  --function-name ${LAMBDA_NAME} \
+  --profile ${AWS_PROFILE}
+```
+
+### Troubleshooting Invocations Spike Alarms
+
+Check invocation rate:
+
+```bash
+# Set Lambda name (adjust for workspace if needed)
+LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+[ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
+
+# Check invocations over the last hour
+aws cloudwatch get-metric-statistics \
+  --namespace AWS/Lambda \
+  --metric-name Invocations \
+  --dimensions Name=FunctionName,Value=${LAMBDA_NAME} \
+  --start-time $(date -u -v-1H +%Y-%m-%dT%H:%M:%S) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+  --period 3600 \
+  --statistics Sum \
+  --profile ${AWS_PROFILE}
+```
+
+Alarm triggers when invocations exceed 600/hour (2x baseline of 300/hour).
