@@ -1,6 +1,10 @@
 import json
 import os
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
 from functions.dos_search_ods_code_function import lambda_handler
 
 if __name__ == "__main__":
@@ -10,8 +14,8 @@ if __name__ == "__main__":
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": f"https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}",
-            "_revinclude": "Endpoint:organization",
+            "identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}",
+            "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",

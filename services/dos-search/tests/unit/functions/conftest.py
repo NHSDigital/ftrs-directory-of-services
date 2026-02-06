@@ -3,6 +3,11 @@ from unittest.mock import patch
 import pytest
 from fhir.resources.R4B.bundle import Bundle
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
+
 
 # Fixtures extracted from functions/test_dos_search_ods_code_function.py to support functions/test_dos_logger.py
 @pytest.fixture
@@ -46,8 +51,8 @@ def event(ods_code):
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": f"https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}",
-            "_revinclude": "Endpoint:organization",
+            "identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}",
+            "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "pathParameters": None,
         "requestContext": {

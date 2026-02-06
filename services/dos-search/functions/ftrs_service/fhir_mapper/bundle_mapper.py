@@ -6,6 +6,10 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.utils.api_url_util import get_fhir_url
 from ftrs_data_layer.domain import Organisation
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
 from functions.ftrs_service.fhir_mapper.organization_mapper import (
     OrganizationMapper,
@@ -42,8 +46,8 @@ class BundleMapper:
         bundle_id = str(uuid4())
         url = (
             f"{get_fhir_url('dos-search', 'Organization')}"
-            f"?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
-            f"&_revinclude=Endpoint:organization"
+            f"?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}"
+            f"&_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
         )
         bundle_link = [
             {

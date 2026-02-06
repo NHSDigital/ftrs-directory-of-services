@@ -4,6 +4,10 @@ import pytest
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
 from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
     lambda_handler,
@@ -48,8 +52,8 @@ def _build_event_with_headers(headers: dict[str, str]):
         "path": "/Organization",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": "https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
-            "_revinclude": "Endpoint:organization",
+            "identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123",
+            "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "requestContext": {"requestId": "req-id"},
         "headers": headers,
