@@ -23,7 +23,7 @@ module "slack_notification_lambda" {
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [aws_security_group.dos_search_lambda_security_group.id]
+  security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {
     "SLACK_WEBHOOK_URL" = var.slack_webhook_alarms_url
