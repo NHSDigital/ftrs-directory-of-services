@@ -59,6 +59,25 @@ def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutc
         }
     )
 
+def create_missing_mandatory_header_operation_outcome(headers: list[str]) -> OperationOutcome:
+    diagnostics = (
+        "Missing the following mandatory header(s): "
+        + ", ".join(sorted(headers))
+        if headers
+        else "Missing mandatory headers"
+    )
+    return OperationOutcome.model_validate(
+        {
+            "issue": [
+                _create_issue(
+                    "value", 
+                    "error",
+                    details=REC_BAD_REQUEST_CODING,
+                    diagnostics=diagnostics
+                )
+            ]
+        }
+    )
 
 def create_resource_internal_server_error() -> OperationOutcome:
     return OperationOutcome.model_validate(
