@@ -75,10 +75,9 @@ jobs:
       - name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ steps.semantic.outputs.new_release_version || inputs.release_tag || inputs.prerelease_tag }}"
         env:
           PROMOTION_TYPE: ${{ inputs.artefact_promotion_type }}
-        run: make -f artefact-promotion.mk $PROMOTION_TYPE
-        working-directory: scripts/services
-        env:
           ENVIRONMENT: ${{ inputs.environment }}
           REPO_NAME: ${{ inputs.repo_name }}
           RELEASE_TAG: ${{ steps.semantic.outputs.new_release_version || inputs.release_tag }}
           PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
+        run: make -f artefact-promotion.mk $PROMOTION_TYPE
+        working-directory: scripts/services
