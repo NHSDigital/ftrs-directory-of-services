@@ -197,27 +197,6 @@ def send_to_apim_status_token(
     )
 
 
-def _send_api_request(request_context, url, params: str = None, headers=None):
-    param_dict = _convert_params_str_to_dict(params)
-
-    response = request_context.get(
-        url,
-        params=param_dict,
-        headers=headers,
-    )
-
-    logger.info(f"response: {response.json()}")
-
-    return response
-
-
-def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
-    if not params:
-        return {}
-
-    return dict(param.split("=", 1) for param in params.split("&") if "=" in param)
-
-
 @when(
     parsers.re(
         r'I attempt to request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" without authentication but with valid query params "(?P<params>.*?)"'
@@ -255,3 +234,21 @@ def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type)
         key="details",
         value=CODING_MAP[coding_type],
     )
+
+
+def _send_api_request(request_context, url, params: str = None, headers=None):
+    param_dict = _convert_params_str_to_dict(params)
+
+    response = request_context.get(
+        url,
+        params=param_dict,
+        headers=headers,
+    )
+    return response
+
+
+def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
+    if not params:
+        return {}
+
+    return dict(param.split("=", 1) for param in params.split("&") if "=" in param)

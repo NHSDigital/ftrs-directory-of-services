@@ -1,5 +1,5 @@
 @is-api @ftrs-pipeline @dos-search-ods-code-api
-Feature: dos-search api tests against the api-gateway to validate the correct handling of headers
+Feature: API DoS Service Search Backend Gateway Headers
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -16,20 +16,24 @@ Feature: dos-search api tests against the api-gateway to validate the correct ha
     And the bundle contains "4" "Endpoint" resources
     Examples:
       |params                        |
-      |NHSD-Request-ID=req-987654321 |
+      |NHSD-Request-ID=nhsd-req-987654321 |
       |Content-Type=application/fhir+json |
-      |NHSD-Correlation-ID=corr-123456789 |
+      |NHSD-Correlation-ID=nhsd-corr-123456789 |
       |NHSD-Request-ID=req-987654321 |
-      # |NHSD-Message-Id=msg-1122334455 |
-      # |NHSD-Api-Version=1.0 |
-      # |NHSD-End-User-Role=GPPracticeAdmin |
-      # |NHSD-Client-Id=client-abc123 |
-      # |NHSD-Connecting-Party-App-Name=dos-search-service |
-      |Accept=application/fhir+json |
+      |X-Correlation-ID=x-corr-1122334455 |
+      |X-Request-ID=x-req-1122334455|
+      |Version=1.0 |
+      |End-User-Role=enduserrole-abc123 |
+      |Application-ID=appid_12345 |
+      |Application-Name=appname-abc123 |
+      |Application-ID=appid_12345 |
+      |Request-Start-Time=21/01/2026 14:02:23 |
       |Accept-Encoding=gzip, deflate |
+      |Accept=application/fhir+json |
       |Accept-Language=en-GB |
       |User-Agent=curl/8.0 |
-      # |Host=dos-search-ftrs-735.dev.ftrs.cloud.nhs.uk |
+      |Host= |
+      |X-Amzn-Trace-Id=Root=1-67891233-abcdef012345678912345678 |
       |X-Forwarded-For=192.168.1.10 |
       |X-Forwarded-Port=443 |
       |X-Forwarded-Proto=https |

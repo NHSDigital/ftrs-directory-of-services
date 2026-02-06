@@ -1,6 +1,5 @@
 @is-api @ftrs-pipeline @dos-search-ods-code-api
-Feature: API DoS Service Search Backend
-# Feature: Dos-search api tests against the api-gateway to validate the request parameters and the response
+Feature: API DoS Service Search Backend Request Parameters
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -93,7 +92,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
 
 
-  Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
+  Scenario Outline: I search for GP Endpoint by ODS Code with unexpected query parameter
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&<unexpected_param>=<unexpected_value>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -108,9 +107,8 @@ Feature: API DoS Service Search Backend
       | junk             | 123              |
 
 
+@test
   # New health check scenario for GET /_status
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
     When I request data from the "dos-search" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
-
-

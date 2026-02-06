@@ -1,6 +1,5 @@
 @is-api @ftrs-pipeline @dos-search-ods-code-api
 Feature: API DoS Service Search Backend Gateway Errors
-# Feature: Dos-search api tests against the api-gateway to validate the error catching
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -9,7 +8,7 @@ Feature: API DoS Service Search Backend Gateway Errors
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-  Scenario: A request to the api-gateway with missing mtls cert and key results in a connection reset error
+  Scenario: I search for GP Endpoint by ODS Code with valid query parameters but missing mtls credentials and receive a connection reset error
     When I attempt to request data from the "dos-search" endpoint "Organization" without authentication but with valid query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M000081046"
     Then I receive a connection reset error
 

@@ -4,8 +4,7 @@ from pytest_bdd import parsers, then
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
-    logger.info(f"response: {fresponse.json()}")
-    assert fresponse.status == status_code
+    assert (fresponse.status) == status_code
 
 
 @then(parsers.parse('the response body contains an "{resource_type}" resource'))
