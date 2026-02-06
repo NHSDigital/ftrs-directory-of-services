@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # Script to generate JWT and retrieve APIM access token
-# Required environment variables: PRIVATE_KEY, KID, CLIENT_ID, TOKEN_URL
+# Required environment variables: ENV, API_NAME, AWS_REGION
 
 set -e
 
 # Get the secret string
-    export PROXYGEN_JWT_SECRETS=$(aws secretsmanager get-secret-value \
-      --secret-id /ftrs-dos/$ENV/$API_NAME-proxygen-jwt-credentials \
-      --query SecretString \
-      --region $AWS_REGION \
-      --output text)
+PROXYGEN_JWT_SECRETS=$(aws secretsmanager get-secret-value \
+    --secret-id /ftrs-dos/"$ENV"/"$API_NAME"-proxygen-jwt-credentials \
+    --query SecretString \
+    --region "$AWS_REGION" \
+    --output text)
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,7 +35,7 @@ RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TOKEN_URL" \
 
 # Extract HTTP status code and response body
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-BODY=$(echo "$RESPONSE" | head -n-1)
+BODY=$(echo "$RESPONSE" | sed '$d')
 
 # Check response
 if [ "$HTTP_CODE" -ne 200 ]; then
