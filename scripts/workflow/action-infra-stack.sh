@@ -173,6 +173,17 @@ terraform-initialise
 
 terraform workspace select -or-create "$WORKSPACE"
 
+if [ "$STACK" = "account_wide" ] ; then
+  echo "Exporting splunk secrets needed for Firehose"
+  if [ -z "$SPLUNK_COLLECTOR_URL" ] || [ -z "$SPLUNK_HEC_ENDPOINT" ] || [ -z "$SPLUNK_HEC_TOKEN" ] ; then
+    echo "SPLUNK_COLLECTOR_URL, SPLUNK_HEC_ENDPOINT and SPLUNK_HEC_TOKEN environment variables must be set for account_wide stack"
+    exit 1
+  fi
+  export TF_VAR_splunk_collector_url=$SPLUNK_COLLECTOR_URL
+  export TF_VAR_splunk_hec_endpoint=$SPLUNK_HEC_ENDPOINT
+  export TF_VAR_splunk_hec_token=$SPLUNK_HEC_TOKEN
+fi
+
 # plan
 if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
   terraform plan -out $STACK.tfplan \

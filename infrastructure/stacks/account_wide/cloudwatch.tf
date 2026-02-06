@@ -70,3 +70,9 @@ resource "aws_cloudwatch_log_group" "waf_log_group" {
   log_group_class   = var.waf_log_group_class
   provider          = aws.us-east-1
 }
+
+resource "aws_cloudwatch_log_group" "firehose_log_group" {
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  name              = "${local.resource_prefix}-${var.firehose_error_log_group_name}"
+  retention_in_days = var.firehose_logs_retention_in_days
+}
