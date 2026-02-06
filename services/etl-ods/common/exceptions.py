@@ -1,14 +1,3 @@
-"""Exception classes for ETL ODS pipeline."""
-
-
-class RateLimitError(Exception):
-    """DEPRECATED: Use RetryableProcessingError instead for rate limits."""
-
-    def __init__(self, message: str = "Rate limit exceeded") -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
 class PermanentProcessingError(Exception):
     """Exception for permanent failures that should be consumed immediately (no retry, no DLQ).
 
