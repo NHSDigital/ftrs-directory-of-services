@@ -18,7 +18,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_connector_allow_egress_to_rds
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : Justification: This security group is for the Athena RDS Connector Lambda, which requires egress access to the internet for S3 and Secrets Manager, as well as access to the RDS instance.
+# trivy:ignore:aws-vpc-no-public-egress-sgr : Justification: This Athena RDS Connector Lambda requires egress access to the internet for S3 and Secrets Manager, as well as access to the RDS instance.
 resource "aws_vpc_security_group_egress_rule" "rds_connector_allow_egress_https" {
   count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
 
