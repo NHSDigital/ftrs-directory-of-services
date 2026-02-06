@@ -90,7 +90,26 @@ resource "aws_wafv2_web_acl_logging_configuration" "regional_waf_logging_configu
   depends_on = [aws_cloudwatch_log_resource_policy.regional_waf_log_group_policy]
 }
 
-resource "aws_cloudwatch_log_group" "firehose_error_log_group" {
+resource "aws_cloudwatch_log_group" "regional_waf_log_group" {
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  name              = "${var.waf_log_group_name_prefix}${local.account_prefix}-${var.regional_waf_log_group}"
+  retention_in_days = var.regional_waf_log_group_retention_days
+  log_group_class   = var.regional_waf_log_group_class
+}
+
+resource "aws_cloudwatch_log_resource_policy" "regional_waf_log_group_policy" {
+  policy_document = data.aws_iam_policy_document.regional_waf_log_group_policy_document.json
+  policy_name     = "${local.resource_prefix}-${var.regional_waf_log_group_policy_name}"
+}
+
+resource "aws_wafv2_web_acl_logging_configuration" "regional_waf_logging_configuration" {
+  log_destination_configs = [aws_cloudwatch_log_group.regional_waf_log_group.arn]
+  resource_arn            = aws_wafv2_web_acl.regional_waf_web_acl.arn
+
+  depends_on = [aws_cloudwatch_log_resource_policy.regional_waf_log_group_policy]
+}
+
+resource "aws_cloudwatch_log_group" "firehose_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
   name              = "${local.resource_prefix}-${var.firehose_error_log_group_name}"
   retention_in_days = var.firehose_logs_retention_in_days

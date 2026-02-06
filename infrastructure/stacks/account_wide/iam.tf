@@ -1,5 +1,5 @@
 resource "aws_iam_role" "firehose_role" {
-  name = "${var.project}-${var.environment}-${var.firehose_name}-role"
+  name = "${local.account_prefix}-${var.firehose_name}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
         Action = [
           "logs:PutLogEvents"
         ]
-        Resource = "${aws_cloudwatch_log_group.firehose_error_log_group.arn}"
+        Resource = "${aws_cloudwatch_log_group.firehose_log_group.arn}"
       }
       ], var.enable_firehose_sse ? [{
         Effect = "Allow"
@@ -56,7 +56,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 }
 
 resource "aws_iam_role" "cw_to_firehose_role" {
-  name = "${var.project}-${var.environment}-${var.firehose_name}-cw-role"
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
