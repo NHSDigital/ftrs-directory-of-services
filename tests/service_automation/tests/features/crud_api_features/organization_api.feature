@@ -1,4 +1,4 @@
-@crud-org-api @ftrs-pipeline
+@crud-org-api @data-sourcing
 Feature: Organization API Endpoint
 
   Scenario: Retrieve Organization
