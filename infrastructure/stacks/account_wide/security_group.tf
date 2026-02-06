@@ -116,3 +116,23 @@ resource "aws_vpc_security_group_ingress_rule" "vpce_interface_ingress_https" {
   from_port         = var.https_port
   to_port           = var.https_port
 }
+
+# Security group for interface VPC endpoints
+resource "aws_security_group" "vpce_interface_security_group" {
+  name        = "${local.account_prefix}-vpce-interface-sg"
+  description = "Security group for interface VPC endpoints (SSM, API Gateway, KMS, Secrets Manager, RDS, AppConfig, SQS)"
+  vpc_id      = module.vpc.vpc_id
+
+  tags = {
+    Name = "${local.resource_prefix}-vpce-interface-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "vpce_interface_ingress_https" {
+  security_group_id = aws_security_group.vpce_interface_security_group.id
+  description       = "Allow HTTPS ingress from VPC (return traffic allowed automatically via stateful rules)"
+  cidr_ipv4         = var.vpc["cidr"]
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+}
