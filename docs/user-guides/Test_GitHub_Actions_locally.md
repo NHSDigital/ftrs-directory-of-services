@@ -49,7 +49,7 @@ $ make runner-act workflow="stage-1-commit" job="create-lines-of-code-report"
 [Commit stage/Count lines of code]   🐳  docker exec cmd=[bash --noprofile --norc -e -o pipefail /var/run/act/workflow/1-composite-check.sh] user= workdir=
 [Commit stage/Count lines of code]   ✅  Success - Main Check prerequisites for sending the report
 [Commit stage/Count lines of code]   ⚙  ::set-output:: secrets_exist=false
-[Commit stage/Count lines of code]   ☁  git clone 'https://github.com/aws-actions/configure-aws-credentials' # ref=v2
+[Commit stage/Count lines of code]   ☁  git clone 'https://github.com/aws-actions/configure-aws-credentials' # ref=v6.0.0
 [Commit stage/Count lines of code]   ✅  Success - Main Count lines of code
 [Commit stage/Count lines of code]   ⚙  ::set-output:: secrets_exist=false
 [Commit stage/Count lines of code] ⭐ Run Post Count lines of code
