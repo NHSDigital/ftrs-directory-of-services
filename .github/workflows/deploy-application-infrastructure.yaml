@@ -106,7 +106,9 @@ jobs:
       approved: ${{ steps.log-approval.outputs.approved }}
     steps:
       - name: Approval required
-        run: echo "${{ inputs.environment }} deployment paused for manual approval. Please approve in the Actions tab."
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: echo "$ENVIRONMENT deployment paused for manual approval. Please approve in the Actions tab."
       - name: Log approval
         id: log-approval
         run: echo "approved=true" >> $GITHUB_OUTPUT
@@ -152,22 +154,28 @@ jobs:
     steps:
       - name: Deployment Summary
         id: deployment_summary
+        env:
+          MANUAL_APPROVAL_RESULT: ${{ needs.manual-approval-application-infra.result }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          PLAN_RESULT: ${{ needs.plan-application-infrastructure.outputs.plan_result }}
+          APPROVED: ${{ needs.manual-approval-application-infra.outputs.approved }}
+          APPLY_RESULT: ${{ needs.apply-application-infrastructure.result }}
         run: |
-          if [ ${{ needs.manual-approval-application-infra.result }} == 'skipped' ]; then
-            echo "Plan identified no changes for application infrastructure in the ${{ inputs.environment }} environment."
+          if [ "$MANUAL_APPROVAL_RESULT" == 'skipped' ]; then
+            echo "Plan identified no changes for application infrastructure in the $ENVIRONMENT environment."
             echo "deploy_status=Success" >> $GITHUB_OUTPUT
           else
-            if [ ${{ needs.plan-application-infrastructure.outputs.plan_result }} == 'true' ]; then
-              if [ ${{ needs.manual-approval-application-infra.outputs.approved }} == 'true' ]; then
-                if [ "${{ needs.apply-application-infrastructure.result }}" == "success" ]; then
-                  echo "Changes APPROVED and successfully APPLIED to application infrastructure in the ${{ inputs.environment }} environment."
+            if [ "$PLAN_RESULT" == 'true' ]; then
+              if [ "$APPROVED" == 'true' ]; then
+                if [ "$APPLY_RESULT" == "success" ]; then
+                  echo "Changes APPROVED and successfully APPLIED to application infrastructure in the $ENVIRONMENT environment."
                   echo "deploy_status=Success" >> $GITHUB_OUTPUT
                 else
-                  echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the ${{ inputs.environment }} environment."
+                  echo "Changes APPROVED but were NOT successfully applied to application infrastructure in the $ENVIRONMENT environment."
                   echo "deploy_status=Failed" >> $GITHUB_OUTPUT
                 fi
               else
-                echo "Planned changes to application infrastructure REJECTED for deployment to the ${{ inputs.environment }} environment."
+                echo "Planned changes to application infrastructure REJECTED for deployment to the $ENVIRONMENT environment."
                 echo "deploy_status=Rejected" >> $GITHUB_OUTPUT
               fi
             fi

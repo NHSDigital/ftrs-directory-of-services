@@ -121,23 +121,31 @@ jobs:
     steps:
       - name: "Determine environment"
         id: set-env
+        env:
+          INPUT_ENV: ${{ github.event.inputs.environment }}
+          PAYLOAD_ENV: ${{ github.event.client_payload.environment }}
+          WORKFLOW_INPUT_ENV: ${{ inputs.environment }}
+          LABEL_NAME: ${{ github.event.label.name }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          EVENT_REF: ${{ github.event.ref }}
         run: |
-          if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
-            environment="${{ github.event.inputs.environment }}"
-          elif [[ "${{ github.event.client_payload.environment }}" != "" ]]; then
-            environment="${{ github.event.client_payload.environment }}"
-          elif [[ "${{ inputs.environment }}" != "" ]]; then
-            environment="${{ inputs.environment }}"
-          elif [[ "${{ github.event.label.name }}" == "Test Ready" ]]; then
+          if [[ "$INPUT_ENV" != "" ]]; then
+            environment="$INPUT_ENV"
+          elif [[ "$PAYLOAD_ENV" != "" ]]; then
+            environment="$PAYLOAD_ENV"
+          elif [[ "$WORKFLOW_INPUT_ENV" != "" ]]; then
+            environment="$WORKFLOW_INPUT_ENV"
+          elif [[ "$LABEL_NAME" == "Test Ready" ]]; then
             environment="test"
-          elif [[ "${{ github.event.label.name }}" == "Int Ready" ]]; then
+          elif [[ "$LABEL_NAME" == "Int Ready" ]]; then
             environment="int"
           else
             # Handling pull request closed event
-            if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "closed" ]]; then
+            if [[ "$EVENT_NAME" == "pull_request" && "$EVENT_ACTION" == "closed" ]]; then
               environment='["test", "int"]'
             # Handling branch deletion event
-            elif [[ "${{ github.event_name }}" == "delete" && "${{ github.event.ref }}" =~ ^task/ ]]; then
+            elif [[ "$EVENT_NAME" == "delete" && "$EVENT_REF" =~ ^task/ ]]; then
               environment="dev"
             else
               environment="dev"

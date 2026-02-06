@@ -216,7 +216,7 @@ jobs:
 
       - name: "Checkov scan"
         id: "checkov"
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@a61fb306378e2e0e21ce20d432bb955e9f9a64b2 # v12
         with:
           quiet: true
           soft_fail: false
@@ -242,7 +242,7 @@ jobs:
           ref: ${{ inputs.tag }}
 
       - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
+        uses: asdf-vm/actions/setup@79e1df853ef2a61d984c27f812bc24f1794f3b4a # v4.0.1
         with:
           asdf_branch: v0.15.0
 
@@ -255,7 +255,7 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
+        uses: asdf-vm/actions/install@79e1df853ef2a61d984c27f812bc24f1794f3b4a # v4.0.1
 
       - name: "Install project"
         run: make install
@@ -279,7 +279,7 @@ jobs:
 
       - name: "Trivy scan"
         id: "trivy"
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@7c4c1c0e6c19667a67e0e4058e37cb4c65a392a5 # 0.33.1
         with:
           scan-type: "fs"
           scan-ref: "."

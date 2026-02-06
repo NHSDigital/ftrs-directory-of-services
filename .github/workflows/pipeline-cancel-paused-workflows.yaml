@@ -25,9 +25,10 @@ jobs:
         id: "cancel_runs"
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         shell: bash
         run: |
-          export REPO="${{ github.repository }}"
+          export REPO="$REPO"
           /bin/bash ./scripts/workflow/cancel-paused-workflows.sh
 
   slack-notifications:

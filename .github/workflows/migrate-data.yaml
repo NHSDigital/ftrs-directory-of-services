@@ -60,14 +60,16 @@ jobs:
       - name: "Run ETL process for data migration"
         id: "trigger_migration"
         shell: bash
+        env:
+          FUNCTION_NAME: ${{ inputs.function_name }}
         run: |
-          export FUNCTION_NAME=${{ inputs.function_name }}
           /bin/bash ./scripts/workflow/trigger-data-migration-lambda.sh
 
       - name: "Poll data migration queue"
         id: "poll_data_migration_queue"
         shell: bash
+        env:
+          ENV: ${{ inputs.environment }}
+          QUEUE_NAME: ${{ inputs.queue_name }}
         run: |
-          export ENV="${{ inputs.environment }}"
-          export QUEUE_NAME=${{ inputs.queue_name }}
           /bin/bash ./scripts/workflow/poll-data-migration-queue.sh
