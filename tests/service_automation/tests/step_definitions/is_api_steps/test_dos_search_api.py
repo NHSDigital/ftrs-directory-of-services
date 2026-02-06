@@ -2,6 +2,7 @@ import os
 
 import pytest
 from loguru import logger
+from playwright._impl._errors import Error as PlaywrightError
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps import api_steps
 from step_definitions.common_steps.api_steps import *  # noqa: F403
@@ -113,18 +114,6 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
 
 @when(
     parsers.re(
-        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" without authentication but with valid query params "(?P<params>.*?)"'
-    ),
-    target_fixture="fresponse",
-)
-def send_get_with_params_no_auth(api_request_context, api_name, params, resource_name):
-    url = get_url(api_name) + "/" + resource_name
-    logger.info(f"Requesting URL: {url} with params: {params}")
-    return _send_api_request(api_request_context, url, params)
-
-
-@when(
-    parsers.re(
         r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'
     ),
     target_fixture="fresponse",
@@ -227,6 +216,32 @@ def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
         return {}
 
     return dict(param.split("=", 1) for param in params.split("&") if "=" in param)
+
+
+@when(
+    parsers.re(
+        r'I attempt to request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" without authentication but with valid query params "(?P<params>.*?)"'
+    ),
+    target_fixture="connection_error",
+)
+def send_get_with_params_no_auth_expecting_error(
+    api_request_context, api_name, params, resource_name
+):
+    url = get_url(api_name) + "/" + resource_name
+    error_details = {"error_type": None, "error_message": None}
+    try:
+        _send_api_request(api_request_context, url, params)
+    except PlaywrightError as e:
+        error_details["error_type"] = "PlaywrightError"
+        error_details["error_message"] = str(e)
+        logger.info(f"Caught expected connection error: {e}")
+    return error_details
+
+
+@then(parsers.parse("I receive a connection reset error"))
+def check_connection_reset_error(connection_error):
+    assert connection_error["error_type"] == "PlaywrightError"
+    assert "ECONNRESET" in connection_error["error_message"]
 
 
 @then(
