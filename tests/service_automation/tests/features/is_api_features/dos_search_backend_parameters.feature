@@ -1,6 +1,5 @@
-@is-api @ftrs-pipeline @dos-search-ods-code-api
+@is-api @integrated-search @dos-search-ods-code-api
 Feature: API DoS Service Search Backend
-# Feature: Dos-search api tests against the api-gateway to validate the request parameters and the response
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -8,7 +7,7 @@ Feature: API DoS Service Search Backend
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-  Scenario: I search for GP Endpoint by ODS Code with for an ODS code that does not exist
+  Scenario:I send a request to the dos-search Organization Endpoint by ODS Code with for an ODS code that does not exist
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|X000081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -16,7 +15,7 @@ Feature: API DoS Service Search Backend
     And the bundle contains "0" "Endpoint" resources
 
 
-  Scenario Outline: I search for GP Endpoint with invalid ODS code
+  Scenario Outline:I send a request to the dos-search Organization Endpoint with invalid ODS code
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -33,7 +32,7 @@ Feature: API DoS Service Search Backend
       | identifier=odsOrganisationCode\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
-  Scenario Outline: I search for GP Endpoint with invalid _revinclude value
+  Scenario Outline:I send a request to the dos-search Organization Endpoint with invalid _revinclude value
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -49,7 +48,7 @@ Feature: API DoS Service Search Backend
       | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
-  Scenario Outline: I search for GP Endpoint with invalid identifier system
+  Scenario Outline:I send a request to the dos-search Organization Endpoint with invalid identifier system
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -65,7 +64,7 @@ Feature: API DoS Service Search Backend
       | identifier=odsOrganisationCodeInvalid\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCodeInvalid |
 
 
-  Scenario Outline: I search for GP Endpoint with 1 missing parameter
+  Scenario Outline:I send a request to the dos-search Organization Endpoint with 1 missing parameter
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -81,7 +80,7 @@ Feature: API DoS Service Search Backend
 
 
 
-  Scenario: I search for GP Endpoint with 2 missing parameters
+  Scenario:I send a request to the dos-search Organization Endpoint with 2 missing parameters
     When I request data from the "dos-search" endpoint "Organization" with query params ""
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -93,7 +92,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
 
 
-  Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
+  Scenario Outline:I send a request to the dos-search Organization Endpoint by ODS Code with unexpected query parameter
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&<unexpected_param>=<unexpected_value>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -106,11 +105,4 @@ Feature: API DoS Service Search Backend
       | unexpected_param | unexpected_value |
       | foo              | bar              |
       | junk             | 123              |
-
-
-  # New health check scenario for GET /_status
-  Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
-    When I request data from the "dos-search" endpoint "_status" with query params ""
-    Then I receive a status code "200" in response
-
 
