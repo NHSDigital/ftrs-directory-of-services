@@ -10,6 +10,7 @@ from functions.error_util import (
     REC_BAD_REQUEST_CODING,
     _create_issue,
     create_invalid_header_operation_outcome,
+    create_missing_mandatory_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
 )

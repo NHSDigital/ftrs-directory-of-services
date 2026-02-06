@@ -15,8 +15,10 @@ from functions.organization_query_params import OrganizationQueryParams
 class InvalidRequestHeadersError(ValueError):
     """Raised when disallowed HTTP headers are supplied in the request."""
 
+
 class MissingMandatoryHeadersError(ValueError):
     """Raised when mandatory HTTP headers are missing from the request."""
+
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
@@ -48,6 +50,7 @@ MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset(
         "x-request-id",
     }
 )
+
 
 def _validate_headers(headers: dict[str, str] | None) -> None:
     if not headers:
@@ -83,8 +86,10 @@ def get_organization() -> Response:
                 "Missing mandatory headers",
                 missing_headers=missing_headers,
             )
-            fhir_resource = error_util.create_missing_mandatory_header_operation_outcome(
-                missing_headers
+            fhir_resource = (
+                error_util.create_missing_mandatory_header_operation_outcome(
+                    missing_headers
+                )
             )
             return create_response(400, fhir_resource)
         except InvalidRequestHeadersError as exception:
