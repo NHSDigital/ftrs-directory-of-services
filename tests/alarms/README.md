@@ -240,6 +240,7 @@ aws lambda get-account-settings --profile ${AWS_PROFILE}
 The default threshold of 100 concurrent executions can be difficult to trigger. To make testing easier, temporarily lower it:
 
 1. Edit `infrastructure/stacks/dos_search/variables.tf` line 178-182:
+
    ```terraform
    variable "search_lambda_concurrent_executions_critical" {
      description = "Search Lambda concurrency critical threshold (ConcurrentExecutions)"
