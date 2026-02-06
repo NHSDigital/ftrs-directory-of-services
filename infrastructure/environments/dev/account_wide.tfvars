@@ -31,4 +31,4 @@ one_nat_gateway_per_az = false
 
 enable_s3_kms_encryption = false
 
-enable_firehose_s3_kms_encryption = false
+enable_firehose_s3_kms_encryption = true
