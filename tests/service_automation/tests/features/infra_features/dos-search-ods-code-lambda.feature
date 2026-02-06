@@ -1,4 +1,4 @@
-@is-infra @ftrs-pipeline @is-lambda
+@is-infra @integrated-search @is-lambda
 Feature: Lambda function
 
   Background: Check lambda function exists

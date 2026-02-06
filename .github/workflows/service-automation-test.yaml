@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: The relevant github environment (for secrets and variables)
+        description: "The relevant github environment (for secrets and variables)"
         required: true
         type: string
       workspace:
@@ -17,7 +17,15 @@ on:
         required: false
         type: string
       test_type:
-        description: "The name of the type of test report that will be generated"
+        description: "The name of the type of test report that will be generated (e.g., bdd, apim, ui)"
+        required: false
+        type: string
+      api_name:
+        description: "The name of the API to test (for APIM tests, e.g., dos-search)"
+        required: false
+        type: string
+      apim_env:
+        description: "The APIM environment to test (for APIM tests, e.g., internal-dev, internal-qa)"
         required: false
         type: string
       ref:
@@ -134,19 +142,21 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions', 'tests/service_automation/.tool-versions') }}
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
         uses: asdf-vm/actions/install@v4.0.1
 
       - name: "Cache Poetry dependencies"
+        id: poetry-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
 
       - name: "Cache Playwright browsers"
+        id: playwright-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -161,8 +171,26 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Install project"
+        if: steps.asdf-cache.outputs.cache-hit != 'true' || steps.poetry-cache.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
         run: make install
         working-directory: "tests/service_automation"
+
+      - name: Authenticate with APIM
+        if: inputs.test_type == 'apim'
+        uses: ./.github/actions/authenticate-apim
+        id: apim-auth
+        with:
+          api_name: ${{ inputs.api_name }}
+          environment: ${{ inputs.environment }}
+          aws_region: ${{ vars.AWS_REGION }}
+
+      - name: Get Apigee access token
+        if: inputs.test_type == 'apim'
+        uses: ./.github/actions/authenticate-apim-pytest
+        with:
+          api_name: ${{ inputs.api_name }}
+          access_token: ${{ steps.apim-auth.outputs.access_token }}
+          proxygen_base_url: ${{ secrets.PROXYGEN_URL }}
 
       - name: Run ${{ inputs.test_tag }} service automation tests
         id: run-service_automation-tests
@@ -173,6 +201,8 @@ jobs:
           workspace: ${{ inputs.workspace }}
           test_tag: ${{ inputs.test_tag }}
           test_type: ${{ inputs.test_type }}
+          api_name: ${{ inputs.api_name }}
+          apim_env: ${{ inputs.environment == 'dev' && 'internal-dev' || inputs.environment == 'test' && 'internal-qa' || inputs.environment }}
           commit_hash: ${{ inputs.commit_hash || github.sha }}
           ref: ${{ inputs.ref }}
 

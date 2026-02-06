@@ -143,6 +143,37 @@
                 "shield:List*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "SecurityHubReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "securityhub:Get*",
+                "securityhub:List*",
+                "securityhub:Describe*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "GuardDutyReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "guardduty:Get*",
+                "guardduty:List*",
+                "guardduty:Describe*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "InspectorReadOnly",
+            "Effect": "Allow",
+            "Action": [
+                "inspector2:Get*",
+                "inspector2:List*",
+                "inspector2:Describe*",
+                "inspector2:BatchGet*"
+            ],
+            "Resource": "*"
         }
     ]
 }
