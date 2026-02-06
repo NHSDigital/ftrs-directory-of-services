@@ -20,12 +20,18 @@ def mock_error_util():
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
         mock_invalid_header = OperationOutcome.model_construct(id="invalid-header")
+        mock_missing_mandatory_header = OperationOutcome.model_construct(
+            id="missing-mandatory-header"
+        )
 
         mock.create_validation_error_operation_outcome.return_value = (
             mock_validation_error
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
         mock.create_invalid_header_operation_outcome.return_value = mock_invalid_header
+        mock.create_missing_mandatory_header_operation_outcome.return_value = (
+            mock_missing_mandatory_header
+        )
 
         yield mock
 
@@ -56,7 +62,7 @@ def _build_event_with_headers(headers: dict[str, str]):
             "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "requestContext": {"requestId": "req-id"},
-        "headers": headers,
+        "headers": {"x-request-id": "req-id", **headers},
     }
 
 
@@ -136,6 +142,30 @@ class TestLambdaHandler:
             response,
             expected_status_code=400,
             expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
+        )
+
+    def test_lambda_handler_rejects_missing_mandatory_headers(
+        self,
+        lambda_context,
+        mock_logger,
+        mock_error_util,
+    ):
+        event_with_headers = _build_event_with_headers({})
+        event_with_headers["headers"].pop("x-request-id")
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        mock_error_util.create_missing_mandatory_header_operation_outcome.assert_called_once_with(
+            []
+        )
+        mock_logger.warning.assert_called_with(
+            "Missing mandatory headers",
+            invalid_headers=["x-nhsd-unknown"],
+        )
+        assert_response(
+            response,
+            expected_status_code=400,
+            expected_body=mock_error_util.create_missing_mandatory_header_operation_outcome.return_value.model_dump_json(),
         )
 
     @pytest.mark.parametrize(
