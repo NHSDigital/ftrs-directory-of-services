@@ -21,14 +21,13 @@ resource "aws_vpc_security_group_egress_rule" "crud_apis_allow_dynamodb_access" 
   to_port           = var.https_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "crud_apis_allow_443" {
+resource "aws_vpc_security_group_egress_rule" "crud_apis_allow_s3_access" {
   count = local.is_primary_environment ? 1 : 0
 
   security_group_id = aws_security_group.crud_apis_lambda_security_group[0].id
-  description       = "CRUD APIs egress rule to allow HTTPS to internet"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "CRUD APIs egress rule to allow S3 traffic"
+  prefix_list_id    = data.aws_prefix_list.s3.id
   ip_protocol       = "tcp"
-  to_port           = var.https_port
   from_port         = var.https_port
+  to_port           = var.https_port
 }
