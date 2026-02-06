@@ -90,9 +90,10 @@ def _transform_organisation(organisation: dict, message_id: str) -> str:
     correlation_id = current_correlation_id.get()
     request_id = current_request_id.get()
     fhir_organisation.id = org_uuid
+    fhir_org = fhir_organisation.model_dump(mode="json")
     payload = create_message_payload(
         path=org_uuid,
-        body=fhir_organisation.model_dump(),
+        body=fhir_org,
         correlation_id=correlation_id,
         request_id=request_id,
     )
