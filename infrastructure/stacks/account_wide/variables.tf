@@ -43,6 +43,11 @@ variable "waf_log_group_policy_name" {
   type        = string
 }
 
+variable "regional_waf_log_group_policy_name" {
+  description = "The regional WAF log group policy name"
+  type        = string
+}
+
 variable "osis_apigw_log_group_policy_name" {
   description = "The OSIS & API Gateway log group policy name"
   type        = string
@@ -146,6 +151,39 @@ variable "waf_log_group_retention_days" {
   description = "The retention period for the Read only viewer Web ACL Log group"
   type        = number
   default     = 365
+}
+
+# Regional WAF (dos-search rule set, account-wide setup)
+variable "regional_waf_name" {
+  description = "The Web ACL name for the regional WAF"
+  type        = string
+}
+variable "regional_waf_scope" {
+  description = "The scope for the regional WAF"
+  type        = string
+}
+variable "regional_waf_log_group" {
+  description = "Name for the regional WAF Web ACL log group"
+  type        = string
+}
+variable "regional_waf_log_group_class" {
+  description = "The log group class for the regional WAF"
+  type        = string
+}
+variable "regional_waf_log_group_retention_days" {
+  description = "The retention period for the regional WAF Web ACL log group"
+  type        = number
+  default     = 365
+}
+variable "regional_waf_allowed_country_codes" {
+  description = "Allowed country codes for the regional WAF access"
+  type        = list(string)
+  default     = ["GB", "JE", "IM"]
+}
+variable "regional_waf_hostile_country_codes" {
+  description = "Country codes to explicitly block for the regional WAF"
+  type        = list(string)
+  default     = []
 }
 
 # Performance EC2 configuration
