@@ -47,6 +47,7 @@ def event(ods_code):
             "end-user-role": "Clinician",
             "application-id": "application_id",
             "application-name": "dos_unit_tests",
+            "X-Request-Id": "request_id",
         },
         "path": "/Organization",
         "httpMethod": "GET",
