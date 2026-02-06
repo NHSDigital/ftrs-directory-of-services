@@ -1,8 +1,6 @@
 name: Deploy application infrastructure workflow
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -57,6 +55,13 @@ on:
         required: false
         default: "dev,test,int"
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -71,6 +76,9 @@ jobs:
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.ref || inputs.workspace}}"
       cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -83,7 +91,9 @@ jobs:
       workflow_timeout: ${{ inputs.workflow_timeout }}
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
@@ -110,6 +120,9 @@ jobs:
     needs:
       - plan-application-infrastructure
       - manual-approval-application-infra
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -122,7 +135,9 @@ jobs:
       workflow_timeout: ${{ inputs.workflow_timeout }}
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy_summary:
     name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"

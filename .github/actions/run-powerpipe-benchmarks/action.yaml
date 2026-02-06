@@ -19,18 +19,23 @@ runs:
   steps:
     - name: Create reports directory
       shell: bash
+      env:
+        REPORTS_DIR: ${{ inputs.reports-dir }}
       run: |
-        mkdir -p "${{ inputs.reports-dir }}"
+        mkdir -p "${REPORTS_DIR}"
 
     - name: Run Powerpipe benchmarks
       shell: bash
+      env:
+        MODS_DIR: ${{ inputs.mods-dir }}
+        REPORTS_DIR: ${{ inputs.reports-dir }}
+        BENCHMARKS: ${{ inputs.benchmarks }}
       run: |
-        cd "${{ inputs.mods-dir }}"
+        cd "${MODS_DIR}"
         DATE=$(date +%Y-%m-%d)
         echo "Generating reports with date stamp: $DATE"
 
         # Parse the benchmarks JSON array
-        BENCHMARKS='${{ inputs.benchmarks }}'
         echo "Processing benchmarks: $BENCHMARKS"
 
         # Extract benchmark count
@@ -51,7 +56,7 @@ runs:
           set +e
           powerpipe benchmark run "$BENCHMARK" \
             --output html \
-            --export "../${{ inputs.reports-dir }}/aws_${NAME}_report_${DATE}.html"
+            --export "../${REPORTS_DIR}/aws_${NAME}_report_${DATE}.html"
           EXIT_CODE=$?
 
           if [ $EXIT_CODE -ne 0 ]; then

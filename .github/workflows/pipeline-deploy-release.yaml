@@ -46,7 +46,13 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
 
   deploy-account-wide-infrastructure:
     name: "Deploy account wide infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -56,7 +62,9 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
@@ -90,7 +98,9 @@ jobs:
       workflow_timeout: 30
       stacks: "['app_config']"
       skip_manual_approval: "true"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
       
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
@@ -105,7 +115,9 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ inputs.environment }}"
@@ -133,7 +145,8 @@ jobs:
       workspace: default
       type: "app"
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   service-automation-tests:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ inputs.environment }} environment"
@@ -146,7 +159,7 @@ jobs:
           - tag: "data-migration"
             type: "data-migration"
     needs:
-      - deploy-frontend-services
+      - deploy-application-infrastructure
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -156,7 +169,9 @@ jobs:
       test_type: ${{ matrix.type }}
       type: app
       deployment_type: "release-candidate"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   check-pipeline-status:
     name: "Check Pipeline Status"
@@ -191,4 +206,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ inputs.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

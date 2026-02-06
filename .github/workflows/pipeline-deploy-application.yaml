@@ -53,7 +53,13 @@ jobs:
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
 
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
@@ -120,7 +126,8 @@ jobs:
       type: app
       ref: ${{ inputs.ref }}
       build_enabled: ${{ matrix.build_enabled }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   build-sandbox-containers:
     name: "Build container ${{ matrix.name }}"
@@ -150,7 +157,8 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy-toggle-infrastructure:
     name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -166,7 +174,9 @@ jobs:
       workflow_timeout: 30
       stacks: "['app_config']"
       skip_manual_approval: "true"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
@@ -182,7 +192,9 @@ jobs:
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-proxy-to-apim:
     name: "Deploy ${{ matrix.api_name }} API to Proxygen"
@@ -243,7 +255,8 @@ jobs:
       type: app
       action: export
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   restore-dynamodb-from-s3:
     name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
@@ -258,7 +271,8 @@ jobs:
       action: import
       type: app
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-open-search-indexes:
     name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
@@ -273,7 +287,8 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       aws_region: ${{ vars.AWS_REGION }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
@@ -302,7 +317,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: "app"
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-data-migration-service:
     name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
@@ -323,7 +339,8 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       type: "app"
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   service-automation-tests:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
@@ -366,7 +383,9 @@ jobs:
       api_name: ${{ matrix.api_name || '' }}
       type: app
       deployment_type: "development"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   generate-prerelease:
     name: "Generate prerelease tag"
@@ -394,7 +413,9 @@ jobs:
       type: app
       prerelease_tag: ${{ needs.generate-prerelease.outputs.prerelease_tag }}
       ref: ${{ inputs.ref }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   check-pipeline-status:
     name: "Check Pipeline Status"
@@ -428,4 +449,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
