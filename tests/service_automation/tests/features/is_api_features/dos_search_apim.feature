@@ -1,4 +1,4 @@
-@is-apim @dos-search-ods-code-api
+@is-apim @integrated-search @dos-search-ods-code-api
 @nhsd_apim_authorization(access="application",level="level3")
 Feature: API DoS Service Search APIM
 

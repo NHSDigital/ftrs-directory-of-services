@@ -350,7 +350,7 @@ jobs:
       matrix:
         include:
           - tag: "integrated-search"
-            type: "bdd"
+            type: "apim"
             api_name: "dos-search"
           - tag: "data-migration"
             type: "bdd"
