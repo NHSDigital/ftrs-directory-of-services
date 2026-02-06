@@ -51,6 +51,28 @@ on:
         description: "Deployment environment"
         required: true
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID:
+        description: "Report upload AWS account ID"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_REGION:
+        description: "Report upload AWS region"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME:
+        description: "Report upload role name"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT:
+        description: "Report upload bucket endpoint"
+        required: false
+      SLACK_WEBHOOK_URL:
+        description: "Slack webhook URL"
+        required: false
 
 concurrency:
   group: account-infrastructure-${{ github.ref }}
@@ -75,7 +97,13 @@ jobs:
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
 
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
@@ -106,7 +134,9 @@ jobs:
       stacks: ${{ matrix.stacks }}
       action: plan
       type: account
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   manual-approval:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
@@ -150,7 +180,9 @@ jobs:
       stacks: ${{ matrix.stacks }}
       action: apply
       type: account
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   slack-notifications:
     name: "Send Notification to Slack"
@@ -164,4 +196,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

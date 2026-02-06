@@ -67,14 +67,14 @@ on:
         description: 'Flag indicating if sandbox deploy should run'
         value: ${{ jobs.authenticate-and-deploy.outputs.should_deploy }}
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM sandbox proxy
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:

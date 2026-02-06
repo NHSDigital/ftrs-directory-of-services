@@ -15,8 +15,8 @@ runs:
     - name: Delete OpenSearch Network Policy
       id: delete_os_policy
       shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        STACK: ${{ inputs.stack }}
       run: |
-        export WORKSPACE="${{ inputs.workspace }}"
-        export STACK="${{ inputs.stack }}"
-
         ./scripts/workflow/cleardown-opensearch-network-policy.sh

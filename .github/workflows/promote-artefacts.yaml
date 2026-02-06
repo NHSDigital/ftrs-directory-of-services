@@ -1,9 +1,7 @@
 name: Promote artefacts workflow
 run-name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
 
-permissions:
-  id-token: write
-  contents: write
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -36,10 +34,20 @@ on:
         description: "The branch, tag or SHA to checkout"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      GH_TOKEN:
+        description: "GitHub token for release creation"
+        required: false
 
 jobs:
   promote-artefacts:
     name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ inputs.release_tag || inputs.prerelease_tag }}"
+    permissions:
+      id-token: write
+      contents: write
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -62,7 +70,7 @@ jobs:
         if: ${{ inputs.artefact_promotion_type == 'release' }}
         uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: "Promote ${{ inputs.artefact_promotion_type }} artefacts ${{ steps.semantic.outputs.new_release_version || inputs.release_tag || inputs.prerelease_tag }}"
         run: make -f artefact-promotion.mk ${{ inputs.artefact_promotion_type }}

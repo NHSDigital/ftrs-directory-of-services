@@ -19,13 +19,14 @@ on:
   schedule:
     - cron: "0 0 * * SAT"  # At 00:00 on Saturdays
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
 
 jobs:
   wafr-checks:
     name: "AWS Well Architected Framework and Thrifty Checks - ${{ matrix.environment }}"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
@@ -72,7 +73,7 @@ jobs:
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v5.1.1
+        uses: aws-actions/configure-aws-credentials@v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true
@@ -221,4 +222,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ matrix.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

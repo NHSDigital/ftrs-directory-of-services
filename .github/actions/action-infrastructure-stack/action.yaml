@@ -44,12 +44,13 @@ runs:
     - name: "Action Infrastructure Stack"
       id: "action_stack"
       shell: bash
+      env:
+        MGMT_ACCOUNT_ID: ${{ inputs.mgmt_account_id }}
+        ACTION: ${{ inputs.action }}
+        STACK: ${{ inputs.stack }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        WORKSPACE: ${{ inputs.workspace }}
+        PROJECT: ${{ inputs.project }}
+        RELEASE_TAG: ${{ inputs.release_tag }}
       run: |
-        export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
-        export ACTION=${{ inputs.action }}
-        export STACK=${{ inputs.stack }}
-        export ENVIRONMENT=${{ inputs.environment }}
-        export WORKSPACE=${{ inputs.workspace }}
-        export PROJECT=${{ inputs.project }}
-        export RELEASE_TAG=${{ inputs.release_tag }}
         /bin/bash ./scripts/workflow/action-infra-stack.sh

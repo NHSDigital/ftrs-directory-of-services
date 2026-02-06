@@ -1,4 +1,4 @@
-@is-infra @ftrs-pipeline @data-repo
+@is-infra @integrated-search @data-repo
 Feature: Data Repository
 
   Scenario: Retrieve organisation model from seeded repository

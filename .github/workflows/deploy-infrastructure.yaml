@@ -1,8 +1,6 @@
 name: Deploy Infrastructure Workflow
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -70,6 +68,13 @@ on:
         required: false
         default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
         type: string  
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -78,6 +83,9 @@ on:
 jobs:
   deploy-infrastructure:
     name: "Run Terraform ${{ inputs.action }} for ${{ matrix.stack }} deployment"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     timeout-minutes: ${{ inputs.workflow_timeout }}

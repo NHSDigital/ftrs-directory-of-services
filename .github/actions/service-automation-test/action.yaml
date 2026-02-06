@@ -12,11 +12,17 @@ inputs:
     description: "AWS region"
     required: true
   test_tag:
-    description: "feature tag that identifies tests to be run"
+    description: "The name of the feature tag that identifies the tests to run"
     required: true
   test_type:
-    description: "tag that identifies types of test and reports to be run"
+    description: "The name of the type of test report that will be generated (e.g., bdd, apim, ui)"
     required: true
+  api_name:
+    description: "The name of the API to test (for APIM tests, e.g., dos-search)"
+    required: false
+  apim_env:
+    description: "The APIM environment to test (for APIM tests, e.g., internal-dev, internal-qa)"
+    required: false
   commit_hash:
     description: "The commit hash, set by the CI/CD pipeline workflow"
     required: false
@@ -38,6 +44,8 @@ runs:
         TEST_TYPE: ${{ inputs.test_type }}
         COMMIT_HASH: ${{ inputs.commit_hash }}
         REF: ${{ inputs.ref }}
+        API_NAME: ${{ inputs.api_name }}
+        APIM_ENV: ${{ inputs.apim_env }}
       run: |
         set -euo pipefail
         /bin/bash ./scripts/workflow/service-automation-tests.sh
