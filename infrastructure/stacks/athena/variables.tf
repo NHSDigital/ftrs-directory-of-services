@@ -21,3 +21,9 @@ variable "athena_dynamodb_connector_app_id" {
   type        = string
   default     = "arn:aws:serverlessrepo:us-east-1:292517598671:applications/AthenaDynamoDBConnector"
 }
+
+variable "target_rds_credentials" {
+  description = "The secrets manager name for the target RDS credentials"
+  type        = string
+  default     = "target-rds-credentials"
+}

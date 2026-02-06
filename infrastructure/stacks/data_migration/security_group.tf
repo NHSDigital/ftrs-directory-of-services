@@ -95,7 +95,7 @@ resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_athena_connector" {
-  count                        = var.athena_stack_enabled && local.is_primary_environment ? 1 : 0
+  count                        = (var.athena_stack_enabled && local.is_primary_environment) ? 1 : 0
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.rds_connector_security_group[0].id
   description                  = "Allow incoming Postgres from Athena RDS Connector Lambda"
