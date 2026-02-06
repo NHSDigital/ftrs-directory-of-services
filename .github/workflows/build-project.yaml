@@ -68,7 +68,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
+        uses: asdf-vm/actions/setup@79e1df853ef2a61d984c27f812bc24f1794f3b4a # v4.0.1
         with:
           asdf_branch: v0.15.0
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: "Install tools from .tool-versions"
         if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
+        uses: asdf-vm/actions/install@79e1df853ef2a61d984c27f812bc24f1794f3b4a # v4.0.1
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials
@@ -93,15 +93,18 @@ jobs:
 
       - name: "Get directories"
         id: get-directories
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          NAME: ${{ inputs.name }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
-            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          if [[ "$BUILD_TYPE" == "service" ]]; then
+            echo "working_directory=services/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/$NAME" >> $GITHUB_OUTPUT
+          elif [[ "$BUILD_TYPE" == "package" ]]; then
+            echo "working_directory=application/packages/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/$NAME" >> $GITHUB_OUTPUT
           else
-            echo "Invalid build type: ${{ inputs.build_type }}"
+            echo "Invalid build type: $BUILD_TYPE"
             exit 1
           fi
 

@@ -26,31 +26,40 @@ jobs:
     - name: "Debug Info"
       env:
         WORKFLOW_RUN_JSON: ${{ toJson(github.event.workflow_run) }}
+        JOB_STATUS: ${{ job.status }}
+        EVENT_NAME: ${{ github.event_name }}
+        WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        ACTOR: ${{ github.actor }}
+        PR_URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}
       run: |
-        echo "Job Status: ${{ job.status }}"
-        echo "GitHub Event: ${{ github.event_name }}"
+        echo "Job Status: $JOB_STATUS"
+        echo "GitHub Event: $EVENT_NAME"
         echo "Workflow Run: $WORKFLOW_RUN_JSON"
-        echo "Workflow Status: ${{ github.event.workflow_run.conclusion }}"
-        echo "GitHub Actor: ${{ github.actor }}"
-        echo "Pull Request URL: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+        echo "Workflow Status: $WORKFLOW_CONCLUSION"
+        echo "GitHub Actor: $ACTOR"
+        echo "Pull Request URL: $PR_URL"
 
-    - uses: martialonline/workflow-status@v4
+    - uses: martialonline/workflow-status@699912c8c561f134cbfc244bce5548e5fd64d48e # v4
       id: check
 
     - name: "Echo result of pipeline if success"
       if: ${{ steps.check.outputs.status == 'success' }}
+      env:
+        RUN_ID: ${{ github.run_id }}
       run: |
         echo "Workflow concluded successfully."
-        echo "Run ID: ${{ github.run_id }}"
+        echo "Run ID: $RUN_ID"
 
     - name: "Echo result of pipeline if failure"
       if: ${{ steps.check.outputs.status == 'failure' }}
+      env:
+        RUN_ID: ${{ github.run_id }}
       run: |
         echo "Workflow failed."
-        echo "Run ID: ${{ github.run_id }}"
+        echo "Run ID: $RUN_ID"
 
     - name: "Send custom JSON data to Slack workflow on failure"
-      uses: slackapi/slack-github-action@v2.1.1
+      uses: slackapi/slack-github-action@37ebaef184d7626c5f204ab8d3baff4262dd30f0 # v2.1.1
       if: ${{ steps.check.outputs.status == 'failure' }}
       with:
         payload: |
