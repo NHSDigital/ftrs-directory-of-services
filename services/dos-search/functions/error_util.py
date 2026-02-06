@@ -64,7 +64,8 @@ def create_missing_mandatory_header_operation_outcome(
     headers: list[str],
 ) -> OperationOutcome:
     diagnostics = (
-        "Missing the following mandatory header(s): " + ", ".join(sorted(headers))
+        "Missing the following mandatory header(s): "
+        + ", ".join(sorted(header.lower() for header in headers))
         if headers
         else "Missing mandatory headers"
     )
