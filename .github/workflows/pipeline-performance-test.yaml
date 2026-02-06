@@ -225,6 +225,11 @@ jobs:
           environment: ${{ inputs.environment }}
           ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
 
+      - name: "Start CloudWatch agent"
+        uses: ./.github/actions/ec2-start-cloudwatch-agent
+        with:
+          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+
       - name: "Run performance test"
         uses: ./.github/actions/run-performance-test
         with:

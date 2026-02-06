@@ -70,3 +70,10 @@ resource "aws_cloudwatch_log_group" "waf_log_group" {
   log_group_class   = var.waf_log_group_class
   provider          = aws.us-east-1
 }
+
+resource "aws_cloudwatch_log_group" "performance_ec2_log_group" {
+  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  name              = "${var.performance_ec2_log_group_name_prefix}${local.resource_prefix}-${var.performance_ec2_log_group}"
+  retention_in_days = var.performance_ec2_log_group_retention_days
+  log_group_class   = var.performance_ec2_log_group_class
+}
