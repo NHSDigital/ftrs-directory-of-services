@@ -38,6 +38,9 @@ numpy = "^1.26.4"
 pydantic-settings = "^2.9.1"
 pytest-asyncio = "^1.1.0"
 rsa = "^4.9.1"
+testcontainers = "^3.7.1"
+testcontainers-localstack = "^0.0.1rc1"
+loguru = "^0.7.2"
 
 
 [build-system]

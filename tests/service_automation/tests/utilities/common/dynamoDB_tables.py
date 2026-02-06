@@ -1,90 +1,34 @@
-"""DynamoDB table configurations for testing."""
+"""DynamoDB table configurations for testing.
 
-import os
-from typing import Any
+This module provides backwards compatibility for existing tests.
+New code should import directly from ftrs_common.testing.table_config.
 
+Example:
+    # Preferred (new code):
+    from ftrs_common.testing.table_config import get_table_name, get_dynamodb_table_configs
 
-def get_table_name(resource: str, stack_name: str = "database") -> str:
-    """
-    Generate DynamoDB table name using environment variables.
+    # Legacy (still supported):
+    from utilities.common.dynamoDB_tables import get_table_name, get_dynamodb_tables
+"""
 
-    Pattern for data-migration tables: {PROJECT_NAME}-{ENVIRONMENT}-{resource}-{WORKSPACE}
-    Pattern for other tables: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
-
-    Args:
-        resource: Resource type (e.g., 'organisation', 'location', 'healthcare-service', 'data-migration-state')
-
-    Returns:
-        Full table name following project naming convention
-    """
-    project_name = os.getenv("PROJECT_NAME", "ftrs-dos")
-    environment = os.getenv("ENVIRONMENT", "dev")
-    workspace = os.getenv("WORKSPACE", "test")
-    table_name = f"{project_name}-{environment}-{stack_name}-{resource}"
-
-    if workspace:
-        table_name = f"{table_name}-{workspace}"
-
-    return table_name
+# Re-export from shared module for backwards compatibility
+from ftrs_common.testing.table_config import (
+    get_dynamodb_table_configs,
+    get_table_name,
+)
 
 
-def get_dynamodb_tables() -> list[dict[str, Any]]:
+def get_dynamodb_tables() -> list[dict]:
     """
     Get DynamoDB table configurations with environment-based names.
+
+    This is a backwards-compatible wrapper around get_dynamodb_table_configs().
 
     Returns:
         List of table configuration dictionaries
     """
-    resources = ["organisation", "location", "healthcare-service"]
-    tables = [
-        {
-            "TableName": get_table_name(resource),
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"},
-                {"AttributeName": "field", "KeyType": "RANGE"},
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"},
-                {"AttributeName": "field", "AttributeType": "S"},
-            ],
-            "BillingMode": "PAY_PER_REQUEST",
-        }
-        for resource in resources
-    ]
-
-    triage_code_table = {
-        "TableName": get_table_name("triage-code"),
-        "KeySchema": [
-            {"AttributeName": "id", "KeyType": "HASH"},
-            {"AttributeName": "field", "KeyType": "RANGE"},
-        ],
-        "AttributeDefinitions": [
-            {"AttributeName": "id", "AttributeType": "S"},
-            {"AttributeName": "field", "AttributeType": "S"},
-            {"AttributeName": "codeType", "AttributeType": "S"},
-        ],
-        "GlobalSecondaryIndexes": [
-            {
-                "IndexName": "CodeTypeIndex",
-                "KeySchema": [
-                    {"AttributeName": "codeType", "KeyType": "HASH"},
-                    {"AttributeName": "id", "KeyType": "RANGE"},
-                ],
-                "Projection": {"ProjectionType": "ALL"},
-            }
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-    }
-
-    state_table = {
-        "TableName": get_table_name("state", stack_name="data-migration"),
-        "KeySchema": [
-            {"AttributeName": "source_record_id", "KeyType": "HASH"},
-        ],
-        "AttributeDefinitions": [
-            {"AttributeName": "source_record_id", "AttributeType": "S"},
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-    }
-
-    return [*tables, triage_code_table, state_table]
+    return get_dynamodb_table_configs(
+        include_core=True,
+        include_triage_code=True,
+        include_data_migration_state=True,
+    )

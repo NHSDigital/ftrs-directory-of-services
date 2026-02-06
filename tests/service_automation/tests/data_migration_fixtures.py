@@ -1,22 +1,40 @@
-"""Pytest fixtures for data migration testing."""
+"""Pytest fixtures for data migration testing.
+
+This module provides fixtures for data migration integration tests, including:
+- PostgreSQL testcontainer for DoS database simulation
+- DynamoDB fixtures (via shared ftrs_common.testing module)
+- Migration helper and context fixtures
+
+The DynamoDB fixtures are imported from ftrs_common.testing to share
+common setup with other services (e.g., crud-apis).
+"""
 
 import os
 from typing import Any, Dict, Generator
 
 import boto3
 import pytest
+from ftrs_common.testing.dynamodb_fixtures import (
+    cleanup_dynamodb_tables,
+    create_dynamodb_tables,
+)
+from ftrs_common.testing.dynamodb_fixtures import (
+    localstack_container as _localstack_container,
+)
+from ftrs_common.testing.table_config import get_dynamodb_table_configs
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService, Location, Organisation
 from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from loguru import logger
 from sqlalchemy import Engine, text
 from sqlmodel import Session, create_engine
-from testcontainers.localstack import LocalStackContainer
 from testcontainers.postgres import PostgresContainer
 from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
-from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.data_migration.dos_db_utils import get_test_data_script
 from utilities.data_migration.migration_helper import MigrationHelper
+
+# Re-export the shared localstack_container fixture
+localstack_container = _localstack_container
 
 
 @pytest.fixture(scope="session")
@@ -24,67 +42,6 @@ def postgres_container() -> Generator[PostgresContainer, None, None]:
     """PostgreSQL container for testing."""
     with PostgresContainer("postgres:16") as postgres:
         yield postgres
-
-
-@pytest.fixture(scope="session")
-def localstack_container() -> Generator[LocalStackContainer, None, None]:
-    """LocalStack container with DynamoDB for testing."""
-    with LocalStackContainer(image="localstack/localstack:3.0") as localstack:
-        yield localstack
-
-
-def _create_dynamodb_tables(client: Any) -> None:
-    """
-    Create DynamoDB tables for testing using environment-based configuration.
-
-    Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
-
-    Args:
-        client: Boto3 DynamoDB client
-
-    Raises:
-        Exception: If table creation fails
-    """
-    table_configs = get_dynamodb_tables()
-    logger.debug(f"Creating {len(table_configs)} DynamoDB tables")
-
-    for config in table_configs:
-        table_name = config["TableName"]
-        try:
-            client.create_table(**config)
-            waiter = client.get_waiter("table_exists")
-            waiter.wait(TableName=table_name)
-            logger.debug(f"Created table: {table_name}")
-        except client.exceptions.ResourceInUseException:
-            logger.debug(f"Table {table_name} already exists")
-        except Exception as e:
-            logger.error(f"Failed to create table {table_name}: {e}")
-            raise
-
-    logger.debug("DynamoDB tables ready")
-
-
-def _cleanup_dynamodb_tables(client: Any) -> None:
-    """
-    Clean up DynamoDB tables after testing.
-
-    Args:
-        client: Boto3 DynamoDB client
-    """
-    try:
-        response = client.list_tables()
-        table_names = response.get("TableNames", [])
-
-        for table_name in table_names:
-            try:
-                client.delete_table(TableName=table_name)
-                waiter = client.get_waiter("table_not_exists")
-                waiter.wait(TableName=table_name)
-                logger.debug(f"Deleted DynamoDB table: {table_name}")
-            except Exception as e:
-                logger.error(f"Failed to delete table {table_name}: {e}")
-    except Exception as e:
-        logger.error(f"DynamoDB cleanup failed: {e}")
 
 
 @pytest.fixture(scope="session")
@@ -182,15 +139,16 @@ def fixture_dos_db(
 
 @pytest.fixture(name="dynamodb")
 def fixture_dynamodb(
-    localstack_container: LocalStackContainer,
+    localstack_container: Any,
 ) -> Generator[Dict[str, Any], None, None]:
     """
     DynamoDB fixture with pre-created tables for each test.
 
+    Uses shared fixtures from ftrs_common.testing for table creation/cleanup.
     Tables follow pattern: {PROJECT_NAME}-{ENVIRONMENT}-database-{resource}-{WORKSPACE}
 
     Args:
-        localstack_container: LocalStack container fixture
+        localstack_container: LocalStack container fixture (from ftrs_common.testing)
 
     Yields:
         Dictionary with client, resource, and endpoint_url
@@ -213,11 +171,18 @@ def fixture_dynamodb(
         region_name="eu-west-2",
     )
 
+    # Use shared table configs - data migration needs all tables
+    table_configs = get_dynamodb_table_configs(
+        include_core=True,
+        include_triage_code=True,
+        include_data_migration_state=True,
+    )
+
     try:
-        _create_dynamodb_tables(client)
+        create_dynamodb_tables(client, table_configs)
         yield {"client": client, "resource": resource, "endpoint_url": endpoint_url}
     finally:
-        _cleanup_dynamodb_tables(client)
+        cleanup_dynamodb_tables(client)
 
 
 @pytest.fixture

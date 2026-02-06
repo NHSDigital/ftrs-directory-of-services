@@ -38,6 +38,9 @@ boto3 = "^1.37.33"
 poethepoet = "^0.34.0"
 numpy = "^1.26.4"
 pytest-asyncio = "^1.1.0"
+testcontainers = "^3.7.1"
+testcontainers-localstack = "^0.0.1rc1"
+loguru = "^0.7.2"
 
 [tool.poetry.scripts]
 start-organisations-api = "organisations.local:run"
@@ -57,6 +60,9 @@ start-healthcare-api = "uvicorn healthcare_service.app.handler_healthcare_servic
 start-organisations-api = "uvicorn organisations.app.handler_organisation:app --host 0.0.0.0 --port 8001 --reload"
 start-location-api = "uvicorn location.app.handler_location:app --host 0.0.0.0 --port 6000 --reload"
 start-all-apis = "uvicorn handler_main:app --host 0.0.0.0 --port 9000 --reload"
+test-unit = "pytest -m 'not integration' --no-cov"
+test-integration = "pytest -m integration tests/integration/ --no-cov"
+test-all = "pytest"
 
 
 [tool.ruff]
@@ -77,4 +83,8 @@ docstring-code-format = true
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-v --cov=organisations --cov=healthcare_service --cov=location --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
-testpaths = ["tests"]
+testpaths = ["organisations/tests", "healthcare_service/tests", "location/tests", "tests"]
+markers = [
+    "integration: marks tests as integration tests (require Docker)",
+    "unit: marks tests as unit tests",
+]
