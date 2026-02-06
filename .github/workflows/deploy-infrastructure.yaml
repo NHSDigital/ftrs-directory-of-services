@@ -126,6 +126,8 @@ jobs:
       - name: "Run Terraform ${{ inputs.action }} for infrastructure ${{ matrix.stack }} stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
+        env:
+          TF_VAR_slack_webhook_alarms_url: ${{ matrix.stack == 'dos_search' && secrets.SLACK_WEBHOOK_ALARMS_URL || '' }}
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}

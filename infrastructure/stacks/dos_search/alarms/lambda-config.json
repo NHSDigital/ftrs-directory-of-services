@@ -1,0 +1,78 @@
+{
+  "search_lambda": [
+    {
+      "metric_name": "Duration",
+      "statistic": "p95",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-p95-warning",
+      "description": "Alert when search Lambda p95 duration exceeds 600ms",
+      "severity": "warning"
+    },
+    {
+      "metric_name": "Duration",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-p99-critical",
+      "description": "Alert when search Lambda p99 duration exceeds 800ms",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "concurrent-executions-warning",
+      "description": "Alert when search Lambda concurrent executions >= 80",
+      "severity": "warning"
+    },
+    {
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "concurrent-executions-critical",
+      "description": "Alert when search Lambda concurrent executions >= 100",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "throttles-critical",
+      "description": "Alert when search Lambda is throttled (> 0 for 1 minute)",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Invocations",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "invocations-spike-critical",
+      "description": "Alert when search Lambda invocations spike > 2x baseline (600/hour)",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-warning",
+      "description": "Alert when search Lambda errors exceed threshold",
+      "severity": "warning"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-critical",
+      "description": "Alert when search Lambda errors exceed critical threshold",
+      "severity": "critical"
+    }
+  ],
+  "health_check_lambda": [
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-critical",
+      "description": "Alert when health check Lambda errors > 0 for 1 minute",
+      "severity": "critical"
+    }
+  ]
+}
