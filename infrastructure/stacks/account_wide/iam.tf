@@ -17,7 +17,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Effect = "Allow"
         Action = [
@@ -40,7 +40,18 @@ resource "aws_iam_role_policy" "firehose_policy" {
         ]
         Resource = "${aws_cloudwatch_log_group.firehose_error_log_group.arn}"
       }
-    ]
+      ], var.enable_firehose_sse ? [{
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:ReEncryptFrom",
+          "kms:ReEncryptTo"
+        ]
+        Resource = module.firehose_encryption_key.arn
+    }] : [])
   })
 }
 
