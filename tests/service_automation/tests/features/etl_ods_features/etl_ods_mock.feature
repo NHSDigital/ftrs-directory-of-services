@@ -6,7 +6,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
 
   Scenario: ETL ODS processes successful response from upstream API
     Given I have a organisation repo
-    And I have seeded the test organisation in the database
+    And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with happy path scenario
     Then the extractor should batch the organizations successfully
     And the Transformer Lambda should transform the organisation data correctly
@@ -45,7 +45,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
 
   Scenario: ETL ODS handles extra unexpected fields from upstream API
     Given I have a organisation repo
-    And I have seeded the test organisation in the database
+    And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with extra unexpected field scenario
     Then the Lambda should handle unexpected fields gracefully
     And the Transformer Lambda should transform the organisation data correctly
@@ -53,6 +53,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
   Scenario: ETL ODS handles missing optional fields from upstream API
     Given I have a organisation repo
     And I have seeded the test organisation in the database
+    And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with missing optional fields scenario
     Then the Lambda should handle missing optional fields gracefully
     And the Transformer Lambda should transform the organisation data correctly
