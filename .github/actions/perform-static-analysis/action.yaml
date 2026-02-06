@@ -20,12 +20,15 @@ runs:
       with:
         path: coverage/
         pattern: coverage-*.xml
+        merge-multiple: true
 
     - name: "Find coverage files"
       id: coverage-files
       shell: bash
       run: |
-        FILES=$(find coverage -name 'coverage-*.xml' | paste -sd "," -)
+        echo "Coverage directory contents:"
+        find coverage -type f -name '*.xml' 2>/dev/null || echo "No coverage files found"
+        FILES=$(find coverage -type f -name '*.xml' | paste -sd "," -)
         echo "files=$FILES" >> $GITHUB_OUTPUT
 
     - name: "Perform SonarCloud static analysis"
@@ -37,6 +40,7 @@ runs:
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
           -Dsonar.branch.name=${{ github.ref_name }}
+          -Dsonar.python.version=3.12
           -Dsonar.python.coverage.reportPaths=${{ steps.coverage-files.outputs.files }}
           -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
