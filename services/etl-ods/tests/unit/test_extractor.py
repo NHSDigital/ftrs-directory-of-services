@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 from unittest.mock import MagicMock
 
+import pytest
 from pytest_mock import MockerFixture
 
 from extractor.extractor import (
@@ -200,3 +201,69 @@ def test_validate_date_exactly_185_days() -> None:
 
     assert is_valid is True
     assert error is None
+
+
+def test_extractor_lambda_handler_logs_start_and_complete(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that extractor logs START and COMPLETE events with duration."""
+    recent_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    mocker.patch("extractor.extractor.processor")
+    mock_logger = mocker.patch("extractor.extractor.ods_extractor_logger")
+
+    event = {"date": recent_date}
+    context = MagicMock()
+    context.aws_request_id = "test-request-id"
+
+    result = extractor_lambda_handler(event, context)
+
+    assert result["statusCode"] == HTTPStatus.OK
+
+    # Verify START log was called
+    start_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_EXTRACTOR_START"
+    ]
+    assert len(start_call) == 1
+    assert start_call[0][1]["lambda_name"] == "etl-ods-extractor"
+
+    # Verify COMPLETE log was called with duration_ms
+    complete_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_EXTRACTOR_COMPLETE"
+    ]
+    assert len(complete_call) == 1
+    assert complete_call[0][1]["lambda_name"] == "etl-ods-extractor"
+    assert "duration_ms" in complete_call[0][1]
+    assert complete_call[0][1]["date_processed"] == recent_date
+
+
+def test_extractor_lambda_handler_logs_error_with_duration(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test that extractor logs error with duration on exception."""
+    recent_date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+    mocker.patch("extractor.extractor.processor", side_effect=Exception("Test error"))
+    mock_logger = mocker.patch("extractor.extractor.ods_extractor_logger")
+
+    event = {"date": recent_date}
+    context = MagicMock()
+
+    result = extractor_lambda_handler(event, context)
+
+    assert result["statusCode"] == HTTPStatus.INTERNAL_SERVER_ERROR
+
+    # Verify error log was called with duration_ms
+    error_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_EXTRACTOR_023"
+    ]
+    assert len(error_call) == 1
+    assert error_call[0][1]["lambda_name"] == "etl-ods-extractor"
+    assert "duration_ms" in error_call[0][1]
+    assert error_call[0][1]["error_message"] == "Test error"

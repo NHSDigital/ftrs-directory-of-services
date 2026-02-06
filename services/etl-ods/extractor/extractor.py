@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -66,6 +67,8 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for triggering the extractor with a date parameter.
     """
+    start_time = time.time()
+
     try:
         current_correlation_id.set(None)
         correlation_id = fetch_or_set_correlation_id(
@@ -78,6 +81,12 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
         )
         ods_extractor_logger.append_keys(
             correlation_id=correlation_id, request_id=request_id
+        )
+
+        # Log Extractor start
+        ods_extractor_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_START,
+            lambda_name="etl-ods-extractor",
         )
 
         is_scheduled = event.get("is_scheduled", False)
@@ -94,15 +103,27 @@ def extractor_lambda_handler(event: dict, context: any) -> dict:
             return _error_response(400, error_message)
         else:
             processor(date=date)
+
+            duration_ms = round((time.time() - start_time) * 1000, 2)
+            ods_extractor_logger.log(
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_COMPLETE,
+                lambda_name="etl-ods-extractor",
+                duration_ms=duration_ms,
+                date_processed=date,
+            )
+
             return {
                 "statusCode": 200,
                 "message": f"Successfully processed organizations for {date}",
             }
 
     except Exception as e:
+        duration_ms = round((time.time() - start_time) * 1000, 2)
         ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_023,
             error_message=str(e),
+            lambda_name="etl-ods-extractor",
+            duration_ms=duration_ms,
         )
         return _error_response(500, f"Unexpected error: {e}")
 

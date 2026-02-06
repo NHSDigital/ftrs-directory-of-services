@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from http import HTTPStatus
 
 import requests
@@ -8,7 +9,10 @@ from ftrs_common.utils.correlation_id import (
     correlation_id_context,
     current_correlation_id,
 )
-from ftrs_common.utils.request_id import current_request_id
+from ftrs_common.utils.request_id import (
+    current_request_id,
+    fetch_or_set_request_id,
+)
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from common.extract import (
@@ -185,12 +189,32 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     """
     Lambda handler for processing individual organizations from SQS queue.
     """
+    start_time = time.time()
+
     if not event:
         return {"batchItemFailures": []}
+
+    correlation_id = event.get("headers", {}).get("X-Correlation-ID")
+    request_id = fetch_or_set_request_id(
+        context_id=getattr(context, "aws_request_id", None) if context else None,
+        header_id=event.get("headers", {}).get("X-Request-ID"),
+    )
+
+    ods_transformer_logger.append_keys(
+        correlation_id=correlation_id, request_id=request_id
+    )
+
+    # Log Transformer start
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_START,
+        lambda_name="etl-ods-transformer",
+    )
 
     batch_item_failures = []
     records = event.get("Records", [])
     transformed_batch = []
+    successful_count = 0
+    failed_count = 0
 
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_CONSUMER_002,
@@ -198,7 +222,13 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     )
 
     for record in records:
+        initial_failures = len(batch_item_failures)
         _process_single_record(record, transformed_batch, batch_item_failures)
+
+        if len(batch_item_failures) > initial_failures:
+            failed_count += 1
+        else:
+            successful_count += 1
 
     # Send any remaining transformed data to final queue
     if transformed_batch:
@@ -211,5 +241,17 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
             retry_count=len(batch_item_failures),
             total_records=len(records),
         )
+
+    # Log batch processing completion
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_BATCH_COMPLETE,
+        lambda_name="etl-ods-transformer",
+        duration_ms=duration_ms,
+        total_records=len(records),
+        successful_count=successful_count,
+        failed_count=failed_count,
+        batch_status="completed" if failed_count == 0 else "completed_with_failures",
+    )
 
     return {"batchItemFailures": batch_item_failures}

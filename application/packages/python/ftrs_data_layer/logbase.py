@@ -379,6 +379,14 @@ class OdsETLPipelineLogBase(LogBase):
     LogBase for the ODS ETL Pipeline operations
     """
 
+    ETL_EXTRACTOR_START = LogReference(
+        level=INFO,
+        message="ETL ODS Extractor Lambda started.",
+    )
+    ETL_EXTRACTOR_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Extractor Lambda completed successfully.",
+    )
     ETL_EXTRACTOR_001 = LogReference(
         level=INFO, message="Fetching outdated organizations for date {date}."
     )
@@ -436,6 +444,14 @@ class OdsETLPipelineLogBase(LogBase):
         level=WARNING,
         message="Unexpected error: {error_message}.",
     )
+    ETL_TRANSFORMER_START = LogReference(
+        level=INFO,
+        message="ETL ODS Transformer Lambda started.",
+    )
+    ETL_TRANSFORMER_BATCH_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Transformer Lambda batch processing completed.",
+    )
     ETL_TRANSFORMER_026 = LogReference(
         level=INFO,
         message="Successfully transformed data for ods_code: {ods_code}.",
@@ -462,6 +478,14 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_EXTRACTOR_035 = LogReference(
         level=INFO,
         message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
+    )
+    ETL_CONSUMER_START = LogReference(
+        level=INFO,
+        message="ETL ODS Consumer Lambda started.",
+    )
+    ETL_CONSUMER_BATCH_COMPLETE = LogReference(
+        level=INFO,
+        message="ETL ODS Consumer Lambda batch processing completed.",
     )
     ETL_CONSUMER_001 = LogReference(
         level=INFO,

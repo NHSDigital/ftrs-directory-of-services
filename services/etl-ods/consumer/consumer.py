@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from http import HTTPStatus
 
 import requests
@@ -22,8 +23,21 @@ class RateLimitExceededException(Exception):
         super().__init__(self.message)
 
 
-def _handle_records(records: dict) -> list[dict]:
+class RequestProcessingError(Exception):
+    def __init__(self, message_id: str, status_code: int, response_text: str) -> None:
+        self.message_id = message_id
+        self.status_code = status_code
+        self.response_text = response_text
+        super().__init__(
+            f"Message id: {message_id}, Status Code: {status_code}, Response: {response_text}"
+        )
+
+
+def _handle_records(records: dict) -> tuple[list[dict], int, int]:
     batch_item_failures = []
+    successful_count = 0
+    failed_count = 0
+
     for record in records:
         message_id = record["messageId"]
         receive_count = int(record["attributes"]["ApproximateReceiveCount"])
@@ -39,6 +53,7 @@ def _handle_records(records: dict) -> list[dict]:
                 OdsETLPipelineLogBase.ETL_CONSUMER_004,
                 message_id=record["messageId"],
             )
+            successful_count += 1
         except RateLimitExceededException as rate_limit_error:
             max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
             if receive_count >= max_receive_count:
@@ -72,11 +87,14 @@ def _handle_records(records: dict) -> list[dict]:
                     error_message=f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count})",
                 )
             batch_item_failures.append({"itemIdentifier": record["messageId"]})
+            failed_count += 1
 
-    return batch_item_failures
+    return batch_item_failures, successful_count, failed_count
 
 
 def consumer_lambda_handler(event: dict, context: any) -> dict:
+    start_time = time.time()
+
     if event:
         correlation_id = fetch_or_set_correlation_id(
             event.get("headers", {}).get("X-Correlation-ID")
@@ -88,10 +106,13 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
         ods_consumer_logger.append_keys(
             correlation_id=correlation_id, request_id=request_id
         )
+
+        # Log Consumer start
         ods_consumer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_001,
+            OdsETLPipelineLogBase.ETL_CONSUMER_START,
+            lambda_name="etl-ods-consumer",
         )
-        batch_item_failures = []
+
         sqs_batch_response = {}
 
         records = event.get("Records")
@@ -100,7 +121,9 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
             total_records=len(records) if records else 0,
         )
 
-        batch_item_failures = _handle_records(records or [])
+        batch_item_failures, successful_count, failed_count = _handle_records(
+            records or []
+        )
 
         if batch_item_failures:
             ods_consumer_logger.log(
@@ -110,6 +133,21 @@ def consumer_lambda_handler(event: dict, context: any) -> dict:
             )
 
         sqs_batch_response["batchItemFailures"] = batch_item_failures
+
+        # Log batch processing completion
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        ods_consumer_logger.log(
+            OdsETLPipelineLogBase.ETL_CONSUMER_BATCH_COMPLETE,
+            lambda_name="etl-ods-consumer",
+            duration_ms=duration_ms,
+            total_records=len(records) if records else 0,
+            successful_count=successful_count,
+            failed_count=failed_count,
+            batch_status="completed"
+            if failed_count == 0
+            else "completed_with_failures",
+        )
+
         return sqs_batch_response
 
 
@@ -174,13 +212,3 @@ def process_message_and_send_request(record: dict) -> None:
                     status_code=(http_error.response.status_code),
                     response_text=str(http_error),
                 )
-
-
-class RequestProcessingError(Exception):
-    def __init__(self, message_id: str, status_code: int, response_text: str) -> None:
-        self.message_id = message_id
-        self.status_code = status_code
-        self.response_text = response_text
-        super().__init__(
-            f"Message id: {message_id}, Status Code: {status_code}, Response: {response_text}"
-        )
