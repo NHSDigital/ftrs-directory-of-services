@@ -30,12 +30,12 @@ class LocalFlagsClient:
     """Local feature flags client for development and testing."""
 
     def __init__(self) -> None:
-        self.flags: dict[str, bool] = {
-            FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED.value: os.getenv(
-                "DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED", "true"
-            ).lower()
-            == "true"
-        }
+        self.flags: dict[str, bool] = {}
+        # Automatically load all feature flags from the enum
+        for flag in FeatureFlag:
+            env_var_name = flag.value.upper()
+            env_value = os.getenv(env_var_name, "true")
+            self.flags[flag.value] = env_value.lower() == "true"
 
     def is_enabled(self, flag_name: str, default: bool = False) -> bool:
         return self.flags.get(flag_name, default)
