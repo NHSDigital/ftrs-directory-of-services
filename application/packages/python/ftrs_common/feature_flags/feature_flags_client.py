@@ -70,6 +70,8 @@ class FeatureFlagsClient:
             return
 
         self.settings = Settings()
+        store = self._get_appconfig_store()
+        FeatureFlagsClient._feature_flags = FeatureFlags(store=store)
         self._initialized = True
 
     def _get_appconfig_store(self) -> AppConfigStore:
@@ -105,12 +107,6 @@ class FeatureFlagsClient:
             max_age=CACHE_TTL_SECONDS,
         )
 
-    def get_feature_flags(self) -> FeatureFlags:
-        if FeatureFlagsClient._feature_flags is None:
-            store = self._get_appconfig_store()
-            FeatureFlagsClient._feature_flags = FeatureFlags(store=store)
-        return FeatureFlagsClient._feature_flags
-
     def is_enabled(
         self,
         flag_name: str,
@@ -118,8 +114,7 @@ class FeatureFlagsClient:
     ) -> bool:
         """Check if a feature flag is enabled."""
         try:
-            feature_flags = self.get_feature_flags()
-            store_config = feature_flags.store.get_configuration()
+            store_config = FeatureFlagsClient._feature_flags.store.get_configuration()
 
             if not store_config:
                 flag_enabled = default
@@ -173,9 +168,7 @@ class FeatureFlagsClient:
 def _get_client() -> FeatureFlagsClientProtocol:
     """Get a cached feature flags client instance."""
     settings = Settings()
-    if settings.env == "local" or (
-        settings.env == "dev" and settings.workspace is not None
-    ):
+    if settings.mocked_aws_app_config == "true":
         return LocalFlagsClient()
     return FeatureFlagsClient()
 

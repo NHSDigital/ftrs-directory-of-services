@@ -1,5 +1,6 @@
 from ftrs_common.feature_flags import FeatureFlag
 from ftrs_common.feature_flags.feature_flags_client import FeatureFlagsClientProtocol
+from ftrs_common.logbase import FeatureFlagLogBase
 from ftrs_common.logger import Logger
 from sqlmodel import create_engine
 
@@ -25,9 +26,7 @@ class ReferenceDataLoadApplication:
                 if not self.feature_flags_client.is_enabled(
                     FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
                 ):
-                    self.logger.info(
-                        "Triage code loading is disabled by feature flag, skipping"
-                    )
+                    self.logger.log(FeatureFlagLogBase.FF_006)
                     return None
                 return self._load_triage_codes()
 

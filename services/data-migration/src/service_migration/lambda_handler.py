@@ -1,11 +1,15 @@
 from aws_lambda_powertools.utilities.batch.types import PartialItemFailureResponse
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from ftrs_common.feature_flags import FeatureFlagsClient
 from ftrs_common.logger import Logger
 
 from service_migration.application import DataMigrationApplication
 
 APP: DataMigrationApplication | None = None
 LOGGER = Logger.get(service="data-migration")
+
+# Initialize AppConfig client in init state
+FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
 
 
 @LOGGER.inject_lambda_context

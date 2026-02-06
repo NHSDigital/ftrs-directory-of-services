@@ -135,10 +135,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_APPLICATION_ID" in str(exc_info.value)
 
@@ -150,10 +148,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = None
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_ENVIRONMENT_ID" in str(exc_info.value)
 
@@ -165,10 +161,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = None
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_CONFIGURATION_PROFILE_ID" in str(exc_info.value)
 
@@ -178,41 +172,40 @@ class TestFeatureFlagsClient:
         mock_appconfig_store: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        client._get_appconfig_store()
+        FeatureFlagsClient()
 
-        mock_appconfig_store.assert_called_once_with(
+        # AppConfigStore is already called once in __init__
+        mock_appconfig_store.assert_called_with(
             application="test-app-id",
             environment="test-env-id",
             name="test-profile-id",
             max_age=CACHE_TTL_SECONDS,
         )
 
-    def test_get_feature_flags_returns_feature_flags_instance(
+    def test_init_creates_feature_flags_instance(
         self,
         mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        result = client.get_feature_flags()
+        FeatureFlagsClient()
 
         mock_feature_flags_class.assert_called_once()
-        assert result is mock_feature_flags_class.return_value
+        assert (
+            FeatureFlagsClient._feature_flags is mock_feature_flags_class.return_value
+        )
 
-    def test_get_feature_flags_caches_instance(
+    def test_init_calls_appconfig_store_once(
         self,
         mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        result1 = client.get_feature_flags()
-        result2 = client.get_feature_flags()
+        FeatureFlagsClient()
 
-        assert result1 is result2
+        mock_appconfig_store.assert_called_once()
         mock_feature_flags_class.assert_called_once()
 
 
@@ -399,16 +392,19 @@ class TestModuleFunctions:
         client = _get_client()
         assert isinstance(client, LocalFlagsClient)
 
-    def test_get_client_returns_local_client_for_dev_with_workspace(
+    def test_get_client_returns_feature_flags_client_for_dev_with_workspace(
         self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.env = "dev"
         mock.return_value.workspace = "test-workspace"
+        mock.return_value.appconfig_application_id = "test-app"
+        mock.return_value.appconfig_environment_id = "test-env"
+        mock.return_value.appconfig_configuration_profile_id = "test-profile"
         _get_client.cache_clear()
 
         client = _get_client()
-        assert isinstance(client, LocalFlagsClient)
+        assert isinstance(client, FeatureFlagsClient)
 
     def test_get_client_returns_feature_flags_client_for_dev_without_workspace(
         self, mocker: MockerFixture

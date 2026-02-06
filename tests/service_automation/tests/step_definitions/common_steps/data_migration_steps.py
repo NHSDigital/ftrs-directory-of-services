@@ -65,6 +65,7 @@ def environment_configured(
     assert migration_helper.dynamodb_endpoint is not None, (
         "DynamoDB endpoint should be set"
     )
+    os.environ["MOCKED_AWS_APP_CONFIG"] = "true"
 
 
 @given("the DoS database has test data")
