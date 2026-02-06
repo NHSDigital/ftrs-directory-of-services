@@ -58,6 +58,7 @@ scenarios(
     "./is_api_features/dos_search_backend.feature",
     "./is_api_features/dos_search_backend_headers.feature",
     "./is_api_features/dos_search_backend_parameters.feature",
+    "./is_api_features/dos_search_backend_gateway_errors.feature",
     "./is_api_features/dos_search_apim.feature",
     "./is_api_features/dos_search_apim_security.feature",
 )
@@ -108,6 +109,18 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     url = get_url(api_name) + "/" + resource_name
     logger.info(f"Requesting URL: {url} with params: {params}")
     return _send_api_request(api_request_context_mtls, url, params)
+
+
+@when(
+    parsers.re(
+        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" without authentication but with valid query params "(?P<params>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_get_with_params_no_auth(api_request_context, api_name, params, resource_name):
+    url = get_url(api_name) + "/" + resource_name
+    logger.info(f"Requesting URL: {url} with params: {params}")
+    return _send_api_request(api_request_context, url, params)
 
 
 @when(
