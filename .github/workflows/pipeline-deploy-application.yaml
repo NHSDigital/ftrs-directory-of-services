@@ -350,7 +350,7 @@ jobs:
       matrix:
         include:
           - tag: "integrated-search"
-            type: "bdd"
+            type: "apim"
             api_name: "dos-search"
           - tag: "data-migration"
             type: "bdd"
@@ -386,6 +386,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   generate-prerelease:
     name: "Generate prerelease tag"

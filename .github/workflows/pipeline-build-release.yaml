@@ -256,6 +256,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   trigger-cleardown-pipeline:
     name: "Trigger Cleardown Application Infrastructure Pipeline"
