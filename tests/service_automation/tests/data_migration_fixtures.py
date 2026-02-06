@@ -270,6 +270,7 @@ def migration_helper(
     dynamodb_endpoint = dynamodb["endpoint_url"]
 
     environment = os.getenv(ENV_ENVIRONMENT)
+
     workspace = os.getenv(ENV_WORKSPACE)
 
     logger.debug(

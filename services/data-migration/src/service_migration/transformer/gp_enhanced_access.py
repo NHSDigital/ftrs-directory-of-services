@@ -1,5 +1,6 @@
 import re
 
+from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain import legacy as legacy_model
 
@@ -63,7 +64,15 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
     ) -> tuple[bool, str | None]:
         """
         Check if the service is a GP Enhanced Access service.
+
+        When the feature flag is disabled, GP Enhanced Access services are not supported.
         """
+        if not is_enabled(FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED):
+            return (
+                False,
+                "GP Enhanced Access service selection is disabled by feature flag",
+            )
+
         if service.typeid not in [
             cls.GP_ACCESS_HUB_TYPE_ID,
             cls.PCN_ENHANCED_SERVICE_TYPE_ID,

@@ -1,3 +1,6 @@
+from ftrs_common.feature_flags import FeatureFlag
+from ftrs_common.feature_flags.feature_flags_client import FeatureFlagsClientProtocol
+from ftrs_common.logbase import FeatureFlagLogBase
 from ftrs_common.logger import Logger
 from sqlmodel import create_engine
 
@@ -7,14 +10,24 @@ from reference_data_load.handlers.triage_code_handler import TriageCodeHandler
 
 
 class ReferenceDataLoadApplication:
-    def __init__(self, config: ReferenceDataLoadConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: ReferenceDataLoadConfig | None = None,
+        feature_flags_client: FeatureFlagsClientProtocol | None = None,
+    ) -> None:
         self.logger = Logger.get(service="reference-data-load")
         self.config = config or ReferenceDataLoadConfig()
         self.engine = create_engine(self.config.db_config.connection_string, echo=False)
+        self.feature_flags_client = feature_flags_client
 
     def handle(self, event: ReferenceDataLoadEvent) -> None:
         match event.type:
             case "triagecode":
+                if not self.feature_flags_client.is_enabled(
+                    FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+                ):
+                    self.logger.log(FeatureFlagLogBase.FF_006)
+                    return None
                 return self._load_triage_codes()
 
         raise ValueError(f"Unknown event type: {event.type}")

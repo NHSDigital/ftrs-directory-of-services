@@ -10,6 +10,7 @@ from deepdiff import DeepDiff
 from pytest_bdd import parsers, scenarios, then
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from step_definitions.common_steps.data_steps import *  # noqa: F403
+from step_definitions.common_steps.feature_flag_steps import *  # noqa: F403
 from step_definitions.data_migration_steps.dos_data_manipulation_steps import *  # noqa: F403
 from utilities.common.dynamoDB_tables import get_table_name  # noqa: F403
 
@@ -63,6 +64,10 @@ scenarios(
     "../features/data_migration_features/incremental_updates/update_status.feature",
     "../features/data_migration_features/incremental_updates/update_endpoints.feature",
     "../features/data_migration_features/incremental_updates/update_state_management_and_validation.feature",
+    # Feature toggle tests
+    "../features/data_migration_features/triage_code_migration_feature_flag_disabled.feature",
+    "../features/data_migration_features/gp_practice_migration_feature_flag_disabled.feature",
+    "../features/data_migration_features/gp_enhanced_access_feature_flag_disabled.feature",
 )
 
 

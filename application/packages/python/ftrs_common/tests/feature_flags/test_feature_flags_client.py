@@ -9,8 +9,8 @@ from ftrs_common.feature_flags.feature_flags_client import (
     CACHE_TTL_SECONDS,
     FeatureFlagError,
     FeatureFlagsClient,
+    LocalFlagsClient,
     _get_client,
-    get_feature_flags,
     is_enabled,
 )
 from ftrs_common.logbase import FeatureFlagLogBase
@@ -55,6 +55,31 @@ def mock_feature_flags_class(mocker: MockerFixture) -> MagicMock:
 def mock_logger(mocker: MockerFixture) -> MagicMock:
     """Mock the logger."""
     return mocker.patch("ftrs_common.feature_flags.feature_flags_client.logger")
+
+
+class TestLocalFlagsClient:
+    def test_init_sets_default_flags(self, mocker: MockerFixture) -> None:
+        mocker.patch.dict("os.environ", {}, clear=False)
+        client = LocalFlagsClient()
+        assert "data_migration_search_triage_code_enabled" in client.flags
+        assert client.flags["data_migration_search_triage_code_enabled"] is True
+
+    def test_is_enabled_returns_false_when_env_var_is_false(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(
+            "os.environ", {"DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED": "FALSE"}
+        )
+        client = LocalFlagsClient()
+        assert client.is_enabled("data_migration_search_triage_code_enabled") is False
+
+    def test_is_enabled_returns_default_for_missing_flag(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict("os.environ", {}, clear=False)
+        client = LocalFlagsClient()
+        assert client.is_enabled("nonexistent_flag", default=True) is True
+        assert client.is_enabled("nonexistent_flag", default=False) is False
 
 
 class TestFeatureFlagError:
@@ -110,10 +135,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_APPLICATION_ID" in str(exc_info.value)
 
@@ -125,10 +148,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = None
         mock.return_value.appconfig_configuration_profile_id = "test-profile-id"
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_ENVIRONMENT_ID" in str(exc_info.value)
 
@@ -140,10 +161,8 @@ class TestFeatureFlagsClient:
         mock.return_value.appconfig_environment_id = "test-env-id"
         mock.return_value.appconfig_configuration_profile_id = None
 
-        client = FeatureFlagsClient()
-
         with pytest.raises(FeatureFlagError) as exc_info:
-            client._get_appconfig_store()
+            FeatureFlagsClient()
 
         assert "APPCONFIG_CONFIGURATION_PROFILE_ID" in str(exc_info.value)
 
@@ -153,41 +172,40 @@ class TestFeatureFlagsClient:
         mock_appconfig_store: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        client._get_appconfig_store()
+        FeatureFlagsClient()
 
-        mock_appconfig_store.assert_called_once_with(
+        # AppConfigStore is already called once in __init__
+        mock_appconfig_store.assert_called_with(
             application="test-app-id",
             environment="test-env-id",
             name="test-profile-id",
             max_age=CACHE_TTL_SECONDS,
         )
 
-    def test_get_feature_flags_returns_feature_flags_instance(
+    def test_init_creates_feature_flags_instance(
         self,
         mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        result = client.get_feature_flags()
+        FeatureFlagsClient()
 
         mock_feature_flags_class.assert_called_once()
-        assert result is mock_feature_flags_class.return_value
+        assert (
+            FeatureFlagsClient._feature_flags is mock_feature_flags_class.return_value
+        )
 
-    def test_get_feature_flags_caches_instance(
+    def test_init_calls_appconfig_store_once(
         self,
         mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
-        client = FeatureFlagsClient()
-        result1 = client.get_feature_flags()
-        result2 = client.get_feature_flags()
+        FeatureFlagsClient()
 
-        assert result1 is result2
+        mock_appconfig_store.assert_called_once()
         mock_feature_flags_class.assert_called_once()
 
 
@@ -363,20 +381,33 @@ class TestIsEnabled:
 
 
 class TestModuleFunctions:
+    def test_get_client_returns_local_client_when_mocked_aws_app_config_is_true(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
+        mock.return_value.mocked_aws_app_config = "true"
+        _get_client.cache_clear()
+
+        client = _get_client()
+        assert isinstance(client, LocalFlagsClient)
+
+    def test_get_client_returns_feature_flags_client_when_mocked_aws_app_config_is_not_set(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
+        mock.return_value.mocked_aws_app_config = None
+        mock.return_value.appconfig_application_id = "test-app"
+        mock.return_value.appconfig_environment_id = "test-env"
+        mock.return_value.appconfig_configuration_profile_id = "test-profile"
+        _get_client.cache_clear()
+
+        client = _get_client()
+        assert isinstance(client, FeatureFlagsClient)
+
     def test_get_client_returns_cached_instance(self, mock_settings: MagicMock) -> None:
         client1 = _get_client()
         client2 = _get_client()
         assert client1 is client2
-
-    def test_get_feature_flags_function_returns_feature_flags(
-        self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
-        mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
-    ) -> None:
-        result = get_feature_flags()
-        assert result is mock_feature_flags_class.return_value
 
     def test_is_enabled_function_checks_flag(
         self,

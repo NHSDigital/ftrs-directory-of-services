@@ -1,9 +1,12 @@
+import os
 from functools import lru_cache
+from typing import Protocol
 
 from aws_lambda_powertools.utilities.feature_flags import AppConfigStore, FeatureFlags
 from aws_lambda_powertools.utilities.feature_flags.exceptions import (
     ConfigurationStoreError,
 )
+from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 from ftrs_common.logbase import FeatureFlagLogBase
 from ftrs_common.logger import Logger
 from ftrs_common.utils.config import Settings
@@ -13,6 +16,29 @@ logger = Logger.get(service="feature_flags")
 
 # Cache TTL in seconds - matches AppConfig extension default poll interval
 CACHE_TTL_SECONDS = 45
+
+
+class FeatureFlagsClientProtocol(Protocol):
+    """Protocol defining the interface for feature flag clients."""
+
+    def is_enabled(self, flag_name: str, default: bool = False) -> bool:
+        """Check if a feature flag is enabled."""
+        ...
+
+
+class LocalFlagsClient:
+    """Local feature flags client for development and testing."""
+
+    def __init__(self) -> None:
+        self.flags: dict[str, bool] = {}
+        # Automatically load all feature flags from the enum
+        for flag in FeatureFlag:
+            env_var_name = flag.value.upper()
+            env_value = os.getenv(env_var_name, "true")
+            self.flags[flag.value] = env_value.lower() == "true"
+
+    def is_enabled(self, flag_name: str, default: bool = False) -> bool:
+        return self.flags.get(flag_name, default)
 
 
 class FeatureFlagError(Exception):
@@ -44,6 +70,8 @@ class FeatureFlagsClient:
             return
 
         self.settings = Settings()
+        store = self._get_appconfig_store()
+        FeatureFlagsClient._feature_flags = FeatureFlags(store=store)
         self._initialized = True
 
     def _get_appconfig_store(self) -> AppConfigStore:
@@ -79,12 +107,6 @@ class FeatureFlagsClient:
             max_age=CACHE_TTL_SECONDS,
         )
 
-    def get_feature_flags(self) -> FeatureFlags:
-        if FeatureFlagsClient._feature_flags is None:
-            store = self._get_appconfig_store()
-            FeatureFlagsClient._feature_flags = FeatureFlags(store=store)
-        return FeatureFlagsClient._feature_flags
-
     def is_enabled(
         self,
         flag_name: str,
@@ -92,8 +114,7 @@ class FeatureFlagsClient:
     ) -> bool:
         """Check if a feature flag is enabled."""
         try:
-            feature_flags = self.get_feature_flags()
-            store_config = feature_flags.store.get_configuration()
+            store_config = FeatureFlagsClient._feature_flags.store.get_configuration()
 
             if not store_config:
                 flag_enabled = default
@@ -144,14 +165,14 @@ class FeatureFlagsClient:
 
 
 @lru_cache(maxsize=1)
-def _get_client() -> FeatureFlagsClient:
-    """Get a cached FeatureFlagsClient instance."""
+def _get_client() -> FeatureFlagsClientProtocol:
+    """Get a cached feature flags client instance."""
+    settings = Settings()
+    if settings.mocked_aws_app_config == "true":
+        return LocalFlagsClient()
     return FeatureFlagsClient()
 
 
-def get_feature_flags() -> FeatureFlags:
-    return _get_client().get_feature_flags()
-
-
 def is_enabled(flag_name: str, default: bool = False) -> bool:
+    """Check if a feature flag is enabled."""
     return _get_client().is_enabled(flag_name, default)

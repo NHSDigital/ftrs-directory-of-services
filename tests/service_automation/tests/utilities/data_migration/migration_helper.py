@@ -10,6 +10,7 @@ from urllib.parse import unquote, urlparse
 
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from common.config import DatabaseConfig
+from ftrs_common.feature_flags.feature_flags_client import LocalFlagsClient
 from ftrs_common.mocks.mock_logger import MockLogger
 from loguru import logger
 from reference_data_load.application import (
@@ -365,7 +366,7 @@ class MigrationHelper:
                 )
 
                 with patch("ftrs_common.logger.Logger.get", return_value=mock_logger):
-                    app = ReferenceDataLoadApplication(config)
+                    app = ReferenceDataLoadApplication(config, LocalFlagsClient())
                     app.handle(ReferenceDataLoadEvent(type="triagecode"))
 
             metrics = self._get_metrics_from_app(app)

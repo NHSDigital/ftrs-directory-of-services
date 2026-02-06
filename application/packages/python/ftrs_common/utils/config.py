@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     env: str = Field("local", alias="ENVIRONMENT")
     workspace: str | None = Field(None, alias="WORKSPACE")
     endpoint_url: str | None = Field(None, alias="ENDPOINT_URL")
+    mocked_aws_app_config: str | None = Field(None, alias="MOCKED_AWS_APP_CONFIG")
 
     # AppConfig Feature Flags configuration
     appconfig_application_id: str | None = Field(None, alias="APPCONFIG_APPLICATION_ID")
