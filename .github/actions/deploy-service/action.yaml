@@ -30,12 +30,13 @@ runs:
   steps:
     - name: Deploy Service
       shell: bash
+      env:
+        SERVICE: ${{ inputs.service }}
+        APPLICATION_ROOT_DIR: ${{ inputs.directory }}
+        TAG: ${{ inputs.ref }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ARTEFACT_SUB_DIR: ${{ inputs.artefact_sub_dir }}
+        ARTEFACT_BUCKET_NAME: ${{ inputs.artefact_bucket_name }}
+        ENVIRONMENT: ${{ inputs.environment }}
       run: |
-        export SERVICE=${{ inputs.service }}
-        export APPLICATION_ROOT_DIR=${{ inputs.directory }}
-        export TAG=${{ inputs.ref }}
-        export WORKSPACE=${{ inputs.workspace }}
-        export ARTEFACT_SUB_DIR=${{ inputs.artefact_sub_dir }}
-        export ARTEFACT_BUCKET_NAME=${{ inputs.artefact_bucket_name }}
-        export ENVIRONMENT=${{ inputs.environment }}
         /bin/bash ./uec-dos-management/scripts/workflow/deploy-service.sh

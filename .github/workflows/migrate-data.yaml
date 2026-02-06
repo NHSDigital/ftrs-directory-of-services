@@ -1,9 +1,7 @@
 # This workflow runs the ETL process and monitors the queue for events.
 name: Run ETL process to migrate data into DynamoDB tables
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 on:
   workflow_call:
@@ -28,10 +26,17 @@ on:
         description: "The branch, tag or SHA to checkout for data migration"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
         
 jobs:
   migrate-data-via-etl:
     name: "Run ETL process in ${{ inputs.environment }}"
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

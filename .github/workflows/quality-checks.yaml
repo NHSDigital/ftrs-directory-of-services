@@ -45,6 +45,25 @@ on:
         required: false
         type: string
         default: ""
+secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID:
+        description: "Report upload AWS account ID"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_REGION:
+        description: "Report upload AWS region"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME:
+        description: "Report upload role name"
+        required: false
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT:
+        description: "Report upload bucket endpoint"
+        required: false
 
 jobs:
   scan-secrets:

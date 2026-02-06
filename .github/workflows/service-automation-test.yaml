@@ -46,6 +46,13 @@ on:
         description: "The type of deployment (e.g., release-candidate, development)"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
 
   workflow_dispatch:
     inputs:
@@ -99,8 +106,7 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   service-automation-tests:
@@ -110,6 +116,7 @@ jobs:
     environment: ${{ inputs.environment }}
     permissions:
       id-token: write
+      contents: read
 
     steps:
       - name: "Checkout code"

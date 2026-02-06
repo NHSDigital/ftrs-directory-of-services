@@ -17,8 +17,9 @@ runs:
     - name: Delete terraform state
       id: delete_tf_state
       shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        STACK: ${{ inputs.stack }}
       run: |
-        export WORKSPACE=${{inputs.workspace}}
-        export ENVIRONMENT=${{inputs.environment}}
-        export STACK=${{inputs.stack}}
         ./scripts/workflow/cleardown-terraform-state.sh

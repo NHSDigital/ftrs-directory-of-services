@@ -28,13 +28,13 @@ on:
         description: "Proxygen API base URL"
         required: false
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   build-sandbox-images:
     permissions:
       id-token: write
+      contents: read
     name: "${{ inputs.name }}"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

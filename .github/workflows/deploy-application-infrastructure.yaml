@@ -64,6 +64,13 @@ on:
       deploy_status:
         description: "The status of the deployment"
         value: ${{ jobs.deploy_summary.outputs.deploy_status }}
+secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
 
 jobs:
   plan-application-infrastructure:
@@ -83,7 +90,9 @@ jobs:
       workflow_timeout: ${{ inputs.workflow_timeout }}
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
@@ -122,7 +131,9 @@ jobs:
       workflow_timeout: ${{ inputs.workflow_timeout }}
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy_summary:
     name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"

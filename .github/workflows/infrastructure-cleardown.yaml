@@ -41,6 +41,13 @@ on:
         description: "The release candidate tag"
         required: false
         type: string
+secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
 
 jobs:
   prepare-toggles-artifacts:
@@ -66,7 +73,9 @@ jobs:
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   destroy-toggle-infrastructure:
     needs: 
@@ -85,7 +94,9 @@ jobs:
       download_appconfig_artifact: true
       appconfig_artifact_name: "appconfig_feature_flags"
       stacks: "['app_config']"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   cleardown-os-policies:
     name: "Cleardown OpenSearch Network Policies"
