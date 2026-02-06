@@ -41,7 +41,7 @@ on:
         description: "Deployment environment"
         required: true
         type: string
-secrets:
+    secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
         required: true

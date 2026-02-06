@@ -45,7 +45,7 @@ on:
         required: false
         type: string
         default: ""
-secrets:
+    secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
         required: true

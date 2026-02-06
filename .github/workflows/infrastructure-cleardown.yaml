@@ -41,7 +41,7 @@ on:
         description: "The release candidate tag"
         required: false
         type: string
-secrets:
+    secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
         required: true
