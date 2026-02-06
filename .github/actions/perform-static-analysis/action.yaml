@@ -25,10 +25,19 @@ runs:
       id: coverage-files
       shell: bash
       run: |
-        FILES=$(find coverage -name 'coverage-*.xml' | paste -sd "," -)
+        # Look for coverage files in the downloaded artifacts directory
+        FILES=$(find coverage -name 'coverage-*.xml' 2>/dev/null | paste -sd "," - || echo "")
         echo "files=$FILES" >> $GITHUB_OUTPUT
+        echo "Found coverage files: $FILES"
+        
+        if [ -n "$FILES" ]; then
+          echo "Coverage files will be passed to SonarCloud: $FILES"
+        else
+          echo "No coverage files found - SonarCloud will run without coverage"
+        fi
 
     - name: "Perform SonarCloud static analysis"
+      id: sonar-analysis
       uses: sonarsource/sonarqube-scan-action@v5.3.1
       env:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
@@ -37,6 +46,5 @@ runs:
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
           -Dsonar.branch.name=${{ github.ref_name }}
-          -Dsonar.python.coverage.reportPaths=${{ steps.coverage-files.outputs.files }}
+          ${{ steps.coverage-files.outputs.files && format('-Dsonar.python.coverage.reportPaths={0}', steps.coverage-files.outputs.files) || '' }}
           -Dproject.settings=./scripts/config/sonar-scanner.properties
-      continue-on-error: true
