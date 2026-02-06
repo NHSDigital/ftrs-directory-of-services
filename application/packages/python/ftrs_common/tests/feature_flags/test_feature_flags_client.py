@@ -381,37 +381,21 @@ class TestIsEnabled:
 
 
 class TestModuleFunctions:
-    def test_get_client_returns_local_client_for_local_env(
+    def test_get_client_returns_local_client_when_mocked_aws_app_config_is_true(
         self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
-        mock.return_value.env = "local"
-        mock.return_value.workspace = None
+        mock.return_value.mocked_aws_app_config = "true"
         _get_client.cache_clear()
 
         client = _get_client()
         assert isinstance(client, LocalFlagsClient)
 
-    def test_get_client_returns_feature_flags_client_for_dev_with_workspace(
+    def test_get_client_returns_feature_flags_client_when_mocked_aws_app_config_is_not_set(
         self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
-        mock.return_value.env = "dev"
-        mock.return_value.workspace = "test-workspace"
-        mock.return_value.appconfig_application_id = "test-app"
-        mock.return_value.appconfig_environment_id = "test-env"
-        mock.return_value.appconfig_configuration_profile_id = "test-profile"
-        _get_client.cache_clear()
-
-        client = _get_client()
-        assert isinstance(client, FeatureFlagsClient)
-
-    def test_get_client_returns_feature_flags_client_for_dev_without_workspace(
-        self, mocker: MockerFixture
-    ) -> None:
-        mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
-        mock.return_value.env = "dev"
-        mock.return_value.workspace = None
+        mock.return_value.mocked_aws_app_config = None
         mock.return_value.appconfig_application_id = "test-app"
         mock.return_value.appconfig_environment_id = "test-env"
         mock.return_value.appconfig_configuration_profile_id = "test-profile"
