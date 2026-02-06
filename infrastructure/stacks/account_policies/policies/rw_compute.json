@@ -5,10 +5,12 @@
             "Sid": "ComputeFullAccess",
             "Action": [
                 "ec2:*",
+                "ecr:*",
                 "elasticloadbalancing:*",
                 "autoscaling:*",
                 "kms:ListAliases",
                 "lambda:*",
+                "serverlessrepo:*",
                 "states:DescribeStateMachine",
                 "states:ListStateMachines",
                 "tag:GetResources",

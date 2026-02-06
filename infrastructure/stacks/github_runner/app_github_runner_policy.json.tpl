@@ -9,6 +9,7 @@
                 "autoscaling:*",
                 "lambda:*",
                 "ecr:*",
+                "serverlessrepo:*",
                 "tag:*"
             ],
             "Resource": "*"
