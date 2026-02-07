@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import (
@@ -60,9 +61,9 @@ def _get_organization_query_params(
 )
 async def get_handle_organisation_requests(
     request: Request,
-    organization_query_params: OrganizationQueryParams = Depends(
-        _get_organization_query_params
-    ),
+    organization_query_params: Annotated[
+        OrganizationQueryParams, Depends(_get_organization_query_params)
+    ],
 ) -> JSONResponse:
     """
     Returns a FHIR Bundle of Organisation(s) by ODS code or all if no identifier is provided.

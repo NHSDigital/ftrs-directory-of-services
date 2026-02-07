@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
+          fetch-depth: 0
 
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis
