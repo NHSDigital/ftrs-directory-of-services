@@ -64,8 +64,12 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
     if not is_local_test_mode():
         pytest.skip("Set USE_LOCALSTACK=true to run local integration tests")
 
-    with LocalStackContainer(image="localstack/localstack:3.0") as localstack:
-        yield localstack
+    container = LocalStackContainer(image="localstack/localstack:3.0")
+    container.start(timeout=120)  # Increased timeout for CI runners
+    try:
+        yield container
+    finally:
+        container.stop()
 
 
 @pytest.fixture(scope="module")

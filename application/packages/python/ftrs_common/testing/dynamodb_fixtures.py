@@ -66,9 +66,13 @@ def localstack_container() -> Generator[LocalStackContainer, None, None]:
     Yields:
         LocalStackContainer instance
     """
-    with LocalStackContainer(image="localstack/localstack:3.0") as localstack:
-        logger.debug(f"LocalStack started at {localstack.get_url()}")
-        yield localstack
+    container = LocalStackContainer(image="localstack/localstack:3.0")
+    container.start(timeout=120)  # Increased timeout for CI runners
+    try:
+        logger.debug(f"LocalStack started at {container.get_url()}")
+        yield container
+    finally:
+        container.stop()
 
 
 @pytest.fixture(scope="session")
