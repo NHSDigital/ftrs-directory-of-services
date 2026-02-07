@@ -244,8 +244,9 @@ def run_ods_mock_server(
     env = os.environ.copy()
 
     # Use the service_automation venv python
+    # Path: ods_mock_server.py -> local_servers -> utilities -> tests -> service_automation
     venv_python = (
-        Path(__file__).parent.parent.parent.parent.parent / ".venv" / "bin" / "python"
+        Path(__file__).parent.parent.parent.parent / ".venv" / "bin" / "python"
     )
     if venv_python.exists():
         python_path = str(venv_python)
@@ -272,7 +273,25 @@ def run_ods_mock_server(
     )
 
     # Wait for server to be ready
-    _wait_for_server(host, port, timeout=30)
+    try:
+        _wait_for_server(host, port, timeout=30)
+    except TimeoutError:
+        # Capture process output for debugging
+        stdout, stderr = "", ""
+        try:
+            stdout, stderr = process.communicate(timeout=1)
+            stdout = stdout.decode() if stdout else ""
+            stderr = stderr.decode() if stderr else ""
+        except subprocess.TimeoutExpired:
+            process.kill()
+            stdout, stderr = process.communicate()
+            stdout = stdout.decode() if stdout else ""
+            stderr = stderr.decode() if stderr else ""
+        logger.error(f"ODS mock server stdout: {stdout}")
+        logger.error(f"ODS mock server stderr: {stderr}")
+        raise TimeoutError(
+            f"ODS mock server did not start within 30 seconds. stderr: {stderr[:500]}"
+        )
 
     logger.info(f"ODS mock server started at http://{host}:{port}")
 
