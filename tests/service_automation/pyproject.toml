@@ -29,6 +29,7 @@ dependencies = [
   "authlib (>=1.6.6,<2.0.0)",
   "deepdiff==8.6.1",
   "rsa>=4.9",
+  "uvicorn>=0.34.0",
 ]
 
 [build-system]
