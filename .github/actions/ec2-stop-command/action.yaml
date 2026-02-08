@@ -32,9 +32,4 @@ runs:
     - name: Stop SSM Command on EC2 instance
       shell: bash
       run: |
-        aws ssm stop-command --command-id ${{ inputs.ec2-ssm-command-id }} --instance-ids ${{ steps.lookup.outputs.instance_id }}
-
-    - name: Wait for ssm command to stop
-      shell: bash
-      run: |
-        aws ssm wait command-stopped --command-id ${{ inputs.ec2-ssm-command-id }} --instance-ids ${{ steps.lookup.outputs.instance_id }}
+        aws ssm cancel-command --command-id ${{ inputs.ec2-ssm-command-id }} --instance-ids ${{ steps.lookup.outputs.instance_id }}
