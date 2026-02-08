@@ -206,8 +206,8 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Start EC2 performance instance"
-        id: start-ec2
-        uses: ./.github/actions/start-ec2
+        id: ec2-start
+        uses: ./.github/actions/ec2-start
         with:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
@@ -216,24 +216,24 @@ jobs:
         uses: ./.github/actions/ec2-download-performance-config
         with:
           environment: ${{ inputs.environment }}
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
 
       - name: "Generate certificates and keys"
         if: inputs.generate_certificates_and_keys == 'true'
         uses: ./.github/actions/ec2-generate-certificates-and-keys
         with:
           environment: ${{ inputs.environment }}
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
 
       - name: "Start CloudWatch agent"
         uses: ./.github/actions/ec2-start-cloudwatch-agent
         with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
 
       - name: "Run performance test"
         uses: ./.github/actions/run-performance-test
         with:
-          ec2-instance-id: ${{ steps.start-ec2.outputs.ec2-instance-id }}
+          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
           apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
