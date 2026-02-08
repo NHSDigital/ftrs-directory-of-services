@@ -30,3 +30,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
+
+      - name: "Stop EC2 instance"
+        uses: ./.github/actions/ec2-stop
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
