@@ -23,6 +23,7 @@ runs:
           --query "Reservations[0].Instances[0].InstanceId" \
           --output text)
 
+        echo "instance_id=$INSTANCE_ID"
         echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
 
     - name: Stop EC2 instance
