@@ -53,14 +53,6 @@ on:
         required: true
         type: string
         default: "default"
-      stop_instance:
-        description: "Whether to stop the EC2 instance after the test"
-        required: false
-        default: "false"
-        type: choice
-        options:
-          - "true"
-          - "false"
       num_threads:
         description: "Number of threads for the performance test (overrides defaults for test type)"
         required: false
