@@ -15,10 +15,6 @@ on:
         options:
           - dev
           - test
-      ec2-ssm-command-id:
-        description: "The SSM command ID of the performance test command to stop"
-        required: false
-        type: string
       stop-ec2-instance:
         description: "Whether to stop the EC2 instance running the performance test"
         required: false
@@ -50,13 +46,6 @@ jobs:
           aws_region: ${{ vars.AWS_REGION }}
           type: app
           environment: ${{ inputs.environment }}
-
-      - name: "Stop performance test SSM command if command ID provided"
-        if: ${{ inputs.ec2-ssm-command-id != '' }}
-        uses: ./.github/actions/ec2-stop-command
-        with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
-          ec2-ssm-command-id: ${{ inputs.ec2-ssm-command-id }}
 
       - name: "Stop EC2 instance"
         if: ${{ inputs.stop-ec2-instance == 'true' }}
