@@ -10,6 +10,7 @@ from functions.constants import (
 )
 from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
+    MANDATORY_REQUEST_HEADERS,
     lambda_handler,
 )
 
@@ -62,7 +63,7 @@ def _build_event_with_headers(headers: dict[str, str]):
             "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "requestContext": {"requestId": "req-id"},
-        "headers": {"x-request-id": "req-id", **headers},
+        "headers": {"x-request-id": "req-id", "version": 0, **headers},
     }
 
 
@@ -86,7 +87,6 @@ class TestLambdaHandler:
             "nhsd-correlation-id",
             "NHSD-Request-ID",
             "nhsd-request-id",
-            "version",
             "end-user-role",
             "application-id",
             "application-name",
@@ -144,23 +144,26 @@ class TestLambdaHandler:
             expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
         )
 
-    def test_lambda_handler_rejects_missing_mandatory_headers(
+    def test_lambda_handler_rejects_when_missing_mandatory_headers(
         self,
         lambda_context,
         mock_logger,
         mock_error_util,
     ):
+        header_list = [header for header in MANDATORY_REQUEST_HEADERS]
         event_with_headers = _build_event_with_headers({})
-        event_with_headers["headers"].pop("x-request-id")
+
+        for header in MANDATORY_REQUEST_HEADERS:
+            event_with_headers["headers"].pop(header)
 
         response = lambda_handler(event_with_headers, lambda_context)
 
         mock_error_util.create_missing_mandatory_header_operation_outcome.assert_called_once_with(
-            []
+            header_list
         )
         mock_logger.warning.assert_called_with(
             "Missing mandatory headers",
-            invalid_headers=["x-nhsd-unknown"],
+            missing_headers=header_list,
         )
         assert_response(
             response,
