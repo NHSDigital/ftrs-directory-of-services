@@ -92,8 +92,11 @@ jobs:
     steps:
       - name: "Validate Inputs"
         shell: bash
+        env:
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
+          TEST_TYPE: ${{ inputs.test_type }}
         run: |
-          if [[ "${{ inputs.endpoint_type }}" == "proxy" && "${{ inputs.test_type }}" != "smoke" ]]; then
+          if [[ "$ENDPOINT_TYPE" == "proxy" && "$TEST_TYPE" != "smoke" ]]; then
             echo "Invalid combination of endpoint_type and test_type. Must be 'smoke' for proxy endpoint type."
             exit 1
           fi
@@ -190,53 +193,100 @@ jobs:
           echo "apim_env=$APIM_ENV" >> $GITHUB_OUTPUT
 
       - name: "Configure AWS credentials"
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
         uses: ./.github/actions/configure-credentials
         with:
-          aws_account_id: ${{ secrets.ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: $ACCOUNT_ID
+          aws_region: $AWS_REGION
           type: app
-          environment: ${{ inputs.environment }}
+          environment: $ENVIRONMENT
+
+      - name: "Lookup EC2 instance ID"
+        id: lookup-ec2-instance-id
+        env:
+          EC2_NAME_TAG: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+        uses: ./.github/actions/ec2-lookup-instance-id
+        with:
+          ec2-name-tag: $EC2_NAME_TAG
 
       - name: "Start EC2 performance instance"
         id: ec2-start
+        env:
+          EC2_INSTANCE_ID: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
         uses: ./.github/actions/ec2-start
         with:
-          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+          ec2-instance-id: $EC2_INSTANCE_ID
+
+      - name: "Check for running performance test on EC2 instance"
+        id: check-perf-test-running
+        env:
+          EC2_INSTANCE_ID: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          FAIL_ON_LOCK_FILE: "true"
+        uses: ./.github/actions/ec2-check-perf-test-running
+        with:
+          ec2-instance-id: $EC2_INSTANCE_ID
+          fail-on-lock-file: ${FAIL_ON_LOCK_FILE}
 
       - name: "Download performance config"
         if: inputs.download_performance_config == 'true'
+        env:
+          EC2_INSTANCE_ID: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          ENVIRONMENT: ${{ inputs.environment }}
         uses: ./.github/actions/ec2-download-performance-config
         with:
-          environment: ${{ inputs.environment }}
-          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          environment: $ENVIRONMENT
+          ec2-instance-id: ${EC2_INSTANCE_ID}
 
       - name: "Generate certificates and keys"
         if: inputs.generate_certificates_and_keys == 'true'
+        env:
+          EC2_INSTANCE_ID: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          ENVIRONMENT: ${{ inputs.environment }}
         uses: ./.github/actions/ec2-generate-certificates-and-keys
         with:
-          environment: ${{ inputs.environment }}
-          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          environment: $ENVIRONMENT
+          ec2-instance-id: $EC2_INSTANCE_ID
 
       - name: "Start CloudWatch agent"
+        env:
+          EC2_INSTANCE_ID: ${{ steps.ec2-start.outputs.ec2-instance-id }}
         uses: ./.github/actions/ec2-start-cloudwatch-agent
         with:
-          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          ec2-instance-id: $EC2_INSTANCE_ID
 
       - name: "Run performance test"
+        env:
+          EC2_INSTANCE_ID: ${{ steps.ec2-start.outputs.ec2-instance-id }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          APIM_ENV: ${{ steps.derive-endpoint.outputs.apim_env }}
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          ENDPOINT: ${{ steps.derive-endpoint.outputs.endpoint }}
+          WORKSPACE: ${{ inputs.workspace }}
+          NUM_THREADS: ${{ steps.derive-params.outputs.num_threads }}
+          RAMP_TIME: ${{ steps.derive-params.outputs.ramp_time }}
+          STARTUP_DELAY: ${{ steps.derive-params.outputs.startup_delay }}
+          DURATION: ${{ steps.derive-params.outputs.duration }}
+          THROUGHPUT: ${{ steps.derive-params.outputs.throughput }}
+          THROUGHPUT_PERIOD: ${{ steps.derive-params.outputs.throughput_period }}
         uses: ./.github/actions/run-performance-test
         with:
-          ec2-instance-id: ${{ steps.ec2-start.outputs.ec2-instance-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          environment: ${{ inputs.environment }}
-          apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
-          endpoint-type: ${{ inputs.endpoint_type }}
-          test-type: ${{ inputs.test_type }}
-          endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
-          workspace: ${{ inputs.workspace }}
-          num-threads: ${{ steps.derive-params.outputs.num_threads }}
-          ramp-time: ${{ steps.derive-params.outputs.ramp_time }}
-          startup-delay: ${{ steps.derive-params.outputs.startup_delay }}
-          duration: ${{ steps.derive-params.outputs.duration }}
-          throughput: ${{ steps.derive-params.outputs.throughput }}
-          throughput-period: ${{ steps.derive-params.outputs.throughput_period }}
-          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
+          ec2-instance-id: $EC2_INSTANCE_ID
+          aws-region: $AWS_REGION
+          environment: $ENVIRONMENT
+          apim-env: $APIM_ENV
+          endpoint-type: $ENDPOINT_TYPE
+          test-type: $TEST_TYPE
+          endpoint: $ENDPOINT
+          workspace: $WORKSPACE
+          num-threads: $NUM_THREADS
+          ramp-time: $RAMP_TIME
+          startup-delay: $STARTUP_DELAY
+          duration: $DURATION
+          throughput: $THROUGHPUT
+          throughput-period: $THROUGHPUT_PERIOD
+          performance-results-bucket: ftrs-dos-$ENVIRONMENT-account-wide-is-performance-files-bucket
