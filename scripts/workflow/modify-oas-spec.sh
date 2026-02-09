@@ -8,12 +8,12 @@
 set -e
 
 # Validate required environment variables
-if [ -z "$API_NAME" ]; then
+if [[ -z "$API_NAME" ]]; then
     echo "Error: API_NAME environment variable is required" >&2
     exit 1
 fi
 
-if [ -z "$PROXY_ENV" ]; then
+if [[ -z "$PROXY_ENV" ]]; then
     echo "Error: PROXY_ENV environment variable is required" >&2
     exit 1
 fi
@@ -21,14 +21,14 @@ fi
 # Set the spec file path (relative to repository root)
 SPEC_FILE="docs/specification/${API_NAME}.yaml"
 
-if [ ! -f "$SPEC_FILE" ]; then
+if [[ ! -f "$SPEC_FILE" ]]; then
     echo "Error: Spec file not found at $SPEC_FILE" >&2
     echo "Current directory: $(pwd)" >&2
     echo "Looking for file at: $(realpath $SPEC_FILE 2>/dev/null || echo $SPEC_FILE)" >&2
     exit 1
 fi
 
-if [ -n "$WORKSPACE" ]; then
+if [[ -n "$WORKSPACE" ]]; then
     echo "Modifying OAS spec for workspace: $WORKSPACE" >&2
 else
     echo "Modifying OAS spec (no workspace)" >&2
@@ -41,7 +41,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "Processing specification file..." >&2
 MODIFIED_SPEC=$(WORKSPACE="$WORKSPACE" API_NAME="$API_NAME" SPEC_FILE="$SPEC_FILE" PROXY_ENV="$PROXY_ENV" python3 "$SCRIPT_DIR/modify_spec.py")
 
-if [ ! -f "$MODIFIED_SPEC" ]; then
+if [[ ! -f "$MODIFIED_SPEC" ]]; then
     echo "Error: Failed to create modified spec" >&2
     exit 1
 fi
