@@ -1,4 +1,4 @@
-@is-infra @integrated-search @data-repo
+@data-repo
 Feature: Data Repository
 
   Scenario: Retrieve organisation model from seeded repository
