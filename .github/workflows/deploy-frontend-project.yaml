@@ -72,15 +72,18 @@ jobs:
 
       - name: "Get directories"
         id: get-directories
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          NAME: ${{ inputs.name }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
-            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          if [[ "$BUILD_TYPE" == "service" ]]; then
+            echo "working_directory=services/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/$NAME" >> $GITHUB_OUTPUT
+          elif [[ "$BUILD_TYPE" == "package" ]]; then
+            echo "working_directory=application/packages/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/$NAME" >> $GITHUB_OUTPUT
           else
-            echo "Invalid build type: ${{ inputs.build_type }}"
+            echo "Invalid build type: $BUILD_TYPE"
             exit 1
           fi
 

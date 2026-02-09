@@ -28,6 +28,7 @@ jobs:
     permissions:
       actions: write
       contents: read
+      id-token: write
     timeout-minutes: 15
     environment: ${{ needs.metadata.outputs.environment }}
     needs:

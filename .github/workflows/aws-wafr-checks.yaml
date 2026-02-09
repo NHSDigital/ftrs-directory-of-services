@@ -40,14 +40,18 @@ jobs:
     steps:
       - name: Check if steps should run
         id: should-run
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          MATRIX_ENVIRONMENT: ${{ matrix.environment }}
         run: |
           SHOULD_RUN="true"
 
           # If manually triggered, check if this matrix entry matches the inputs
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
 
             # Check environment matches (if specified)
-            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+            if [[ -n "$INPUT_ENVIRONMENT" ]] && [[ "$MATRIX_ENVIRONMENT" != "$INPUT_ENVIRONMENT" ]]; then
               SHOULD_RUN="false"
             fi
           fi
@@ -73,7 +77,7 @@ jobs:
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@v6.0.0
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true
@@ -83,7 +87,7 @@ jobs:
       # Install Steampipe using GitHub Action
       - name: Setup Steampipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/steampipe-action-setup@v1.6.0
+        uses: turbot/steampipe-action-setup@48bd85e67fddae9843fe2ad7ef6af96a332507c5 # v1.6.0
         with:
           steampipe-version: "latest"
           plugin-connections: |
@@ -95,7 +99,7 @@ jobs:
       # Install Powerpipe CLI using Github Action
       - name: Install Powerpipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-setup@v1
+        uses: turbot/powerpipe-action-setup@cc29d145314973ee3afc3ce09f902d7524e28bb3 # v1
 
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'

@@ -20,8 +20,9 @@ jobs:
     steps:
       - name: "Validate release tag"
         id: validate
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-            RELEASE_TAG="${{ inputs.release_tag }}"
             if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "Invalid release tag format: $RELEASE_TAG"
             exit 1
