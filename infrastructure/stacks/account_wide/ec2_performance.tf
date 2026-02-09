@@ -180,7 +180,7 @@ data "aws_iam_policy_document" "ec2_performance_ssm_command" {
   statement {
     sid = "AllowSSMCommandsForPerformanceEC2"
     actions = [
-      "ssm:ListCommands"
+      "ssm:ListCommands",
     ]
     resources = [
       "arn:aws:ssm:eu-west-2:${local.account_id}:*"
