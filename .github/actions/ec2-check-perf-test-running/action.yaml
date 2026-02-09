@@ -45,14 +45,9 @@ runs:
 
     - name: Wait for Check Lock File Command to Complete
       shell: bash
-      env:
-        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
-        COMMAND_ID: ${{ steps.check-lock-file.outputs.command_id }}
       run: |
           echo "Waiting for check lock file command to complete..."
-          aws ssm wait command-executed \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$EC2_INSTANCE_ID"
+          sleep 20 # Wait for 20 seconds before checking the command status to give it time to execute and create the lock file if needed
 
     - name: Determine Performance Test Status
       shell: bash
