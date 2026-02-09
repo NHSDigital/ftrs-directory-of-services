@@ -38,7 +38,7 @@ runs:
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make jmeter-generate-pks-file ENVIRONMENT=$$ENVIRONMENT CERT_NAME=$$CERT_NAME KEY_NAME=$$KEY_NAME PFX_NAME=$$PFX_NAME"]' \
+                        "make jmeter-generate-pks-file ENVIRONMENT=${ENVIRONMENT} CERT_NAME=${CERT_NAME} KEY_NAME=${KEY_NAME} PFX_NAME=${PFX_NAME}"]' \
             --query "Command.CommandId" \
             --output text)
 
