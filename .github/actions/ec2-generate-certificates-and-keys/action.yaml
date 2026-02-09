@@ -30,6 +30,7 @@ runs:
       id: run_command
       env:
         ENVIRONMENT: ${{ inputs.environment }}
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
         CERT_NAME: ${{ inputs.cert-name }}
         KEY_NAME: ${{ inputs.key-name }}
         PFX_NAME: ${{ inputs.pfx-name }}
