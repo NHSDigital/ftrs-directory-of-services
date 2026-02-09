@@ -227,7 +227,7 @@ def commit_hash() -> str:
 
 @pytest.fixture(scope="session")
 def apigee_environment() -> str:
-    return _get_env_var("APIGEE_ENVIRONMENT", default="internal-dev")
+    return _get_env_var("APIM_ENV", default="internal-dev")
 
 
 @pytest.fixture(scope="session", autouse=True)

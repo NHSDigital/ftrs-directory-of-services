@@ -34,7 +34,7 @@ if [[ $EXPORTS_SET -eq 1 ]]; then
 fi
 
 # Set instance name based on workspace
-if [ -n "$WORKSPACE" ]; then
+if [[ -n "$WORKSPACE" ]]; then
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
 else
     INSTANCE_NAME="${API_NAME}_FHIR_R4"
@@ -51,10 +51,10 @@ RESPONSE=$(
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | head -n-1)
 
-if [ "$HTTP_CODE" -eq 200 ]; then
+if [[ "$HTTP_CODE" -eq 200 ]]; then
     echo "✓ Proxy instance deleted"
     exit 0
-elif [ "$HTTP_CODE" -eq 404 ]; then
+elif [[ "$HTTP_CODE" -eq 404 ]]; then
     echo "ℹ No proxy instance found to delete"
     exit 0
 else

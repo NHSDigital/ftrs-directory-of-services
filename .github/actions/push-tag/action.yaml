@@ -14,7 +14,8 @@ runs:
   steps:
     - name: Push tag
       shell: bash
+      env:
+        TAG_TO_PUSH: ${{ inputs.tag_to_push }}
+        TAG_OVERWRITE: ${{ inputs.tag_overwrite }}
       run: |
-        export TAG_TO_PUSH=${{ inputs.tag_to_push }}
-        export TAG_OVERWRITE=${{ inputs.tag_overwrite }}
         . uec-dos-management/scripts/workflow/push-tag.sh

@@ -38,61 +38,57 @@ jobs:
             echo "Release tag format is valid: $RELEASE_TAG"
           fi
 
-  metadata:
-    name: "Get CI/CD metadata"
-    needs:
-      - validate-release-tag
-    uses: ./.github/workflows/metadata.yaml
-    with:
-      ref: ${{ inputs.release_tag }}
-
   deploy-account-wide-policies:
     name: "Deploy infrastructure policies for release candidate ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
-      - metadata
+      - validate-release-tag
     uses: ./.github/workflows/pipeline-deploy-policies.yaml
     with:
       environment: ${{ inputs.environment }}
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID }}
+      IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
+      IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
+      IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
 
   deploy-account-wide-infrastructure:
     name: "Deploy account wide infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
-      - metadata
       - deploy-account-wide-policies
     uses: ./.github/workflows/pipeline-deploy-account-infrastructure.yaml
     with:
       environment: ${{ inputs.environment }}
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
     needs:
-      - metadata
       - deploy-account-wide-infrastructure
     uses: ./.github/workflows/prepare-toggle-artifacts.yaml
     with:
-      environment: ${{ inputs.environment }} 
+      environment: ${{ inputs.environment }}
       workspace: default
       ref: ${{ inputs.release_tag }}
 
   check-stack-toggles:
-    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    name: "Check stack toggles for ${{ inputs.environment }}"
     needs:
-      - metadata
       - prepare-toggle-artifacts
     uses: ./.github/workflows/check-stack-toggles.yaml
     with:
       environment:  ${{ inputs.environment }}
       workspace: default
-      ref: ${{ inputs.release_tag }} 
+      ref: ${{ inputs.release_tag }}
 
   deploy-toggle-infrastructure:
-    name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
+    name: "Deploy toggle infrastructure to the ${{ inputs.environment }}environment"
     needs:
-      - metadata
       - check-stack-toggles
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
@@ -102,8 +98,10 @@ jobs:
       workflow_timeout: 30
       stacks: "['app_config']"
       skip_manual_approval: "true"
-    secrets: inherit
-      
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release ${{ inputs.release_tag }} to the ${{ inputs.environment }} environment"
     needs:
@@ -117,7 +115,9 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       ref: ${{ inputs.release_tag }}
       workflow_timeout: 30
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ inputs.environment }}"
@@ -133,7 +133,6 @@ jobs:
           - name: "read-only-viewer"
             enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
     needs:
-      - metadata
       - check-stack-toggles
       - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
@@ -142,11 +141,12 @@ jobs:
       enabled: ${{ matrix.enabled }}
       build_type: "service"
       environment: ${{ inputs.environment }}
-      repo_name: ${{ needs.metadata.outputs.reponame }}
+      repo_name: ${{ github.event.repository.name }}
       workspace: default
       type: "app"
       ref: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   service-automation-tests:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ inputs.environment }} environment"
@@ -159,8 +159,7 @@ jobs:
           - tag: "data-migration"
             type: "data-migration"
     needs:
-      - metadata
-      - deploy-frontend-services
+      - deploy-application-infrastructure
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}
@@ -170,13 +169,15 @@ jobs:
       test_type: ${{ matrix.type }}
       type: app
       deployment_type: "release-candidate"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   check-pipeline-status:
     name: "Check Pipeline Status"
     needs:
       - validate-release-tag
-      - metadata
       - prepare-toggle-artifacts
       - check-stack-toggles
       - deploy-toggle-infrastructure
@@ -192,7 +193,6 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - validate-release-tag
-      - metadata
       - prepare-toggle-artifacts
       - check-stack-toggles
       - deploy-toggle-infrastructure
@@ -207,4 +207,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ inputs.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,8 +1,6 @@
 name: APIM Proxy Cleardown
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 on:
   workflow_call:
@@ -27,10 +25,20 @@ on:
         description: "The branch, tag or SHA to checkout"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      PROXYGEN_URL:
+        description: "Proxygen URL for APIM"
+        required: true
 
 jobs:
   cleardown-apim-proxy:
     name: "Cleardown APIM proxy (${{ matrix.api_name }})"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     strategy:

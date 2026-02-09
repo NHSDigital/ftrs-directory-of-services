@@ -224,7 +224,7 @@ class TestEndpointMapper:
     ):
         # Arrange
         mock_logger = mocker.patch(
-            "functions.ftrs_service.fhir_mapper.endpoint_mapper.logger"
+            "functions.ftrs_service.fhir_mapper.endpoint_mapper.dos_logger"
         )
 
         # Act

@@ -1125,3 +1125,22 @@ x-nhsd-apim:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  target-attributes:
+    - name: application-id
+      required: false
+      header: application-id
+    - name: application-name
+      required: false
+      header: application-name
+  # Request a proxy-level cap of 150 TPS (9000/min) to limit aggregate traffic to the backend.
+  # Note: proxy is a shared/global cap across all applications; no per-application default is requested here.
+  ratelimiting:
+    proxy:
+      # 150 transactions per second -> 150 * 60 = 9,000 per minute
+      timeunit: "minute"
+      limit: 9000
+    # Per-application (per-subscription / per-api-key) quota to ensure fair usage between clients.
+    # 10 transactions per second -> 10 * 60 = 600 per minute per application
+    app-default:
+      timeunit: "minute"
+      limit: 600

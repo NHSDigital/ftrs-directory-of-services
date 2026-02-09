@@ -15,7 +15,8 @@ runs:
   steps:
       - name: Build Service
         shell: bash
+        env:
+          SERVICE: ${{ inputs.service }}
+          DIRECTORY: ${{ inputs.directory }}
         run: |
-          export SERVICE=${{ inputs.service }}
-          export DIRECTORY=${{ inputs.directory }}
           /bin/bash ./uec-dos-management/scripts/workflow/build-service.sh

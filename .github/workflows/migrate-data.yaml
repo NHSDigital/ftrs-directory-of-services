@@ -1,9 +1,7 @@
 # This workflow runs the ETL process and monitors the queue for events.
 name: Run ETL process to migrate data into DynamoDB tables
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 on:
   workflow_call:
@@ -28,10 +26,17 @@ on:
         description: "The branch, tag or SHA to checkout for data migration"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
         
 jobs:
   migrate-data-via-etl:
     name: "Run ETL process in ${{ inputs.environment }}"
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
@@ -55,14 +60,16 @@ jobs:
       - name: "Run ETL process for data migration"
         id: "trigger_migration"
         shell: bash
+        env:
+          FUNCTION_NAME: ${{ inputs.function_name }}
         run: |
-          export FUNCTION_NAME=${{ inputs.function_name }}
           /bin/bash ./scripts/workflow/trigger-data-migration-lambda.sh
 
       - name: "Poll data migration queue"
         id: "poll_data_migration_queue"
         shell: bash
+        env:
+          ENV: ${{ inputs.environment }}
+          QUEUE_NAME: ${{ inputs.queue_name }}
         run: |
-          export ENV="${{ inputs.environment }}"
-          export QUEUE_NAME=${{ inputs.queue_name }}
           /bin/bash ./scripts/workflow/poll-data-migration-queue.sh
