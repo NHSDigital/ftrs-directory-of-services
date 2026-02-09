@@ -21,6 +21,11 @@ class DayOfWeek(str, Enum):
 class OrganisationType(str, Enum):
     GP_PRACTICE = "GP Practice"
 
+class Gender(str, Enum):
+    MALE = "Male"
+    FEMALE = "Female"
+    OTHER = "Other"
+    UNKNOWN = "Unknown"
 
 class OrganisationTypeCode(str, Enum):
     PRESCRIBING_COST_CENTRE_CODE = "RO177"
