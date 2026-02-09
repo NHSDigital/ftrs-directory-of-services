@@ -28,7 +28,6 @@ jobs:
           REPO: ${{ github.repository }}
         shell: bash
         run: |
-          export REPO="$REPO"
           /bin/bash ./scripts/workflow/cancel-paused-workflows.sh
 
   slack-notifications:
