@@ -24,6 +24,15 @@ on:
           - "true"
           - "false"
 
+      force-ec2-instance-stop:
+        description: "Whether to force stop the EC2 instance if a performance test is still running (will stop the instance without waiting for the test to complete)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
 permissions:
   contents: read
   id-token: write
@@ -40,39 +49,27 @@ jobs:
         uses: actions/checkout@v6
 
       - name: "Configure AWS credentials"
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-          ENVIRONMENT: ${{ inputs.environment }}
         uses: ./.github/actions/configure-credentials
         with:
-          aws_account_id: $ACCOUNT_ID
-          aws_region: $AWS_REGION
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          aws_region: ${{ secrets.AWS_REGION }}
           type: app
-          environment: $ENVIRONMENT
-
+          environment: ${{ inputs.environment }}
       - name: "Lookup EC2 instance ID"
         id: lookup
-        env:
-          ENVIRONMENT: ${{ inputs.environment }}
         uses: ./.github/actions/ec2-lookup-instance-id
         with:
-          ec2-name-tag: "ftrs-directory-of-services-$ENVIRONMENT-performance"
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
       - name: "Check for running performance test on EC2 instance"
-        id: check-perf-test-running
-        env:
-          EC2_INSTANCE_ID: ${{ steps.lookup.outputs.ec2-instance-id }}
-          FAIL_ON_LOCK_FILE: "true"
+        if: ${{ inputs.stop-ec2-instance == 'true' }}
         uses: ./.github/actions/ec2-check-perf-test-running
         with:
-          ec2-instance-id: $EC2_INSTANCE_ID
-          fail-on-lock-file: $FAIL_ON_LOCK_FILE
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
+          fail-on-lock-file: ${{ inputs.force-ec2-instance-stop == 'true' && 'false' || 'true' }}
 
       - name: "Stop EC2 instance"
         if: ${{ inputs.stop-ec2-instance == 'true' }}
-        env:
-          EC2_INSTANCE_ID: ${{ steps.lookup.outputs.ec2-instance-id }}
         uses: ./.github/actions/ec2-stop
         with:
-          ec2-instance-id: $EC2_INSTANCE_ID
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
