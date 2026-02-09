@@ -141,6 +141,9 @@ paths:
         ## Overview
         Retrieve an Organisation identified by an ODS code (including endpoints managed by the Organisation).
 
+        ## Proxy errors
+        500 can also be returned by the proxy or API gateway, and by the Lambda/application, separate from the application responses listed below.
+
         ## Request requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
         - it has a minimum of 5 alpha-numeric characters
@@ -210,6 +213,8 @@ paths:
             default: "Endpoint:organization"
             example: "Endpoint:organization"
       responses:
+        '401':
+          $ref: '#/components/responses/ProxyUnauthorized'
         '200':
           description: Successful response
           content:
@@ -353,24 +358,6 @@ paths:
                               display: "Invalid search data"
                         diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
 
-        '401':
-          description: Unauthorized - Invalid or missing authentication token
-          content:
-            application/fhir+json:
-              schema:
-                $ref: '#/components/schemas/OperationOutcome'
-              example:
-                resourceType: "OperationOutcome"
-                issue:
-                  - severity: "error"
-                    code: "security"
-                    diagnostics: "Invalid or missing authentication token"
-                    details:
-                      coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "UNAUTHORIZED"
-                          display: "Unauthorized"
         '403':
           description: Forbidden - Insufficient permissions
           content:
@@ -413,11 +400,6 @@ paths:
           $ref: '#/components/responses/ProxyServiceUnavailable'
         '504':
           $ref: '#/components/responses/ProxyGatewayTimeout'
-      x-proxy-responses:
-        '401':
-          $ref: '#/components/responses/ProxyUnauthorized'
-        '500':
-          $ref: '#/components/responses/ProxyInternalServerError'
 
 components:
   securitySchemes:
@@ -629,6 +611,28 @@ components:
                           type: string
 
   responses:
+    # Proxy-level responses (404/429 can also be returned by API Gateway)
+    ProxyUnauthorized:
+      description: Unauthorized - Invalid or missing authentication token (proxy)
+      content:
+        application/fhir+json:
+          schema:
+            $ref: '#/components/schemas/OperationOutcome'
+          examples:
+            proxy-401:
+              summary: Proxy 401
+              value:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
     ProxyNotFound:
       description: Not found - Proxy could not match the request path
       content:
@@ -694,38 +698,6 @@ components:
           examples:
             proxy-504:
               summary: Proxy 504
-              value: {}
-    ProxyUnauthorized:
-      description: Unauthorized - Invalid or missing authentication token (proxy)
-      content:
-        application/fhir+json:
-          schema:
-            $ref: '#/components/schemas/OperationOutcome'
-          examples:
-            proxy-401:
-              summary: Proxy 401
-              value:
-                resourceType: "OperationOutcome"
-                issue:
-                  - severity: "error"
-                    code: "security"
-                    diagnostics: "Invalid or missing authentication token"
-                    details:
-                      coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "UNAUTHORIZED"
-                          display: "Unauthorized"
-    ProxyInternalServerError:
-      description: Internal server error - Proxy could not process the request
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-500:
-              summary: Proxy 500
               value: {}
 
 x-nhsd-apim:
