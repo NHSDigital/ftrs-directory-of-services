@@ -46,7 +46,9 @@ class TestGetTableName:
                 environment="explicit-env",
                 workspace="explicit-ws",
             )
-            assert result == "explicit-project-explicit-env-database-location-explicit-ws"
+            assert (
+                result == "explicit-project-explicit-env-database-location-explicit-ws"
+            )
 
     def test_custom_stack_name(self) -> None:
         """Should use custom stack name when provided."""

@@ -26,7 +26,10 @@ class TestErrorConstants:
 
     def test_invalid_sg_sd_pair_constant(self) -> None:
         """Test INVALID_SG_SD_PAIR constant value."""
-        assert INVALID_SG_SD_PAIR == "Both 'sg' and 'sd' components are required in the pair"
+        assert (
+            INVALID_SG_SD_PAIR
+            == "Both 'sg' and 'sd' components are required in the pair"
+        )
 
     def test_invalid_code_type_constant(self) -> None:
         """Test INVALID_CODE_TYPE constant value."""

@@ -27,11 +27,16 @@ class TestOpeningTimeCategory:
 
     def test_available_time_variations_value(self) -> None:
         """Test AVAILABLE_TIME_VARIATIONS value."""
-        assert OpeningTimeCategory.AVAILABLE_TIME_VARIATIONS == "availableTimeVariations"
+        assert (
+            OpeningTimeCategory.AVAILABLE_TIME_VARIATIONS == "availableTimeVariations"
+        )
 
     def test_available_time_public_holidays_value(self) -> None:
         """Test AVAILABLE_TIME_PUBLIC_HOLIDAYS value."""
-        assert OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS == "availableTimePublicHolidays"
+        assert (
+            OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
+            == "availableTimePublicHolidays"
+        )
 
     def test_not_available_value(self) -> None:
         """Test NOT_AVAILABLE value."""
@@ -123,11 +128,16 @@ class TestHealthcareServiceType:
 
     def test_gp_consultation_service_value(self) -> None:
         """Test GP_CONSULTATION_SERVICE value."""
-        assert HealthcareServiceType.GP_CONSULTATION_SERVICE == "GP Consultation Service"
+        assert (
+            HealthcareServiceType.GP_CONSULTATION_SERVICE == "GP Consultation Service"
+        )
 
     def test_pcn_service_value(self) -> None:
         """Test PCN_SERVICE value."""
-        assert HealthcareServiceType.PCN_SERVICE == "Primary Care Network Enhanced Access Service"
+        assert (
+            HealthcareServiceType.PCN_SERVICE
+            == "Primary Care Network Enhanced Access Service"
+        )
 
     def test_healthcare_service_type_members(self) -> None:
         """Test that HealthcareServiceType has exactly 2 members."""
@@ -199,23 +209,38 @@ class TestEndpointPayloadType:
 
     def test_ed_value(self) -> None:
         """Test ED value."""
-        assert EndpointPayloadType.ED == "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+        assert (
+            EndpointPayloadType.ED
+            == "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+        )
 
     def test_gp_primary_value(self) -> None:
         """Test GP_PRIMARY value."""
-        assert EndpointPayloadType.GP_PRIMARY == "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+        assert (
+            EndpointPayloadType.GP_PRIMARY
+            == "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+        )
 
     def test_gp_copy_value(self) -> None:
         """Test GP_COPY value."""
-        assert EndpointPayloadType.GP_COPY == "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+        assert (
+            EndpointPayloadType.GP_COPY
+            == "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+        )
 
     def test_other_value(self) -> None:
         """Test OTHER value."""
-        assert EndpointPayloadType.OTHER == "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0"
+        assert (
+            EndpointPayloadType.OTHER
+            == "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0"
+        )
 
     def test_ambulance_value(self) -> None:
         """Test AMBULANCE value."""
-        assert EndpointPayloadType.AMBULANCE == "urn:nhs-itk:interaction:primaryNHS111RequestforAmbulance-v2-0"
+        assert (
+            EndpointPayloadType.AMBULANCE
+            == "urn:nhs-itk:interaction:primaryNHS111RequestforAmbulance-v2-0"
+        )
 
     def test_scheduling_value(self) -> None:
         """Test SCHEDULING value."""
@@ -298,7 +323,10 @@ class TestClinicalCodeType:
 
     def test_sg_sd_pair_value(self) -> None:
         """Test SG_SD_PAIR value."""
-        assert ClinicalCodeType.SG_SD_PAIR == "Symptom Group and Symptom Discriminator Pair (SG-SD)"
+        assert (
+            ClinicalCodeType.SG_SD_PAIR
+            == "Symptom Group and Symptom Discriminator Pair (SG-SD)"
+        )
 
     def test_clinical_code_type_members(self) -> None:
         """Test that ClinicalCodeType has exactly 4 members."""

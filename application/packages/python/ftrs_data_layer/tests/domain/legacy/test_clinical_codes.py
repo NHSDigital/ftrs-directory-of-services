@@ -76,7 +76,9 @@ class TestSymptomDiscriminatorSynonym:
 
     def test_synonym_table_name(self) -> None:
         """Test that SymptomDiscriminatorSynonym has correct table name."""
-        assert SymptomDiscriminatorSynonym.__tablename__ == "symptomdiscriminatorsynonyms"
+        assert (
+            SymptomDiscriminatorSynonym.__tablename__ == "symptomdiscriminatorsynonyms"
+        )
 
     def test_synonym_inherits_legacy_dos_model(self) -> None:
         """Test that SymptomDiscriminatorSynonym inherits from LegacyDoSModel."""
@@ -106,7 +108,10 @@ class TestSymptomGroupSymptomDiscriminator:
 
     def test_sgsd_table_name(self) -> None:
         """Test that SymptomGroupSymptomDiscriminator has correct table name."""
-        assert SymptomGroupSymptomDiscriminator.__tablename__ == "symptomgroupsymptomdiscriminators"
+        assert (
+            SymptomGroupSymptomDiscriminator.__tablename__
+            == "symptomgroupsymptomdiscriminators"
+        )
 
     def test_sgsd_inherits_legacy_dos_model(self) -> None:
         """Test that SymptomGroupSymptomDiscriminator inherits from LegacyDoSModel."""

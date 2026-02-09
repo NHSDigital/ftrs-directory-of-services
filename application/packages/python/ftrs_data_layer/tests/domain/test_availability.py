@@ -168,7 +168,10 @@ class TestAvailableTimePublicHolidays:
 
         assert public_holiday.startTime == time.fromisoformat("12:30:00")
         assert public_holiday.endTime == time.fromisoformat("16:30:00")
-        assert public_holiday.category == OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
+        assert (
+            public_holiday.category
+            == OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
+        )
 
     def test_available_time_public_holidays_model_dump_json(self) -> None:
         """Test AvailableTimePublicHolidays serialization to JSON."""
@@ -276,7 +279,10 @@ class TestOpeningTimeDiscriminator:
             startTime=time.fromisoformat("09:00:00"),
             endTime=time.fromisoformat("13:00:00"),
         )
-        assert public_holiday.category == OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
+        assert (
+            public_holiday.category
+            == OpeningTimeCategory.AVAILABLE_TIME_PUBLIC_HOLIDAYS
+        )
 
     def test_not_available_has_correct_category(self) -> None:
         """Test that NotAvailable has the correct category discriminator."""

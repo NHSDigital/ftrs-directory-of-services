@@ -222,7 +222,9 @@ class TestServiceSpecifiedOpeningDate:
 
     def test_specified_opening_date_table_name(self) -> None:
         """Test that ServiceSpecifiedOpeningDate has correct table name."""
-        assert ServiceSpecifiedOpeningDate.__tablename__ == "servicespecifiedopeningdates"
+        assert (
+            ServiceSpecifiedOpeningDate.__tablename__ == "servicespecifiedopeningdates"
+        )
 
     def test_create_specified_opening_date(self) -> None:
         """Test creating ServiceSpecifiedOpeningDate instance."""
@@ -238,7 +240,9 @@ class TestServiceSpecifiedOpeningDate:
 
     def test_specified_opening_date_has_times_relationship(self) -> None:
         """Test that ServiceSpecifiedOpeningDate has times relationship."""
-        opening_date = ServiceSpecifiedOpeningDate(id=2, serviceid=100, date=date(2025, 1, 1))
+        opening_date = ServiceSpecifiedOpeningDate(
+            id=2, serviceid=100, date=date(2025, 1, 1)
+        )
         assert hasattr(opening_date, "times")
 
 
@@ -247,7 +251,9 @@ class TestServiceSpecifiedOpeningTime:
 
     def test_specified_opening_time_table_name(self) -> None:
         """Test that ServiceSpecifiedOpeningTime has correct table name."""
-        assert ServiceSpecifiedOpeningTime.__tablename__ == "servicespecifiedopeningtimes"
+        assert (
+            ServiceSpecifiedOpeningTime.__tablename__ == "servicespecifiedopeningtimes"
+        )
 
     def test_create_specified_opening_time(self) -> None:
         """Test creating ServiceSpecifiedOpeningTime instance."""

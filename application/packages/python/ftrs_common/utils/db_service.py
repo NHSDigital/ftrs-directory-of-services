@@ -12,7 +12,7 @@ _settings: Settings | None = None
 
 def _get_settings() -> Settings:
     """Get or create the Settings instance lazily.
-    
+
     This allows tests to set environment variables before Settings is created.
     """
     global _settings
@@ -23,7 +23,7 @@ def _get_settings() -> Settings:
 
 def reset_settings() -> None:
     """Reset the cached Settings instance.
-    
+
     This is primarily for testing - allows re-initializing Settings
     after environment variables have been changed.
     """
