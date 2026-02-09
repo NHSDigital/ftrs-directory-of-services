@@ -65,6 +65,7 @@ def environment_configured(
     assert migration_helper.dynamodb_endpoint is not None, (
         "DynamoDB endpoint should be set"
     )
+    os.environ["MOCKED_AWS_APP_CONFIG"] = "true"
 
 
 @given("the DoS database has test data")
@@ -516,3 +517,23 @@ def verify_state_record_contains_entity_id(
         raise AssertionError(
             f"{field_name} should be a valid UUID format, got: {entity_id}"
         ) from e
+
+
+@then(parsers.parse("there are no records in table '{table_name}'"))
+def verify_no_records_in_table(
+    dynamodb: Dict[str, Any],
+    table_name: str,
+) -> None:
+    """Verify that a DynamoDB table contains no records."""
+    environment = os.getenv(ENV_ENVIRONMENT)
+    workspace = os.getenv(ENV_WORKSPACE)
+
+    full_table_name = f"ftrs-dos-{environment}-database-{table_name}-{workspace}"
+
+    client = dynamodb[DYNAMODB_CLIENT]
+    response = client.scan(TableName=full_table_name)
+
+    item_count = response.get("Count", 0)
+    assert item_count == 0, (
+        f"Expected table '{full_table_name}' to be empty, but found {item_count} records"
+    )
