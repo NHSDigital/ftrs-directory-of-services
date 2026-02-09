@@ -5,7 +5,7 @@
       "statistic": "p95",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "duration-p95-warning",
-      "description": "Alert when search Lambda p95 duration exceeds 600ms",
+      "description": "Search Lambda duration p95 warning threshold in milliseconds (placeholder - disabled)",
       "severity": "warning"
     },
     {
@@ -13,7 +13,7 @@
       "statistic": "p99",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "duration-p99-critical",
-      "description": "Alert when search Lambda p99 duration exceeds 800ms",
+      "description": "Search Lambda duration p99 critical threshold in milliseconds",
       "severity": "critical"
     },
     {
@@ -21,7 +21,7 @@
       "statistic": "Maximum",
       "comparison_operator": "GreaterThanOrEqualToThreshold",
       "alarm_suffix": "concurrent-executions-warning",
-      "description": "Alert when search Lambda concurrent executions >= 80",
+      "description": "Search Lambda concurrency warning threshold (placeholder - disabled)",
       "severity": "warning"
     },
     {
@@ -29,7 +29,7 @@
       "statistic": "Maximum",
       "comparison_operator": "GreaterThanOrEqualToThreshold",
       "alarm_suffix": "concurrent-executions-critical",
-      "description": "Alert when search Lambda concurrent executions >= 100",
+      "description": "Search Lambda concurrency critical threshold (ConcurrentExecutions)",
       "severity": "critical"
     },
     {
@@ -37,7 +37,7 @@
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "throttles-critical",
-      "description": "Alert when search Lambda is throttled (> 0 for 1 minute)",
+      "description": "Search Lambda throttles CRITICAL threshold (set to 0, alarm if > 0)",
       "severity": "critical"
     },
     {
@@ -45,7 +45,7 @@
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "invocations-spike-critical",
-      "description": "Alert when search Lambda invocations spike > 2x baseline (600/hour)",
+      "description": "Baseline invocations per hour for Search Lambda",
       "severity": "critical"
     },
     {
@@ -53,7 +53,7 @@
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "errors-warning",
-      "description": "Alert when search Lambda errors exceed threshold",
+      "description": "Search Lambda errors WARNING threshold (placeholder - disabled)",
       "severity": "warning"
     },
     {
@@ -61,7 +61,7 @@
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "errors-critical",
-      "description": "Alert when search Lambda errors exceed critical threshold",
+      "description": "Search Lambda errors CRITICAL threshold (sum over period)",
       "severity": "critical"
     }
   ],
@@ -71,7 +71,7 @@
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "errors-critical",
-      "description": "Alert when health check Lambda errors > 0 for 1 minute",
+      "description": "Health Check Lambda errors CRITICAL threshold (set to 0, alarm if > 0)",
       "severity": "critical"
     }
   ]

@@ -34,13 +34,3 @@ test-lambda-alarm-throttles-critical: # Trigger throttle CRITICAL alarm for sear
 
 test-lambda-alarm-invocations-spike: # Trigger invocations spike CRITICAL alarm for search Lambda
 	./scripts/trigger-alarms.sh invocations-spike search 650
-
-
-# This make target triggers all testable alarms for the search Lambda function. Will be revised as more alarms are added.
-test-lambda-alarms-all: # Trigger all testable alarms for search Lambda
-	@echo "Testing all alarms for search Lambda..."
-	@make test-lambda-alarm-errors-warning
-	@sleep 5
-	@make test-lambda-alarm-duration-p95
-	@sleep 5
-	@make test-lambda-alarm-concurrent-warning

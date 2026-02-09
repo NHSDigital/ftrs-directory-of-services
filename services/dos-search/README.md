@@ -4,28 +4,39 @@ This service provides FHIR-compliant API endpoints for healthcare system integra
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Lambda-per-endpoint patterns](#lambda-per-endpoint-patterns)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-  - [Initial Setup](#initial-setup)
-  - [Environment Configuration](#environment-configuration)
-- [Development](#development)
-  - [Code Structure](#code-structure)
-  - [Testing](#testing)
-  - [Linting and Formatting](#linting-and-formatting)
-  - [Pre-commit Hooks](#pre-commit-hooks)
-- [Deployment](#deployment)
-- [Usage](#usage)
-  - [Lambda Function Invocation](#lambda-function-invocation)
-  - [Local Testing](#local-testing)
-- [Contributing](#contributing)
-- [Monitoring and Alerting](#monitoring-and-alerting)
-  - [Alarm Configuration](#alarm-configuration)
-  - [Slack Notifications](#slack-notifications)
-  - [Architecture Flow](#architecture-flow)
-- [Troubleshooting](#troubleshooting)
+- [DoS Search Service](#dos-search-service)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Architecture](#architecture)
+  - [Lambda-per-endpoint patterns](#lambda-per-endpoint-patterns)
+    - [Naming conventions](#naming-conventions)
+  - [Build artefacts (proposal)](#build-artefacts-proposal)
+    - [Status (proposal)](#status-proposal)
+    - [Next steps](#next-steps)
+    - [Quick build \& publish](#quick-build--publish)
+    - [Guidance for reviewers](#guidance-for-reviewers)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started](#getting-started)
+    - [Initial Setup](#initial-setup)
+    - [Environment Configuration](#environment-configuration)
+  - [Development](#development)
+    - [Code Structure](#code-structure)
+    - [Proposed code structure (per-endpoint)](#proposed-code-structure-per-endpoint)
+    - [Testing](#testing)
+    - [Linting and Formatting](#linting-and-formatting)
+    - [Pre-commit Hooks](#pre-commit-hooks)
+  - [Deployment](#deployment)
+  - [Usage](#usage)
+    - [Lambda Function Invocation](#lambda-function-invocation)
+    - [Local Testing](#local-testing)
+  - [Contributing](#contributing)
+  - [Dependency Management](#dependency-management)
+  - [Monitoring and Alerting](#monitoring-and-alerting)
+    - [Alarm Configuration](#alarm-configuration)
+    - [Slack Notifications](#slack-notifications)
+    - [Architecture Flow](#architecture-flow)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
 
 ## Overview
 
@@ -346,15 +357,22 @@ Alarms are configured using Terraform variables and JSON configuration files:
 
 - **Alarm Definitions**: [`alarms/lambda-config.json`](../../infrastructure/stacks/dos_search/alarms/lambda-config.json) defines which metrics to monitor and alarm conditions
 - **Threshold Values**: Terraform variables in [`variables.tf`](../../infrastructure/stacks/dos_search/variables.tf) set the threshold values for each alarm (Line 136 onwards)
-- **Alarm Creation**: [`cloudwatch_alarms.tf`](../../infrastructure/stacks/dos_search/cloudwatch_alarms.tf) creates CloudWatch alarms by combining the configuration and thresholds
+- **Alarm Mapping**: [`locals_alarms.tf`](../../infrastructure/stacks/dos_search/locals_alarms.tf) combines JSON config with threshold variables
+- **Alarm Creation**: [`cloudwatch_alarms.tf`](../../infrastructure/stacks/dos_search/cloudwatch_alarms.tf) creates CloudWatch alarms using the combined configuration
 
-Monitored metrics for both Search and Health Check Lambdas:
+Monitored metrics:
 
-- **Duration**: Average execution time
-- **Concurrent Executions**: Maximum number of simultaneous executions
-- **Throttles**: Lambda throttling events (sum over period)
-- **Errors**: Error count (sum over evaluation period)
-- **Invocations**: Invocation count (sum over period, alerts if too low)
+**Search Lambda:**
+
+- **Duration**: p95 (warning) and p99 (critical) execution time
+- **Concurrent Executions**: Maximum simultaneous executions (warning at 80, critical at 100)
+- **Throttles**: Lambda throttling events (critical if > 0)
+- **Errors**: Error count (warning and critical thresholds)
+- **Invocations**: Invocation spike detection (critical if > 2x baseline)
+
+**Health Check Lambda:**
+
+- **Errors**: Error count (critical if > 0)
 
 ### Slack Notifications
 
