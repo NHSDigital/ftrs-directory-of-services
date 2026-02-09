@@ -14,11 +14,13 @@ variable "athena_output_bucket_retention_days" {
 variable "athena_postgres_connector_app_id" {
   description = "SAR application ID for the Athena PostgreSQL Connector"
   type        = string
+  default     = "arn:aws:serverlessrepo:us-east-1:292517598671:applications/AthenaPostgreSQLConnector"
 }
 
 variable "athena_dynamodb_connector_app_id" {
   description = "SAR application ID for the Athena DynamoDB Connector"
   type        = string
+  default     = "arn:aws:serverlessrepo:us-east-1:292517598671:applications/AthenaDynamoDBConnector"
 }
 
 variable "target_rds_credentials" {
