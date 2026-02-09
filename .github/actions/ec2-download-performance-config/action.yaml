@@ -21,15 +21,23 @@ runs:
         ENVIRONMENT: ${{ inputs.environment }}
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
       run: |
+
+          COMMANDS=$(cat <<EOF
+          [
+            "cd /home/ssm-user",
+            "aws s3 cp s3://ftrs-dos-${ENVIRONMENT}-account-wide-is-performance-files-bucket --region ${AWS_REGION} ./ --recursive --exclude test-results/*",
+            "sudo cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+            "sudo chmod 750 /home/ssm-user",
+            "sudo chmod 640 /home/ssm-user/performance_run.log",
+            "sudo usermod -a -G ssm-user cwagent"
+          ]
+          EOF
+          )
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ssm-user",
-                        "aws s3 cp s3://ftrs-dos-$ENVIRONMENT-account-wide-is-performance-files-bucket --region $AWS_REGION ./ --recursive --exclude test-results/*",
-                        "sudo cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
-                        "sudo chmod 750 /home/ssm-user",
-                        "sudo chmod 640 /home/ssm-user/performance_run.log",
-                        "sudo usermod -a -G ssm-user cwagent"]' \
+            --parameters "{\"commands\": $COMMANDS}" \
             --query "Command.CommandId" \
             --output text)
 
