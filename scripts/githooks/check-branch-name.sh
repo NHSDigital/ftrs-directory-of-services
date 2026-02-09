@@ -15,7 +15,7 @@ function check_git_branch_name {
 
 function check_git_branch_name_format {
     BUILD_BRANCH="$1"
-    if [ "$BUILD_BRANCH" != 'main' ] && ! [[ $BUILD_BRANCH =~ (hotfix|task)\/(fdos|dosis|sia|ftrs)-([0-9]{1,5})(_|-)([A-Za-z0-9])([A-Za-z0-9_-]{9,45})$ ]]  ; then
+    if [[ "$BUILD_BRANCH" != 'main' ]] && ! [[ $BUILD_BRANCH =~ (hotfix|task)\/(fdos|dosis|sia|ftrs)-([0-9]{1,5})(_|-)([A-Za-z0-9])([A-Za-z0-9_-]{9,45})$ ]]  ; then
       echo 1
     fi
 }
@@ -23,5 +23,5 @@ function check_git_branch_name_format {
 BRANCH_NAME=${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}
 check_git_branch_name "$BRANCH_NAME"
 
-[ $? != 0 ] && exit_code=1 ||:
+[[ $? != 0 ]] && exit_code=1 ||:
 exit $exit_code

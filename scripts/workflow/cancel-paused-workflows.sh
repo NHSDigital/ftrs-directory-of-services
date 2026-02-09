@@ -8,12 +8,12 @@ set -e
 
 EXPORTS_SET=0
 
-if [ -z "$REPO" ] ; then
+if [[ -z "$REPO" ]] ; then
     echo REPO not set
     EXPORTS_SET=1
 fi
 
-if [ $EXPORTS_SET = 1 ] ; then
+if [[ $EXPORTS_SET = 1 ]] ; then
   echo One or more parameters not set
   exit 1
 fi

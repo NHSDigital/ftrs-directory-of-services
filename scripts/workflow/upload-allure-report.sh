@@ -9,7 +9,7 @@ DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE:-"development"}
 RELEASE_TAG=${RELEASE_TAG:-}
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 RUN_TIMESTAMP=${RUN_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
-RELEASE_VERSION=${RELEASE_VERSION:-$([ -n "$RELEASE_TAG" ] && echo "$RELEASE_TAG" || echo "null")}
+RELEASE_VERSION=${RELEASE_VERSION:-$([[ -n "$RELEASE_TAG" ]] && echo "$RELEASE_TAG" || echo "null")}
 
 # Determine the deployment path based on deployment type
 case "$DEPLOYMENT_TYPE" in

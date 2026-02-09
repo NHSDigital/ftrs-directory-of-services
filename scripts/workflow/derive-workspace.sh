@@ -10,7 +10,7 @@ echo "Commit hash (for dependabot only): $COMMIT_HASH"
 WORKSPACE="Unknown"
 
 # Tags always use default workspace
-if [ "$TRIGGER" == "tag" ] ; then
+if [[ "$TRIGGER" == "tag" ]] ; then
   WORKSPACE="default"
   echo -e "\nTag detected - using default workspace"
   echo "Workspace: $WORKSPACE"
@@ -24,7 +24,7 @@ case "$TRIGGER_ACTION" in
   push|workflow_dispatch)
     echo "Trigger: push or workflow_dispatch"
     BRANCH_NAME="${TRIGGER_REFERENCE:-$(git rev-parse --abbrev-ref HEAD)}"
-    [ "$BRANCH_NAME" == "HEAD" ] && BRANCH_NAME="main"
+    [[ "$BRANCH_NAME" == "HEAD" ]] && BRANCH_NAME="main"
     echo "Branch name set to: $BRANCH_NAME"
     ;;
   pull_request)
