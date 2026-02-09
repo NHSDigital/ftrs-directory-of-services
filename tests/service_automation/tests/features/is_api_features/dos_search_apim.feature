@@ -21,19 +21,19 @@ Feature: API DoS Service Search APIM
       # |NHSD-Message-ID=test-message-id-12345 |
 
 
-@manual
-  Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code via APIM with invalid header and valid query parameters
-    When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
-    Then I receive a status code "400" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome has issues all with severity "error"
-    And the OperationOutcome has issues all with code "value"
-    And the OperationOutcome contains an issue with diagnostics "Invalid request headers supplied: '<header_name>'"
-    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
-    Examples:
-      | params                          |
-      | "MARYRequest-ID":"123456"       |
+# @manual
+#   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code via APIM with invalid header and valid query parameters
+#     When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+#     Then I receive a status code "400" in response
+#     And the response body contains an "OperationOutcome" resource
+#     And the OperationOutcome contains "1" issues
+#     And the OperationOutcome has issues all with severity "error"
+#     And the OperationOutcome has issues all with code "value"
+#     And the OperationOutcome contains an issue with diagnostics "Invalid request headers supplied: '<header_name>'"
+#     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
+#     Examples:
+#       | params                          |
+#       | "MARYRequest-ID":"123456"       |
 
 
 

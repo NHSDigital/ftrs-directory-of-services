@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 from loguru import logger
@@ -10,6 +11,7 @@ from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
+from utilities.infra.schema_validator import validate_api_response
 
 CODING_MAP = {
     "INVALID_SEARCH_DATA": {
@@ -254,3 +256,61 @@ def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type)
         key="details",
         value=CODING_MAP[coding_type],
     )
+
+
+@then(
+    parsers.parse(
+        'the response is valid against the dos-search schema for endpoint "{endpoint_path}"'
+    )
+)
+def validate_response_against_dos_search_schema(fresponse, endpoint_path: str) -> None:
+    """
+    Validate the API response against the OpenAPI schema.
+
+    Args:
+        fresponse: The API response fixture
+        endpoint_path: The API endpoint path (e.g., "/Organization")
+    """
+    # Path to the dos-search.yaml schema file - navigate from current file to repo root
+    current_file = Path(__file__).resolve()
+    repo_root = current_file.parents[
+        5
+    ]  # Go up: is_api_steps -> step_definitions -> tests -> service_automation -> tests -> repo_root
+    schema_path = repo_root / "docs" / "specification" / "dos-search.yaml"
+
+    if not schema_path.exists():
+        raise FileNotFoundError(f"Schema file not found at: {schema_path}")
+
+    # Get response data
+    response_data = fresponse.json()
+    status_code = str(fresponse.status)
+
+    # Validate response
+    is_valid, error_msg = validate_api_response(
+        response_data=response_data,
+        schema_path=str(schema_path),
+        endpoint_path=endpoint_path,
+        method="get",
+        status_code=status_code,
+    )
+
+    assert is_valid, f"Response validation failed: {error_msg}"
+    logger.info(f"Response successfully validated against schema for {endpoint_path}")
+
+
+def _send_api_request(request_context, url, params: str = None, headers=None):
+    param_dict = _convert_params_str_to_dict(params)
+
+    response = request_context.get(
+        url,
+        params=param_dict,
+        headers=headers,
+    )
+    return response
+
+
+def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
+    if not params:
+        return {}
+
+    return dict(param.split("=", 1) for param in params.split("&") if "=" in param)

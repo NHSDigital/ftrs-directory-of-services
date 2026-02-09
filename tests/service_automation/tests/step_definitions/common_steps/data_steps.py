@@ -51,10 +51,19 @@ def get_repo_fixture(
 def create_model_from_json(model_repo: AttributeLevelRepository, json_file: str):
     model = model_from_json_file(json_file, model_repo)
     if not check_record_in_repo(model_repo, model.id):
+        logger.warning(
+            f"Existing record found for ID {model.id}, {model.identifier_ODS_ODSCode} deleting it"
+        )
         model_repo.delete(model.id)
     model_repo.create(model)
+    logger.info(
+        f"Created model ID={model.identifier_ODS_ODSCode} in repo {model_repo.model_cls.__name__}"
+    )
     yield
     model_repo.delete(model.id)
+    logger.info(
+        f"Deleted model ID={model.identifier_ODS_ODSCode} from repo {model_repo.model_cls.__name__}"
+    )
 
 
 @when(
