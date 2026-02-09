@@ -45,14 +45,11 @@ ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
     if header.strip()
 )
 
-MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset(
-    {
-        "x-request-id",
-    }
-)
+MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset({"x-request-id", "version"})
 
 
 def _validate_headers(headers: dict[str, str] | None) -> None:
+    # Check all mandatory headers are present
     missing_mandatory_headers = [
         mandatory_header
         for mandatory_header in MANDATORY_REQUEST_HEADERS
@@ -60,12 +57,18 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
     ]
     if missing_mandatory_headers:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
-
+    # Check version header is a number
     invalid_headers = [
         header_name
         for header_name in headers
         if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
     ]
+    if (
+        "version" not in missing_mandatory_headers
+        and type(headers["version"]) is not int
+    ):
+        invalid_headers.append("version")
+
     if invalid_headers:
         raise InvalidRequestHeadersError(invalid_headers)
 
