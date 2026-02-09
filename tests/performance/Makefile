@@ -116,7 +116,7 @@ upload-performance-test-result:
 secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
 	aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString' --output text > $(OUT)
 
-check_performance-test-lock-file:
+check-performance-test-lock-file:
 	if [ -f performance_run.lock ]; then \
 		echo "Performance test lock file exists. Another performance test may be running."; \
 		exit 1; \
