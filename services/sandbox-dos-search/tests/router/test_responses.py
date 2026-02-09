@@ -1,6 +1,7 @@
 from src.models.constants import (
     ODS_ORG_CODE_IDENTIFIER_SYSTEM,
     REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+    SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
 )
 from src.router.responses import (
     ERROR_INVALID_IDENTIFIER_SYSTEM,
@@ -29,7 +30,10 @@ class TestResponses:
             f"Organization?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}"
             in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
         )
-        assert f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}" in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
+        assert (
+            f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
+            in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
+        )
 
     def test_success_bundle_abc123_has_three_entries(self):
         """Test that SUCCESS_BUNDLE_ABC123 has exactly 3 entries (1 org + 2 endpoints)"""
@@ -127,7 +131,10 @@ class TestResponses:
         assert issue["severity"] == "error"
         assert issue["code"] == "value"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
-        assert f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}" in issue["diagnostics"]
+        assert (
+            f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
+            in issue["diagnostics"]
+        )
 
     def test_error_invalid_identifier_system_structure(self):
         """Test that ERROR_INVALID_IDENTIFIER_SYSTEM has the correct structure"""
@@ -159,10 +166,7 @@ class TestResponses:
         # Assert
         for error in errors:
             coding = error["issue"][0]["details"]["coding"][0]
-            assert (
-                coding["system"]
-                == "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-            )
+            assert coding["system"] == SPINE_ERROR_OR_WARNING_CODE_SYSTEM
             assert coding["version"] == "1.0.0"
 
     def test_success_bundle_organization_has_no_telecom(self):
