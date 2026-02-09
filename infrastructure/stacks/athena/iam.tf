@@ -8,15 +8,17 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid    = "AllowCloudWatchLogsForLambda"
         Effect = "Allow",
         Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        Resource = "*"
+        Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${local.resource_prefix}-*:*"
       },
       {
+        Sid    = "AllowVPCNetworkInterfaceManagement"
         Effect = "Allow",
         Action = [
           "ec2:CreateNetworkInterface",
@@ -25,9 +27,10 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           "ec2:AssignPrivateIpAddresses",
           "ec2:UnassignPrivateIpAddresses"
         ],
-        Resource = "*"
+        Resource = "*" # Required wildcard for VPC Lambda execution
       },
       {
+        Sid = "AllowGlueCatalogAccess"
         Action = [
           "glue:GetTableVersions",
           "glue:GetPartitions",
@@ -37,35 +40,63 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           "glue:GetTable",
           "glue:GetPartition",
           "glue:GetDatabase",
-          "glue:ListSchemas",
-          "athena:GetQueryExecution",
+          "glue:ListSchemas"
+        ],
+        Resource = [
+          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:catalog",
+          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:database/${local.resource_prefix}-*",
+          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${local.resource_prefix}-*/*"
+        ],
+        Effect = "Allow"
+      },
+      {
+        Sid = "AllowAthenaQueryExecution"
+        Action = [
+          "athena:GetQueryExecution"
+        ],
+        Resource = "arn:aws:athena:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:workgroup/${local.resource_prefix}-workgroup",
+        Effect   = "Allow"
+      },
+      {
+        Sid = "AllowListS3Buckets"
+        Action = [
           "s3:ListAllMyBuckets"
         ],
         Resource = "*",
         Effect   = "Allow"
       },
       {
+        Sid = "AllowDynamoDBReadAccess"
         Action = [
           "dynamodb:DescribeTable",
-          "dynamodb:ListTables",
           "dynamodb:Query",
           "dynamodb:Scan",
           "dynamodb:PartiQLSelect"
+        ],
+        Resource = "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${local.account_prefix}-*",
+        Effect   = "Allow"
+      },
+      {
+        Sid = "AllowDynamoDBListTables"
+        Action = [
+          "dynamodb:ListTables"
         ],
         Resource = "*",
         Effect   = "Allow"
       },
       {
+        Sid    = "AllowECRImagePull"
+        Effect = "Allow"
         Action = [
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage"
         ],
-        Resource = "*",
-        Effect   = "Allow"
+        Resource = "*" # Required wildcard for ECR authentication
       },
       {
+        Sid = "AllowS3AccessForAthenaSpill"
         Action = [
           "s3:GetObject",
           "s3:ListBucket",
