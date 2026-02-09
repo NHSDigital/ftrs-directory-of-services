@@ -57,13 +57,14 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
     ]
     if missing_mandatory_headers:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
-    # Check version header is a number
+
     invalid_headers = [
         header_name
         for header_name in headers
         if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
     ]
     if (
+        # Check 'version' header is a number
         "version" not in missing_mandatory_headers
         and type(headers["version"]) is not int
     ):
