@@ -24,8 +24,9 @@ runs:
   steps:
     - name: "Create CLOC report"
       shell: bash
+      env:
+        BUILD_DATETIME: ${{ inputs.build_datetime }}
       run: |
-        export BUILD_DATETIME=${{ inputs.build_datetime }}
         ./scripts/reports/create-lines-of-code-report.sh
     - name: "Compress CLOC report"
       shell: bash
@@ -51,7 +52,10 @@ runs:
     - name: "Send the CLOC report to the central location"
       shell: bash
       if: steps.check.outputs.secrets_exist == 'true'
+      env:
+        BUILD_TIMESTAMP: ${{ inputs.build_timestamp }}
+        BUCKET_ENDPOINT: ${{ inputs.idp_aws_report_upload_bucket_endpoint }}
       run: |
         aws s3 cp \
-          ./lines-of-code-report-${{ inputs.build_timestamp }}.json.zip \
-          ${{ inputs.idp_aws_report_upload_bucket_endpoint }}/${{ inputs.build_timestamp }}-lines-of-code-report.json.zip
+          ./lines-of-code-report-${BUILD_TIMESTAMP}.json.zip \
+          ${BUCKET_ENDPOINT}/${BUILD_TIMESTAMP}-lines-of-code-report.json.zip

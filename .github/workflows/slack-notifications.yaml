@@ -12,6 +12,10 @@ on:
           description: "Organisation name"
           type: string
           default: 'NHSDigital'
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: "Slack webhook URL"
+        required: true
 
 jobs:
   slack-notifications:

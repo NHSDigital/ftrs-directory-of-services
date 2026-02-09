@@ -57,7 +57,7 @@ test:
 		if [ -n "$(WORKSPACE)" ]; then \
 			PROXY_NAME="$(API_NAME)--$(APIM_ENV)--$(API_NAME)-$(WORKSPACE)_FHIR_R4"; \
 		else \
-			PROXY_NAME="$(API_NAME)--$(APIM_ENV)_FHIR_R4"; \
+			PROXY_NAME="$(API_NAME)--$(APIM_ENV)--$(API_NAME)_FHIR_R4"; \
 		fi; \
 	fi; \
 	for marker in $(MARKERS); do \

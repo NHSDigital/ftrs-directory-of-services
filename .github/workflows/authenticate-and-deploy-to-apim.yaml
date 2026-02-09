@@ -34,14 +34,14 @@ on:
         description: 'Proxygen API URL'
         required: true
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   authenticate-and-deploy:
     name: Authenticate and Deploy to APIM environment - ${{ inputs.api_name }}
     permissions:
       id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
