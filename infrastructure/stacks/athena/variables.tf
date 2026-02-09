@@ -20,3 +20,9 @@ variable "athena_dynamodb_connector_app_id" {
   description = "SAR application ID for the Athena DynamoDB Connector"
   type        = string
 }
+
+variable "target_rds_credentials" {
+  description = "The name of the Secrets Manager secret for the target RDS instance credentials"
+  type        = string
+  default     = "target-rds-credentials"
+}
