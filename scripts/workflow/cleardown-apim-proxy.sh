@@ -58,7 +58,7 @@ elif [[ "$HTTP_CODE" -eq 404 ]]; then
     echo "ℹ No proxy instance found to delete"
     exit 0
 else
-    echo "✗ Error clearing down proxy instance (HTTP $HTTP_CODE)"
+    echo "✗ Error clearing down proxy instance (HTTP $HTTP_CODE)" >&2
     echo "Response: $BODY" >&2
     exit 1
 fi
