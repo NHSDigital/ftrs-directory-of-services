@@ -64,7 +64,7 @@ case "$ALARM_TYPE" in
       echo "Invocation $i/$ITERATIONS"
       aws lambda invoke \
         --function-name "$LAMBDA_NAME" \
-        --payload '{"invalid": "payload"}' \
+        --payload '{"invalid":"event"}' \
         --cli-binary-format raw-in-base64-out \
         $PROFILE_ARG \
         /dev/null 2>&1 || true
