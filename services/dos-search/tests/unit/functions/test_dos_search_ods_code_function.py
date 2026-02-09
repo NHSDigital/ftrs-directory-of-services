@@ -250,7 +250,15 @@ class TestLambdaHandler:
             expected_body=mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json(),
         )
 
-    def test_lambda_handler_with_general_exception(
+    @pytest.mark.parametrize(
+        "exception",
+        [
+            Exception("Unexpected error"),
+            ValidationError.from_exception_data("ValidationError", []),
+        ],
+        ids=["general_exception", "validation_error"],
+    )
+    def test_lambda_handler_with_exception_from_ftrs_service_endpoints_by_ods(
         self,
         lambda_context,
         mock_ftrs_service,
@@ -259,13 +267,13 @@ class TestLambdaHandler:
         mock_error_util,
         mock_logger,
         bundle,
+        exception,
     ):
         # Arrange
-        mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
+        mock_ftrs_service.endpoints_by_ods.side_effect = exception
 
         # Act
         response = lambda_handler(event, lambda_context)
-        print("easy search", response)
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)

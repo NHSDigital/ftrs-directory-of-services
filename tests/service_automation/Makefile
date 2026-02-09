@@ -3,13 +3,19 @@ PYTHON_VERSION ?= 3.12
 BUILD_DIR := build
 ALLURE_RESULTS := allure-results
 ALLURE_REPORTS := allure-reports
-MARKERS ?= ui is-api is-infra
-TEST_TYPE ?= non-ui
+MARKERS ?=
+TEST_TYPE ?= bdd
 LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
 
 # ==============================================================================
 
 .PHONY: clean install config lint lint-staged lint-fix pre-commit test report _install-dependency _install-dependencies
+
+# import dotenv file if exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .tmp .build
@@ -32,7 +38,7 @@ lint:
 	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 
 lint-staged:
-	files=$$(git diff --relative --name-only --cached -- '*.py'); \
+	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
 	if [ -z "$$files" ]; then \
 		echo "No files staged"; \
 	else \
@@ -47,11 +53,23 @@ lint-fix:
 pre-commit: lint-staged
 
 test:
-	@for marker in $(MARKERS); do \
+	@if [ "$(TEST_TYPE)" = "apim" ]; then \
+		if [ -n "$(WORKSPACE)" ]; then \
+			PROXY_NAME="$(API_NAME)--$(APIM_ENV)--$(API_NAME)-$(WORKSPACE)_FHIR_R4"; \
+		else \
+			PROXY_NAME="$(API_NAME)--$(APIM_ENV)--$(API_NAME)_FHIR_R4"; \
+		fi; \
+	fi; \
+	for marker in $(MARKERS); do \
 		echo "Running tests for marker: $$marker"; \
+		echo "Running tests for test type: $$TEST_TYPE"; \
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
 			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
+		elif [ "$(TEST_TYPE)" = "apim" ]; then \
+			echo "Running tests for API name: $(API_NAME)"; \
+			echo "Running tests for proxy name: $$PROXY_NAME"; \
+			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		else \
 			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \

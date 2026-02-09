@@ -26,14 +26,15 @@ on:
   schedule:
     - cron: "* * 1 FEB *" # Runs on Feb 1st every year
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
 
 jobs:
   cis2-public-private-key-pair:
     name: "CIS2 Public and Private Key Pair Creation and Management on - ${{ matrix.environment }} environment"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     environment: ${{ matrix.environment }}
     strategy:
       matrix:
@@ -48,14 +49,18 @@ jobs:
     steps:
       - name: Check if steps should run
         id: should-run
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_ENVIRONMENT: ${{ inputs.environment }}
+          MATRIX_ENVIRONMENT: ${{ matrix.environment }}
         run: |
           SHOULD_RUN="true"
 
           # If manually triggered, check if this matrix entry matches the inputs
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
 
             # Check environment matches (if specified)
-            if [[ -n "${{ inputs.environment }}" ]] && [[ "${{ matrix.environment }}" != "${{ inputs.environment }}" ]]; then
+            if [[ -n "$INPUT_ENVIRONMENT" ]] && [[ "$MATRIX_ENVIRONMENT" != "$INPUT_ENVIRONMENT" ]]; then
               SHOULD_RUN="false"
             fi
           fi
@@ -80,8 +85,11 @@ jobs:
 
       - name: Create, Update or Rotate CIS2 Public and Private Key Pair
         if: steps.should-run.outputs.should_run == 'true'
+        env:
+          PROJECT: ${{ inputs.project }}
+          ENVIRONMENT: ${{ matrix.environment }}
         run: |
-          ./scripts/cis2/create-cis2-key-pair.sh -r ${{ inputs.project }} -e ${{ matrix.environment }}
+          ./scripts/cis2/create-cis2-key-pair.sh -r "$PROJECT" -e "$ENVIRONMENT"
 
   slack-notifications:
     name: "Send Notification to Slack"
@@ -91,4 +99,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ matrix.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,8 +1,6 @@
 name: Prerelease Tag Automation
 
-permissions:
-  id-token: write
-  contents: write
+permissions: {}
 
 on:
   workflow_call:
@@ -19,6 +17,9 @@ on:
 jobs:
   generate-prerelease:
     name: "Generate prerelease tag"
+    permissions:
+      id-token: write
+      contents: write
     runs-on: ubuntu-latest
     outputs:
       prerelease_tag: ${{ steps.generate-prerelease.outputs.prerelease_tag }}
