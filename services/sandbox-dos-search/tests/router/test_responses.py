@@ -1,3 +1,7 @@
+from src.models.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
 from src.router.responses import (
     ERROR_INVALID_IDENTIFIER_SYSTEM,
     ERROR_INVALID_IDENTIFIER_VALUE,
@@ -22,10 +26,10 @@ class TestResponses:
         assert len(SUCCESS_BUNDLE_ABC123["link"]) == 1
         assert SUCCESS_BUNDLE_ABC123["link"][0]["relation"] == "self"
         assert (
-            "Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+            f"Organization?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}"
             in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
         )
-        assert "_revinclude=Endpoint:organization" in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
+        assert f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}" in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
 
     def test_success_bundle_abc123_has_three_entries(self):
         """Test that SUCCESS_BUNDLE_ABC123 has exactly 3 entries (1 org + 2 endpoints)"""
@@ -42,7 +46,7 @@ class TestResponses:
         assert org_entry["resource"]["identifier"][0]["value"] == "ABC123"
         assert (
             org_entry["resource"]["identifier"][0]["system"]
-            == "https://fhir.nhs.uk/Id/ods-organization-code"
+            == ODS_ORG_CODE_IDENTIFIER_SYSTEM
         )
         assert org_entry["resource"]["active"] is True
         assert org_entry["resource"]["name"] == "Example Organization"
@@ -123,7 +127,7 @@ class TestResponses:
         assert issue["severity"] == "error"
         assert issue["code"] == "value"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
-        assert "_revinclude=Endpoint:organization" in issue["diagnostics"]
+        assert f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}" in issue["diagnostics"]
 
     def test_error_invalid_identifier_system_structure(self):
         """Test that ERROR_INVALID_IDENTIFIER_SYSTEM has the correct structure"""
@@ -141,7 +145,7 @@ class TestResponses:
         assert issue["code"] == "code-invalid"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
         assert "Invalid identifier system" in issue["diagnostics"]
-        assert "https://fhir.nhs.uk/Id/ods-organization-code" in issue["diagnostics"]
+        assert ODS_ORG_CODE_IDENTIFIER_SYSTEM in issue["diagnostics"]
 
     def test_all_errors_use_spine_error_coding(self):
         """Test that all error responses use UKCore-SpineErrorOrWarningCode"""

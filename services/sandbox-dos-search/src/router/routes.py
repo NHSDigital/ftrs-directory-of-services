@@ -5,7 +5,11 @@ from typing import Optional
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
-from .responses import (
+from src.models.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
+from src.router.responses import (
     ERROR_INVALID_IDENTIFIER_SYSTEM,
     ERROR_INVALID_IDENTIFIER_VALUE,
     ERROR_MISSING_REVINCLUDE,
@@ -20,12 +24,12 @@ async def get_organization(
     identifier: Optional[str] = Query(
         None,
         alias="identifier",
-        description="ODS code in the format 'https://fhir.nhs.uk/Id/ods-organization-code|{CODE}' (FHIR search parameter)",
+        description=f"ODS code in the format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{CODE}}' (FHIR search parameter)",
     ),
     revinclude: Optional[str] = Query(
         None,
         alias="_revinclude",
-        description="Reverse include - must be 'Endpoint:organization' for sandbox",
+        description=f"Reverse include - must be '{REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}' for sandbox",
     ),
 ) -> JSONResponse:
     media = "application/fhir+json"
@@ -34,13 +38,13 @@ async def get_organization(
 
     if not identifier:
         error_content = ERROR_INVALID_IDENTIFIER_VALUE
-    elif revinclude != "Endpoint:organization":
+    elif revinclude != REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION:
         error_content = ERROR_MISSING_REVINCLUDE
     elif "|" not in identifier:
         error_content = ERROR_INVALID_IDENTIFIER_VALUE
     else:
         system, code = identifier.split("|", 1)
-        if system != "https://fhir.nhs.uk/Id/ods-organization-code":
+        if system != ODS_ORG_CODE_IDENTIFIER_SYSTEM:
             error_content = ERROR_INVALID_IDENTIFIER_SYSTEM
         elif not re.fullmatch(r"[A-Za-z0-9]{5,12}", code or ""):
             error_content = ERROR_INVALID_IDENTIFIER_VALUE
@@ -48,7 +52,7 @@ async def get_organization(
             bundle = deepcopy(SUCCESS_BUNDLE_ABC123)
             bundle["link"][0]["url"] = (
                 "https://api.service.nhs.uk/FHIR/R4/Organization?"
-                "identifier={system}|{code}&_revinclude=Endpoint:organization"
+                f"identifier={{system}}|{{code}}&_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
             ).format(system=system, code=code)
             return JSONResponse(status_code=200, content=bundle, media_type=media)
 

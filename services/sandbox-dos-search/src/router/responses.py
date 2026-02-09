@@ -1,5 +1,10 @@
 # Stubbed responses for the dos-search sandbox, aligned with docs/specification/dos-search.yaml
 
+from src.models.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
+
 SUCCESS_BUNDLE_ABC123 = {
     "resourceType": "Bundle",
     "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
@@ -8,7 +13,7 @@ SUCCESS_BUNDLE_ABC123 = {
         {
             "relation": "self",
             # Reflect FHIR search parameter and required reverse include
-            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization",
+            "url": f"https://api.service.nhs.uk/FHIR/R4/Organization?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123&_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}",
         }
     ],
     "entry": [
@@ -20,7 +25,7 @@ SUCCESS_BUNDLE_ABC123 = {
                 "identifier": [
                     {
                         "use": "official",
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": "ABC123",
                     }
                 ],
@@ -153,7 +158,7 @@ ERROR_MISSING_REVINCLUDE = {
                     }
                 ]
             },
-            "diagnostics": "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources.",
+            "diagnostics": f"The request is missing the '_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}' parameter, which is required to include linked Endpoint resources.",
         }
     ],
 }
@@ -174,7 +179,7 @@ ERROR_INVALID_IDENTIFIER_SYSTEM = {
                     }
                 ]
             },
-            "diagnostics": "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'",
+            "diagnostics": f"Invalid identifier system 'foo' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'",
         }
     ],
 }
