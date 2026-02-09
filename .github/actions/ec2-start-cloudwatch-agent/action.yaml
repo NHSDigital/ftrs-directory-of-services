@@ -12,10 +12,12 @@ runs:
 
     - name: EC2 Start CloudWatch Agent
       shell: bash
-      id: run
+      id: run_command
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
       run: |
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters 'commands=["cd /home/ssm-user",
                         "sudo systemctl stop amazon-cloudwatch-agent",
@@ -27,8 +29,11 @@ runs:
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
     - name: Wait for CloudWatch Agent Start
       shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.run_command.outputs.command_id }}
       run: |
           echo "Waiting for CloudWatch agent start to complete..."
           aws ssm wait command-executed \
-            --command-id "${{ steps.run.outputs.command_id }}" \
-            --instance-id "${{ inputs.ec2-instance-id }}"
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"

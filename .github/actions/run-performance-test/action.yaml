@@ -59,13 +59,46 @@ runs:
     - name: Run Test on Gateway
       shell: bash
       id: run
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        APIM_ENV: ${{ inputs.apim-env }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENDPOINT_TYPE: ${{ inputs.endpoint-type }}
+        TEST_TYPE: ${{ inputs.test-type }}
+        ENDPOINT: ${{ inputs.endpoint }}
+        NUM_THREADS: ${{ inputs.num-threads }}
+        RAMP_TIME: ${{ inputs.ramp-time }}
+        STARTUP_DELAY: ${{ inputs.startup-delay }}
+        DURATION: ${{ inputs.duration }}
+        THROUGHPUT: ${{ inputs.throughput }}
+        THROUGHPUT_PERIOD: ${{ inputs.throughput-period }}
+        PERFORMANCE_RESULTS_BUCKET: ${{ inputs.performance-results-bucket }}
       run: |
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Run performance test for ${{ inputs.test-type }} against ${{ inputs.endpoint-type }} endpoint" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "nohup make run-performance-test AWS_REGION=${{ inputs.aws-region }} ENVIRONMENT=${{ inputs.environment }} APIM_ENV=${{ inputs.apim-env }} WORKSPACE=${{ inputs.workspace }} ENDPOINT_TYPE=${{ inputs.endpoint-type }} TEST_TYPE=${{ inputs.test-type }} ENDPOINT=${{ inputs.endpoint }} PFX_PATH=./parameter_files/jmeter_pfx.pfx NUM_THREADS=${{ inputs.num-threads }} RAMP_TIME=${{ inputs.ramp-time }} STARTUP_DELAY=${{ inputs.startup-delay }} DURATION=${{ inputs.duration }} THROUGHPUT=${{ inputs.throughput }} THROUGHPUT_PERIOD=${{ inputs.throughput-period }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.performance-results-bucket }} JMETER_INSTANCE_ID=${{ inputs.ec2-instance-id }} > ./performance_run.log 2>&1 &"]' \
+                        "nohup make run-performance-test " \
+                        "AWS_REGION=$AWS_REGION "\
+                        "ENVIRONMENT=$ENVIRONMENT "\
+                        "APIM_ENV=$APIM_ENV "\
+                        "WORKSPACE=$WORKSPACE "\
+                        "ENDPOINT_TYPE=$ENDPOINT_TYPE "\
+                        "TEST_TYPE=$TEST_TYPE "\
+                        "ENDPOINT=$ENDPOINT "\
+                        "PFX_PATH=./parameter_files/jmeter_pfx.pfx "\
+                        "NUM_THREADS=$NUM_THREADS "\
+                        "RAMP_TIME=$RAMP_TIME "\
+                        "STARTUP_DELAY=$STARTUP_DELAY "\
+                        "DURATION=$DURATION "\
+                        "THROUGHPUT=$THROUGHPUT "\
+                        "THROUGHPUT_PERIOD=$THROUGHPUT_PERIOD "\
+                        "PERFORMANCE_RESULTS_BUCKET=$PERFORMANCE_RESULTS_BUCKET "\
+                        "JMETER_INSTANCE_ID=$EC2_INSTANCE_ID "\
+                        "> ./performance_run.log 2>&1 &"]' \
             --query "Command.CommandId" \
             --output text)
 
