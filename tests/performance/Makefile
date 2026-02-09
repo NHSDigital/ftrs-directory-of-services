@@ -38,7 +38,7 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
-run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx] [STOP_INSTANCE=true|false]
+run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx]
 	if [ "${ENDPOINT_TYPE}" = "gateway" ]; then \
 		make run-performance-test-gateway ENVIRONMENT=${ENVIRONMENT} TEST_TYPE=${TEST_TYPE} PLAN_NAME=IS_Test_Plan ENDPOINT=${ENDPOINT} PFX_PATH=${PFX_PATH} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
 	elif [ "${ENDPOINT_TYPE}" = "proxy" ]; then \
@@ -49,14 +49,8 @@ run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|pr
 
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 
-	if [ "${STOP_INSTANCE}" = "true" ]; then
-		echo "Stopping JMeter EC2 instance ${JMETER_INSTANCE_ID}..."
-		make jmeter-stop-instance JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID}
-	else
-		echo "JMeter EC2 instance ${JMETER_INSTANCE_ID} left running."
-	fi
 
-run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_NAME= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID STOP_INSTANCE=
+run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_NAME= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
 	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id /ftrs-directory-of-services/$(ENVIRONMENT)/api-jmeter-pks-key --query 'SecretString')
