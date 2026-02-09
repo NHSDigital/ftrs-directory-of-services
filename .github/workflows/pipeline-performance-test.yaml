@@ -240,4 +240,3 @@ jobs:
           throughput: ${{ steps.derive-params.outputs.throughput }}
           throughput-period: ${{ steps.derive-params.outputs.throughput_period }}
           performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
-          stop-instance: ${{ inputs.stop_instance }}
