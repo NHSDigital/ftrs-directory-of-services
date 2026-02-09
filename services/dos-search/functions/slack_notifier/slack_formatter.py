@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from functions.slack_notifier.aws_url_builder import (
     build_cloudwatch_url,
@@ -56,7 +56,7 @@ def format_timestamp(timestamp_str: str) -> str:
         return f"<!date^{unix_ts}^{{date_short_pretty}} at {{time}}|{timestamp_str}>"
 
 
-def build_slack_message(alarm_data: Dict[str, Any]) -> Dict[str, Any]:
+def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     """
     Build a Slack message with essential alert information using blocks and attachments.
 

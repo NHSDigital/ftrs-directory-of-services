@@ -5,7 +5,7 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 
 import json
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from functions.slack_notifier.alarm_parser import flatten_dict, parse_cloudwatch_alarm
 from functions.slack_notifier.slack_client import get_slack_webhook_url, send_to_slack
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def lambda_handler(event: Dict[str, Any], context: object) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     """
     Lambda handler function for processing CloudWatch alarms and sending to Slack.
 
