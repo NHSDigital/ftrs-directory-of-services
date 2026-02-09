@@ -1,4 +1,4 @@
-@etl-ods-mock @data-sourcing
+@etl-ods-mock
 Feature: ETL ODS Mock - Upstream API Error Handling
 
   Background:
