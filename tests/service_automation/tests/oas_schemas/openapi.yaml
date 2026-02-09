@@ -157,7 +157,7 @@ paths:
 
           in: query
 
-          description: ODS endpoint code in the format "https://fhir.nhs.uk/Id/ods-organization-code|{CODE}"
+          description: ODS endpoint code in the format "odsOrganisationCode|{CODE}"
 
           required: true
 
@@ -165,9 +165,9 @@ paths:
 
             type: string
 
-            pattern: '^https://fhir.nhs.uk/Id/ods-organization-code\|[A-Z0-9]{1,12}$'
+            pattern: '^odsOrganisationCode\|[A-Z0-9]{1,12}$'
 
-            example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+            example: "odsOrganisationCode|ABC123"
 
         - name: _include
 
