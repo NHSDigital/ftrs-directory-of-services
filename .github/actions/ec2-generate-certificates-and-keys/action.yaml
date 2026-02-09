@@ -34,13 +34,14 @@ runs:
         KEY_NAME: ${{ inputs.key-name }}
         PFX_NAME: ${{ inputs.pfx-name }}
       run: |
-          COMMAND_ID=$(aws ssm send-command \
+          COMMAND_ID=$(
+            aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ssm-user",
-                        "make jmeter-generate-pks-file ENVIRONMENT=${ENVIRONMENT} CERT_NAME=${CERT_NAME} KEY_NAME=${KEY_NAME} PFX_NAME=${PFX_NAME}"]' \
+            --parameters '{"commands":["cd /home/ssm-user","make jmeter-generate-pks-file ENVIRONMENT='"$ENVIRONMENT"' CERT_NAME='"$CERT_NAME"' KEY_NAME='"$KEY_NAME"' PFX_NAME='"$PFX_NAME"'"]}' \
             --query "Command.CommandId" \
-            --output text)
+            --output text
+          )
 
           echo "command_id=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
