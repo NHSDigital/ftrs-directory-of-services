@@ -17,6 +17,8 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
         ],
         Resource = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${local.resource_prefix}-*:*"
       },
+      # checkov:skip=CKV_AWS_355: Justification: VPC ENI management - AWS requires '*'
+      # checkov:skip=CKV_AWS_290: Justification: VPC ENI management - AWS requires '*'
       {
         Sid    = "AllowVPCNetworkInterfaceManagement"
         Effect = "Allow",
@@ -27,10 +29,11 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           "ec2:AssignPrivateIpAddresses",
           "ec2:UnassignPrivateIpAddresses"
         ],
-        Resource = "*" # Required wildcard for VPC Lambda execution
+        Resource = "*" # Required by AWS for Lambda VPC execution
       },
       {
-        Sid = "AllowGlueCatalogAccess"
+        Sid    = "AllowGlueCatalogAccess"
+        Effect = "Allow",
         Action = [
           "glue:GetTableVersions",
           "glue:GetPartitions",
@@ -43,60 +46,66 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           "glue:ListSchemas"
         ],
         Resource = [
-          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:catalog",
-          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:database/${local.resource_prefix}-*",
-          "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${local.resource_prefix}-*/*"
-        ],
-        Effect = "Allow"
+          "arn:aws:glue:${var.aws_region}:${data.aws_caller_identity.current.account_id}:catalog",
+          "arn:aws:glue:${var.aws_region}:${data.aws_caller_identity.current.account_id}:database/${local.resource_prefix}-*",
+          "arn:aws:glue:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.resource_prefix}-*/*"
+        ]
       },
       {
-        Sid = "AllowAthenaQueryExecution"
+        Sid    = "AllowAthenaQueryExecution"
+        Effect = "Allow",
         Action = [
           "athena:GetQueryExecution"
         ],
-        Resource = "arn:aws:athena:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:workgroup/${local.resource_prefix}-workgroup",
-        Effect   = "Allow"
+        Resource = "arn:aws:athena:${var.aws_region}:${data.aws_caller_identity.current.account_id}:workgroup/${local.resource_prefix}-workgroup"
       },
+      # checkov:skip=CKV_AWS_355: Justification: S3 bucket listing
+      # checkov:skip=CKV_AWS_290: Justification: S3 bucket listing
       {
-        Sid = "AllowListS3Buckets"
+        Sid    = "AllowListS3Buckets"
+        Effect = "Allow",
         Action = [
           "s3:ListAllMyBuckets"
         ],
-        Resource = "*",
-        Effect   = "Allow"
+        Resource = "*"
       },
       {
-        Sid = "AllowDynamoDBReadAccess"
+        Sid    = "AllowDynamoDBReadAccess"
+        Effect = "Allow",
         Action = [
           "dynamodb:DescribeTable",
           "dynamodb:Query",
           "dynamodb:Scan",
           "dynamodb:PartiQLSelect"
         ],
-        Resource = "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${local.account_prefix}-*",
-        Effect   = "Allow"
+        Resource = "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:table/${local.account_prefix}-*"
       },
+      # checkov:skip=CKV_AWS_355: Justification: S3 DynamoDB list tables
+      # checkov:skip=CKV_AWS_290: Justification: S3 DynamoDB list tables
       {
-        Sid = "AllowDynamoDBListTables"
+        Sid    = "AllowDynamoDBListTables"
+        Effect = "Allow",
         Action = [
           "dynamodb:ListTables"
         ],
-        Resource = "*",
-        Effect   = "Allow"
+        Resource = "*"
       },
+      # checkov:skip=CKV_AWS_355: Justification: ECR image pull
+      # checkov:skip=CKV_AWS_290: Justification: ECR image pull
       {
         Sid    = "AllowECRImagePull"
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage"
         ],
-        Resource = "*" # Required wildcard for ECR authentication
+        Resource = "*"
       },
       {
-        Sid = "AllowS3AccessForAthenaSpill"
+        Sid    = "AllowS3AccessForAthenaSpill"
+        Effect = "Allow",
         Action = [
           "s3:GetObject",
           "s3:ListBucket",
@@ -111,8 +120,7 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
         Resource = [
           module.athena_spill_bucket[0].s3_bucket_arn,
           "${module.athena_spill_bucket[0].s3_bucket_arn}/*"
-        ],
-        Effect = "Allow"
+        ]
       }
     ]
   })
