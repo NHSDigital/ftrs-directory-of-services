@@ -9,7 +9,7 @@ inputs:
 outputs:
   ec2-instance-id:
     description: 'Instance ID of the stopped EC2 instance'
-    value: ${{ steps.lookup.outputs.instance_id }}
+    value: ${{ steps.lookup.outputs.ec2_instance_id }}
 
 runs:
   using: "composite"
@@ -17,28 +17,36 @@ runs:
     - name: Look up EC2 instance ID by tag
       id: lookup
       shell: bash
+      env:
+        EC2_NAME_TAG: ${{ inputs.ec2-name-tag }}
       run: |
         INSTANCE_ID=$(aws ec2 describe-instances \
-          --filters "Name=tag:Name,Values=${{ inputs.ec2-name-tag }}" \
+          --filters "Name=tag:Name,Values=$EC2_NAME_TAG" \
           --query "Reservations[0].Instances[0].InstanceId" \
           --output text)
 
-        echo "instance_id=$INSTANCE_ID"
-        echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+        echo "ec2_instance_id=$INSTANCE_ID"
+        echo "ec2_instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
 
     - name: Stop EC2 instance
       shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ steps.lookup.outputs.ec2_instance_id }}
       run: |
-        aws ec2 stop-instances --instance-ids ${{ steps.lookup.outputs.instance_id }}
+        aws ec2 stop-instances --instance-ids $EC2_INSTANCE_ID
 
     - name: Wait for instance to be stopped
       shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ steps.lookup.outputs.ec2_instance_id }}
       run: |
-        aws ec2 wait instance-stopped --instance-ids ${{ steps.lookup.outputs.instance_id }}
+        aws ec2 wait instance-stopped --instance-ids $EC2_INSTANCE_ID
 
     - name: Show instance state
       shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ steps.lookup.outputs.ec2_instance_id }}
       run: |
         aws ec2 describe-instances \
-          --instance-ids ${{ steps.lookup.outputs.instance_id }} \
+          --instance-ids $EC2_INSTANCE_ID \
           --query "Reservations[0].Instances[0].State.Name"
