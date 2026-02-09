@@ -1,0 +1,87 @@
+name: "EC2 Check Performance Test Running action"
+description: "Checks the EC2 to see if a performance test is currently running by looking for a lock file. If the lock file exists, it will wait until the file is removed before allowing the workflow to proceed. This action assumes that the performance test creates a lock file at the beginning of the test and removes it at the end of the test."
+
+inputs:
+  ec2-instance-id:
+    description: "The EC2 instance ID to check for the performance test lock file"
+    required: true
+  fail-on-lock-file:
+    description: "Whether to fail the action if a performance test lock file is found (true/false). If false, the action will wait until the lock file is removed before proceeding."
+    required: false
+    default: "true"
+
+outputs:
+  performance-test-running:
+    description: "Whether a performance test is currently running on the EC2 instance (true/false)"
+    value: ${{ steps.check-lock-file.outputs.performance_test_running }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for performance test lock file
+      id: check-lock-file
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        FAIL_ON_LOCK_FILE: ${{ inputs.fail-on-lock-file }}
+      run: |
+
+        COMMANDS=$(cat <<EOF
+          [
+            "cd /home/ssm-user",
+            "make check-performance-test-lock-file"
+          ]
+          EOF
+          )
+
+        COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "{\"commands\": $COMMANDS}" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
+    - name: Wait for Check Lock File Command to Complete
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.check-lock-file.outputs.command_id }}
+      run: |
+          echo "Waiting for check lock file command to complete..."
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"
+
+    - name: Determine Performance Test Status
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.check-lock-file.outputs.command_id }}
+        FAIL_ON_LOCK_FILE: ${{ inputs.fail-on-lock-file }}
+      run: |
+          STATUS=$(aws ssm list-command-invocations \
+            --command-id "$COMMAND_ID" \
+            --details \
+            --query "CommandInvocations[0].Status" \
+            --output text)
+
+          echo "Current status: $STATUS"
+
+          if [ "$STATUS" = "Success" ]; then
+            echo "No performance test lock file found"
+            PERFORMANCE_TEST_RUNNING=false
+          else
+            echo "Performance test lock file still exists or an error occurred. Please check the EC2 instance for details."
+            PERFORMANCE_TEST_RUNNING=true
+          fi
+
+          echo "performance_test_running=$PERFORMANCE_TEST_RUNNING"
+          echo "performance_test_running=$PERFORMANCE_TEST_RUNNING" >> $GITHUB_OUTPUT
+
+          if [ "$FAIL_ON_LOCK_FILE" = "true" ] && [ "$PERFORMANCE_TEST_RUNNING" = "true" ]; then
+            echo "Failing the action because a performance test lock file was found and fail-on-lock-file is set to true."
+            exit 1
+          fi

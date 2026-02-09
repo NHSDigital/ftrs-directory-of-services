@@ -39,6 +39,7 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
 
 run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx]
+
 	if [ "${ENDPOINT_TYPE}" = "gateway" ]; then \
 		make run-performance-test-gateway ENVIRONMENT=${ENVIRONMENT} TEST_TYPE=${TEST_TYPE} PLAN_NAME=IS_Test_Plan ENDPOINT=${ENDPOINT} PFX_PATH=${PFX_PATH} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${JMETER_INSTANCE_ID} STOP_INSTANCE=${STOP_INSTANCE}; \
 	elif [ "${ENDPOINT_TYPE}" = "proxy" ]; then \
@@ -63,21 +64,27 @@ run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test
 
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
 	echo "running mtls performance tests against ${ENDPOINT}..."
+	sudo touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="load" \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
+	sudo rm -f performance_run.lock
 
 performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENVIRONMENT=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [WORKSPACE=workspace; default for main]
 	echo "running proxy performance tests against ${APIM_ENV}..."
+	sudo touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=/ftrs-dos/$(ENVIRONMENT)/dos-search/jwt-credentials -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
+  sudo rm -f performance_run.lock
 
 performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
 	echo "running mtls performance stress tests against ${ENDPOINT}..."
+	sudo touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="stress" \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J throughput_step=${THROUGHPUT_STEP} -J step_duration=${STEP_DURATION};
+	sudo rm -f performance_run.lock
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
@@ -109,6 +116,11 @@ upload-performance-test-result:
 secrets-get: ## [SECRET_ID=arn or name] [OUT=name of file to store secret]
 	aws secretsmanager get-secret-value --region  $(AWS_REGION) --secret-id $(SECRET_ID) --query 'SecretString' --output text > $(OUT)
 
+check_performance-test-lock-file:
+	if [ -f performance_run.lock ]; then \
+		echo "Performance test lock file exists. Another performance test may be running."; \
+		exit 1; \
+	fi
 
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
