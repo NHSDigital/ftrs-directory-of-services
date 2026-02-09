@@ -124,8 +124,8 @@ class OrganizationMapper(FhirMapper):
         if typed_period_ext:
             extension_list.append(typed_period_ext.model_dump())
 
-        activeState = legal_start_date and legal_end_date
-        extension_list.append({"url": "active", "valueBoolean": activeState})
+        active_state =  not legal_start_date or not legal_end_date
+        extension_list.append({"url": "active", "valueBoolean": not active_state})
 
         return Extension.model_validate(
             {
