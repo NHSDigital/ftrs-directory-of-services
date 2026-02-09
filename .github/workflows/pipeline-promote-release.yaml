@@ -47,7 +47,9 @@ jobs:
       artefact_promotion_type: "release"
       type: app
       release_tag: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   slack-notifications:
     name: "Send Notification to Slack"
@@ -59,4 +61,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: mgmt
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

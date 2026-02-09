@@ -19,13 +19,14 @@ on:
   schedule:
     - cron: "0 0 * * SAT"  # At 00:00 on Saturdays
 
-permissions:
-  contents: read
-  id-token: write
+permissions: {}
 
 jobs:
   wafr-checks:
     name: "AWS Well Architected Framework and Thrifty Checks - ${{ matrix.environment }}"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
@@ -221,4 +222,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ matrix.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

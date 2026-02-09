@@ -1,9 +1,6 @@
 name: Cleardown Paused Workflow Runs Pipeline
 
-permissions:
-  actions: write
-  id-token: write
-  contents: read
+permissions: {}
 on:
   # Run daily, at 19:00.
   schedule:
@@ -12,6 +9,9 @@ on:
 jobs:
   cancel_paused_runs:
     name: "Cancel paused workflow runs"
+    permissions:
+      actions: write
+      contents: read
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
@@ -37,4 +37,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: dev
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

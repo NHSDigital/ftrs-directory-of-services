@@ -1,8 +1,6 @@
 name: Deploy frontend project workflow
 run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -43,10 +41,17 @@ on:
         description: "The branch, tag or SHA to checkout"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
 
 jobs:
   deploy-project:
     name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
+    permissions:
+      id-token: write
+      contents: read
     if: inputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

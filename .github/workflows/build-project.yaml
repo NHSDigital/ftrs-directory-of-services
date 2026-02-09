@@ -1,9 +1,7 @@
 name: Build project workflow
 run-name: Build ${{ inputs.type }} - ${{ inputs.name }}
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -47,11 +45,18 @@ on:
         description: "Whether the build is enabled"
         required: true
         type: boolean
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
 
 
 jobs:
   build-project:
     name: "Build ${{ inputs.build_type }} - ${{ inputs.name }}"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     if: ${{ inputs.build_enabled == true }}
