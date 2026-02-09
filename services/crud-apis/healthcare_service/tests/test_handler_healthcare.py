@@ -4,13 +4,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pytest_mock import MockerFixture
 
-from healthcare_service.app.handler_healthcare_service import handler
-
 # Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
 with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
     mock_ff_instance = MagicMock()
     mock_ff_instance.is_enabled.return_value = True
     mock_ff_class.return_value = mock_ff_instance
+
+    from healthcare_service.app.handler_healthcare_service import handler
 
 
 @pytest.fixture(autouse=True)

@@ -12,9 +12,18 @@ from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
-from organisations.app.models.organisation import OrganizationQueryParams
-from organisations.app.router.organisation import _get_organization_query_params, router
-from organisations.app.services.organisation_service import OrganisationService
+# Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
+with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
+    mock_ff_instance = MagicMock()
+    mock_ff_instance.is_enabled.return_value = True
+    mock_ff_class.return_value = mock_ff_instance
+
+    from organisations.app.models.organisation import OrganizationQueryParams
+    from organisations.app.router.organisation import (
+        _get_organization_query_params,
+        router,
+    )
+    from organisations.app.services.organisation_service import OrganisationService
 
 test_app = FastAPI()
 test_app.include_router(router)
@@ -23,12 +32,6 @@ client = TestClient(test_app)
 test_org_id = uuid4()
 
 TEST_PRODUCT_ID = "test-product-id"
-
-# Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
-with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
-    mock_ff_instance = MagicMock()
-    mock_ff_instance.is_enabled.return_value = True
-    mock_ff_class.return_value = mock_ff_instance
 
 
 @pytest.fixture(autouse=True)
