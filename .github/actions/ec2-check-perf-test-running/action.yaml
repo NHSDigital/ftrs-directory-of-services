@@ -25,14 +25,13 @@ runs:
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
         FAIL_ON_LOCK_FILE: ${{ inputs.fail-on-lock-file }}
       run: |
-
         COMMANDS=$(cat <<EOF
-          [
-            "cd /home/ssm-user",
-            "make check-performance-test-lock-file"
-          ]
-          EOF
-          )
+        [
+          "cd /home/ssm-user",
+          "make check-performance-test-lock-file"
+        ]
+        EOF
+        )
 
         COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
