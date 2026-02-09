@@ -64,7 +64,7 @@ def test_client(test_app: FastAPI) -> TestClient:
     "error_code,expected_status_code",
     [
         ("not-found", HTTPStatus.NOT_FOUND),
-        ("invalid", HTTPStatus.BAD_REQUEST),
+        ("invalid", HTTPStatus.UNPROCESSABLE_ENTITY),
         ("exception", HTTPStatus.INTERNAL_SERVER_ERROR),
         ("forbidden", HTTPStatus.FORBIDDEN),
         ("processing", HTTPStatus.ACCEPTED),

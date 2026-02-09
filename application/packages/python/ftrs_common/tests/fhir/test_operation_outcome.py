@@ -33,10 +33,10 @@ def test_operation_outcome_handler_build_basic() -> None:
         outcome["issue"][0]["details"]["coding"][0]["system"]
         == OPERATION_OUTCOME_SYSTEM
     )
-    assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_PARAM_INVALID"
+    assert outcome["issue"][0]["details"]["coding"][0]["code"] == "SEND_UNPROCESSABLE_ENTITY"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
-        == "Parameter content is invalid"
+        == "Message was not malformed but deemed unprocessable by the API."
     )
     assert outcome["issue"][0]["details"]["text"] == diagnostics
 
@@ -161,17 +161,17 @@ def test_operation_outcome_handler_from_validation_error() -> None:
         outcome["issue"][0]["details"]["coding"][0]["system"]
         == OPERATION_OUTCOME_SYSTEM
     )
-    assert outcome["issue"][0]["details"]["coding"][0]["code"] == "MSG_PARAM_INVALID"
+    assert outcome["issue"][0]["details"]["coding"][0]["code"] == "SEND_UNPROCESSABLE_ENTITY"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
-        == "Parameter content is invalid"
+        == "Message was not malformed but deemed unprocessable by the API."
     )
 
 
 def test_fhir_operation_outcome_codes_mapping() -> None:
     """Test that all expected codes are mapped correctly."""
     expected_mappings: dict[str, tuple[str, str]] = {
-        "invalid": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
+        "invalid": ("SEND_UNPROCESSABLE_ENTITY", "Message was not malformed but deemed unprocessable by the API."),
         "not-found": ("MSG_NO_EXIST", "Resource does not exist"),
         "exception": ("MSG_ERROR_PARSING", "Error processing request"),
         "structure": ("MSG_BAD_SYNTAX", "Bad Syntax"),
@@ -190,6 +190,6 @@ def test_build_details_helper() -> None:
     """Test the _build_details helper method."""
     details = OperationOutcomeHandler._build_details("invalid", "Test text")
     assert details["coding"][0]["system"] == OPERATION_OUTCOME_SYSTEM
-    assert details["coding"][0]["code"] == "MSG_PARAM_INVALID"
-    assert details["coding"][0]["display"] == "Parameter content is invalid"
+    assert details["coding"][0]["code"] == "SEND_UNPROCESSABLE_ENTITY"
+    assert details["coding"][0]["display"] == "Message was not malformed but deemed unprocessable by the API."
     assert details["text"] == "Test text"
