@@ -49,7 +49,6 @@ run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|pr
 
 	make upload-performance-test-result ENVIRONMENT=${ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET}
 
-
 run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test_Plan ENDPOINT= PFX_PATH= SECRET_NAME= NUM_THREADS= RAMP_TIME= STARTUP_DELAY= DURATION= THROUGHPUT THROUGHPUT_PERIOD PERFORMANCE_RESULTS_BUCKET JMETER_INSTANCE_ID
 	echo "running mtls performance tests against ${ENDPOINT}..."
 
