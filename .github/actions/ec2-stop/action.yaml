@@ -10,6 +10,38 @@ runs:
   using: "composite"
   steps:
 
+    - name: Clear Performance Run Lock
+      id: clear-lock-file
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+        COMMANDS=$(cat <<EOF
+        [
+          "cd /home/ssm-user",
+          "sudo rm -f performance_test_run.lock"
+        ]
+        EOF
+        )
+
+        aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "{\"commands\": $COMMANDS}" \
+            --query "Command.CommandId" \
+            --output text
+
+    - name: Wait for Clear Lock Command to Complete
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.clear-lock-file.outputs.command_id }}
+      run: |
+          echo "Waiting for performance config download to complete..."
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"
+
     - name: Stop EC2 instance
       shell: bash
       env:
