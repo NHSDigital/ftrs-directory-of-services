@@ -279,7 +279,7 @@ variable "firehose_logs_retention_in_days" {
   default     = 365
 }
 
-variable "firehose_error_log_group_name" {
+variable "firehose_log_group_name" {
   description = "The name of the CloudWatch Log Group to store Firehose error logs"
   type        = string
 }
