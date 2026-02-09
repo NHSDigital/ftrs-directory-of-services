@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import pytest
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain.legacy import Service
@@ -165,7 +163,12 @@ class TestServiceValidator:
         result = validator.validate(valid_service)
 
         # Should have email validation issue
-        email_issues = [i for i in result.issues if "email" in i.code.lower() or (i.expression and "email" in str(i.expression).lower())]
+        email_issues = [
+            i
+            for i in result.issues
+            if "email" in i.code.lower()
+            or (i.expression and "email" in str(i.expression).lower())
+        ]
         assert len(email_issues) > 0
 
     def test_validate_sanitises_publicphone(
@@ -187,7 +190,11 @@ class TestServiceValidator:
         result = validator.validate(valid_service)
 
         # Should have phone validation issue
-        phone_issues = [i for i in result.issues if "phone" in i.code.lower() or "length" in i.code.lower()]
+        phone_issues = [
+            i
+            for i in result.issues
+            if "phone" in i.code.lower() or "length" in i.code.lower()
+        ]
         assert len(phone_issues) > 0
 
     def test_validate_sanitises_nonpublicphone(

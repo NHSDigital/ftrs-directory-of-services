@@ -8,7 +8,6 @@ import json
 from typing import Any
 
 import boto3
-import pytest
 from ftrs_common.testing.sqs_fixtures import (
     get_queue_message_count,
     get_queue_messages,

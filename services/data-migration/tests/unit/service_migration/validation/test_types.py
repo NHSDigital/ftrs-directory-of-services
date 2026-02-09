@@ -1,8 +1,5 @@
-import pytest
-
 from service_migration.validation.types import (
     ValidationIssue,
-    ValidationIssueSeverity,
     ValidationResult,
 )
 

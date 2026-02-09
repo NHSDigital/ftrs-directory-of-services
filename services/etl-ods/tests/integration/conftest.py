@@ -27,11 +27,19 @@ import os
 from typing import Any, Generator
 
 import pytest
-from pytest_mock import MockerFixture
 
 # Import shared fixtures from ftrs_common.testing
 from ftrs_common.testing import (
     localstack_container,
+)
+from ftrs_common.testing.secrets_fixtures import (
+    cleanup_etl_ods_secrets,
+    create_etl_ods_secrets,
+    create_secret,
+    delete_secret,
+    get_secret,
+    list_secrets,
+    secrets_client,
 )
 from ftrs_common.testing.sqs_fixtures import (
     cleanup_etl_ods_queues,
@@ -45,15 +53,7 @@ from ftrs_common.testing.sqs_fixtures import (
     sqs_queue,
     sqs_queue_session,
 )
-from ftrs_common.testing.secrets_fixtures import (
-    cleanup_etl_ods_secrets,
-    create_etl_ods_secrets,
-    create_secret,
-    delete_secret,
-    get_secret,
-    list_secrets,
-    secrets_client,
-)
+from pytest_mock import MockerFixture
 from testcontainers.localstack import LocalStackContainer
 
 # Re-export fixtures for pytest discovery

@@ -1,5 +1,3 @@
-import pytest
-
 from service_migration.validation.field.base import (
     FieldValidationResult,
     FieldValidator,
