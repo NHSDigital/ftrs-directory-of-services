@@ -77,7 +77,7 @@ jobs:
       # Assume steampipe-readonly-role using role chaining
       - name: Assume steampipe-readonly-role
         if: steps.should-run.outputs.should_run == 'true'
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ github.event.repository.name }}-steampipe-readonly-role
           role-chaining: true
@@ -87,7 +87,7 @@ jobs:
       # Install Steampipe using GitHub Action
       - name: Setup Steampipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/steampipe-action-setup@2c4e0e4e77652a2da9e9b59d3a7f75eb69e01cd7 # v1.6.0
+        uses: turbot/steampipe-action-setup@48bd85e67fddae9843fe2ad7ef6af96a332507c5 # v1.6.0
         with:
           steampipe-version: "latest"
           plugin-connections: |
@@ -99,7 +99,7 @@ jobs:
       # Install Powerpipe CLI using Github Action
       - name: Install Powerpipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-setup@9c45e298f67282e48bdc9b8efbb75bb4882a5c6c # v1
+        uses: turbot/powerpipe-action-setup@cc29d145314973ee3afc3ce09f902d7524e28bb3 # v1
 
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'

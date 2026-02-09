@@ -39,7 +39,7 @@ jobs:
         echo "GitHub Actor: $ACTOR"
         echo "Pull Request URL: $PR_URL"
 
-    - uses: martialonline/workflow-status@699912c8c561f134cbfc244bce5548e5fd64d48e # v4
+    - uses: martialonline/workflow-status@fe13c6a4716673e224038aa1b02387352fb35e13 # v4
       id: check
 
     - name: "Echo result of pipeline if success"

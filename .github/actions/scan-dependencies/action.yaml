@@ -68,7 +68,7 @@ runs:
         fi
     - name: "Authenticate to send the reports"
       if: steps.check.outputs.secrets_exist == 'true'
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v6.0.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: arn:aws:iam::${{ inputs.idp_aws_report_upload_account_id }}:role/${{ inputs.idp_aws_report_upload_role_name }}
         aws-region: ${{ inputs.idp_aws_report_upload_region }}
