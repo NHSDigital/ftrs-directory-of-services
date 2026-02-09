@@ -76,7 +76,7 @@ performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment fo
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=/ftrs-dos/$(ENVIRONMENT)/dos-search/jwt-credentials -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
-  sudo rm -f performance_run.lock
+	sudo rm -f performance_run.lock
 
 performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
 	echo "running mtls performance stress tests against ${ENDPOINT}..."
