@@ -400,7 +400,6 @@ jobs:
       (needs.deploy-frontend-services.result == 'success' || needs.deploy-frontend-services.result == 'skipped') &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
-    secrets: inherit
 
   stage-prerelease-artefacts:
     name: "Stage ${{ matrix.name }} artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"

@@ -57,10 +57,18 @@ runs:
     - name: "Check prerequisites for sending the reports"
       shell: bash
       id: check
-      run: echo "secrets_exist=${{ inputs.idp_aws_report_upload_role_name != '' && inputs.idp_aws_report_upload_bucket_endpoint != '' }}" >> $GITHUB_OUTPUT
+      env:
+        ROLE_NAME: ${{ inputs.idp_aws_report_upload_role_name }}
+        BUCKET_ENDPOINT: ${{ inputs.idp_aws_report_upload_bucket_endpoint }}
+      run: |
+        if [[ -n "$ROLE_NAME" && -n "$BUCKET_ENDPOINT" ]]; then
+          echo "secrets_exist=true" >> $GITHUB_OUTPUT
+        else
+          echo "secrets_exist=false" >> $GITHUB_OUTPUT
+        fi
     - name: "Authenticate to send the reports"
       if: steps.check.outputs.secrets_exist == 'true'
-      uses: aws-actions/configure-aws-credentials@v6.0.0
+      uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
       with:
         role-to-assume: arn:aws:iam::${{ inputs.idp_aws_report_upload_account_id }}:role/${{ inputs.idp_aws_report_upload_role_name }}
         aws-region: ${{ inputs.idp_aws_report_upload_region }}
