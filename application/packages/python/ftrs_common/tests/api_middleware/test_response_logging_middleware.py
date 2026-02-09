@@ -27,7 +27,7 @@ async def test_logs_error_response(caplog: pytest.LogCaptureFixture) -> None:
         result: StreamingResponse = await middleware.dispatch(request, call_next)
         assert result.status_code == STATUS_CODE_MAP["invalid"]
         assert any(
-            'Error response returned with status code: 400. Error message: {"error":"fail"}.'
+            'Error response returned with status code: 422. Error message: {"error":"fail"}.'
             in r.getMessage()
             for r in caplog.records
         )
@@ -97,7 +97,7 @@ async def test_empty_body_iterator(caplog: pytest.LogCaptureFixture) -> None:
         result = await middleware.dispatch(request, call_next)
         assert result.status_code == STATUS_CODE_MAP["invalid"]
         assert any(
-            "Error response returned with status code: 400. Error message: ."
+            "Error response returned with status code: 422. Error message: ."
             in r.getMessage()
             for r in caplog.records
         )

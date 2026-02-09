@@ -23,7 +23,7 @@ def test_status_code_map_contains_expected_keys() -> None:
 
 def test_status_code_map_values() -> None:
     assert STATUS_CODE_MAP["not-found"] == HTTPStatus.NOT_FOUND
-    assert STATUS_CODE_MAP["invalid"] == HTTPStatus.BAD_REQUEST
+    assert STATUS_CODE_MAP["invalid"] == HTTPStatus.UNPROCESSABLE_ENTITY
     assert STATUS_CODE_MAP["exception"] == HTTPStatus.INTERNAL_SERVER_ERROR
     assert STATUS_CODE_MAP["forbidden"] == HTTPStatus.FORBIDDEN
     assert STATUS_CODE_MAP["processing"] == HTTPStatus.ACCEPTED

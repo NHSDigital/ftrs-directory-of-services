@@ -1,6 +1,6 @@
 STATUS_CODE_MAP = {
     "not-found": 404,
-    "invalid": 400,
+    "invalid": 422,
     "exception": 500,
     "forbidden": 403,
     "processing": 202,
