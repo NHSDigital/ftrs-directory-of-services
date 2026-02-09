@@ -1,8 +1,6 @@
 name: Deploy data migration project workflow
 run-name: Deploy ${{ inputs.build_type }} - ${{ inputs.name }}
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -38,10 +36,17 @@ on:
         description: "The type of permissions (e.g., account, app)"
         required: true
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
 
 jobs:
   deploy-project:
     name: "Deploy step for ${{ inputs.build_type }} - ${{ inputs.name }}"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -61,15 +66,18 @@ jobs:
 
       - name: "Get directories"
         id: get-directories
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          NAME: ${{ inputs.name }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "service" ]]; then
-            echo "working_directory=services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/services/${{ inputs.name }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ inputs.build_type }}" == "package" ]]; then
-            echo "working_directory=application/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
-            echo "build_directory=build/packages/${{ inputs.name }}" >> $GITHUB_OUTPUT
+          if [[ "$BUILD_TYPE" == "service" ]]; then
+            echo "working_directory=services/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/services/$NAME" >> $GITHUB_OUTPUT
+          elif [[ "$BUILD_TYPE" == "package" ]]; then
+            echo "working_directory=application/packages/$NAME" >> $GITHUB_OUTPUT
+            echo "build_directory=build/packages/$NAME" >> $GITHUB_OUTPUT
           else
-            echo "Invalid build type: ${{ inputs.build_type }}"
+            echo "Invalid build type: $BUILD_TYPE"
             exit 1
           fi
 

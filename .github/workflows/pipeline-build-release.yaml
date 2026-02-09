@@ -95,7 +95,9 @@ jobs:
       type: app
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
       prerelease_tag: ${{ github.event.inputs.prerelease_tag || '' }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
@@ -135,7 +137,9 @@ jobs:
       workflow_timeout: 30
       stacks: "['app_config']"
       skip_manual_approval: "true"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
@@ -151,7 +155,9 @@ jobs:
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
       ref: ${{ needs.tag-release.outputs.release_tag }}
       workflow_timeout: 30
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   restore-dynamodb-from-s3:
     name: "Restore S3 data to DynamoDB tables for release candidate in the ${{ needs.metadata.outputs.environment }} environment"
@@ -167,7 +173,8 @@ jobs:
       action: import
       type: app
       ref: ${{ needs.tag-release.outputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
@@ -197,7 +204,8 @@ jobs:
       workspace: "rc"
       type: "app"
       ref: ${{ needs.tag-release.outputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-data-migration-service:
     name: "Deploy data migration service for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
@@ -218,7 +226,8 @@ jobs:
       workspace: "rc"
       type: "app"
       ref: ${{ needs.tag-release.outputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   service-automation-tests:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }} environment"
@@ -244,7 +253,10 @@ jobs:
       test_type: ${{ matrix.type }}
       type: app
       deployment_type: "release-candidate"
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   trigger-cleardown-pipeline:
     name: "Trigger Cleardown Application Infrastructure Pipeline"
@@ -255,7 +267,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger downstream cleardown pipeline
-        uses: peter-evans/repository-dispatch@v4
+        uses: peter-evans/repository-dispatch@5fc4efd1a4797ddb68ffd0714a238564e4cc0e6f # v4
         with:
           repository: ${{ github.repository }}
           event-type: release-build-cleardown
@@ -288,4 +300,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

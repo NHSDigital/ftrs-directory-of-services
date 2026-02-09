@@ -31,6 +31,17 @@ if [ -z "$TEST_TYPE" ] ; then
   EXPORTS_SET=1
 fi
 
+if [ "$TEST_TYPE" = "apim" ] ; then
+  if [ -z "$API_NAME" ] ; then
+    echo Set API_NAME when TEST_TYPE is apim
+    EXPORTS_SET=1
+  fi
+  if [ -z "$APIM_ENV" ] ; then
+    echo Set APIM_ENV when TEST_TYPE is apim
+    EXPORTS_SET=1
+  fi
+fi
+
 if [ -z "$COMMIT_HASH" ] && [ -z "$REF" ]; then
   echo Set COMMIT_HASH or REF
   EXPORTS_SET=1
