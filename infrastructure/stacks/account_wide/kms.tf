@@ -138,6 +138,14 @@ module "s3_encryption_key" {
   ]
 }
 
+module "athena_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.athena
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "athena.amazonaws.com"
+  description      = "Encryption key for Athena workgroups in ${var.environment} environment"
+}
+
 module "firehose_encryption_key" {
   source           = "../../modules/kms"
   alias_name       = local.kms_aliases.firehose
