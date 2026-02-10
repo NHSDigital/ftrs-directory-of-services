@@ -414,13 +414,9 @@ class OdsETLPipelineLogBase(LogBase):
         level=ERROR,
         message="Unexpected error: {error_message}.",
     )
-    ETL_TRANSFORMER_START = LogReference(
+    ETL_HANDLER_BATCH_COMPLETE = LogReference(
         level=INFO,
-        message="ETL ODS Transformer Lambda started.",
-    )
-    ETL_TRANSFORMER_BATCH_COMPLETE = LogReference(
-        level=INFO,
-        message="ETL ODS Transformer Lambda batch processing completed.",
+        message="ETL ODS {handler_name} Lambda batch processing completed.",
     )
     ETL_TRANSFORMER_026 = LogReference(
         level=INFO,
@@ -466,13 +462,13 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
-    ETL_CONSUMER_START = LogReference(
-        level=INFO,
-        message="ETL ODS Consumer Lambda started.",
+    ETL_EXTRACTOR_036 = LogReference(
+        level=ERROR,
+        message="Mock testing scenarios cannot be enabled in environment '{env}'.",
     )
-    ETL_CONSUMER_BATCH_COMPLETE = LogReference(
+    ETL_CONSUMER_007 = LogReference(
         level=INFO,
-        message="ETL ODS Consumer Lambda batch processing completed.",
+        message="Successfully updated organization {organization_id}. Status code: {status_code}.",
     )
     ETL_COMMON_001 = LogReference(
         level=ERROR,
@@ -565,6 +561,10 @@ class OdsETLPipelineLogBase(LogBase):
     ETL_COMMON_023 = LogReference(
         level=WARNING,
         message="Sending message {message_id} to DLQ ({queue_suffix}-dlq) due to unrecoverable error: {error_type}.",
+    )
+    ETL_HANDLER_START = LogReference(
+        level=INFO,
+        message="ETL ODS {handler_name} Lambda started.",
     )
 
 

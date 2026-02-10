@@ -44,4 +44,5 @@ def process_message_and_send_request(record: dict) -> None:
 consumer_lambda_handler = create_sqs_lambda_handler(
     process_function=process_message_and_send_request,
     logger=ods_consumer_logger,
+    handler_name="Consumer",
 )

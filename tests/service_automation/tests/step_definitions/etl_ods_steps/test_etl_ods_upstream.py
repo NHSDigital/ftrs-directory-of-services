@@ -332,8 +332,13 @@ def verify_empty_results_handled(
 def verify_missing_fields_handled(
     context: Context, cloudwatch_logs: CloudWatchLogsWrapper
 ):
-    assert_lambda_response(
-        context, cloudwatch_logs, 200, "Error processing organisation"
+    assert context.lambda_response.get("statusCode") == 200
+    found_log = cloudwatch_logs.find_log_message(
+        context.transform_lambda, "Error processing organisation"
+    )
+    assert found_log, (
+        f"Expected log 'Error processing organisation' not found in Lambda "
+        f"{context.transform_lambda}"
     )
 
 
@@ -399,6 +404,7 @@ def verify_missing_optional_fields_handled(
     assert_lambda_response(context, cloudwatch_logs, 200, "ETL_EXTRACTOR_002")
 
 
+@when("the Transformer Lambda should transform the organisation data correctly")
 @then("the Transformer Lambda should transform the organisation data correctly")
 def verify_message_sent_to_db(context: Context, cloudwatch_logs: CloudWatchLogsWrapper):
     assert_cloudwatch_logs(

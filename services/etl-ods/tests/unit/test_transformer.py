@@ -716,3 +716,146 @@ class TestTransformerLambdaHandler:
         log_calls = [str(call) for call in mock_logger.log.call_args_list]
         failure_log_found = any("ETL_COMMON_002" in call for call in log_calls)
         assert failure_log_found
+
+
+class TestTransformerLogging:
+    """Test logging behavior in transformer lambda handler."""
+
+    def test_logs_handler_start(self, mocker: MockerFixture) -> None:
+        """Test that transformer logs handler start message."""
+        mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+        mocker.patch("transformer.transformer._process_record", return_value="data")
+        mocker.patch("transformer.transformer.send_messages_to_queue")
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"organisation": {"id": "org1"}}),
+                }
+            ]
+        }
+
+        transformer_lambda_handler(event, {})
+
+        # Check that ETL_HANDLER_START was logged
+        log_calls = [call[0][0] for call in mock_logger.log.call_args_list]
+        handler_start_logged = any(log.name == "ETL_HANDLER_START" for log in log_calls)
+        assert handler_start_logged
+
+        # Verify handler_name is "Transformer"
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_START":
+                assert call[1].get("handler_name") == "Transformer"
+
+    def test_logs_batch_complete_with_metrics(self, mocker: MockerFixture) -> None:
+        """Test that transformer logs batch completion with timing and metrics."""
+        mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+        mocker.patch("transformer.transformer._process_record", return_value="data")
+        mocker.patch("transformer.transformer.send_messages_to_queue")
+
+        event = {
+            "Records": [
+                {
+                    "messageId": f"msg-{i}",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"organisation": {"id": f"org{i}"}}),
+                }
+                for i in range(3)
+            ]
+        }
+
+        transformer_lambda_handler(event, {})
+
+        # Check that ETL_HANDLER_BATCH_COMPLETE was logged
+        log_calls = [call[0][0] for call in mock_logger.log.call_args_list]
+        batch_complete_logged = any(
+            log.name == "ETL_HANDLER_BATCH_COMPLETE" for log in log_calls
+        )
+        assert batch_complete_logged
+
+        # Verify metrics in batch completion log
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_BATCH_COMPLETE":
+                kwargs = call[1]
+                assert "duration_ms" in kwargs
+                assert str(kwargs["total_records"]) == "3"
+                assert str(kwargs["successful_count"]) == "3"
+                assert str(kwargs["failed_count"]) == "0"
+                assert kwargs["batch_status"] == "completed"
+                assert kwargs["handler_name"] == "Transformer"
+                assert kwargs["lambda_name"] == "etl-ods-transformer"
+
+    def test_logs_batch_complete_with_failures(self, mocker: MockerFixture) -> None:
+        """Test batch completion logging when there are failures."""
+        mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+
+        def mock_process(record: dict) -> str:
+            msg_id = record["messageId"]
+            if msg_id == "msg-1":
+                raise RetryableProcessingError(
+                    message_id=msg_id, status_code=429, response_text="Rate limit"
+                )
+            return "processed"
+
+        mocker.patch(
+            "transformer.transformer._process_record", side_effect=mock_process
+        )
+        mocker.patch("transformer.transformer.send_messages_to_queue")
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-0",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"organisation": {"id": "org0"}}),
+                },
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"organisation": {"id": "org1"}}),
+                },
+            ]
+        }
+
+        transformer_lambda_handler(event, {})
+
+        # Verify batch completion shows mixed results
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_BATCH_COMPLETE":
+                kwargs = call[1]
+                assert str(kwargs["total_records"]) == "2"
+                assert str(kwargs["successful_count"]) == "1"
+                assert str(kwargs["failed_count"]) == "1"
+                assert kwargs["batch_status"] == "completed_with_failures"
+
+    def test_counts_permanent_errors_as_failures(self, mocker: MockerFixture) -> None:
+        """Test that permanent errors are counted in failed_count."""
+        mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+        mocker.patch(
+            "transformer.transformer._process_record",
+            side_effect=PermanentProcessingError(
+                message_id="msg-1", status_code=400, response_text="Bad request"
+            ),
+        )
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"organisation": {"id": "org1"}}),
+                }
+            ]
+        }
+
+        transformer_lambda_handler(event, {})
+
+        # Permanent errors should be counted as failures
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_BATCH_COMPLETE":
+                kwargs = call[1]
+                assert kwargs["failed_count"] == 1
+                assert kwargs["successful_count"] == 0
+                assert kwargs["batch_status"] == "completed_with_failures"

@@ -24,7 +24,10 @@ def is_mock_testing_mode() -> bool:
 
     if current_env not in allowed_environments:
         error_msg = f"Mock testing scenarios cannot be enabled in environment '{current_env}'. Only allowed in: {', '.join(allowed_environments)}"
-        extractor_utils_logger.log(OdsETLPipelineLogBase.ETL_UTILS_011, env=current_env)
+        extractor_utils_logger.log(
+            OdsETLPipelineLogBase.ETL_EXTRACTOR_036,
+            env=current_env,
+        )
         raise ValueError(error_msg)
 
     return True

@@ -52,7 +52,7 @@ class ODSClient:
             return ""
 
         if is_mock_testing_mode():
-            self.logger.log(OdsETLPipelineLogBase.ETL_UTILS_008)
+            self.logger.log(OdsETLPipelineLogBase.ETL_COMMON_021)
             return SecretManager.get_mock_api_key_from_secrets()
 
         return SecretManager.get_ods_terminology_api_key()
@@ -63,7 +63,7 @@ class ODSClient:
             return
 
         if is_mock_testing_mode():
-            self.logger.log(OdsETLPipelineLogBase.ETL_UTILS_009)
+            self.logger.log(OdsETLPipelineLogBase.ETL_COMMON_021)
             headers["x-api-key"] = api_key
         else:
             headers["apikey"] = api_key

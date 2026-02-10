@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Any, Callable, Dict, List, Union
 
 import requests
@@ -187,13 +188,14 @@ def process_sqs_records(
 def create_sqs_lambda_handler(
     process_function: Callable[[Dict[str, Any]], Any],
     logger: Logger,
+    handler_name: str = "Handler",
 ) -> Callable[[Dict[str, Any], Any], Dict[str, Any]]:
     """Create a standardized SQS lambda handler function.
 
     Args:
         process_function: Function to process each SQS record
         logger: Logger instance for the service
-        dlq_queue_suffix: Queue suffix for DLQ (e.g., "transform", "load")
+        handler_name: Name of the handler for logging (e.g., "Consumer", "Transformer")
 
     Returns:
         Lambda handler function that processes SQS events
@@ -209,8 +211,11 @@ def create_sqs_lambda_handler(
         correlation_id = extract_correlation_id_from_sqs_records(records)
         setup_request_context(correlation_id, context, logger)
 
+        start_time = time.time()
+
         logger.log(
-            OdsETLPipelineLogBase.ETL_COMMON_005,
+            OdsETLPipelineLogBase.ETL_HANDLER_START,
+            handler_name=handler_name,
         )
 
         logger.log(
@@ -220,12 +225,30 @@ def create_sqs_lambda_handler(
 
         batch_item_failures = process_sqs_records(records, process_function, logger)
 
+        successful_count = len(records) - len(batch_item_failures)
+        failed_count = len(batch_item_failures)
+
         if batch_item_failures:
             logger.log(
                 OdsETLPipelineLogBase.ETL_COMMON_010,
                 retry_count=len(batch_item_failures),
                 total_records=len(records),
             )
+
+        # Log batch processing completion
+        duration_ms = round((time.time() - start_time) * 1000, 2)
+        logger.log(
+            OdsETLPipelineLogBase.ETL_HANDLER_BATCH_COMPLETE,
+            handler_name=handler_name,
+            lambda_name=f"etl-ods-{handler_name.lower()}",
+            duration_ms=duration_ms,
+            total_records=len(records),
+            successful_count=successful_count,
+            failed_count=failed_count,
+            batch_status="completed"
+            if failed_count == 0
+            else "completed_with_failures",
+        )
 
         return {"batchItemFailures": batch_item_failures}
 

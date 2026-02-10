@@ -1,3 +1,5 @@
+import time
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
 from ftrs_common.utils.correlation_id import current_correlation_id
@@ -148,6 +150,13 @@ def process_transformation_message_with_batching(
     correlation_id = extract_correlation_id_from_sqs_records(records)
     setup_request_context(correlation_id, context, ods_transformer_logger)
 
+    start_time = time.time()
+
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_HANDLER_START,
+        handler_name="Transformer",
+    )
+
     ods_transformer_logger.log(
         OdsETLPipelineLogBase.ETL_TRANSFORMER_029,
         total_records=len(records),
@@ -155,6 +164,8 @@ def process_transformation_message_with_batching(
 
     message_batch = []
     batch_item_failures = []
+    successful_count = 0
+    failed_count = 0
 
     def send_batch_if_full() -> None:
         """Send batch when it reaches batch size."""
@@ -167,11 +178,13 @@ def process_transformation_message_with_batching(
             payload = _process_record(record)
 
             message_batch.append(payload)
+            successful_count += 1
             send_batch_if_full()
 
         except PermanentProcessingError as permanent_error:
             message_id = record.get("messageId", "unknown")
             handle_permanent_error(message_id, permanent_error, ods_transformer_logger)
+            failed_count += 1
             # Permanent errors are consumed immediately (no retry, no DLQ)
 
         except RetryableProcessingError as retryable_error:
@@ -182,6 +195,7 @@ def process_transformation_message_with_batching(
             handle_retryable_error(
                 message_id, receive_count, retryable_error, ods_transformer_logger
             )
+            failed_count += 1
             batch_item_failures.append({"itemIdentifier": message_id})
 
         except Exception as e:
@@ -190,6 +204,7 @@ def process_transformation_message_with_batching(
                 record.get("attributes", {}).get("ApproximateReceiveCount", "1")
             )
             handle_general_error(message_id, receive_count, e, ods_transformer_logger)
+            failed_count += 1
             batch_item_failures.append({"itemIdentifier": message_id})
 
     if message_batch:
@@ -198,7 +213,8 @@ def process_transformation_message_with_batching(
     # Log batch processing completion
     duration_ms = round((time.time() - start_time) * 1000, 2)
     ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_TRANSFORMER_BATCH_COMPLETE,
+        OdsETLPipelineLogBase.ETL_HANDLER_BATCH_COMPLETE,
+        handler_name="Transformer",
         lambda_name="etl-ods-transformer",
         duration_ms=duration_ms,
         total_records=len(records),

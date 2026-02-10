@@ -134,7 +134,7 @@ class TestODSClient:
         # Verify
         assert result == "mock-api-key"
         mock_get_mock_key.assert_called_once()
-        mock_logger.log.assert_called_once_with(OdsETLPipelineLogBase.ETL_UTILS_008)
+        mock_logger.log.assert_called_once_with(OdsETLPipelineLogBase.ETL_COMMON_021)
 
     def test_add_api_key_to_headers_empty_key(self) -> None:
         """Test _add_api_key_to_headers does nothing when API key is empty."""
@@ -186,7 +186,7 @@ class TestODSClient:
             "Accept": "application/fhir+json",
             "x-api-key": "mock-key",
         }
-        mock_logger.log.assert_called_once_with(OdsETLPipelineLogBase.ETL_UTILS_009)
+        mock_logger.log.assert_called_once_with(OdsETLPipelineLogBase.ETL_COMMON_021)
 
     @patch("extractor.ods_client.make_common_request")
     @patch("extractor.ods_client.SecretManager.get_ods_terminology_api_key")

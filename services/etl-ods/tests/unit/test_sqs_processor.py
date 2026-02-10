@@ -879,7 +879,7 @@ class TestCreateSqsLambdaHandler:
         mock_logger.reset_mock()
 
         handler = create_sqs_lambda_handler(
-            TestProcessSqsRecords.success_processor, mock_logger
+            TestProcessSqsRecords.success_processor, mock_logger, handler_name="Test"
         )
 
         event = {"Records": [sample_sqs_record]}
@@ -888,7 +888,8 @@ class TestCreateSqsLambdaHandler:
         handler(event, context)
 
         mock_logger.log.assert_any_call(
-            OdsETLPipelineLogBase.ETL_COMMON_005,
+            OdsETLPipelineLogBase.ETL_HANDLER_START,
+            handler_name="Test",
         )
         mock_logger.log.assert_any_call(
             OdsETLPipelineLogBase.ETL_COMMON_006,
@@ -1053,3 +1054,142 @@ class TestCreateSqsLambdaHandler:
         failure_ids = [f["itemIdentifier"] for f in result["batchItemFailures"]]
         assert "rate-limit" in failure_ids
         assert "general-error" in failure_ids
+
+
+class TestHandlerLogging:
+    """Test logging behavior in create_sqs_lambda_handler."""
+
+    def test_logs_handler_start(self, mock_logger: MagicMock) -> None:
+        """Test that handler logs start message with handler name."""
+        mock_logger.reset_mock()
+
+        handler = create_sqs_lambda_handler(
+            lambda record: None, mock_logger, handler_name="TestHandler"
+        )
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"test": "data"}),
+                }
+            ]
+        }
+
+        handler(event, {})
+
+        # Check that ETL_HANDLER_START was logged
+        log_calls = [call[0][0] for call in mock_logger.log.call_args_list]
+        handler_start_logged = any(log.name == "ETL_HANDLER_START" for log in log_calls)
+        assert handler_start_logged
+
+        # Verify handler_name parameter was passed
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_START":
+                assert call[1].get("handler_name") == "TestHandler"
+
+    def test_logs_batch_complete_with_metrics(self, mock_logger: MagicMock) -> None:
+        """Test that handler logs batch completion with timing and counts."""
+        mock_logger.reset_mock()
+
+        handler = create_sqs_lambda_handler(
+            lambda record: None, mock_logger, handler_name="TestHandler"
+        )
+
+        event = {
+            "Records": [
+                {
+                    "messageId": f"msg-{i}",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"test": "data"}),
+                }
+                for i in range(5)
+            ]
+        }
+
+        handler(event, {})
+
+        # Check that ETL_HANDLER_BATCH_COMPLETE was logged
+        log_calls = [call[0][0] for call in mock_logger.log.call_args_list]
+        batch_complete_logged = any(
+            log.name == "ETL_HANDLER_BATCH_COMPLETE" for log in log_calls
+        )
+        assert batch_complete_logged
+
+        # Verify metrics were logged
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_BATCH_COMPLETE":
+                kwargs = call[1]
+                assert "duration_ms" in kwargs
+                assert str(kwargs["total_records"]) == "5"
+                assert str(kwargs["successful_count"]) == "5"
+                assert str(kwargs["failed_count"]) == "0"
+                assert kwargs["batch_status"] == "completed"
+                assert kwargs["handler_name"] == "TestHandler"
+                assert kwargs["lambda_name"] == "etl-ods-testhandler"
+
+    def test_logs_batch_complete_with_failures(self, mock_logger: MagicMock) -> None:
+        """Test that batch completion logs show failures correctly."""
+        mock_logger.reset_mock()
+
+        def failing_processor(record: dict) -> None:
+            msg_id = record["messageId"]
+            if msg_id == "msg-1":
+                raise RetryableProcessingError(
+                    message_id=msg_id, status_code=429, response_text="Rate limit"
+                )
+
+        handler = create_sqs_lambda_handler(
+            failing_processor, mock_logger, handler_name="FailHandler"
+        )
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-0",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"test": "data"}),
+                },
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"test": "data"}),
+                },
+            ]
+        }
+
+        with patch.dict(os.environ, {"MAX_RECEIVE_COUNT": "3"}):
+            handler(event, {})
+
+        # Verify batch completion shows partial failure
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_BATCH_COMPLETE":
+                kwargs = call[1]
+                assert str(kwargs["total_records"]) == "2"
+                assert str(kwargs["successful_count"]) == "1"
+                assert str(kwargs["failed_count"]) == "1"
+                assert kwargs["batch_status"] == "completed_with_failures"
+
+    def test_default_handler_name(self, mock_logger: MagicMock) -> None:
+        """Test that default handler name is used when not provided."""
+        mock_logger.reset_mock()
+
+        handler = create_sqs_lambda_handler(lambda record: None, mock_logger)
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-1",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"test": "data"}),
+                }
+            ]
+        }
+
+        handler(event, {})
+
+        # Check that default "Handler" name was used
+        for call in mock_logger.log.call_args_list:
+            if len(call[0]) > 0 and call[0][0].name == "ETL_HANDLER_START":
+                assert call[1].get("handler_name") == "Handler"

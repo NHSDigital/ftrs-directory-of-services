@@ -145,5 +145,6 @@ class TestIsMockTestingMode:
                 is_mock_testing_mode()
 
             mock_logger.log.assert_called_once_with(
-                OdsETLPipelineLogBase.ETL_UTILS_011, env="prod"
+                OdsETLPipelineLogBase.ETL_EXTRACTOR_036,
+                env="prod",
             )
