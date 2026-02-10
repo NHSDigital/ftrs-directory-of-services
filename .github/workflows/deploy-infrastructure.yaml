@@ -75,6 +75,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for CloudWatch alarm notifications"
+        required: false
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -125,6 +128,8 @@ jobs:
 
       - name: "Run Terraform ${{ inputs.action }} for infrastructure ${{ matrix.stack }} stack"
         id: deploy_stack
+        env:
+          TF_VAR_slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
         uses: ./.github/actions/action-infrastructure-stack
         with:
           environment: ${{ inputs.environment }}
@@ -134,7 +139,6 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
-          slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6
