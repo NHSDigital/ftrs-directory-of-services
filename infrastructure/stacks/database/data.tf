@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 data "aws_kms_key" "secrets_manager_kms_key" {
   key_id = "alias/${local.account_prefix}-secrets-manager-kms-key"
 }
