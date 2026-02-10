@@ -7,9 +7,10 @@ Infrastructure that is deployed once per environment inside an account.
 This stack provisions:
 
 1. IAM role for GitHub Actions (via OIDC)
-2. Environment wide VPC, including public, private, and database subnets
+2. Environment-wide VPC, including public, private, and database subnets
 3. A performance EC2 host for Apache `JMeter`–based testing
 4. Two WAFv2 Web ACLs (CloudFront and regional API Gateway)
+5. Firehose connected to Splunk via HEC Endpoint and HEC Token
 
 ---
 
