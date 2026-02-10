@@ -17,7 +17,7 @@ inputs:
 outputs:
   performance-test-running:
     description: "Whether a performance test is currently running on the EC2 instance (true/false)"
-    value: ${{ steps.check-lock-file.outputs.performance_test_running }}
+    value: ${{ steps.retrieve-lock-file-result.outputs.performance_test_running }}
 
 runs:
   using: "composite"
@@ -60,6 +60,7 @@ runs:
             --instance-id "$EC2_INSTANCE_ID"
 
     - name: Retrieve Check Lock File Command Result
+      id: retrieve-lock-file-result
       shell: bash
       env:
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
