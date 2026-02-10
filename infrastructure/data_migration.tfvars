@@ -35,13 +35,6 @@ reference_data_lambda_handler     = "reference_data_load.lambda_handler.lambda_h
 reference_data_lambda_timeout     = 300
 reference_data_lambda_memory_size = 1024
 
-version_history_lambda_name         = "version-history-lambda"
-version_history_lambda_handler      = "version_history.handler.handler"
-version_history_lambda_timeout      = 30
-version_history_lambda_memory_size  = 256
-version_history_batch_size          = 10
-version_history_maximum_concurrency = 2
-
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 7
 

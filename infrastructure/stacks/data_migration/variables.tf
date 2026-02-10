@@ -86,41 +86,7 @@ variable "processor_lambda_logs_retention" {
   type        = number
   default     = 14
 }
-variable "version_history_lambda_name" {
-  description = "The name of the version history lambda function"
-  type        = string
-}
 
-variable "version_history_lambda_handler" {
-  description = "The handler for the version history Lambda function"
-  type        = string
-}
-
-variable "version_history_lambda_timeout" {
-  description = "The timeout for the version history Lambda function"
-  type        = number
-}
-
-variable "version_history_lambda_memory_size" {
-  description = "The memory size for the version history Lambda function"
-  type        = number
-}
-
-variable "version_history_lambda_logs_retention" {
-  description = "The number of days to retain CloudWatch logs for version history lambda"
-  type        = number
-  default     = 14
-}
-
-variable "version_history_batch_size" {
-  description = "The batch size for version history stream processing"
-  type        = number
-}
-
-variable "version_history_maximum_concurrency" {
-  description = "The maximum concurrency for version history stream processing"
-  type        = number
-}
 variable "dms_event_queue_name" {
   description = "The name of the DMS event queue"
   type        = string

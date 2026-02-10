@@ -16,10 +16,12 @@ appconfig_flags:
       ref: false
       prod: false
 
+stack_toggles:
   - id: data_migration_version_history_enabled
     name: "Data Migration - Version History Enabled"
     description: "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
-    service: data-migration
+    terraform_variable: version_history_enabled
+    stack_path: infrastructure/stacks/database
     owner: "Data Migration Team"
     environments:
       workspace: true
@@ -29,7 +31,6 @@ appconfig_flags:
       ref: false
       prod: false
 
-stack_toggles:
   - id: stack_opensearch_enabled
     name: "OpenSearch Stack Enabled"
     description: "Enable/disable OpenSearch stack deployment"

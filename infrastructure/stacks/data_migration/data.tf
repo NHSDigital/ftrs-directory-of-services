@@ -5,18 +5,6 @@ data "aws_vpc" "vpc" {
   }
 }
 
-data "aws_dynamodb_table" "organisation_table" {
-  name = "${local.project_prefix}-database-organisation${local.workspace_suffix}"
-}
-
-data "aws_dynamodb_table" "location_table" {
-  name = "${local.project_prefix}-database-location${local.workspace_suffix}"
-}
-
-data "aws_dynamodb_table" "healthcare_service_table" {
-  name = "${local.project_prefix}-database-healthcare-service${local.workspace_suffix}"
-}
-
 data "aws_ec2_client_vpn_endpoint" "client_vpn_endpoint" {
   count = var.environment == "dev" ? 1 : 0
   filter {
@@ -160,35 +148,6 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     resources = [
       module.state_table.dynamodb_table_arn,
       "${module.state_table.dynamodb_table_arn}/index/*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "version_history_dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:PutItem",
-      "dynamodb:Query"
-    ]
-    resources = [
-      module.version_history_table.dynamodb_table_arn,
-      "${module.version_history_table.dynamodb_table_arn}/index/*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "dynamodb_stream_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:DescribeStream",
-      "dynamodb:GetRecords",
-      "dynamodb:GetShardIterator",
-      "dynamodb:ListStreams"
-    ]
-    resources = [
-      for base_arn in values(local.database_table_base_arns) : "${base_arn}/stream/*"
     ]
   }
 }
