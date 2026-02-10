@@ -31,6 +31,9 @@ runs:
             --query "Command.CommandId" \
             --output text
 
+        echo "command_id (Clear Lock File)=$COMMAND_ID"
+        echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
     - name: Wait for Clear Lock Command to Complete
       shell: bash
       env:

@@ -25,7 +25,7 @@ runs:
             --query "Command.CommandId" \
             --output text)
 
-          echo "command_id=$COMMAND_ID"
+          echo "command_id (Start CloudWatch Agent)=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
     - name: Wait for CloudWatch Agent Start
       shell: bash

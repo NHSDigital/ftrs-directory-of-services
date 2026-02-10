@@ -21,7 +21,6 @@ runs:
         ENVIRONMENT: ${{ inputs.environment }}
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
       run: |
-
           COMMANDS=$(cat <<EOF
           [
             "cd /home/ssm-user",
@@ -41,7 +40,7 @@ runs:
             --query "Command.CommandId" \
             --output text)
 
-          echo "command_id=$COMMAND_ID"
+          echo "command_id (Download Performance Config)=$COMMAND_ID"
           echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
     - name: Wait for Config Download
       shell: bash
