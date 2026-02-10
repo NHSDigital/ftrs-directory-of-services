@@ -4,14 +4,38 @@ data "aws_s3_object" "data_migration_lambda_package" {
   key    = "${local.artefact_base_path}/${var.project}-data-migration-lambda.zip"
 }
 
-data "aws_lambda_layer_version" "python_dependency_layer" {
-  count      = var.version_history_enabled ? 1 : 0
-  layer_name = "${local.resource_prefix}-python-dependency-layer"
+data "aws_s3_object" "python_dependency_layer" {
+  count  = var.version_history_enabled ? 1 : 0
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-data-migration-python-dependency-layer.zip"
 }
 
-data "aws_lambda_layer_version" "data_layer" {
-  count      = var.version_history_enabled ? 1 : 0
-  layer_name = "${local.resource_prefix}-data-layer"
+data "aws_s3_object" "data_layer" {
+  count  = var.version_history_enabled ? 1 : 0
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
+resource "aws_lambda_layer_version" "python_dependency_layer" {
+  count               = var.version_history_enabled ? 1 : 0
+  layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common Python dependencies for Lambda functions"
+
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-data-migration-python-dependency-layer.zip"
+  s3_object_version = data.aws_s3_object.python_dependency_layer[0].version_id
+}
+
+resource "aws_lambda_layer_version" "data_layer" {
+  count               = var.version_history_enabled ? 1 : 0
+  layer_name          = "${local.resource_prefix}-data-layer${local.workspace_suffix}"
+  compatible_runtimes = [var.lambda_runtime]
+  description         = "Common data dependencies for Lambda functions"
+
+  s3_bucket         = local.artefacts_bucket
+  s3_key            = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+  s3_object_version = data.aws_s3_object.data_layer[0].version_id
 }
 
 module "version_history" {
@@ -33,12 +57,12 @@ module "version_history" {
   lambda_s3_key_version_id = data.aws_s3_object.data_migration_lambda_package[0].version_id
 
   lambda_layers = [
-    data.aws_lambda_layer_version.python_dependency_layer[0].arn,
-    data.aws_lambda_layer_version.data_layer[0].arn
+    aws_lambda_layer_version.python_dependency_layer[0].arn,
+    aws_lambda_layer_version.data_layer[0].arn
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
-  security_group_ids = [data.aws_security_group.processor_lambda_security_group[0].id]
+  security_group_ids = [aws_security_group.version_history_lambda_security_group[0].id]
 
   version_history_table_name = "${local.project_prefix}-database-version-history${local.workspace_suffix}"
   version_history_table_arn  = module.version_history_table[0].dynamodb_table_arn
@@ -51,7 +75,7 @@ module "version_history" {
   location_table_arn           = module.dynamodb_tables["location"].dynamodb_table_arn
   healthcare_service_table_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_arn
 
-  kms_key_arn = data.aws_kms_key.secrets_manager_kms_key.arn
+  kms_key_arn = data.aws_kms_key.secrets_manager_kms_key[0].arn
 
   environment    = var.environment
   workspace      = terraform.workspace == "default" ? "" : terraform.workspace
