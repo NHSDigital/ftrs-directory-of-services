@@ -191,7 +191,7 @@ jobs:
           stack: ${{ matrix.stack }}
           action: validate
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
-          secrets_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+          slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   check-terraform-format:
     name: "Check Terraform format"
