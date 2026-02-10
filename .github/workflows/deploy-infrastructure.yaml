@@ -137,7 +137,7 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
-          slack_webhook_url: ${{ matrix.stack == 'dos_search' && secrets.SLACK_WEBHOOK_ALARMS_URL || '' }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6
