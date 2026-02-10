@@ -23,7 +23,8 @@
                 "resource-groups:*",
                 "dynamodb:*",
                 "rds:*",
-                "dms:*"
+                "dms:*",
+                "glue:*"
             ],
             "Resource": "*"
         },
