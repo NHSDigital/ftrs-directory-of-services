@@ -152,6 +152,7 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
         },
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
+        "endpoint": None,
         "openingTime": [
             {
                 "allDay": False,
@@ -173,6 +174,7 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
         "lastUpdated": "2023-10-01T00:00:00Z",
         "symptomGroupSymptomDiscriminators": [],
         "ageEligibilityCriteria": None,
+        "genderEligibilityCriteria": None,
     }
 
     response = client.put(f"/{test_service_id}", json=update_payload)
