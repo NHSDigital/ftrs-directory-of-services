@@ -221,12 +221,14 @@ jobs:
       - name: "Performance Run in Progress Check"
         shell: bash
         env:
-          PERFORMANCE_TEST_RUNNING: 'true'
+          PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
         run: |
           echo "Performance test running: $PERFORMANCE_TEST_RUNNING"
           if [[ "$PERFORMANCE_TEST_RUNNING" == "true" ]]; then
             echo "Performance test is still running. Not running another."
             exit 1
+          else
+            echo "No performance test running. Proceeding to run performance test."
           fi
       - name: "Download performance config"
         if: inputs.download_performance_config == 'true'
