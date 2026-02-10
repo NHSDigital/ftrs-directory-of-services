@@ -26,10 +26,10 @@ module "slack_notification_lambda" {
   security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {
-    "SLACK_WEBHOOK_URL" = var.slack_webhook_alarms_url
-    "ENVIRONMENT"       = var.environment
-    "PROJECT_NAME"      = var.project
-    "WORKSPACE"         = terraform.workspace == "default" ? "" : terraform.workspace
+    "SLACK_WEBHOOK_ALARMS_URL" = var.slack_webhook_alarms_url
+    "ENVIRONMENT"              = var.environment
+    "PROJECT_NAME"             = var.project
+    "WORKSPACE"                = terraform.workspace == "default" ? "" : terraform.workspace
   }
 
   allowed_triggers = {
