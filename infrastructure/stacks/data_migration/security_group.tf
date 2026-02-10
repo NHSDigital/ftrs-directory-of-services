@@ -82,15 +82,14 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  description       = "Allow egress to internet on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_vpc_endpoints" {
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow egress to VPC endpoints (Lambda, CloudWatch Logs)"
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_athena_connector" {
@@ -103,6 +102,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_athena_co
   to_port                      = var.rds_port
 }
 
+//FIXME Why will RDS call DMS
 resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_rds" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = data.aws_security_group.dms_replication_security_group.id
@@ -133,34 +133,34 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict HTTPS egress to VPC endpoints only (Secrets Manager, CloudWatch, etc.)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress to internet on HTTPS port"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, CloudWatch, etc.)"
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict DNS (TCP) egress to VPC DNS resolver only (VPC CIDR + 2)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress for DNS resolution"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Allow DNS egress (tcp/53) to VPC resolver only"
+  cidr_ipv4         = format("%s/32", cidrhost(data.aws_vpc.vpc.cidr_block, 2))
   from_port         = var.dns_port
   ip_protocol       = "tcp"
   to_port           = var.dns_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict DNS (UDP) egress to VPC DNS resolver only (VPC CIDR + 2)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress for DNS resolution (UDP)"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Allow DNS egress (udp/53) to VPC resolver only"
+  cidr_ipv4         = format("%s/32", cidrhost(data.aws_vpc.vpc.cidr_block, 2))
   from_port         = var.dns_port
   ip_protocol       = "udp"
   to_port           = var.dns_port
