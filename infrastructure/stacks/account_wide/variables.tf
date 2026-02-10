@@ -309,3 +309,26 @@ variable "s3_backup_mode" {
   description = "How documents are delivered to backup S3 - FailedEventsOnly or AllEvents"
   type        = string
 }
+
+variable "performance_ec2_log_group" {
+  description = "Name for the Performance EC2 log group"
+  type        = string
+  default     = "performance-ec2-logs"
+}
+variable "performance_ec2_log_group_class" {
+  description = "The log group class for Performance EC2"
+  type        = string
+  default     = "STANDARD"
+}
+
+variable "performance_ec2_log_group_name_prefix" {
+  description = "Prefix for Performance EC2 CloudWatch Log Group Name"
+  type        = string
+  default     = "/aws/ec2/"
+}
+
+variable "performance_ec2_log_group_retention_days" {
+  description = "The retention period for the Performance EC2 log group"
+  type        = number
+  default     = 30
+}
