@@ -29,4 +29,15 @@ regional_waf_scope           = "REGIONAL"
 regional_waf_log_group       = "regional-web-acl-logs"
 regional_waf_log_group_class = "STANDARD"
 
+regional_waf_hostile_country_codes = [
+  "BY",
+  "CN",
+  "HK",
+  "IR",
+  "MO",
+  "RU",
+  "SY",
+  "KP",
+]
+
 enable_s3_kms_encryption = true

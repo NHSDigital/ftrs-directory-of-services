@@ -73,7 +73,7 @@ resource "aws_cloudwatch_log_group" "waf_log_group" {
 
 resource "aws_cloudwatch_log_group" "regional_waf_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
-  name              = "aws-waf-logs-ftrs-dos-${var.environment}-${var.regional_waf_log_group}"
+  name              = "${var.waf_log_group_name_prefix}${local.account_prefix}-${var.regional_waf_log_group}"
   retention_in_days = var.regional_waf_log_group_retention_days
   log_group_class   = var.regional_waf_log_group_class
 }

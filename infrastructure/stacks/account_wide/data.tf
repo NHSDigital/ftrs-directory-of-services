@@ -48,7 +48,7 @@ data "aws_iam_policy_document" "regional_waf_log_group_policy_document" {
     }
     actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = [
-      "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:aws-waf-logs-ftrs-dos-${var.environment}-${var.regional_waf_log_group}:log-stream:*"
+      "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:${var.waf_log_group_name_prefix}${local.account_prefix}-${var.regional_waf_log_group}:log-stream:*"
     ]
     condition {
       test     = "ArnLike"
