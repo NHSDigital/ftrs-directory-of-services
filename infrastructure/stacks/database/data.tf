@@ -13,8 +13,9 @@ data "aws_subnets" "private_subnets" {
     values = [data.aws_vpc.vpc.id]
   }
 
-  tags = {
-    Tier = "Private"
+  filter {
+    name   = "tag:Name"
+    values = ["${local.account_prefix}-vpc-private-*"]
   }
 }
 
