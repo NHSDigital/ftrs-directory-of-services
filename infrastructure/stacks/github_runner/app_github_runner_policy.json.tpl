@@ -59,7 +59,8 @@
                 "aoss:*",
                 "sqs:*",
                 "sns:*",
-                "secretsmanager:*"
+                "secretsmanager:*",
+                "cloudformation:*"
             ],
             "Resource": "*"
         },
