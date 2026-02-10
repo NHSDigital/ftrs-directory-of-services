@@ -5,6 +5,18 @@ data "aws_vpc" "vpc" {
   }
 }
 
+data "aws_dynamodb_table" "organisation_table" {
+  name = "${local.resource_prefix}-database-organisation${local.workspace_suffix}"
+}
+
+data "aws_dynamodb_table" "location_table" {
+  name = "${local.resource_prefix}-database-location${local.workspace_suffix}"
+}
+
+data "aws_dynamodb_table" "healthcare_service_table" {
+  name = "${local.resource_prefix}-database-healthcare-service${local.workspace_suffix}"
+}
+
 data "aws_ec2_client_vpn_endpoint" "client_vpn_endpoint" {
   count = var.environment == "dev" ? 1 : 0
   filter {
