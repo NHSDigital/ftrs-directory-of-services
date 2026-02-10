@@ -6,6 +6,7 @@
           {
             "file_path": "/home/ssm-user/performance_run.log",
             "log_group_class": "STANDARD",
+            "log_stream_name": "LOG_STREAM_NAME",
             "log_group_name": "/aws/ec2/ftrs-dos-dev-account_wide-performance-ec2-logs"
           }
         ]
