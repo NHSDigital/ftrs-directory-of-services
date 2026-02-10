@@ -10,6 +10,7 @@ This stack provisions:
 2. Environment-wide VPC, including public, private, and database subnets
 3. A performance EC2 host for Apache `JMeter`–based testing
 4. Two WAFv2 Web ACLs (CloudFront and regional API Gateway)
+4. Firehose connected to Splunk
 
 ---
 

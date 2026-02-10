@@ -66,13 +66,13 @@ on:
         required: false
       SPLUNK_COLLECTOR_URL:
         description: "The base url for splunk collector"
-        required: true
+        required: false
       SPLUNK_HEC_ENDPOINT:
         description: "The HEC endpoint for splunk"
-        required: true
+        required: false
       SPLUNK_HEC_TOKEN:
         description: "The HEC token for splunk"
-        required: true
+        required: false
 
 jobs:
   scan-secrets:
