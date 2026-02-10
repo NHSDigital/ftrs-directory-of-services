@@ -2,11 +2,16 @@ import re
 
 from pydantic import BaseModel, Field, computed_field, field_validator
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
+
 
 class InvalidIdentifierSystem(ValueError):
     def __init__(self, identifier: str) -> None:
         super().__init__(
-            f"Invalid identifier system '{identifier}' - expected '{IDENTIFIER_SYSTEM}'"
+            f"Invalid identifier system '{identifier}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'"
         )
 
 
@@ -20,14 +25,12 @@ class ODSCodeInvalidFormatError(ValueError):
 class InvalidRevincludeError(ValueError):
     def __init__(self) -> None:
         super().__init__(
-            "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+            f"The request is missing the '_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}' parameter, which is required to include linked Endpoint resources."
         )
 
 
-IDENTIFIER_SYSTEM = "odsOrganisationCode"
 IDENTIFIER_SEPERATOR = "|"
 ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
-REVINCLUDE_VALUE = "Endpoint:organization"
 
 
 def _extract_identifier_system(identifier: str) -> str:
@@ -48,7 +51,7 @@ def _extract_identifier_value(identifier: str) -> str:
 
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
-        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+        description=f"Organization identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{code}}'",
     )
     revinclude: str = Field(alias="_revinclude")
 
@@ -65,7 +68,7 @@ class OrganizationQueryParams(BaseModel):
     def validate_identifier(cls, v: str) -> str:
         identifier_system = _extract_identifier_system(v)
 
-        if identifier_system != IDENTIFIER_SYSTEM:
+        if identifier_system != ODS_ORG_CODE_IDENTIFIER_SYSTEM:
             raise InvalidIdentifierSystem(identifier_system)
 
         identifier_value = _extract_identifier_value(v)
@@ -79,6 +82,6 @@ class OrganizationQueryParams(BaseModel):
     @field_validator("revinclude")
     @classmethod
     def validate_revinclude(cls, v: str) -> str:
-        if v != REVINCLUDE_VALUE:
+        if v != REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION:
             raise InvalidRevincludeError
         return v
