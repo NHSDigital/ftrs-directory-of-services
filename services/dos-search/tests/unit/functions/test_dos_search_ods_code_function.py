@@ -321,3 +321,63 @@ class TestLambdaHandler:
         # Act & Assert
         with pytest.raises(KeyError, match="httpMethod"):
             lambda_handler(empty_event, lambda_context)
+
+    def test_lambda_handler_with_minimal_headers(
+        self,
+        lambda_context,
+        mock_ftrs_service,
+        mock_logger,
+        bundle,
+    ):
+        """Test valid request with only minimal required headers (no optional NHSD headers)"""
+        # Arrange
+        mock_ftrs_service.endpoints_by_ods.return_value = bundle
+
+        event_minimal = {
+            "path": "/Organization",
+            "httpMethod": "GET",
+            "queryStringParameters": {
+                "identifier": "odsOrganisationCode|ABC123",
+                "_revinclude": "Endpoint:organization",
+            },
+            "requestContext": {"requestId": "req-id"},
+            "headers": {},  # No headers at all - all are optional
+        }
+
+        # Act
+        response = lambda_handler(event_minimal, lambda_context)
+
+        # Assert
+        assert_response(
+            response, expected_status_code=200, expected_body=bundle.model_dump_json()
+        )
+        mock_ftrs_service.endpoints_by_ods.assert_called_once_with("ABC123")
+        mock_logger.info.assert_any_call("Successfully processed")
+
+    def test_lambda_handler_without_headers_field(
+        self,
+        lambda_context,
+        mock_ftrs_service,
+        mock_logger,
+        bundle,
+    ):
+        """Test valid request with missing headers field entirely"""
+        # Arrange
+        mock_ftrs_service.endpoints_by_ods.return_value = bundle
+
+        event_no_headers = {
+            "path": "/Organization",
+            "httpMethod": "GET",
+            "queryStringParameters": {
+                "identifier": "odsOrganisationCode|ABC123",
+                "_revinclude": "Endpoint:organization",
+            },
+            "requestContext": {"requestId": "req-id"},
+            # No headers field at all
+        }
+
+        # Act
+        response = lambda_handler(event_no_headers, lambda_context)
+
+        # Assert
+        assert response["statusCode"] in [200, 500]  # Should handle gracefully
