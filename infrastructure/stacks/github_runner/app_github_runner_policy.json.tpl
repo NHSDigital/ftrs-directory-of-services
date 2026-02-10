@@ -24,7 +24,7 @@
                 "dynamodb:*",
                 "rds:*",
                 "athena:*",
-                "dms:*"
+                "dms:*",
                 "glue:*"
             ],
             "Resource": "*"
