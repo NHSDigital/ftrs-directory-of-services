@@ -121,6 +121,20 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           module.athena_spill_bucket[0].s3_bucket_arn,
           "${module.athena_spill_bucket[0].s3_bucket_arn}/*"
         ]
+      },
+      {
+        Sid    = "AllowKMSAccessForEncryption"
+        Effect = "Allow",
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:DescribeKey"
+        ],
+        Resource = [
+          data.aws_kms_key.s3_kms_key.arn,
+          data.aws_kms_key.athena_kms_key.arn
+        ]
       }
     ]
   })

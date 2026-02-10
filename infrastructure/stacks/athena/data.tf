@@ -44,3 +44,11 @@ data "aws_secretsmanager_secret_version" "target_rds_credentials" {
   count     = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
   secret_id = data.aws_secretsmanager_secret.target_rds_credentials[0].id
 }
+
+data "aws_kms_key" "s3_kms_key" {
+  key_id = local.kms_aliases.s3
+}
+
+data "aws_kms_key" "athena_kms_key" {
+  key_id = local.kms_aliases.athena
+}
