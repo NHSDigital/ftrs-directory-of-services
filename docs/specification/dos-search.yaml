@@ -87,6 +87,7 @@ info:
     - 500 to 599 if it failed because of an error on our server.
 
     Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+    For 5xx errors, see our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/troubleshooting-5xx-status-codes).
     Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
 
     ## Environments and testing
@@ -140,9 +141,6 @@ paths:
       description: |
         ## Overview
         Retrieve an Organisation identified by an ODS code (including endpoints managed by the Organisation).
-
-        ## Proxy errors
-        500 can also be returned by the proxy or API gateway, and by the Lambda/application, separate from the application responses listed below.
 
         ## Request requirements
         A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
@@ -213,8 +211,6 @@ paths:
             default: "Endpoint:organization"
             example: "Endpoint:organization"
       responses:
-        '401':
-          $ref: '#/components/responses/ProxyUnauthorized'
         '200':
           description: Successful response
           content:
@@ -358,6 +354,24 @@ paths:
                               display: "Invalid search data"
                         diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
 
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
         '403':
           description: Forbidden - Insufficient permissions
           content:
@@ -376,10 +390,24 @@ paths:
                           version: "1"
                           code: "FORBIDDEN"
                           display: "Forbidden"
-        '404':
-          $ref: '#/components/responses/ProxyNotFound'
         '429':
-          $ref: '#/components/responses/ProxyRateLimited'
+          description: Too many requests – Rate limit exceeded
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "throttled"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/Codesystem/http-error-codes"
+                          version: "0.1.0"
+                          code: "SEND_TOO_MANY_REQUESTS"
+                          display: "429: Too many requests have been made by this source to the API in a given amount of time."
+                    diagnostics: "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
         '500':
           description: Internal server error
           content:
@@ -392,14 +420,6 @@ paths:
                   - severity: "fatal"
                     code: "exception"
                     diagnostics: "Internal server error"
-        '501':
-          $ref: '#/components/responses/ProxyNotImplemented'
-        '502':
-          $ref: '#/components/responses/ProxyBadGateway'
-        '503':
-          $ref: '#/components/responses/ProxyServiceUnavailable'
-        '504':
-          $ref: '#/components/responses/ProxyGatewayTimeout'
 
 components:
   securitySchemes:
@@ -609,96 +629,6 @@ components:
                           type: string
                         display:
                           type: string
-
-  responses:
-    # Proxy-level responses (404/429 can also be returned by API Gateway)
-    ProxyUnauthorized:
-      description: Unauthorized - Invalid or missing authentication token (proxy)
-      content:
-        application/fhir+json:
-          schema:
-            $ref: '#/components/schemas/OperationOutcome'
-          examples:
-            proxy-401:
-              summary: Proxy 401
-              value:
-                resourceType: "OperationOutcome"
-                issue:
-                  - severity: "error"
-                    code: "security"
-                    diagnostics: "Invalid or missing authentication token"
-                    details:
-                      coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                          version: "1"
-                          code: "UNAUTHORIZED"
-                          display: "Unauthorized"
-    ProxyNotFound:
-      description: Not found - Proxy could not match the request path
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-404:
-              summary: Proxy 404 (body is empty)
-              value: {}
-    ProxyRateLimited:
-      description: Too many requests - Rate limit exceeded at proxy
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-429:
-              summary: Proxy 429
-              value: {}
-    ProxyNotImplemented:
-      description: Method not implemented - Unsupported method at proxy
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-501:
-              summary: Proxy 501
-              value: {}
-    ProxyBadGateway:
-      description: Bad gateway - Proxy could not contact backend
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-502:
-              summary: Proxy 502 (body is empty)
-              value: {}
-    ProxyServiceUnavailable:
-      description: Service unavailable - Backend unavailable or under maintenance (proxy or API gateway)
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-503:
-              summary: Proxy 503
-              value: {}
-    ProxyGatewayTimeout:
-      description: Gateway timeout - Proxy timed out contacting backend
-      content:
-        application/json:
-          schema:
-            type: object
-            additionalProperties: true
-          examples:
-            proxy-504:
-              summary: Proxy 504
-              value: {}
 
 x-nhsd-apim:
   target:
