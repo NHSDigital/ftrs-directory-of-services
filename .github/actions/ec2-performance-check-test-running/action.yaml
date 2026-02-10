@@ -1,14 +1,10 @@
-name: "EC2 Check Performance Test Running action"
+name: "EC2 Performance Check Test Running action"
 description: "Checks the EC2 to see if a performance test is currently running"
 
 inputs:
   ec2-instance-id:
     description: "The EC2 instance ID to check for the performance test lock file"
     required: true
-  # fail-on-lock-file:
-  #   description: "Whether to fail the action if a performance test lock file is found (true/false). If false, the action will wait until the lock file is removed before proceeding."
-  #   required: false
-  #   default: "true"
   lock-file-path:
     description: "The path to the lock file on the EC2 instance that indicates a performance test is running"
     required: false
@@ -75,40 +71,3 @@ runs:
           echo "Command output: $FILE_EXISTS"
           echo "performance_test_running=$FILE_EXISTS"
           echo "performance_test_running=$FILE_EXISTS" >> $GITHUB_OUTPUT
-
-    # - name: Wait for Check Lock File Command to Complete
-    #   shell: bash
-    #   run: |
-    #       echo "Waiting for check lock file command to complete..."
-    #       sleep 20 # Wait for 20 seconds before checking the command status to give it time to execute and create the lock file if needed
-
-    # - name: Determine Performance Test Status
-    #   shell: bash
-    #   env:
-    #     EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
-    #     COMMAND_ID: ${{ steps.check-lock-file.outputs.command_id }}
-    #     FAIL_ON_LOCK_FILE: ${{ inputs.fail-on-lock-file }}
-    #   run: |
-    #       STATUS=$(aws ssm list-command-invocations \
-    #         --command-id "$COMMAND_ID" \
-    #         --details \
-    #         --query "CommandInvocations[0].Status" \
-    #         --output text)
-
-    #       echo "Current status: $STATUS"
-
-    #       if [ "$STATUS" = "Success" ]; then
-    #         echo "No performance test lock file found"
-    #         PERFORMANCE_TEST_RUNNING=false
-    #       else
-    #         echo "Performance test lock file still exists or an error occurred. Please check the EC2 instance for details."
-    #         PERFORMANCE_TEST_RUNNING=true
-    #       fi
-
-    #       echo "performance_test_running=$PERFORMANCE_TEST_RUNNING"
-    #       echo "performance_test_running=$PERFORMANCE_TEST_RUNNING" >> $GITHUB_OUTPUT
-
-    #       if [ "$FAIL_ON_LOCK_FILE" = "true" ] && [ "$PERFORMANCE_TEST_RUNNING" = "true" ]; then
-    #         echo "Failing the action because a performance test lock file was found and fail-on-lock-file is set to true."
-    #         exit 1
-    #       fi

@@ -38,7 +38,6 @@ permissions:
   id-token: write
 
 jobs:
-
   stop_performance_test:
     name: "Stop performance EC2 instance if required"
     timeout-minutes: 5
@@ -64,7 +63,7 @@ jobs:
       - name: "Check for running performance test on EC2 instance"
         id: check-perf-test-running
         if: ${{ inputs.stop-ec2-instance == 'true' }}
-        uses: ./.github/actions/ec2-check-perf-test-running
+        uses: ./.github/actions/ec2-performance-check-test-running
         with:
           ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
 
@@ -85,6 +84,18 @@ jobs:
             else
               echo "No performance test running. Proceeding to stop EC2 instance."
             fi
+
+      - name: Clear Performance Run Lock
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
+        uses: ./.github/actions/ec2-performance-clear-run-lock
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
+
+      - name: Clear Performance Log Files
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
+        uses: ./.github/actions/ec2-performance-clear-log-files
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
 
       - name: "Stop EC2 instance"
         if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}

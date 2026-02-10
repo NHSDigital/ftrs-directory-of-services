@@ -1,4 +1,4 @@
-name: "EC2 Download Performance Config Action"
+name: "EC2 Performance Download Config Action"
 description: "Downloads performance config from S3 to the EC2 instance"
 
 inputs:

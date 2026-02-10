@@ -1,0 +1,46 @@
+name: "EC2 Performance Clear Log Files action"
+description: "Clear the performance log files on an EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The instance ID of the EC2 instance to clear the performance log files from"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Clear Performance Log Files
+      id: clear-log-files
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+        COMMANDS=$(cat <<EOF
+        [
+          "cd /home/ssm-user",
+          "sudo rm -f performance_run.log"
+        ]
+        EOF
+        )
+
+        COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "{\"commands\": $COMMANDS}" \
+            --query "Command.CommandId" \
+            --output text)
+
+        echo "command_id (Clear Log Files)=$COMMAND_ID"
+        echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
+    - name: Wait for Clear Log Files Command to Complete
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.clear-log-files.outputs.command_id }}
+      run: |
+          echo "Waiting for clear log files command to complete..."
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"

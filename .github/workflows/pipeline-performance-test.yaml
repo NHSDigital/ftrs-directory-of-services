@@ -214,7 +214,7 @@ jobs:
 
       - name: "Check for running performance test on EC2 instance"
         id: check-perf-test-running
-        uses: ./.github/actions/ec2-check-perf-test-running
+        uses: ./.github/actions/ec2-performance-check-test-running
         with:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
 
@@ -232,23 +232,23 @@ jobs:
           fi
       - name: "Download performance config"
         if: inputs.download_performance_config == 'true'
-        uses: ./.github/actions/ec2-download-performance-config
+        uses: ./.github/actions/ec2-performance-download-config
         with:
           environment: ${{ inputs.environment }}
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
       - name: "Generate certificates and keys"
         if: inputs.generate_certificates_and_keys == 'true'
-        uses: ./.github/actions/ec2-generate-certificates-and-keys
+        uses: ./.github/actions/ec2-performance-generate-certificates-and-keys
         with:
           environment: ${{ inputs.environment }}
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
       - name: "Start CloudWatch agent"
-        uses: ./.github/actions/ec2-start-cloudwatch-agent
+        uses: ./.github/actions/ec2-performance-start-cloudwatch-agent
         with:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
 
       - name: "Run performance test"
-        uses: ./.github/actions/run-performance-test
+        uses: ./.github/actions/ec2-performance-run-test
         with:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
           aws-region: ${{ vars.AWS_REGION }}
