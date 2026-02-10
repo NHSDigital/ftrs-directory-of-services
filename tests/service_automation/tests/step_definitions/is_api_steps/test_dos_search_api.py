@@ -135,7 +135,14 @@ def send_to_apim_status_token(
     )
 
 
-def _send_api_request(request_context, url, params: str = None, headers=None):
+def _send_api_request(request_context, url, params: str = None, headers={}):
+    mandatory_headers = {"version": 1, "x-request-id": "request_id"}
+
+    for header, value in mandatory_headers.items():
+        if (
+            header not in headers
+        ):  # Inserts mandatory headers only if they are not already provided
+            headers[header] = value
     param_dict = _convert_params_str_to_dict(params)
 
     response = request_context.get(
