@@ -88,7 +88,3 @@ data "aws_acm_certificate" "domain_cert" {
   statuses    = ["ISSUED"]
   most_recent = true
 }
-
-data "aws_ec2_managed_prefix_list" "cloudfront_prefix_list" {
-  name = "com.amazonaws.global.cloudfront.origin-facing"
-}

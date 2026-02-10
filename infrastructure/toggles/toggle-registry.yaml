@@ -38,7 +38,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/ui
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: false
       test: false
       int: false
@@ -52,7 +52,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/read_only_viewer
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: false
       test: false
       int: false

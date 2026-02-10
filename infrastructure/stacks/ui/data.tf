@@ -168,7 +168,3 @@ data "aws_cloudfront_origin_request_policy" "all_viewer_headers" {
   count = local.stack_enabled
   name  = "Managed-AllViewerExceptHostHeader"
 }
-
-data "aws_ec2_managed_prefix_list" "cloudfront_prefix_list" {
-  name = "com.amazonaws.global.cloudfront.origin-facing"
-}
