@@ -48,6 +48,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for CloudWatch alarm notifications"
+        required: false
 
 jobs:
   prepare-toggles-artifacts:
@@ -76,6 +79,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   destroy-toggle-infrastructure:
     needs: 
@@ -97,6 +101,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   cleardown-os-policies:
     name: "Cleardown OpenSearch Network Policies"
