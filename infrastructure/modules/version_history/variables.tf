@@ -113,11 +113,6 @@ variable "healthcare_service_table_arn" {
   type        = string
 }
 
-variable "kms_key_arn" {
-  description = "The ARN of the KMS key for encryption"
-  type        = string
-}
-
 variable "environment" {
   description = "The environment name"
   type        = string

@@ -1,8 +1,3 @@
-data "aws_kms_key" "secrets_manager_kms_key" {
-  count  = var.version_history_enabled ? 1 : 0
-  key_id = "alias/${local.account_prefix}-secrets-manager-kms-key"
-}
-
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"

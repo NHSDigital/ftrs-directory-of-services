@@ -14,11 +14,10 @@ module "version_history_lambda" {
   subnet_ids         = var.subnet_ids
   security_group_ids = var.security_group_ids
 
-  number_of_policy_jsons = "3"
+  number_of_policy_jsons = "2"
   policy_jsons = [
     data.aws_iam_policy_document.version_history_dynamodb_access_policy.json,
-    data.aws_iam_policy_document.dynamodb_stream_access_policy.json,
-    data.aws_iam_policy_document.lambda_kms_access.json
+    data.aws_iam_policy_document.dynamodb_stream_access_policy.json
   ]
 
   layers = var.lambda_layers
@@ -139,19 +138,6 @@ data "aws_iam_policy_document" "dynamodb_stream_access_policy" {
       "${var.organisation_table_arn}/stream/*",
       "${var.location_table_arn}/stream/*",
       "${var.healthcare_service_table_arn}/stream/*"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "lambda_kms_access" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:DescribeKey"
-    ]
-    resources = [
-      var.kms_key_arn
     ]
   }
 }

@@ -75,8 +75,6 @@ module "version_history" {
   location_table_arn           = module.dynamodb_tables["location"].dynamodb_table_arn
   healthcare_service_table_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_arn
 
-  kms_key_arn = data.aws_kms_key.secrets_manager_kms_key[0].arn
-
   environment    = var.environment
   workspace      = terraform.workspace == "default" ? "" : terraform.workspace
   project        = var.project
