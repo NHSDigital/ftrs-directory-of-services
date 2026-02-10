@@ -212,6 +212,13 @@ jobs:
         with:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
 
+      - name: "Check for running performance test on EC2 instance"
+        id: check-perf-test-running
+        uses: ./.github/actions/ec2-check-perf-test-running
+        with:
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+          fail-on-lock-file: "true"
+
       - name: "Download performance config"
         if: inputs.download_performance_config == 'true'
         uses: ./.github/actions/ec2-download-performance-config
@@ -228,13 +235,6 @@ jobs:
         uses: ./.github/actions/ec2-start-cloudwatch-agent
         with:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
-
-      - name: "Check for running performance test on EC2 instance"
-        id: check-perf-test-running
-        uses: ./.github/actions/ec2-check-perf-test-running
-        with:
-          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
-          fail-on-lock-file: "true"
 
       - name: "Run performance test"
         uses: ./.github/actions/run-performance-test
