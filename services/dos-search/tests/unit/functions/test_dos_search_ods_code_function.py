@@ -63,7 +63,7 @@ def _build_event_with_headers(headers: dict[str, str]):
             "_revinclude": REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         },
         "requestContext": {"requestId": "req-id"},
-        "headers": {"x-request-id": "req-id", "version": 0, **headers},
+        "headers": {"x-request-id": "req-id", "version": "0", **headers},
     }
 
 
@@ -137,6 +137,29 @@ class TestLambdaHandler:
         mock_logger.warning.assert_called_with(
             "Invalid request headers supplied",
             invalid_headers=["x-nhsd-unknown"],
+        )
+        assert_response(
+            response,
+            expected_status_code=400,
+            expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
+        )
+
+    def test_lambda_handler_rejects_when_non_digit_version_header(
+        self,
+        lambda_context,
+        mock_logger,
+        mock_error_util,
+    ):
+        event_with_headers = _build_event_with_headers({"version": 1})
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        mock_error_util.create_invalid_header_operation_outcome.assert_called_once_with(
+            ["version"]
+        )
+        mock_logger.warning.assert_called_with(
+            "Invalid request headers supplied",
+            invalid_headers=["version"],
         )
         assert_response(
             response,

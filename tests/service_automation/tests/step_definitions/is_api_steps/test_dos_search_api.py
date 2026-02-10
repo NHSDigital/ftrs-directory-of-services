@@ -136,7 +136,7 @@ def send_to_apim_status_token(
 
 
 def _send_api_request(request_context, url, params: str = None, headers={}):
-    mandatory_headers = {"version": 1, "x-request-id": "request_id"}
+    mandatory_headers = {"version": "1", "x-request-id": "request_id"}
 
     for header, value in mandatory_headers.items():
         if (
