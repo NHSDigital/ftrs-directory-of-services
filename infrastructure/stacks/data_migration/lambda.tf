@@ -264,3 +264,125 @@ module "reference_data_lambda" {
 
   cloudwatch_logs_retention = var.reference_data_lambda_logs_retention
 }
+
+module "version_history_lambda" {
+  source                  = "../../modules/lambda"
+  function_name           = "${local.resource_prefix}-${var.version_history_lambda_name}"
+  description             = "Lambda to track version history for Organisation, Location, and HealthcareService table changes"
+  handler                 = var.version_history_lambda_handler
+  runtime                 = var.lambda_runtime
+  s3_bucket_name          = local.artefacts_bucket
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  ignore_source_code_hash = false
+  s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.version_id
+  timeout                 = var.version_history_lambda_timeout
+  memory_size             = var.version_history_lambda_memory_size
+
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  security_group_ids = [try(aws_security_group.processor_lambda_security_group[0].id, data.aws_security_group.processor_lambda_security_group[0].id)]
+
+  number_of_policy_jsons = "4"
+  policy_jsons = [
+    data.aws_iam_policy_document.version_history_dynamodb_access_policy.json,
+    data.aws_iam_policy_document.dynamodb_stream_access_policy.json,
+    data.aws_iam_policy_document.lambda_kms_access.json,
+    data.aws_iam_policy.appconfig_access_policy.policy
+  ]
+
+  layers = concat(
+    [aws_lambda_layer_version.python_dependency_layer.arn],
+    [aws_lambda_layer_version.data_layer.arn],
+    [local.appconfig_lambda_extension_layer_arn]
+  )
+
+  environment_variables = {
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "VERSION_HISTORY_TABLE_NAME"         = "${local.resource_prefix}-version-history"
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
+  }
+  account_id     = data.aws_caller_identity.current.account_id
+  account_prefix = local.account_prefix
+  aws_region     = var.aws_region
+  vpc_id         = data.aws_vpc.vpc.id
+
+  cloudwatch_logs_retention = var.version_history_lambda_logs_retention
+}
+
+resource "aws_lambda_event_source_mapping" "version_history_organisation_stream" {
+  event_source_arn        = data.aws_dynamodb_table.organisation_table.stream_arn
+  function_name           = module.version_history_lambda.lambda_function_name
+  starting_position       = "LATEST"
+  batch_size              = var.version_history_batch_size
+  enabled                 = true
+  function_response_types = ["ReportBatchItemFailures"]
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["MODIFY"]
+      })
+    }
+  }
+
+  scaling_config {
+    maximum_concurrency = var.version_history_maximum_concurrency
+  }
+
+  depends_on = [
+    module.version_history_lambda
+  ]
+}
+
+resource "aws_lambda_event_source_mapping" "version_history_location_stream" {
+  event_source_arn        = data.aws_dynamodb_table.location_table.stream_arn
+  function_name           = module.version_history_lambda.lambda_function_name
+  starting_position       = "LATEST"
+  batch_size              = var.version_history_batch_size
+  enabled                 = true
+  function_response_types = ["ReportBatchItemFailures"]
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["MODIFY"]
+      })
+    }
+  }
+
+  scaling_config {
+    maximum_concurrency = var.version_history_maximum_concurrency
+  }
+
+  depends_on = [
+    module.version_history_lambda
+  ]
+}
+
+resource "aws_lambda_event_source_mapping" "version_history_healthcare_service_stream" {
+  event_source_arn        = data.aws_dynamodb_table.healthcare_service_table.stream_arn
+  function_name           = module.version_history_lambda.lambda_function_name
+  starting_position       = "LATEST"
+  batch_size              = var.version_history_batch_size
+  enabled                 = true
+  function_response_types = ["ReportBatchItemFailures"]
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["MODIFY"]
+      })
+    }
+  }
+
+  scaling_config {
+    maximum_concurrency = var.version_history_maximum_concurrency
+  }
+
+  depends_on = [
+    module.version_history_lambda
+  ]
+}

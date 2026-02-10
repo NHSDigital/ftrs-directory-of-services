@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"
@@ -148,6 +150,35 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
     resources = [
       module.state_table.dynamodb_table_arn,
       "${module.state_table.dynamodb_table_arn}/index/*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "version_history_dynamodb_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      module.version_history_table.dynamodb_table_arn,
+      "${module.version_history_table.dynamodb_table_arn}/index/*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "dynamodb_stream_access_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:DescribeStream",
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:ListStreams"
+    ]
+    resources = [
+      for base_arn in values(local.database_table_base_arns) : "${base_arn}/stream/*"
     ]
   }
 }

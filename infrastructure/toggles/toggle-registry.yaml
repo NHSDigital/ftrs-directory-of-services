@@ -16,6 +16,19 @@ appconfig_flags:
       ref: false
       prod: false
 
+  - id: data_migration_version_history_enabled
+    name: "Data Migration - Version History Enabled"
+    description: "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
 stack_toggles:
   - id: stack_opensearch_enabled
     name: "OpenSearch Stack Enabled"
