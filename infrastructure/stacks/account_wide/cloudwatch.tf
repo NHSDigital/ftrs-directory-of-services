@@ -98,6 +98,8 @@ resource "aws_cloudwatch_log_group" "firehose_log_group" {
 
 resource "aws_cloudwatch_log_group" "performance_ec2_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+  # checkov:skip=CKV_AWS_338: Justification: These are internal logs for the running of performance tests. They do
+  #                                          not need to be kept for at least one year.
   name              = "${var.performance_ec2_log_group_name_prefix}${local.resource_prefix}-${var.performance_ec2_log_group}"
   retention_in_days = var.performance_ec2_log_group_retention_days
   log_group_class   = var.performance_ec2_log_group_class
