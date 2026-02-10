@@ -286,9 +286,22 @@
             "firehose:DescribeDeliveryStream",
             "firehose:UpdateDestination",
             "firehose:ListDeliveryStreams",
-            "firehose:ListTagsForDeliveryStream"
+            "firehose:ListTagsForDeliveryStream",
+            "firehose:TagDeliveryStream",
+            "firehose:StartDeliveryStreamEncryption"
           ],
           "Resource": "*"
+        },
+        {
+          "Sid": "FirehosePassRole",
+          "Effect": "Allow",
+          "Action": "iam:PassRole",
+          "Resource": "arn:aws:iam::*:role/${repo_name}-*-splunk-firehose-role",
+          "Condition": {
+            "StringEquals": {
+              "iam:PassedToService": "firehose.amazonaws.com"
+            }
+          }
         }
   ]
 }

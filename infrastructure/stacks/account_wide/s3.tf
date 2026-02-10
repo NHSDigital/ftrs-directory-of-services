@@ -160,3 +160,11 @@ module "performance_s3" {
   source      = "../../modules/s3"
   bucket_name = "${local.resource_prefix}-${var.performance_files_bucket_name}"
 }
+
+module "firehose_backup_s3" {
+  source                = "../../modules/s3"
+  bucket_name           = "${local.resource_prefix}-${var.firehose_name}-backup"
+  s3_encryption_key_arn = module.firehose_encryption_key.arn
+  enable_kms_encryption = var.enable_firehose_s3_kms_encryption
+}
+
