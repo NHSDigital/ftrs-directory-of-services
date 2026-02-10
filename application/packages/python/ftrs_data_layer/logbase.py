@@ -468,7 +468,7 @@ class OdsETLPipelineLogBase(LogBase):
     )
     ETL_CONSUMER_007 = LogReference(
         level=INFO,
-        message="Successfully updated organization {organization_id}. Status code: {status_code}.",
+        message="Sent PUT request for Organisation {organization_id}. Status code: {status_code}.",
     )
     ETL_COMMON_001 = LogReference(
         level=ERROR,
