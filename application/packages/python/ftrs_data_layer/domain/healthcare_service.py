@@ -33,8 +33,8 @@ class HealthcareService(DBModel):
     active: bool
     category: HealthcareServiceCategory
     type: HealthcareServiceType
-    providedBy: UUID | None = None
-    location: UUID | None = None
+    providedBy: UUID | None
+    location: UUID | None
     endpoint: list[UUID] | None = None
     name: str
     telecom: HealthcareServiceTelecom | None
