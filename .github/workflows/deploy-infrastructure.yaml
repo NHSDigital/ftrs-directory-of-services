@@ -126,6 +126,19 @@ jobs:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
+      - name: "Debug Slack Webhook URL"
+        if: ${{ matrix.stack == 'dos_search' }}
+        run: |
+          echo "Stack: ${{ matrix.stack }}"
+          echo "Webhook URL length: ${#WEBHOOK_URL}"
+          if [ -n "$WEBHOOK_URL" ]; then
+            echo "Webhook URL is set"
+          else
+            echo "Webhook URL is empty or not set"
+          fi
+        env:
+          WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+
       - name: "Run Terraform ${{ inputs.action }} for infrastructure ${{ matrix.stack }} stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
