@@ -99,3 +99,8 @@ data "aws_security_group" "dos_search_lambda_security_group" {
 
   name = "${local.resource_prefix}-${var.lambda_name}-sg"
 }
+
+data "aws_wafv2_web_acl" "regional" {
+  name  = "${local.project_prefix}-${var.account_wide_stack_name}-${var.regional_waf_name}"
+  scope = "REGIONAL"
+}
