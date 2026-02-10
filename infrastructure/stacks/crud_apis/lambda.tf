@@ -65,6 +65,8 @@ module "organisation_api_lambda" {
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
 
   build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_name        = "${local.account_prefix}-${var.firehose_name}-role"
+  firehose_name             = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
 }
 
 module "healthcare_service_api_lambda" {

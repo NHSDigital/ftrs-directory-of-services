@@ -25,3 +25,5 @@ s3_trust_store_bucket_name = "truststore"
 organisation_table_name = "organisation"
 
 rds_port = 5432
+
+firehose_name = "splunk-firehose"

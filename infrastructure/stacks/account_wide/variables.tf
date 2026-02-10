@@ -262,10 +262,10 @@ variable "splunk_hec_token" {
   sensitive   = true
 }
 
-variable "firehose_name" {
-  description = "Name for the Kinesis Firehose delivery stream"
-  type        = string
-}
+# variable "firehose_name" {
+#   description = "Name for the Kinesis Firehose delivery stream"
+#   type        = string
+# }
 
 variable "enable_firehose_s3_kms_encryption" {
   description = "Whether to enable KMS encryption for firehose S3 buckets"
