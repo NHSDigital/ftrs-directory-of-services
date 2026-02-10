@@ -76,7 +76,6 @@ on:
 jobs:
   plan-application-infrastructure:
     name: "Plan application infrastructure deployment to ${{ inputs.environment }} "
-    environment: ${{ inputs.environment }}
     concurrency:
       group: "${{ inputs.environment }}-${{ inputs.ref || inputs.workspace}}"
       cancel-in-progress: false
