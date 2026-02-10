@@ -219,7 +219,6 @@ jobs:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
 
       - name: "Performance Run in Progress Check"
-        if: ${{ steps.check-perf-test-running.outputs.performance-test-running == 'true' }}
         shell: bash
         env:
           PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
