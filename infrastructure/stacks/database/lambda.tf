@@ -61,7 +61,7 @@ module "version_history" {
     aws_lambda_layer_version.data_layer[0].arn
   ]
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = data.aws_subnets.private_subnets[0].ids
   security_group_ids = [aws_security_group.version_history_lambda_security_group[0].id]
 
   version_history_table_name = "${local.project_prefix}-database-version-history${local.workspace_suffix}"
