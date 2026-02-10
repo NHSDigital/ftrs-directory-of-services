@@ -220,6 +220,9 @@ jobs:
 
       - name: "Performance Run in Progress Check"
         if: ${{ steps.check-perf-test-running.outputs.performance-test-running == 'true' }}
+        shell: bash
+        env:
+          PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
         run: |
           echo "Performance test running: $PERFORMANCE_TEST_RUNNING"
           if [[ "$PERFORMANCE_TEST_RUNNING" == "true" ]]; then
