@@ -64,6 +64,9 @@ on:
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT:
         description: "Report upload bucket endpoint"
         required: false
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for alarm notifications"
+        required: false
 
 jobs:
   scan-secrets:
@@ -188,6 +191,7 @@ jobs:
           stack: ${{ matrix.stack }}
           action: validate
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          secrets_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   check-terraform-format:
     name: "Check Terraform format"

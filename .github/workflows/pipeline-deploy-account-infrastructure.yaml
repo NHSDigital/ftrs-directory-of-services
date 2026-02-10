@@ -73,6 +73,9 @@ on:
       SLACK_WEBHOOK_URL:
         description: "Slack webhook URL"
         required: false
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for CloudWatch alarm notifications"
+        required: false
 
 concurrency:
   group: account-infrastructure-${{ github.ref }}
@@ -104,6 +107,7 @@ jobs:
       IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
       IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"

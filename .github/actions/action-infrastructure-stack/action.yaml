@@ -55,6 +55,6 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
-        TF_VAR_slack_webhook_alarms_url: ${{ inputs.slack_webhook_alarms_url }}
+        SLACK_WEBHOOK_ALARMS_URL: ${{ inputs.slack_webhook_alarms_url }}
       run: |
         /bin/bash ./scripts/workflow/action-infra-stack.sh

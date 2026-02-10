@@ -75,6 +75,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for alarm notifications"
+        required: false
     outputs:
       plan_result:
         description: "The Terraform plan output"
