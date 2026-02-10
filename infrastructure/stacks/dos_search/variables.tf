@@ -86,13 +86,11 @@ variable "api_gateway_tls_security_policy" {
 variable "lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the main search Lambda"
   type        = number
-  default     = 365
 }
 
 variable "health_check_lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the health check Lambda"
   type        = number
-  default     = 365
 }
 
 variable "api_gateway_throttling_rate_limit" {
@@ -283,4 +281,5 @@ variable "slack_webhook_alarms_url" {
   description = "Slack webhook URL for sending alarm notifications"
   type        = string
   sensitive   = true
+  default     = "https://hooks.slack.com/services/PLACEHOLDER"
 }
