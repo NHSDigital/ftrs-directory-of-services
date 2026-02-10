@@ -255,6 +255,28 @@
                 "appconfig:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "FirehoseDescribeOnly",
+            "Effect": "Allow",
+            "Action": "firehose:DescribeDeliveryStream",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowCWLogsToPassFirehoseRole",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": [
+                "arn:aws:iam::*:role/${repo_name}-*-splunk-firehose-role",
+                "arn:aws:iam::*:role/${repo_name}-*-splunk-firehose-cw-role"
+            ],
+            "Condition": {
+              "StringEquals": {
+                "iam:PassedToService": "logs.amazonaws.com"
+              }
+            }
         }
+
+
     ]
 }
