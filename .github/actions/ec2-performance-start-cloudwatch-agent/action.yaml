@@ -1,4 +1,4 @@
-name: "Start AWS Cloudwatch Agent Action"
+name: "EC2 Performance Start AWS Cloudwatch Agent Action"
 description: "Starts the AWS CloudWatch agent on an EC2 instance"
 
 inputs:
@@ -16,17 +16,24 @@ runs:
       env:
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
       run: |
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "$EC2_INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ssm-user",
-                        "sudo systemctl stop amazon-cloudwatch-agent",
-                        "sudo systemctl start amazon-cloudwatch-agent"]' \
-            --query "Command.CommandId" \
-            --output text)
+        COMMANDS=$(cat <<EOF
+        [
+          "cd /home/ssm-user",
+          "make configure-and-start-cloudwatch-agent"
+        ]
+        EOF
+        )
 
-          echo "command_id (Start CloudWatch Agent)=$COMMAND_ID"
-          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+        COMMAND_ID=$(aws ssm send-command \
+          --instance-ids "$EC2_INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --parameters "{\"commands\": $COMMANDS}" \
+          --query "Command.CommandId" \
+          --output text)
+
+        echo "command_id (Start CloudWatch Agent)=$COMMAND_ID"
+        echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+
     - name: Wait for CloudWatch Agent Start
       shell: bash
       env:

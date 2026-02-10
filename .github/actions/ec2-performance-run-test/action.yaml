@@ -1,4 +1,4 @@
-name: "Run Performance Test action"
+name: "EC2 Performance Run Test action"
 description: "Runs a performance test given an endpoint type and test type on the EC2 instance"
 
 inputs:

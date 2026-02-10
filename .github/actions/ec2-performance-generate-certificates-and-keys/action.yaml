@@ -1,4 +1,4 @@
-name: "EC2 Generate Certificates and Keys Action"
+name: "EC2 PerformanceGenerate Certificates and Keys Action"
 description: "Generates certificates and keys for a performance test on an EC2 instance"
 
 inputs:

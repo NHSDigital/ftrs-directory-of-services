@@ -122,6 +122,21 @@ check-performance-test-lock-file:
 		exit 1; \
 	fi
 
+configure-and-start-cloudwatch-agent:
+	echo "Configuring and starting CloudWatch Agent..."
+
+	echo "Stopping CloudWatch Agent if running"
+	sudo systemctl stop amazon-cloudwatch-agent
+
+	echo "Copying and Configuring CloudWatch Agent configuration"
+	sudo rm -f /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	sudo cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	TS=$$(date -u +"%Y%m%dT%H%M%SZ");
+	sudo sed -i "s|LOG_STREAM_NAME|performance-test-run-$${TS}|" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+	echo "Starting CloudWatch Agent"
+	sudo systemctl start amazon-cloudwatch-agent
+
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
 	asdf plugin add ${name} ||:
