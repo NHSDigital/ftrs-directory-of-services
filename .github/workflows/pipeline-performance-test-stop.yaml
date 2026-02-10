@@ -40,7 +40,7 @@ permissions:
 jobs:
 
   stop_performance_test:
-    name: "Stop performance test and EC2 instance if required"
+    name: "Stop performance EC2 instance if required"
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
@@ -62,14 +62,32 @@ jobs:
           ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
 
       - name: "Check for running performance test on EC2 instance"
+        id: check-perf-test-running
         if: ${{ inputs.stop-ec2-instance == 'true' }}
         uses: ./.github/actions/ec2-check-perf-test-running
         with:
           ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
-          fail-on-lock-file: ${{ inputs.force-ec2-instance-stop == 'true' && 'false' || 'true' }}
+
+      - name: "Stop EC2 Check"
+        env:
+          FORCE_EC2_INSTANCE_STOP: ${{ inputs.force-ec2-instance-stop }}
+          PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
+        if: ${{ inputs.stop-ec2-instance == 'true' }}
+        run: |
+          echo "Performance test running: $PERFORMANCE_TEST_RUNNING"
+          if [[ "$PERFORMANCE_TEST_RUNNING" == "true" ]]; then
+            if [[ "$FORCE_EC2_INSTANCE_STOP" == "true" ]]; then
+              echo "Force stopping EC2 instance as performance test is still running..."
+            else
+              echo "Performance test is still running. Not stopping EC2 instance."
+              exit 1
+            fi
+            else
+              echo "No performance test running. Proceeding to stop EC2 instance."
+            fi
 
       - name: "Stop EC2 instance"
-        if: ${{ inputs.stop-ec2-instance == 'true' }}
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
         uses: ./.github/actions/ec2-stop
         with:
           ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
