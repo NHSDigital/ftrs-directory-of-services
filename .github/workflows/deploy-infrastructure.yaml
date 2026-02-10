@@ -67,7 +67,7 @@ on:
         description: "A list of the infrastructure stacks that consume feature toggle outputs"
         required: false
         default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
-        type: string  
+        type: string
     secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
@@ -126,24 +126,9 @@ jobs:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}
           path: ./
 
-      - name: "Debug Slack Webhook URL"
-        if: ${{ matrix.stack == 'dos_search' }}
-        run: |
-          echo "Stack: ${{ matrix.stack }}"
-          echo "Webhook URL length: ${#WEBHOOK_URL}"
-          if [ -n "$WEBHOOK_URL" ]; then
-            echo "Webhook URL is set"
-          else
-            echo "Webhook URL is empty or not set"
-          fi
-        env:
-          WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
-
       - name: "Run Terraform ${{ inputs.action }} for infrastructure ${{ matrix.stack }} stack"
         id: deploy_stack
         uses: ./.github/actions/action-infrastructure-stack
-        env:
-          TF_VAR_slack_webhook_alarms_url: ${{ matrix.stack == 'dos_search' && secrets.SLACK_WEBHOOK_ALARMS_URL || '' }}
         with:
           environment: ${{ inputs.environment }}
           workspace: ${{ inputs.workspace }}
@@ -152,6 +137,7 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          slack_webhook_url: ${{ matrix.stack == 'dos_search' && secrets.SLACK_WEBHOOK_ALARMS_URL || '' }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6
