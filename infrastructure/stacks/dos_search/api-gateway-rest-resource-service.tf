@@ -5,6 +5,7 @@ resource "aws_api_gateway_resource" "healthcare_service" {
 }
 
 resource "aws_api_gateway_method" "healthcare_service" {
+  # checkov:skip=CKV_AWS_59: False positive; all the endpoints will be authenticated via mTLS
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.healthcare_service.id
   http_method   = "GET"
