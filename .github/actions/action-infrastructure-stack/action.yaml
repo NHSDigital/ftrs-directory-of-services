@@ -24,6 +24,9 @@ inputs:
   release_tag:
     description: "The release tag identifying the timeline in the repository to deploy from"
     required: false
+  slack_webhook_url:
+    description: "Slack webhook URL for alarm notifications"
+    required: false
 outputs:
   plan_result:
     description: "The Terraform plan output"
@@ -52,5 +55,6 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
+        TF_VAR_slack_webhook_alarms_url: ${{ inputs.slack_webhook_url }}
       run: |
         /bin/bash ./scripts/workflow/action-infra-stack.sh

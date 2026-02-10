@@ -283,5 +283,4 @@ variable "slack_webhook_alarms_url" {
   description = "Slack webhook URL for sending alarm notifications"
   type        = string
   sensitive   = true
-  default     = "https://hooks.slack.com/services/PLACEHOLDER"
 }
