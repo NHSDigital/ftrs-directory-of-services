@@ -139,16 +139,6 @@ data "aws_iam_policy_document" "ec2_performance_secrets" {
       module.secrets_manager_encryption_key.arn
     ]
   }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:StopInstances",
-    ]
-    resources = [
-      aws_instance.performance.arn
-    ]
-  }
 }
 
 resource "aws_iam_role_policy" "ec2_performance_secrets" {
@@ -174,22 +164,4 @@ resource "aws_iam_role_policy" "ec2_performance_cloudwatch_logs" {
   name   = "${local.account_prefix}-ec2-performance-cloudwatch-logs"
   role   = aws_iam_role.ec2_performance_role.id
   policy = data.aws_iam_policy_document.ec2_performance_cloudwatch_logs.json
-}
-
-data "aws_iam_policy_document" "ec2_performance_ssm_command" {
-  statement {
-    sid = "AllowSSMCommandsForPerformanceEC2"
-    actions = [
-      "ssm:ListCommands",
-    ]
-    resources = [
-      "arn:aws:ssm:eu-west-2:${local.account_id}:*"
-    ]
-  }
-}
-
-resource "aws_iam_role_policy" "ec2_performance_ssm_command" {
-  name   = "${local.account_prefix}-ec2-performance-ssm-command"
-  role   = aws_iam_role.ec2_performance_role.id
-  policy = data.aws_iam_policy_document.ec2_performance_ssm_command.json
 }
