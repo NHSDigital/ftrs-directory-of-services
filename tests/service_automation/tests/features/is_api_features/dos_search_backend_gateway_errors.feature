@@ -1,6 +1,5 @@
-@is-api @ftrs-pipeline @dos-search-ods-code-api
-Feature: API DoS Service Search Backend Gateway Errors
-# Feature: Dos-search api tests against the api-gateway to validate the error catching
+@is-api @integrated-search @dos-search-ods-code-api
+Feature: dos-search tests against the api-gateway to validate error handling
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"

@@ -1,5 +1,5 @@
-@is-api @ftrs-pipeline @dos-search-ods-code-api
-Feature: dos-search api tests against the api-gateway to validate the correct handling of headers
+@is-api @integrated-search @dos-search-ods-code-api
+Feature: dos-search tests against the api-gateway to validate the correct handling of headers
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"

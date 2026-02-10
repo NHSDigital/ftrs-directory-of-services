@@ -1,6 +1,5 @@
 @is-api @integrated-search @dos-search-ods-code-api
-Feature: API DoS Service Search Backend
-
+Feature: dos-search tests against the api-gateway to validate the handling of parameters
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
     And the dns for "dos-search" is resolvable

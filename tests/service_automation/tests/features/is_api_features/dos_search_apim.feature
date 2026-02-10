@@ -1,6 +1,6 @@
 @is-apim @integrated-search @dos-search-ods-code-api
 @nhsd_apim_authorization(access="application",level="level3")
-Feature: API DoS Service Search APIM
+Feature: dos-search tests against the apim proxy
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
