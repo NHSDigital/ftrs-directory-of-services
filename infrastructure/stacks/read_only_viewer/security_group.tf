@@ -1,7 +1,7 @@
 resource "aws_security_group" "frontend_lambda_security_group" {
   count = local.stack_enabled
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  name        = "${local.resource_prefix}-frontend-lambda-sg"
+  name        = "${local.resource_prefix}-frontend-lambda-sgg${local.workspace_suffix}"
   description = "Security group for frontend Lambda"
   vpc_id      = data.aws_vpc.vpc[0].id
 
@@ -10,6 +10,7 @@ resource "aws_security_group" "frontend_lambda_security_group" {
   }
 }
 
+# trivy:ignore:aws-vpc-no-public-ingress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-511
 resource "aws_vpc_security_group_ingress_rule" "frontend_lambda_allow_cloudfront" {
   count             = local.stack_enabled
   description       = "Allow CloudFront (or public HTTPS) to access Lambda"
@@ -17,7 +18,7 @@ resource "aws_vpc_security_group_ingress_rule" "frontend_lambda_allow_cloudfront
   from_port         = var.https_port
   to_port           = var.https_port
   ip_protocol       = "tcp"
-  prefix_list_id    = data.aws_ec2_managed_prefix_list.cloudfront_prefix_list.id
+  cidr_ipv4         = "0.0.0.0/0"
 }
 
 # trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386

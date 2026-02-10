@@ -133,6 +133,6 @@ resource "aws_vpc_security_group_ingress_rule" "vpce_interface_ingress_https" {
   description       = "Allow HTTPS ingress from VPC (return traffic allowed automatically via stateful rules)"
   cidr_ipv4         = var.vpc["cidr"]
   ip_protocol       = "tcp"
-  from_port         = 443
-  to_port           = 443
+  from_port         = var.https_port
+  to_port           = var.https_port
 }
