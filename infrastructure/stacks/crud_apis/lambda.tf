@@ -63,6 +63,8 @@ module "organisation_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
+
+  build_splunk_subscription = var.build_splunk_subscription
 }
 
 module "healthcare_service_api_lambda" {

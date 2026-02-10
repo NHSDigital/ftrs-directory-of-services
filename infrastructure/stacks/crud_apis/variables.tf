@@ -117,3 +117,8 @@ variable "vpc_private_subnet_cidr_range" {
   type        = string
   default     = "24"
 }
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the Splunk subscription filter for Lambda logs"
+  type        = bool
+}
