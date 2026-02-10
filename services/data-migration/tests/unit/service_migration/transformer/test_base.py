@@ -456,6 +456,10 @@ def test_build_healthcare_service(
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        endpoint=[
+            "a226aaa5-392c-59c8-8d79-563bb921cb0d",
+            "4d678d9c-61db-584f-a64c-bd8eb829d8db",
+        ],
         name="Test Service",
         telecom=HealthcareServiceTelecom(
             phone_public="01234 567890",
@@ -530,6 +534,8 @@ def test_build_healthcare_service(
             ),
         ],
         dispositions=["DX115", "DX12"],
+        ageEligibilityCriteria=None,
+        genderEligibilityCriteria=None,
     )
 
 

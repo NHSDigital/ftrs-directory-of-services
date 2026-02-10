@@ -28,7 +28,7 @@ from ftrs_data_layer.domain.clinical_code import (
     Disposition,
     SymptomGroupSymptomDiscriminatorPair,
 )
-from ftrs_data_layer.domain.enums import TimeUnit
+from ftrs_data_layer.domain.enums import Gender, TimeUnit
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
 
@@ -232,6 +232,7 @@ class ServiceTransformer(ABC):
             type=type,
             providedBy=organisation_id,
             location=location_id,
+            endpoint=self.build_endpoint_references(service),
             name=service.name,
             telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
@@ -247,7 +248,56 @@ class ServiceTransformer(ABC):
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
             ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
+            genderEligibilityCriteria=self.build_gender_eligibility_criteria(service),
         )
+
+    def build_endpoint_references(
+        self,
+        service: legacy_model.Service,
+    ) -> list[UUID] | None:
+        """
+        Build a list of endpoint UUIDs for the healthcare service.
+        """
+        if not service.endpoints:
+            return None
+
+        endpoint_ids = [
+            generate_uuid(endpoint.id, "endpoint") for endpoint in service.endpoints
+        ]
+
+        return endpoint_ids if endpoint_ids else None
+
+    def build_gender_eligibility_criteria(
+        self,
+        service: legacy_model.Service,
+    ) -> list[Gender] | None:
+        """
+        Build gender eligibility criteria from the service's gender data.
+        """
+        if not hasattr(service, "genders") or not service.genders:
+            return None
+
+        # could be wrong but based on the data it looks like genderid is an integer
+        gender_mapping = {
+            1: Gender.MALE,
+            2: Gender.FEMALE,
+            3: Gender.OTHER,
+            4: Gender.UNKNOWN,
+        }
+
+        genders = []
+        for service_gender in service.genders:
+            gender_id = service_gender.genderid
+            if gender_id in gender_mapping:
+                genders.append(gender_mapping[gender_id])
+            else:
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_019,
+                    service_id=service.id,
+                    gender_id=gender_id,
+                )
+
+        return genders if genders else None
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
         """
