@@ -256,3 +256,117 @@ def test_process_organisation_exception(
     result = _process_organisation(mock_organisation)
 
     assert result is None
+
+
+def test_transformer_lambda_handler_logs_start_and_complete(
+    mocker: MockerFixture,
+) -> None:
+    """Test that transformer logs START and BATCH_COMPLETE events with metrics."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+
+    mocker.patch(
+        "transformer.transformer._process_organisation", return_value="processed_data"
+    )
+    mocker.patch("transformer.transformer.send_messages_to_queue")
+
+    event = {
+        "Records": [
+            {
+                "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "body": json.dumps(
+                    {
+                        "organisation": {"id": "org1", "name": "Test Org"},
+                        "correlation_id": "corr-123",
+                        "request_id": "req-456",
+                    }
+                ),
+            }
+        ]
+    }
+
+    result = transformer_lambda_handler(event, {})
+
+    assert result["batchItemFailures"] == []
+
+    # Verify START log was called
+    start_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_TRANSFORMER_START"
+    ]
+    assert len(start_call) == 1
+    assert start_call[0][1]["lambda_name"] == "etl-ods-transformer"
+
+    # Verify BATCH_COMPLETE log was called with metrics
+    complete_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_TRANSFORMER_BATCH_COMPLETE"
+    ]
+    assert len(complete_call) == 1
+    assert complete_call[0][1]["lambda_name"] == "etl-ods-transformer"
+    assert "duration_ms" in complete_call[0][1]
+    assert str(complete_call[0][1]["total_records"]) == "1"
+    assert str(complete_call[0][1]["successful_count"]) == "1"
+    assert complete_call[0][1]["failed_count"] == 0
+    assert complete_call[0][1]["batch_status"] == "completed"
+
+
+def test_transformer_lambda_handler_logs_partial_failure(
+    mocker: MockerFixture,
+) -> None:
+    """Test that transformer logs BATCH_COMPLETE with failures correctly."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mock_logger = mocker.patch("transformer.transformer.ods_transformer_logger")
+
+    # First message succeeds, second fails
+    mocker.patch(
+        "transformer.transformer._process_organisation",
+        side_effect=["processed_data", Exception("Processing failed")],
+    )
+    mocker.patch("transformer.transformer.send_messages_to_queue")
+
+    event = {
+        "Records": [
+            {
+                "messageId": "msg1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "body": json.dumps(
+                    {
+                        "organisation": {"id": "org1", "name": "Test Org 1"},
+                        "correlation_id": "corr-123",
+                        "request_id": "req-456",
+                    }
+                ),
+            },
+            {
+                "messageId": "msg2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "body": json.dumps(
+                    {
+                        "organisation": {"id": "org2", "name": "Test Org 2"},
+                        "correlation_id": "corr-123",
+                        "request_id": "req-456",
+                    }
+                ),
+            },
+        ]
+    }
+
+    result = transformer_lambda_handler(event, {})
+
+    assert len(result["batchItemFailures"]) == 1
+
+    # Verify BATCH_COMPLETE log shows partial failure
+    complete_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_TRANSFORMER_BATCH_COMPLETE"
+    ]
+    assert len(complete_call) == 1
+    assert str(complete_call[0][1]["total_records"]) == "2"
+    assert str(complete_call[0][1]["successful_count"]) == "1"
+    assert str(complete_call[0][1]["failed_count"]) == "1"
+    assert complete_call[0][1]["batch_status"] == "completed_with_failures"
