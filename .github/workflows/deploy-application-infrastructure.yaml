@@ -62,15 +62,6 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
-      SPLUNK_COLLECTOR_URL:
-        description: "The base url for splunk collector"
-        required: false
-      SPLUNK_HEC_ENDPOINT:
-        description: "The HEC endpoint for splunk"
-        required: false
-      SPLUNK_HEC_TOKEN:
-        description: "The HEC token for splunk"
-        required: false
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -103,9 +94,6 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
-      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
-      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
-      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
@@ -152,9 +140,6 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
-      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
-      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
-      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   deploy_summary:
     name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"
