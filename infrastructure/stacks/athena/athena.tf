@@ -13,7 +13,7 @@ resource "aws_athena_workgroup" "athena_workgroup" {
       output_location = "s3://${module.athena_output_bucket[0].s3_bucket_id}/results/"
       encryption_configuration {
         encryption_option = "SSE_KMS"
-        kms_key_arn       = data.aws_kms_key.athena_kms_key.arn
+        kms_key_arn       = data.aws_kms_key.athena_kms_key[0].arn
       }
     }
   }

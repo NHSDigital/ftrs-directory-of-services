@@ -24,7 +24,7 @@ module "athena_output_bucket" {
   source                = "../../modules/s3"
   bucket_name           = "${local.resource_prefix}-output"
   enable_kms_encryption = true
-  s3_encryption_key_arn = data.aws_kms_key.s3_kms_key.arn
+  s3_encryption_key_arn = data.aws_kms_key.s3_kms_key[0].arn
 
   lifecycle_rule_inputs = [
     {
