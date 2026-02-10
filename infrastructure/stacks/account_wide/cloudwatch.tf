@@ -102,13 +102,6 @@ resource "aws_cloudwatch_log_resource_policy" "regional_waf_log_group_policy" {
   policy_name     = "${local.resource_prefix}-${var.regional_waf_log_group_policy_name}"
 }
 
-resource "aws_wafv2_web_acl_logging_configuration" "regional_waf_logging_configuration" {
-  log_destination_configs = [aws_cloudwatch_log_group.regional_waf_log_group.arn]
-  resource_arn            = aws_wafv2_web_acl.regional_waf_web_acl.arn
-
-  depends_on = [aws_cloudwatch_log_resource_policy.regional_waf_log_group_policy]
-}
-
 resource "aws_cloudwatch_log_group" "firehose_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
   name              = "${local.resource_prefix}-${var.firehose_log_group_name}"
