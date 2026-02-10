@@ -24,12 +24,12 @@ runs:
         EOF
         )
 
-        aws ssm send-command \
+        COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters "{\"commands\": $COMMANDS}" \
             --query "Command.CommandId" \
-            --output text
+            --output text)
 
         echo "command_id (Clear Lock File)=$COMMAND_ID"
         echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
