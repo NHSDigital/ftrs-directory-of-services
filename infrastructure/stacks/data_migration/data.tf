@@ -256,6 +256,10 @@ data "aws_kms_key" "dms_kms_alias" {
   key_id = local.kms_aliases.dms
 }
 
+data "aws_kms_key" "rds_kms_alias" {
+  key_id = local.kms_aliases.rds
+}
+
 # AppConfig SSM Parameters
 data "aws_ssm_parameter" "appconfig_application_id" {
   name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
