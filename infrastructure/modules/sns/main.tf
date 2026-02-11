@@ -1,25 +1,21 @@
-resource "aws_sns_topic" "topic" {
+module "sns_topic" {
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=84b777952d08caa7ce06a4ef53aafdcc03cfc165"
+
   name              = var.topic_name
   display_name      = var.display_name
   kms_master_key_id = var.kms_key_id
 
+  topic_policy_statements = {
+    cloudwatch = {
+      actions = ["SNS:Publish"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["cloudwatch.amazonaws.com"]
+      }]
+    }
+  }
+
+  subscriptions = var.subscriptions
+
   tags = var.tags
-}
-
-resource "aws_sns_topic_policy" "topic_policy" {
-  arn = aws_sns_topic.topic.arn
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "cloudwatch.amazonaws.com"
-        }
-        Action   = "SNS:Publish"
-        Resource = aws_sns_topic.topic.arn
-      }
-    ]
-  })
 }

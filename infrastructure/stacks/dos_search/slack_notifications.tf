@@ -48,10 +48,3 @@ module "slack_notification_lambda" {
 
   policy_jsons = []
 }
-
-# SNS subscription for Slack notification Lambda
-resource "aws_sns_topic_subscription" "slack_notification" {
-  topic_arn = module.sns.topic_arn
-  protocol  = "lambda"
-  endpoint  = module.slack_notification_lambda.lambda_function_arn
-}

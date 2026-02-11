@@ -1,9 +1,9 @@
 output "topic_arn" {
   description = "ARN of the SNS topic"
-  value       = aws_sns_topic.topic.arn
+  value       = module.sns_topic.topic_arn
 }
 
 output "topic_name" {
   description = "Name of the SNS topic"
-  value       = aws_sns_topic.topic.name
+  value       = module.sns_topic.topic_name
 }

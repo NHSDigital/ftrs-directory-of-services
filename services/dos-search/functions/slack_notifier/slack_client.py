@@ -16,13 +16,13 @@ SUCCESS_STATUS_CODE = 200
 
 def get_slack_webhook_url() -> str:
     """
-    Retrieve Slack webhook URL from environment variable.
+    Retrieve Slack webhook alarms URL from environment variable.
 
     Returns:
-        str: The Slack webhook URL
+        str: The Slack webhook alarms URL
 
     Raises:
-        ValueError: If SLACK_WEBHOOK_URL environment variable is not set
+        ValueError: If SLACK_WEBHOOK_ALARMS_URL environment variable is not set
     """
 
     webhook_url = os.environ.get("SLACK_WEBHOOK_ALARMS_URL", "").strip()

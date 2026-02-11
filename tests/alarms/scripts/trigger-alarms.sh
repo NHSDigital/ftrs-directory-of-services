@@ -64,7 +64,7 @@ case "$ALARM_TYPE" in
       echo "Invocation $i/$ITERATIONS"
       aws lambda invoke \
         --function-name "$LAMBDA_NAME" \
-        --payload '{"invalid":"event"}' \
+        --payload '{"httpMethod":"GET","path":"/invalid","queryStringParameters":{"invalid":"param"}}' \
         --cli-binary-format raw-in-base64-out \
         $PROFILE_ARG \
         /dev/null 2>&1 || true
@@ -83,13 +83,14 @@ case "$ALARM_TYPE" in
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
-          --payload '{"odsCode": "TEST123"}' \
+          --payload '{"httpMethod":"GET","path":"/search","queryStringParameters":{"odsCode":"TEST123"}}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 || true
       else
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
+          --payload '{"httpMethod":"GET","path":"/_status"}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 || true
@@ -107,13 +108,14 @@ case "$ALARM_TYPE" in
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
-          --payload '{"odsCode": "TEST123"}' \
+          --payload '{"httpMethod":"GET","path":"/search","queryStringParameters":{"odsCode":"TEST123"}}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 || true
       else
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
+          --payload '{"httpMethod":"GET","path":"/_status"}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 || true
@@ -131,13 +133,14 @@ case "$ALARM_TYPE" in
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
-          --payload '{"odsCode": "TEST123"}' \
+          --payload '{"httpMethod":"GET","path":"/search","queryStringParameters":{"odsCode":"TEST123"}}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 &
       else
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
+          --payload '{"httpMethod":"GET","path":"/_status"}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 &
@@ -159,7 +162,7 @@ case "$ALARM_TYPE" in
     for i in $(seq 1 "$ITERATIONS"); do
       aws lambda invoke \
         --function-name "$LAMBDA_NAME" \
-        --payload '{"odsCode": "TEST123"}' \
+        --payload '{"httpMethod":"GET","path":"/search","queryStringParameters":{"odsCode":"TEST123"}}' \
         --cli-binary-format raw-in-base64-out \
         $PROFILE_ARG \
         /dev/null 2>&1 &
@@ -178,13 +181,14 @@ case "$ALARM_TYPE" in
       if [ "$LAMBDA_TYPE" = "search" ]; then
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
-          --payload '{"odsCode": "TEST123"}' \
+          --payload '{"httpMethod":"GET","path":"/search","queryStringParameters":{"odsCode":"TEST123"}}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 &
       else
         aws lambda invoke \
           --function-name "$LAMBDA_NAME" \
+          --payload '{"httpMethod":"GET","path":"/_status"}' \
           --cli-binary-format raw-in-base64-out \
           $PROFILE_ARG \
           /dev/null 2>&1 &

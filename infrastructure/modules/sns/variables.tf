@@ -18,3 +18,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "subscriptions" {
+  description = "Map of subscriptions (SQS, Lambda, etc.)"
+  type        = map(any)
+  default     = {}
+}

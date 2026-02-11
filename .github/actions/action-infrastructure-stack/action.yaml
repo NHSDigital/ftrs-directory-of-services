@@ -56,11 +56,5 @@ runs:
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
       run: |
-        echo "DEBUG: slack_webhook_alarms_url input length: ${#SLACK_INPUT}"
-        if [ -n "${{ inputs.slack_webhook_alarms_url }}" ]; then
-          echo "DEBUG: Secret is set (length: $(echo -n '${{ inputs.slack_webhook_alarms_url }}' | wc -c))"
-        else
-          echo "DEBUG: Secret is empty or not set"
-        fi
         export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
         /bin/bash ./scripts/workflow/action-infra-stack.sh
