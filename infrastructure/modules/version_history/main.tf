@@ -36,50 +36,10 @@ module "version_history_lambda" {
   cloudwatch_logs_retention = var.lambda_logs_retention
 }
 
-resource "aws_lambda_event_source_mapping" "version_history_organisation_stream" {
-  event_source_arn        = var.organisation_stream_arn
-  function_name           = module.version_history_lambda.lambda_function_name
-  starting_position       = "LATEST"
-  batch_size              = var.batch_size
-  enabled                 = true
-  function_response_types = ["ReportBatchItemFailures"]
+resource "aws_lambda_event_source_mapping" "version_history_streams" {
+  for_each = var.table_streams
 
-  filter_criteria {
-    filter {
-      pattern = jsonencode({
-        eventName = ["MODIFY"]
-      })
-    }
-  }
-
-  depends_on = [
-    module.version_history_lambda
-  ]
-}
-
-resource "aws_lambda_event_source_mapping" "version_history_location_stream" {
-  event_source_arn        = var.location_stream_arn
-  function_name           = module.version_history_lambda.lambda_function_name
-  starting_position       = "LATEST"
-  batch_size              = var.batch_size
-  enabled                 = true
-  function_response_types = ["ReportBatchItemFailures"]
-
-  filter_criteria {
-    filter {
-      pattern = jsonencode({
-        eventName = ["MODIFY"]
-      })
-    }
-  }
-
-  depends_on = [
-    module.version_history_lambda
-  ]
-}
-
-resource "aws_lambda_event_source_mapping" "version_history_healthcare_service_stream" {
-  event_source_arn        = var.healthcare_service_stream_arn
+  event_source_arn        = each.value.stream_arn
   function_name           = module.version_history_lambda.lambda_function_name
   starting_position       = "LATEST"
   batch_size              = var.batch_size
@@ -123,9 +83,7 @@ data "aws_iam_policy_document" "dynamodb_stream_access_policy" {
       "dynamodb:ListStreams"
     ]
     resources = [
-      "${var.organisation_table_arn}/stream/*",
-      "${var.location_table_arn}/stream/*",
-      "${var.healthcare_service_table_arn}/stream/*"
+      for table in var.table_streams : "${table.table_arn}/stream/*"
     ]
   }
 }

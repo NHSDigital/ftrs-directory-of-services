@@ -64,16 +64,23 @@ module "version_history" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.version_history_lambda_security_group[0].id]
 
-  version_history_table_name = "${local.project_prefix}-database-version-history${local.workspace_suffix}"
-  version_history_table_arn  = module.version_history_table[0].dynamodb_table_arn
+  version_history_table_name = module.dynamodb_tables["version-history"].dynamodb_table_id
+  version_history_table_arn  = module.dynamodb_tables["version-history"].dynamodb_table_arn
 
-  organisation_stream_arn       = module.dynamodb_tables["organisation"].dynamodb_table_stream_arn
-  location_stream_arn           = module.dynamodb_tables["location"].dynamodb_table_stream_arn
-  healthcare_service_stream_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_stream_arn
-
-  organisation_table_arn       = module.dynamodb_tables["organisation"].dynamodb_table_arn
-  location_table_arn           = module.dynamodb_tables["location"].dynamodb_table_arn
-  healthcare_service_table_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_arn
+  table_streams = {
+    organisation = {
+      stream_arn = module.dynamodb_tables["organisation"].dynamodb_table_stream_arn
+      table_arn  = module.dynamodb_tables["organisation"].dynamodb_table_arn
+    }
+    location = {
+      stream_arn = module.dynamodb_tables["location"].dynamodb_table_stream_arn
+      table_arn  = module.dynamodb_tables["location"].dynamodb_table_arn
+    }
+    healthcare-service = {
+      stream_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_stream_arn
+      table_arn  = module.dynamodb_tables["healthcare-service"].dynamodb_table_arn
+    }
+  }
 
   environment    = var.environment
   workspace      = terraform.workspace == "default" ? "" : terraform.workspace

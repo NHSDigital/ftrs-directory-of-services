@@ -83,34 +83,12 @@ variable "version_history_table_arn" {
   type        = string
 }
 
-variable "organisation_stream_arn" {
-  description = "The DynamoDB stream ARN for the organisation table"
-  type        = string
-}
-
-variable "location_stream_arn" {
-  description = "The DynamoDB stream ARN for the location table"
-  type        = string
-}
-
-variable "healthcare_service_stream_arn" {
-  description = "The DynamoDB stream ARN for the healthcare-service table"
-  type        = string
-}
-
-variable "organisation_table_arn" {
-  description = "The ARN of the organisation table"
-  type        = string
-}
-
-variable "location_table_arn" {
-  description = "The ARN of the location table"
-  type        = string
-}
-
-variable "healthcare_service_table_arn" {
-  description = "The ARN of the healthcare-service table"
-  type        = string
+variable "table_streams" {
+  description = "Map of table names to their DynamoDB stream ARNs"
+  type = map(object({
+    stream_arn = string
+    table_arn  = string
+  }))
 }
 
 variable "environment" {
