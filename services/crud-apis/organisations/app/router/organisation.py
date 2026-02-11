@@ -55,6 +55,13 @@ def _get_organization_query_params(
     return OrganizationQueryParams(identifier=identifier)
 
 
+@router.get("/_status")
+def get_status() -> Response:
+    table_active = organisation_service.check_if_table_active()
+    status_code = 200 if table_active else 500
+    return Response(status_code=status_code)
+
+
 @router.get(
     "/Organization",
     summary="Get organisation uuid by ods_code or read all organisations",

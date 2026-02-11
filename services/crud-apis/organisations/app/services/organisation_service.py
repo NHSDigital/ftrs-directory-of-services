@@ -29,6 +29,20 @@ class OrganisationService:
         self.logger = logger or Logger.get(service="crud_organisation_logger")
         self.organisation_mapper = mapper or OrganizationMapper()
 
+    def check_if_table_active(self) -> bool:
+        try:
+            table = self.org_repository.table
+            table_status: str = table.table_status
+        except Exception as exc:
+            self.logger.warning(
+                "Health check failed",
+                exception_type=exc.__class__.__name__,
+                exception=str(exc),
+            )
+            return False
+        else:
+            return table_status == "ACTIVE"
+
     def process_organisation_update(
         self,
         organisation_id: str,
