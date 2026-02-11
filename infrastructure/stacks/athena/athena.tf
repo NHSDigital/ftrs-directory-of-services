@@ -82,7 +82,7 @@ resource "aws_serverlessapplicationrepository_cloudformation_stack" "rds_connect
     DefaultConnectionString = "postgres://jdbc:postgresql://${local.rds_secret.host}:${local.rds_secret.port}/${local.rds_secret.dbname}?$${${data.aws_secretsmanager_secret.target_rds_credentials[0].name}}"
     SecretNamePrefix        = "/${var.project}/${var.environment}/${var.target_rds_credentials}"
     LambdaFunctionName      = "${local.resource_prefix}-rds-connector"
-    SecurityGroupIds        = data.aws_security_group.athena_rds_connector_sg.id
+    SecurityGroupIds        = data.aws_security_group.athena_rds_connector_sg[0].id
     SubnetIds               = join(",", data.aws_subnets.private_subnets.ids)
   }
 
