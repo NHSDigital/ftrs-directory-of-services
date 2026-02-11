@@ -78,7 +78,7 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
           "dynamodb:Scan",
           "dynamodb:PartiQLSelect"
         ],
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.account_prefix}-*"
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/*"
       },
       # checkov:skip=CKV_AWS_355: Justification: S3 DynamoDB list tables
       # checkov:skip=CKV_AWS_290: Justification: S3 DynamoDB list tables

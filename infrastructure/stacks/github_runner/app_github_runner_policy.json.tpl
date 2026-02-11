@@ -23,6 +23,7 @@
                 "resource-groups:*",
                 "dynamodb:*",
                 "rds:*",
+                "athena:*",
                 "dms:*",
                 "glue:*"
             ],
@@ -139,6 +140,7 @@
             "Resource": [
                 "arn:aws:iam::*:role/${repo_name}-*",
                 "arn:aws:iam::*:role/${project}-*",
+                "arn:aws:iam::*:role/serverlessrepo-${project}-*",
                 "arn:aws:iam::*:policy/${project}-*",
                 "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess",
                 "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield",

@@ -32,7 +32,7 @@ data "aws_lambda_function" "rds_lambda_connector" {
 }
 
 data "aws_security_group" "dms_replication_security_group" {
-  name = "${local.project_prefix}-account-wide-etl-replication-sg"
+  name = "${local.project_prefix}-data-migration-rds-sg"
 }
 
 data "aws_secretsmanager_secret" "target_rds_credentials" {
