@@ -27,7 +27,8 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource = "*",
+      Condition = {}
     },
     {
       Sid    = "AllowGitHubRunnerAccess"
@@ -44,7 +45,8 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource = "*",
+      Condition = {}
     },
     {
       Sid    = "AllowAthenaConnectorSecretsAccess"
@@ -56,7 +58,7 @@ module "secrets_manager_encryption_key" {
         "kms:Decrypt",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource = "*",
       Condition = {
         ArnLike = {
           "aws:PrincipalArn" = [
