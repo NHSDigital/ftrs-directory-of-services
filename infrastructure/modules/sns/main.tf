@@ -1,5 +1,6 @@
 module "sns_topic" {
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=84b777952d08caa7ce06a4ef53aafdcc03cfc165"
+  #Module version: 6.2.1
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=544e3127146aa77a349b8b84a792b196f19d609a"
 
   name              = var.topic_name
   display_name      = var.display_name
