@@ -73,11 +73,6 @@ variable "security_group_ids" {
   type        = list(string)
 }
 
-variable "version_history_table_name" {
-  description = "The name of the version history DynamoDB table"
-  type        = string
-}
-
 variable "version_history_table_arn" {
   description = "The ARN of the version history DynamoDB table"
   type        = string

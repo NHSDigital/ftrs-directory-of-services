@@ -1,18 +1,15 @@
 """Lambda handler for version history tracking."""
 
-import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_table_name
 from ftrs_data_layer.client import get_dynamodb_resource
 
 LOGGER = Logger.get(service="version-history")
-
-# Initialize DynamoDB resource
-version_history_table_name = os.environ.get("VERSION_HISTORY_TABLE_NAME", "")
 
 
 @LOGGER.inject_lambda_context
@@ -29,13 +26,10 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
     """
     LOGGER.info("Version history lambda invoked - writing test data")
 
-    if not version_history_table_name:
-        LOGGER.error("VERSION_HISTORY_TABLE_NAME environment variable not set")
-        return {"batchItemFailures": []}
-
     try:
-        # Get DynamoDB resource
+        # Get DynamoDB resource and table
         dynamodb = get_dynamodb_resource()
+        version_history_table_name = get_table_name("version-history")
         table = dynamodb.Table(version_history_table_name)
 
         # Create test data

@@ -23,10 +23,9 @@ module "version_history_lambda" {
   layers = var.lambda_layers
 
   environment_variables = {
-    "ENVIRONMENT"                = var.environment
-    "WORKSPACE"                  = var.workspace
-    "PROJECT_NAME"               = var.project
-    "VERSION_HISTORY_TABLE_NAME" = var.version_history_table_name
+    "ENVIRONMENT"  = var.environment
+    "WORKSPACE"    = var.workspace
+    "PROJECT_NAME" = var.project
   }
   account_id     = var.account_id
   account_prefix = var.account_prefix

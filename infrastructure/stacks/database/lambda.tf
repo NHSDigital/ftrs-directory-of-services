@@ -64,8 +64,7 @@ module "version_history" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [aws_security_group.version_history_lambda_security_group[0].id]
 
-  version_history_table_name = module.dynamodb_tables["version-history"].dynamodb_table_id
-  version_history_table_arn  = module.dynamodb_tables["version-history"].dynamodb_table_arn
+  version_history_table_arn = module.dynamodb_tables["version-history"].dynamodb_table_arn
 
   table_streams = {
     organisation = {
