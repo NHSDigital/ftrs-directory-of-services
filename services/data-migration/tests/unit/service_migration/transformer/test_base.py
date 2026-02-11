@@ -535,7 +535,6 @@ def test_build_healthcare_service(
         ],
         dispositions=["DX115", "DX12"],
         ageEligibilityCriteria=None,
-        genderEligibilityCriteria=None,
     )
 
 

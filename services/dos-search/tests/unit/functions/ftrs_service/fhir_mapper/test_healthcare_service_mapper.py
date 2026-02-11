@@ -25,7 +25,6 @@ def mock_healthcare_service() -> MagicMock:
     mock.providedBy = "org-123"
     mock.location = "loc-123"
     mock.endpoint = None
-    mock.genderEligibilityCriteria = None
 
     # Mock category
     mock_category = MagicMock()
@@ -61,7 +60,6 @@ def mock_healthcare_service_minimal() -> MagicMock:
     mock.type = None
     mock.telecom = None
     mock.endpoint = None
-    mock.genderEligibilityCriteria = None
     return mock
 
 
@@ -405,82 +403,3 @@ class TestHealthcareServiceMapper:
         assert len(result.type) == 1
         assert result.type[0].coding[0].code == "GP Consultation Service"
         assert result.type[0].coding[0].display == "GP Consultation Service"
-
-
-class TestHealthcareServiceMapperEligibilityCriteria:
-    """Tests for the _create_eligibility_criteria method."""
-
-    def test_create_eligibility_criteria_with_gender(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service: MagicMock,
-    ) -> None:
-        # Arrange
-        mock_gender = MagicMock()
-        mock_gender.value = "Female"
-        mock_healthcare_service.genderEligibilityCriteria = mock_gender
-
-        # Act
-        result = healthcare_service_mapper._create_eligibility_criteria(
-            mock_healthcare_service
-        )
-
-        # Assert
-        assert len(result) == 1
-        assert result[0].coding[0].system == "http://hl7.org/fhir/administrative-gender"
-        assert result[0].coding[0].code == "female"
-        assert result[0].coding[0].display == "Female"
-
-    def test_create_eligibility_criteria_with_male_gender(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service: MagicMock,
-    ) -> None:
-        # Arrange
-        mock_gender = MagicMock()
-        mock_gender.value = "Male"
-        mock_healthcare_service.genderEligibilityCriteria = mock_gender
-
-        # Act
-        result = healthcare_service_mapper._create_eligibility_criteria(
-            mock_healthcare_service
-        )
-
-        # Assert
-        assert len(result) == 1
-        assert result[0].coding[0].code == "male"
-        assert result[0].coding[0].display == "Male"
-
-    def test_create_eligibility_criteria_without_value_attribute(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service: MagicMock,
-    ) -> None:
-        # Arrange - use a string instead of an object with .value
-        mock_healthcare_service.genderEligibilityCriteria = "Other"
-
-        # Act
-        result = healthcare_service_mapper._create_eligibility_criteria(
-            mock_healthcare_service
-        )
-
-        # Assert
-        assert len(result) == 1
-        assert result[0].coding[0].code == "other"
-        assert result[0].coding[0].display == "Other"
-
-    def test_create_eligibility_criteria_no_gender(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service_minimal: MagicMock,
-    ) -> None:
-        # Arrange
-        mock_healthcare_service_minimal.genderEligibilityCriteria = None
-
-        # Act
-        result = healthcare_service_mapper._create_eligibility_criteria(
-            mock_healthcare_service_minimal
-        )
-
-        # Assert
-        assert result == []

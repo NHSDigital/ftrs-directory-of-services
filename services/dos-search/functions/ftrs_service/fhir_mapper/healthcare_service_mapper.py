@@ -60,32 +60,6 @@ class HealthcareServiceMapper:
             return [{"reference": f"Location/{healthcare_service.location}"}]
         return []
 
-    def _create_eligibility_criteria(
-        self, healthcare_service: HealthcareService
-    ) -> list[dict[str, str]]:
-        if not healthcare_service.genderEligibilityCriteria:
-            return []
-
-        gender_value = (
-            healthcare_service.genderEligibilityCriteria.value
-            if hasattr(healthcare_service.genderEligibilityCriteria, "value")
-            else str(healthcare_service.genderEligibilityCriteria)
-        )
-
-        return [
-            CodeableConcept.model_validate(
-                {
-                    "coding": [
-                        {
-                            "system": "http://hl7.org/fhir/administrative-gender",
-                            "code": gender_value.lower(),
-                            "display": gender_value,
-                        }
-                    ],
-                }
-            )
-        ]
-
     def _create_endpoint_references(
         self, healthcare_service: HealthcareService
     ) -> list[dict[str, str]]:

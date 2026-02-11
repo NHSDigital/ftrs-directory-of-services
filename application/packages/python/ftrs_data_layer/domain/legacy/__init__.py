@@ -14,7 +14,6 @@ from .service import (
     ServiceDayOpeningTime,
     ServiceDisposition,
     ServiceEndpoint,
-    ServiceGender,
     ServiceSGSD,
     ServiceSpecifiedOpeningDate,
     ServiceSpecifiedOpeningTime,
@@ -40,5 +39,4 @@ __all__ = [
     "Disposition",
     "ServiceDisposition",
     "ServiceAgeRange",
-    "ServiceGender",
 ]

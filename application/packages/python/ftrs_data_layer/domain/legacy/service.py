@@ -65,18 +65,6 @@ class Service(LegacyDoSModel, table=True):
         sa_relationship_kwargs={"order_by": "ServiceAgeRange.id"}
     )
 
-    genders: list["ServiceGender"] = Relationship(
-        sa_relationship_kwargs={"order_by": "ServiceGender.id"}
-    )
-
-
-class ServiceGender(LegacyDoSModel, table=True):
-    __tablename__ = "servicegenders"
-
-    id: int = Field(primary_key=True)
-    serviceid: int = Field(foreign_key="services.id")
-    genderid: int
-
 
 class ServiceType(LegacyDoSModel, table=True):
     __tablename__ = "servicetypes"

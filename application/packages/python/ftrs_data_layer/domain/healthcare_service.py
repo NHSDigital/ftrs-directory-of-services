@@ -7,7 +7,6 @@ from ftrs_data_layer.domain.clinical_code import (
     SymptomGroupSymptomDiscriminatorPair,
 )
 from ftrs_data_layer.domain.enums import (
-    Gender,
     HealthcareServiceCategory,
     HealthcareServiceType,
     TimeUnit,
@@ -42,4 +41,3 @@ class HealthcareService(DBModel):
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[str]
     ageEligibilityCriteria: list[AgeRangeType] | None = None
-    genderEligibilityCriteria: list[Gender] | None = None
