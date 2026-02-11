@@ -522,10 +522,10 @@ paths:
                     diagnostics: "HealthcareService resource with id '55393ec4-198f-42dd-9507-f4fa5e9ebf80' not found"
                     details:
                       coding:
-                        - system: "http://terminology.hl7.org/CodeSystem/operation-outcome"
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
                           version: "1"
-                          code: "NOT_FOUND"
-                          display: "Not Found"
+                          code: "RESOURCE_NOT_FOUND"
+                          display: "Resource not found"
         '400':
           description: Bad request
           content:
@@ -542,8 +542,8 @@ paths:
                       coding:
                         - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
                           version: "1"
-                          code: "INVALID_SEARCH_DATA"
-                          display: "Invalid search data"
+                          code: "INVALID_RESOURCE_ID"
+                          display: "Invalid resource ID"
         '401':
           description: Unauthorized
           content:
@@ -558,10 +558,10 @@ paths:
                     diagnostics: "Invalid or missing authentication token"
                     details:
                       coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
                           version: "1"
-                          code: "UNAUTHORIZED"
-                          display: "Unauthorized"
+                          code: "ACCESS_DENIED"
+                          display: "Access has been denied to process this request"
         '500':
           description: Internal server error
           content:
@@ -762,10 +762,10 @@ paths:
                     diagnostics: "Invalid or missing authentication token"
                     details:
                       coding:
-                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
                           version: "1"
-                          code: "UNAUTHORIZED"
-                          display: "Unauthorized"
+                          code: "ACCESS_DENIED"
+                          display: "Access has been denied to process this request"
         '500':
           description: Internal server error
           content:
