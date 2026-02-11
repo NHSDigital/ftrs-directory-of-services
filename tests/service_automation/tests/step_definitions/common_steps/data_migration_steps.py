@@ -20,6 +20,7 @@ from utilities.common.constants import (
 from utilities.common.data_migration_shared_steps import (
     get_state_record_by_id,
 )
+from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.log_helper import (
     get_mock_logger_from_context,
     verify_error_log_present,
@@ -525,11 +526,7 @@ def verify_no_records_in_table(
     table_name: str,
 ) -> None:
     """Verify that a DynamoDB table contains no records."""
-    environment = os.getenv(ENV_ENVIRONMENT)
-    workspace = os.getenv(ENV_WORKSPACE)
-
-    full_table_name = f"ftrs-dos-{environment}-database-{table_name}-{workspace}"
-
+    full_table_name = get_table_name(table_name)
     client = dynamodb[DYNAMODB_CLIENT]
     response = client.scan(TableName=full_table_name)
 

@@ -9,7 +9,7 @@ set -e
 export ENV="${ENV:-dev}"
 
 # Check required environment variables
-if [ -z "$FUNCTION_NAME" ] ; then
+if [[ -z "$FUNCTION_NAME" ]] ; then
   echo "ERROR: FUNCTION_NAME is not set. Please export FUNCTION_NAME."
   exit 1
 fi
@@ -23,7 +23,7 @@ lambda_status=$(aws lambda invoke \
 # Check if the invocation was successful by parsing the status code
 status_code=$(echo "$lambda_status" | jq -r '.StatusCode')
 
-if [ "$status_code" -ne 202 ]; then
+if [[ "$status_code" -ne 202 ]]; then
   echo "Lambda function invocation failed with status code $status_code"
   echo "Response: $lambda_status"
   exit 1

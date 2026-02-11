@@ -15,14 +15,17 @@ NC='\033[0m' # No Color
 # Logging functions
 log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
+    return 0
 }
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1" >&2
+    return 0
 }
 
 log_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
+    return 0
 }
 
 # Function to display usage

@@ -27,7 +27,8 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource  = "*"
+      Condition = {}
     },
     {
       Sid    = "AllowGitHubRunnerAccess"
@@ -44,7 +45,27 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
+      Resource  = "*"
+      Condition = {}
+    },
+    {
+      Sid    = "AllowAthenaConnectorSecretsAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = ["*"]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ]
       Resource = "*"
+      Condition = {
+        ArnLike = {
+          "aws:PrincipalArn" = [
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/serverlessrepo-${local.project_prefix}-*"
+          ]
+        }
+      }
     }
   ]
 }
