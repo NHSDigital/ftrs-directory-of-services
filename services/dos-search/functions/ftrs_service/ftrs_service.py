@@ -68,7 +68,7 @@ class FtrsService:
                     "Retrieving healthcare services for organisation",
                     organization_id=id,
                 )
-                healthcare_services.append(
+                healthcare_services.extend(
                     self.healthcare_service_repository.get_records_by_provided_by(
                         str(id)
                     )
