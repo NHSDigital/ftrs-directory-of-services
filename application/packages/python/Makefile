@@ -74,7 +74,9 @@ lint-fix:
 	poetry run ruff format
 
 unit-test:
-	poetry run pytest
+	poetry run pytest --cov-report xml:coverage-$(PACKAGE).xml
+
+coverage: unit-test
 
 publish:
 	@echo "Publishing Python packages layer to $(ARTEFACT_DEVELOPMENT_PATH)..."

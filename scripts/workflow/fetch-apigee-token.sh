@@ -5,17 +5,17 @@ set -euo pipefail
 # Fetch and export Apigee access token via Proxygen
 # Usage: API_NAME=<api_name> ACCESS_TOKEN=<access_token> PROXYGEN_BASE_URL=<proxygen_base_url> fetch-apigee-token.sh
 
-if [ -z "${ACCESS_TOKEN}" ]; then
+if [[ -z "${ACCESS_TOKEN}" ]]; then
   echo "ACCESS_TOKEN environment variable is required" >&2
   exit 1
 fi
 
-if [ -z "${API_NAME}" ]; then
+if [[ -z "${API_NAME}" ]]; then
   echo "API_NAME environment variable is required" >&2
   exit 1
 fi
 
-if [ -z "${PROXYGEN_BASE_URL}" ]; then
+if [[ -z "${PROXYGEN_BASE_URL}" ]]; then
   echo "PROXYGEN_BASE_URL environment variable is required" >&2
   exit 1
 fi
