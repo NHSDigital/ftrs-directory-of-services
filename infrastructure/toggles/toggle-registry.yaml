@@ -69,7 +69,7 @@ stack_toggles:
       workspace: false
       dev: true
       test: true
-      int: true
+      int: false
       ref: true
       prod: false
 
