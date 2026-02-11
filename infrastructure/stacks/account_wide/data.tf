@@ -37,3 +37,28 @@ data "aws_subnet" "vpc_private_subnets_by_count" {
   count = length(module.vpc.private_subnets)
   id    = module.vpc.private_subnets[count.index]
 }
+
+data "aws_iam_policy_document" "regional_waf_log_group_policy_document" {
+  version = "2012-10-17"
+  statement {
+    effect = "Allow"
+    principals {
+      identifiers = ["delivery.logs.amazonaws.com"]
+      type        = "Service"
+    }
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = [
+      "arn:aws:logs:${var.aws_region}:${local.account_id}:log-group:${var.waf_log_group_name_prefix}${local.account_prefix}-${var.regional_waf_log_group}:log-stream:*"
+    ]
+    condition {
+      test     = "ArnLike"
+      values   = ["arn:aws:logs:${var.aws_region}:${local.account_id}:*"]
+      variable = "aws:SourceArn"
+    }
+    condition {
+      test     = "StringEquals"
+      values   = [tostring(local.account_id)]
+      variable = "aws:SourceAccount"
+    }
+  }
+}

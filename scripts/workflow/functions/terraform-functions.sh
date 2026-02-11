@@ -31,6 +31,7 @@ function terraform-initialise {
           -backend-config="key=$TERRAFORM_STATE_KEY" \
           -backend-config="region=$AWS_REGION"
     fi
+    return 0
 }
 
 function terraform-init-migrate {
@@ -50,5 +51,5 @@ function terraform-init-migrate {
         -backend-config="encrypt=true" \
         -backend-config="key=$TERRAFORM_STATE_KEY" \
         -backend-config="region=$AWS_REGION"
-
+    return 0
 }

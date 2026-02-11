@@ -1,3 +1,8 @@
+from src.models.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+    SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
+)
 from src.router.responses import (
     ERROR_INVALID_IDENTIFIER_SYSTEM,
     ERROR_INVALID_IDENTIFIER_VALUE,
@@ -22,10 +27,13 @@ class TestResponses:
         assert len(SUCCESS_BUNDLE_ABC123["link"]) == 1
         assert SUCCESS_BUNDLE_ABC123["link"][0]["relation"] == "self"
         assert (
-            "Organization?identifier=odsOrganisationCode|ABC123"
+            f"Organization?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}"
             in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
         )
-        assert "_revinclude=Endpoint:organization" in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
+        assert (
+            f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
+            in SUCCESS_BUNDLE_ABC123["link"][0]["url"]
+        )
 
     def test_success_bundle_abc123_has_three_entries(self):
         """Test that SUCCESS_BUNDLE_ABC123 has exactly 3 entries (1 org + 2 endpoints)"""
@@ -42,7 +50,7 @@ class TestResponses:
         assert org_entry["resource"]["identifier"][0]["value"] == "ABC123"
         assert (
             org_entry["resource"]["identifier"][0]["system"]
-            == "https://fhir.nhs.uk/Id/ods-organization-code"
+            == ODS_ORG_CODE_IDENTIFIER_SYSTEM
         )
         assert org_entry["resource"]["active"] is True
         assert org_entry["resource"]["name"] == "Example Organization"
@@ -123,7 +131,10 @@ class TestResponses:
         assert issue["severity"] == "error"
         assert issue["code"] == "value"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
-        assert "_revinclude=Endpoint:organization" in issue["diagnostics"]
+        assert (
+            f"_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
+            in issue["diagnostics"]
+        )
 
     def test_error_invalid_identifier_system_structure(self):
         """Test that ERROR_INVALID_IDENTIFIER_SYSTEM has the correct structure"""
@@ -141,7 +152,7 @@ class TestResponses:
         assert issue["code"] == "code-invalid"
         assert issue["details"]["coding"][0]["code"] == "INVALID_SEARCH_DATA"
         assert "Invalid identifier system" in issue["diagnostics"]
-        assert "odsOrganisationCode" in issue["diagnostics"]
+        assert ODS_ORG_CODE_IDENTIFIER_SYSTEM in issue["diagnostics"]
 
     def test_all_errors_use_spine_error_coding(self):
         """Test that all error responses use UKCore-SpineErrorOrWarningCode"""
@@ -155,24 +166,24 @@ class TestResponses:
         # Assert
         for error in errors:
             coding = error["issue"][0]["details"]["coding"][0]
-            assert (
-                coding["system"]
-                == "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-            )
+            assert coding["system"] == SPINE_ERROR_OR_WARNING_CODE_SYSTEM
             assert coding["version"] == "1.0.0"
 
-    def test_success_bundle_organization_has_contact_info(self):
-        """Test that organization in SUCCESS_BUNDLE_ABC123 has telecom and address"""
+    def test_success_bundle_organization_has_no_telecom(self):
+        """Test that organization in SUCCESS_BUNDLE_ABC123 has no telecom field"""
         # Arrange
         org = SUCCESS_BUNDLE_ABC123["entry"][0]["resource"]
 
         # Assert
-        assert len(org["telecom"]) == 2
-        assert org["telecom"][0]["system"] == "phone"
-        assert org["telecom"][1]["system"] == "email"
-        assert len(org["address"]) == 1
-        assert org["address"][0]["city"] == "Example City"
-        assert org["address"][0]["postalCode"] == "AB12 3CD"
+        assert "telecom" not in org
+
+    def test_success_bundle_organization_has_no_address(self):
+        """Test that organization in SUCCESS_BUNDLE_ABC123 has no address field"""
+        # Arrange
+        org = SUCCESS_BUNDLE_ABC123["entry"][0]["resource"]
+
+        # Assert
+        assert "address" not in org
 
     def test_success_bundle_endpoints_have_payload_types(self):
         """Test that endpoints have payload type and mime type"""
