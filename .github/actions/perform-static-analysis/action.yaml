@@ -11,6 +11,9 @@ inputs:
   sonar_token:
     description: "Sonar token, the API key"
     required: false
+  python_version:
+    description: "Python version for SonarCloud analysis"
+    required: true
 
 runs:
   using: "composite"
@@ -26,26 +29,7 @@ runs:
       id: coverage-files
       shell: bash
       run: |
-        echo "=== Downloaded artifact structure ==="
-        find coverage-artifacts -type f -o -type d 2>/dev/null | head -50 || echo "No artifacts found"
-
-        # Create flat coverage directory with actual XML files
-        mkdir -p coverage
-
-        # Handle both direct XML files and zipped XML files
-        find coverage-artifacts -type f -name '*.xml' -exec cp {} coverage/ \;
-        find coverage-artifacts -type f -name '*.xml.zip' -exec sh -c 'unzip -o -j "$1" -d coverage/' _ {} \;
-
-        echo "=== Flattened coverage directory ==="
-        ls -la coverage/ || echo "No coverage files found"
-
-        # Build comma-separated list of coverage files
-        FILES=$(find coverage -maxdepth 1 -type f -name '*.xml' 2>/dev/null | paste -sd "," - || echo "")
-        if [ -z "$FILES" ]; then
-          echo "WARNING: No coverage XML files found!"
-        else
-          echo "Coverage files for SonarCloud: $FILES"
-        fi
+        FILES=$(./scripts/workflow/prepare-coverage-files.sh)
         echo "files=$FILES" >> $GITHUB_OUTPUT
 
     - name: "Perform SonarCloud static analysis"
@@ -57,7 +41,7 @@ runs:
           -Dsonar.organization=${{ inputs.sonar_organisation_key }}
           -Dsonar.projectKey=${{ inputs.sonar_project_key }}
           -Dsonar.branch.name=${{ github.ref_name }}
-          -Dsonar.python.version=3.12
+          -Dsonar.python.version=${{ inputs.python_version }}
           -Dsonar.python.coverage.reportPaths=${{ steps.coverage-files.outputs.files }}
           -Dproject.settings=./scripts/config/sonar-scanner.properties
       continue-on-error: true
