@@ -173,7 +173,8 @@ paths:
             If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending this value as type Integer.
           schema:
             type: integer
-            minimum: 0
+            enum: 
+              - 1
             one: 
               example: 1
               summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)

@@ -60,6 +60,31 @@ def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutc
     )
 
 
+def create_invalid_type_header_operation_outcome(
+    headers: dict[str, str],
+) -> OperationOutcome:
+    diagnostics = (
+        "Invalid type found in supplied headers: "
+        + ", ".join(
+            f"(header '{header}' is type '{type}')" for header, type in headers.items()
+        )
+        if headers
+        else "Invalid type found in supplied headers."
+    )
+    return OperationOutcome.model_validate(
+        {
+            "issue": [
+                _create_issue(
+                    "value",
+                    "error",
+                    details=REC_BAD_REQUEST_CODING,
+                    diagnostics=diagnostics,
+                )
+            ]
+        }
+    )
+
+
 def create_missing_mandatory_header_operation_outcome(
     headers: list[str],
 ) -> OperationOutcome:
