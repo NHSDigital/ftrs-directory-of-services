@@ -51,15 +51,15 @@ do_call() {
 wait_ready
 
 # 1) 200 success
-do_call "/Organization?identifier=odsOrganisationCode%7CABC123&_revinclude=Endpoint:organization" 200 "200 success (identifier + _revinclude)"
+do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7CABC123&_revinclude=Endpoint:organization" 200 "200 success (identifier + _revinclude)"
 
 # 2) 400 invalid-identifier-system
 do_call "/Organization?identifier=foo%7CABC123&_revinclude=Endpoint:organization" 400 "400 invalid-identifier-system"
 
 # 3) 400 invalid-identifier-value
-do_call "/Organization?identifier=odsOrganisationCode%7CABC&_revinclude=Endpoint:organization" 400 "400 invalid-identifier-value"
+do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7CABC&_revinclude=Endpoint:organization" 400 "400 invalid-identifier-value"
 
 # 4) 400 missing-revinclude
-do_call "/Organization?identifier=odsOrganisationCode%7CABC123" 400 "400 missing-revinclude"
+do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7CABC123" 400 "400 missing-revinclude"
 
 echo "All smoke tests passed against ${BASE_URL}"

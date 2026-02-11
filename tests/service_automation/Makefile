@@ -38,7 +38,7 @@ lint:
 	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 
 lint-staged:
-	files=$$(git diff --relative --name-only --cached -- '*.py'); \
+	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
 	if [ -z "$$files" ]; then \
 		echo "No files staged"; \
 	else \
