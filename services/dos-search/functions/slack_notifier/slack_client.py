@@ -25,10 +25,10 @@ def get_slack_webhook_url() -> str:
         ValueError: If SLACK_WEBHOOK_URL environment variable is not set
     """
 
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL", "").strip()
+    webhook_url = os.environ.get("SLACK_WEBHOOK_ALARMS_URL", "").strip()
 
     if not webhook_url:
-        msg = "SLACK_WEBHOOK_URL environment variable not set"
+        msg = "SLACK_WEBHOOK_ALARMS_URL environment variable not set"
         raise ValueError(msg)
     return webhook_url
 
