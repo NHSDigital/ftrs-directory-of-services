@@ -8,14 +8,14 @@ from functions.slack_notifier.slack_client import get_slack_webhook_url, send_to
 class TestGetSlackWebhookUrl:
     def test_valid_webhook_url(self):
         with patch.dict(
-            "os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}
+            "os.environ", {"SLACK_WEBHOOK_ALARMS_URL": "https://hooks.slack.com/test"}
         ):
             result = get_slack_webhook_url()
             assert result == "https://hooks.slack.com/test"
 
     def test_webhook_url_with_whitespace(self):
         with patch.dict(
-            "os.environ", {"SLACK_WEBHOOK_URL": "  https://hooks.slack.com/test  "}
+            "os.environ", {"SLACK_WEBHOOK_ALARMS_URL": "  https://hooks.slack.com/test  "}
         ):
             result = get_slack_webhook_url()
             assert result == "https://hooks.slack.com/test"
@@ -23,21 +23,21 @@ class TestGetSlackWebhookUrl:
     def test_missing_webhook_url(self):
         with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(
-                ValueError, match="SLACK_WEBHOOK_URL environment variable not set"
+                ValueError, match="SLACK_WEBHOOK_ALARMS_URL environment variable not set"
             ):
                 get_slack_webhook_url()
 
     def test_empty_webhook_url(self):
-        with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": ""}):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_ALARMS_URL": ""}):
             with pytest.raises(
-                ValueError, match="SLACK_WEBHOOK_URL environment variable not set"
+                ValueError, match="SLACK_WEBHOOK_ALARMS_URL environment variable not set"
             ):
                 get_slack_webhook_url()
 
     def test_webhook_url_only_whitespace(self):
-        with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "   "}):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_ALARMS_URL": "   "}):
             with pytest.raises(
-                ValueError, match="SLACK_WEBHOOK_URL environment variable not set"
+                ValueError, match="SLACK_WEBHOOK_ALARMS_URL environment variable not set"
             ):
                 get_slack_webhook_url()
 
