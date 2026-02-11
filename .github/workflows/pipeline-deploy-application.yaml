@@ -48,7 +48,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
@@ -191,7 +191,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
@@ -350,7 +350,7 @@ jobs:
       matrix:
         include:
           - tag: "integrated-search"
-            type: "bdd"
+            type: "apim"
             api_name: "dos-search"
           - tag: "data-migration"
             type: "bdd"
@@ -386,6 +386,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   generate-prerelease:
     name: "Generate prerelease tag"
@@ -399,7 +400,6 @@ jobs:
       (needs.deploy-frontend-services.result == 'success' || needs.deploy-frontend-services.result == 'skipped') &&
       needs.service-automation-tests.result == 'success'
     uses: ./.github/workflows/generate-prerelease.yaml
-    secrets: inherit
 
   stage-prerelease-artefacts:
     name: "Stage ${{ matrix.name }} artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
