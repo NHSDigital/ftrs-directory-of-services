@@ -31,6 +31,7 @@ runs="$(gh run list --status "waiting" --repo "$REPO" --limit "$MAX_RUNS" --json
 for run in $(echo "${runs}" | jq -r '.[] | @base64'); do
     _jq() {
       echo ${run} | base64 --decode | jq -r ${1}
+      return 0
     }
 
     ID=$( _jq '.databaseId')
