@@ -87,3 +87,39 @@ resource "aws_security_group" "dms_replication_security_group" {
   vpc_id      = module.vpc.vpc_id
   depends_on  = [module.vpc]
 }
+
+# Athena RDS Connector Security Group
+resource "aws_security_group" "athena_rds_connector_sg" {
+  # checkov:skip=CKV2_AWS_5: False positive - Security group attached to Lambda via SAR CloudFormation stack
+  name        = "${local.account_prefix}-athena-rds-connector-sg"
+  description = "Security group for Athena RDS Connector Lambda"
+  vpc_id      = module.vpc.vpc_id
+}
+
+resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress_to_rds" {
+  security_group_id            = aws_security_group.athena_rds_connector_sg.id
+  referenced_security_group_id = aws_security_group.dms_replication_security_group.id
+  description                  = "Allow Lambda connector to connect to RDS"
+  ip_protocol                  = "tcp"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+}
+
+# trivy:ignore:aws-vpc-no-public-egress-sgr : Justification: This Athena RDS Connector Lambda requires egress access to the internet for S3 and Secrets Manager, as well as access to the RDS instance.
+resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress_https" {
+  security_group_id = aws_security_group.athena_rds_connector_sg.id
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Allow HTTPS for S3 and Secrets Manager"
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+}
+
+resource "aws_vpc_security_group_ingress_rule" "dms_rds_allow_ingress_from_athena_lambda" {
+  security_group_id            = aws_security_group.dms_replication_security_group.id
+  referenced_security_group_id = aws_security_group.athena_rds_connector_sg.id
+  description                  = "Allow Athena Lambda connector to connect to RDS"
+  ip_protocol                  = "tcp"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+}
