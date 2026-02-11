@@ -471,10 +471,7 @@ paths:
                 $ref: '#/components/schemas/HealthcareService'
               example:
                 resourceType: "HealthcareService"
-                id: "e9f5f15a-7d5d-4a3b-9c8d-2e1f3a4b5c6d"
-                identifier:
-                  - system: "https://fhir.nhs.uk/Id/ods-organization-code"
-                    value: "ABC123"
+                id: "55393ec4-198f-42dd-9507-f4fa5e9ebf80"
                 providedBy:
                   reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                 type:
@@ -580,8 +577,7 @@ paths:
       summary: Search for HealthcareService resources
       description: |
         ## Overview
-        Search for HealthcareService resources. Currently supports searching by
-        managing organization (ODS code).
+        Search for HealthcareService resources. Currently supports searching by managing organization (ODS code).
 
       operationId: searchHealthcareServices
       security:
