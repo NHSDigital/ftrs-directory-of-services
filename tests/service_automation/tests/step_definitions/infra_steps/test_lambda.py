@@ -106,5 +106,6 @@ def create_lambda_params(odscode):
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
         },
+        "headers": {"x-request-id": "req_id", "version": "1"},
         "body": None,
     }
