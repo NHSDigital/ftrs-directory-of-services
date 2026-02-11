@@ -54,8 +54,9 @@ resource "aws_rds_cluster_parameter_group" "rds_pglogical_parameter_group" {
 
 ## DMS Replication Instance
 module "rds_replication_target_db" {
-  count  = local.is_primary_environment ? 1 : 0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
+  count = local.is_primary_environment ? 1 : 0
+  # RDS version 10.2.0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=2c3946c8191278ad974bbb077da5e03986e24f4d"
 
   name           = "${local.resource_prefix}-rds-etl-target"
   engine         = var.rds_engine
@@ -92,6 +93,9 @@ module "rds_replication_target_db" {
   enabled_cloudwatch_logs_exports        = ["postgresql"]
   create_cloudwatch_log_group            = true
   cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_logs_retention
+
+  storage_encrypted = true
+  kms_key_id        = data.aws_kms_key.rds_kms_alias.arn
 
   deletion_protection = true
 }
