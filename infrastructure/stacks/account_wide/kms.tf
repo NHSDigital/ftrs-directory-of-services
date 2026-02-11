@@ -50,7 +50,7 @@ module "secrets_manager_encryption_key" {
       Sid    = "AllowAthenaConnectorSecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = "*"
+        AWS = ["*"]
       }
       Action = [
         "kms:Decrypt",
