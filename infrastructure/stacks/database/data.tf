@@ -23,3 +23,8 @@ data "aws_subnet" "private_subnets_details" {
   for_each = var.version_history_enabled ? toset(data.aws_subnets.private_subnets[0].ids) : []
   id       = each.value
 }
+
+data "aws_prefix_list" "dynamodb" {
+  count = var.version_history_enabled ? 1 : 0
+  name  = "com.amazonaws.${var.aws_region}.dynamodb"
+}
