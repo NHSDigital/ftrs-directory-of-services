@@ -45,6 +45,11 @@ on:
         required: false
         type: string
         default: ""
+      enable_trivy_scan:
+        description: "Enable Trivy security scan"
+        required: false
+        type: boolean
+        default: false
     secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
@@ -273,6 +278,7 @@ jobs:
     name: "Trivy scan"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
+    if: ${{ inputs.enable_trivy_scan }}
     permissions:
       contents: read
     steps:
