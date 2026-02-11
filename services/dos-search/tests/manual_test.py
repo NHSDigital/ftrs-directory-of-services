@@ -20,7 +20,7 @@ if __name__ == "__main__":
         "requestContext": {
             "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
         },
-        "headers": {"version": 1, "x-request-id": "req_id"},
+        "headers": {"version": 1, "NHSD-Request-Id": "req_id"},
         "body": None,
     }
 

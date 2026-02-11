@@ -16,6 +16,10 @@ class InvalidRequestHeadersError(ValueError):
     """Raised when disallowed HTTP headers are supplied in the request."""
 
 
+class InvalidHeaderTypeError(ValueError):
+    """Raised when HTTP headers are validated to be of an invalid type."""
+
+
 class MissingMandatoryHeadersError(ValueError):
     """Raised when mandatory HTTP headers are missing from the request."""
 
@@ -45,24 +49,22 @@ ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
     if header.strip()
 )
 
-MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset({"x-request-id", "version"})
+MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset({"NHSD-Request-Id", "version"})
 
 
 def _validate_headers(headers: dict[str, str] | None) -> None:
+    lowered_headers = {k.lower(): v for k, v in (headers or {}).items()}
     # Check all mandatory headers are present
     missing_mandatory_headers = [
         mandatory_header
         for mandatory_header in MANDATORY_REQUEST_HEADERS
-        if mandatory_header.lower() not in headers
+        if mandatory_header.lower() not in lowered_headers
     ]
+
     if missing_mandatory_headers:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
 
-    invalid_headers = [
-        header_name
-        for header_name in headers
-        if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
-    ]
+    invalid_type_headers = {}
     if "version" not in missing_mandatory_headers:
         # Check 'version' header is a valid integer
         if (
@@ -70,7 +72,17 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
             if isinstance(headers.get("version"), str)
             else True
         ):
-            invalid_headers.append("version")
+            invalid_type_headers["version"] = type(headers["version"]).__name__
+
+    if invalid_type_headers:
+        print("easy fail")
+        raise InvalidHeaderTypeError(invalid_type_headers)
+
+    invalid_headers = [
+        header_name
+        for header_name in lowered_headers
+        if header_name not in ALLOWED_REQUEST_HEADERS
+    ]
 
     if invalid_headers:
         raise InvalidRequestHeadersError(invalid_headers)
@@ -84,6 +96,28 @@ def get_organization() -> Response:
     try:
         try:
             _validate_headers(app.current_event.headers)
+        except InvalidRequestHeadersError as exception:
+            invalid_headers: list[str] = exception.args[0] if exception.args else []
+            dos_logger.warning(
+                "Invalid request headers supplied",
+                invalid_headers=invalid_headers,
+            )
+            fhir_resource = error_util.create_invalid_header_operation_outcome(
+                invalid_headers
+            )
+            return create_response(400, fhir_resource)
+        except InvalidHeaderTypeError as exception:
+            invalid_type_headers: dict[str, str] = (
+                exception.args[0] if exception.args else {}
+            )
+            dos_logger.warning(
+                "Invalid type found in supplied headers",
+                invalid_type_headers=invalid_type_headers,
+            )
+            fhir_resource = error_util.create_invalid_type_header_operation_outcome(
+                invalid_type_headers
+            )
+            return create_response(400, fhir_resource)
         except MissingMandatoryHeadersError as exception:
             missing_headers: str = exception.args[0] if exception.args else "Unknown"
             dos_logger.warning(
@@ -96,17 +130,6 @@ def get_organization() -> Response:
                 )
             )
             return create_response(400, fhir_resource)
-        except InvalidRequestHeadersError as exception:
-            invalid_headers: list[str] = exception.args[0] if exception.args else []
-            dos_logger.warning(
-                "Invalid request headers supplied",
-                invalid_headers=invalid_headers,
-            )
-            fhir_resource = error_util.create_invalid_header_operation_outcome(
-                invalid_headers
-            )
-            return create_response(400, fhir_resource)
-
         query_params = app.current_event.query_string_parameters or {}
 
         try:
