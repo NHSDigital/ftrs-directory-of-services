@@ -52,10 +52,6 @@ resource "aws_lambda_event_source_mapping" "version_history_organisation_stream"
     }
   }
 
-  scaling_config {
-    maximum_concurrency = var.maximum_concurrency
-  }
-
   depends_on = [
     module.version_history_lambda
   ]
@@ -77,10 +73,6 @@ resource "aws_lambda_event_source_mapping" "version_history_location_stream" {
     }
   }
 
-  scaling_config {
-    maximum_concurrency = var.maximum_concurrency
-  }
-
   depends_on = [
     module.version_history_lambda
   ]
@@ -100,10 +92,6 @@ resource "aws_lambda_event_source_mapping" "version_history_healthcare_service_s
         eventName = ["MODIFY"]
       })
     }
-  }
-
-  scaling_config {
-    maximum_concurrency = var.maximum_concurrency
   }
 
   depends_on = [
