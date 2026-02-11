@@ -43,6 +43,11 @@ variable "waf_log_group_policy_name" {
   type        = string
 }
 
+variable "regional_waf_log_group_policy_name" {
+  description = "The regional WAF log group policy name"
+  type        = string
+}
+
 variable "osis_apigw_log_group_policy_name" {
   description = "The OSIS & API Gateway log group policy name"
   type        = string
@@ -148,6 +153,39 @@ variable "waf_log_group_retention_days" {
   default     = 365
 }
 
+# Regional WAF (dos-search rule set, account-wide setup)
+variable "regional_waf_name" {
+  description = "The Web ACL name for the regional WAF"
+  type        = string
+}
+variable "regional_waf_scope" {
+  description = "The scope for the regional WAF"
+  type        = string
+}
+variable "regional_waf_log_group" {
+  description = "Name for the regional WAF Web ACL log group"
+  type        = string
+}
+variable "regional_waf_log_group_class" {
+  description = "The log group class for the regional WAF"
+  type        = string
+}
+variable "regional_waf_log_group_retention_days" {
+  description = "The retention period for the regional WAF Web ACL log group"
+  type        = number
+  default     = 365
+}
+variable "regional_waf_allowed_country_codes" {
+  description = "Allowed country codes for the regional WAF access"
+  type        = list(string)
+  default     = ["GB", "JE", "IM"]
+}
+variable "regional_waf_hostile_country_codes" {
+  description = "Country codes to explicitly block for the regional WAF"
+  type        = list(string)
+  default     = []
+}
+
 # Performance EC2 configuration
 variable "performance_instance_type" {
   description = "EC2 instance type for performance testing"
@@ -206,4 +244,68 @@ variable "enable_s3_kms_encryption" {
   description = "Whether to enable KMS encryption for S3 buckets"
   type        = bool
   default     = false
+}
+
+variable "splunk_collector_url" {
+  description = "The Splunk HEC collector base URL - minus hec endpoint"
+  type        = string
+}
+
+variable "splunk_hec_endpoint" {
+  description = "Splunk HEC endpoint (no trailing slash)"
+  type        = string
+}
+
+variable "splunk_hec_token" {
+  description = "Splunk HEC token"
+  type        = string
+  sensitive   = true
+}
+
+variable "firehose_name" {
+  description = "Name for the Kinesis Firehose delivery stream"
+  type        = string
+}
+
+variable "enable_firehose_s3_kms_encryption" {
+  description = "Whether to enable KMS encryption for firehose S3 buckets"
+  type        = bool
+  default     = true
+}
+
+variable "firehose_logs_retention_in_days" {
+  description = "Number of days to retain Firehose logs in CloudWatch Log Group"
+  type        = number
+  default     = 365
+}
+
+variable "firehose_log_group_name" {
+  description = "The name of the CloudWatch Log Group to store Firehose error logs"
+  type        = string
+}
+
+variable "enable_firehose_sse" {
+  description = "Enable encryption using CMK"
+  type        = bool
+  default     = true
+}
+
+variable "hec_acknowledgment_timeout" {
+  description = "Seconds Firehose waits for acknowledgment from Splunk"
+  type        = number
+}
+
+variable "hec_endpoint_type" {
+  description = "Type of hec endpoint -  Raw or Event"
+  type        = string
+}
+
+variable "retry_duration" {
+  description = "Seconds during which Firehose re-tries delivery after failure"
+  type        = number
+}
+
+variable "s3_backup_mode" {
+  description = "How documents are delivered to backup S3 - FailedEventsOnly or AllEvents"
+  type        = string
 }

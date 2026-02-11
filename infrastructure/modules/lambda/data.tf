@@ -97,3 +97,13 @@ data "aws_iam_policy_document" "enforce_vpc_lambda_policy" {
     }
   }
 }
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  count = var.build_splunk_subscription ? 1 : 0
+  name  = var.firehose_name
+}
+
+data "aws_iam_role" "firehose_role" {
+  count = var.build_splunk_subscription ? 1 : 0
+  name  = var.firehose_role_name
+}
