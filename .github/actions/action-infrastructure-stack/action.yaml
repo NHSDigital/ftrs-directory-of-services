@@ -27,6 +27,15 @@ inputs:
   slack_webhook_alarms_url:
     description: "Slack webhook URL for alarm notifications"
     required: false
+  splunk_collector_url:
+    description: "The url for splunk"
+    required: true
+  splunk_hec_endpoint:
+    description: "The HEC endpoint for splunk"
+    required: true
+  splunk_hec_token:
+    description: "The HEC token for splunk"
+    required: true
 outputs:
   plan_result:
     description: "The Terraform plan output"
@@ -57,4 +66,14 @@ runs:
         RELEASE_TAG: ${{ inputs.release_tag }}
       run: |
         export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
+        export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
+        export ACTION=${{ inputs.action }}
+        export STACK=${{ inputs.stack }}
+        export ENVIRONMENT=${{ inputs.environment }}
+        export WORKSPACE=${{ inputs.workspace }}
+        export PROJECT=${{ inputs.project }}
+        export RELEASE_TAG=${{ inputs.release_tag }}
+        export SPLUNK_COLLECTOR_URL=${{ inputs.splunk_collector_url }}
+        export SPLUNK_HEC_ENDPOINT=${{ inputs.splunk_hec_endpoint }}
+        export SPLUNK_HEC_TOKEN=${{ inputs.splunk_hec_token }}
         /bin/bash ./scripts/workflow/action-infra-stack.sh

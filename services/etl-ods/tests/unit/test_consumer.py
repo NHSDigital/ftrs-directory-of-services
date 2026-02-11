@@ -237,9 +237,11 @@ def test__records_handler(
         },
     ]
 
-    batch_item_failures = _handle_records(records)
+    batch_item_failures, successful_count, failed_count = _handle_records(records)
 
     assert batch_item_failures == []
+    assert str(successful_count) == "2"
+    assert failed_count == 0
 
     assert str(mock_process_message.call_count) == "2"
 
@@ -289,8 +291,11 @@ def test__records_handler_failure(
 
     mock_process_message.side_effect = [Exception("Test exception"), None]
 
-    response = _handle_records(records)
-    assert response == [{"itemIdentifier": "1"}]
+    batch_item_failures, successful_count, failed_count = _handle_records(records)
+
+    assert batch_item_failures == [{"itemIdentifier": "1"}]
+    assert successful_count == 1
+    assert failed_count == 1
     assert str(mock_process_message.call_count) == "2"
 
     expected_processing_log_1 = (
@@ -341,9 +346,11 @@ def test_record_handler_handle_missing_message_parameters(
         }
     ]
 
-    batch_item_failures = _handle_records(records)
+    batch_item_failures, successful_count, failed_count = _handle_records(records)
 
     assert batch_item_failures == [{"itemIdentifier": "1"}]
+    assert successful_count == 0
+    assert failed_count == 1
 
     assert any(
         record.levelname == "WARNING"
@@ -545,3 +552,103 @@ def test_process_message_and_send_request_with_string_body_and_correlation_id(
         status_code=200
     )
     assert expected_success_log in caplog.text
+
+
+@patch("consumer.consumer.process_message_and_send_request")
+def test_consumer_lambda_handler_logs_start_and_complete(
+    mock_process_message: MagicMock,
+    mocker: MockerFixture,
+) -> None:
+    """Test that consumer logs START and BATCH_COMPLETE events with metrics."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mock_logger = mocker.patch("consumer.consumer.ods_consumer_logger")
+
+    event = {
+        "Records": [
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
+        ]
+    }
+
+    response = consumer_lambda_handler(event, {})
+
+    assert response["batchItemFailures"] == []
+
+    # Verify START log was called
+    start_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_CONSUMER_START"
+    ]
+    assert len(start_call) == 1
+    assert start_call[0][1]["lambda_name"] == "etl-ods-consumer"
+
+    # Verify BATCH_COMPLETE log was called with metrics
+    complete_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_CONSUMER_BATCH_COMPLETE"
+    ]
+    assert len(complete_call) == 1
+    assert complete_call[0][1]["lambda_name"] == "etl-ods-consumer"
+    assert "duration_ms" in complete_call[0][1]
+    assert str(complete_call[0][1]["total_records"]) == "2"
+    assert str(complete_call[0][1]["successful_count"]) == "2"
+    assert complete_call[0][1]["failed_count"] == 0
+    assert complete_call[0][1]["batch_status"] == "completed"
+
+
+@patch("consumer.consumer.process_message_and_send_request")
+def test_consumer_lambda_handler_logs_partial_failure(
+    mock_process_message: MagicMock,
+    mocker: MockerFixture,
+) -> None:
+    """Test that consumer logs BATCH_COMPLETE with failures correctly."""
+    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
+    mock_logger = mocker.patch("consumer.consumer.ods_consumer_logger")
+
+    # First message fails, second succeeds
+    mock_process_message.side_effect = [Exception("Test exception"), None]
+
+    event = {
+        "Records": [
+            {
+                "messageId": "1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test1",
+                "body": {"key": "value1"},
+            },
+            {
+                "messageId": "2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "path": "test2",
+                "body": {"key": "value2"},
+            },
+        ]
+    }
+
+    response = consumer_lambda_handler(event, {})
+
+    assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
+
+    # Verify BATCH_COMPLETE log shows partial failure
+    complete_call = [
+        call
+        for call in mock_logger.log.call_args_list
+        if call[0][0].name == "ETL_CONSUMER_BATCH_COMPLETE"
+    ]
+    assert len(complete_call) == 1
+    assert str(complete_call[0][1]["total_records"]) == "2"
+    assert str(complete_call[0][1]["successful_count"]) == "1"
+    assert str(complete_call[0][1]["failed_count"]) == "1"
+    assert complete_call[0][1]["batch_status"] == "completed_with_failures"

@@ -76,6 +76,15 @@ on:
       SLACK_WEBHOOK_ALARMS_URL:
         description: "Slack webhook URL for CloudWatch alarm notifications"
         required: false
+      SPLUNK_COLLECTOR_URL:
+        description: "The base url for splunk collector"
+        required: true
+      SPLUNK_HEC_ENDPOINT:
+        description: "The HEC endpoint for splunk"
+        required: true
+      SPLUNK_HEC_TOKEN:
+        description: "The HEC token for splunk"
+        required: true
 
 concurrency:
   group: account-infrastructure-${{ github.ref }}
@@ -108,6 +117,9 @@ jobs:
       IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
@@ -141,6 +153,9 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   manual-approval:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
@@ -189,6 +204,9 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   slack-notifications:
     name: "Send Notification to Slack"

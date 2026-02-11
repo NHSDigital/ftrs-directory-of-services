@@ -5,22 +5,22 @@ set -e
 EXPORTS_SET=0
 
 # check necessary environment variables are set
-if [ -z "$WORKSPACE" ] ; then
+if [[ -z "$WORKSPACE" ]] ; then
   echo Set WORKSPACE
   EXPORTS_SET=1
 fi
 
-if [ -z "$ENVIRONMENT" ] ; then
+if [[ -z "$ENVIRONMENT" ]] ; then
   echo Set ENVIRONMENT
   EXPORTS_SET=1
 fi
 
-if [ -z "$STACK" ] ; then
+if [[ -z "$STACK" ]] ; then
   echo Set STACK
   EXPORTS_SET=1
 fi
 
-if [ $EXPORTS_SET = 1 ] ; then
+if [[ $EXPORTS_SET = 1 ]] ; then
   echo One or more exports not set
   exit 1
 fi
@@ -41,7 +41,7 @@ echo "Stack to have terraform state deleted is: $STACK"
     # Delete terraform state for current terraform workspace & echo results following deletion
     deletion_output=$(aws s3 rm s3://$TERRAFORM_BUCKET_NAME/env:/$WORKSPACE/$STACK/terraform.state 2>&1)
 
-    if [ -n "$deletion_output" ]; then
+    if [[ -n "$deletion_output" ]]; then
       echo "Successfully deleted Terraform State file for the following workspace --> $WORKSPACE"
 
       existing_item=$(aws dynamodb get-item \

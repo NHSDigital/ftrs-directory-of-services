@@ -9,26 +9,26 @@ DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE:-"development"}
 RELEASE_TAG=${RELEASE_TAG:-}
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 RUN_TIMESTAMP=${RUN_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
-RELEASE_VERSION=${RELEASE_VERSION:-$([ -n "$RELEASE_TAG" ] && echo "$RELEASE_TAG" || echo "null")}
+RELEASE_VERSION=${RELEASE_VERSION:-$([[ -n "$RELEASE_TAG" ]] && echo "$RELEASE_TAG" || echo "null")}
 
 # Determine the deployment path based on deployment type
 case "$DEPLOYMENT_TYPE" in
   development)
-    if [ "$BRANCH" = "main" ]; then
+    if [[ "$BRANCH" = "main" ]]; then
       DEPLOYMENT_PATH="development/latest"
     else
       DEPLOYMENT_PATH="development/${WORKSPACE_VALUE}"
     fi
     ;;
   release-candidate)
-    if [ -z "$RELEASE_TAG" ]; then
+    if [[ -z "$RELEASE_TAG" ]]; then
       echo "ERROR: RELEASE_TAG is required for release-candidate deployment type"
       exit 1
     fi
     DEPLOYMENT_PATH="release-candidates/$RELEASE_TAG"
     ;;
   release)
-    if [ -z "$RELEASE_TAG" ]; then
+    if [[ -z "$RELEASE_TAG" ]]; then
       echo "ERROR: RELEASE_TAG is required for release deployment type"
       exit 1
     fi
@@ -40,15 +40,15 @@ case "$DEPLOYMENT_TYPE" in
     ;;
 esac
 
-if [ -z "$WORKSPACE_VALUE" ] || [ "$WORKSPACE_VALUE" = "default" ]; then
+if [[ -z "$WORKSPACE_VALUE" ]] || [[ "$WORKSPACE_VALUE" = "default" ]]; then
   WORKSPACE_VALUE="default"
 fi
 
-if [ -z "$COMMIT_HASH" ]; then
+if [[ -z "$COMMIT_HASH" ]]; then
   COMMIT_HASH="${GITHUB_SHA:-unknown}"
 fi
 
-if [ ! -d "$REPORT_DIR" ]; then
+if [[ ! -d "$REPORT_DIR" ]]; then
   echo "Allure report directory '$REPORT_DIR' not found, skipping S3 upload"
   exit 0
 fi

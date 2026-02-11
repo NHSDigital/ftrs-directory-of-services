@@ -77,6 +77,14 @@ on:
         required: true
       SLACK_WEBHOOK_ALARMS_URL:
         description: "Slack webhook URL for alarm notifications"
+      SPLUNK_COLLECTOR_URL:
+        description: "The base url for splunk collector"
+        required: false
+      SPLUNK_HEC_ENDPOINT:
+        description: "The HEC endpoint for splunk"
+        required: false
+      SPLUNK_HEC_TOKEN:
+        description: "The HEC token for splunk"
         required: false
     outputs:
       plan_result:
@@ -138,6 +146,9 @@ jobs:
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
           slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+          splunk_collector_url: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+          splunk_hec_endpoint: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+          splunk_hec_token: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
       - name: "Upload Terraform Plan Artifact"
         uses: actions/upload-artifact@v6

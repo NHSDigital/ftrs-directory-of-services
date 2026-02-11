@@ -27,6 +27,7 @@ function main() {
 
   create-report
   enrich-report
+  return 0
 }
 
 function create-report() {
@@ -36,6 +37,7 @@ function create-report() {
   else
     run-grype-in-docker
   fi
+  return 0
 }
 
 function run-grype-natively() {
@@ -45,6 +47,7 @@ function run-grype-natively() {
     --config "$PWD/scripts/config/grype.yaml" \
     --output json \
     --file "$PWD/vulnerabilities-repository-report.tmp.json"
+  return 0
 }
 
 function run-grype-in-docker() {
@@ -63,6 +66,7 @@ function run-grype-in-docker() {
       --config /workdir/scripts/config/grype.yaml \
       --output json \
       --file /workdir/vulnerabilities-repository-report.tmp.json
+  return 0
 }
 
 function enrich-report() {
@@ -82,6 +86,7 @@ function enrich-report() {
     vulnerabilities-repository-report.tmp.json \
       > vulnerabilities-repository-report.json
   rm -f vulnerabilities-repository-report.tmp.json
+  return 0
 }
 
 # ==============================================================================

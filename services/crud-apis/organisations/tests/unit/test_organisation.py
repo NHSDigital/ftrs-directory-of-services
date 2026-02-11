@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -12,9 +12,18 @@ from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
-from organisations.app.models.organisation import OrganizationQueryParams
-from organisations.app.router.organisation import _get_organization_query_params, router
-from organisations.app.services.organisation_service import OrganisationService
+# Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
+with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
+    mock_ff_instance = MagicMock()
+    mock_ff_instance.is_enabled.return_value = True
+    mock_ff_class.return_value = mock_ff_instance
+
+    from organisations.app.models.organisation import OrganizationQueryParams
+    from organisations.app.router.organisation import (
+        _get_organization_query_params,
+        router,
+    )
+    from organisations.app.services.organisation_service import OrganisationService
 
 test_app = FastAPI()
 test_app.include_router(router)
@@ -23,6 +32,16 @@ client = TestClient(test_app)
 test_org_id = uuid4()
 
 TEST_PRODUCT_ID = "test-product-id"
+
+
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags client to ensure consistent behavior across tests."""
+    mock_client = mocker.patch(
+        "organisations.app.router.organisation.FEATURE_FLAGS_CLIENT"
+    )
+    mock_client.is_enabled.return_value = True
+    return mock_client
 
 
 def get_organisation() -> dict:
@@ -1074,4 +1093,25 @@ def test_update_organisation_identifier_empty_list() -> None:
     assert (
         identifier_errors[0]["msg"]
         == "Value error, at least one identifier must be provided"
+    )
+
+
+def test_post_organisation_returns_503_when_feature_flag_disabled(
+    mock_feature_flags: MagicMock,
+) -> None:
+    """Test that POST /Organization returns 503 when feature flag is disabled."""
+    # Override the fixture to return False for this test
+    mock_feature_flags.is_enabled.return_value = False
+
+    organisation_data = get_organisation()
+    response = client.post("/Organization", json=organisation_data)
+
+    response = client.post("/Organization", json=organisation_data)
+
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    response_body = response.json()
+    assert response_body["statusCode"] == HTTPStatus.SERVICE_UNAVAILABLE
+    assert (
+        "Service Unavailable: Data Migration Search Triage Code feature is disabled."
+        in response_body["body"]
     )

@@ -22,3 +22,5 @@ flow_log_s3_force_destroy = true
 enable_nat_gateway     = true
 single_nat_gateway     = false
 one_nat_gateway_per_az = true
+
+regional_waf_log_group_retention_days = 90
