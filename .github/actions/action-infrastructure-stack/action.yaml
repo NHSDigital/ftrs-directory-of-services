@@ -56,5 +56,5 @@ runs:
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
       run: |
-        export SLACK_WEBHOOK_ALARMS_URL="${{ inputs.slack_webhook_alarms_url }}"
+        export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
         /bin/bash ./scripts/workflow/action-infra-stack.sh
