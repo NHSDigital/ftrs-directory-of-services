@@ -8,6 +8,8 @@
                 "ec2:*",
                 "autoscaling:*",
                 "lambda:*",
+                "ecr:*",
+                "serverlessrepo:*",
                 "tag:*"
             ],
             "Resource": "*"
@@ -21,7 +23,8 @@
                 "resource-groups:*",
                 "dynamodb:*",
                 "rds:*",
-                "dms:*"
+                "dms:*",
+                "glue:*"
             ],
             "Resource": "*"
         },
@@ -56,7 +59,8 @@
                 "aoss:*",
                 "sqs:*",
                 "sns:*",
-                "secretsmanager:*"
+                "secretsmanager:*",
+                "cloudformation:*"
             ],
             "Resource": "*"
         },

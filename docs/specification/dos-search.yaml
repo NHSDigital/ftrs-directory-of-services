@@ -191,12 +191,12 @@ paths:
             example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         - in: query
           name: identifier
-          description: ODS code in the format "odsOrganisationCode|{CODE}"
+          description: ODS code in the format "https://fhir.nhs.uk/Id/ods-organization-code|{CODE}"
           required: true
           schema:
             type: string
-            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{5,12}$'
-            example: "odsOrganisationCode|ABC123"
+            pattern: '^https:\/\/fhir.nhs.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
+            example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
         - in: query
           name: _revinclude
           description: |
@@ -222,7 +222,7 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123&_revinclude=Endpoint:organization"
                 entry:
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
@@ -337,7 +337,7 @@ paths:
                               version: "1.0.0"
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
-                        diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+                        diagnostics: "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
                 unexpected-query-param:
                   summary: Unexpected query parameter
                   value:
