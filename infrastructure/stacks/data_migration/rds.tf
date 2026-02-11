@@ -54,9 +54,8 @@ resource "aws_rds_cluster_parameter_group" "rds_pglogical_parameter_group" {
 
 ## DMS Replication Instance
 module "rds_replication_target_db" {
-  count = local.is_primary_environment ? 1 : 0
-  # RDS version 10.2.0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=2c3946c8191278ad974bbb077da5e03986e24f4d"
+  count  = local.is_primary_environment ? 1 : 0
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-rds-aurora.git?ref=592cb15809bde8eed2a641ba5971ec665c9b4397"
 
   name           = "${local.resource_prefix}-rds-etl-target"
   engine         = var.rds_engine
