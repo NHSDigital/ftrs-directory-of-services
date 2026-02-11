@@ -1,5 +1,6 @@
 import re
 
+from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain import legacy as legacy_model
 
@@ -27,13 +28,29 @@ class GPPracticeTransformer(ServiceTransformer):
 
     Filter criteria:
     - The service must be active
+
+    Feature flag behavior:
+    - When data_migration_search_triage_code_enabled is disabled:
+      Only organisation is created (no location or healthcare_service)
+    - When enabled: All resources (organisation, location, healthcare_service) are created
     """
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         """
         Transform the given GP practice service into the new data model format.
+
+        When the feature flag is disabled, only the organisation is created.
+        When enabled, organisation, location and healthcare_service are all created.
         """
         organisation = self.build_organisation(service)
+
+        if not is_enabled(FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED):
+            return ServiceTransformOutput(
+                organisation=[organisation],
+                healthcare_service=[],
+                location=[],
+            )
+
         location = self.build_location(service, organisation.id)
         healthcare_service = self.build_healthcare_service(
             service,

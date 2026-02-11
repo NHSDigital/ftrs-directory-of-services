@@ -14,7 +14,8 @@ runs:
     - name: Delete artefacts
       id: delete_artefacts
       shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        ARTEFACT_BUCKET_NAME: ${{ inputs.artefact_bucket_name }}
       run: |
-        export WORKSPACE=${{inputs.workspace}}
-        export ARTEFACT_BUCKET_NAME=${{inputs.artefact_bucket_name}}
         ./scripts/workflow/cleardown-artefacts.sh

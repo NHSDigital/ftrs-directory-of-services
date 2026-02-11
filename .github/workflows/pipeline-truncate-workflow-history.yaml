@@ -30,4 +30,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: dev
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,0 +1,32 @@
+name: 'Proxygen Pytest APIM Token Auth'
+description: 'Request pytest APIM token from Proxygen and export it as environment variable'
+
+inputs:
+  api_name:
+    description: 'Name of the API to access via Proxygen'
+    required: true
+  access_token:
+    description: 'Access token for Proxygen API'
+    required: true
+  proxygen_base_url:
+    description: 'Base URL for Proxygen API'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Fetch and export pytest APIM token
+      shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        ACCESS_TOKEN: ${{ inputs.access_token }}
+        PROXYGEN_BASE_URL: ${{ inputs.proxygen_base_url }}
+      run: |
+        # Mask secrets as early as possible
+        echo "::add-mask::$ACCESS_TOKEN"
+
+        APIGEE_ACCESS_TOKEN=$("${{ github.workspace }}/scripts/workflow/fetch-apigee-token.sh")
+
+        echo "::add-mask::$APIGEE_ACCESS_TOKEN"
+        echo "APIGEE_ACCESS_TOKEN=$APIGEE_ACCESS_TOKEN" >> "$GITHUB_ENV"
+        echo "✓ Apigee access token retrieved and exported successfully"

@@ -1,8 +1,6 @@
 name: Deploy Open Search Indexes workflow
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 on:
   workflow_call:
@@ -20,10 +18,17 @@ on:
         required: false
         type: string
         default: ''
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
 
 jobs:
   build-index:
     name: Build index
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:

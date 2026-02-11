@@ -1,9 +1,7 @@
 # This workflow restores data from S3 to DynamoDB tables.
 name: Restore data from S3 to DynamoDB tables
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 on:
   workflow_call:
@@ -28,10 +26,17 @@ on:
         description: "The branch, tag or SHA to checkout for managing data"
         required: false
         type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
 
 jobs:
   manage-dynamodb-data:
     name: "Manage DynamoDB tables data"
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 15
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}

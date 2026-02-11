@@ -20,8 +20,9 @@ jobs:
     steps:
       - name: "Validate release tag"
         id: validate
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
-            RELEASE_TAG="${{ inputs.release_tag }}"
             if [[ ! $RELEASE_TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
             echo "Invalid release tag format: $RELEASE_TAG"
             exit 1
@@ -47,7 +48,9 @@ jobs:
       artefact_promotion_type: "release"
       type: app
       release_tag: ${{ inputs.release_tag }}
-    secrets: inherit
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   slack-notifications:
     name: "Send Notification to Slack"
@@ -59,4 +62,5 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
       env: mgmt
-    secrets: inherit
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

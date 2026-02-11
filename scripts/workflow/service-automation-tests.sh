@@ -5,38 +5,49 @@
 export APPLICATION_TEST_DIR="${APPLICATION_TEST_DIR:-"tests/service_automation"}"
 
 # Handle WORKSPACE - unset if "default"
-if [ "$WORKSPACE" = "default" ] ; then
+if [[ "$WORKSPACE" = "default" ]] ; then
   WORKSPACE=""
 fi
 
 # check export has been done
 EXPORTS_SET=0
-if [ -z "$APPLICATION_TEST_DIR" ] ; then
+if [[ -z "$APPLICATION_TEST_DIR" ]] ; then
   echo Set APPLICATION_TEST_DIR to directory holding int test code
   EXPORTS_SET=1
 fi
 
-if [ -z "$ENVIRONMENT" ] ; then
+if [[ -z "$ENVIRONMENT" ]] ; then
   echo Set ENVIRONMENT
   EXPORTS_SET=1
 fi
 
-if [ -z "$TEST_TAG" ] ; then
+if [[ -z "$TEST_TAG" ]] ; then
   echo Set TEST_TAG
   EXPORTS_SET=1
 fi
 
-if [ -z "$TEST_TYPE" ] ; then
+if [[ -z "$TEST_TYPE" ]] ; then
   echo Set TEST_TYPE
   EXPORTS_SET=1
 fi
 
-if [ -z "$COMMIT_HASH" ] && [ -z "$REF" ]; then
+if [[ "$TEST_TYPE" = "apim" ]] ; then
+  if [[ -z "$API_NAME" ]] ; then
+    echo Set API_NAME when TEST_TYPE is apim
+    EXPORTS_SET=1
+  fi
+  if [[ -z "$APIM_ENV" ]] ; then
+    echo Set APIM_ENV when TEST_TYPE is apim
+    EXPORTS_SET=1
+  fi
+fi
+
+if [[ -z "$COMMIT_HASH" ]] && [[ -z "$REF" ]]; then
   echo Set COMMIT_HASH or REF
   EXPORTS_SET=1
 fi
 
-if [ $EXPORTS_SET = 1 ] ; then
+if [[ $EXPORTS_SET = 1 ]] ; then
   echo One or more exports not set
   exit 1
 fi
@@ -53,7 +64,7 @@ TEST_RESULTS=$?
 echo "Generating allure report"
 make report
 
-if [ $TEST_RESULTS -ne 0 ] ; then
+if [[ $TEST_RESULTS -ne 0 ]] ; then
   echo "service automation tests have failed"
   exit $TEST_RESULTS
 else

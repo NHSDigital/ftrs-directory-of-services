@@ -1,7 +1,6 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
-from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
@@ -35,40 +34,8 @@ def mock_ftrs_service():
 
 
 @pytest.fixture
-def mock_logger():
-    with patch("functions.dos_search_ods_code_function.logger") as mock:
-        yield mock
-
-
-@pytest.fixture
-def event(ods_code):
-    return {
-        "path": "/Organization",
-        "httpMethod": "GET",
-        "queryStringParameters": {
-            "identifier": f"odsOrganisationCode|{ods_code}",
-            "_revinclude": "Endpoint:organization",
-        },
-        "requestContext": {
-            "requestId": "796bdcd6-c5b0-4862-af98-9d2b1b853703",
-        },
-        "body": None,
-    }
-
-
-@pytest.fixture
-def ods_code():
-    return "ABC123"
-
-
-@pytest.fixture
 def lambda_context():
     return MagicMock()
-
-
-@pytest.fixture
-def bundle():
-    return Bundle.model_construct(id="bundle-id")
 
 
 EXPECTED_MULTI_VALUE_HEADERS = {
@@ -109,11 +76,10 @@ class TestLambdaHandler:
             "nhsd-correlation-id",
             "NHSD-Request-ID",
             "nhsd-request-id",
-            "NHSD-Message-Id",
-            "NHSD-Api-Version",
-            "NHSD-End-User-Role",
-            "NHSD-Client-Id",
-            "NHSD-Connecting-Party-App-Name",
+            "version",
+            "end-user-role",
+            "application-id",
+            "application-name",
             "Accept",
             "Accept-Encoding",
             "Accept-Language",
@@ -160,7 +126,7 @@ class TestLambdaHandler:
         )
         mock_logger.warning.assert_called_with(
             "Invalid request headers supplied",
-            extra={"invalid_headers": ["x-nhsd-unknown"]},
+            invalid_headers=["x-nhsd-unknown"],
         )
         assert_response(
             response,
@@ -193,6 +159,8 @@ class TestLambdaHandler:
         ods_code,
         event,
         bundle,
+        log_data,
+        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
@@ -204,9 +172,25 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_logger.assert_has_calls(
             [
-                call.append_keys(ods_code=ods_code),
-                call.info("Successfully processed"),
-                call.info("Creating response", extra={"status_code": 200}),
+                call.init(ANY),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
+                call.get_response_size_and_duration(bundle, ANY),
+                call.info(
+                    "Successfully processed: Logging response time & size",
+                    dos_response_time=ANY,
+                    dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
+                    dos_message_category="METRICS",
+                ),
+                call.info(
+                    "Creating response",
+                    status_code=200,
+                    body=ANY,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -215,10 +199,16 @@ class TestLambdaHandler:
         )
 
     def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event
+        self, lambda_context, mock_error_util, mock_logger, event, log_data, details
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
+        response_size = len(  # Override mocked response size to use this case's error model
+            mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json().encode(
+                "utf-8"
+            )
+        )
+        mock_logger.get_response_size_and_duration.return_value = (response_size, 1)
 
         # Act
         with patch(
@@ -234,11 +224,23 @@ class TestLambdaHandler:
 
         mock_logger.assert_has_calls(
             [
-                call.warning(
-                    "Validation error occurred",
-                    extra={"validation_errors": validation_error.errors()},
+                call.init(ANY),
+                call.get_response_size_and_duration(
+                    mock_error_util.create_validation_error_operation_outcome.return_value,
+                    ANY,
                 ),
-                call.info("Creating response", extra={"status_code": 400}),
+                call.warning(
+                    "Validation error occurred: Logging response time & size",
+                    validation_errors=validation_error.errors(),
+                    dos_response_time="1ms",
+                    dos_response_size=response_size,
+                ),
+                call.info(
+                    "Creating response",
+                    status_code=400,
+                    body=ANY,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 
@@ -248,7 +250,15 @@ class TestLambdaHandler:
             expected_body=mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json(),
         )
 
-    def test_lambda_handler_with_general_exception(
+    @pytest.mark.parametrize(
+        "exception",
+        [
+            Exception("Unexpected error"),
+            ValidationError.from_exception_data("ValidationError", []),
+        ],
+        ids=["general_exception", "validation_error"],
+    )
+    def test_lambda_handler_with_exception_from_ftrs_service_endpoints_by_ods(
         self,
         lambda_context,
         mock_ftrs_service,
@@ -256,9 +266,11 @@ class TestLambdaHandler:
         ods_code,
         mock_error_util,
         mock_logger,
+        bundle,
+        exception,
     ):
         # Arrange
-        mock_ftrs_service.endpoints_by_ods.side_effect = Exception("Unexpected error")
+        mock_ftrs_service.endpoints_by_ods.side_effect = exception
 
         # Act
         response = lambda_handler(event, lambda_context)
@@ -266,12 +278,29 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
-
         mock_logger.assert_has_calls(
             [
-                call.append_keys(ods_code=ods_code),
-                call.exception("Internal server error occurred"),
-                call.info("Creating response", extra={"status_code": 500}),
+                call.init(ANY),
+                call.info(
+                    "Received request for odsCode",
+                    ods_code=ods_code,
+                    dos_message_category="REQUEST",
+                ),
+                call.get_response_size_and_duration(
+                    mock_error_util.create_resource_internal_server_error.return_value,
+                    ANY,
+                ),
+                call.exception(
+                    "Internal server error occurred: Logging response time & size",
+                    dos_response_time="1ms",
+                    dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
+                ),
+                call.info(
+                    "Creating response",
+                    status_code=500,
+                    body=ANY,
+                    dos_message_category="RESPONSE",
+                ),
             ]
         )
 

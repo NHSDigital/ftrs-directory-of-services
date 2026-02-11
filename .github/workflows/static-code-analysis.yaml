@@ -1,7 +1,5 @@
 name: "Perform SonarCloud static analysis"
-permissions:
-      id-token: write
-      contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -13,10 +11,17 @@ on:
         description: "The branch, tag or SHA to checkout"
         required: false
         type: string
+    secrets:
+      SONAR_TOKEN:
+        description: "SonarCloud token"
+        required: true
 
 jobs:
   static-analysis:
     name: "Perform SonarCloud static analysis"
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
