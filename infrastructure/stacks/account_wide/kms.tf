@@ -27,7 +27,8 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource  = "*"
+      Condition = {}
     },
     {
       Sid    = "AllowGitHubRunnerAccess"
@@ -44,13 +45,14 @@ module "secrets_manager_encryption_key" {
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
       ]
-      Resource = "*"
+      Resource  = "*"
+      Condition = {}
     },
     {
       Sid    = "AllowAthenaConnectorSecretsAccess"
       Effect = "Allow"
       Principal = {
-        AWS = "*"
+        AWS = ["*"]
       }
       Action = [
         "kms:Decrypt",
