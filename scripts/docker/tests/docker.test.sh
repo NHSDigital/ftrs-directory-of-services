@@ -52,11 +52,13 @@ function main() {
 function test-docker-suite-setup() {
 
   :
+  return 0
 }
 
 function test-docker-suite-teardown() {
 
   :
+  return 0
 }
 
 # ==============================================================================

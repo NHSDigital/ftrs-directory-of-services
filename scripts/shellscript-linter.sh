@@ -28,6 +28,7 @@ function main() {
   else
     file="$file" run-shellcheck-in-docker
   fi
+  return 0
 }
 
 # Run ShellCheck natively.
@@ -37,6 +38,7 @@ function run-shellcheck-natively() {
 
   # shellcheck disable=SC2001
   shellcheck "$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # Run ShellCheck in a Docker container.
@@ -56,6 +58,7 @@ function run-shellcheck-in-docker() {
     --workdir /workdir \
     "$image" \
       "/workdir/$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # ==============================================================================

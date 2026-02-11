@@ -11,6 +11,7 @@ function check_git_branch_name {
       echo Naming pattern = task or hotfix/hyphenated JIRA ref followed by underscore or hyphen followed by max 45 alphanumerics, hyphens or underscores starting with an alphanumeric
       return 1
     fi
+    return 0
 }
 
 function check_git_branch_name_format {
@@ -18,6 +19,7 @@ function check_git_branch_name_format {
     if [[ "$BUILD_BRANCH" != 'main' ]] && ! [[ $BUILD_BRANCH =~ (hotfix|task)\/(fdos|dosis|sia|ftrs)-([0-9]{1,5})(_|-)([A-Za-z0-9])([A-Za-z0-9_-]{9,45})$ ]]  ; then
       echo 1
     fi
+    return 0
 }
 
 BRANCH_NAME=${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}

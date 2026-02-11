@@ -2,8 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-log() { printf '[push-wrapper] %s\n' "$1"; }
-err() { printf '[push-wrapper] ERROR: %s\n' "$1" >&2; }
+log() { printf '[push-wrapper] %s\n' "$1"; return 0; }
+err() { printf '[push-wrapper] ERROR: %s\n' "$1" >&2; return 0; }
 
 usage() {
   cat <<'EOF' >&2

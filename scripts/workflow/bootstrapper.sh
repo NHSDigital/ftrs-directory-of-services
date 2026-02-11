@@ -97,7 +97,7 @@ function terraform-init-migrate {
         -backend-config="encrypt=true" \
         -backend-config="key=$TERRAFORM_STATE_KEY" \
         -backend-config="region=$AWS_REGION"
-
+    return 0
 }
 # function to determine if state is held locally or remote
 function terraform-initialise {
@@ -115,6 +115,7 @@ function terraform-initialise {
           -backend-config="key=$STACK/terraform.state" \
           -backend-config="region=$AWS_REGION"
     fi
+    return 0
 }
 
 function github_runner_stack {
@@ -179,7 +180,7 @@ function github_runner_stack {
   if [[ $TEMP_STACK_TF_VARS_FILE == 1 ]]; then
     rm "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
   fi
-
+  return 0
 }
 
 if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then

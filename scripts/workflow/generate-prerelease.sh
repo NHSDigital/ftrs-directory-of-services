@@ -19,6 +19,7 @@ bump_patch() {
   IFS='.' read -r major minor patch <<<"${version#v}"
   patch=$((patch + 1))
   echo "v${major}.${minor}.${patch}"
+  return 0
 }
 
 # Determine base version
