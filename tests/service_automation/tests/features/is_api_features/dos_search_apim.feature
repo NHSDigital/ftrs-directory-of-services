@@ -9,7 +9,7 @@ Feature: dos-search tests against the apim proxy
 
 
   Scenario:I send a request to the dos-search organization endpoint by ODS Code via APIM with valid query parameters
-    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -17,7 +17,7 @@ Feature: dos-search tests against the apim proxy
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code via APIM with valid headers and query parameters
-    When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the APIM endpoint "Organization" with header "<params>" and query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources

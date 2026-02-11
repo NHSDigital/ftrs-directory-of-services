@@ -105,5 +105,6 @@ markers = [
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
   "rds_schema_modification: marks test as using RDS schema modification",
+  "is-smoke: marks test as integrated-search smoke test that can be run in Prod",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

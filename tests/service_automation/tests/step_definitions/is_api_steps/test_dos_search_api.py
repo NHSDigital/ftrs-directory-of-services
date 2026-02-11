@@ -61,7 +61,8 @@ scenarios(
     "./is_api_features/dos_search_backend_parameters.feature",
     "./is_api_features/dos_search_backend_gateway_errors.feature",
     "./is_api_features/dos_search_apim.feature",
-    "./is_api_features/dos_search_apim_security.feature",
+    "./is_api_features/dos_search_security.feature",
+    "./is_api_features/dos_search_smoke.feature",
 )
 
 
@@ -124,6 +125,48 @@ def send_to_apim_get_with_params(
     url = nhsd_apim_proxy_url + "/" + resource_name
 
     return _send_api_request(apim_request_context, url, params)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with an odscode from dynamo organisation table'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_get_with_ods_code_from_dynamo(
+    apim_request_context, nhsd_apim_proxy_url, resource_name, ods_code
+):
+    logger.info(
+        f"Requesting APIM URL: {nhsd_apim_proxy_url}/{resource_name} with ODS code: {ods_code}"
+    )
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
+    return _send_api_request(apim_request_context, url, params)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with header "(?P<header_params>.*?)" and query params "(?P<params>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_with_header(
+    apim_request_context,
+    nhsd_apim_auth_headers,
+    nhsd_apim_proxy_url,
+    params: str,
+    resource_name: str,
+    header_params: str,
+):
+    """Send request to APIM with specific header merged with auth headers."""
+    url = nhsd_apim_proxy_url + "/" + resource_name
+
+    # Start with auth headers and add header from key=value pairs
+    headers = {**nhsd_apim_auth_headers}
+    additional_headers = _convert_params_str_to_dict(header_params)
+    headers.update(additional_headers)
+
+    return _send_api_request(apim_request_context, url, params, headers)
 
 
 @when(

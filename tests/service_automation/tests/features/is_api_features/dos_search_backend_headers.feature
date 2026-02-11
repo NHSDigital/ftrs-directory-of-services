@@ -9,7 +9,7 @@ Feature: dos-search tests against the api-gateway to validate the correct handli
 
 
   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and valid headers
-    When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -37,7 +37,7 @@ Feature: dos-search tests against the api-gateway to validate the correct handli
 
 
   Scenario:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and no headers
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -45,7 +45,7 @@ Feature: dos-search tests against the api-gateway to validate the correct handli
 
 
   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and invalid headers
-    When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the "dos-search" endpoint "Organization" with header "<params>" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues

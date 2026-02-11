@@ -6,9 +6,9 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-@test
+
     Scenario:I send a request to the dos-search organization endpoint by ODS Code with for an ODS code that does exist
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046"
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -17,7 +17,7 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
 
 
   Scenario:I send a request to the dos-search organization endpoint by ODS Code with for an ODS code that does not exist
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|X000081046"
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|X000081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "0" "Organization" resources
@@ -36,10 +36,10 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                          | ods_code      |
-      | identifier=odsOrganisationCode\|&_revinclude=Endpoint:organization              |               |
-      | identifier=odsOrganisationCode\|0123&_revinclude=Endpoint:organization          | 0123          |
-      | identifier=odsOrganisationCode\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
-      | identifier=odsOrganisationCode\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|&_revinclude=Endpoint:organization              |               |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|0123&_revinclude=Endpoint:organization          | 0123          |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|0123456789ABC&_revinclude=Endpoint:organization | 0123456789ABC |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
   Scenario Outline:I send a request to the dos-search organization endpoint with invalid _revinclude value
@@ -53,9 +53,9 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                      |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=                      |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=Invalid:value         |
-      | identifier=odsOrganisationCode\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=                      |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=Invalid:value         |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
   Scenario Outline:I send a request to the dos-search organization endpoint with invalid identifier system
@@ -65,7 +65,7 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "code-invalid"
-    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'odsOrganisationCode'"
+    And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                                             | identifier_system          |
@@ -84,9 +84,9 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
-      | params                                    | missing_param |
-      | identifier=odsOrganisationCode\|M00081046 | _revinclude   |
-      | _revinclude=Endpoint:organization         | identifier    |
+      | params                                                              | missing_param |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046  | _revinclude   |
+      | _revinclude=Endpoint:organization                                   | identifier    |
 
 
 
@@ -103,7 +103,7 @@ Feature: dos-search tests against the api-gateway to validate the handling of pa
 
 
   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with unexpected query parameter
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=odsOrganisationCode|M00081046&<unexpected_param>=<unexpected_value>"
+    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046&<unexpected_param>=<unexpected_value>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues

@@ -26,6 +26,19 @@ def generate_ods_code(length: int) -> str:
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
+@given(
+    "there is an Organisation with an ODS code in the repo",
+    target_fixture="ods_code",
+)
+def find_organisation_with_ods_code(organisation_repo_seeded) -> str:
+    ods_code = organisation_repo_seeded.get_first_record_ods_code()
+    assert ods_code, "No Organisation with ODS code found in the repo"
+    logger.info(
+        f"Using ODS code '{ods_code}' from Organization dynamo for smoke tests from '{organisation_repo_seeded.model_cls.__name__}' repository"
+    )
+    return ods_code
+
+
 @given(parsers.parse("I have a {repo_name} repo"), target_fixture="model_repo")
 def get_repo_fixture(
     request: pytest.FixtureRequest, repo_name: str

@@ -247,6 +247,14 @@ def organisation_repo() -> AttributeLevelRepository[Organisation]:
 
 
 @pytest.fixture(scope="session")
+def organisation_repo_seeded(
+    organisation_repo: AttributeLevelRepository[Organisation],
+) -> AttributeLevelRepository[Organisation]:
+    """Fixture that returns the organisation repository to retrieve existing records."""
+    return organisation_repo
+
+
+@pytest.fixture(scope="session")
 def location_repo():
     return get_service_repository(Location, "location")
 
