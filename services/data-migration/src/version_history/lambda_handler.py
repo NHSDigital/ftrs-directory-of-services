@@ -16,7 +16,7 @@ version_history_table_name = os.environ.get("VERSION_HISTORY_TABLE_NAME", "")
 
 
 @LOGGER.inject_lambda_context
-def handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
+def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     """
     Lambda handler for writing test data to version history table.
 
