@@ -12,7 +12,7 @@ APPLICATION_DIR=application
 APPLICATION_UTIL_DIR=application-utils
 DATA_MIGRATION_DIR=data_migration
 
-if [ -n "$DIR" ] ; then
+if [[ -n "$DIR" ]] ; then
   echo Running tests only for $DIR
 fi
 # cleardown cache from previous run needs
@@ -22,7 +22,7 @@ for path in "$APPLICATION_DIR"/*/ ; do
     dirs=$(echo "$path" | tr "\/" '\n')
     for dir in $dirs
         do
-            if [ -d $APPLICATION_DIR/"$dir"/test/ ]; then
+            if [[ -d $APPLICATION_DIR/"$dir"/test/ ]]; then
                 echo "Clearing down temp test files for $dir"
                 rm -rf $APPLICATION_DIR/"$dir"/common
             fi
@@ -31,7 +31,7 @@ done
 
 # Clear down temp test files for data_migration directory
 for path in "$DATA_MIGRATION_DIR"/*/ ; do
-    if [ -d "$path/test/" ]; then
+    if [[ -d "$path/test/" ]]; then
         echo "Clearing down temp test files for $path"
         rm -rf "$path/common"
     fi
@@ -39,11 +39,11 @@ for path in "$DATA_MIGRATION_DIR"/*/ ; do
 done
 
 # Run application tests because specified or no subset specified
-if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
+if [[ -z "$DIR" ]] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
   # if command line argument provided use that to target specific sub directory ; otherwise loops thru all subdirectories
   # find each directory under application
   # if test code exists copy it from sub-dir in prep for running it
-  if [ -n "$1" ] ; then
+  if [[ -n "$1" ]] ; then
     parent_directory="$APPLICATION_DIR"/"$1/"
   else
     parent_directory="$APPLICATION_DIR/*/"
@@ -52,8 +52,8 @@ if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
       dirs=$(echo "$path" | tr "\/" '\n')
       for dir in $dirs
           do
-              if ! [ "$dir" == $APPLICATION_DIR ] ; then
-                  if [ -d $APPLICATION_DIR/"$dir/test" ]; then
+              if [[ "$dir" != $APPLICATION_DIR ]] ; then
+                  if [[ -d $APPLICATION_DIR/"$dir/test" ]]; then
                       echo "Preparing tests for $dir"
                       # copy util code but not the test code
                       rsync -av --exclude='test/' $APPLICATION_UTIL_DIR/* $APPLICATION_DIR/"$dir"
@@ -69,15 +69,15 @@ if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
 fi
 
 # Run application util tests because application subset specified or no subset specified
-if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
+if [[ -z "$DIR" ]] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
   # test utils if we are not targetting specific subfolder
-  if [ -z "$1" ] ; then
+  if [[ -z "$1" ]] ; then
     for path in "$APPLICATION_UTIL_DIR"/*/ ; do
         dirs=$(echo "$path" | tr "\/" '\n')
         for dir in $dirs
             do
-                if ! [ "$dir" == $APPLICATION_UTIL_DIR ] ; then
-                    if [ -d $APPLICATION_UTIL_DIR/"$dir/test" ]; then
+                if [[ "$dir" != $APPLICATION_UTIL_DIR ]] ; then
+                    if [[ -d $APPLICATION_UTIL_DIR/"$dir/test" ]]; then
                         echo "Preparing tests for $dir"
                         echo "Running tests for $dir"
                         pip install -r $APPLICATION_UTIL_DIR/"$dir"/test/requirements.txt
@@ -92,19 +92,19 @@ if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$APPLICATION_DIR" ]] ; then
 fi
 
 # Run tests for data_migration directory because subset specified or no subset specified
-if [ -z "$DIR" ] || [[ -n "$DIR"  &&  "$DIR" == "$DATA_MIGRATION_DIR" ]] ; then
+if [[ -z "$DIR" ]] || [[ -n "$DIR"  &&  "$DIR" == "$DATA_MIGRATION_DIR" ]] ; then
 
   for path in "$DATA_MIGRATION_DIR"/*/ ; do
       dirs=$(echo "$path" | tr "\/" '\n')
       for dir in $dirs
           do
-              if ! [ "$dir" == $DATA_MIGRATION_DIR ] ; then
-                  if [ -d $DATA_MIGRATION_DIR/"$dir/test" ]; then
+              if [[ "$dir" != $DATA_MIGRATION_DIR ]] ; then
+                  if [[ -d $DATA_MIGRATION_DIR/"$dir/test" ]]; then
                       echo "Preparing tests for $dir"
                       # copy config file if exists
                       for f in "$DATA_MIGRATION_DIR"/"$dir"/*_config.json; do
                         echo "$f"
-                        if [ -f "$f" ]; then
+                        if [[ -f "$f" ]]; then
                           echo Copying config file "$f"
                           cp "$f" ./
                         fi
@@ -133,7 +133,7 @@ for path in "$APPLICATION_DIR"/*/ ; do
     dirs=$(echo "$path" | tr "\/" '\n')
     for dir in $dirs
         do
-            if [ -d $APPLICATION_DIR/"$dir"/test/ ]; then
+            if [[ -d $APPLICATION_DIR/"$dir"/test/ ]]; then
                 echo "Clearing down temp test files for $dir"
                 rm -rf $APPLICATION_DIR/"$dir"/common
             fi
@@ -146,7 +146,7 @@ for path in "$DATA_MIGRATION_DIR"/*/ ; do
     dirs=$(echo "$path" | tr "\/" '\n')
     for dir in $dirs
         do
-            if [ -d $DATA_MIGRATION_DIR/"$dir"/test/ ]; then
+            if [[ -d $DATA_MIGRATION_DIR/"$dir"/test/ ]]; then
                 echo "Clearing down temp test files for $dir"
                 rm -rf $DATA_MIGRATION_DIR/"$dir"/common
                 rm -f ./*_config.json
