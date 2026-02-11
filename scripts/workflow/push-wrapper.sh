@@ -31,18 +31,18 @@ REMOTE_TAG="${4:-${REMOTE_TAG:-}}"
 VERSION_TAG="${5:-${VERSION_TAG:-}}"
 DOCKER_TOKEN="${DOCKER_TOKEN:-}"
 
-if [ -z "$API_NAME" ] || [ -z "$LOCAL_IMAGE" ] || [ -z "$REMOTE_NAME" ] || [ -z "$REMOTE_TAG" ]; then
+if [[ -z "$API_NAME" || -z "$LOCAL_IMAGE" || -z "$REMOTE_NAME" || -z "$REMOTE_TAG" ]]; then
   usage
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PUSH_SCRIPT="$SCRIPT_DIR/push-to-ecr.sh"
 
-if [ ! -f "$PUSH_SCRIPT" ]; then
+if [[ ! -f "$PUSH_SCRIPT" ]]; then
   err "push script not found: $PUSH_SCRIPT"
   exit 1
 fi
-if [ ! -x "$PUSH_SCRIPT" ]; then
+if [[ ! -x "$PUSH_SCRIPT" ]]; then
   chmod +x "$PUSH_SCRIPT" >/dev/null 2>&1 || true
 fi
 

@@ -34,12 +34,12 @@ if [[ ! "$ACTION" =~ ^(plan|apply|destroy) ]]; then
     EXPORTS_SET=1
 fi
 
-if [ -z "$AWS_REGION" ] ; then
+if [[ -z "$AWS_REGION" ]] ; then
   echo Set AWS_REGION to name of the AWS region to host the terraform state bucket
   EXPORTS_SET=1
 fi
 
-if [ -z "$PROJECT" ] ; then
+if [[ -z "$PROJECT" ]] ; then
   echo Set PROJECT to identify if account is for dos or cm
   EXPORTS_SET=1
 else
@@ -49,7 +49,7 @@ else
   fi
 fi
 
-if [ -z "$ENVIRONMENT" ] ; then
+if [[ -z "$ENVIRONMENT" ]] ; then
   echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
   EXPORTS_SET=1
 else
@@ -59,13 +59,13 @@ else
   fi
 fi
 
-if [ $EXPORTS_SET = 1 ] ; then
+if [[ $EXPORTS_SET = 1 ]] ; then
     echo One or more required exports not correctly set
     exit 1
 fi
 
 ENV_TF_VARS_FILE="$ENVIRONMENT/environment.tfvars"
-if ! [ -f "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" ] ; then
+if [[ ! -f "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE" ]] ; then
   echo "No environment variables defined for $ENVIRONMENT environment"
   exit 1
 fi
@@ -150,7 +150,7 @@ function github_runner_stack {
   cd "$STACK_DIR" || exit
   # if no stack tfvars create temporary one
   TEMP_STACK_TF_VARS_FILE=0
-  if [ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ] ; then
+  if [[ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ]] ; then
     touch "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
     TEMP_STACK_TF_VARS_FILE=1
   fi
@@ -158,14 +158,14 @@ function github_runner_stack {
   # init terraform
   terraform-initialise
 
-  if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
+  if [[ -n "$ACTION" && "$ACTION" = 'plan' ]] ; then
     terraform plan \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
     -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
   fi
 
-  if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
+  if [[ -n "$ACTION" && "$ACTION" = 'apply' ]] ; then
     terraform apply -auto-approve \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
     -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
@@ -209,7 +209,7 @@ fi
 cd "$STACK_DIR" || exit
 # if no stack tfvars create temporary one
 TEMP_STACK_TF_VARS_FILE=0
-if [ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ] ; then
+if [[ ! -f "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE" ]] ; then
   touch "$ROOT_DIR/$INFRASTRUCTURE_DIR/$STACK_TF_VARS_FILE"
   TEMP_STACK_TF_VARS_FILE=1
 fi
@@ -217,19 +217,19 @@ fi
 # init terraform
 terraform-initialise
 
-if [ -n "$ACTION" ] && [ "$ACTION" = 'plan' ] ; then
+if [[ -n "$ACTION" && "$ACTION" = 'plan' ]] ; then
   terraform plan \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
-if [ -n "$ACTION" ] && [ "$ACTION" = 'apply' ] ; then
+if [[ -n "$ACTION" && "$ACTION" = 'apply' ]] ; then
   terraform apply -auto-approve \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
   -var-file "$ENVIRONMENTS_DIR/$ENV_TF_VARS_FILE"
 fi
-if [ -n "$ACTION" ] && [ "$ACTION" = 'destroy' ] ; then
+if [[ -n "$ACTION" && "$ACTION" = 'destroy' ]] ; then
   terraform destroy -auto-approve \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$COMMON_TF_VARS_FILE \
   -var-file "$ROOT_DIR"/"$INFRASTRUCTURE_DIR"/$STACK_TF_VARS_FILE \
