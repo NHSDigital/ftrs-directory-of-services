@@ -71,6 +71,16 @@ dynamodb_tables = {
         projection_type = "ALL"
       }
     ]
+    stream_enabled = false
+  }
+  "version-history" = {
+    hash_key  = "entity_id"
+    range_key = "timestamp"
+    attributes = [
+      { name = "entity_id", type = "S" },
+      { name = "timestamp", type = "S" }
+    ]
+    global_secondary_indexes = []
   }
 }
 
