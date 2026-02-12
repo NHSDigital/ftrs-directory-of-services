@@ -43,6 +43,12 @@ CODING_MAP = {
     },
 }
 
+# Single source of truth for mandatory headers to ensure consistency across tests and maintainability
+MANDATORY_REQUEST_HEADERS: dict[str, str] = {
+    "NHSD-Request-Id": "req_id",
+    "version": "1",
+}
+
 # Load feature file
 scenarios(
     "./is_api_features/dos_search_backend.feature",
@@ -70,9 +76,11 @@ def dns_resolvable(api_name, env, workspace):
     target_fixture="fresponse",
 )
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
+    # headers can be manipulated in individual tests if needed
+    headers = MANDATORY_REQUEST_HEADERS.copy()
     url = get_url(api_name) + "/" + resource_name
 
-    return _send_api_request(api_request_context_mtls, url, params)
+    return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
 @when(
@@ -84,9 +92,10 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
 def send_to_apim_get_with_params(
     apim_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
+    headers = MANDATORY_REQUEST_HEADERS.copy()
     url = nhsd_apim_proxy_url + "/" + resource_name
 
-    return _send_api_request(apim_request_context, url, params)
+    return _send_api_request(apim_request_context, url, params, headers)
 
 
 @when(
@@ -98,8 +107,9 @@ def send_to_apim_get_with_params(
 def send_to_apim_no_auth(
     api_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
+    headers = MANDATORY_REQUEST_HEADERS.copy()
     url = nhsd_apim_proxy_url + "/" + resource_name
-    return _send_api_request(api_request_context, url, params)
+    return _send_api_request(api_request_context, url, params, headers)
 
 
 @when(
@@ -111,8 +121,12 @@ def send_to_apim_no_auth(
 def send_to_apim_invalid_token(
     apim_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
+    # Using mandatory headers as base and adding Authorization header with invalid token for this test case
+    headers = {
+        **MANDATORY_REQUEST_HEADERS,
+        "Authorization": "Bearer invalid_token",
+    }
     url = nhsd_apim_proxy_url + "/" + resource_name
-    headers = {"Authorization": "Bearer invalid_token"}
     return _send_api_request(apim_request_context, url, params, headers)
 
 
@@ -135,14 +149,7 @@ def send_to_apim_status_token(
     )
 
 
-def _send_api_request(request_context, url, params: str = None, headers={}):
-    mandatory_headers = {"version": "1", "x-request-id": "request_id"}
-
-    for header, value in mandatory_headers.items():
-        if (
-            header not in headers
-        ):  # Inserts mandatory headers only if they are not already provided
-            headers[header] = value
+def _send_api_request(request_context, url, params: str = None, headers=None):
     param_dict = _convert_params_str_to_dict(params)
 
     response = request_context.get(
