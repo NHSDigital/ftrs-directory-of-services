@@ -292,8 +292,3 @@ data "aws_security_group" "rds_connector_security_group" {
   count = var.athena_stack_enabled && local.is_primary_environment ? 1 : 0
   name  = "${local.account_prefix}-athena-rds-connector-sg"
 }
-
-data "aws_security_group" "athena_rds_connector_sg" {
-  count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
-  name  = "${local.account_prefix}-athena-rds-connector-sg"
-}
