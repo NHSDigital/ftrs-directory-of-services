@@ -202,7 +202,7 @@ aws cloudwatch set-alarm-state \
 
 Create your own alarm configuration:
 
-```json
+```jsonjson
 {
   "my_lambda": [
     {
@@ -278,7 +278,7 @@ See [MIGRATION.md](./MIGRATION.md) for step-by-step migration guide from embedde
 
 - **CloudWatch Monitoring**: [cloudwatch-monitoring/README.md](./cloudwatch-monitoring/README.md)
 - **Slack Notifications**: [slack-notifications/README.md](./slack-notifications/README.md)
-- **Examples**: 
+- **Examples**:
   - [cloudwatch-monitoring/EXAMPLES.md](./cloudwatch-monitoring/EXAMPLES.md)
   - [slack-notifications/EXAMPLES.md](./slack-notifications/EXAMPLES.md)
 

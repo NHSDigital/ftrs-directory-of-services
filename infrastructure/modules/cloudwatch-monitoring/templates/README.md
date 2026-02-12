@@ -52,6 +52,7 @@ templates/
 **Use for**: Basic API monitoring
 
 **Alarms**:
+
 - 5XX errors (critical)
 - Latency p99 (critical)
 
@@ -65,6 +66,7 @@ templates/
 **Use for**: Production APIs
 
 **Alarms**:
+
 - 4XX errors (warning)
 - 5XX errors (critical)
 - Latency p99 (critical)
@@ -84,6 +86,7 @@ templates/
 **Use for**: Basic WAF monitoring
 
 **Alarms**:
+
 - Blocked requests (warning)
 - Allowed requests spike (critical)
 
@@ -97,6 +100,7 @@ templates/
 **Use for**: Production WAF monitoring
 
 **Alarms**:
+
 - Blocked requests (warning + critical)
 - Allowed requests spike (critical)
 - Counted requests (warning)
