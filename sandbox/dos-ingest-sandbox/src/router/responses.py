@@ -156,7 +156,7 @@ INTERNAL_SERVER_ERROR_RESPONSE = {
             "details": {
                 "coding": [
                     {
-                        "system": "http://terminology.hl7.org/CodeSystem/operation-outcome",
+                        "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
                         "code": "exception",
                         "display": "Exception"
                     }

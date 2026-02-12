@@ -1,7 +1,7 @@
 from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
 from pydantic import ValidationError
 
-OPERATION_OUTCOME_SYSTEM = "http://terminology.hl7.org/CodeSystem/operation-outcome"
+OPERATION_OUTCOME_SYSTEM = "https://fhir.nhs.uk/CodeSystem/http-error-codes"
 ERROR_PROCESSING_REQUEST = "The Server has encountered an error processing the request."
 
 FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
