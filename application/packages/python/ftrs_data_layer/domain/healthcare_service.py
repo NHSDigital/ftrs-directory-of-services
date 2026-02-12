@@ -34,7 +34,6 @@ class HealthcareService(DBModel):
     type: HealthcareServiceType
     providedBy: UUID | None
     location: UUID | None
-    endpoint: list[UUID] | None = None
     name: str
     telecom: HealthcareServiceTelecom | None
     openingTime: list[OpeningTime] | None

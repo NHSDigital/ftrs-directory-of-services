@@ -23,7 +23,6 @@ class HealthcareServiceMapper:
                 "location": self._create_location_references(healthcare_service),
                 "type": self._create_type(healthcare_service),
                 "telecom": self._create_telecom(healthcare_service),
-                "endpoint": self._create_endpoint_references(healthcare_service),
             }
         )
         return fhir_healthcare_service
@@ -58,16 +57,6 @@ class HealthcareServiceMapper:
     ) -> list[dict[str, str]]:
         if healthcare_service.location:
             return [{"reference": f"Location/{healthcare_service.location}"}]
-        return []
-
-    def _create_endpoint_references(
-        self, healthcare_service: HealthcareService
-    ) -> list[dict[str, str]]:
-        if healthcare_service.endpoint:
-            references = []
-            for endpoint_id in healthcare_service.endpoint:
-                references.append({"reference": f"Endpoint/{endpoint_id}"})
-            return references
         return []
 
     def _create_type(

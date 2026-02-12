@@ -232,7 +232,6 @@ class ServiceTransformer(ABC):
             type=type,
             providedBy=organisation_id,
             location=location_id,
-            endpoint=self.build_endpoint_references(service),
             name=service.name,
             telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
@@ -249,22 +248,6 @@ class ServiceTransformer(ABC):
             dispositions=self.build_dispositions(service),
             ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
         )
-
-    def build_endpoint_references(
-        self,
-        service: legacy_model.Service,
-    ) -> list[UUID] | None:
-        """
-        Build a list of endpoint UUIDs for the healthcare service.
-        """
-        if not service.endpoints:
-            return None
-
-        endpoint_ids = [
-            generate_uuid(endpoint.id, "endpoint") for endpoint in service.endpoints
-        ]
-
-        return endpoint_ids if endpoint_ids else None
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:
         """

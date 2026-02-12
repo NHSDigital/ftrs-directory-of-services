@@ -24,7 +24,6 @@ def mock_healthcare_service() -> MagicMock:
     mock.identifier_oldDoS_uid = "123456"
     mock.providedBy = "org-123"
     mock.location = "loc-123"
-    mock.endpoint = None
 
     # Mock category
     mock_category = MagicMock()
@@ -59,7 +58,6 @@ def mock_healthcare_service_minimal() -> MagicMock:
     mock.category = None
     mock.type = None
     mock.telecom = None
-    mock.endpoint = None
     return mock
 
 
@@ -319,59 +317,6 @@ class TestHealthcareServiceMapper:
         assert result.telecom[0].system == "phone"
         assert result.telecom[0].value == "09876543210"
         assert result.telecom[0].extension[0].valueString == "Clinician Access Only"
-
-    def test_map_to_fhir_healthcare_service_single_endpoint(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service: MagicMock,
-    ) -> None:
-        # Arrange
-        endpoint_id = "end-123"
-        mock_healthcare_service.endpoint = [endpoint_id]
-
-        # Act
-        result = healthcare_service_mapper.map_to_fhir_healthcare_service(
-            mock_healthcare_service
-        )
-
-        # Assert
-        assert len(result.endpoint) == 1
-        assert result.endpoint[0].reference == f"Endpoint/{endpoint_id}"
-
-    def test_map_to_fhir_healthcare_service_multiple_endpoints(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service: MagicMock,
-    ) -> None:
-        # Arrange
-        endpoint_id_1 = "end-123"
-        endpoint_id_2 = "end-456"
-        endpoint_id_3 = "end-789"
-        mock_healthcare_service.endpoint = [endpoint_id_1, endpoint_id_2, endpoint_id_3]
-
-        # Act
-        result = healthcare_service_mapper.map_to_fhir_healthcare_service(
-            mock_healthcare_service
-        )
-
-        # Assert
-        assert len(result.endpoint) == 3
-        assert result.endpoint[0].reference == f"Endpoint/{endpoint_id_1}"
-        assert result.endpoint[1].reference == f"Endpoint/{endpoint_id_2}"
-        assert result.endpoint[2].reference == f"Endpoint/{endpoint_id_3}"
-
-    def test_map_to_fhir_healthcare_service_no_endpoint(
-        self,
-        healthcare_service_mapper: HealthcareServiceMapper,
-        mock_healthcare_service_minimal: MagicMock,
-    ) -> None:
-        # Act
-        result = healthcare_service_mapper.map_to_fhir_healthcare_service(
-            mock_healthcare_service_minimal
-        )
-
-        # Assert
-        assert result.endpoint == []
 
     def test_map_to_fhir_healthcare_service_type_display(
         self,
