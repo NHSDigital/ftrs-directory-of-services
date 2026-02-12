@@ -96,7 +96,8 @@ fetch_proxygen_registry_credentials(){
   fi
 
   local token
-  token=$(normalise_token "$raw_token")
+  token=$(printf '%s' "$raw_token" | base64 --decode 2>/dev/null || printf '%s' "$raw_token")
+  token=$(normalise_token "$token")
 
   if [[ "${DEBUG_PUSH_TO_ECR:-}" == "1" ]]; then
     local key_list
