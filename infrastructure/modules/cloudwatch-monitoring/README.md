@@ -242,7 +242,7 @@ module "lambda_monitoring" {
 | alarm_evaluation_periods | Evaluation periods by resource and alarm type | map(map(number)) | yes |
 | alarm_periods | Period in seconds by resource and alarm type | map(map(number)) | yes |
 | kms_key_id | KMS key ID for SNS encryption | string | no |
-| enable_warning_alarms | Enable warning level alarms | bool | no |
+| enable_warning_alarms | Enable warning level alarms | boolean | no |
 | tags | Tags for SNS topic | map(string) | no |
 
 ## Outputs

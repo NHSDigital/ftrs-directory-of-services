@@ -5,6 +5,7 @@ Reusable Terraform modules and stacks for AWS resource monitoring with CloudWatc
 ## Overview
 
 This solution provides:
+
 - **CloudWatch alarms** for Lambda, API Gateway, and WAF
 - **Slack notifications** for alarm events
 - **Built-in templates** for quick adoption
@@ -12,7 +13,7 @@ This solution provides:
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Your Stack (e.g., dos_search)             │
 │                                                              │
@@ -152,11 +153,13 @@ slack_webhook_url          = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 **Purpose**: Creates CloudWatch alarms and SNS topic for AWS resources
 
 **Supports**:
+
 - Lambda functions
 - API Gateway (REST/HTTP)
 - WAF WebACLs
 
 **Key Features**:
+
 - Built-in templates for common patterns
 - Custom configuration support
 - Multiple resource monitoring
@@ -171,6 +174,7 @@ slack_webhook_url          = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 **Purpose**: Lambda function that sends CloudWatch alarms to Slack
 
 **Key Features**:
+
 - Resource-agnostic (works with any SNS topic)
 - VPC support
 - Configurable Lambda settings
@@ -187,6 +191,7 @@ slack_webhook_url          = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 **Purpose**: Standalone deployable stack for Slack notifications
 
 **Use Cases**:
+
 - Subscribe to multiple SNS topics from different stacks
 - Centralized notification management
 - Independent deployment lifecycle
@@ -253,6 +258,7 @@ module "slack_notifier" {
 ### Required Variables
 
 **For cloudwatch-monitoring**:
+
 - `resource_prefix` - Prefix for alarm names
 - `workspace_suffix` - Workspace suffix
 - `sns_topic_name` - SNS topic name
@@ -263,6 +269,7 @@ module "slack_notifier" {
 - `alarm_periods` - Period in seconds
 
 **For slack-notifications**:
+
 - `sns_topic_arn` - SNS topic to subscribe to
 - `slack_webhook_url` - Slack webhook URL
 - `environment` - Environment name
@@ -354,6 +361,7 @@ See [cloudwatch-monitoring/MIGRATION.md](./modules/cloudwatch-monitoring/MIGRATI
 ## Contributing
 
 When adding new features:
+
 1. Update module documentation
 2. Add examples
 3. Test with multiple configurations

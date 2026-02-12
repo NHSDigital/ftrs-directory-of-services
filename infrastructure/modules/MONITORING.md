@@ -5,23 +5,28 @@ This directory contains two complementary modules that provide a complete monito
 ## Modules Overview
 
 ### 1. [cloudwatch-monitoring](./cloudwatch-monitoring/)
+
 Creates CloudWatch alarms and SNS topic for AWS resource monitoring.
 
 **Supported Resources:**
+
 - Lambda functions
 - API Gateway (REST and HTTP APIs)
 - WAF WebACLs
 
 **Features:**
+
 - Built-in alarm templates for each resource type
 - Custom alarm configurations
 - Multiple resource support
 - Warning and critical severity levels
 
 ### 2. [slack-notifications](./slack-notifications/)
+
 Sends CloudWatch alarm notifications to Slack via Lambda.
 
 **Features:**
+
 - Automatic SNS subscription
 - VPC support
 - Configurable Lambda settings
@@ -178,15 +183,18 @@ aws cloudwatch set-alarm-state \
 ### Monitoring Templates by Resource Type
 
 **Lambda:**
+
 - **lambda/minimal**: 2 alarms (Errors, Throttles)
 - **lambda/standard**: 4 alarms (Duration p99, Errors, Throttles, Concurrency)
 - **lambda/comprehensive**: 8 alarms (All metrics with Warning + Critical)
 
 **API Gateway:**
+
 - **api-gateway/minimal**: 2 alarms (5XX errors, Latency)
 - **api-gateway/standard**: 4 alarms (4XX/5XX errors, Latency, Request spike)
 
 **WAF:**
+
 - **waf/minimal**: 2 alarms (Blocked requests, Allowed spike)
 - **waf/standard**: 4 alarms (Blocked/Counted requests, Allowed spike)
 
@@ -212,25 +220,30 @@ Create your own alarm configuration:
 ## Best Practices
 
 ### 1. Alarm Thresholds
+
 - Start with conservative thresholds
 - Adjust based on actual metrics
 - Use warning alarms for early detection
 
 ### 2. Evaluation Periods
+
 - Critical alarms: 1-2 periods (fast response)
 - Warning alarms: 2-3 periods (reduce noise)
 
 ### 3. SNS Topic
+
 - One topic per service/environment
 - Use descriptive names
 - Enable encryption with KMS
 
 ### 4. Slack Notifications
+
 - Use dedicated channels for different severity levels
 - Configure VPC endpoints for private subnets
 - Store webhook URLs in Secrets Manager
 
 ### 5. Cost Optimization
+
 - Use minimal template for non-critical services
 - Set appropriate CloudWatch Logs retention
 - Monitor Lambda invocation costs
@@ -272,6 +285,7 @@ See [MIGRATION.md](./MIGRATION.md) for step-by-step migration guide from embedde
 ## Contributing
 
 When adding new features:
+
 1. Update module documentation
 2. Add examples
 3. Test with multiple configurations

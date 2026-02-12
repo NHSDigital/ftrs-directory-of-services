@@ -4,7 +4,7 @@ This directory contains reusable alarm configuration templates for various AWS r
 
 ## Directory Structure
 
-```
+```text
 templates/
 ├── lambda/          # Lambda function monitoring
 ├── api-gateway/     # API Gateway monitoring
@@ -14,26 +14,31 @@ templates/
 ## Lambda Templates
 
 ### lambda/minimal.json
+
 **Use for**: Basic production monitoring, low-traffic services
 
 **Alarms**: Errors, Throttles
 
 **Required thresholds**:
+
 - `errors-critical`
 - `throttles-critical`
 
 ### lambda/standard.json (Default)
+
 **Use for**: Most production services
 
 **Alarms**: Duration p99, Errors, Throttles, Concurrent Executions
 
 **Required thresholds**:
+
 - `duration-p99-critical`
 - `errors-critical`
 - `throttles-critical`
 - `concurrent-executions-critical`
 
 ### lambda/comprehensive.json
+
 **Use for**: High-criticality services
 
 **Alarms**: All metrics with Warning + Critical levels
@@ -43,6 +48,7 @@ templates/
 ## API Gateway Templates
 
 ### api-gateway/minimal.json
+
 **Use for**: Basic API monitoring
 
 **Alarms**:
@@ -50,10 +56,12 @@ templates/
 - Latency p99 (critical)
 
 **Required thresholds**:
+
 - `5xx-errors-critical`
 - `latency-p99-critical`
 
 ### api-gateway/standard.json
+
 **Use for**: Production APIs
 
 **Alarms**:
@@ -63,6 +71,7 @@ templates/
 - Request spike (critical)
 
 **Required thresholds**:
+
 - `4xx-errors-warning`
 - `5xx-errors-critical`
 - `latency-p99-critical`
@@ -71,6 +80,7 @@ templates/
 ## WAF Templates
 
 ### waf/minimal.json
+
 **Use for**: Basic WAF monitoring
 
 **Alarms**:
@@ -78,10 +88,12 @@ templates/
 - Allowed requests spike (critical)
 
 **Required thresholds**:
+
 - `blocked-requests-warning`
 - `allowed-requests-spike-critical`
 
 ### waf/standard.json
+
 **Use for**: Production WAF monitoring
 
 **Alarms**:
@@ -90,6 +102,7 @@ templates/
 - Counted requests (warning)
 
 **Required thresholds**:
+
 - `blocked-requests-warning`
 - `blocked-requests-critical`
 - `allowed-requests-spike-critical`
@@ -98,6 +111,7 @@ templates/
 ## Using Templates
 
 ### Lambda Monitoring
+
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -113,6 +127,7 @@ module "monitoring" {
 ```
 
 ### API Gateway Monitoring
+
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -137,6 +152,7 @@ module "monitoring" {
 ```
 
 ### WAF Monitoring
+
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -161,6 +177,7 @@ module "monitoring" {
 ```
 
 ### Multi-Resource Monitoring
+
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -201,10 +218,10 @@ Create your own template with the following structure:
 
 ### Key Fields
 
-- **metric_name**: CloudWatch metric name
+- **metric name**: CloudWatch metric name
 - **statistic**: Statistical function
-- **comparison_operator**: Comparison type
-- **alarm_suffix**: Unique identifier for threshold mapping
+- **comparison operator**: Comparison type
+- **alarm suffix**: Unique identifier for threshold mapping
 - **description**: Human-readable description
 - **severity**: `warning` or `critical`
 - **namespace**: AWS service namespace

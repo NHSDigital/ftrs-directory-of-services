@@ -5,12 +5,14 @@ This stack includes CloudWatch monitoring and Slack notifications for Lambda fun
 ## Components
 
 ### Lambda Alarms (`lambda_alarms.tf`)
+
 - Monitors search Lambda and health check Lambda
 - Uses `lambda/comprehensive` template
 - Includes Duration, Errors, Throttles, Concurrency, and Invocations alarms
 - Exports SNS topic ARN for cross-stack integration
 
 ### Slack Notifications (`slack_notifications.tf`)
+
 - Sends CloudWatch alarms to Slack
 - Enabled by default (`enable_slack_notifications = true`)
 - Uses the `slack_notifier` stack as a module
@@ -88,6 +90,7 @@ aws sns list-subscriptions-by-topic --topic-arn "$SNS_ARN"
 ## Alarm Templates
 
 Currently using `lambda/comprehensive` which includes:
+
 - Duration p95 (warning)
 - Duration p99 (critical)
 - Concurrent Executions (warning + critical)
@@ -96,6 +99,7 @@ Currently using `lambda/comprehensive` which includes:
 - Errors (warning + critical)
 
 To change template, update `alarm_config_path` in `lambda_alarms.tf`:
+
 - `lambda/minimal` - Basic monitoring (Errors, Throttles)
 - `lambda/standard` - Recommended (Duration p99, Errors, Throttles, Concurrency)
 - `lambda/comprehensive` - Full monitoring (current)
