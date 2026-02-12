@@ -99,7 +99,7 @@ module "slack_notifications" {
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    AWS Resources                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
@@ -202,7 +202,7 @@ aws cloudwatch set-alarm-state \
 
 Create your own alarm configuration:
 
-```jsonjson
+```json
 {
   "my_lambda": [
     {
