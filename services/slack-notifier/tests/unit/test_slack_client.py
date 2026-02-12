@@ -49,7 +49,7 @@ class TestSendToSlack:
         mock_response = MagicMock()
         mock_response.status = 200
 
-        with patch("functions.slack_notifier.slack_client.http") as mock_http:
+        with patch("functions.slack_client.http") as mock_http:
             mock_http.request.return_value = mock_response
             result = send_to_slack("https://hooks.slack.com/test", {"text": "test"})
 
@@ -61,14 +61,14 @@ class TestSendToSlack:
         mock_response.status = 400
         mock_response.data.decode.return_value = "Bad Request"
 
-        with patch("functions.slack_notifier.slack_client.http") as mock_http:
+        with patch("functions.slack_client.http") as mock_http:
             mock_http.request.return_value = mock_response
             result = send_to_slack("https://hooks.slack.com/test", {"text": "test"})
 
             assert result is False
 
     def test_exception_during_send(self):
-        with patch("functions.slack_notifier.slack_client.http") as mock_http:
+        with patch("functions.slack_client.http") as mock_http:
             mock_http.request.side_effect = Exception("Network error")
             result = send_to_slack("https://hooks.slack.com/test", {"text": "test"})
 
