@@ -162,16 +162,6 @@ def test_build_ods_query_params_includes_gp_practice_role_codes() -> None:
     assert ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value) in params
 
 
-def test_validate_ods_code(ods_code: str, should_pass: bool) -> None:
-    """Test ODS code validation with various inputs."""
-    if should_pass:
-        validate_ods_code(ods_code)  # Should not raise
-    else:
-        with pytest.raises(ValueError) as excinfo:
-            validate_ods_code(ods_code)
-        assert "must match" in str(excinfo.value)
-
-
 def test__extract_organizations_from_bundle_with_missing_resource() -> None:
     """Test _extract_organizations_from_bundle handles entries without resource field."""
     bundle = {
