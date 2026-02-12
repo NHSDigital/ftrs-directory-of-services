@@ -5,10 +5,6 @@ module "slack_notifier" {
   count  = var.enable_slack_notifications ? 1 : 0
   source = "../slack_notifier"
 
-  environment = var.environment
-  project     = var.project
-  aws_region  = var.aws_region
-
   sns_topic_arn     = module.lambda_monitoring.sns_topic_arn
   slack_webhook_url = var.slack_webhook_alarms_url
 
