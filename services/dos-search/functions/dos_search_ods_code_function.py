@@ -75,7 +75,6 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
             invalid_type_headers["version"] = type(headers["version"]).__name__
 
     if invalid_type_headers:
-        print("easy fail")
         raise InvalidHeaderTypeError(invalid_type_headers)
 
     invalid_headers = [
