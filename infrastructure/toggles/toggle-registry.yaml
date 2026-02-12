@@ -73,6 +73,20 @@ stack_toggles:
       ref: true
       prod: false
 
+  - id: stack_slack_notifier_enabled
+    name: "Slack Notifier Stack Enabled"
+    description: "Enable/disable Slack Notifier stack deployment"
+    terraform_variable: slack_notifier_stack_enabled
+    stack_path: infrastructure/stacks/slack_notifier
+    owner: "Infrastructure Team"
+    environments:
+      workspace: false
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: false
+
 api_gateway_toggles:
   - id: dos_search_organisation_search_enabled
     name: "DoS Search - Organisation Search Enabled"
