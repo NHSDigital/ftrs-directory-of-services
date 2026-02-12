@@ -1,17 +1,20 @@
-################################################################################
-# CloudWatch Alarm Configuration
-################################################################################
+module "lambda_monitoring" {
+  source = "../../modules/cloudwatch-monitoring"
 
-locals {
-  alarm_config = jsondecode(file("${path.module}/alarms/lambda-config.json"))
+  resource_prefix  = local.resource_prefix
+  workspace_suffix = local.workspace_suffix
 
-  # Lambda function mapping
+  sns_topic_name   = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+  sns_display_name = "DoS Search Lambda Alarms"
+  kms_key_id       = null
+
+  alarm_config_path = "lambda/comprehensive"
+
   lambda_functions = {
     search_lambda       = module.lambda.lambda_function_name
     health_check_lambda = module.health_check_lambda.lambda_function_name
   }
 
-  # Threshold mapping by severity
   alarm_thresholds = {
     search_lambda = {
       "duration-p95-warning"           = var.search_lambda_duration_p95_warning_ms
@@ -28,7 +31,6 @@ locals {
     }
   }
 
-  # Evaluation periods by severity
   alarm_evaluation_periods = {
     search_lambda = {
       "duration-p95-warning"           = var.lambda_alarm_evaluation_periods
@@ -45,7 +47,6 @@ locals {
     }
   }
 
-  # Period (seconds) by severity
   alarm_periods = {
     search_lambda = {
       "duration-p95-warning"           = var.lambda_alarm_period_seconds
@@ -53,7 +54,7 @@ locals {
       "concurrent-executions-warning"  = var.lambda_alarm_period_seconds
       "concurrent-executions-critical" = var.lambda_alarm_period_seconds
       "throttles-critical"             = var.lambda_throttles_critical_period_seconds
-      "invocations-spike-critical"     = 3600 # 1 hour for invocations
+      "invocations-spike-critical"     = 3600
       "errors-warning"                 = var.lambda_alarm_period_seconds
       "errors-critical"                = var.lambda_alarm_period_seconds
     }
@@ -62,22 +63,9 @@ locals {
     }
   }
 
-  # Generate alarms from JSON config
-  alarms = merge([
-    for lambda_type, alarm_configs in local.alarm_config : {
-      for alarm in alarm_configs :
-      "${lambda_type}_${alarm.alarm_suffix}" => {
-        function_name       = local.lambda_functions[lambda_type]
-        metric_name         = alarm.metric_name
-        statistic           = alarm.statistic
-        threshold           = local.alarm_thresholds[lambda_type][alarm.alarm_suffix]
-        comparison_operator = alarm.comparison_operator
-        alarm_name          = "${local.resource_prefix}-${replace(lambda_type, "_", "-")}-${alarm.alarm_suffix}"
-        description         = alarm.description
-        evaluation_periods  = local.alarm_evaluation_periods[lambda_type][alarm.alarm_suffix]
-        period              = local.alarm_periods[lambda_type][alarm.alarm_suffix]
-        actions_enabled     = alarm.severity == "warning" ? var.enable_warning_alarms : true
-      }
-    }
-  ]...)
+  enable_warning_alarms = var.enable_warning_alarms
+
+  tags = {
+    Name = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+  }
 }

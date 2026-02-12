@@ -1,0 +1,20 @@
+{
+  "lambda": [
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-critical",
+      "description": "Lambda errors critical threshold",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "throttles-critical",
+      "description": "Lambda throttles critical threshold",
+      "severity": "critical"
+    }
+  ]
+}
