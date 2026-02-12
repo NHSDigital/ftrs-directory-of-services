@@ -1,7 +1,10 @@
 # Stubbed responses for the dos-search sandbox, aligned with docs/specification/dos-search.yaml
 
-UKCORE_SPINE_ERROR_CODE_SYSTEM = (
-    "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+from src.models.constants import (
+    INVALID_SEARCH_DATA_DISPLAY,
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+    SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
 )
 
 SUCCESS_BUNDLE_ABC123 = {
@@ -129,7 +132,7 @@ ERROR_INVALID_IDENTIFIER_VALUE = {
             "details": {
                 "coding": [
                     {
-                        "system": UKCORE_SPINE_ERROR_CODE_SYSTEM,
+                        "system": SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
                         "version": "1.0.0",
                         "code": "INVALID_SEARCH_DATA",
                         "display": INVALID_SEARCH_DATA_DISPLAY,
@@ -150,7 +153,7 @@ ERROR_MISSING_REVINCLUDE = {
             "details": {
                 "coding": [
                     {
-                        "system": UKCORE_SPINE_ERROR_CODE_SYSTEM,
+                        "system": SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
                         "version": "1.0.0",
                         "code": "INVALID_SEARCH_DATA",
                         "display": INVALID_SEARCH_DATA_DISPLAY,
@@ -171,7 +174,7 @@ ERROR_INVALID_IDENTIFIER_SYSTEM = {
             "details": {
                 "coding": [
                     {
-                        "system": UKCORE_SPINE_ERROR_CODE_SYSTEM,
+                        "system": SPINE_ERROR_OR_WARNING_CODE_SYSTEM,
                         "version": "1.0.0",
                         "code": "INVALID_SEARCH_DATA",
                         "display": INVALID_SEARCH_DATA_DISPLAY,
