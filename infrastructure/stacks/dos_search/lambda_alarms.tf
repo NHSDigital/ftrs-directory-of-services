@@ -8,7 +8,7 @@ module "lambda_monitoring" {
   sns_display_name = "DoS Search Lambda Alarms"
   kms_key_id       = null
 
-  alarm_config_path = "lambda/comprehensive"
+  alarm_config_path = "comprehensive"
 
   lambda_functions = {
     search_lambda       = module.lambda.lambda_function_name
