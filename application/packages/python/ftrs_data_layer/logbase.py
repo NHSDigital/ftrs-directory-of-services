@@ -737,6 +737,13 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Error detail: {detail}.",
     )
+    CRUD_API_001 = LogReference(
+        level=INFO, message="SEARCH TRIAGE CODE is ENABLED,Processing API request."
+    )
+    CRUD_API_002 = LogReference(
+        level=INFO,
+        message="SEARCH TRIAGE CODE is DISABLED,Returning 503 for API request.",
+    )
     LOCATION_001 = LogReference(
         level=INFO,
         message="Received request to create location with name: {name} and Managing Organisation: {orgID}.",
