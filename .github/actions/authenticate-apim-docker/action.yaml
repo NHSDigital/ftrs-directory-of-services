@@ -57,6 +57,13 @@ runs:
 
         RESPONSE_SIZE=$(wc -c < "$TMP_RESPONSE" | tr -d ' ')
         echo "Proxygen docker-token status=${HTTP_STATUS} size=${RESPONSE_SIZE}"
+        if [ "$HTTP_STATUS" = "200" ] && [ "$RESPONSE_SIZE" = "2" ]; then
+          echo "Proxygen docker-token response looks empty ({}); check API name, token scope, and base URL"
+        elif [ "$HTTP_STATUS" = "401" ] || [ "$HTTP_STATUS" = "403" ]; then
+          echo "Proxygen docker-token unauthorized; check token scope/permissions"
+        elif [ "$HTTP_STATUS" = "404" ]; then
+          echo "Proxygen docker-token not found; check API name and base URL"
+        fi
 
         DOCKER_TOKEN=$(cat "$TMP_RESPONSE")
         rm -f "$TMP_RESPONSE"
