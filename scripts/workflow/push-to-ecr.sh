@@ -79,37 +79,27 @@ fetch_proxygen_registry_credentials(){
   local raw_token="${DOCKER_TOKEN:-}"
   [[ -n "$raw_token" ]] || die "DOCKER_TOKEN not provided"
 
-  if [[ "${DEBUG_PUSH_TO_ECR:-}" == "1" ]]; then
-    local prefix suffix
-    prefix=$(printf '%.6s' "$raw_token")
-    suffix=$(printf '%s' "$raw_token" | tail -c 6)
-    log "DEBUG: DOCKER_TOKEN length=${#raw_token}, prefix=${prefix}..., suffix=...${suffix}"
-    if printf '%s' "$raw_token" | base64 --decode >/dev/null 2>&1; then
-      local decoded
-      decoded=$(printf '%s' "$raw_token" | base64 --decode 2>/dev/null || true)
-      if [[ "$decoded" == *"user"* && "$decoded" == *"password"* && "$decoded" == *"registry"* ]]; then
-        log "DEBUG: DOCKER_TOKEN looks like base64-encoded JSON"
-      else
-        log "DEBUG: DOCKER_TOKEN base64-decodes but missing expected keys"
-      fi
-    fi
+  local decoded_token decode_status
+  decoded_token=$(printf '%s' "$raw_token" | base64 --decode 2>/dev/null || true)
+  if [[ -n "$decoded_token" ]]; then
+    decode_status="success"
+  else
+    decode_status="fail"
   fi
+  log "Token length=${#raw_token}, base64_decode=${decode_status}"
 
   local token
-  token=$(printf '%s' "$raw_token" | base64 --decode 2>/dev/null || printf '%s' "$raw_token")
-  token=$(normalise_token "$token")
+  token=$(normalise_token "${decoded_token:-$raw_token}")
 
-  if [[ "${DEBUG_PUSH_TO_ECR:-}" == "1" ]]; then
-    local key_list
-    key_list=$(printf '%s' "$token" | tr ',' '\n' | while IFS= read -r segment; do
-      segment=$(trim_ws "$segment")
-      [[ -n "$segment" ]] || continue
-      local key
-      key=$(strip_quotes "$(trim_ws "${segment%%:*}")")
-      [[ -n "$key" ]] && printf '%s,' "$key"
-    done)
-    log "DEBUG: parsed token keys=${key_list%,}"
-  fi
+  local key_list
+  key_list=$(printf '%s' "$token" | tr ',' '\n' | while IFS= read -r segment; do
+    segment=$(trim_ws "$segment")
+    [[ -n "$segment" ]] || continue
+    local key
+    key=$(strip_quotes "$(trim_ws "${segment%%:*}")")
+    [[ -n "$key" ]] && printf '%s,' "$key"
+  done)
+  log "Parsed token keys=${key_list%,}"
 
   local user="" password="" registry=""
   while IFS= read -r segment; do
@@ -123,6 +113,8 @@ fetch_proxygen_registry_credentials(){
       registry) registry="$value" ;;
     esac
   done <<< "$(printf '%s' "$token" | tr ',' '\n')"
+
+  log "Parsed fields user=$([[ -n "$user" ]] && echo yes || echo no), password=$([[ -n "$password" ]] && echo yes || echo no), registry=$([[ -n "$registry" ]] && echo yes || echo no)"
 
   [[ -n "$user" ]] || die "Failed to parse user from DOCKER_TOKEN"
   [[ -n "$password" ]] || die "Failed to parse password from DOCKER_TOKEN"
