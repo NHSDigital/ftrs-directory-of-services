@@ -4,7 +4,8 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock* /app/
+COPY pyproject.toml /app/
+COPY poetry.lock /app/
 
 RUN pip install --no-cache-dir poetry \
     && poetry config virtualenvs.create false \
