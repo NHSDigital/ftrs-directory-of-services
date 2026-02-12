@@ -202,3 +202,14 @@ variable "athena_stack_enabled" {
   type        = bool
   default     = true
 }
+
+variable "firehose_stack" {
+  description = "Stack for firehose code - hyphenated"
+  type        = string
+  default     = "account-wide"
+}
+
+variable "firehose_name" {
+  description = "Name for firehose resources (without account prefix or stack name) - hyphenated"
+  type        = string
+}
