@@ -41,13 +41,13 @@ jobs:
       ref: ${{ inputs.ref }}
 
   quality-checks:
-    name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
+    name: "Quality checks for test deployment"
     needs:
       - metadata
     uses: ./.github/workflows/quality-checks.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
@@ -68,19 +68,19 @@ jobs:
       - quality-checks
     uses: ./.github/workflows/prepare-toggle-artifacts.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       ref: ${{ inputs.ref }}
 
   check-stack-toggles:
-    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    name: "Check stack toggles for test"
     needs:
       - metadata
       - prepare-toggle-artifacts
     uses: ./.github/workflows/check-stack-toggles.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       ref: ${{ inputs.ref }}
 
   build-services:
@@ -122,7 +122,7 @@ jobs:
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       environment: ${{ needs.metadata.outputs.mgmt_environment }}
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: default
       type: app
       ref: ${{ inputs.ref }}
       build_enabled: ${{ matrix.build_enabled }}
@@ -142,7 +142,7 @@ jobs:
     with:
       name: ${{ matrix.name }}
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: test
       ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
@@ -155,22 +155,22 @@ jobs:
       - build-services
     uses: ./.github/workflows/static-code-analysis.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: test
       ref: ${{ inputs.ref }}
       python_version: ${{ needs.metadata.outputs.python_version }}
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy-toggle-infrastructure:
-    name: "Deploy toggle infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
+    name: "Deploy toggle infrastructure to the test environment"
     needs:
       - metadata
       - build-services
       - check-stack-toggles
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
       stacks: "['app_config']"
@@ -180,7 +180,7 @@ jobs:
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   deploy-application-infrastructure:
-    name: "Deploy application infrastructure to the ${{ needs.metadata.outputs.environment }} environment"
+    name: "Deploy application infrastructure to the test environment"
     needs:
       - metadata
       - build-services
@@ -188,8 +188,8 @@ jobs:
       - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
@@ -211,8 +211,8 @@ jobs:
           - dos-ingest
           # Add more API names here as needed
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       api_name: ${{ matrix.api_name }}
       apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
       ref: ${{ inputs.ref }}
@@ -223,28 +223,28 @@ jobs:
 
   # TODO : FTRS-1899 Re-enable data migration step once ETL process is stable
   # migrate-data:
-  #   name: "Run ETL process in ${{ needs.metadata.outputs.environment }}"
+  #   name: "Run ETL process in test"
   #   if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
   #   concurrency:
-  #     group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+  #     group: "test-default"
   #     cancel-in-progress: false
   #   needs:
   #     - metadata
   #     - deploy-application-infrastructure
   #   uses: ./.github/workflows/migrate-data.yaml
   #   with:
-  #     environment: ${{ needs.metadata.outputs.environment }}
-  #     function_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-queue-populator-lambda"
-  #     queue_name: "ftrs-dos-${{ needs.metadata.outputs.environment }}-data-migration-dms-events"
+  #     environment: test
+  #     function_name: "ftrs-dos-test-data-migration-queue-populator-lambda"
+  #     queue_name: "ftrs-dos-test-data-migration-dms-events"
   #     type: app
   #     ref: ${{ inputs.ref }}
   #   secrets: inherit
 
   export-dynamodb-to-s3:
-    name: "Export DynamoDB tables to S3 in ${{ needs.metadata.outputs.environment }}"
+    name: "Export DynamoDB tables to S3 in test"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}"
+      group: "test-default"
       cancel-in-progress: false
     needs:
       - metadata
@@ -252,7 +252,7 @@ jobs:
       # - migrate-data
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: test
       type: app
       action: export
       ref: ${{ inputs.ref }}
@@ -260,15 +260,15 @@ jobs:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   restore-dynamodb-from-s3:
-    name: "Restore data from S3 to DynamoDB tables in ${{ needs.metadata.outputs.workspace }}"
+    name: "Restore data from S3 to DynamoDB tables in default"
     if: needs.metadata.outputs.workspace != 'default' && needs.metadata.outputs.environment != 'prod'
     needs:
       - metadata
       - deploy-application-infrastructure
     uses: ./.github/workflows/manage-dynamodb-data.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       action: import
       type: app
       ref: ${{ inputs.ref }}
@@ -276,7 +276,7 @@ jobs:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-open-search-indexes:
-    name: "Deploy OpenSearch indexes to ${{ needs.metadata.outputs.environment }}"
+    name: "Deploy OpenSearch indexes to test"
     if: false && needs.check-stack-toggles.outputs.open_search_enabled == 'true'
     needs:
       - metadata
@@ -285,16 +285,16 @@ jobs:
       - restore-dynamodb-from-s3
     uses: ./.github/workflows/deploy-open-search-indexes.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       aws_region: ${{ vars.AWS_REGION }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-frontend-services:
-    name: "Deploy ${{ matrix.name }} to ${{ needs.metadata.outputs.environment }}"
+    name: "Deploy ${{ matrix.name }} to test"
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-${{ needs.metadata.outputs.workspace }}-${{ matrix.name }}"
+      group: "test-default-${{ matrix.name }}"
       cancel-in-progress: false
     strategy:
       fail-fast: false
@@ -313,19 +313,19 @@ jobs:
       name: ${{ matrix.name }}
       enabled: ${{ matrix.enabled }}
       build_type: "service"
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: test
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: default
       type: "app"
       ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   deploy-data-migration-service:
-    name: "Deploy data migration service to ${{ needs.metadata.outputs.environment }}"
+    name: "Deploy data migration service to test"
     if: github.ref == 'refs/heads/main' && needs.metadata.outputs.environment != 'prod'
     concurrency:
-      group: "${{ needs.metadata.outputs.environment }}-data-migration-${{ needs.metadata.outputs.workspace }}"
+      group: "test-data-migration-default"
       cancel-in-progress: false
     needs:
       - metadata
@@ -335,16 +335,16 @@ jobs:
       name: "data-migration"
       build_type: "service"
       python_version: ${{ needs.metadata.outputs.python_version }}
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: test
       repo_name: ${{ needs.metadata.outputs.reponame }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      workspace: default
       type: "app"
       ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
   service-automation-tests:
-    name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }}"
+    name: "Run ${{ matrix.tag }} service automation tests on test"
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -375,8 +375,8 @@ jobs:
       )
     uses: ./.github/workflows/service-automation-test.yaml
     with:
-      environment: ${{ needs.metadata.outputs.environment }}
-      workspace: ${{ needs.metadata.outputs.workspace }}
+      environment: test
+      workspace: default
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       ref: ${{ inputs.ref }}
       test_tag: ${{ matrix.tag }}
@@ -449,6 +449,6 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: ${{ needs.metadata.outputs.environment }}
+      env: test
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
