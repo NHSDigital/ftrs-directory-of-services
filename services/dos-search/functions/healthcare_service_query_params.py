@@ -42,7 +42,6 @@ class HealthcareServiceQueryParams(BaseModel):
     identifier: str = Field(
         description="HealthcareService identifier in format 'odsOrganisationCode|{code}'",
     )
-    include: str = Field(alias="_include")
 
     model_config = {"extra": "forbid"}
 

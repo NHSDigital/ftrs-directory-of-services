@@ -32,13 +32,10 @@ class TestHealthcareServiceQueryParams:
         self, identifier: str, expected_ods_code: str
     ) -> None:
         # Act
-        params = HealthcareServiceQueryParams(
-            identifier=identifier, _include="HealthcareService:location"
-        )
+        params = HealthcareServiceQueryParams(identifier=identifier)
 
         # Assert
         assert params.identifier == identifier
-        assert params.include == "HealthcareService:location"
         assert params.ods_code == expected_ods_code
 
     @pytest.mark.parametrize(
@@ -71,9 +68,7 @@ class TestHealthcareServiceQueryParams:
     ) -> None:
         # Act
         with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(
-                identifier=identifier, _include="HealthcareService:location"
-            )
+            HealthcareServiceQueryParams(identifier=identifier)
 
         # Assert
         assert len(exc_info.value.errors()) == 1
@@ -85,7 +80,6 @@ class TestHealthcareServiceQueryParams:
         # Act
         params = HealthcareServiceQueryParams(
             identifier="odsOrganisationCode|abc123",
-            _include="HealthcareService:location",
         )
 
         # Assert
@@ -94,50 +88,7 @@ class TestHealthcareServiceQueryParams:
     def test_missing_identifier_raises_validation_error(self) -> None:
         # Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(_include="HealthcareService:location")
+            HealthcareServiceQueryParams()
 
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("identifier",) for error in errors)
-
-    def test_missing_include_raises_validation_error(self) -> None:
-        # Act & Assert
-        with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(identifier="odsOrganisationCode|ABC123")
-
-        errors = exc_info.value.errors()
-        assert any(error["loc"] == ("_include",) for error in errors)
-
-    def test_extra_fields_forbidden(self) -> None:
-        # Act & Assert
-        with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(
-                identifier="odsOrganisationCode|ABC123",
-                _include="HealthcareService:location",
-                extra_field="not_allowed",
-            )
-
-        errors = exc_info.value.errors()
-        assert any(error["type"] == "extra_forbidden" for error in errors)
-
-    @pytest.mark.parametrize(
-        "include_value",
-        [
-            "HealthcareService:location",
-            "HealthcareService:endpoint",
-            "HealthcareService:organization",
-        ],
-        ids=[
-            "include location",
-            "include endpoint",
-            "include organization",
-        ],
-    )
-    def test_various_include_values_accepted(self, include_value: str) -> None:
-        # Act
-        params = HealthcareServiceQueryParams(
-            identifier="odsOrganisationCode|ABC123",
-            _include=include_value,
-        )
-
-        # Assert
-        assert params.include == include_value

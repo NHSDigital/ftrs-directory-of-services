@@ -72,7 +72,6 @@ def healthcare_service_event(ods_code: str) -> dict:
         "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
-            "_include": "HealthcareService:location",
         },
         "pathParameters": None,
         "requestContext": {
@@ -89,7 +88,6 @@ EXPECTED_MULTI_VALUE_HEADERS = {
 
 def _build_healthcare_service_event(
     ods_code: str = "ABC123",
-    include: str = "HealthcareService:location",
     headers: dict[str, str] | None = None,
 ) -> dict:
     return {
@@ -97,7 +95,6 @@ def _build_healthcare_service_event(
         "httpMethod": "GET",
         "queryStringParameters": {
             "identifier": f"odsOrganisationCode|{ods_code}",
-            "_include": include,
         },
         "requestContext": {"requestId": "req-id"},
         "headers": headers or {},
@@ -248,42 +245,7 @@ class TestHealthcareServiceLambdaHandler:
         event = {
             "path": "/HealthcareService",
             "httpMethod": "GET",
-            "queryStringParameters": {
-                "_include": "HealthcareService:location",
-            },
-            "requestContext": {"requestId": "req-id"},
-            "headers": {},
-        }
-
-        # Act
-        response = lambda_handler(event, lambda_context)
-
-        # Assert
-        mock_error_util.create_validation_error_operation_outcome.assert_called_once()
-        assert response["statusCode"] == 400
-
-    def test_lambda_handler_missing_include(
-        self,
-        lambda_context: MagicMock,
-        mock_error_util: MagicMock,
-        mock_dos_logger: MagicMock,
-    ) -> None:
-        # Arrange
-        response_size = len(
-            mock_error_util.create_validation_error_operation_outcome.return_value.model_dump_json().encode(
-                "utf-8"
-            )
-        )
-        mock_dos_logger.get_response_size_and_duration.return_value = (
-            response_size,
-            1,
-        )
-        event = {
-            "path": "/HealthcareService",
-            "httpMethod": "GET",
-            "queryStringParameters": {
-                "identifier": "odsOrganisationCode|ABC123",
-            },
+            "queryStringParameters": {},
             "requestContext": {"requestId": "req-id"},
             "headers": {},
         }
