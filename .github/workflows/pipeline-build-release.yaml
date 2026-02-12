@@ -149,7 +149,7 @@ jobs:
       - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena', 'slack_notifier']"
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "rc"
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
