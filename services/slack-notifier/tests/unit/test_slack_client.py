@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from functions.slack_notifier.slack_client import get_slack_webhook_url, send_to_slack
+from functions.slack_client import get_slack_webhook_url, send_to_slack
 
 
 class TestGetSlackWebhookUrl:

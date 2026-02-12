@@ -1,4 +1,4 @@
-from functions.slack_notifier.slack_formatter import (
+from functions.slack_formatter import (
     build_slack_message,
     format_timestamp,
     get_severity_from_alarm_name,

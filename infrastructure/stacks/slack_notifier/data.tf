@@ -21,6 +21,11 @@ data "aws_subnets" "private" {
   }
 }
 
+data "aws_s3_object" "slack_notifier_lambda" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-slack-notifier-lambda.zip"
+}
+
 data "aws_s3_object" "python_dependency_layer" {
   bucket = local.artefacts_bucket
   key    = "${local.artefact_base_path}/${var.project}-slack-notifier-python-dependency-layer.zip"

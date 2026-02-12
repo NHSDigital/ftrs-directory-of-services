@@ -115,6 +115,9 @@ jobs:
           - name: "dos-ui"
             build_type: "service"
             build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled == 'true' }}
+          - name: "slack-notifier"
+            build_type: "service"
+            build_enabled: true
     uses: ./.github/workflows/build-project.yaml
     with:
       name: ${{ matrix.name }}

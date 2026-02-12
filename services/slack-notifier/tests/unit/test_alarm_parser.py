@@ -1,6 +1,6 @@
 import json
 
-from functions.slack_notifier.alarm_parser import flatten_dict, parse_cloudwatch_alarm
+from functions.alarm_parser import flatten_dict, parse_cloudwatch_alarm
 
 
 class TestFlattenDict:
