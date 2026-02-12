@@ -34,6 +34,14 @@ strip_quotes(){
 normalise_token(){
   local token="$1"
   token=$(printf '%s' "$token" | tr -d '\r\n')
+  # Detect and decode base64-encoded tokens
+  if [[ ! "$token" =~ ^\{ ]] && printf '%s' "$token" | base64 --decode >/dev/null 2>&1; then
+    local decoded
+    decoded=$(printf '%s' "$token" | base64 --decode 2>/dev/null)
+    if [[ "$decoded" == *"user"* ]]; then
+      token="$decoded"
+    fi
+  fi
   token="${token#\{}"
   token="${token%\}}"
   token="${token#\"}"
