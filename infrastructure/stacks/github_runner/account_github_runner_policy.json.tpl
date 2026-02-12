@@ -261,10 +261,13 @@
             "Sid": "AllowInspector2ServiceLinkedRoleCreation",
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "arn:aws:iam::*:role/aws-service-role/inspector2.amazonaws.com/AWSServiceRoleForAmazonInspector2",
+            "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                "iam:AWSServiceName": "inspector2.amazonaws.com"
+                "iam:AWSServiceName": [
+                    "agentless.inspector2.amazonaws.com",
+                    "inspector2.amazonaws.com"
+                ]
                 }
             }
         },
