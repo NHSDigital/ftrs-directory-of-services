@@ -91,6 +91,6 @@ version_history_lambda_name           = "version-history-lambda"
 version_history_lambda_handler        = "version_history.lambda_handler.lambda_handler"
 version_history_lambda_timeout        = 30
 version_history_lambda_memory_size    = 256
-version_history_lambda_logs_retention = 7
+version_history_lambda_logs_retention = 14
 version_history_batch_size            = 10
 version_history_maximum_concurrency   = 2
