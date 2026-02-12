@@ -107,57 +107,6 @@ def _extract_next_page_url(bundle: dict) -> str | None:
             return link.get("url")
 
     return None
-
-
-def fetch_organisation_uuid(ods_code: str) -> str | None:
-    """
-    Returns DoS UUID based on ODS code.
-    """
-    validate_ods_code(ods_code)
-    base_url = get_base_apim_api_url()
-    identifier_param = f"https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
-    organisation_get_uuid_uri = (
-        base_url + "/Organization?identifier=" + identifier_param
-    )
-
-    try:
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_028,
-            ods_code=ods_code,
-        )
-        response = make_request(
-            organisation_get_uuid_uri, method="GET", jwt_required=True
-        )
-        if (
-            isinstance(response, dict)
-            and response.get("resourceType") == RESOURCE_TYPE_BUNDLE
-        ):
-            organizations = _extract_organizations_from_bundle(response)
-            if organizations:
-                return organizations[0].get("id")
-            return None
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_030,
-            ods_code=ods_code,
-            type=response.get("resourceType"),
-        )
-        raise ValueError(OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message)
-
-    except HTTPError as http_err:
-        if (
-            http_err.response is not None
-            and http_err.response.status_code == HTTPStatus.NOT_FOUND
-        ):
-            ods_extractor_logger.log(
-                OdsETLPipelineLogBase.ETL_EXTRACTOR_007,
-            )
-            raise ValueError(
-                OdsETLPipelineLogBase.ETL_EXTRACTOR_007.value.message
-            ) from http_err
-        raise
-
-
-def validate_ods_code(ods_code: str) -> None:
     if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
         ods_extractor_logger.log(
             OdsETLPipelineLogBase.ETL_EXTRACTOR_012,
