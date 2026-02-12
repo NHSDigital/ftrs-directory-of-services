@@ -261,6 +261,12 @@
                 "appconfig:*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "FirehoseDescribeOnly",
+            "Effect": "Allow",
+            "Action": "firehose:DescribeDeliveryStream",
+            "Resource": "*"
         }
     ]
 }
