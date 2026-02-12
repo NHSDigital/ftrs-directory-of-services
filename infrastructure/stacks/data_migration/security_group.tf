@@ -307,8 +307,8 @@ resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_inte
 
 resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress_to_rds" {
   count                        = (var.athena_stack_enabled && local.is_primary_environment) ? 1 : 0
-  security_group_id            = data.aws_security_group.rds_connector_security_group.id
-  referenced_security_group_id = aws_security_group.rds_security_group.id
+  security_group_id            = data.aws_security_group.rds_connector_security_group[0].id
+  referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   description                  = "Allow Lambda connector to connect to RDS"
   ip_protocol                  = "tcp"
   from_port                    = var.rds_port
