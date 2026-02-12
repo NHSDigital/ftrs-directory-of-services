@@ -3,6 +3,7 @@ import sys
 import json
 import uuid
 import boto3
+from botocore.exceptions import ClientError
 import jwt
 import requests
 from time import time
@@ -22,8 +23,9 @@ def get_config(env_name=None, api_name=None, region_name="eu-west-2"):
             secret_dict = json.loads(response["SecretString"])
             config.update(secret_dict)
             print(f"\nLoaded configuration from AWS Secrets Manager: {secret_name}")
-        except Exception as e:
-            if "ExpiredToken" in str(e) or "ExpiredTokenException" in str(e):
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "")
+            if error_code in ("ExpiredToken", "ExpiredTokenException"):
                 print(
                     "\nYour AWS credentials have expired. Please refresh or reconfigure them.\n"
                 )
@@ -78,7 +80,7 @@ def exchange_for_bearer(jwt_token, token_url):
     response = requests.post(token_url, data=data, headers=headers)
 
     if response.status_code != 200:
-        raise Exception(
+        raise RuntimeError(
             f"Token request failed: {response.status_code} - {response.text}"
         )
 
