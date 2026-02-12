@@ -122,7 +122,7 @@ jobs:
 
   manual-approval-permissions:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/fix/FTRS-3062-Enable-Amazon-Inspector-EC2-Scanning' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-permissions-infrastructure.outputs.plan_result == 'true') }}
     needs:
       - metadata
       - plan-permissions-infrastructure
@@ -139,7 +139,7 @@ jobs:
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-permissions-${{matrix.stacks}}"
       cancel-in-progress: false
-    if: github.ref == 'refs/heads/fix/FTRS-3062-Enable-Amazon-Inspector-EC2-Scanning'
+    if: github.ref == 'refs/heads/main'
     needs:
       - metadata
       - manual-approval-permissions
