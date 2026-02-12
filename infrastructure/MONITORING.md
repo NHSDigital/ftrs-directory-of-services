@@ -41,24 +41,24 @@ This solution provides:
 
 ### Step 1: Add CloudWatch Monitoring
 
-```hcl
+```bash
 # In your stack (e.g., infrastructure/stacks/my_service/monitoring.tf)
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = local.resource_prefix
   workspace_suffix = local.workspace_suffix
-  
+
   sns_topic_name   = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
   sns_display_name = "My Service Lambda Alarms"
-  
+
   # Use built-in template
   alarm_config_path = "lambda/standard"
-  
+
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
   }
-  
+
   alarm_thresholds = {
     api_lambda = {
       "duration-p99-critical"          = 3000
@@ -67,7 +67,7 @@ module "lambda_monitoring" {
       "concurrent-executions-critical" = 100
     }
   }
-  
+
   alarm_evaluation_periods = {
     api_lambda = {
       "duration-p99-critical"          = 2
@@ -76,7 +76,7 @@ module "lambda_monitoring" {
       "concurrent-executions-critical" = 2
     }
   }
-  
+
   alarm_periods = {
     api_lambda = {
       "duration-p99-critical"          = 300
@@ -90,7 +90,7 @@ module "lambda_monitoring" {
 
 ### Step 2: Add Slack Notifications (Optional)
 
-```hcl
+```bash
 # In your stack (e.g., infrastructure/stacks/my_service/slack_notifications.tf)
 module "slack_notifier" {
   count  = var.enable_slack_notifications ? 1 : 0
@@ -114,7 +114,7 @@ module "slack_notifier" {
 
 ### Step 3: Enable in Variables
 
-```hcl
+```shell
 # In your terraform.tfvars
 enable_slack_notifications = true
 slack_webhook_url          = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
@@ -202,41 +202,41 @@ slack_webhook_url          = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
 
 ### Example 1: Lambda Monitoring Only
 
-```hcl
+```shell
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   alarm_config_path = "lambda/minimal"
-  
+
   monitored_resources = {
     lambda = module.my_lambda.lambda_function_name
   }
-  
+
   # ... thresholds, periods, etc.
 }
 ```
 
 ### Example 2: Multi-Resource Monitoring
 
-```hcl
+```shell
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   alarm_config_path = "${path.module}/custom-config.json"
-  
+
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
     api        = module.api_gateway.api_name
     waf        = aws_wafv2_web_acl.main.name
   }
-  
+
   # ... thresholds for all resources
 }
 ```
 
 ### Example 3: With Slack Notifications
 
-```hcl
+```shell
 # Monitoring
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -246,7 +246,7 @@ module "monitoring" {
 # Slack notifications
 module "slack_notifier" {
   source = "../slack_notifier"
-  
+
   sns_topic_arn     = module.monitoring.sns_topic_arn
   slack_webhook_url = var.slack_webhook_url
   # ... configuration
