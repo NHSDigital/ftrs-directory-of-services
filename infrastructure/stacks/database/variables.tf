@@ -17,12 +17,6 @@ variable "dynamodb_tables" {
   }))
 }
 
-variable "version_history_enabled" {
-  description = "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
-  type        = bool
-  default     = false
-}
-
 variable "lambda_runtime" {
   description = "The runtime for the Lambda functions"
   type        = string

@@ -1,6 +1,6 @@
 resource "aws_security_group" "version_history_lambda_security_group" {
   # checkov:skip=CKV2_AWS_5: False positive due to module reference
-  count = var.version_history_enabled ? 1 : 0
+  count = local.version_history_enabled
 
   name        = "${local.resource_prefix}-version-history-lambda-sg${local.workspace_suffix}"
   description = "Security group for version history lambda"
@@ -9,7 +9,7 @@ resource "aws_security_group" "version_history_lambda_security_group" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_version_history_lambda" {
-  count = var.version_history_enabled ? 1 : 0
+  count = local.version_history_enabled
 
   security_group_id = aws_security_group.version_history_lambda_security_group[0].id
   description       = "Version history lambda egress rule to allow DynamoDB traffic"

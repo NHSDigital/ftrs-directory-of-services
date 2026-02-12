@@ -1,23 +1,23 @@
 data "aws_s3_object" "data_migration_lambda_package" {
-  count  = var.version_history_enabled ? 1 : 0
+  count  = local.version_history_enabled
   bucket = local.artefacts_bucket
   key    = "${local.artefact_base_path}/${var.project}-data-migration-lambda.zip"
 }
 
 data "aws_s3_object" "python_dependency_layer" {
-  count  = var.version_history_enabled ? 1 : 0
+  count  = local.version_history_enabled
   bucket = local.artefacts_bucket
   key    = "${local.artefact_base_path}/${var.project}-data-migration-python-dependency-layer.zip"
 }
 
 data "aws_s3_object" "data_layer" {
-  count  = var.version_history_enabled ? 1 : 0
+  count  = local.version_history_enabled
   bucket = local.artefacts_bucket
   key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
 }
 
 resource "aws_lambda_layer_version" "python_dependency_layer" {
-  count               = var.version_history_enabled ? 1 : 0
+  count               = local.version_history_enabled
   layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
@@ -28,7 +28,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 }
 
 resource "aws_lambda_layer_version" "data_layer" {
-  count               = var.version_history_enabled ? 1 : 0
+  count               = local.version_history_enabled
   layer_name          = "${local.resource_prefix}-data-layer${local.workspace_suffix}"
   compatible_runtimes = [var.lambda_runtime]
   description         = "Common data dependencies for Lambda functions"
@@ -39,7 +39,7 @@ resource "aws_lambda_layer_version" "data_layer" {
 }
 
 module "version_history" {
-  count  = var.version_history_enabled ? 1 : 0
+  count  = local.version_history_enabled
   source = "../../modules/version_history"
 
   resource_prefix       = local.resource_prefix

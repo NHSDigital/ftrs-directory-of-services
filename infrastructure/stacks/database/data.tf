@@ -6,7 +6,7 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_subnets" "private_subnets" {
-  count = var.version_history_enabled ? 1 : 0
+  count = local.version_history_enabled
 
   filter {
     name   = "vpc-id"
@@ -20,11 +20,11 @@ data "aws_subnets" "private_subnets" {
 }
 
 data "aws_subnet" "private_subnets_details" {
-  for_each = var.version_history_enabled ? toset(data.aws_subnets.private_subnets[0].ids) : []
+  for_each = local.version_history_enabled == 1 ? toset(data.aws_subnets.private_subnets[0].ids) : toset([])
   id       = each.value
 }
 
 data "aws_prefix_list" "dynamodb" {
-  count = var.version_history_enabled ? 1 : 0
+  count = local.version_history_enabled
   name  = "com.amazonaws.${var.aws_region}.dynamodb"
 }
