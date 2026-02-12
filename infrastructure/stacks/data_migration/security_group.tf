@@ -304,3 +304,23 @@ resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_inte
   ip_protocol       = "tcp"
   to_port           = var.https_port
 }
+
+resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress_to_rds" {
+  count                        = (local.is_primary_environment && var.athena_stack_enabled) ? 1 : 0
+  security_group_id            = data.aws_security_group.athena_rds_connector_sg.id
+  referenced_security_group_id = aws_security_group.rds_security_group.id
+  description                  = "Allow Lambda connector to connect to RDS"
+  ip_protocol                  = "tcp"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+}
+
+resource "aws_vpc_security_group_ingress_rule" "dms_rds_allow_ingress_from_athena_lambda" {
+  count                        = (local.is_primary_environment && var.athena_stack_enabled) ? 1 : 0
+  security_group_id            = aws_security_group.rds_security_group.id
+  referenced_security_group_id = data.aws_security_group.athena_rds_connector_sg.id
+  description                  = "Allow Athena Lambda connector to connect to RDS"
+  ip_protocol                  = "tcp"
+  from_port                    = var.rds_port
+  to_port                      = var.rds_port
+}
