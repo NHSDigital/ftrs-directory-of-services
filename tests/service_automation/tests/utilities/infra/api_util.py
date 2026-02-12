@@ -87,7 +87,7 @@ def make_api_request_with_retries(
             )
 
             if not response.ok:
-                raise Exception(
+                raise RuntimeError(
                     f"Status code: {response.status}, body: {response.text()}"
                 )
 
