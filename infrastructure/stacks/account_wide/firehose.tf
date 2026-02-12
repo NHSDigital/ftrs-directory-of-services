@@ -30,18 +30,23 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
       compression_format = "GZIP"
     }
 
-    # TODO arn for lambda won't exist if lambda not in this stack
-    # and this stack built first
-    # test by amending via console maybe ?
     processing_configuration {
       enabled = true
-      # enable decompression of gzipped logs before sending to lambda for further processing
+      # decompression of gzipped logs
       processors {
         type = "Decompression"
 
         parameters {
           parameter_name  = "CompressionFormat"
           parameter_value = "GZIP"
+        }
+      }
+      processors {
+        type = "CloudWatchLogProcessing"
+
+        parameters {
+          parameter_name  = "DataMessageExtraction"
+          parameter_value = "true"
         }
       }
     }
