@@ -13,6 +13,6 @@ app.include_router(api_router)
 def status():
     return Response(status_code=HTTP_200_OK)
 
-
+# Listening on 0.0.0.0 is intentional as the process will be running in a container. 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=9000)
+    uvicorn.run(app, host="0.0.0.0", port=9000)
