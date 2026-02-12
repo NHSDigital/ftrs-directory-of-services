@@ -206,5 +206,5 @@ variable "athena_stack_enabled" {
 variable "version_history_enabled" {
   description = "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
   type        = bool
-  default     = false
+  default     = true
 }
