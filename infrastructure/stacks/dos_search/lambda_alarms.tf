@@ -27,6 +27,7 @@ module "lambda_monitoring" {
       "errors-critical"                = var.search_lambda_errors_critical_threshold
     }
     health_check_lambda = {
+      "errors-warning"  = var.health_check_errors_warning_threshold
       "errors-critical" = var.health_check_errors_critical_threshold
     }
   }
@@ -43,6 +44,7 @@ module "lambda_monitoring" {
       "errors-critical"                = var.lambda_alarm_evaluation_periods
     }
     health_check_lambda = {
+      "errors-warning"  = var.lambda_alarm_evaluation_periods
       "errors-critical" = var.health_check_errors_critical_evaluation_periods
     }
   }
@@ -54,11 +56,12 @@ module "lambda_monitoring" {
       "concurrent-executions-warning"  = var.lambda_alarm_period_seconds
       "concurrent-executions-critical" = var.lambda_alarm_period_seconds
       "throttles-critical"             = var.lambda_throttles_critical_period_seconds
-      "invocations-spike-critical"     = 3600
+      "invocations-spike-critical"     = var.invocations_spike_period_seconds
       "errors-warning"                 = var.lambda_alarm_period_seconds
       "errors-critical"                = var.lambda_alarm_period_seconds
     }
     health_check_lambda = {
+      "errors-warning"  = var.lambda_alarm_period_seconds
       "errors-critical" = var.health_check_errors_critical_period_seconds
     }
   }

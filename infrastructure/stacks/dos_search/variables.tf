@@ -143,6 +143,12 @@ variable "lambda_alarm_period_seconds" {
   default     = 60
 }
 
+variable "invocations_spike_period_seconds" {
+  description = "CloudWatch period in seconds for invocations spike alarm (hourly evaluation)"
+  type        = number
+  default     = 3600
+}
+
 ############################
 # SEARCH LAMBDA
 # Duration (Execution Time)
@@ -245,6 +251,12 @@ variable "search_lambda_errors_critical_threshold" {
 # Critical: > 0 for 1 minute
 # Warning: N/A (no warning)
 ############################
+variable "health_check_errors_warning_threshold" {
+  description = "Health Check Lambda errors WARNING threshold (placeholder - disabled)"
+  type        = number
+  default     = 0
+}
+
 variable "health_check_errors_critical_threshold" {
   description = "Health Check Lambda errors CRITICAL threshold (set to 0, alarm if > 0)"
   type        = number

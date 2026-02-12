@@ -24,17 +24,18 @@ locals {
         resource_identifier = local.resources[resource_key]
         metric_name         = alarm.metric_name
         statistic           = alarm.statistic
-        threshold           = var.alarm_thresholds[resource_key][alarm.alarm_suffix]
+        threshold           = lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null)
         comparison_operator = alarm.comparison_operator
         alarm_name          = "${var.resource_prefix}-${replace(resource_key, "_", "-")}-${alarm.alarm_suffix}"
         description         = alarm.description
-        evaluation_periods  = var.alarm_evaluation_periods[resource_key][alarm.alarm_suffix]
-        period              = var.alarm_periods[resource_key][alarm.alarm_suffix]
+        evaluation_periods  = lookup(lookup(var.alarm_evaluation_periods, resource_key, {}), alarm.alarm_suffix, 1)
+        period              = lookup(lookup(var.alarm_periods, resource_key, {}), alarm.alarm_suffix, 60)
         actions_enabled     = alarm.severity == "warning" ? var.enable_warning_alarms : true
         namespace           = lookup(alarm, "namespace", "AWS/Lambda")
         dimensions          = lookup(alarm, "dimensions", {})
         dimension_name      = lookup(alarm, "dimension_name", "FunctionName")
       }
+      if lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null) != null
     }
   ]...)
 }

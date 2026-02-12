@@ -33,7 +33,7 @@ module "slack_notifications" {
   ]
 
   subnet_ids         = data.aws_subnets.private.ids
-  security_group_ids = [try(aws_security_group.slack_notifier_lambda_sg[0].id, data.aws_security_group.slack_notifier_lambda_sg_existing[0].id)]
+  security_group_ids = local.is_primary_environment ? [aws_security_group.slack_notifier_lambda_sg[0].id] : [data.aws_security_group.slack_notifier_lambda_sg_existing[0].id]
 
   account_id     = local.account_id
   account_prefix = local.account_prefix
