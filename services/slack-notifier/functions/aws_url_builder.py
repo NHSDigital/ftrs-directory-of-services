@@ -45,7 +45,9 @@ def build_lambda_metrics_url(lambda_name: str, region: str = "eu-west-2") -> str
         str: Lambda metrics console URL
     """
     encoded_name = quote(lambda_name, safe="")
-    return f"https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{encoded_name}?tab=monitoring"
+    return (
+        f"https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{encoded_name}?tab=monitoring"
+    )
 
 
 def extract_region_code(alarm_arn: str) -> str:
@@ -62,8 +64,6 @@ def extract_region_code(alarm_arn: str) -> str:
     default_region = "eu-west-2"
     try:
         parts = alarm_arn.split(":")
-        return (
-            parts[arn_region_index] if len(parts) > arn_region_index else default_region
-        )
+        return parts[arn_region_index] if len(parts) > arn_region_index else default_region
     except (IndexError, AttributeError):
         return default_region

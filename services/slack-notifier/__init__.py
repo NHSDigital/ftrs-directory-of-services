@@ -1,1 +1,1 @@
-# Slack notifier service
+# Slack notifier service  # noqa: N999

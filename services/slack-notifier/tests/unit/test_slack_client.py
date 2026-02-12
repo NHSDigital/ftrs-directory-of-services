@@ -7,9 +7,7 @@ from functions.slack_client import get_slack_webhook_url, send_to_slack
 
 class TestGetSlackWebhookUrl:
     def test_valid_webhook_url(self):
-        with patch.dict(
-            "os.environ", {"SLACK_WEBHOOK_ALARMS_URL": "https://hooks.slack.com/test"}
-        ):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_ALARMS_URL": "https://hooks.slack.com/test"}):
             result = get_slack_webhook_url()
             assert result == "https://hooks.slack.com/test"
 

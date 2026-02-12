@@ -10,15 +10,13 @@ class TestBuildCloudwatchUrl:
     def test_default_region(self):
         url = build_cloudwatch_url("test-alarm")
         assert (
-            url
-            == "https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#alarmsV2:alarm/test-alarm"
+            url == "https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#alarmsV2:alarm/test-alarm"
         )
 
     def test_custom_region(self):
         url = build_cloudwatch_url("test-alarm", "us-east-1")
         assert (
-            url
-            == "https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:alarm/test-alarm"
+            url == "https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarmsV2:alarm/test-alarm"
         )
 
     def test_url_encoding(self):

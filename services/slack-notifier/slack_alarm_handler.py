@@ -63,9 +63,7 @@ def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
                 logger.error("Error processing record: %s", str(e), exc_info=True)
 
         if failed > 0:
-            logger.error(
-                f"Failed to process {failed} of {processed + failed} record(s)"
-            )
+            logger.error(f"Failed to process {failed} of {processed + failed} record(s)")
 
         return {
             "statusCode": 200,

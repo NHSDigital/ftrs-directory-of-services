@@ -1,1 +1,1 @@
-"""Slack notification package for CloudWatch alarms."""
+"""Slack notification package for CloudWatch alarms."""  # noqa: N999

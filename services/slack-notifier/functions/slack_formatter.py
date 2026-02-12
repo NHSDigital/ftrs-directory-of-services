@@ -89,7 +89,8 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     aws_region = extract_region_code(alarm_arn)
 
     logger.info(
-        f"Extracted values - state: {state_value}, metric: {trigger_metric}, threshold: {trigger_threshold}, lambda: {lambda_name}, timestamp: {timestamp_val}, reason: {state_reason}"
+        f"Extracted values - state: {state_value}, metric: {trigger_metric}, "
+        f"threshold: {trigger_threshold}, lambda: {lambda_name}, timestamp: {timestamp_val}, reason: {state_reason}"
     )
 
     period_desc = f"{trigger_period}s evaluation over {trigger_eval_periods} period(s)"
@@ -100,15 +101,11 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
         severity = get_severity_from_alarm_name(alarm_name)
         emoji = SEVERITY_EMOJI_MAP.get(severity, "🚨")
         display_state = severity.upper() if severity != "unknown" else state_value
-        logger.info(
-            f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}"
-        )
+        logger.info(f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}")
     else:
         emoji = "📊"
         display_state = state_value
-        logger.info(
-            f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}"
-        )
+        logger.info(f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}")
 
     cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
@@ -156,7 +153,10 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"<{cloudwatch_url}| 🔗 View Alarm> | <{lambda_logs_url}| 📋 Lambda Logs> | <{lambda_metrics_url}| 📊 Lambda Metrics>",
+                    "text": (
+                        f"<{cloudwatch_url}| 🔗 View Alarm> | <{lambda_logs_url}| 📋 Lambda Logs> | "
+                        f"<{lambda_metrics_url}| 📊 Lambda Metrics>"
+                    ),
                 },
             },
             {
