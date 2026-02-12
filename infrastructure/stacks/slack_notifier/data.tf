@@ -1,7 +1,11 @@
+data "aws_kms_key" "sns" {
+  key_id = local.kms_aliases.sqs
+}
+
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"
-    values = [var.vpc_name]
+    values = ["${local.account_prefix}-vpc"]
   }
 }
 

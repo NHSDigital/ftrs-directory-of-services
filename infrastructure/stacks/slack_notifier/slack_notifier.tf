@@ -1,31 +1,45 @@
+# SNS Topic for CloudWatch Alarms
+resource "aws_sns_topic" "slack_notifications" {
+  name              = "${local.resource_prefix}-alarms${local.workspace_suffix}"
+  display_name      = "Slack Notifications for ${var.environment}"
+  kms_master_key_id = data.aws_kms_key.sns.id
+
+  tags = {
+    Name = "${local.resource_prefix}-alarms${local.workspace_suffix}"
+  }
+}
+
 module "slack_notifications" {
   source = "../../modules/slack-notifications"
 
-  resource_prefix = local.resource_prefix_slack
-  sns_topic_arn   = var.sns_topic_arn
+  resource_prefix = local.resource_prefix
+  sns_topic_arn   = aws_sns_topic.slack_notifications.arn
 
-  slack_webhook_url = var.slack_webhook_url
+  slack_webhook_url = var.slack_webhook_alarms_url
   environment       = var.environment
   project_name      = var.project
   workspace         = terraform.workspace == "default" ? "" : terraform.workspace
 
   lambda_s3_bucket = local.artefacts_bucket
-  lambda_s3_key    = local.lambda_s3_key
+  lambda_s3_key    = "${local.artefact_base_path}/${var.project}-slack-notifier-lambda.zip"
 
   lambda_runtime     = var.lambda_runtime
-  lambda_timeout     = var.lambda_timeout
-  lambda_memory_size = var.lambda_memory_size
+  lambda_timeout     = 30
+  lambda_memory_size = 128
 
-  lambda_layers = var.lambda_layers
+  lambda_layers = [
+    aws_lambda_layer_version.python_dependency_layer.arn,
+    aws_lambda_layer_version.common_packages_layer.arn,
+  ]
 
   subnet_ids         = data.aws_subnets.private.ids
-  security_group_ids = var.security_group_ids
+  security_group_ids = [aws_security_group.slack_notifier_lambda_sg.id]
 
-  account_id     = data.aws_caller_identity.current.account_id
+  account_id     = local.account_id
   account_prefix = local.account_prefix
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
-  cloudwatch_logs_retention_days = var.cloudwatch_logs_retention_days
-  enable_xray_tracing            = var.enable_xray_tracing
+  cloudwatch_logs_retention_days = 7
+  enable_xray_tracing            = true
 }

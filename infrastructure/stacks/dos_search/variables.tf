@@ -280,17 +280,5 @@ variable "enable_warning_alarms" {
 variable "enable_slack_notifications" {
   description = "Enable Slack notifications for CloudWatch alarms"
   type        = bool
-  default     = true
-}
-
-variable "slack_webhook_alarms_url" {
-  description = "Slack webhook URL for sending alarm notifications"
-  type        = string
-  sensitive   = true
-  default     = ""
-
-  validation {
-    condition     = var.slack_webhook_alarms_url == "" || can(regex("^https://hooks\\.slack\\.com/", var.slack_webhook_alarms_url))
-    error_message = "The slack_webhook_alarms_url must be a valid Slack webhook URL starting with https://hooks.slack.com/ or empty string."
-  }
+  default     = false
 }
