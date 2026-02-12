@@ -35,22 +35,82 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
     Returns:
         List of table configuration dictionaries
     """
-    resources = ["organisation", "location", "healthcare-service"]
-    tables = [
-        {
-            "TableName": get_table_name(resource),
-            "KeySchema": [
-                {"AttributeName": "id", "KeyType": "HASH"},
-                {"AttributeName": "field", "KeyType": "RANGE"},
-            ],
-            "AttributeDefinitions": [
-                {"AttributeName": "id", "AttributeType": "S"},
-                {"AttributeName": "field", "AttributeType": "S"},
-            ],
-            "BillingMode": "PAY_PER_REQUEST",
-        }
-        for resource in resources
-    ]
+    organisation_table = {
+        "TableName": get_table_name("organisation"),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "identifier_ODS_ODSCode", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "OdsCodeValueIndex",
+                "KeySchema": [
+                    {"AttributeName": "identifier_ODS_ODSCode", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    }
+
+    healthcare_service_table = {
+        "TableName": get_table_name("healthcare-service"),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "location", "AttributeType": "S"},
+            {"AttributeName": "providedBy", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "LocationIndex",
+                "KeySchema": [
+                    {"AttributeName": "location", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            },
+            {
+                "IndexName": "ProvidedByIndex",
+                "KeySchema": [
+                    {"AttributeName": "providedBy", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    }
+
+    location_table = {
+        "TableName": get_table_name("location"),
+        "KeySchema": [
+            {"AttributeName": "id", "KeyType": "HASH"},
+            {"AttributeName": "field", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "id", "AttributeType": "S"},
+            {"AttributeName": "field", "AttributeType": "S"},
+            {"AttributeName": "managingOrganisation", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "ManagingOrganisationIndex",
+                "KeySchema": [
+                    {"AttributeName": "managingOrganisation", "KeyType": "HASH"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            }
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    }
 
     triage_code_table = {
         "TableName": get_table_name("triage-code"),
@@ -87,4 +147,10 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST",
     }
 
-    return [*tables, triage_code_table, state_table]
+    return [
+        organisation_table,
+        triage_code_table,
+        state_table,
+        healthcare_service_table,
+        location_table,
+    ]
