@@ -47,10 +47,19 @@ runs:
         BASE_URL="${PROXYGEN_BASE_URL%/}"
         TOKEN_ENDPOINT="${BASE_URL}/apis/${API_NAME}/docker-token"
 
-        DOCKER_TOKEN=$(curl -fsS --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
+        TMP_RESPONSE=$(mktemp)
+        HTTP_STATUS=$(curl -sS -o "$TMP_RESPONSE" -w '%{http_code}' \
+          --request GET --url "$TOKEN_ENDPOINT" --header "Authorization: Bearer ${ACCESS_TOKEN}") || {
+          rm -f "$TMP_RESPONSE"
           echo "Failed to reach Proxygen API" >&2
           exit 1
         }
+
+        RESPONSE_SIZE=$(wc -c < "$TMP_RESPONSE" | tr -d ' ')
+        echo "Proxygen docker-token status=${HTTP_STATUS} size=${RESPONSE_SIZE}"
+
+        DOCKER_TOKEN=$(cat "$TMP_RESPONSE")
+        rm -f "$TMP_RESPONSE"
 
         echo "::add-mask::$DOCKER_TOKEN"
 
