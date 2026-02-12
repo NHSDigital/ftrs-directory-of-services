@@ -27,6 +27,7 @@ function main() {
   else
     file="$file" run-hadolint-in-docker
   fi
+  return 0
 }
 
 # Run hadolint natively.
@@ -36,6 +37,7 @@ function run-hadolint-natively() {
 
   # shellcheck disable=SC2001
   hadolint "$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # Run hadolint in a Docker container.
@@ -57,6 +59,7 @@ function run-hadolint-in-docker() {
       hadolint \
         --config /workdir/scripts/config/hadolint.yaml \
         "/workdir/$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # ==============================================================================

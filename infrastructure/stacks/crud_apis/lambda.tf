@@ -35,20 +35,25 @@ module "organisation_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {
@@ -81,20 +86,25 @@ module "healthcare_service_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {
@@ -127,20 +137,25 @@ module "location_api_lambda" {
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
   ]
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
-    "PROJECT_NAME" = var.project
+    "ENVIRONMENT"                        = var.environment
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "PROJECT_NAME"                       = var.project
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {

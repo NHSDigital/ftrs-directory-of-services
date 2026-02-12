@@ -17,7 +17,7 @@ set -e
 #       OPEN_VPN_ROOT      (defaults to "~/projects/open-vpn", path to your local clone of the open-vpn repo)
 
 # Check that required exports have been set.
-if [ -z "${USER_SHORTCODE:-}" ]; then
+if [[ -z "${USER_SHORTCODE:-}" ]]; then
   echo "ERROR: USER_SHORTCODE not set"
   exit 1
 fi
@@ -32,7 +32,7 @@ export TEMP_VPN_CERT_DIR="${TEMP_VPN_CERT_DIR:-${PROJECT}-${ENVIRONMENT}-vpn-cer
 echo "Creating cert and key for user '$USER_SHORTCODE' for VPN '$VPN_DESC'"
 
 # Determine the OpenVPN project directory.
-if [ -n "${OPEN_VPN_ROOT:-}" ]; then
+if [[ -n "${OPEN_VPN_ROOT:-}" ]]; then
   OPEN_VPN_PROJ_DIR="$OPEN_VPN_ROOT/easy-rsa/easyrsa3"
 else
   OPEN_VPN_PROJ_DIR="~/projects/open-vpn/easy-rsa/easyrsa3"

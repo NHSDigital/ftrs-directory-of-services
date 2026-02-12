@@ -35,7 +35,7 @@ if [[ "${STACK}" == "opensearch" ]]; then
     --query "securityPolicySummaries[?name=='${NETWORK_POLICY_NAME}'].name" \
     --output text)
 
-  if [ -n "$policy_arn" ]; then
+  if [[ -n "$policy_arn" ]]; then
     echo "Found matching OpenSearch network policy: $policy_arn"
     aws opensearchserverless delete-security-policy \
       --type network \

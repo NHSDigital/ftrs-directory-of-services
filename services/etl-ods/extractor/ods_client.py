@@ -3,8 +3,8 @@ from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
 from common.http_client import build_headers as build_common_headers
 from common.http_client import make_request as make_common_request
+from common.secrets import SecretManager
 
-from .secrets import SecretManager
 from .utils import is_mock_testing_mode, is_ods_terminology_request
 
 ods_client_logger = Logger.get(service="ods_client")
@@ -52,7 +52,7 @@ class ODSClient:
             return ""
 
         if is_mock_testing_mode():
-            self.logger.log(OdsETLPipelineLogBase.ETL_UTILS_008)
+            self.logger.log(OdsETLPipelineLogBase.ETL_COMMON_021)
             return SecretManager.get_mock_api_key_from_secrets()
 
         return SecretManager.get_ods_terminology_api_key()
@@ -63,7 +63,7 @@ class ODSClient:
             return
 
         if is_mock_testing_mode():
-            self.logger.log(OdsETLPipelineLogBase.ETL_UTILS_009)
+            self.logger.log(OdsETLPipelineLogBase.ETL_COMMON_021)
             headers["x-api-key"] = api_key
         else:
             headers["apikey"] = api_key

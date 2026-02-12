@@ -1,654 +1,481 @@
-import logging
-import os
-from http import HTTPStatus
-from typing import Callable
-from unittest.mock import MagicMock, patch
+import json
+from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
-import rsa
-from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+import requests
 from pytest_mock import MockerFixture
-from requests_mock import Mocker as RequestsMock
 
-from common import auth
+from common.exceptions import (
+    PermanentProcessingError,
+    RetryableProcessingError,
+)
 from consumer.consumer import (
-    RequestProcessingError,
-    _handle_records,
     consumer_lambda_handler,
     process_message_and_send_request,
 )
 
-RSA_PRIVATE_KEY = None
-RSA_PUBLIC_KEY = None
 
-
-def setup_rsa_keys() -> None:
-    """Generate RSA key pair for testing."""
-    global RSA_PRIVATE_KEY, RSA_PUBLIC_KEY  # noqa: PLW0603
-    if not RSA_PRIVATE_KEY or not RSA_PUBLIC_KEY:
-        key = rsa.newkeys(2048)
-        RSA_PRIVATE_KEY = key[1].save_pkcs1().decode("utf-8")
-        RSA_PUBLIC_KEY = key[0].save_pkcs1().decode("utf-8")
-
-
-@pytest.fixture
-def mock_environment() -> None:
-    """Set up mock environment variables."""
-    setup_rsa_keys()
-    env_vars = {
-        "LOCAL_API_KEY": "test-api-key",
-        "LOCAL_PRIVATE_KEY": RSA_PRIVATE_KEY,
-        "LOCAL_KID": "test-kid",
-        "LOCAL_TOKEN_URL": "https://test-token-url.com/token",
-    }
-    with patch.dict(os.environ, env_vars):
-        yield
-
-
-@pytest.fixture
-@patch.dict(
-    os.environ,
-    {
-        "ENVIRONMENT": "local",
-        "AWS_REGION": "eu-west-2",
-        "PROJECT_NAME": "ftrs",
-    },
-)
-def jwt_authenticator(
-    mock_environment: Callable, mocker: MockerFixture
-) -> auth.JWTAuthenticator:
-    """Create a JWT authenticator instance for testing."""
-    auth._jwt_authenticator = None
-    return auth.get_jwt_authenticator()
-
-
-@patch("consumer.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_success(
-    mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    event = {
-        "Records": [
+@pytest.fixture(scope="module")
+def sample_sqs_record() -> dict:
+    """File-scoped fixture for sample SQS record."""
+    return {
+        "messageId": "test-message-id",
+        "attributes": {"ApproximateReceiveCount": "1"},
+        "body": json.dumps(
             {
-                "messageId": "1",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test1",
-                "body": {"key": "value1"},
-            },
-            {
-                "messageId": "2",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test2",
-                "body": {"key": "value2"},
-            },
-        ]
+                "path": "ORG123",
+                "body": {"name": "Test Organization", "status": "active"},
+            }
+        ),
     }
 
-    response = consumer_lambda_handler(event, {})
 
-    assert response["batchItemFailures"] == []
-    assert str(mock_process_message.call_count) == "2"
-
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_success_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-    assert expected_processing_log_1 in caplog.text
-    assert expected_success_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
-
-
-@patch("consumer.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_no_event_data(mock_process_message: MagicMock) -> None:
-    consumer_lambda_handler({}, {})
-
-    assert str(mock_process_message.call_count) == "0"
-
-
-@patch("consumer.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_failure(
-    mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    event = {
+@pytest.fixture(scope="module")
+def sample_event_single_record() -> dict:
+    """File-scoped fixture for Lambda event with single record."""
+    return {
         "Records": [
             {
-                "messageId": "1",
+                "messageId": "msg-1",
                 "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test1",
-                "body": {"key": "value1"},
-            },
-            {
-                "messageId": "2",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test2",
-                "body": {"key": "value2"},
-            },
-        ]
-    }
-
-    mock_process_message.side_effect = [Exception("Test exception"), None]
-
-    response = consumer_lambda_handler(event, {})
-
-    assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
-    assert str(mock_process_message.call_count) == "2"
-
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_failure_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_005.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-
-    assert expected_processing_log_1 in caplog.text
-    assert expected_failure_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
-
-
-@pytest.mark.parametrize(
-    ("path", "body"),
-    [
-        (None, {"name": "Organization Name"}),
-        ("uuid", None),
-        ("", {"name": "Organization Name"}),
-        ("uuid", {}),
-    ],
-)
-def test_consumer_lambda_handler_handle_missing_message_parameters(
-    path: str,
-    body: dict,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    event = {
-        "Records": [
-            {
-                "messageId": "1",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": path,
-                "body": body,
+                "body": json.dumps({"path": "ORG001", "body": {"name": "Org 1"}}),
             }
         ]
     }
 
-    consumer_lambda_handler(event, {})
 
-    assert any(
-        record.levelname == "WARNING"
-        and "Message id: 1 is missing 'path' or 'body' fields." in record.message
-        for record in caplog.records
-    )
-    assert any(
-        record.levelname == "ERROR"
-        and "Failed to process message id: 1." in record.message
-        for record in caplog.records
-    )
-
-
-@patch("consumer.consumer.process_message_and_send_request")
-def test__records_handler(
-    mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    records = [
-        {
-            "messageId": "1",
-            "attributes": {"ApproximateReceiveCount": "1"},
-            "path": "test1",
-            "body": {"key": "value1"},
-        },
-        {
-            "messageId": "2",
-            "attributes": {"ApproximateReceiveCount": "1"},
-            "path": "test2",
-            "body": {"key": "value2"},
-        },
-    ]
-
-    batch_item_failures, successful_count, failed_count = _handle_records(records)
-
-    assert batch_item_failures == []
-    assert str(successful_count) == "2"
-    assert failed_count == 0
-
-    assert str(mock_process_message.call_count) == "2"
-
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_success_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-    assert expected_processing_log_1 in caplog.text
-    assert expected_success_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
+@pytest.fixture(scope="module")
+def sample_event_multiple_records() -> dict:
+    return {
+        "Records": [
+            {
+                "messageId": "msg-1",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "body": json.dumps({"path": "ORG001", "body": {"name": "Org 1"}}),
+            },
+            {
+                "messageId": "msg-2",
+                "attributes": {"ApproximateReceiveCount": "1"},
+                "body": json.dumps({"path": "ORG002", "body": {"name": "Org 2"}}),
+            },
+        ]
+    }
 
 
-@patch("consumer.consumer.process_message_and_send_request")
-def test__records_handler_failure(
-    mock_process_message: MagicMock,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    records = [
-        {
-            "messageId": "1",
-            "attributes": {"ApproximateReceiveCount": "1"},
-            "path": "test1",
-            "body": {"key": "value1"},
-        },
-        {
-            "messageId": "2",
-            "attributes": {"ApproximateReceiveCount": "1"},
-            "path": "test2",
-            "body": {"key": "value2"},
-        },
-    ]
+@pytest.fixture
+def mock_consumer_dependencies(mocker: MockerFixture) -> dict[str, Any]:
+    """Fixture to set up common mock dependencies for process_message_and_send_request."""
+    mocks = {
+        "extract_metadata": mocker.patch("consumer.consumer.extract_record_metadata"),
+        "validate_fields": mocker.patch("consumer.consumer.validate_required_fields"),
+        "get_url": mocker.patch("consumer.consumer.get_base_apim_api_url"),
+        "make_request": mocker.patch("consumer.consumer.make_apim_request"),
+        "logger": mocker.patch("consumer.consumer.ods_consumer_logger"),
+    }
 
-    mock_process_message.side_effect = [Exception("Test exception"), None]
+    # Set common default return values
+    mocks["extract_metadata"].return_value = {
+        "body": {"path": "ORG123", "body": {"name": "Test"}},
+        "message_id": "test-message-id",
+    }
+    mocks["get_url"].return_value = "http://test-apim-api"
+    mocks["make_request"].return_value = {"status_code": 200}
 
-    batch_item_failures, successful_count, failed_count = _handle_records(records)
-
-    assert batch_item_failures == [{"itemIdentifier": "1"}]
-    assert successful_count == 1
-    assert failed_count == 1
-    assert str(mock_process_message.call_count) == "2"
-
-    expected_processing_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="1", total_records=2
-        )
-    )
-    expected_failure_log_1 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_005.value.message.format(message_id="1")
-    )
-    expected_processing_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_003.value.message.format(
-            message_id="2", total_records=2
-        )
-    )
-    expected_success_log_2 = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_004.value.message.format(message_id="2")
-    )
-
-    assert expected_processing_log_1 in caplog.text
-    assert expected_failure_log_1 in caplog.text
-    assert expected_processing_log_2 in caplog.text
-    assert expected_success_log_2 in caplog.text
+    return mocks
 
 
-@pytest.mark.parametrize(
-    ("path", "body"),
-    [
-        (None, {"name": "Organization Name"}),
-        ("uuid", None),
-        ("", {"name": "Organization Name"}),
-        ("uuid", {}),
-    ],
-)
-def test_record_handler_handle_missing_message_parameters(
-    path: str,
-    body: dict,
-    caplog: pytest.LogCaptureFixture,
-    mocker: MockerFixture,
-) -> None:
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    records = [
-        {
-            "messageId": "1",
-            "attributes": {"ApproximateReceiveCount": "1"},
-            "path": path,
-            "body": body,
+@pytest.fixture
+def sample_record() -> dict:
+    """Fixture for a standard test record."""
+    return {
+        "messageId": "test-message-id",
+        "attributes": {"ApproximateReceiveCount": "1"},
+        "body": json.dumps({"path": "ORG123", "body": {"name": "Test"}}),
+    }
+
+
+def create_http_error(status_code: int, message: str) -> requests.HTTPError:
+    """Helper function to create HTTP errors with proper response."""
+    http_error = requests.HTTPError(message)
+    mock_response = MagicMock()
+    mock_response.status_code = status_code
+    http_error.response = mock_response
+    return http_error
+
+
+class TestProcessMessageAndSendRequest:
+    """Test process_message_and_send_request function."""
+
+    def test_successful_processing(
+        self, mock_consumer_dependencies: dict, sample_sqs_record: dict
+    ) -> None:
+        """Test successful message processing and APIM request."""
+        mocks = mock_consumer_dependencies
+        mocks["extract_metadata"].return_value = {
+            "body": {"path": "ORG123", "body": {"name": "Test Organization"}},
+            "message_id": "test-message-id",
         }
-    ]
 
-    batch_item_failures, successful_count, failed_count = _handle_records(records)
+        process_message_and_send_request(sample_sqs_record)
 
-    assert batch_item_failures == [{"itemIdentifier": "1"}]
-    assert successful_count == 0
-    assert failed_count == 1
+        # Verify APIM request was made correctly
+        mocks["make_request"].assert_called_once_with(
+            "http://test-apim-api/Organization/ORG123",
+            method="PUT",
+            json={"name": "Test Organization"},
+        )
 
-    assert any(
-        record.levelname == "WARNING"
-        and "Message id: 1 is missing 'path' or 'body' fields." in record.message
-        for record in caplog.records
-    )
-    assert any(
-        record.levelname == "ERROR"
-        and "Failed to process message id: 1." in record.message
-        for record in caplog.records
-    )
+        # Verify success was logged
+        mocks["logger"].log.assert_called_once()
+        call_args = mocks["logger"].log.call_args[1]
+        assert call_args["organization_id"] == "ORG123"
+        assert str(call_args["status_code"]) == "200"
 
-
-def test_process_message_and_send_request_success(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-    jwt_authenticator: auth.JWTAuthenticator,
-) -> None:
-    """Test successful PUT request with informational OperationOutcome."""
-    mock_put_response = {
-        "resourceType": "OperationOutcome",
-        "issue": [
-            {
-                "severity": "information",
-                "code": "informational",
-                "diagnostics": "Organization updated successfully",
-            }
+    @pytest.mark.parametrize(
+        "missing_field,body_data",
+        [
+            ("body", {"path": "ORG123"}),
+            ("path", {"body": {"name": "Test Organization"}}),
         ],
-        "status_code": 200,
-    }
-
-    mock_put_call = requests_mock.put(
-        "http://test-apim-api/Organization/uuid",
-        json=mock_put_response,
     )
-    mock_post_call = requests_mock.post(
-        "https://test-token-url.com/token",
-        json={"access_token": "test-bearer-token"},
+    def test_missing_required_fields_raises_message_integrity_error(
+        self, missing_field: str, body_data: dict
+    ) -> None:
+        """Test that missing required fields raises PermanentProcessingError."""
+        record = {
+            "messageId": "test-message-id",
+            "attributes": {"ApproximateReceiveCount": "1"},
+            "body": json.dumps(body_data),
+        }
+
+        with pytest.raises(PermanentProcessingError) as exc_info:
+            process_message_and_send_request(record)
+
+        error = exc_info.value
+        assert error.message_id == "test-message-id"
+        assert str(error.status_code) == "400"
+        assert missing_field in error.response_text
+
+    @pytest.mark.parametrize(
+        "status_code,error_message,expected_exception",
+        [
+            (429, "429 Too Many Requests", RetryableProcessingError),
+            (404, "404 Not Found", PermanentProcessingError),
+            (400, "400 Bad Request", PermanentProcessingError),
+            (500, "500 Internal Server Error", RetryableProcessingError),
+            (503, "503 Service Unavailable", RetryableProcessingError),
+        ],
     )
+    def test_http_errors_handled_by_centralized_error_handling(
+        self,
+        mock_consumer_dependencies: dict,
+        sample_record: dict,
+        status_code: int,
+        error_message: str,
+        expected_exception: type,
+    ) -> None:
+        """Test that HTTP errors are handled by centralized error handling."""
 
-    record = {
-        "messageId": "1",
-        "body": '{"path": "uuid", "body": {"name": "Organization Name"}}',
-    }
+        mocks = mock_consumer_dependencies
+        http_error = create_http_error(status_code, error_message)
+        mocks["make_request"].side_effect = http_error
 
-    process_message_and_send_request(record)
+        # HTTP errors should now be handled by centralized error handling
+        with pytest.raises(expected_exception):
+            process_message_and_send_request(sample_record)
 
-    expected_success_log = OdsETLPipelineLogBase.ETL_CONSUMER_007.value.message.format(
-        status_code=200
-    )
-    assert expected_success_log in caplog.text
-    assert mock_post_call.called_once
-    assert mock_put_call.called_once
-    assert mock_put_call.last_request.path == "/organization/uuid"
-    assert mock_put_call.last_request.json() == {"name": "Organization Name"}
+    def test_successful_processing_with_different_org_id(
+        self, mock_consumer_dependencies: dict
+    ) -> None:
+        """Test successful processing with different organization ID."""
+        mocks = mock_consumer_dependencies
+        record = {
+            "messageId": "test-message-id",
+            "attributes": {"ApproximateReceiveCount": "1"},
+            "body": json.dumps({"path": "ORG789", "body": {"name": "Another Org"}}),
+        }
 
+        # Override the mock to return the correct metadata for this test
+        mocks["extract_metadata"].return_value = {
+            "body": {"path": "ORG789", "body": {"name": "Another Org"}},
+            "message_id": "test-message-id",
+        }
 
-def test_process_message_and_send_request_unprocessable(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test handling of 422 UNPROCESSABLE_ENTITY response (logged but not raised)."""
-    mock_call = requests_mock.put(
-        "http://test-apim-api/Organization/uuid",
-        json={
-            "resourceType": "OperationOutcome",
-            "issue": [
-                {
-                    "severity": "error",
-                    "code": "invalid",
-                    "diagnostics": "Validation failed",
-                }
-            ],
-        },
-        status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-    )
-
-    record = {
-        "messageId": "1",
-        "path": "uuid",
-        "body": {"name": "Organization Name"},
-    }
-
-    process_message_and_send_request(record)
-
-    expected_bad_request_log = (
-        OdsETLPipelineLogBase.ETL_CONSUMER_008.value.message.format(message_id="1")
-    )
-    assert expected_bad_request_log in caplog.text
-
-    assert mock_call.called_once
-    assert mock_call.last_request.path == "/organization/uuid"
-
-
-def test_process_message_and_send_request_failure(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test handling of HTTP errors (500 Internal Server Error)."""
-    mock_call = requests_mock.put(
-        "http://test-apim-api/Organization/uuid",
-        json={
-            "resourceType": "OperationOutcome",
-            "issue": [
-                {
-                    "severity": "error",
-                    "code": "exception",
-                    "diagnostics": "Internal server error",
-                }
-            ],
-        },
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-    )
-
-    record = {
-        "messageId": "1",
-        "path": "uuid",
-        "body": {"name": "Organization Name"},
-    }
-    caplog.set_level(logging.ERROR)
-
-    with pytest.raises(RequestProcessingError) as excinfo:
         process_message_and_send_request(record)
 
-    assert excinfo.value.message_id == "1"
-    assert excinfo.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+        # Verify APIM request was made correctly
+        mocks["make_request"].assert_called_once_with(
+            "http://test-apim-api/Organization/ORG789",
+            method="PUT",
+            json={"name": "Another Org"},
+        )
 
-    expected_failure_log = OdsETLPipelineLogBase.ETL_CONSUMER_009.value.message.format(
-        message_id="1"
-    )
-    assert expected_failure_log in caplog.text
-    assert mock_call.called_once
-    assert mock_call.last_request.path == "/organization/uuid"
+    def test_message_integrity_error_is_reraised(
+        self, mock_consumer_dependencies: dict, sample_record: dict
+    ) -> None:
+        """Test that PermanentProcessingError is re-raised for proper handling."""
+        mocks = mock_consumer_dependencies
+        mocks["validate_fields"].side_effect = PermanentProcessingError(
+            message_id="test-msg",
+            status_code=400,
+            response_text="Test error",
+        )
 
+        with pytest.raises(PermanentProcessingError) as exc_info:
+            process_message_and_send_request(sample_record)
 
-def test_process_message_and_send_request_with_non_operation_outcome(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test successful PUT request with non-OperationOutcome response."""
-    mock_response = {
-        "resourceType": "Organization",
-        "id": "uuid",
-        "name": "Organization Name",
-        "status_code": 200,
-    }
+        assert exc_info.value.message_id == "test-msg"
+        assert str(exc_info.value.status_code) == "400"
 
-    mock_call = requests_mock.put(
-        "http://test-apim-api/Organization/uuid",
-        json=mock_response,
-    )
+    def test_permanent_processing_error_for_404(
+        self, mock_consumer_dependencies: dict, sample_record: dict
+    ) -> None:
+        """Test that 404 HTTP errors are converted to PermanentProcessingError."""
+        mocks = mock_consumer_dependencies
+        http_error = create_http_error(404, "404 Not Found")
+        mocks["make_request"].side_effect = http_error
 
-    record = {
-        "messageId": "1",
-        "path": "uuid",
-        "body": {"name": "Organization Name"},
-    }
+        # 404 errors should be converted to PermanentProcessingError by centralized error handling
+        with pytest.raises(PermanentProcessingError):
+            process_message_and_send_request(sample_record)
 
-    process_message_and_send_request(record)
-
-    expected_success_log = OdsETLPipelineLogBase.ETL_CONSUMER_007.value.message.format(
-        status_code=200
-    )
-    assert expected_success_log in caplog.text
-    assert mock_call.called_once
-
-
-def test_process_message_and_send_request_with_string_body_and_correlation_id(
-    requests_mock: RequestsMock,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Test processing message with string body format (from SQS) and correlation ID."""
-    mock_response = {
-        "resourceType": "OperationOutcome",
-        "issue": [
-            {
-                "severity": "information",
-                "code": "informational",
-                "diagnostics": "Success",
-            }
+    @pytest.mark.parametrize(
+        "exception_class,init_kwargs",
+        [
+            (
+                PermanentProcessingError,
+                {
+                    "message_id": "test-message-id",
+                    "status_code": 422,
+                    "response_text": "Unprocessable Entity",
+                },
+            ),
+            (
+                PermanentProcessingError,
+                {
+                    "message_id": "test-message-id",
+                    "status_code": 400,
+                    "response_text": "Invalid data format",
+                },
+            ),
         ],
-        "status_code": 200,
-    }
-
-    requests_mock.put(
-        "http://test-apim-api/Organization/test-uuid-123",
-        json=mock_response,
     )
+    def test_exceptions_from_apim_request_are_reraised(
+        self,
+        mock_consumer_dependencies: dict,
+        sample_record: dict,
+        exception_class: type,
+        init_kwargs: dict,
+    ) -> None:
+        """Test that exceptions raised directly from make_apim_request are re-raised via except block."""
+        mocks = mock_consumer_dependencies
+        mocks["make_request"].side_effect = exception_class(**init_kwargs)
 
-    # Simulate SQS message format with single-encoded JSON and correlation_id
-    record = {
-        "messageId": "msg-123",
-        "body": '{"path": "test-uuid-123", "body": {"name": "Test Org"}, "correlation_id": "corr-id-456"}',
-    }
+        with pytest.raises(exception_class) as exc_info:
+            process_message_and_send_request(sample_record)
 
-    process_message_and_send_request(record)
+        # Verify exception details
+        assert exc_info.value.message_id == "test-message-id"
 
-    expected_success_log = OdsETLPipelineLogBase.ETL_CONSUMER_007.value.message.format(
-        status_code=200
-    )
-    assert expected_success_log in caplog.text
+    def test_constructs_correct_api_url(self, mock_consumer_dependencies: dict) -> None:
+        """Test that API URL is constructed correctly with organization ID."""
+        mocks = mock_consumer_dependencies
+        mocks["extract_metadata"].return_value = {
+            "body": {"path": "ORG-XYZ-789", "body": {"name": "Test"}},
+            "message_id": "test-message-id",
+        }
+        mocks["get_url"].return_value = "https://api.example.com"
 
+        record = {
+            "messageId": "test-message-id",
+            "attributes": {"ApproximateReceiveCount": "1"},
+            "body": json.dumps({"path": "ORG-XYZ-789", "body": {"name": "Test"}}),
+        }
 
-@patch("consumer.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_logs_start_and_complete(
-    mock_process_message: MagicMock,
-    mocker: MockerFixture,
-) -> None:
-    """Test that consumer logs START and BATCH_COMPLETE events with metrics."""
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    mock_logger = mocker.patch("consumer.consumer.ods_consumer_logger")
+        process_message_and_send_request(record)
 
-    event = {
-        "Records": [
-            {
-                "messageId": "1",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test1",
-                "body": {"key": "value1"},
-            },
-            {
-                "messageId": "2",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test2",
-                "body": {"key": "value2"},
-            },
-        ]
-    }
-
-    response = consumer_lambda_handler(event, {})
-
-    assert response["batchItemFailures"] == []
-
-    # Verify START log was called
-    start_call = [
-        call
-        for call in mock_logger.log.call_args_list
-        if call[0][0].name == "ETL_CONSUMER_START"
-    ]
-    assert len(start_call) == 1
-    assert start_call[0][1]["lambda_name"] == "etl-ods-consumer"
-
-    # Verify BATCH_COMPLETE log was called with metrics
-    complete_call = [
-        call
-        for call in mock_logger.log.call_args_list
-        if call[0][0].name == "ETL_CONSUMER_BATCH_COMPLETE"
-    ]
-    assert len(complete_call) == 1
-    assert complete_call[0][1]["lambda_name"] == "etl-ods-consumer"
-    assert "duration_ms" in complete_call[0][1]
-    assert str(complete_call[0][1]["total_records"]) == "2"
-    assert str(complete_call[0][1]["successful_count"]) == "2"
-    assert complete_call[0][1]["failed_count"] == 0
-    assert complete_call[0][1]["batch_status"] == "completed"
+        mocks["make_request"].assert_called_once_with(
+            "https://api.example.com/Organization/ORG-XYZ-789",
+            method="PUT",
+            json={"name": "Test"},
+        )
 
 
-@patch("consumer.consumer.process_message_and_send_request")
-def test_consumer_lambda_handler_logs_partial_failure(
-    mock_process_message: MagicMock,
-    mocker: MockerFixture,
-) -> None:
-    """Test that consumer logs BATCH_COMPLETE with failures correctly."""
-    mocker.patch.dict("os.environ", {"MAX_RECEIVE_COUNT": "3"})
-    mock_logger = mocker.patch("consumer.consumer.ods_consumer_logger")
+class TestConsumerLambdaHandler:
+    """Test consumer_lambda_handler function."""
 
-    # First message fails, second succeeds
-    mock_process_message.side_effect = [Exception("Test exception"), None]
+    @pytest.fixture(autouse=True)
+    def setup_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Set up environment variables for all tests in this class."""
+        monkeypatch.setenv("MAX_RECEIVE_COUNT", "3")
 
-    event = {
-        "Records": [
-            {
-                "messageId": "1",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test1",
-                "body": {"key": "value1"},
-            },
-            {
-                "messageId": "2",
-                "attributes": {"ApproximateReceiveCount": "1"},
-                "path": "test2",
-                "body": {"key": "value2"},
-            },
-        ]
-    }
+    @pytest.fixture
+    def mock_lambda_dependencies(self, mocker: MockerFixture) -> dict[str, Any]:
+        """Fixture for common lambda handler dependencies."""
+        return {
+            "process_sqs": mocker.patch("common.sqs_processor.process_sqs_records"),
+            "extract_correlation": mocker.patch(
+                "common.sqs_processor.extract_correlation_id_from_sqs_records"
+            ),
+            "setup_context": mocker.patch("common.sqs_processor.setup_request_context"),
+        }
 
-    response = consumer_lambda_handler(event, {})
+    def test_handler_with_empty_event(self) -> None:
+        """Test handler returns empty failures for empty event."""
+        response = consumer_lambda_handler({}, {})
+        assert response["batchItemFailures"] == []
 
-    assert response["batchItemFailures"] == [{"itemIdentifier": "1"}]
+    def test_handler_with_no_records(self) -> None:
+        """Test handler with event missing Records key."""
+        response = consumer_lambda_handler({}, {})
+        assert response["batchItemFailures"] == []
 
-    # Verify BATCH_COMPLETE log shows partial failure
-    complete_call = [
-        call
-        for call in mock_logger.log.call_args_list
-        if call[0][0].name == "ETL_CONSUMER_BATCH_COMPLETE"
-    ]
-    assert len(complete_call) == 1
-    assert str(complete_call[0][1]["total_records"]) == "2"
-    assert str(complete_call[0][1]["successful_count"]) == "1"
-    assert str(complete_call[0][1]["failed_count"]) == "1"
-    assert complete_call[0][1]["batch_status"] == "completed_with_failures"
+    def test_handler_successful_processing(
+        self,
+        mock_lambda_dependencies: dict,
+        sample_event_single_record: dict,
+    ) -> None:
+        """Test successful processing of consumer messages."""
+        mocks = mock_lambda_dependencies
+        mocks["process_sqs"].return_value = []
+        mocks["extract_correlation"].return_value = "test-correlation"
+
+        response = consumer_lambda_handler(sample_event_single_record, {})
+
+        assert response["batchItemFailures"] == []
+
+    def test_handler_with_multiple_records(
+        self,
+        mock_lambda_dependencies: dict,
+        sample_event_multiple_records: dict,
+    ) -> None:
+        """Test handler with multiple records."""
+        mocks = mock_lambda_dependencies
+        mocks["process_sqs"].return_value = []
+        mocks["extract_correlation"].return_value = "test-correlation"
+
+        response = consumer_lambda_handler(sample_event_multiple_records, {})
+
+        assert response["batchItemFailures"] == []
+
+    def test_handler_with_failures(
+        self,
+        mock_lambda_dependencies: dict,
+        sample_event_multiple_records: dict,
+    ) -> None:
+        """Test handler with processing failures."""
+        mocks = mock_lambda_dependencies
+        mocks["process_sqs"].return_value = [{"itemIdentifier": "msg-2"}]
+        mocks["extract_correlation"].return_value = "test-correlation"
+
+        response = consumer_lambda_handler(sample_event_multiple_records, {})
+
+        assert response["batchItemFailures"] == [{"itemIdentifier": "msg-2"}]
+
+    def test_handler_integration_with_process_function(
+        self,
+        mocker: MockerFixture,
+        sample_event_single_record: dict,
+    ) -> None:
+        """Test handler integration with actual process function."""
+        # Mock dependencies of process_message_and_send_request
+        mock_extract = mocker.patch("consumer.consumer.extract_record_metadata")
+        mocker.patch("consumer.consumer.validate_required_fields")
+        mock_get_url = mocker.patch("consumer.consumer.get_base_apim_api_url")
+        mock_make_request = mocker.patch("consumer.consumer.make_apim_request")
+        mocker.patch("consumer.consumer.ods_consumer_logger")
+
+        mock_extract.return_value = {
+            "body": {"path": "ORG001", "body": {"name": "Org 1"}},
+            "message_id": "msg-1",
+        }
+        mock_get_url.return_value = "http://test-api"
+        mock_make_request.return_value = {"status_code": 200}
+
+        mocker.patch(
+            "common.sqs_processor.extract_correlation_id_from_sqs_records",
+            return_value="test-correlation",
+        )
+        mocker.patch("common.sqs_processor.setup_request_context")
+
+        response = consumer_lambda_handler(sample_event_single_record, {})
+
+        assert response["batchItemFailures"] == []
+        mock_make_request.assert_called_once()
+
+    def test_handler_with_mixed_success_and_failure(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test handler with some records succeeding and some failing."""
+
+        def conditional_extract(record: dict) -> dict:
+            msg_id = record["messageId"]
+            if msg_id == "msg-fail":
+                err_msg = "Processing failed"
+                raise ValueError(err_msg)
+            return {
+                "body": {"path": msg_id, "body": {"name": "Test"}},
+                "message_id": msg_id,
+            }
+
+        mocker.patch(
+            "consumer.consumer.extract_record_metadata", side_effect=conditional_extract
+        )
+        mocker.patch("consumer.consumer.validate_required_fields")
+        mock_get_url = mocker.patch("consumer.consumer.get_base_apim_api_url")
+        mock_make_request = mocker.patch("consumer.consumer.make_apim_request")
+        mocker.patch("consumer.consumer.ods_consumer_logger")
+
+        mock_get_url.return_value = "http://test-api"
+        mock_make_request.return_value = {"status_code": 200}
+
+        mocker.patch(
+            "common.sqs_processor.extract_correlation_id_from_sqs_records",
+            return_value="test-correlation",
+        )
+        mocker.patch("common.sqs_processor.setup_request_context")
+
+        event = {
+            "Records": [
+                {
+                    "messageId": "msg-success",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"path": "ORG001", "body": {"name": "Org 1"}}),
+                },
+                {
+                    "messageId": "msg-fail",
+                    "attributes": {"ApproximateReceiveCount": "1"},
+                    "body": json.dumps({"path": "ORG002", "body": {"name": "Org 2"}}),
+                },
+            ]
+        }
+
+        response = consumer_lambda_handler(event, {})
+
+        # Should return failed message for retry
+        assert len(response["batchItemFailures"]) == 1
+        assert response["batchItemFailures"][0]["itemIdentifier"] == "msg-fail"
+
+    def test_handler_context_setup(
+        self,
+        mock_lambda_dependencies: dict,
+        sample_event_single_record: dict,
+    ) -> None:
+        """Test that handler properly sets up request context."""
+        mocks = mock_lambda_dependencies
+        mocks["process_sqs"].return_value = []
+        mocks["extract_correlation"].return_value = "correlation-123"
+
+        context = {"awsRequestId": "request-123"}
+
+        consumer_lambda_handler(sample_event_single_record, context)
+
+        # Verify correlation ID extraction
+        mocks["extract_correlation"].assert_called_once()
+
+        # Verify context setup
+        mocks["setup_context"].assert_called_once()
+        call_args = mocks["setup_context"].call_args[0]
+        assert call_args[0] == "correlation-123"
+        assert call_args[1] == context

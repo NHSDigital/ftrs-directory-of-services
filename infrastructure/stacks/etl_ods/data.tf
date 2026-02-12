@@ -81,6 +81,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     resources = [
       aws_sqs_queue.load_queue.arn,
       aws_sqs_queue.transform_queue.arn,
+      aws_sqs_queue.load_dead_letter_queue.arn,
+      aws_sqs_queue.transform_dead_letter_queue.arn,
     ]
   }
 }
