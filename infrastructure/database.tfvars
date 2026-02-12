@@ -86,7 +86,6 @@ dynamodb_tables = {
 
 team_owner = "future-directory"
 
-version_history_enabled               = true
 lambda_runtime                        = "python3.12"
 version_history_lambda_name           = "version-history-lambda"
 version_history_lambda_handler        = "version_history.lambda_handler.lambda_handler"
