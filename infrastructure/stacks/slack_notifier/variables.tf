@@ -1,18 +1,3 @@
-variable "environment" {
-  description = "Environment name"
-  type        = string
-}
-
-variable "project" {
-  description = "Project name"
-  type        = string
-}
-
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-}
-
 variable "sns_topic_arn" {
   description = "ARN of the SNS topic to subscribe to"
   type        = string
@@ -78,11 +63,6 @@ variable "enable_xray_tracing" {
 
 variable "vpc_name" {
   description = "Name of the VPC"
-  type        = string
-}
-
-variable "artefacts_bucket_name" {
-  description = "Name of the S3 bucket containing Lambda artifacts"
   type        = string
 }
 

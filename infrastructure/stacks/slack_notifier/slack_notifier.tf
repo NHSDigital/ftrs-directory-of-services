@@ -1,7 +1,7 @@
 module "slack_notifications" {
   source = "../../modules/slack-notifications"
 
-  resource_prefix = local.resource_prefix
+  resource_prefix = local.resource_prefix_slack
   sns_topic_arn   = var.sns_topic_arn
 
   slack_webhook_url = var.slack_webhook_url

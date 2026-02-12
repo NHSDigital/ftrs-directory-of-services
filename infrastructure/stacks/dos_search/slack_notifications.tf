@@ -12,11 +12,10 @@ module "slack_notifier" {
   sns_topic_arn     = module.lambda_monitoring.sns_topic_arn
   slack_webhook_url = var.slack_webhook_alarms_url
 
-  vpc_name              = "${local.account_prefix}-vpc"
-  security_group_ids    = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
-  artefacts_bucket_name = local.artefacts_bucket
-  lambda_artifact_key   = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
-  lambda_runtime        = var.lambda_runtime
+  vpc_name            = "${local.account_prefix}-vpc"
+  security_group_ids  = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
+  lambda_artifact_key = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  lambda_runtime      = var.lambda_runtime
   lambda_layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
