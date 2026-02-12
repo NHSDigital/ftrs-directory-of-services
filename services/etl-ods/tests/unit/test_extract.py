@@ -160,6 +160,9 @@ def test_build_ods_query_params_includes_gp_practice_role_codes() -> None:
         OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value,
     ) in params
     assert ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value) in params
+
+
+def test_validate_ods_code(ods_code: str, should_pass: bool) -> None:
     """Test ODS code validation with various inputs."""
     if should_pass:
         validate_ods_code(ods_code)  # Should not raise

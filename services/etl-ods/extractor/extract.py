@@ -107,13 +107,6 @@ def _extract_next_page_url(bundle: dict) -> str | None:
             return link.get("url")
 
     return None
-    if not isinstance(ods_code, str) or not re.match(ODS_CODE_PATTERN, ods_code):
-        ods_extractor_logger.log(
-            OdsETLPipelineLogBase.ETL_EXTRACTOR_012,
-            e=f"Invalid ODS code: {ods_code}",
-        )
-        err_message = f"Invalid ODS code: '{ods_code}' must match {ODS_CODE_PATTERN}"
-        raise ValueError(err_message)
 
 
 def _extract_organizations_from_bundle(bundle: dict) -> list[dict]:
