@@ -6,10 +6,10 @@ data "terraform_remote_state" "slack_notifier" {
   backend = "s3"
 
   config = {
-    bucket         = var.terraform_state_bucket_name
+    bucket         = "nhse-${var.environment}-${var.repo_name}-terraform-state"
     key            = "slack_notifier/terraform.state"
     region         = var.aws_region
-    dynamodb_table = var.terraform_lock_table_name
+    dynamodb_table = "nhse-${var.environment}-${var.repo_name}-terraform-state-lock"
     encrypt        = true
   }
 }

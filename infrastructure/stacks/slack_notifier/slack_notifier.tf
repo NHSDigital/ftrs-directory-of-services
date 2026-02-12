@@ -1,11 +1,11 @@
 # SNS Topic for CloudWatch Alarms
 resource "aws_sns_topic" "slack_notifications" {
-  name              = "${local.resource_prefix}-alarms${local.workspace_suffix}"
+  name              = local.sns_topic_name
   display_name      = "Slack Notifications for ${var.environment}"
   kms_master_key_id = data.aws_kms_key.sns.id
 
   tags = {
-    Name = "${local.resource_prefix}-alarms${local.workspace_suffix}"
+    Name = local.sns_topic_name
   }
 }
 
@@ -21,7 +21,7 @@ module "slack_notifications" {
   workspace         = terraform.workspace == "default" ? "" : terraform.workspace
 
   lambda_s3_bucket = local.artefacts_bucket
-  lambda_s3_key    = "${local.artefact_base_path}/${var.project}-slack-notifier-lambda.zip"
+  lambda_s3_key    = local.lambda_s3_key
 
   lambda_runtime     = var.lambda_runtime
   lambda_timeout     = 30
@@ -33,7 +33,7 @@ module "slack_notifications" {
   ]
 
   subnet_ids         = data.aws_subnets.private.ids
-  security_group_ids = [aws_security_group.slack_notifier_lambda_sg.id]
+  security_group_ids = [try(aws_security_group.slack_notifier_lambda_sg.id, data.aws_security_group.slack_notifier_lambda_sg_existing[0].id)]
 
   account_id     = local.account_id
   account_prefix = local.account_prefix
