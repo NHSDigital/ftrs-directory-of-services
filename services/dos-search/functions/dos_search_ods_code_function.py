@@ -16,8 +16,8 @@ class InvalidRequestHeadersError(ValueError):
     """Raised when disallowed HTTP headers are supplied in the request."""
 
 
-class InvalidHeaderTypeError(ValueError):
-    """Raised when HTTP headers are validated to be of an invalid type."""
+class InvalidVersionHeaderError(ValueError):
+    """Raised when HTTP header 'version' is incorrectly supplied."""
 
 
 class MissingMandatoryHeadersError(ValueError):
@@ -64,18 +64,10 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
     if missing_mandatory_headers:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
 
-    invalid_type_headers = {}
     # Check 'version' header is a valid integer
-    if not headers.get("version") == "1" and (
-        not headers["version"].isdigit()
-        if isinstance(headers.get("version"), str)
-        else True
-    ):
+    if not headers.get("version") == "1":
         # Add the invalid header and its stringified type to the dictionary
-        invalid_type_headers["version"] = type(headers["version"]).__name__
-
-    if invalid_type_headers:
-        raise InvalidHeaderTypeError(invalid_type_headers)
+        raise InvalidVersionHeaderError({"version": headers.get("version")})
 
     invalid_headers = [
         header_name
@@ -105,16 +97,16 @@ def get_organization() -> Response:
                 invalid_headers
             )
             return create_response(400, fhir_resource)
-        except InvalidHeaderTypeError as exception:
-            invalid_type_headers: dict[str, str] = (
+        except InvalidVersionHeaderError as exception:
+            invalid_version_header: dict[str, str] = (
                 exception.args[0] if exception.args else {}
             )
             dos_logger.warning(
                 "Invalid type found in supplied headers",
-                invalid_type_headers=invalid_type_headers,
+                invalid_version_header=invalid_version_header,
             )
-            fhir_resource = error_util.create_invalid_type_header_operation_outcome(
-                invalid_type_headers
+            fhir_resource = error_util.create_invalid_version_header_operation_outcome(
+                invalid_version_header
             )
             return create_response(400, fhir_resource)
         except MissingMandatoryHeadersError as exception:

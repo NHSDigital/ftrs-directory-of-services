@@ -21,8 +21,8 @@ def mock_error_util():
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
         mock_invalid_header = OperationOutcome.model_construct(id="invalid-header")
-        mock_invalid_header_type = OperationOutcome.model_construct(
-            id="invalid-header-type"
+        mock_invalid_version_header = OperationOutcome.model_construct(
+            id="invalid-version-header"
         )
         mock_missing_mandatory_header = OperationOutcome.model_construct(
             id="missing-mandatory-header"
@@ -33,8 +33,8 @@ def mock_error_util():
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
         mock.create_invalid_header_operation_outcome.return_value = mock_invalid_header
-        mock.create_invalid_type_header_operation_outcome.return_value = (
-            mock_invalid_header_type
+        mock.create_invalid_version_header_operation_outcome.return_value = (
+            mock_invalid_version_header
         )
         mock.create_missing_mandatory_header_operation_outcome.return_value = (
             mock_missing_mandatory_header
@@ -120,7 +120,7 @@ class TestLambdaHandler:
         event_with_headers = _build_event_with_headers(
             {
                 "nhsd-request-id": "req-id",
-                "version": "0",
+                "version": "1",
                 header_name: "value",
             }
         )
@@ -141,7 +141,7 @@ class TestLambdaHandler:
             {
                 "Authorization": "token",
                 "nhsd-request-id": "req-id",
-                "version": "0",
+                "version": "1",
                 "X-NHSD-UNKNOWN": "abc",
             }
         )
@@ -161,29 +161,29 @@ class TestLambdaHandler:
             expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
         )
 
-    def test_lambda_handler_rejects_when_non_digit_version_header(
+    def test_lambda_handler_rejects_when_invalid_version_header(
         self,
         lambda_context,
         mock_logger,
         mock_error_util,
     ):
         event_with_headers = _build_event_with_headers(
-            {"nhsd-request-id": "req-id", "version": "one"}
+            {"nhsd-request-id": "req-id", "version": "DROP TABLES"}
         )
 
         response = lambda_handler(event_with_headers, lambda_context)
 
-        mock_error_util.create_invalid_type_header_operation_outcome.assert_called_once_with(
-            {"version": "str"}
+        mock_error_util.create_invalid_version_header_operation_outcome.assert_called_once_with(
+            {"version": "DROP TABLES"}
         )
         mock_logger.warning.assert_called_with(
             "Invalid type found in supplied headers",
-            invalid_type_headers={"version": "str"},
+            invalid_version_header={"version": "DROP TABLES"},
         )
         assert_response(
             response,
             expected_status_code=400,
-            expected_body=mock_error_util.create_invalid_type_header_operation_outcome.return_value.model_dump_json(),
+            expected_body=mock_error_util.create_invalid_version_header_operation_outcome.return_value.model_dump_json(),
         )
 
     def test_lambda_handler_rejects_when_missing_mandatory_headers(
