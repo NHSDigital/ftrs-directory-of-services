@@ -1,25 +1,8 @@
-data "aws_s3_object" "data_migration_lambda_package" {
-  count  = local.version_history_enabled
-  bucket = local.artefacts_bucket
-  key    = "${local.artefact_base_path}/${var.project}-data-migration-lambda.zip"
-}
-
-data "aws_s3_object" "python_dependency_layer" {
-  count  = local.version_history_enabled
-  bucket = local.artefacts_bucket
-  key    = "${local.artefact_base_path}/${var.project}-data-migration-python-dependency-layer.zip"
-}
-
-data "aws_s3_object" "data_layer" {
-  count  = local.version_history_enabled
-  bucket = local.artefacts_bucket
-  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
-}
 
 resource "aws_lambda_layer_version" "python_dependency_layer" {
   count               = local.version_history_enabled
   layer_name          = "${local.resource_prefix}-python-dependency-layer${local.workspace_suffix}"
-  compatible_runtimes = [var.lambda_runtime]
+  compatible_runtimes = [var.version_history_lambda_runtime]
   description         = "Common Python dependencies for Lambda functions"
 
   s3_bucket         = local.artefacts_bucket
@@ -30,7 +13,7 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
 resource "aws_lambda_layer_version" "data_layer" {
   count               = local.version_history_enabled
   layer_name          = "${local.resource_prefix}-data-layer${local.workspace_suffix}"
-  compatible_runtimes = [var.lambda_runtime]
+  compatible_runtimes = [var.version_history_lambda_runtime]
   description         = "Common data dependencies for Lambda functions"
 
   s3_bucket         = local.artefacts_bucket
@@ -45,7 +28,7 @@ module "version_history" {
   resource_prefix       = local.resource_prefix
   lambda_name           = var.version_history_lambda_name
   lambda_handler        = var.version_history_lambda_handler
-  lambda_runtime        = var.lambda_runtime
+  lambda_runtime        = var.version_history_lambda_runtime
   lambda_timeout        = var.version_history_lambda_timeout
   lambda_memory_size    = var.version_history_lambda_memory_size
   lambda_logs_retention = var.version_history_lambda_logs_retention

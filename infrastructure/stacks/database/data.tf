@@ -28,3 +28,21 @@ data "aws_prefix_list" "dynamodb" {
   count = local.version_history_enabled
   name  = "com.amazonaws.${var.aws_region}.dynamodb"
 }
+
+data "aws_s3_object" "data_migration_lambda_package" { # move to data.tf
+  count  = local.version_history_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-data-migration-lambda.zip"
+}
+
+data "aws_s3_object" "python_dependency_layer" {
+  count  = local.version_history_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-data-migration-python-dependency-layer.zip"
+}
+
+data "aws_s3_object" "data_layer" {
+  count  = local.version_history_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}

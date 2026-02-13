@@ -17,7 +17,7 @@ variable "dynamodb_tables" {
   }))
 }
 
-variable "lambda_runtime" {
+variable "version_history_lambda_runtime" {
   description = "The runtime for the Lambda functions"
   type        = string
 }
@@ -45,6 +45,7 @@ variable "version_history_lambda_memory_size" {
 variable "version_history_lambda_logs_retention" {
   description = "The logs retention for the version history Lambda function"
   type        = number
+  default     = 14
 }
 
 variable "version_history_batch_size" {
