@@ -24,9 +24,9 @@ stack_toggles:
     stack_path: infrastructure/stacks/database
     owner: "Data Migration Team"
     environments:
-      workspace: true
-      dev: true
-      test: true
+      workspace: false
+      dev: false
+      test: false
       int: false
       ref: false
       prod: false
