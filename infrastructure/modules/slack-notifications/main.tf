@@ -1,7 +1,7 @@
 module "slack_lambda" {
   source = "github.com/NHSDigital/ftrs-directory-of-services//infrastructure/modules/lambda?ref=dc4c3a23857cb7b60e87dcc0ebb5f808e48094c8"
 
-  function_name         = "${var.resource_prefix}-slack-notification"
+  function_name         = var.resource_prefix
   description           = "Lambda to send CloudWatch alarms to Slack"
   handler               = var.lambda_handler
   runtime               = var.lambda_runtime

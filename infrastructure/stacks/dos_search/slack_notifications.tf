@@ -1,6 +1,6 @@
 data "aws_lambda_function" "slack_notifier" {
   count         = var.enable_slack_notifications ? 1 : 0
-  function_name = "${var.project}-${var.environment}-slack-notifier-slack-notification"
+  function_name = "${var.project}-${var.environment}-slack-notifier"
 }
 
 resource "aws_lambda_permission" "allow_sns_invoke" {
