@@ -10,7 +10,7 @@ from functions.error_util import (
     REC_BAD_REQUEST_CODING,
     _create_issue,
     create_invalid_header_operation_outcome,
-    create_invalid_type_header_operation_outcome,
+    create_invalid_version_header_operation_outcome,
     create_missing_mandatory_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
@@ -259,10 +259,10 @@ class TestErrorUtil:
             == "Invalid request headers supplied: a-header, m-header, z-header"
         )
 
-    def test_create_invalid_type_header_operation_outcome(self):
-        headers = {"nhsd-request-id": "str", "version": "str"}
+    def test_create_invalid_version_header_operation_outcome(self):
+        headers = {"version": "1"}
 
-        result = create_invalid_type_header_operation_outcome(headers)
+        result = create_invalid_version_header_operation_outcome(headers)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
@@ -272,13 +272,13 @@ class TestErrorUtil:
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
             issue.diagnostics
-            == "Invalid type found in supplied headers: (header 'nhsd-request-id' is type 'str'), (header 'version' is type 'str')"
+            == "Invalid version found in supplied headers: version - 1"
         )
 
-    def test_create_invalid_type_header_operation_outcome_empty_dict(self):
+    def test_create_invalid_version_header_operation_outcome_empty_dict(self):
         headers = {}
 
-        result = create_invalid_type_header_operation_outcome(headers)
+        result = create_invalid_version_header_operation_outcome(headers)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
@@ -286,7 +286,7 @@ class TestErrorUtil:
         assert issue.severity == "error"
         assert issue.code == "value"
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
-        assert issue.diagnostics == "Invalid type found in supplied headers."
+        assert issue.diagnostics == "Invalid version found in supplied headers."
 
     def test_create_missing_mandatory_header_operation_outcome(self):
         headers = ["nhsd-request-id"]

@@ -60,16 +60,13 @@ def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutc
     )
 
 
-def create_invalid_type_header_operation_outcome(
+def create_invalid_version_header_operation_outcome(
     headers: dict[str, str],
 ) -> OperationOutcome:
     diagnostics = (
-        "Invalid type found in supplied headers: "
-        + ", ".join(
-            f"(header '{header}' is type '{type}')" for header, type in headers.items()
-        )
+        f"Invalid version found in supplied headers: version - {headers['version']}"
         if headers
-        else "Invalid type found in supplied headers."
+        else "Invalid version found in supplied headers."
     )
     return OperationOutcome.model_validate(
         {
