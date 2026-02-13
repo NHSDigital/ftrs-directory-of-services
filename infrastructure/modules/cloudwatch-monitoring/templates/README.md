@@ -178,7 +178,7 @@ module "monitoring" {
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "waf/standard"
+  alarm_config_path = "WAF/standard"
 
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
@@ -209,7 +209,7 @@ module "monitoring" {
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
     api        = module.api_gateway.api_name
-    waf        = aws_wafv2_web_acl.main.name
+    WAF        = aws_wafv2_web_acl.main.name
   }
 
   # ... thresholds for all resources
@@ -239,7 +239,7 @@ Create your own template with the following structure:
 
 ### Key Fields
 
-- `resource_type`: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
+- `resource_type`: Generic type (e.g., "lambda", "api", "WAF") - template applies to all resources
 - `metric_name`: CloudWatch metric name
 - `statistic`: Statistical function
 - `comparison_operator`: Comparison type

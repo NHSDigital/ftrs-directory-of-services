@@ -347,7 +347,6 @@ module "lambda_monitoring" {
 - `enable_warning_alarms` - Enable warning level alarms (default: true)
 - `kms_key_id` - KMS key for SNS encryption
 
-
 ## Testing
 
 ### Test Alarm Trigger
