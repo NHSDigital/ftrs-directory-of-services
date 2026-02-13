@@ -45,7 +45,7 @@ CODING_MAP = {
 
 # Single source of truth for mandatory headers to ensure consistency across tests and maintainability
 MANDATORY_REQUEST_HEADERS: dict[str, str] = {
-    "NHSD-Request-Id": "req_id",
+    "X-Request-Id": "req_id",
     "version": "1",
 }
 
