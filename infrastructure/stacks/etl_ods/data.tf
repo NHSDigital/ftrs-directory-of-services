@@ -100,20 +100,6 @@ data "aws_iam_policy_document" "ssm_access_policy" {
   }
 }
 
-# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
-data "aws_iam_policy_document" "execute_api_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "execute-api:Invoke"
-    ]
-    resources = [
-      "arn:aws:execute-api:*:*:*/*/*/*/*"
-    ]
-  }
-
-}
-
 data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
   statement {
     effect = "Allow"
