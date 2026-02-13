@@ -105,6 +105,5 @@ model {
   ftrs.crudApis.locationApi -> ftrs.db.locationTable "Reads/Writes"
 
   // External access via APIM
-  apim.dosReadProxy -> ftrs.apiGateway "Proxies read requests"
-  apim.dosWriteProxy -> ftrs.apiGateway "Proxies write requests"
+  apim.dosIngestProxy -> ftrs.apiGateway "Proxies CRUD requests"
 }

@@ -7,12 +7,12 @@ model {
       color muted
     }
 
-    apigeeproxy dosReadProxy "DoS Read Proxy" {
-      description 'Proxy to read data from DoS'
+    apigeeproxy dosSearchProxy "DoS Search Proxy" {
+      description 'Proxy for external consumers to search DoS data'
     }
 
-    apigeeproxy dosWriteProxy "DoS Write Proxy" {
-      description 'Proxy to write data to DoS'
+    apigeeproxy dosIngestProxy "DoS Ingest Proxy" {
+      description 'Proxy for ingesting and querying data in the DoS'
     }
   }
 }

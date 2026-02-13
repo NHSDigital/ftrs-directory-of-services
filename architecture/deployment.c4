@@ -8,8 +8,14 @@ deployment {
     zone apimZone "APIM Proxies" {
       description "NHS England managed API proxies"
 
-      instanceOf apim.dosReadProxy
-      instanceOf apim.dosWriteProxy
+      dosSearchProxyInstance = instanceOf apim.dosSearchProxy {
+        title "DoS Search Proxy"
+        description "APIM proxy for DoS Search API"
+      }
+      dosIngestProxyInstance = instanceOf apim.dosIngestProxy {
+        title "DoS Ingest Proxy"
+        description "APIM proxy for DoS Ingest API"
+      }
     }
   }
 
@@ -382,7 +388,7 @@ views {
     include aws.prod.secretsManager
     include aws.prod.kms
     include aws.prod.cloudWatch
-    include nhsApim.apimZone.*
+    include nhsApim.apimZone.dosIngestProxyInstance
 
     autoLayout TopBottom 70 77
   }
@@ -407,7 +413,7 @@ views {
     include aws.prod.orgTable
     include aws.prod.cloudWatch
     include aws.prod.s3
-    include nhsApim.apimZone.*
+    include nhsApim.apimZone.dosSearchProxyInstance
 
     autoLayout TopBottom 70 77
   }

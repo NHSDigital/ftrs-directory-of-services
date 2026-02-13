@@ -7,8 +7,8 @@ views {
       and to retrieve data for the Healthcare Service dashboard
     '
     include *
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
     include healthcareServiceAPI
     include healthcareServiceAPI.getHealthcareService
     include healthcareServiceAPI.getHealthcareServices

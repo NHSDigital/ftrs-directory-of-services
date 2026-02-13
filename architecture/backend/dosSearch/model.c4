@@ -38,6 +38,6 @@ model {
   ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "Queries organisation by ODS code"
 
   // External access via APIM
-  apim.dosReadProxy -> ftrs.apiGateway "Proxies search requests"
+  apim.dosSearchProxy -> ftrs.apiGateway "Proxies search requests"
   ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "Routes GET /Organization requests"
 }

@@ -31,11 +31,11 @@ model {
     }
   }
 
-  apim.dosReadProxy -> organizationAPI.orgByOdsCode "Routes requests to"
-  apim.dosReadProxy -> organizationAPI.getByOrganizationId "Routes requests to"
-  apim.dosWriteProxy -> organizationAPI.addOrg "Routes requests to"
-  apim.dosWriteProxy -> organizationAPI.updateOrg "Routes requests to"
-  apim.dosWriteProxy -> organizationAPI.deleteOrg "Routes requests to"
+  apim.dosIngestProxy -> organizationAPI.orgByOdsCode "Routes requests to"
+  apim.dosIngestProxy -> organizationAPI.getByOrganizationId "Routes requests to"
+  apim.dosIngestProxy -> organizationAPI.addOrg "Routes requests to"
+  apim.dosIngestProxy -> organizationAPI.updateOrg "Routes requests to"
+  apim.dosIngestProxy -> organizationAPI.deleteOrg "Routes requests to"
 
   orgByOdsCode -> ftrs.db.orgTable "Queries data from"
   getByOrganizationId -> ftrs.db.orgTable "Queries data from"

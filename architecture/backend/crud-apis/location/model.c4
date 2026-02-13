@@ -32,11 +32,11 @@ model {
     }
   }
 
-  apim.dosReadProxy -> locationAPI.getById "Routes requests to"
-  apim.dosReadProxy -> locationAPI.getAllLocations "Routes requests to"
-  apim.dosWriteProxy -> locationAPI.createLocation "Routes requests to"
-  apim.dosWriteProxy -> locationAPI.updateLocation "Routes requests to"
-  apim.dosWriteProxy -> locationAPI.deleteLocation "Routes requests to"
+  apim.dosIngestProxy -> locationAPI.getById "Routes requests to"
+  apim.dosIngestProxy -> locationAPI.getAllLocations "Routes requests to"
+  apim.dosIngestProxy -> locationAPI.createLocation "Routes requests to"
+  apim.dosIngestProxy -> locationAPI.updateLocation "Routes requests to"
+  apim.dosIngestProxy -> locationAPI.deleteLocation "Routes requests to"
 
   getById -> ftrs.db.locationTable "Queries data from"
   getAllLocations -> ftrs.db.locationTable "Queries data from"
