@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from functions.healthcare_service_query_params import (
     HealthcareServiceQueryParams,
     InvalidIdentifierSystem,
@@ -12,12 +13,12 @@ class TestHealthcareServiceQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_ods_code"),
         [
-            ("odsOrganisationCode|ABC12", "ABC12"),
-            ("odsOrganisationCode|ABC123456789", "ABC123456789"),
-            ("odsOrganisationCode|ABC123", "ABC123"),
-            ("odsOrganisationCode|ABCDEF", "ABCDEF"),
-            ("odsOrganisationCode|123456", "123456"),
-            ("odsOrganisationCode|abc123", "ABC123"),  # lowercase converted
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC12", "ABC12"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123456789", "ABC123456789"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123", "ABC123"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABCDEF", "ABCDEF"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|123456", "123456"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123", "ABC123"),
         ],
         ids=[
             "minimum length",
@@ -41,12 +42,15 @@ class TestHealthcareServiceQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_exception"),
         [
-            ("odsOrganisationCode|", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC1", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABCD123456789", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC-123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC 123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC@123", ODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|", ODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC1", ODSCodeInvalidFormatError),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABCD123456789",
+                ODSCodeInvalidFormatError,
+            ),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC-123", ODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC 123", ODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC@123", ODSCodeInvalidFormatError),
             ("", InvalidIdentifierSystem),
             ("wrongPrefix|ABC123", InvalidIdentifierSystem),
             ("ABC123", InvalidIdentifierSystem),
@@ -79,7 +83,7 @@ class TestHealthcareServiceQueryParams:
     def test_ods_code_computed_field(self) -> None:
         # Act
         params = HealthcareServiceQueryParams(
-            identifier="odsOrganisationCode|abc123",
+            identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123",
         )
 
         # Assert
@@ -92,3 +96,14 @@ class TestHealthcareServiceQueryParams:
 
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("identifier",) for error in errors)
+
+    def test_extra_fields_forbidden(self) -> None:
+        # Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            HealthcareServiceQueryParams(
+                identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123",
+                extra_field="not allowed",
+            )
+
+        errors = exc_info.value.errors()
+        assert any(error["type"] == "extra_forbidden" for error in errors)
