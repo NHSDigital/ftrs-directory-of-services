@@ -74,7 +74,7 @@ def assert_message_in_logs(
     expected_message: str,
     case_sensitive: bool = True,
     log_group_name: str = None,
-    wait_time: int = 30,
+    wait_time: int = 10,
     max_retries: int = 6,
 ):
     """Assert that a specific message appears in logs for the given correlation_id.
