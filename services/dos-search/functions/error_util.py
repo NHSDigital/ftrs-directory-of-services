@@ -60,7 +60,7 @@ def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutc
     )
 
 
-def create_invalid_version_header_operation_outcome(
+def create_invalid_version_operation_outcome(
     headers: dict[str, str],
 ) -> OperationOutcome:
     diagnostics = (
