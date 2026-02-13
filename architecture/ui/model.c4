@@ -11,7 +11,7 @@ model {
 
   dosLead -> ui "opens in browser"
   ui -> cis2 "Logs in with"
-  ui -> apim.dosReadProxy "Queries DoS"
-  ui -> apim.dosWriteProxy "Updates DoS"
+  ui -> apim.dosSearchProxy "Searches DoS"
+  ui -> apim.dosIngestProxy "Updates and Queries DoS"
 
 }

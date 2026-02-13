@@ -12,10 +12,10 @@ views {
          - Queues raw organisation data to Transform Queue
       2. TRANSFORM: Transformer Lambda processes raw data
          - Transforms ODS FHIR to internal FHIR Organisation format
-         - Looks up internal UUID via APIM read endpoint -> CRUD APIs
+         - Looks up internal UUID via DoS Ingest Proxy -> CRUD APIs
          - Queues transformed payloads to Load Queue (batch size 10)
       3. LOAD: Loader Lambda sends to CRUD APIs
-         - Sends PUT requests to APIM -> CRUD APIs -> DynamoDB
+         - Sends PUT requests to DoS Ingest Proxy -> CRUD APIs -> DynamoDB
 
       Each queue has a Dead Letter Queue (DLQ) for failed messages.
       See architecture/data-flows.c4 for end-to-end data flow diagrams.
@@ -24,8 +24,8 @@ views {
     include odsTerminologyApi
     include ftrs.etlOds.*
 
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
 
     include ftrs.apiGateway
     include ftrs.crudApis.organisationApi

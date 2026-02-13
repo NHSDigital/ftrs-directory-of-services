@@ -20,8 +20,8 @@ views {
     include ftrs.db.orgTable
     include ftrs.db.healthCareServiceTable
     include ftrs.db.locationTable
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
 
     autoLayout LeftRight 70 77
   }
@@ -36,8 +36,8 @@ views {
     include *
     include ftrs.apiGateway
     include ftrs.db.orgTable
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
 
     autoLayout LeftRight 70 77
   }
@@ -51,8 +51,8 @@ views {
     include *
     include ftrs.apiGateway
     include ftrs.db.healthCareServiceTable
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
 
     autoLayout LeftRight 70 77
   }
@@ -66,8 +66,8 @@ views {
     include *
     include ftrs.apiGateway
     include ftrs.db.locationTable
-    include apim.dosReadProxy
-    include apim.dosWriteProxy
+    include apim
+    include apim.dosIngestProxy
 
     autoLayout LeftRight 70 77
   }
@@ -78,12 +78,14 @@ views {
       Sequence showing the read path through the CRUD APIs
     '
 
-    apim.dosReadProxy -> ftrs.apiGateway "1. GET request via APIM"
+    include apim
+
+    apim.dosIngestProxy -> ftrs.apiGateway "1. GET request via DoS Ingest Proxy"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi "2. Route to Organisation API Lambda"
     ftrs.crudApis.organisationApi -> ftrs.db.orgTable "3. Query DynamoDB"
     ftrs.db.orgTable -> ftrs.crudApis.organisationApi "4. Return data"
     ftrs.crudApis.organisationApi -> ftrs.apiGateway "5. FHIR response"
-    ftrs.apiGateway -> apim.dosReadProxy "6. Return to APIM"
+    ftrs.apiGateway -> apim.dosIngestProxy "6. Return to DoS Ingest Proxy"
 
     autoLayout TopBottom
   }
@@ -94,12 +96,14 @@ views {
       Sequence showing the write path through the CRUD APIs
     '
 
-    apim.dosWriteProxy -> ftrs.apiGateway "1. POST/PUT/DELETE request via APIM"
+    include apim
+
+    apim.dosIngestProxy -> ftrs.apiGateway "1. POST/PUT/DELETE request via DoS Ingest Proxy"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi "2. Route to Organisation API Lambda"
     ftrs.crudApis.organisationApi -> ftrs.db.orgTable "3. Update DynamoDB"
     ftrs.db.orgTable -> ftrs.crudApis.organisationApi "4. Confirm write"
     ftrs.crudApis.organisationApi -> ftrs.apiGateway "5. FHIR response"
-    ftrs.apiGateway -> apim.dosWriteProxy "6. Return to APIM"
+    ftrs.apiGateway -> apim.dosIngestProxy "6. Return to DoS Ingest Proxy"
 
     autoLayout TopBottom
   }
