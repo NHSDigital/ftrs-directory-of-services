@@ -43,17 +43,17 @@ def _extract_identifier_value(identifier: str) -> str:
 
 class HealthcareServiceQueryParams(BaseModel):
     identifier: str = Field(
-        description="HealthcareService identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{code}'",
+        alias="organization.identifier",
+        description=f"Organization identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{code}}'",
     )
 
-    model_config = {"extra": "forbid"}
+    model_config = {"extra": "forbid", "populate_by_name": True}
 
     @computed_field
     @property
     def ods_code(self) -> str:
         return _extract_identifier_value(self.identifier)
 
-    # noinspection PyNestedDecorators
     @field_validator("identifier")
     @classmethod
     def validate_identifier(cls, v: str) -> str:

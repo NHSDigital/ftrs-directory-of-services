@@ -32,11 +32,12 @@ class TestHealthcareServiceQueryParams:
     def test_valid_healthcare_service_query_params(
         self, identifier: str, expected_ods_code: str
     ) -> None:
-        # Act
-        params = HealthcareServiceQueryParams(identifier=identifier)
+        # Act - use the alias name for the field
+        params = HealthcareServiceQueryParams.model_validate(
+            {"organization.identifier": identifier}
+        )
 
         # Assert
-        assert params.identifier == identifier
         assert params.ods_code == expected_ods_code
 
     @pytest.mark.parametrize(
@@ -72,7 +73,9 @@ class TestHealthcareServiceQueryParams:
     ) -> None:
         # Act
         with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(identifier=identifier)
+            HealthcareServiceQueryParams.model_validate(
+                {"organization.identifier": identifier}
+            )
 
         # Assert
         assert len(exc_info.value.errors()) == 1
@@ -82,8 +85,8 @@ class TestHealthcareServiceQueryParams:
 
     def test_ods_code_computed_field(self) -> None:
         # Act
-        params = HealthcareServiceQueryParams(
-            identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123",
+        params = HealthcareServiceQueryParams.model_validate(
+            {"organization.identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123"}
         )
 
         # Assert
@@ -92,17 +95,19 @@ class TestHealthcareServiceQueryParams:
     def test_missing_identifier_raises_validation_error(self) -> None:
         # Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams()
+            HealthcareServiceQueryParams.model_validate({})
 
         errors = exc_info.value.errors()
-        assert any(error["loc"] == ("identifier",) for error in errors)
+        assert any(error["loc"] == ("organization.identifier",) for error in errors)
 
     def test_extra_fields_forbidden(self) -> None:
         # Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            HealthcareServiceQueryParams(
-                identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123",
-                extra_field="not allowed",
+            HealthcareServiceQueryParams.model_validate(
+                {
+                    "organization.identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123",
+                    "extra_field": "not allowed",
+                }
             )
 
         errors = exc_info.value.errors()
