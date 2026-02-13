@@ -15,18 +15,90 @@ on:
         options:
           - dev
           - test
+      stop-ec2-instance:
+        description: "Whether to stop the EC2 instance running the performance test"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+      force-ec2-instance-stop:
+        description: "Whether to force stop the EC2 instance if a performance test is still running (will stop the instance without waiting for the test to complete)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-
   stop_performance_test:
-    name: "Stop performance test"
+    name: "Stop performance EC2 instance if required"
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+      - name: "Lookup EC2 instance ID"
+        id: lookup
+        uses: ./.github/actions/ec2-lookup-instance-id
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+
+      - name: "Check for running performance test on EC2 instance"
+        id: check-perf-test-running
+        if: ${{ inputs.stop-ec2-instance == 'true' }}
+        uses: ./.github/actions/ec2-performance-check-test-running
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
+
+      - name: "Stop EC2 Check"
+        env:
+          FORCE_EC2_INSTANCE_STOP: ${{ inputs.force-ec2-instance-stop }}
+          PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
+        if: ${{ inputs.stop-ec2-instance == 'true' }}
+        run: |
+          echo "Performance test running: $PERFORMANCE_TEST_RUNNING"
+          if [[ "$PERFORMANCE_TEST_RUNNING" == "true" ]]; then
+            if [[ "$FORCE_EC2_INSTANCE_STOP" == "true" ]]; then
+              echo "Force stopping EC2 instance as performance test is still running..."
+            else
+              echo "Performance test is still running. Not stopping EC2 instance."
+              exit 1
+            fi
+            else
+              echo "No performance test running. Proceeding to stop EC2 instance."
+            fi
+
+      - name: Clear Performance Run Lock
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
+        uses: ./.github/actions/ec2-performance-clear-run-lock
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
+
+      - name: Clear Performance Log Files
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
+        uses: ./.github/actions/ec2-performance-clear-log-files
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}
+
+      - name: "Stop EC2 instance"
+        if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
+        uses: ./.github/actions/ec2-stop
+        with:
+          ec2-instance-id: ${{ steps.lookup.outputs.ec2-instance-id }}

@@ -1,0 +1,32 @@
+name: "Run Performance Test Gateway action"
+description: "Runs a performance test on the Gateway given a test type on a given EC2 instance"
+
+inputs:
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  s3-bucket:
+    description: "The S3 bucket to upload performance test results to"
+    required: true
+  ec2-instance-id:
+    description: "The EC2 instance ID to connect to"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Upload test results to S3
+      shell: bash
+      id: run
+      run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Upload performance test results to S3 for environment ${{ inputs.environment }}" \
+            --parameters 'commands=["cd /home/ssm-user",
+                        "make upload-performance-test-result ENVIRONMENT=${{ inputs.environment }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.s3-bucket }}"]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT

@@ -55,6 +55,16 @@ if (serviceendpoint != null) {
     props.put("ServiceEndpoint", serviceendpoint)
 }
 
+def workspace = props.get("workspace")
+if (workspace == null || workspace == "") {
+    workspace = vars.get("param_0_4")
+}
+if (workspace == "default") {
+    props.put("workspace", "")
+}
+if (workspace != null) {
+    props.put("workspace", "-" + workspace)
+}
 
 log.info("Loaded APIM Params: Apim_Env=${props.get("Apim_Env")}, Env=${props.get("Env")}, AWS_SECRET_NAME=${props.get("AWS_SECRET_NAME")}")
-log.info("Loaded Backend Params: ServiceEndpoint=${props.get("ServiceEndpoint")}")
+log.info("Loaded Backend Params: ServiceEndpoint=${props.get("ServiceEndpoint")}, workspace=${props.get("workspace")}")

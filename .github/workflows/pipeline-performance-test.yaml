@@ -7,10 +7,39 @@ name: Performance Test Pipeline
 on:
   workflow_dispatch:
     inputs:
-      test_file:
-        description: "The test file to run"
-        required: true
-        type: string
+      download_performance_config:
+        description: "Whether to download the performance config from S3"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      generate_certificates_and_keys:
+        description: "Whether to generate new certificates and keys for the performance test"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      endpoint_type:
+        description: "Specify the endpoint type for the performance test"
+        required: false
+        default: "gateway"
+        type: choice
+        options:
+          - gateway
+          - proxy
+      test_type:
+        description: "The type of performance test to run"
+        required: false
+        default: "smoke"
+        type: choice
+        options:
+          - smoke
+          - load
+          - stress
       environment:
         description: "Specify the environment to the performance test against"
         required: true
@@ -19,8 +48,33 @@ on:
         options:
           - dev
           - test
-      ref:
-        description: "The branch, tag or SHA to to test against"
+      workspace:
+        description: "Workspace identifier"
+        required: true
+        type: string
+        default: "default"
+      num_threads:
+        description: "Number of threads for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      ramp_time:
+        description: "Ramp time for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      startup_delay:
+        description: "Startup delay for the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      duration:
+        description: "Duration of the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      throughput:
+        description: "Throughput (or Throughput Step) of the performance test (overrides defaults for test type)"
+        required: false
+        type: string
+      throughput_period:
+        description: "Throughput Period (or Step Duration) of the performance test (overrides defaults for test type)"
         required: false
         type: string
 
@@ -36,5 +90,178 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
+      - name: "Validate Inputs"
+        shell: bash
+        env:
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
+          TEST_TYPE: ${{ inputs.test_type }}
+        run: |
+          if [[ "$ENDPOINT_TYPE" == "proxy" && "$TEST_TYPE" != "smoke" ]]; then
+            echo "Invalid combination of endpoint_type and test_type. Must be 'smoke' for proxy endpoint type."
+            exit 1
+          fi
+
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: "Derive Test Parameters"
+        id: derive-params
+        shell: bash
+        env:
+          TEST_TYPE: ${{ inputs.test_type }}
+          NUM_THREADS: ${{ inputs.num_threads }}
+          RAMP_TIME: ${{ inputs.ramp_time }}
+          STARTUP_DELAY: ${{ inputs.startup_delay }}
+          DURATION: ${{ inputs.duration }}
+          THROUGHPUT: ${{ inputs.throughput }}
+          THROUGHPUT_PERIOD: ${{ inputs.throughput_period }}
+        run: |
+          case "$TEST_TYPE" in
+            "smoke")
+              NUM_THREADS="${NUM_THREADS:-10}"
+              RAMP_TIME="${RAMP_TIME:-1}"
+              STARTUP_DELAY="${STARTUP_DELAY:-10}"
+              DURATION="${DURATION:-20}"
+              THROUGHPUT=${THROUGHPUT:-10}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              ;;
+            "load")
+              NUM_THREADS=${NUM_THREADS:-100}
+              RAMP_TIME=${RAMP_TIME:-1}
+              STARTUP_DELAY=${STARTUP_DELAY:-10}
+              DURATION=${DURATION:-3660}
+              THROUGHPUT=${THROUGHPUT:-9000}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              ;;
+            "stress")
+              NUM_THREADS=${NUM_THREADS:-10}
+              RAMP_TIME=${RAMP_TIME:-1}
+              STARTUP_DELAY=${STARTUP_DELAY:-10}
+              DURATION=${DURATION:-70}
+              THROUGHPUT=${THROUGHPUT:-1}
+              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-5}
+              ;;
+            *)
+              echo "Invalid test type: $TEST_TYPE"
+              exit 1
+              ;;
+          esac
+
+          echo "num_threads=$NUM_THREADS"
+          echo "ramp_time=$RAMP_TIME"
+          echo "startup_delay=$STARTUP_DELAY"
+          echo "duration=$DURATION"
+          echo "throughput/throughput_step=$THROUGHPUT"
+          echo "throughput_period/step_duration=$THROUGHPUT_PERIOD"
+
+          echo "num_threads=$NUM_THREADS" >> $GITHUB_OUTPUT
+          echo "ramp_time=$RAMP_TIME" >> $GITHUB_OUTPUT
+          echo "startup_delay=$STARTUP_DELAY" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "throughput=$THROUGHPUT" >> $GITHUB_OUTPUT
+          echo "throughput_period=$THROUGHPUT_PERIOD" >> $GITHUB_OUTPUT
+
+      - name: "Derive Endpoint URL"
+        id: derive-endpoint
+        shell: bash
+        env:
+          WORKSPACE: ${{ inputs.workspace }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
+        run: |
+          if [ "$ENDPOINT_TYPE" == "gateway" ]; then
+            if [ "$WORKSPACE" ==  "default" ]; then
+              ENDPOINT="dos-search.$ENVIRONMENT.ftrs.cloud.nhs.uk"
+            else
+              ENDPOINT="dos-search-$WORKSPACE.$ENVIRONMENT.ftrs.cloud.nhs.uk"
+            fi
+          else
+            declare -A APIM_ENVS
+            APIM_ENVS["dev"]="internal-dev"
+            APIM_ENVS["test"]="internal-qa"
+            APIM_ENVS["int"]="int"
+
+            APIM_ENV=${APIM_ENVS[$ENVIRONMENT]}
+
+            if [ "$WORKSPACE" ==  "default" ]; then
+              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search/FHIR/R4"
+            else
+              ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-$WORKSPACE/FHIR/R4"
+            fi
+          fi
+          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
+          echo "apim_env=$APIM_ENV" >> $GITHUB_OUTPUT
+
+      - name: "Configure AWS credentials"
+        uses: ./.github/actions/configure-credentials
+        with:
+          aws_account_id: ${{ secrets.ACCOUNT_ID }}
+          aws_region: ${{ vars.AWS_REGION }}
+          type: app
+          environment: ${{ inputs.environment }}
+
+      - name: "Lookup EC2 instance ID"
+        id: lookup-ec2-instance-id
+        uses: ./.github/actions/ec2-lookup-instance-id
+        with:
+          ec2-name-tag: "ftrs-directory-of-services-${{ inputs.environment }}-performance"
+
+      - name: "Start EC2 performance instance"
+        id: ec2-start
+        uses: ./.github/actions/ec2-start
+        with:
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+
+      - name: "Check for running performance test on EC2 instance"
+        id: check-perf-test-running
+        uses: ./.github/actions/ec2-performance-check-test-running
+        with:
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+
+      - name: "Performance Run in Progress Check"
+        shell: bash
+        env:
+          PERFORMANCE_TEST_RUNNING: ${{ steps.check-perf-test-running.outputs.performance-test-running }}
+        run: |
+          echo "Performance test running: $PERFORMANCE_TEST_RUNNING"
+          if [[ "$PERFORMANCE_TEST_RUNNING" == "true" ]]; then
+            echo "Performance test is still running. Not running another."
+            exit 1
+          else
+            echo "No performance test running. Proceeding to run performance test."
+          fi
+      - name: "Download performance config"
+        if: inputs.download_performance_config == 'true'
+        uses: ./.github/actions/ec2-performance-download-config
+        with:
+          environment: ${{ inputs.environment }}
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+      - name: "Generate certificates and keys"
+        if: inputs.generate_certificates_and_keys == 'true'
+        uses: ./.github/actions/ec2-performance-generate-certificates-and-keys
+        with:
+          environment: ${{ inputs.environment }}
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+      - name: "Start CloudWatch agent"
+        uses: ./.github/actions/ec2-performance-start-cloudwatch-agent
+        with:
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+
+      - name: "Run performance test"
+        uses: ./.github/actions/ec2-performance-run-test
+        with:
+          ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          environment: ${{ inputs.environment }}
+          apim-env: ${{ steps.derive-endpoint.outputs.apim-env }}
+          endpoint-type: ${{ inputs.endpoint_type }}
+          test-type: ${{ inputs.test_type }}
+          endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
+          workspace: ${{ inputs.workspace }}
+          num-threads: ${{ inputs.num_threads }}
+          ramp-time: ${{ inputs.ramp_time }}
+          startup-delay: ${{ inputs.startup_delay }}
+          duration: ${{ inputs.duration }}
+          throughput: ${{ inputs.throughput }}
+          throughput-period: ${{ inputs.throughput_period }}
+          performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket

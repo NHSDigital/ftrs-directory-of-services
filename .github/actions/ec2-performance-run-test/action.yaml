@@ -1,0 +1,96 @@
+name: "EC2 Performance Run Test action"
+description: "Runs a performance test given an endpoint type and test type on the EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The EC2 instance ID to connect to"
+    required: true
+  endpoint:
+    description: "The endpoint to run the performance test against"
+    required: false
+    default: ""
+  endpoint-type:
+    description: "Specify the endpoint type for the performance test"
+    required: true
+  test-type:
+    description: "The type of performance test to run"
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+  apim-env:
+    description: "The environment for the APIM gateway"
+    required: false
+    default: ""
+  workspace:
+    description: "The workspace for the performance test"
+    required: false
+    default: ""
+  aws-region:
+    description: 'AWS region for Secrets Manager'
+    required: false
+    default: "eu-west-2"
+  num-threads:
+    description: "Number of threads for the performance test"
+    required: true
+  ramp-time:
+    description: "Ramp up time for the performance test"
+    required: true
+  startup-delay:
+    description: "Startup delay for the performance test"
+    required: true
+  duration:
+    description: "Duration of the performance test"
+    required: true
+  throughput:
+    description: "Throughput for the performance test"
+    required: true
+  throughput-period:
+    description: "Throughput period for the performance test"
+    required: true
+  performance-results-bucket:
+    description: "The S3 bucket to store performance test results"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Run Test on Gateway
+      shell: bash
+      id: run
+      env:
+        AWS_REGION: ${{ inputs.aws-region }}
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        APIM_ENV: ${{ inputs.apim-env }}
+        WORKSPACE: ${{ inputs.workspace }}
+        ENDPOINT_TYPE: ${{ inputs.endpoint-type }}
+        TEST_TYPE: ${{ inputs.test-type }}
+        ENDPOINT: ${{ inputs.endpoint }}
+        NUM_THREADS: ${{ inputs.num-threads }}
+        RAMP_TIME: ${{ inputs.ramp-time }}
+        STARTUP_DELAY: ${{ inputs.startup-delay }}
+        DURATION: ${{ inputs.duration }}
+        THROUGHPUT: ${{ inputs.throughput }}
+        THROUGHPUT_PERIOD: ${{ inputs.throughput-period }}
+        PERFORMANCE_RESULTS_BUCKET: ${{ inputs.performance-results-bucket }}
+      run: |
+          COMMANDS=$(cat <<EOF
+          [
+            "cd /home/ssm-user",
+            "nohup make run-performance-test AWS_REGION=${AWS_REGION} ENVIRONMENT=${ENVIRONMENT} APIM_ENV=${APIM_ENV} WORKSPACE=${WORKSPACE} ENDPOINT_TYPE=${ENDPOINT_TYPE} TEST_TYPE=${TEST_TYPE} ENDPOINT=${ENDPOINT} PFX_PATH=./parameter_files/jmeter_pfx.pfx NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD} PERFORMANCE_RESULTS_BUCKET=${PERFORMANCE_RESULTS_BUCKET} JMETER_INSTANCE_ID=${EC2_INSTANCE_ID} > ./performance_run.log 2>&1 &"
+          ]
+          EOF
+          )
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Run performance test for $TEST_TYPE against $ENDPOINT endpoint" \
+            --parameters "{\"commands\": $COMMANDS}" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id (Run Performance Test)=$COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT

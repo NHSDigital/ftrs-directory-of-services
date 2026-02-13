@@ -1,0 +1,55 @@
+name: "EC2 Performance Download Config Action"
+description: "Downloads performance config from S3 to the EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The EC2 instance ID to connect to"
+    required: true
+  environment:
+    description: 'Environment to authenticate against (e.g., dev, test, prod)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: EC2 Download Performance Config
+      shell: bash
+      id: run_command
+      env:
+        AWS_REGION: "eu-west-2"
+        ENVIRONMENT: ${{ inputs.environment }}
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+          COMMANDS=$(cat <<EOF
+          [
+            "cd /home/ssm-user",
+            "aws s3 cp s3://ftrs-dos-${ENVIRONMENT}-account-wide-is-performance-files-bucket --region ${AWS_REGION} ./ --recursive --exclude test-results/*",
+            "sudo cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+            "sudo chmod 750 /home/ssm-user",
+            "sudo chmod 640 /home/ssm-user/performance_run.log",
+            "sudo usermod -a -G ssm-user cwagent"
+          ]
+          EOF
+          )
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Download performance config on EC2 instance $EC2_INSTANCE_ID" \
+            --parameters "{\"commands\": $COMMANDS}" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id (Download Performance Config)=$COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+    - name: Wait for Config Download
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        COMMAND_ID: ${{ steps.run_command.outputs.command_id }}
+      run: |
+          echo "Waiting for performance config download to complete..."
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID"

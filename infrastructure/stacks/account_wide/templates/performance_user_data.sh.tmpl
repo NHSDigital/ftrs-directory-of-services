@@ -115,6 +115,17 @@ fi
 systemctl enable amazon-ssm-agent || true
 systemctl restart amazon-ssm-agent || systemctl start amazon-ssm-agent || true
 
+# Ensure AWS Cloudwatch Agent is installed
+if command -v dnf >/dev/null 2>&1; then
+  dnf -y install amazon-cloudwatch-agent || true
+elif command -v yum >/dev/null 2>&1; then
+  yum -y install amazon-cloudwatch-agent || true
+fi
+if ! rpm -q amazon-cloudwatch-agent >/dev/null 2>&1; then
+  rpm -Uvh --force "https://s3.$${REGION}.amazonaws.com/amazon-cloudwatch-$${REGION}/latest/linux_amd64/amazon-cloudwatch-agent.rpm" || true
+fi
+
+
 # Always install JMeter Plugin Manager, cmdrunner, and a sensible default plugin set
 PLUGINS_MANAGER_VERSION=1.11
 CMDRUNNER_VERSION=2.3

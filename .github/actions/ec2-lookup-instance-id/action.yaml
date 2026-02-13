@@ -1,0 +1,28 @@
+name: "Lookup EC2 instance ID by tag"
+description: "Look up the instance ID of an EC2 instance by its Name tag"
+
+inputs:
+  ec2-name-tag:
+    description: "The Name tag of the EC2 instance to look up"
+    required: true
+
+outputs:
+  ec2-instance-id:
+    description: 'Instance ID of the looked up EC2 instance'
+    value: ${{ steps.lookup.outputs.ec2_instance_id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Look up EC2 instance ID by tag
+      id: lookup
+      shell: bash
+      env:
+        EC2_NAME_TAG: ${{ inputs.ec2-name-tag }}
+      run: |
+        INSTANCE_ID=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=$EC2_NAME_TAG" \
+          --query "Reservations[0].Instances[0].InstanceId" \
+          --output text)
+
+        echo "ec2_instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
