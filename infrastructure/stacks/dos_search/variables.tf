@@ -87,6 +87,18 @@ variable "api_gateway_tls_security_policy" {
   default     = "TLS_1_2"
 }
 
+variable "account_wide_stack_name" {
+  description = "Stack name used for account-wide resources (used to derive the regional WAF name)"
+  type        = string
+  default     = "account-wide"
+}
+
+variable "regional_waf_name" {
+  description = "Base name of the account-wide regional WAF (without prefix)"
+  type        = string
+  default     = "regional-waf-web-acl"
+}
+
 variable "lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the main search Lambda"
   type        = number
