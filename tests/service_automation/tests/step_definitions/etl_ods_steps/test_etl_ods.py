@@ -1,6 +1,5 @@
 """Refactored ETL ODS BDD tests using modular utilities."""
 
-import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -10,7 +9,6 @@ from pytest_bdd import given, parsers, scenarios, then, when
 # Common Steps
 from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
-from utilities.common.constants import ENV_WORKSPACE
 from utilities.common.context import Context
 from utilities.common.resource_name import get_resource_name
 from utilities.infra.lambda_util import LambdaWrapper
@@ -76,11 +74,15 @@ def invoke_lambda_generic(
 
 @given("the ETL ODS infrastructure is available")
 def etl_ods_infrastructure_available(
-    context: Context, aws_lambda_client: LambdaWrapper
+    context: Context,
+    aws_lambda_client: LambdaWrapper,
+    project: str,
+    workspace: str,
+    env: str,
 ) -> None:
-    context.project = "ftrs-dos"
-    context.workspace = os.getenv(ENV_WORKSPACE, "")
-    context.env = "dev"
+    context.project = project
+    context.workspace = workspace
+    context.env = env
 
     # Setup both transform and load queues
     setup_queue_config(context, "transform", aws_lambda_client)
