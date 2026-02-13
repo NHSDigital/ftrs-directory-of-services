@@ -16,6 +16,7 @@ locals {
   infrastructure_management_rw_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_management.json"))
   infrastructure_management_ro_policy = jsondecode(file("${path.module}/policies/ro_infrastructure_management.json"))
   infrastructure_resilience_rw_policy = jsondecode(file("${path.module}/policies/rw_infrastructure_resilience.json"))
+  infrastructure_resilience_ro_policy = jsondecode(file("${path.module}/policies/ro_infrastructure_resilience.json"))
   data_ro_policy = jsondecode(templatefile("${path.module}/policies/ro_data.json.tpl", {
     athena_output_bucket_name = var.athena_output_bucket_name
   }))
@@ -127,4 +128,10 @@ resource "aws_iam_policy" "infrastructure_resilience_rw" {
   name        = "rw_infrastructure_resilience"
   description = "Read-write policies for aws resilience hub services"
   policy      = jsonencode(local.infrastructure_resilience_rw_policy)
+}
+
+resource "aws_iam_policy" "infrastructure_resilience_ro" {
+  name        = "ro_infrastructure_resilience"
+  description = "Read-only policies for aws resilience services"
+  policy      = jsonencode(local.infrastructure_resilience_ro_policy)
 }
