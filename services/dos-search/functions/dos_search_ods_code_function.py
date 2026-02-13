@@ -16,6 +16,14 @@ class InvalidRequestHeadersError(ValueError):
     """Raised when disallowed HTTP headers are supplied in the request."""
 
 
+class InvalidVersionError(ValueError):
+    """Raised when HTTP header 'version' is incorrectly supplied."""
+
+
+class MissingMandatoryHeadersError(ValueError):
+    """Raised when mandatory HTTP headers are missing from the request."""
+
+
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
 logger = dos_logger.logger
@@ -41,16 +49,32 @@ ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
     if header.strip()
 )
 
+MANDATORY_REQUEST_HEADERS: frozenset[str] = frozenset({"NHSD-Request-Id", "version"})
+
 
 def _validate_headers(headers: dict[str, str] | None) -> None:
-    if not headers:
-        return
+    lowered_headers = {k.lower(): v for k, v in (headers or {}).items()}
+    # Check all mandatory headers are present
+    missing_mandatory_headers = [
+        mandatory_header
+        for mandatory_header in MANDATORY_REQUEST_HEADERS
+        if mandatory_header.lower() not in lowered_headers
+    ]
+
+    if missing_mandatory_headers:
+        raise MissingMandatoryHeadersError(missing_mandatory_headers)
+
+    # Check 'version' header is a valid integer
+    if headers.get("version") != "1":
+        # Add the invalid header and its stringified type to the dictionary
+        raise InvalidVersionError({"version": headers.get("version")})
 
     invalid_headers = [
         header_name
-        for header_name in headers
-        if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
+        for header_name in lowered_headers
+        if header_name not in ALLOWED_REQUEST_HEADERS
     ]
+
     if invalid_headers:
         raise InvalidRequestHeadersError(invalid_headers)
 
@@ -73,7 +97,30 @@ def get_organization() -> Response:
                 invalid_headers
             )
             return create_response(400, fhir_resource)
-
+        except InvalidVersionError as exception:
+            invalid_version_header: dict[str, str] = (
+                exception.args[0] if exception.args else {}
+            )
+            dos_logger.warning(
+                "Invalid type found in supplied headers",
+                invalid_version_header=invalid_version_header,
+            )
+            fhir_resource = error_util.create_invalid_version_operation_outcome(
+                invalid_version_header
+            )
+            return create_response(400, fhir_resource)
+        except MissingMandatoryHeadersError as exception:
+            missing_headers: list[str] = exception.args[0] if exception.args else []
+            dos_logger.warning(
+                "Missing mandatory headers",
+                missing_headers=missing_headers,
+            )
+            fhir_resource = (
+                error_util.create_missing_mandatory_header_operation_outcome(
+                    missing_headers
+                )
+            )
+            return create_response(400, fhir_resource)
         query_params = app.current_event.query_string_parameters or {}
 
         try:

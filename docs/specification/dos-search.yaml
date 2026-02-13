@@ -161,6 +161,24 @@ paths:
             format: '^Bearer\ [[:ascii:]]+$'
             example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
         - in: header
+          name: version
+          required: true
+          description: >
+            The major version increment of this API to query.
+
+            Must be an non-negative integer representing a valid major version increment of this API.
+
+            This is a mandatory header.
+
+            If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending this value as type Integer.
+          schema:
+            type: integer
+            enum: 
+              - 1
+            one: 
+              example: 1
+              summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)
+        - in: header
           name: X-Request-ID
           required: true
           description: >

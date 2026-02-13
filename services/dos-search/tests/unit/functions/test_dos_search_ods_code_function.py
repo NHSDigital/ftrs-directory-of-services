@@ -10,6 +10,7 @@ from functions.constants import (
 )
 from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
+    MANDATORY_REQUEST_HEADERS,
     lambda_handler,
 )
 
@@ -20,12 +21,24 @@ def mock_error_util():
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
         mock_invalid_header = OperationOutcome.model_construct(id="invalid-header")
+        mock_invalid_version_header = OperationOutcome.model_construct(
+            id="invalid-version-header"
+        )
+        mock_missing_mandatory_header = OperationOutcome.model_construct(
+            id="missing-mandatory-header"
+        )
 
         mock.create_validation_error_operation_outcome.return_value = (
             mock_validation_error
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
         mock.create_invalid_header_operation_outcome.return_value = mock_invalid_header
+        mock.create_invalid_version_operation_outcome.return_value = (
+            mock_invalid_version_header
+        )
+        mock.create_missing_mandatory_header_operation_outcome.return_value = (
+            mock_missing_mandatory_header
+        )
 
         yield mock
 
@@ -80,7 +93,6 @@ class TestLambdaHandler:
             "nhsd-correlation-id",
             "NHSD-Request-ID",
             "nhsd-request-id",
-            "version",
             "end-user-role",
             "application-id",
             "application-name",
@@ -105,7 +117,13 @@ class TestLambdaHandler:
     ):
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
 
-        event_with_headers = _build_event_with_headers({header_name: "value"})
+        event_with_headers = _build_event_with_headers(
+            {
+                "nhsd-request-id": "req-id",
+                "version": "1",
+                header_name: "value",
+            }
+        )
 
         response = lambda_handler(event_with_headers, lambda_context)
 
@@ -120,7 +138,12 @@ class TestLambdaHandler:
         mock_error_util,
     ):
         event_with_headers = _build_event_with_headers(
-            {"X-NHSD-UNKNOWN": "abc", "Authorization": "token"}
+            {
+                "Authorization": "token",
+                "nhsd-request-id": "req-id",
+                "version": "1",
+                "X-NHSD-UNKNOWN": "abc",
+            }
         )
 
         response = lambda_handler(event_with_headers, lambda_context)
@@ -136,6 +159,55 @@ class TestLambdaHandler:
             response,
             expected_status_code=400,
             expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
+        )
+
+    def test_lambda_handler_rejects_when_invalid_version_header(
+        self,
+        lambda_context,
+        mock_logger,
+        mock_error_util,
+    ):
+        event_with_headers = _build_event_with_headers(
+            {"nhsd-request-id": "req-id", "version": "DROP TABLES"}
+        )
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        mock_error_util.create_invalid_version_operation_outcome.assert_called_once_with(
+            {"version": "DROP TABLES"}
+        )
+        mock_logger.warning.assert_called_with(
+            "Invalid type found in supplied headers",
+            invalid_version_header={"version": "DROP TABLES"},
+        )
+        assert_response(
+            response,
+            expected_status_code=400,
+            expected_body=mock_error_util.create_invalid_version_operation_outcome.return_value.model_dump_json(),
+        )
+
+    def test_lambda_handler_rejects_when_missing_mandatory_headers(
+        self,
+        lambda_context,
+        mock_logger,
+        mock_error_util,
+    ):
+        header_list = [header for header in MANDATORY_REQUEST_HEADERS]
+        event_with_headers = _build_event_with_headers({})
+
+        response = lambda_handler(event_with_headers, lambda_context)
+
+        mock_error_util.create_missing_mandatory_header_operation_outcome.assert_called_once_with(
+            header_list
+        )
+        mock_logger.warning.assert_called_with(
+            "Missing mandatory headers",
+            missing_headers=header_list,
+        )
+        assert_response(
+            response,
+            expected_status_code=400,
+            expected_body=mock_error_util.create_missing_mandatory_header_operation_outcome.return_value.model_dump_json(),
         )
 
     @pytest.mark.parametrize(

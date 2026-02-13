@@ -43,10 +43,11 @@ def event(ods_code):
             "NHSD-Correlation-ID": "request_id.correlation_id.message_id",
             "NHSD-Request-ID": "request_id",
             # One-time log field headers
-            "version": 1,
+            "version": "1",
             "end-user-role": "Clinician",
             "application-id": "application_id",
             "application-name": "dos_unit_tests",
+            "X-Request-Id": "request_id",
         },
         "path": "/Organization",
         "httpMethod": "GET",
@@ -77,7 +78,7 @@ def log_data():
 def details(event):
     return {
         "dos_environment": "Development",
-        "dos_search_api_version": 1,
+        "dos_search_api_version": "1",
         "lambda_version": "0.0.1",
         "connecting_party_end_user_role": "Clinician",
         "connecting_party_application_id": "application_id",
