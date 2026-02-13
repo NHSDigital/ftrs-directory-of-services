@@ -27,7 +27,7 @@ class FHIRAcceptHeaderMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        if request.method == "GET":
+        if request.method == "GET" and "/_status" not in request.url.path:
             accept = request.headers.get("accept", "")
             if MEDIA_TYPE not in accept.lower():
                 return Response(
