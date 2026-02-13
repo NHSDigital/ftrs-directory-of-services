@@ -235,7 +235,7 @@ You can create additional templates for specific use cases (e.g., minimal monito
 
 ### Key Fields
 
-- `resource_type`: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
+- `resource_type`: Generic type (e.g., `"lambda"`, `"api"`, `"waf"`) - template applies to all resources
 - `metric_name`: CloudWatch metric name
 - `statistic`: Statistical function (Sum, Average, p99, Maximum, etc.)
 - `comparison_operator`: Comparison type (GreaterThanThreshold, LessThanThreshold, etc.)
@@ -284,7 +284,7 @@ alarm_config_path = "${path.module}/templates/lambda/minimal-config.json"
 | ------- | --------- | ------------- | -------------- |
 | Lambda | AWS/Lambda | lambda | FunctionName |
 | API Gateway | AWS/ApiGateway | api | ApiName |
-| WAF | AWS/WAFV2 | waf | WebACL |
+| WAF | AWS/WAFV2 | WAF | WebACL |
 
 ## Best Practices
 

@@ -10,10 +10,7 @@ module "lambda_monitoring" {
 
   alarm_config_path = "config"
 
-  # Optional: filter which resources get alarms
-  resource_type_filter = ["search_lambda", "health_check_lambda"] # Uncomment to only alarm search_lambda
-
-  lambda_functions = {
+  monitored_resources = {
     search_lambda       = module.lambda.lambda_function_name
     health_check_lambda = module.health_check_lambda.lambda_function_name
   }

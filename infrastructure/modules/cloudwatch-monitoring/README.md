@@ -359,7 +359,6 @@ module "monitoring" {
 | sns_display_name | Display name for the SNS topic | string | yes |
 | alarm_config_path | Path to JSON alarm configuration or template name (e.g., 'lambda/standard', 'api-gateway/minimal', 'waf/standard') | string | no (default: 'lambda/standard') |
 | monitored_resources | Map of resource keys to their identifiers (Lambda names, API Gateway names, WAF WebACL names) | map(string) | yes |
-| lambda_functions | (Deprecated: use monitored_resources) Map of lambda function keys to their names | map(string) | no |
 | alarm_thresholds | Alarm thresholds by resource and alarm type | map(map(number)) | yes |
 | alarm_evaluation_periods | Evaluation periods by resource and alarm type | map(map(number)) | yes |
 | alarm_periods | Period in seconds by resource and alarm type | map(map(number)) | yes |
