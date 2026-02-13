@@ -18,6 +18,7 @@ if [[ -z "${TFVARS_FILE}" || ! -f "${TFVARS_FILE}" ]]; then
   echo "read_only_viewer_enabled=true" >> "$GITHUB_OUTPUT"
   echo "open_search_enabled=true" >> "$GITHUB_OUTPUT"
   echo "athena_enabled=true" >> "$GITHUB_OUTPUT"
+  echo "version_history_enabled=true" >> "$GITHUB_OUTPUT"
   exit 0
 fi
 
@@ -29,11 +30,17 @@ OPEN_SEARCH_ENABLED=$(awk -F'= *' '/^opensearch_stack_enabled[[:space:]]*=/ {pri
 OPEN_SEARCH_ENABLED=${OPEN_SEARCH_ENABLED:-true}
 ATHENA_ENABLED=$(awk -F'= *' '/^athena_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
 ATHENA_ENABLED=${ATHENA_ENABLED:-true}
+VERSION_HISTORY_ENABLED=$(awk -F'= *' '/^version_history_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
+VERSION_HISTORY_ENABLED=${VERSION_HISTORY_ENABLED:-true}
 
 echo "ui_enabled=$UI_ENABLED" >> "$GITHUB_OUTPUT"
+echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> "$GITHUB_OUTPUT"
+echo "open_search_enabled=$OPEN_SEARCH_ENABLED" >> "$GITHUB_OUTPUT"
 echo "athena_enabled=$ATHENA_ENABLED" >> "$GITHUB_OUTPUT"
+echo "version_history_enabled=$VERSION_HISTORY_ENABLED" >> "$GITHUB_OUTPUT"
 
 echo "UI Stack Enabled: $UI_ENABLED"
 echo "Read Only Viewer Stack Enabled: $READ_ONLY_VIEWER_ENABLED"
 echo "Open Search Stack Enabled: $OPEN_SEARCH_ENABLED"
 echo "Athena Stack Enabled: $ATHENA_ENABLED"
+echo "Version History Enabled: $VERSION_HISTORY_ENABLED"
