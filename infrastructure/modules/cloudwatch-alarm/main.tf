@@ -2,7 +2,7 @@ module "metric_alarm" {
   # Module version: 5.7.2
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudwatch.git//modules/metric-alarm?ref=a2a5f9d15e30d0d24b667933599e5e1bef24a8b8"
 
-  alarm_name          = var.alarm.name
+  alarm_name          = var.alarm_name
   comparison_operator = var.comparison_operator
   evaluation_periods  = var.evaluation_periods
   actions_enabled     = var.actions_enabled
