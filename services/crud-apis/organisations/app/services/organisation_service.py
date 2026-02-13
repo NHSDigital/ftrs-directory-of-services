@@ -32,6 +32,7 @@ class OrganisationService:
     def check_if_table_active(self) -> bool:
         try:
             table = self.org_repository.table
+            table.load()
             table_status: str = table.table_status
         except Exception as exc:
             self.logger.warning(
