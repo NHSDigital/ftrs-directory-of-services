@@ -174,3 +174,7 @@ data "aws_security_group" "etl_ods_lambda_security_group" {
 
   name = "${local.resource_prefix}-lambda-sg"
 }
+
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
+}

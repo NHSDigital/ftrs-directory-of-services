@@ -21,3 +21,14 @@ resource "aws_vpc_security_group_egress_rule" "etl_ods_allow_443" {
   from_port         = var.https_port
   to_port           = var.https_port
 }
+
+resource "aws_vpc_security_group_egress_rule" "etl_ods_allow_egress_to_vpc_endpoints" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, SQS, KMS, SSM)"
+  security_group_id            = aws_security_group.etl_ods_lambda_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
+}

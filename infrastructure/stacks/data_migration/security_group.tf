@@ -61,16 +61,15 @@ resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_proces
   to_port           = var.https_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_internet" {
+resource "aws_vpc_security_group_egress_rule" "processor_allow_egress_to_vpc_endpoints" {
   count = local.is_primary_environment ? 1 : 0
 
-  description       = "Allow egress to internet"
-  security_group_id = aws_security_group.processor_lambda_security_group[0].id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, SQS, KMS, AppConfig)"
+  security_group_id            = aws_security_group.processor_lambda_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
@@ -83,15 +82,14 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms" {
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_internet" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  description       = "Allow egress to internet on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+resource "aws_vpc_security_group_egress_rule" "rds_allow_egress_to_vpc_endpoints" {
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
+  description                  = "Allow egress to VPC endpoints (Lambda, CloudWatch Logs)"
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_athena_connector" {
@@ -99,26 +97,6 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_athena_co
   security_group_id            = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
   referenced_security_group_id = data.aws_security_group.rds_connector_security_group[0].id
   description                  = "Allow incoming Postgres from Athena RDS Connector Lambda"
-  from_port                    = var.rds_port
-  ip_protocol                  = "tcp"
-  to_port                      = var.rds_port
-}
-
-resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_rds" {
-  count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group.id
-  referenced_security_group_id = try(aws_security_group.rds_security_group[0].id, data.aws_security_group.rds_security_group[0].id)
-  description                  = "Allow ingress on port ${var.rds_port} from RDS security group"
-  from_port                    = var.rds_port
-  ip_protocol                  = "tcp"
-  to_port                      = var.rds_port
-}
-
-resource "aws_vpc_security_group_ingress_rule" "dms_replication_allow_ingress_from_vpce" {
-  count                        = local.is_primary_environment ? 1 : 0
-  security_group_id            = data.aws_security_group.dms_replication_security_group.id
-  referenced_security_group_id = data.aws_security_group.vpce_rds_security_group.id
-  description                  = "Allow ingress on port ${var.rds_port} from Live DoS VPC Endpoint"
   from_port                    = var.rds_port
   ip_protocol                  = "tcp"
   to_port                      = var.rds_port
@@ -134,34 +112,34 @@ resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_to_r
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict HTTPS egress to VPC endpoints only (Secrets Manager, CloudWatch, etc.)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_https" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress to internet on HTTPS port"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+  count                        = local.is_primary_environment ? 1 : 0
+  security_group_id            = data.aws_security_group.dms_replication_security_group.id
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, CloudWatch, etc.)"
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict DNS (TCP) egress to VPC DNS resolver only (VPC CIDR + 2)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress for DNS resolution"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Allow DNS egress (tcp/53) to VPC resolver only"
+  cidr_ipv4         = format("%s/32", cidrhost(data.aws_vpc.vpc.cidr_block, 2))
   from_port         = var.dns_port
   ip_protocol       = "tcp"
   to_port           = var.dns_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+# Restrict DNS (UDP) egress to VPC DNS resolver only (VPC CIDR + 2)
 resource "aws_vpc_security_group_egress_rule" "dms_replication_allow_egress_dns_udp" {
   count             = local.is_primary_environment ? 1 : 0
   security_group_id = data.aws_security_group.dms_replication_security_group.id
-  description       = "Allow egress for DNS resolution (UDP)"
-  cidr_ipv4         = "0.0.0.0/0"
+  description       = "Allow DNS egress (udp/53) to VPC resolver only"
+  cidr_ipv4         = format("%s/32", cidrhost(data.aws_vpc.vpc.cidr_block, 2))
   from_port         = var.dns_port
   ip_protocol       = "udp"
   to_port           = var.dns_port
@@ -186,7 +164,6 @@ resource "aws_security_group" "rds_event_listener_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
@@ -197,15 +174,15 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_to_lambda" {
   to_port                      = var.https_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_internet" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = aws_security_group.rds_event_listener_lambda_security_group[0].id
-  description       = "Allow egress to internet on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+resource "aws_vpc_security_group_egress_rule" "rds_event_listener_allow_egress_to_vpc_endpoints" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow egress to VPC endpoints (SQS, SSM, KMS)"
+  security_group_id            = aws_security_group.rds_event_listener_lambda_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
 resource "aws_security_group" "dms_db_setup_lambda_security_group" {
@@ -215,16 +192,6 @@ resource "aws_security_group" "dms_db_setup_lambda_security_group" {
   description = "Security group for DMS DB Setup lambda"
 
   vpc_id = data.aws_vpc.vpc.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "dms_db_setup_allow_ingress_to_lambda" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
-  description       = "Allow ingress on from anywhere on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
 }
 
 resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_setup" {
@@ -237,7 +204,6 @@ resource "aws_vpc_security_group_ingress_rule" "rds_allow_ingress_from_dms_db_se
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
 resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds" {
   count                        = local.is_primary_environment ? 1 : 0
   security_group_id            = aws_security_group.dms_db_setup_lambda_security_group[0].id
@@ -248,15 +214,15 @@ resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_rds"
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_internet" {
-  count             = local.is_primary_environment ? 1 : 0
-  security_group_id = aws_security_group.dms_db_setup_lambda_security_group[0].id
-  description       = "Allow egress to database on port ${var.https_port}"
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
-  ip_protocol       = "tcp"
-  to_port           = var.https_port
+resource "aws_vpc_security_group_egress_rule" "dms_db_setup_allow_egress_to_vpc_endpoints" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, RDS API)"
+  security_group_id            = aws_security_group.dms_db_setup_lambda_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
 
 # Consolidated security group for lambdas that access RDS (queue_populator, reference_data)
@@ -293,15 +259,14 @@ resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_rds"
   to_port                      = var.rds_port
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
-resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_internet" {
+resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_dynamodb" {
   count = local.is_primary_environment ? 1 : 0
 
-  description       = "Allow egress to internet"
+  description       = "Allow egress to DynamoDB (for reference data lambda)"
   security_group_id = aws_security_group.rds_accessor_lambda_security_group[0].id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = var.https_port
+  prefix_list_id    = data.aws_prefix_list.dynamodb.id
   ip_protocol       = "tcp"
+  from_port         = var.https_port
   to_port           = var.https_port
 }
 
@@ -313,4 +278,15 @@ resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress
   ip_protocol                  = "tcp"
   from_port                    = var.rds_port
   to_port                      = var.rds_port
+}
+
+resource "aws_vpc_security_group_egress_rule" "rds_accessor_allow_egress_to_vpc_endpoints" {
+  count = local.is_primary_environment ? 1 : 0
+
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, SQS, KMS, AppConfig)"
+  security_group_id            = aws_security_group.rds_accessor_lambda_security_group[0].id
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  from_port                    = var.https_port
+  ip_protocol                  = "tcp"
+  to_port                      = var.https_port
 }
