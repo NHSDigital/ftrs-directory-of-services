@@ -98,13 +98,11 @@ variable "regional_waf_name" {
 variable "lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the main search Lambda"
   type        = number
-  default     = 7
 }
 
 variable "health_check_lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the health check Lambda"
   type        = number
-  default     = 7
 }
 
 variable "api_gateway_throttling_rate_limit" {
@@ -136,4 +134,175 @@ variable "gateway_responses" {
   }))
   # Use null default so we can compute from locals (file() not allowed in var defaults)
   default = null
+}
+
+################################################################################
+# Lambda CloudWatch Alarms Configuration
+################################################################################
+
+############################
+# Global / Shared
+############################
+variable "lambda_alarm_evaluation_periods" {
+  description = "Default number of periods over which to evaluate alarms (unless overridden per metric/severity)"
+  type        = number
+  default     = 2
+}
+
+variable "lambda_alarm_period_seconds" {
+  description = "Default CloudWatch period in seconds for alarm metric evaluation (Lambda metrics are 60s by default)"
+  type        = number
+  default     = 60
+}
+
+variable "invocations_spike_period_seconds" {
+  description = "CloudWatch period in seconds for invocations spike alarm (hourly evaluation)"
+  type        = number
+  default     = 3600
+}
+
+############################
+# SEARCH LAMBDA
+# Duration (Execution Time)
+# CRITICAL: p99 > 800 ms (active)
+# WARNING: p95 placeholder (disabled until baseline established)
+############################
+variable "search_lambda_duration_p95_warning_ms" {
+  description = "Search Lambda duration p95 warning threshold in milliseconds (placeholder - disabled)"
+  type        = number
+  default     = 600
+}
+
+variable "search_lambda_duration_p99_critical_ms" {
+  description = "Search Lambda duration p99 critical threshold in milliseconds"
+  type        = number
+  default     = 800
+}
+
+############################
+# SEARCH LAMBDA
+# Concurrency (In-Flight Load)
+# CRITICAL: >= 100 (active)
+# WARNING: placeholder (disabled until baseline established)
+############################
+variable "search_lambda_concurrent_executions_warning" {
+  description = "Search Lambda concurrency warning threshold (placeholder - disabled)"
+  type        = number
+  default     = 80
+}
+
+variable "search_lambda_concurrent_executions_critical" {
+  description = "Search Lambda concurrency critical threshold (ConcurrentExecutions)"
+  type        = number
+  default     = 100
+}
+
+############################
+# SEARCH LAMBDA
+# Throttles (Capacity Rejections)
+# CRITICAL: > 0 for 1 minute (active)
+############################
+# Critical (strict) — use period=60s, evaluation_periods=1
+variable "lambda_throttles_critical_period_seconds" {
+  description = "CloudWatch period in seconds for throttles CRITICAL alarm"
+  type        = number
+  default     = 60
+}
+
+variable "lambda_throttles_critical_evaluation_periods" {
+  description = "Evaluation periods for throttles CRITICAL alarm"
+  type        = number
+  default     = 1
+}
+
+variable "search_lambda_throttles_critical_threshold" {
+  description = "Search Lambda throttles CRITICAL threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+############################
+# SEARCH LAMBDA
+# Invocations (Workload Volume)
+# CRITICAL: spike > 2x baseline (active)
+############################
+variable "search_lambda_invocations_baseline_per_hour" {
+  description = "Baseline invocations per hour for Search Lambda"
+  type        = number
+  default     = 300
+}
+
+variable "invocations_critical_spike_multiplier" {
+  description = "Multiplier over baseline to trigger CRITICAL spike alarm (e.g., 2 => >2x baseline)"
+  type        = number
+  default     = 2
+}
+
+############################
+# SEARCH LAMBDA
+# Errors
+# CRITICAL: > 1 (active)
+# WARNING: placeholder (disabled until baseline established)
+############################
+variable "search_lambda_errors_warning_threshold" {
+  description = "Search Lambda errors WARNING threshold (placeholder - disabled)"
+  type        = number
+  default     = 5
+}
+
+variable "search_lambda_errors_critical_threshold" {
+  description = "Search Lambda errors CRITICAL threshold (sum over period)"
+  type        = number
+  default     = 1
+}
+
+############################
+# HEALTH CHECK LAMBDA (/_status)
+# Only one metric needed per OBS-003:
+# Errors for health_check_function
+# Critical: > 0 for 1 minute
+# Warning: N/A (no warning)
+############################
+variable "health_check_errors_warning_threshold" {
+  description = "Health Check Lambda errors WARNING threshold (placeholder - disabled)"
+  type        = number
+  default     = 0
+}
+
+variable "health_check_errors_critical_threshold" {
+  description = "Health Check Lambda errors CRITICAL threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+variable "health_check_errors_critical_period_seconds" {
+  description = "CloudWatch period in seconds for Health Check errors CRITICAL alarm"
+  type        = number
+  default     = 60
+}
+
+variable "health_check_errors_critical_evaluation_periods" {
+  description = "Evaluation periods for Health Check errors CRITICAL alarm"
+  type        = number
+  default     = 1
+}
+
+################################################################################
+# Alarm Actions Control
+################################################################################
+
+variable "enable_warning_alarms" {
+  description = "Enable actions for WARNING severity alarms (set to false to create placeholders)"
+  type        = bool
+  default     = false
+}
+
+################################################################################
+# Slack Notification Configuration
+################################################################################
+
+variable "enable_slack_notifications" {
+  description = "Enable Slack notifications for CloudWatch alarms (requires slack_notifier stack to be deployed)"
+  type        = bool
+  default     = false
 }

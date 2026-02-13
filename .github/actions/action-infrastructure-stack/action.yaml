@@ -24,6 +24,9 @@ inputs:
   release_tag:
     description: "The release tag identifying the timeline in the repository to deploy from"
     required: false
+  slack_webhook_alarms_url:
+    description: "Slack webhook URL for alarm notifications"
+    required: false
   splunk_collector_url:
     description: "The url for splunk"
     required: true
@@ -62,6 +65,7 @@ runs:
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
       run: |
+        export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
         export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
         export ACTION=${{ inputs.action }}
         export STACK=${{ inputs.stack }}

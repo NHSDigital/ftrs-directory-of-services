@@ -1,0 +1,64 @@
+{
+  "api": [
+    {
+      "metric_name": "4XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "4xx-errors-warning",
+      "description": "API Gateway 4XX errors warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "5XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-warning",
+      "description": "API Gateway 5XX errors warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "5XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-critical",
+      "description": "API Gateway 5XX errors critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "Latency",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "latency-p99-warning",
+      "description": "API Gateway latency p99 warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "Latency",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "latency-p99-critical",
+      "description": "API Gateway latency p99 critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "Count",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "request-spike-critical",
+      "description": "API Gateway request spike critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    }
+  ]
+}
