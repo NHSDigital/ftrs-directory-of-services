@@ -16,7 +16,7 @@ class DBModel(BaseModel):
     """
 
     id: UUID = Field(default_factory=uuid4)
-    createdTime: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created: datetime = Field(default_factory=lambda: datetime.now(UTC))
     lastUpdated: datetime = Field(default_factory=lambda: datetime.now(UTC))
     createdBy: AuditEvent = audit_default_value
     lastUpdatedBy: AuditEvent = audit_default_value

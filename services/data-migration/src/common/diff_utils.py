@@ -39,11 +39,11 @@ DYNAMODB_RESERVED_WORDS = frozenset(
     }
 )
 EXCLUDE_PATHS = [
-    "root['createdTime']",
+    "root['created']",
     "root['lastUpdated']",
 ]
 EXCLUDE_REGEX_PATHS = [
-    r"root\['endpoints'\]\[\d+\]\['createdTime'\]",
+    r"root\['endpoints'\]\[\d+\]\['created'\]",
     r"root\['endpoints'\]\[\d+\]\['lastUpdated'\]",
     r"root\['endpoints'\]\[\d+\]\['createdBy'\]",
     r"root\['endpoints'\]\[\d+\]\['lastUpdatedBy'\]",

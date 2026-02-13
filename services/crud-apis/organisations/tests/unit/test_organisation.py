@@ -66,7 +66,7 @@ def get_organisation() -> dict:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -89,7 +89,7 @@ def get_organisation() -> dict:
                     "value": "INGRESS_API_ID",
                     "display": "FtRS Ingress API",
                 },
-                "createdTime": "2023-10-01T00:00:00Z",
+                "created": "2023-10-01T00:00:00Z",
                 "lastUpdatedBy": {
                     "type": "user",
                     "value": "INGRESS_API_ID",

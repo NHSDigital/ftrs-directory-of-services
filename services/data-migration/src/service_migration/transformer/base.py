@@ -124,7 +124,7 @@ class ServiceTransformer(ABC):
             telecom=[],
             type=service_type.name,
             createdBy=self.MIGRATION_USER,
-            createdTime=self.start_time,
+            created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
             lastUpdated=self.start_time,
             endpoints=[
@@ -166,7 +166,7 @@ class ServiceTransformer(ABC):
             order=endpoint.endpointorder,
             isCompressionEnabled=endpoint.iscompressionenabled == "compressed",
             createdBy=self.MIGRATION_USER,
-            createdTime=self.start_time,
+            created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
             lastUpdated=self.start_time,
             comment=endpoint.comment,
@@ -207,7 +207,7 @@ class ServiceTransformer(ABC):
             #   but since this has the main ODSCode happy with this being set as True
             primaryAddress=True,
             createdBy=self.MIGRATION_USER,
-            createdTime=self.start_time,
+            created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
             lastUpdated=self.start_time,
         )
@@ -240,7 +240,7 @@ class ServiceTransformer(ABC):
                 web=service.web,
             ),
             createdBy=self.MIGRATION_USER,
-            createdTime=self.start_time,
+            created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
             lastUpdated=self.start_time,
             openingTime=self.build_opening_times(service),

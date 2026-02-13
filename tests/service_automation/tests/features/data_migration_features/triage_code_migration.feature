@@ -21,7 +21,7 @@ Feature: SYSTEM
       {
           "codeType": "Symptom Discriminator (SD)",
           "synonyms": [],
-          "createdTime": "2025-11-24T20:48:08.669768Z",
+          "created": "2025-11-24T20:48:08.669768Z",
           "source": "pathways",
           "codeValue": "PC extended ophthalmic assessment and management capability, minor condition (MECS)",
           "codeID": 4311,
@@ -49,7 +49,7 @@ Feature: SYSTEM
               "Primary Care",
               "GP In Hours"
           ],
-          "createdTime": "2025-11-26T07:50:50.602490Z",
+          "created": "2025-11-26T07:50:50.602490Z",
           "source": "servicefinder",
           "codeValue": "GP Practice",
           "codeID": 14023,
@@ -69,7 +69,7 @@ Feature: SYSTEM
       {
           "codeType": "Disposition (Dx)",
           "synonyms": [],
-          "createdTime": "2025-11-27T08:26:02.927515Z",
+          "created": "2025-11-27T08:26:02.927515Z",
           "source": "pathways",
           "codeValue": "To contact a Primary Care Service within 24 hours",
           "codeID": "DX08",
@@ -89,7 +89,7 @@ Feature: SYSTEM
       {
           "codeType": "Symptom Group (SG)",
           "synonyms": [],
-          "createdTime": "2025-11-26T07:50:29.278874Z",
+          "created": "2025-11-26T07:50:29.278874Z",
           "source": "servicefinder",
           "codeValue": "z2.0 - Service Types",
           "codeID": 360,
@@ -109,7 +109,7 @@ Feature: SYSTEM
       {
           "codeType": "Symptom Discriminator (SD)",
           "synonyms": [],
-          "createdTime": "2025-11-26T07:50:48.851428Z",
+          "created": "2025-11-26T07:50:48.851428Z",
           "source": "servicefinder",
           "codeValue": "Cancer Support Service",
           "codeID": 11843,
@@ -130,7 +130,7 @@ Feature: SYSTEM
       {
           "codeType": "Symptom Group (SG)",
           "synonyms": [],
-          "createdTime": "2025-11-24T20:47:52.801548Z",
+          "created": "2025-11-24T20:47:52.801548Z",
           "source": "pathways",
           "codeValue": "Self Triage, Mental Health",
           "codeID": 1240,
@@ -150,7 +150,7 @@ Feature: SYSTEM
       {
         "codeType": "Symptom Group and Symptom Discriminator Pair (SG-SD)",
         "synonyms": [],
-        "createdTime": "2025-11-24T20:48:36.304817Z",
+        "created": "2025-11-24T20:48:36.304817Z",
         "source": "pathways",
         "codeValue": null,
         "codeID": null,

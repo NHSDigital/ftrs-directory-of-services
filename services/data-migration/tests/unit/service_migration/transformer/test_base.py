@@ -98,7 +98,7 @@ def test_service_transformer_build_organisation(
         type="GP Practice",
         active=True,
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -115,7 +115,7 @@ def test_service_transformer_build_organisation(
                     "value": "INTERNAL001",
                     "display": "Data Migration",
                 },
-                createdTime="2025-07-17T12:00:00Z",
+                created="2025-07-17T12:00:00Z",
                 lastUpdatedBy={
                     "type": "app",
                     "value": "INTERNAL001",
@@ -143,7 +143,7 @@ def test_service_transformer_build_organisation(
                     "value": "INTERNAL001",
                     "display": "Data Migration",
                 },
-                createdTime="2025-07-17T12:00:00Z",
+                created="2025-07-17T12:00:00Z",
                 lastUpdatedBy={
                     "type": "app",
                     "value": "INTERNAL001",
@@ -200,7 +200,7 @@ def test_build_endpoint(
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -251,7 +251,7 @@ def test_build_endpoint_no_comment(
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -305,7 +305,7 @@ def test_build_endpoint_telno(
     assert result == Endpoint(
         id="4f1a685e-15da-5324-b596-6090fc90dc49",
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -363,7 +363,7 @@ def test_build_location(
         ),
         primaryAddress=True,
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -411,7 +411,7 @@ def test_build_location_no_position(
         positionGCS=None,
         primaryAddress=True,
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-17T12:00:00Z",
+        created="2025-07-17T12:00:00Z",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",
@@ -443,7 +443,7 @@ def test_build_healthcare_service(
     assert result == HealthcareService(
         id="903cd48b-5d0f-532f-94f4-937a4517b14d",
         createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        createdTime="2025-07-25T12:00:00+00:00",
+        created="2025-07-25T12:00:00+00:00",
         lastUpdatedBy={
             "type": "app",
             "value": "INTERNAL001",

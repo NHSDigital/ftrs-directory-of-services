@@ -1,6 +1,6 @@
 """
 Step definitions for audit event tracking in data migration.
-Tests for createdBy, lastUpdatedBy, createdTime, and lastUpdated fields.
+Tests for createdBy, lastUpdatedBy, created, and lastUpdated fields.
 """
 
 from datetime import datetime
@@ -130,7 +130,7 @@ def store_audit_timestamps(
         endpoints = get_endpoint_records(dynamodb, service_id)
         stored_audit_values[f"{entity_type}_{service_id}"] = [
             {
-                "createdTime": endpoint.get("createdTime"),
+                "created": endpoint.get("created"),
                 "createdBy": endpoint.get("createdBy"),
                 "lastUpdated": endpoint.get("lastUpdated"),
                 "lastUpdatedBy": endpoint.get("lastUpdatedBy"),
@@ -140,7 +140,7 @@ def store_audit_timestamps(
     else:
         record = get_entity_record(dynamodb, entity_type_normalized, service_id)
         stored_audit_values[f"{entity_type}_{service_id}"] = {
-            "createdTime": record.get("createdTime"),
+            "created": record.get("created"),
             "createdBy": record.get("createdBy"),
             "lastUpdated": record.get("lastUpdated"),
             "lastUpdatedBy": record.get("lastUpdatedBy"),

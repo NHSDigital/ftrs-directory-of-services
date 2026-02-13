@@ -65,7 +65,7 @@ Feature: Data Migration - GP Practice with Feature Flag Disabled
         "field": "document",
         "active": true,
         "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "createdTime": "2025-10-07T08:38:57.679754Z",
+        "created": "2025-10-07T08:38:57.679754Z",
         "endpoints": [],
         "identifier_ODS_ODSCode": "M81094",
         "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
