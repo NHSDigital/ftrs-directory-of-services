@@ -77,7 +77,7 @@ def dns_resolvable(api_name, env, workspace):
 )
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     # headers can be manipulated in individual tests if needed
-    headers = MANDATORY_REQUEST_HEADERS.copy()
+    headers = {**MANDATORY_REQUEST_HEADERS}
     url = get_url(api_name) + "/" + resource_name
 
     return _send_api_request(api_request_context_mtls, url, params, headers)
@@ -92,7 +92,7 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
 def send_to_apim_get_with_params(
     apim_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
-    headers = MANDATORY_REQUEST_HEADERS.copy()
+    headers = {**MANDATORY_REQUEST_HEADERS}
     url = nhsd_apim_proxy_url + "/" + resource_name
 
     return _send_api_request(apim_request_context, url, params, headers)
@@ -107,7 +107,7 @@ def send_to_apim_get_with_params(
 def send_to_apim_no_auth(
     api_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
-    headers = MANDATORY_REQUEST_HEADERS.copy()
+    headers = {**MANDATORY_REQUEST_HEADERS}
     url = nhsd_apim_proxy_url + "/" + resource_name
     return _send_api_request(api_request_context, url, params, headers)
 
