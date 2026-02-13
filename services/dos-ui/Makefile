@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-ui
+DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),-$(WORKSPACE))
 
 # Deployment bucket configuration
 DEPLOYMENT_BUCKET ?= ftrs-dos-$(ENVIRONMENT)-ui-frontend-bucket$(DEPLOYMENT_WORKSPACE)
