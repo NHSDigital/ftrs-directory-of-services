@@ -139,6 +139,20 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     return service_mock
 
 
+def test_status_table_active(mock_organisation_service: MockerFixture) -> None:
+    mock_organisation_service.check_if_table_active.return_value = True
+
+    response = client.get("/_status")
+    assert response.status_code == HTTPStatus.OK
+
+
+def test_status_table_inactive(mock_organisation_service: MockerFixture) -> None:
+    mock_organisation_service.check_if_table_active.return_value = False
+
+    response = client.get("/_status")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+
+
 def test_get_organisation_by_id_success() -> None:
     response = client.get(f"/Organization/{test_org_id}")
     assert response.status_code == HTTPStatus.OK

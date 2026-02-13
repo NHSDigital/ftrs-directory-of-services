@@ -92,6 +92,22 @@ async def test_accept_header_middleware_accepts_valid() -> None:
     assert response.body == b"OK"
 
 
+# Accept header middleware direct tests
+@pytest.mark.asyncio
+async def test_accept_header_middleware_status_endpoint_valid() -> None:
+    middleware = FHIRAcceptHeaderMiddleware(DummyCallNext())
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "headers": [],
+        "path": "/_status",
+    }
+    request = Request(scope, receive=lambda: None)
+    response = await middleware.dispatch(request, DummyCallNext())
+    assert response.status_code == HTTPStatus.OK
+    assert response.body == b"OK"
+
+
 @pytest.mark.asyncio
 async def test_accept_header_middleware_rejects_invalid() -> None:
     middleware = FHIRAcceptHeaderMiddleware(DummyCallNext())
