@@ -128,6 +128,18 @@ variable "rds_port" {
   type        = string
 }
 
+variable "udp_port" {
+  description = "The port for UDP traffic on port 53 (DNS)"
+  type        = number
+  default     = 53
+}
+
+variable "udp_ntp_port" {
+  description = "The port for UDP traffic on port 123 (NTP)"
+  type        = number
+  default     = 123
+}
+
 variable "release_tag" {
   description = "Semantic version tag (vMAJOR.MINOR.PATCH) for release builds"
   type        = string

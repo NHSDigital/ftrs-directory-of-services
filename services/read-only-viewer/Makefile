@@ -7,6 +7,7 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= read-only-viewer
+DEPLOYMENT_WORKSPACE := $(if $(WORKSPACE),-$(WORKSPACE))
 
 # Deployment bucket configuration
 DEPLOYMENT_BUCKET ?= ftrs-dos-$(ENVIRONMENT)-$(SERVICE)-frontend-bucket$(DEPLOYMENT_WORKSPACE)
