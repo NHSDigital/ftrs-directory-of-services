@@ -1,18 +1,21 @@
 from fhir.resources.R4B.operationoutcome import OperationOutcome, OperationOutcomeIssue
 from pydantic import ValidationError
 
-OPERATION_OUTCOME_SYSTEM = "http://terminology.hl7.org/CodeSystem/operation-outcome"
-ERROR_PROCESSING_REQUEST = "Error processing request"
+OPERATION_OUTCOME_SYSTEM = "https://fhir.nhs.uk/CodeSystem/http-error-codes"
+ERROR_PROCESSING_REQUEST = "The Server has encountered an error processing the request."
 
 FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
-    "invalid": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
-    "not-found": ("MSG_NO_EXIST", "Resource does not exist"),
-    "exception": ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST),
-    "structure": ("MSG_BAD_SYNTAX", "Bad Syntax"),
+    "invalid": (
+        "UNPROCESSABLE_ENTITY",
+        "Message was not malformed but deemed unprocessable by the server.",
+    ),
+    "not-found": ("NOT_FOUND", "The Server was unable to find the specified resource."),
+    "exception": ("SERVER_ERROR", ERROR_PROCESSING_REQUEST),
+    "structure": ("BAD_REQUEST", "The Server was unable to process the request."),
     "required": ("MSG_RESOURCE_REQUIRED", "A resource is required"),
     "value": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
     "processing": ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST),
-    "duplicate": ("MSG_DUPLICATE_ID", "Duplicate Id for resource"),
+    "duplicate": ("CONFLICT", "The Server identified a conflict."),
     "informational": ("MSG_UPDATED", "Existing resource updated"),
     "success": ("MSG_UPDATED", "Existing resource updated"),
 }
@@ -36,7 +39,7 @@ class OperationOutcomeHandler:
     @staticmethod
     def _build_details(code: str, text: str) -> dict:
         fhir_code, display = FHIR_OPERATION_OUTCOME_CODES.get(
-            code, ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST)
+            code, ("SERVER_ERROR", ERROR_PROCESSING_REQUEST)
         )
         return {
             "coding": [

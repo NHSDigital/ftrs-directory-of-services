@@ -46,7 +46,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
     modified_by = AuditEvent(
         type=AuditEventType.user, value="test_user", display="Test User"
     )
-    test_to_fhir_maps_fields_correctly
+    # test_to_fhir_maps_fields_correctly
     org = Organisation(
         id="123e4567-e89b-12d3-a456-42661417400a",
         identifier_ODS_ODSCode="ODS1",
@@ -2406,7 +2406,7 @@ def test__build_organisation_role_extension_with_role_code_only() -> None:
 
     assert isinstance(result, Extension)
     assert result.url == ORGANISATION_ROLE_URL
-    assert len(result.extension) == 1
+    assert str(len(result.extension)) == "2"
 
     role_code_ext = result.extension[0]
     assert role_code_ext.url == "roleCode"
@@ -2429,7 +2429,7 @@ def test__build_organisation_role_extension_with_legal_dates() -> None:
 
     assert isinstance(result, Extension)
     assert result.url == ORGANISATION_ROLE_URL
-    assert str(len(result.extension)) == "2"
+    assert str(len(result.extension)) == "3"
 
     result_dict = result.model_dump()
     role_code_ext = next(e for e in result_dict["extension"] if e["url"] == "roleCode")
@@ -2447,7 +2447,7 @@ def test__build_organisation_role_extension_with_start_date_only() -> None:
     result = mapper._build_organisation_role_extension("RO182", "2020-01-01", None)
 
     assert isinstance(result, Extension)
-    assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
+    assert str(len(result.extension)) == "3"  # roleCode + TypedPeriod
 
 
 def test__build_organisation_role_extension_with_end_date_only() -> None:
@@ -2456,7 +2456,7 @@ def test__build_organisation_role_extension_with_end_date_only() -> None:
     result = mapper._build_organisation_role_extension("RO182", None, "2025-12-31")
 
     assert isinstance(result, Extension)
-    assert str(len(result.extension)) == "2"  # roleCode + TypedPeriod
+    assert str(len(result.extension)) == "3"  # roleCode + TypedPeriod + active
 
 
 # _build_organisation_extensions tests
@@ -2529,12 +2529,12 @@ def test__build_organisation_extensions_with_legal_dates() -> None:
 
     assert str(len(result)) == "2"
 
-    # Primary role should have TypedPeriod (2 sub-extensions: roleCode + TypedPeriod)
+    # Primary role should have TypedPeriod (3 sub-extensions: roleCode + TypedPeriod + active)
     primary_ext = result[0]
-    assert str(len(primary_ext.extension)) == "2"
-    # Non-primary role should not have TypedPeriod (1 sub-extension: roleCode only)
+    assert str(len(primary_ext.extension)) == "3"
+    # Non-primary role should not have TypedPeriod (2 sub-extensions: roleCode + active)
     non_primary_ext = result[1]
-    assert str(len(non_primary_ext.extension)) == "1"
+    assert str(len(non_primary_ext.extension)) == "2"
 
 
 def test__build_organisation_extensions_with_no_roles() -> None:

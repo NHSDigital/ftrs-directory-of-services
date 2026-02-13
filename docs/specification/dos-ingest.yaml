@@ -140,13 +140,13 @@ paths:
         Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
         ## Request requirements
-        - if the `identifier` query parameter is provided, it must be in the format `odsOrganisationCode|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
+        - if the `identifier` query parameter is provided, it must be in the format `https://fhir.nhs.uk/Id/ods-organization-code|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
         - if the `identifier` parameter is omitted, all organizations will be returned.
 
         The search is performed using the FHIR-compliant identifier parameter:
-        - identifier=odsOrganisationCode|{CODE}
+        - identifier={system}|{CODE}
 
-        Example: /Organization?identifier=odsOrganisationCode|ABC123
+        Example: /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
         Example (all): /Organization
 
       operationId: searchOrganizations
@@ -183,13 +183,13 @@ paths:
       - in: query
         name: identifier
         description: >
-          ODS code in the format "odsOrganisationCode|{CODE}" (FHIR identifier search).
+          ODS code in the format "{system}|{CODE}" (FHIR identifier search).
           If omitted, all organizations will be returned.
           required: false
         schema:
             type: string
-            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{1,12}$'
-            example: "odsOrganisationCode|ABC123"
+            pattern: '^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)\|[A-Za-z0-9]{1,12}$'
+            example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
       - $ref: '#/components/parameters/AcceptFHIR'
       responses:
         '200':
@@ -217,7 +217,7 @@ paths:
                 type: "searchset"
                 link:
                   - relation: "self"
-                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
                 entry:
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
@@ -270,58 +270,6 @@ paths:
                           country: "ENGLAND"
                     search:
                       mode: "match"
-                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
-                    resource:
-                      resourceType: "Endpoint"
-                      id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
-                      extension:
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
-                          valueInteger: 1
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
-                          valueBoolean: false
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
-                          valueCode: "primary-recipient"
-                      status: "active"
-                      connectionType:
-                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
-                        code: "email"
-                      managingOrganization:
-                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
-                      payloadType:
-                        - coding:
-                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType:
-                        - "application/pdf"
-                      address: "dummy-endpoint-email@nhs.net"
-                    search:
-                      mode: "include"
-                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7"
-                    resource:
-                      resourceType: "Endpoint"
-                      id: "5df57f63-7f48-5754-b056-ba362834c1e7"
-                      extension:
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
-                          valueInteger: 2
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
-                          valueBoolean: false
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
-                          valueCode: "copy-recipient"
-                      status: "active"
-                      connectionType:
-                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
-                        code: "email"
-                      managingOrganization:
-                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
-                      payloadType:
-                        - coding:
-                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-                              code: "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
-                      payloadMimeType:
-                        - "application/pdf"
-                      address: "dummy-endpoint-email@nhs.net"
-                    search:
-                      mode: "include"
         '400':
           description: Bad request (e.g., invalid format of parameters)
           headers:
@@ -352,10 +300,10 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
+                              code: SEND_BAD_REQUEST
                               display: Parameter content is invalid
                           text: Identifier format is invalid
-                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+                        diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
                 invalid-identifier-system:
                   summary: Invalid identifier system
                   value:
@@ -366,10 +314,10 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
+                              code: SEND_BAD_REQUEST
                               display: Parameter content is invalid
                           text: Identifier system is invalid
-                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'odsOrganisationCode'"
+                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
                 invalid-identifier-format:
                   summary: Invalid ODS code format
                   value:
@@ -380,7 +328,7 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
+                              code: SEND_BAD_REQUEST
                               display: Parameter content is invalid
                           text: ODS code format is invalid
                         diagnostics: "Invalid identifier value: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$"
@@ -394,7 +342,7 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_UNKNOWN
+                              code: SEND_BAD_REQUEST
                               display: Parameter not understood
                           text: Unexpected query parameters provided
                         diagnostics: "Unexpected query parameter(s): foo, bar. Only 'identifier' is allowed."
@@ -425,8 +373,8 @@ paths:
                     details:
                       coding:
                         - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                          code: MSG_NO_EXIST
-                          display: Resource does not exist
+                          code: NOT_FOUND
+                          display: The Server was unable to find the specified resource.
                       text: The requested organisation was not found
                     diagnostics: "Organisation with ODS code 'DEF456' not found"
         '422':
@@ -456,8 +404,8 @@ paths:
                     details:
                       coding:
                         - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                          code: MSG_PARAM_INVALID
-                          display: Parameter content is invalid
+                          code: UNPROCESSABLE_ENTITY
+                          display: Message was not malformed but deemed unprocessable by the server.
                       text: Validation failed for resource
                     diagnostics: "Validation failed for resource."
         '500':
@@ -487,8 +435,8 @@ paths:
                     details:
                       coding:
                         - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                          code: MSG_ERROR_PARSING
-                          display: Error processing request
+                          code: SERVER_ERROR
+                          display: The Server has encountered an error processing the request.
                       text: An unexpected error occurred
                     diagnostics: "Unhandled exception occurred"
   '/Organization/{id}':
@@ -716,8 +664,8 @@ paths:
                     details:
                       coding:
                         - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                          code: MSG_NO_EXIST
-                          display: Resource does not exist
+                          code: NOT_FOUND
+                          display: The Server was unable to find the specified resource.
                       text: The requested organisation was not found
                     diagnostics: Organisation not found.
         '422':
@@ -750,8 +698,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Required field is missing
                         diagnostics: "Field 'name' is required"
                 invalid-organisation-role-extension-url:
@@ -764,8 +712,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Extension URL is invalid
                         diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole-INVALID"
                 missing-organisation-role-extension-url:
@@ -778,8 +726,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Extension URL is missing
                         diagnostics: "Invalid extension URL: None"
                 invalid-typed-period-extension-url:
@@ -792,8 +740,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is invalid
                         diagnostics: "Invalid extension URL: https://fhir.nhs.uk/England/StructureDefinition/Extension-England-InvalidTypedPeriod"
                 invalid-typed-period-missing-subextension:
@@ -806,8 +754,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension is incomplete
                         diagnostics: "TypedPeriod extension must contain both 'dateType' and 'period' sub-extensions"
                 invalid-typed-period-non-legal:
@@ -820,8 +768,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: dateType must be Legal
                         diagnostics: "dateType must be 'Legal' from system 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
                 invalid-typed-period-system:
@@ -834,8 +782,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: dateType system is invalid
                         diagnostics: "dateType system must be 'https://fhir.nhs.uk/England/CodeSystem/England-PeriodType'"
                 invalid-typed-period-empty-period:
@@ -848,8 +796,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Legal period start date is required
                         diagnostics: "Legal period start date is required when TypedPeriod extension is present"
                 invalid-typed-period-missing-start-date:
@@ -862,8 +810,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Legal period start date is required
                         diagnostics: "Legal period start date is required when TypedPeriod extension is present"
                 invalid-typed-period-equal-dates:
@@ -876,8 +824,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: Start and end dates must not be equal
                         diagnostics: "Legal period start and end dates must not be equal"
                 missing-typed-period-extension:
@@ -890,8 +838,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension is required
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 empty-typed-period-extension-url:
@@ -904,8 +852,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is empty
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 missing-typed-period-extension-url:
@@ -918,8 +866,8 @@ paths:
                         details:
                           coding:
                             - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: MSG_PARAM_INVALID
-                              display: Parameter content is invalid
+                              code: UNPROCESSABLE_ENTITY
+                              display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is missing
                         diagnostics: "OrganisationRole extension must contain at least one TypedPeriod extension"
                 ro177-missing-non-primary-roles:
@@ -1322,10 +1270,10 @@ components:
                         code:
                           type: string
                           description: Code from the FHIR operation-outcome CodeSystem
-                          example: MSG_PARAM_INVALID
+                          example: UNPROCESSABLE_ENTITY
                         display:
                           type: string
-                          example: Parameter content is invalid
+                          example: Message was not malformed but deemed unprocessable by the server.
                   text:
                     type: string
                     description: Human-readable description of the error

@@ -47,7 +47,7 @@ organisation_mapper = OrganizationMapper()
 def _get_organization_query_params(
     identifier: str = Query(
         None,
-        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+        description="Organization identifier in format 'https://fhir.nhs.uk/Id/ods-organization-code|{code}'",
     ),
 ) -> OrganizationQueryParams | None:
     if identifier is None:
