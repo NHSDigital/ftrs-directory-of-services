@@ -115,7 +115,7 @@ resource "aws_sns_topic_subscription" "lambda_alarms_to_slack" {
 
 ### Step 3: Enable in Variables
 
-```hcl
+```text
 # In your stack variables.tf
 variable "enable_slack_notifications" {
   description = "Enable Slack notifications for CloudWatch alarms"
@@ -124,7 +124,7 @@ variable "enable_slack_notifications" {
 }
 ```
 
-```hcl
+```text
 # In your environment tfvars (e.g., environments/prod/my_service.tfvars)
 enable_slack_notifications = true
 ```
@@ -281,16 +281,19 @@ Slack notifications are controlled by the `enable_slack_notifications` variable 
 
 1. Edit `/infrastructure/environments/{env}/{stack_name}.tfvars`
 2. Add:
+
    ```text
    # Slack Notifications
    enable_slack_notifications = true
    ```
 
 **Example - dos_search stack:**
+
 - ✅ Enabled: `dev`, `int`
 - ❌ Disabled: `test`, `ref`, `prod`
 
 **Requirements:**
+
 - `slack_notifier` stack must be deployed first (webhook configured via GitHub secrets)
 - Alarms are always created; Slack is optional
 - Each stack manages its own Slack notification setting
@@ -299,7 +302,7 @@ Slack notifications are controlled by the `enable_slack_notifications` variable 
 
 To apply alarms to specific resources only, add `resource_type_filter` to your monitoring module:
 
-```hcl
+```text
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 

@@ -239,15 +239,15 @@ Create your own template with the following structure:
 
 ### Key Fields
 
-- **resource_type**: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
-- **metric_name**: CloudWatch metric name
-- **statistic**: Statistical function
-- **comparison_operator**: Comparison type
-- **alarm_suffix**: Unique identifier for threshold mapping
-- **description**: Human-readable description
-- **severity**: `warning` or `critical`
-- **namespace**: AWS service namespace
-- **dimension_name**: Dimension name for the resource
+- `resource_type`: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
+- `metric_name`: CloudWatch metric name
+- `statistic`: Statistical function
+- `comparison_operator`: Comparison type
+- `alarm_suffix`: Unique identifier for threshold mapping
+- `description`: Human-readable description
+- `severity`: `warning` or `critical`
+- `namespace`: AWS service namespace
+- `dimension_name`: Dimension name for the resource
 
 ## Supported Namespaces
 
