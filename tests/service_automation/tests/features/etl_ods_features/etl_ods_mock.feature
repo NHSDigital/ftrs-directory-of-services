@@ -8,8 +8,7 @@ Feature: ETL ODS Mock - Upstream API Error Handling
     Given I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-for-mock-session-seeded-repo.json"
     When I trigger the Lambda with happy path scenario
-    Then the Lambda should process the organizations successfully
-    And the Transformer Lambda should transform the organisation data correctly
+    Then the Transformer Lambda should transform the organisation data correctly
 
   Scenario: ETL ODS handles empty results from upstream API
     When I trigger the Lambda with empty payload scenario

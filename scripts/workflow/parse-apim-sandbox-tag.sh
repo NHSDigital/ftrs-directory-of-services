@@ -16,24 +16,29 @@ should_deploy="false"
 join_with_pipe() {
   local IFS='|'
   printf '%s' "$*"
+  return 0
 }
 
 info() {
   printf '[parse-apim-sandbox-tag] %s\n' "$*"
+  return 0
 }
 
 write_step_summary() {
   if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
     printf '%s' "$1" >> "$GITHUB_STEP_SUMMARY"
   fi
+  return 0
 }
 
 write_outputs() {
   printf 'sandbox_environment=%s\nservice=%s\nversion=%s\nshould_deploy=%s\n' "$1" "$2" "$3" "$4" > "$GITHUB_OUTPUT"
+  return 0
 }
 
 fetch_remote_heads() {
   git fetch --no-tags origin "+refs/heads/*:refs/remotes/origin/*" --quiet || true
+  return 0
 }
 
 resolve_main_ref() {
@@ -48,6 +53,7 @@ resolve_tag_commit() {
   else
     return 1
   fi
+  return 0
 }
 
 ensure_tag_on_main() {
@@ -86,6 +92,7 @@ print_and_write_success() {
   write_step_summary "## Parse result\n\n- sandbox_environment: ${sandbox_environment}\n- service: ${service}\n- version: ${version}\n- should_deploy: ${should_deploy}\n\n### Deployment decision: Proceeding with deploy\n"
   echo "### Deployment decision: Proceeding with deploy"
   write_outputs "${sandbox_environment}" "${service}" "${version}" "${should_deploy}"
+  return 0
 }
 
 parse_tag_format() {
@@ -127,6 +134,7 @@ main() {
     fail_and_exit "Tag '${TAG}' does not match <environment>-<service>-<version>"
   fi
   print_and_write_success
+  return 0
 }
 
 main

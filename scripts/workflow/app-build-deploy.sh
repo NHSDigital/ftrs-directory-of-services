@@ -15,7 +15,7 @@ export_terraform_workspace_name
 
 FULL_SERVICE_NAME="${SERVICE_NAME}"
 
-if [ "${TERRAFORM_WORKSPACE_NAME}" != "default" ]; then
+if [[ "${TERRAFORM_WORKSPACE_NAME}" != "default" ]]; then
   FULL_SERVICE_NAME="${FULL_SERVICE_NAME}-${TERRAFORM_WORKSPACE_NAME}"
 fi
 

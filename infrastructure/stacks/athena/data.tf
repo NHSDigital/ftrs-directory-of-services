@@ -31,8 +31,9 @@ data "aws_lambda_function" "rds_lambda_connector" {
   depends_on    = [aws_serverlessapplicationrepository_cloudformation_stack.rds_connector]
 }
 
-data "aws_security_group" "dms_replication_security_group" {
-  name = "${local.project_prefix}-data-migration-rds-sg"
+data "aws_security_group" "athena_rds_connector_sg" {
+  count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
+  name  = "${local.account_prefix}-athena-rds-connector-sg"
 }
 
 data "aws_secretsmanager_secret" "target_rds_credentials" {

@@ -9,5 +9,5 @@ Feature: Ensure messages from Lambda are processed and stored correctly in Dynam
   Scenario: Organisation data is successfully written to DynamoDB with AWS CloudWatch validation
     Given I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" using specific ODS codes
-    When I invoke the lambda with the valid date
+    When I trigger the ODS ETL pipeline with the valid date
     Then the organisation data should be updated in DynamoDB for "single" ODS codes

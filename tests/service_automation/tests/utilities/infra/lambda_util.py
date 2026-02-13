@@ -26,7 +26,7 @@ class LambdaWrapper:
                 raise
         return response
 
-    def invoke_function(self, function_name, function_params, get_log=False):
+    def invoke_function(self, function_name, function_params):
         try:
             response = self.lambda_client.invoke(
                 FunctionName=function_name, Payload=json.dumps(function_params)
