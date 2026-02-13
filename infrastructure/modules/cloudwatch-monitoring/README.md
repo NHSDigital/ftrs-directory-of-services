@@ -15,21 +15,21 @@ Reusable Terraform module for AWS resource monitoring with CloudWatch alarms and
 - **Built-in templates** for common monitoring patterns
 - Support for custom alarm configurations
 
-## Quick Start with Templates
+## Usage Examples
 
-### Lambda Monitoring
+### Lambda Monitoring (Standard Template)
 
 ```hcl
-module "monitoring" {
+module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-service"
-  workspace_suffix = "-dev"
+  workspace_suffix = "-prod"
   
-  sns_topic_name   = "my-service-alarms-dev"
+  sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
   
-  alarm_config_path = "lambda/minimal"  # Built-in Lambda template
+  alarm_config_path = "lambda/standard"
   
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
@@ -37,22 +37,28 @@ module "monitoring" {
   
   alarm_thresholds = {
     api_lambda = {
-      "errors-critical"    = 5
-      "throttles-critical" = 0
+      "duration-p99-critical"          = 3000
+      "errors-critical"                = 5
+      "throttles-critical"             = 0
+      "concurrent-executions-critical" = 100
     }
   }
   
   alarm_evaluation_periods = {
     api_lambda = {
-      "errors-critical"    = 2
-      "throttles-critical" = 1
+      "duration-p99-critical"          = 2
+      "errors-critical"                = 2
+      "throttles-critical"             = 1
+      "concurrent-executions-critical" = 2
     }
   }
   
   alarm_periods = {
     api_lambda = {
-      "errors-critical"    = 300
-      "throttles-critical" = 60
+      "duration-p99-critical"          = 300
+      "errors-critical"                = 300
+      "throttles-critical"             = 60
+      "concurrent-executions-critical" = 300
     }
   }
 }
@@ -61,14 +67,14 @@ module "monitoring" {
 ### API Gateway Monitoring
 
 ```hcl
-module "monitoring" {
+module "api_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-api"
   workspace_suffix = "-prod"
   
   sns_topic_name   = "my-api-alarms-prod"
-  sns_display_name = "My API Alarms"
+  sns_display_name = "My API Gateway Alarms"
   
   alarm_config_path = "api-gateway/standard"
   
@@ -108,7 +114,7 @@ module "monitoring" {
 ### WAF Monitoring
 
 ```hcl
-module "monitoring" {
+module "waf_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-waf"
@@ -155,6 +161,51 @@ module "monitoring" {
 ### Multi-Resource Monitoring
 
 ```hcl
+module "full_stack_monitoring" {
+  source = "../../modules/cloudwatch-monitoring"
+
+  resource_prefix  = "my-service"
+  workspace_suffix = "-prod"
+  
+  sns_topic_name   = "my-service-alarms-prod"
+  sns_display_name = "My Service Full Stack Alarms"
+  
+  alarm_config_path = "${path.module}/alarms/full-stack-config.json"
+  
+  monitored_resources = {
+    api_lambda = module.api_lambda.lambda_function_name
+    api        = module.api_gateway.api_name
+    waf        = aws_wafv2_web_acl.main.name
+  }
+  
+  alarm_thresholds = {
+    api_lambda = {
+      "duration-p99-critical"          = 3000
+      "errors-critical"                = 5
+      "throttles-critical"             = 0
+      "concurrent-executions-critical" = 100
+    }
+    api = {
+      "4xx-errors-warning"      = 100
+      "5xx-errors-critical"     = 10
+      "latency-p99-critical"    = 5000
+      "request-spike-critical"  = 10000
+    }
+    waf = {
+      "blocked-requests-warning"        = 1000
+      "blocked-requests-critical"       = 5000
+      "allowed-requests-spike-critical" = 50000
+      "counted-requests-warning"        = 500
+    }
+  }
+  
+  # ... evaluation periods and periods
+}
+```
+
+### Multiple Resources of Same Type
+
+```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
@@ -164,37 +215,108 @@ module "monitoring" {
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
   
-  # Custom config with multiple resource types
-  alarm_config_path = "${path.module}/alarms/multi-resource.json"
+  alarm_config_path = "lambda/standard"
   
   monitored_resources = {
-    api_lambda = module.api_lambda.lambda_function_name
-    api        = module.api_gateway.api_name
-    waf        = aws_wafv2_web_acl.main.name
+    api_lambda    = module.api_lambda.lambda_function_name
+    worker_lambda = module.worker_lambda.lambda_function_name
   }
   
-  # Define thresholds for all resources
   alarm_thresholds = {
-    api_lambda = { ... }
-    api        = { ... }
-    waf        = { ... }
+    api_lambda = {
+      "duration-p99-critical"          = 3000
+      "errors-critical"                = 5
+      "throttles-critical"             = 0
+      "concurrent-executions-critical" = 100
+    }
+    worker_lambda = {
+      "duration-p99-critical"          = 30000
+      "errors-critical"                = 10
+      "throttles-critical"             = 0
+      "concurrent-executions-critical" = 50
+    }
   }
   
   # ... evaluation periods and periods
 }
 ```
 
-## Custom Configuration
-
-You can provide your own JSON configuration file:
+### Separate Monitoring Modules per Resource Type
 
 ```hcl
 module "lambda_monitoring" {
-  source = "../../modules/lambda-monitoring"
+  source = "../../modules/cloudwatch-monitoring"
+  alarm_config_path = "lambda/comprehensive"
+  monitored_resources = {
+    api_lambda    = module.api_lambda.lambda_function_name
+    worker_lambda = module.worker_lambda.lambda_function_name
+  }
+  # ... configuration
+}
 
+module "api_monitoring" {
+  source = "../../modules/cloudwatch-monitoring"
+  alarm_config_path = "api-gateway/standard"
+  monitored_resources = {
+    api = module.api_gateway.api_name
+  }
+  # ... configuration
+}
+
+module "waf_monitoring" {
+  source = "../../modules/cloudwatch-monitoring"
+  alarm_config_path = "waf/standard"
+  monitored_resources = {
+    waf = aws_wafv2_web_acl.main.name
+  }
+  # ... configuration
+}
+```
+
+### Custom Configuration
+
+Create `alarms/custom-config.json`:
+
+```json
+{
+  "api_lambda": [
+    {
+      "metric_name": "Duration",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-p99-critical",
+      "description": "API Lambda duration p99 critical",
+      "severity": "critical",
+      "namespace": "AWS/Lambda",
+      "dimension_name": "FunctionName"
+    }
+  ],
+  "api": [
+    {
+      "metric_name": "5XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-critical",
+      "description": "API Gateway 5XX errors critical",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    }
+  ]
+}
+```
+
+Use it:
+
+```hcl
+module "monitoring" {
+  source = "../../modules/cloudwatch-monitoring"
   alarm_config_path = "${path.module}/alarms/custom-config.json"
-  
-  # ... rest of configuration
+  monitored_resources = {
+    api_lambda = module.api_lambda.lambda_function_name
+    api        = module.api_gateway.api_name
+  }
+  # ... configuration
 }
 ```
 

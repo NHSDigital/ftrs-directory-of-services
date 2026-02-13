@@ -2,6 +2,8 @@
 
 This directory contains reusable alarm configuration templates for various AWS resources.
 
+Templates automatically apply to all resources - no key matching required.
+
 ## Directory Structure
 
 ```text
@@ -119,14 +121,29 @@ templates/
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  
-  alarm_config_path = "lambda/standard"
-  
-  monitored_resources = {
-    my_lambda = module.my_lambda.lambda_function_name
+
+  alarm_config_path = "standard"  # Uses lambda/standard.json
+
+  # Template applies to all lambda functions
+  lambda_functions = {
+    api_lambda    = module.api_lambda.lambda_function_name
+    worker_lambda = module.worker_lambda.lambda_function_name
   }
-  
-  # ... thresholds
+
+  # Optional: only apply alarms to specific resources
+  resource_type_filter = ["api_lambda"]  # Only api_lambda gets alarms
+
+  # Define thresholds per function
+  alarm_thresholds = {
+    api_lambda = {
+      "duration-p99-critical"          = 3000
+      "errors-critical"                = 5
+      "throttles-critical"             = 1
+      "concurrent-executions-critical" = 100
+    }
+  }
+
+  # ... evaluation periods and periods
 }
 ```
 
@@ -135,13 +152,13 @@ module "monitoring" {
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  
+
   alarm_config_path = "api-gateway/standard"
-  
+
   monitored_resources = {
     api = module.api_gateway.api_name
   }
-  
+
   alarm_thresholds = {
     api = {
       "4xx-errors-warning"      = 100
@@ -150,7 +167,7 @@ module "monitoring" {
       "request-spike-critical"  = 10000
     }
   }
-  
+
   # ... evaluation periods and periods
 }
 ```
@@ -160,13 +177,13 @@ module "monitoring" {
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  
+
   alarm_config_path = "waf/standard"
-  
+
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
   }
-  
+
   alarm_thresholds = {
     waf = {
       "blocked-requests-warning"        = 1000
@@ -175,7 +192,7 @@ module "monitoring" {
       "counted-requests-warning"        = 500
     }
   }
-  
+
   # ... evaluation periods and periods
 }
 ```
@@ -185,16 +202,16 @@ module "monitoring" {
 ```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  
+
   # Use custom config with multiple resource types
   alarm_config_path = "${path.module}/alarms/multi-resource-config.json"
-  
+
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
     api        = module.api_gateway.api_name
     waf        = aws_wafv2_web_acl.main.name
   }
-  
+
   # ... thresholds for all resources
 }
 ```
@@ -205,7 +222,7 @@ Create your own template with the following structure:
 
 ```json
 {
-  "resource_key": [
+  "resource_type": [
     {
       "metric_name": "MetricName",
       "statistic": "Sum|Average|p99|etc",
@@ -222,10 +239,11 @@ Create your own template with the following structure:
 
 ### Key Fields
 
-- **metric name**: CloudWatch metric name
+- **resource_type**: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
+- **metric_name**: CloudWatch metric name
 - **statistic**: Statistical function
-- **comparison operator**: Comparison type
-- **alarm suffix**: Unique identifier for threshold mapping
+- **comparison_operator**: Comparison type
+- **alarm_suffix**: Unique identifier for threshold mapping
 - **description**: Human-readable description
 - **severity**: `warning` or `critical`
 - **namespace**: AWS service namespace
@@ -234,16 +252,35 @@ Create your own template with the following structure:
 ## Supported Namespaces
 
 | Namespace | Resource Type | Dimension Name |
-|-----------|--------------|----------------|
+| ----------- | --------------- | ---------------- |
 | AWS/Lambda | Lambda functions | FunctionName |
 | AWS/ApiGateway | API Gateway REST APIs | ApiName |
 | AWS/ApiGateway | API Gateway HTTP APIs | ApiId |
 | AWS/WAFV2 | WAF WebACLs | WebACL |
 
+## Common Issues
+
+### Alarms Not Created
+
+**Symptom**: `terraform plan` shows no alarm resources being created
+
+**Cause**: Missing thresholds in `alarm_thresholds` for your resources
+
+**Solution**: Ensure each resource has thresholds defined for the alarms you want:
+
+```hcl
+alarm_thresholds = {
+  my_lambda = {
+    "errors-critical" = 5  # Must match alarm_suffix in template
+  }
+}
+```
+
 ## Best Practices
 
-1. **Start with templates**: Use built-in templates as a baseline
-2. **Customize thresholds**: Adjust based on your service's behavior
-3. **Monitor gradually**: Start with minimal, expand to standard/comprehensive
-4. **Test alarms**: Trigger test alarms to verify notifications
-5. **Document thresholds**: Keep track of why specific values were chosen
+1. **Define thresholds**: Only alarms with thresholds are created
+2. **Start with templates**: Use built-in templates as a baseline
+3. **Customize thresholds**: Adjust based on your service's behavior
+4. **Monitor gradually**: Start with minimal, expand to standard/comprehensive
+5. **Test alarms**: Trigger test alarms to verify notifications
+6. **Document thresholds**: Keep track of why specific values were chosen

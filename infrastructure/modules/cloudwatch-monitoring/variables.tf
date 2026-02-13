@@ -68,3 +68,9 @@ variable "enable_warning_alarms" {
   type        = bool
   default     = true
 }
+
+variable "resource_type_filter" {
+  description = "List of resource keys to apply alarms to. If null, applies to all resources"
+  type        = list(string)
+  default     = null
+}
