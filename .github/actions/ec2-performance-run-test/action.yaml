@@ -87,7 +87,7 @@ runs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${{ inputs.ec2-instance-id }}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Run performance test for ${{ inputs.test-type }} against ${{ inputs.endpoint-type }} endpoint" \
+            --comment "Run performance test for $TEST_TYPE against $ENDPOINT endpoint" \
             --parameters "{\"commands\": $COMMANDS}" \
             --query "Command.CommandId" \
             --output text)
