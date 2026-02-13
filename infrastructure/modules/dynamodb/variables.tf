@@ -75,6 +75,12 @@ variable "global_secondary_indexes" {
   default = []
 }
 
+variable "tags" {
+  description = "Tags to apply to the DynamoDB table."
+  type        = map(string)
+  default     = {}
+}
+
 variable "ttl_enabled" {
   description = "Indicates whether ttl is enabled	"
   type        = bool
