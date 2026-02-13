@@ -29,7 +29,7 @@ module "lambda_monitoring" {
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
 
-  alarm_config_path = "lambda/standard"
+  alarm_config_path = "lambda/config"
 
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
@@ -76,7 +76,7 @@ module "api_monitoring" {
   sns_topic_name   = "my-api-alarms-prod"
   sns_display_name = "My API Gateway Alarms"
 
-  alarm_config_path = "api-gateway/standard"
+  alarm_config_path = "api-gateway/config"
 
   monitored_resources = {
     api = module.api_gateway.api_name
@@ -123,7 +123,7 @@ module "waf_monitoring" {
   sns_topic_name   = "my-waf-alarms-prod"
   sns_display_name = "My WAF Alarms"
 
-  alarm_config_path = "waf/standard"
+  alarm_config_path = "waf/config"
 
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
@@ -215,7 +215,7 @@ module "monitoring" {
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
 
-  alarm_config_path = "lambda/standard"
+  alarm_config_path = "lambda/config"
 
   monitored_resources = {
     api_lambda    = module.api_lambda.lambda_function_name
@@ -246,7 +246,7 @@ module "monitoring" {
 ```hcl
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  alarm_config_path = "lambda/comprehensive"
+  alarm_config_path = "lambda/config"
   monitored_resources = {
     api_lambda    = module.api_lambda.lambda_function_name
     worker_lambda = module.worker_lambda.lambda_function_name
@@ -256,7 +256,7 @@ module "lambda_monitoring" {
 
 module "api_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  alarm_config_path = "api-gateway/standard"
+  alarm_config_path = "api-gateway/config"
   monitored_resources = {
     api = module.api_gateway.api_name
   }
@@ -265,7 +265,7 @@ module "api_monitoring" {
 
 module "waf_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
-  alarm_config_path = "waf/standard"
+  alarm_config_path = "waf/config"
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
   }
@@ -324,13 +324,9 @@ module "monitoring" {
 
 | Resource Type | Template | Metrics Monitored | Use Case |
 |--------------|----------|------------------|----------|
-| **Lambda** | lambda/minimal | Errors, Throttles | Basic monitoring |
-| **Lambda** | lambda/standard | Duration, Errors, Throttles, Concurrency | Recommended |
-| **Lambda** | lambda/comprehensive | All metrics + Warning levels | High-criticality |
-| **API Gateway** | api-gateway/minimal | 5XX errors, Latency | Basic API monitoring |
-| **API Gateway** | api-gateway/standard | 4XX/5XX errors, Latency, Request spike | Production APIs |
-| **WAF** | waf/minimal | Blocked requests, Allowed spike | Basic WAF monitoring |
-| **WAF** | waf/standard | Blocked/Counted requests, Allowed spike | Production WAF |
+| **Lambda** | lambda/config | Duration (p99 warning/critical), Errors (warning/critical), Throttles, Concurrent Executions (warning/critical) | Standard Lambda monitoring |
+| **API Gateway** | api-gateway/config | 4XX/5XX errors, Latency, Request counts | Standard API monitoring |
+| **WAF** | waf/config | Blocked/Allowed/Counted requests | Standard WAF monitoring |
 
 ## JSON Configuration Format
 
@@ -357,7 +353,7 @@ module "monitoring" {
 | workspace_suffix | Workspace suffix for resource naming | string | yes |
 | sns_topic_name | Name of the SNS topic | string | yes |
 | sns_display_name | Display name for the SNS topic | string | yes |
-| alarm_config_path | Path to JSON alarm configuration or template name (e.g., 'lambda/standard', 'api-gateway/minimal', 'waf/standard') | string | no (default: 'lambda/standard') |
+| alarm_config_path | Path to JSON alarm configuration or template name (e.g., 'lambda/config', 'api-gateway/config', 'waf/config') | string | no (default: 'lambda/config') |
 | monitored_resources | Map of resource keys to their identifiers (Lambda names, API Gateway names, WAF WebACL names) | map(string) | yes |
 | alarm_thresholds | Alarm thresholds by resource and alarm type | map(map(number)) | yes |
 | alarm_evaluation_periods | Evaluation periods by resource and alarm type | map(map(number)) | yes |
