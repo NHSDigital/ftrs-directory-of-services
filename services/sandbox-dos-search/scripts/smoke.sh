@@ -10,7 +10,7 @@ accept_hdr="Accept: application/fhir+json"
 # Optional: wait up to WAIT_SECS for service to become ready (/_status). 0 means no wait.
 WAIT_SECS=${WAIT_SECS:-0}
 
-pass() { echo "PASS - $1"; }
+pass() { echo "PASS - $1"; return 0; }
 fail() { echo "FAIL - $1"; exit 1; }
 
 wait_ready() {
@@ -45,6 +45,7 @@ do_call() {
     fail "${label}: expected ${expect_status}, got ${http_code} for ${path}"
   fi
   pass "${label} (${expect_status})"
+  return 0
 }
 
 # Preflight: ensure target is reachable (optionally wait)
