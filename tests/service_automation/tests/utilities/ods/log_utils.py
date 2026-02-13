@@ -74,56 +74,41 @@ def assert_message_in_logs(
     expected_message: str,
     case_sensitive: bool = True,
     log_group_name: str = None,
-    wait_time: int = 10,
-    max_retries: int = 6,
+    wait_time: int = 30,
 ):
-    """Assert that a specific message appears in logs for the given correlation_id.
-
-    Polls CloudWatch logs with retries to handle eventual consistency delays.
-    """
-    logs = []
-    log_text = ""
-    found = False
-
+    """Assert that a specific message appears in logs for the given correlation_id."""
+    # Retry logic for log availability
+    max_retries = 3
     for attempt in range(max_retries):
         if attempt > 0:
-            time.sleep(wait_time)  # Wait between retries for logs to propagate
-
-        # Clear cache to force fresh log retrieval on each attempt
-        if (
-            hasattr(context, "correlation_id_logs_cache")
-            and correlation_id in context.correlation_id_logs_cache
-        ):
-            del context.correlation_id_logs_cache[correlation_id]
+            time.sleep(wait_time)  # Configurable wait time between retries
+            # Clear cache to force fresh log retrieval
+            if (
+                hasattr(context, "correlation_id_logs_cache")
+                and correlation_id in context.correlation_id_logs_cache
+            ):
+                del context.correlation_id_logs_cache[correlation_id]
 
         logs = get_logs_for_correlation_id(
             context, cloudwatch_logs, correlation_id, log_group_name
         )
-
         if logs:
-            log_text = " ".join([event.get("message", "") for event in logs])
-            found = (
-                expected_message in log_text
-                if case_sensitive
-                else expected_message.lower() in log_text.lower()
-            )
-            if found or not expected_message:
-                # Found the message or we're just checking for any logs
-                break
+            break
 
-    if not logs:
-        raise AssertionError(
-            f"No logs found for correlation_id: {correlation_id} after {max_retries} attempts "
-            f"(waited {max_retries * wait_time}s total). "
-            "CloudWatch logs may be delayed - consider increasing wait_time or max_retries."
-        )
+    assert logs, (
+        f"No logs found for correlation_id: {correlation_id} after {max_retries} attempts. Wait longer between execution and verification."
+    )
 
-    if not found and expected_message:
-        raise AssertionError(
-            f"Expected message '{expected_message}' not found in logs for correlation_id {correlation_id} "
-            f"after {max_retries} attempts (waited {max_retries * wait_time}s total). "
-            f"Log content: {log_text[:500]}..."
-        )
+    log_text = " ".join([event.get("message", "") for event in logs])
+    found = (
+        expected_message in log_text
+        if case_sensitive
+        else expected_message.lower() in log_text.lower()
+    )
+
+    assert found, (
+        f"Expected message '{expected_message}' not found in logs for correlation_id {correlation_id}. Log content: {log_text[:500]}..."
+    )
 
 
 def validate_lambda_logs_for_extraction(
