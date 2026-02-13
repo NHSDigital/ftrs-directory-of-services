@@ -16,7 +16,7 @@ class InvalidRequestHeadersError(ValueError):
     """Raised when disallowed HTTP headers are supplied in the request."""
 
 
-class InvalidVersionHeaderError(ValueError):
+class InvalidVersionError(ValueError):
     """Raised when HTTP header 'version' is incorrectly supplied."""
 
 
@@ -65,9 +65,9 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
 
     # Check 'version' header is a valid integer
-    if not headers.get("version") == "1":
+    if headers.get("version") != "1":
         # Add the invalid header and its stringified type to the dictionary
-        raise InvalidVersionHeaderError({"version": headers.get("version")})
+        raise InvalidVersionError({"version": headers.get("version")})
 
     invalid_headers = [
         header_name
@@ -97,7 +97,7 @@ def get_organization() -> Response:
                 invalid_headers
             )
             return create_response(400, fhir_resource)
-        except InvalidVersionHeaderError as exception:
+        except InvalidVersionError as exception:
             invalid_version_header: dict[str, str] = (
                 exception.args[0] if exception.args else {}
             )
@@ -105,12 +105,12 @@ def get_organization() -> Response:
                 "Invalid type found in supplied headers",
                 invalid_version_header=invalid_version_header,
             )
-            fhir_resource = error_util.create_invalid_version_header_operation_outcome(
+            fhir_resource = error_util.create_invalid_version_operation_outcome(
                 invalid_version_header
             )
             return create_response(400, fhir_resource)
         except MissingMandatoryHeadersError as exception:
-            missing_headers: str = exception.args[0] if exception.args else "Unknown"
+            missing_headers: list[str] = exception.args[0] if exception.args else []
             dos_logger.warning(
                 "Missing mandatory headers",
                 missing_headers=missing_headers,

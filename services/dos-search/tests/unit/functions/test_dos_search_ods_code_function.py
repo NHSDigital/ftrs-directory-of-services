@@ -33,7 +33,7 @@ def mock_error_util():
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
         mock.create_invalid_header_operation_outcome.return_value = mock_invalid_header
-        mock.create_invalid_version_header_operation_outcome.return_value = (
+        mock.create_invalid_version_operation_outcome.return_value = (
             mock_invalid_version_header
         )
         mock.create_missing_mandatory_header_operation_outcome.return_value = (
@@ -173,7 +173,7 @@ class TestLambdaHandler:
 
         response = lambda_handler(event_with_headers, lambda_context)
 
-        mock_error_util.create_invalid_version_header_operation_outcome.assert_called_once_with(
+        mock_error_util.create_invalid_version_operation_outcome.assert_called_once_with(
             {"version": "DROP TABLES"}
         )
         mock_logger.warning.assert_called_with(
@@ -183,7 +183,7 @@ class TestLambdaHandler:
         assert_response(
             response,
             expected_status_code=400,
-            expected_body=mock_error_util.create_invalid_version_header_operation_outcome.return_value.model_dump_json(),
+            expected_body=mock_error_util.create_invalid_version_operation_outcome.return_value.model_dump_json(),
         )
 
     def test_lambda_handler_rejects_when_missing_mandatory_headers(
