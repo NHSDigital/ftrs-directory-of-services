@@ -66,18 +66,10 @@ module "version_history" {
 
   version_history_table_arn = module.dynamodb_tables["version-history"].dynamodb_table_arn
 
-  table_streams = {
-    organisation = {
-      stream_arn = module.dynamodb_tables["organisation"].dynamodb_table_stream_arn
-      table_arn  = module.dynamodb_tables["organisation"].dynamodb_table_arn
-    }
-    location = {
-      stream_arn = module.dynamodb_tables["location"].dynamodb_table_stream_arn
-      table_arn  = module.dynamodb_tables["location"].dynamodb_table_arn
-    }
-    healthcare-service = {
-      stream_arn = module.dynamodb_tables["healthcare-service"].dynamodb_table_stream_arn
-      table_arn  = module.dynamodb_tables["healthcare-service"].dynamodb_table_arn
+  table_streams = { for table_name in ["organisation", "location", "healthcare-service"] :
+    table_name => {
+      stream_arn = module.dynamodb_tables[table_name].dynamodb_table_stream_arn
+      table_arn  = module.dynamodb_tables[table_name].dynamodb_table_arn
     }
   }
 
