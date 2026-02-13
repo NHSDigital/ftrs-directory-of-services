@@ -147,15 +147,13 @@ def test_reject_nested_encoding(
     assert_invalid_name(validator, nested_encoding, "publicname_suspicious_encoding")
 
 
-# Security Tests - Special Symbols
+# Security Tests - Special Symbols (characters NOT in the allowed pattern)
 @pytest.mark.parametrize(
     "input_name",
     [
-        "Smith @ Medical Centre",
         "Practice #1",
         "Surgery 100%",
         "Clinic*Star",
-        "Health+Plus",
         'The "Best" Surgery',
         "Valid Name<script>",
         "O&#39;Brien&#39; OR 1=1",
@@ -164,28 +162,41 @@ def test_reject_nested_encoding(
 def test_reject_special_symbols(
     validator: GPPracticeValidator, input_name: str
 ) -> None:
-    """Test that special symbols are rejected."""
+    """Test that disallowed special symbols are rejected."""
     assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
 
 
-# Ampersand Rules Tests
+# Allowed Special Characters Tests (characters in the allowed pattern)
 @pytest.mark.parametrize(
-    "input_name,should_pass",
+    "input_name,expected",
     [
-        ("Smith & Jones", True),
-        ("Smith& Jones", False),
-        ("Smith &Jones", False),
-        ("Smith&Jones", False),
+        ("Smith @ Medical Centre", "Smith @ Medical Centre"),
+        ("Health+Plus", "Health+Plus"),
+        ("Practice: Dr Smith", "Practice: Dr Smith"),
     ],
 )
-def test_ampersand_spacing_rules(
-    validator: GPPracticeValidator, input_name: str, should_pass: bool
+def test_allow_special_characters(
+    validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that ampersand must be surrounded by spaces."""
-    if should_pass:
-        assert_valid_name(validator, input_name, input_name)
-    else:
-        assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
+    """Test that @, +, and : characters are allowed in practice names."""
+    assert_valid_name(validator, input_name, expected)
+
+
+# Ampersand Tests
+@pytest.mark.parametrize(
+    "input_name,expected",
+    [
+        ("Smith & Jones", "Smith & Jones"),
+        ("Smith& Jones", "Smith& Jones"),
+        ("Smith &Jones", "Smith &Jones"),
+        ("Smith&Jones", "Smith&Jones"),
+    ],
+)
+def test_ampersand_allowed(
+    validator: GPPracticeValidator, input_name: str, expected: str
+) -> None:
+    """Test that ampersand is allowed in practice names (with or without spaces)."""
+    assert_valid_name(validator, input_name, expected)
 
 
 # Whitespace Tests

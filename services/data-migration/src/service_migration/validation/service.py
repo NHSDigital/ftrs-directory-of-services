@@ -53,8 +53,17 @@ class ServiceValidator(Validator[Service]):
 class GPPracticeValidator(ServiceValidator):
     # More restrictive pattern - only allow & when surrounded by spaces
     SAFE_NAME_PATTERN = re.compile(
-        r"^[a-zA-Z0-9\s\-'.,()]+(?:\s+&\s+[a-zA-Z0-9\s\-'.,()]+)*$"
+        r"^[a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&]+$"
+        # Start of string
+        # Character class start
+        # ASCII letters and digits
+        # Unicode characters (accented letters, curly quotes, etc.)
+        # Whitespace (space, tab, newline)
+        # Safe punctuation: at, hyphen, apostrophe, period, comma, parentheses, ampersand
+        # One or more of the above characters
+        # End of string
     )
+
     # Maximum allowed length for practice names
     MAX_NAME_LENGTH = 100
 
@@ -323,11 +332,13 @@ class GPPracticeValidator(ServiceValidator):
             name for name, chars in checks.items() if any(c in text for c in chars)
         ]
 
-        if re.search(r"[^\x20-\x7E]", text):
-            categories.append("non_printable")
+        if re.search(
+            r"[\x00-\x1F\x7F-\x9F]", text
+        ):  # Only flag actual control characters tab new line etc.
+            categories.append("control_characters")
 
         # Catch-all for characters not in SAFE_NAME_PATTERN
-        if not categories and re.search(r"[^a-zA-Z0-9\s\-'&.,()]", text):
+        if not categories and re.search(r"[^a-zA-Z0-9\s\-&.,()]", text):
             categories.append("disallowed_characters")
 
         return ", ".join(categories) if categories else "unknown"
