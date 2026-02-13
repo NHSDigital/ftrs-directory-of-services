@@ -266,6 +266,57 @@ class DataMigrationLogBase(LogBase):
         level=INFO, message="Data Migration Queue Populator completed"
     )
 
+    # Version History Log Messages
+    VH_LAMBDA_001 = LogReference(
+        level=INFO, message="Processing {record_count} stream records"
+    )
+    VH_LAMBDA_002 = LogReference(
+        level=WARNING, message="No stream records to process"
+    )
+    VH_LAMBDA_003 = LogReference(
+        level=WARNING,
+        message="Completed with {failure_count} batch item failures",
+    )
+    VH_LAMBDA_004 = LogReference(
+        level=INFO, message="Successfully processed {success_count} records"
+    )
+
+    VH_STREAM_001 = LogReference(
+        level=INFO, message="Processing {record_count} stream records"
+    )
+    VH_STREAM_002 = LogReference(
+        level=DEBUG,
+        message="Skipping record {record_id} from {table_name} - event {event_name} - missing OldImage or NewImage",
+    )
+    VH_STREAM_003 = LogReference(
+        level=DEBUG,
+        message="Skipping record {record_id} from {table_name} - no business-relevant changes detected",
+    )
+    VH_STREAM_004 = LogReference(
+        level=INFO,
+        message="Successfully processed record {record_id} from {table_name} with {changed_field_count} changed fields",
+    )
+    VH_STREAM_005 = LogReference(
+        level=WARNING,
+        message="Stream processing completed with {failed_count} failed records",
+    )
+    VH_STREAM_006 = LogReference(
+        level=INFO,
+        message="Completed processing {total_records} total records with {failed_records} failures",
+    )
+
+    VH_REPO_001 = LogReference(
+        level=INFO,
+        message="Initialized version history repository with table {table_name}",
+    )
+    VH_REPO_002 = LogReference(
+        level=DEBUG,
+        message="Writing change record for {entity_id} at {timestamp} (change_type: {change_type})",
+    )
+    VH_REPO_003 = LogReference(
+        level=INFO, message="Successfully wrote change record for {entity_id}"
+    )
+
 
 class UtilsLogBase(LogBase):
     """

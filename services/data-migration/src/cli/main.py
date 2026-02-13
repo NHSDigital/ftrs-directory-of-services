@@ -3,6 +3,13 @@ from enum import StrEnum
 from typing import Annotated, List
 
 import rich
+from application.packages.ftrs_aws_local.dynamodb.reset import (
+    ClearableEntityTypes,
+    init_tables,
+)
+from application.packages.ftrs_aws_local.dynamodb.utils import (
+    TargetEnvironment as DynamoDBTargetEnvironment,
+)
 from aws_lambda_powertools.utilities.data_classes.sqs_event import SQSRecord
 from typer import Option, Typer
 
@@ -134,6 +141,41 @@ def restore_from_s3_handler(
     Handler for restoring data from S3 to all DynamoDB tables.
     """
     asyncio.run(run_s3_restore(env, workspace))
+
+
+@typer_app.command("init-version-history")
+def init_version_history_handler(
+    endpoint_url: Annotated[
+        str, Option(..., help="DynamoDB endpoint URL (e.g., http://localhost:8000)")
+    ],
+    env: Annotated[str, Option(help="Environment (default: local)")] = "local",
+    workspace: Annotated[str | None, Option(help="Workspace name")] = None,
+) -> None:
+    """
+    Initialize the version history table for local development.
+
+    Note: Alternatively, you can use 'ftrs-aws-local reset --init --env local'
+    with --entity-type version-history to initialize the table.
+    """
+    try:
+        # Use the centralized ftrs_aws_local table creation logic
+        target_env = DynamoDBTargetEnvironment(env)
+
+        init_tables(
+            endpoint_url=endpoint_url,
+            env=target_env,
+            workspace=workspace,
+            entity_type=[ClearableEntityTypes.version_history],
+        )
+        table_name = f"ftrs-dos-{env}-database-version-history"
+        if workspace:
+            table_name += f"-{workspace}"
+        CONSOLE.print(
+            f"[green]Successfully created version history table: {table_name}[/green]"
+        )
+    except Exception as e:
+        CONSOLE.print(f"[red]Failed to create version history table: {e}[/red]")
+        raise
 
 
 # PyCharm local debugging

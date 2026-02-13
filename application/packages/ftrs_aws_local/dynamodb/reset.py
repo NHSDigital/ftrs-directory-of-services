@@ -25,6 +25,7 @@ class ClearableEntityTypes(StrEnum):
     location = "location"
     triage_code = "triage-code"
     state = "data-migration-state"
+    version_history = "version-history"
 
 
 class RepositoryTypes(StrEnum):
@@ -38,6 +39,7 @@ DEFAULT_CLEARABLE_ENTITY_TYPES = [
     ClearableEntityTypes.location,
     ClearableEntityTypes.triage_code,
     ClearableEntityTypes.state,
+    # Note: version_history excluded from default to preserve audit logs
 ]
 
 
@@ -54,6 +56,16 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return Location
         case ClearableEntityTypes.triage_code:
             return TriageCode
+        case ClearableEntityTypes.version_history:
+            # Version history doesn't use AttributeLevelRepository pattern
+            # It can be created via --init but not cleared via reset
+            reset_logger.log(
+                DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
+            )
+            err_msg = reset_logger.format_message(
+                DataMigrationLogBase.ETL_RESET_007, entity_type=entity_type
+            )
+            raise ValueError(err_msg)
         # case ClearableEntityTypes.state:
         # return DataMigrationState
         case _:
@@ -299,6 +311,17 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
             ],
             "attribute_definitions": [
                 {"AttributeName": "source_record_id", "AttributeType": "S"}
+            ],
+            "global_secondary_indexes": None,
+        },
+        "version-history": {
+            "key_schema": [
+                {"AttributeName": "entity_id", "KeyType": "HASH"},
+                {"AttributeName": "timestamp", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "entity_id", "AttributeType": "S"},
+                {"AttributeName": "timestamp", "AttributeType": "S"},
             ],
             "global_secondary_indexes": None,
         },

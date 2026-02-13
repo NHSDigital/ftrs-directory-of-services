@@ -1,13 +1,12 @@
 """Lambda handler for version history tracking."""
 
-import uuid
-from datetime import datetime
+import os
 from typing import Any, Dict
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
-from ftrs_common.utils.db_service import get_table_name
-from ftrs_data_layer.client import get_dynamodb_resource
+
+from version_history.stream_processor import process_stream_records
 
 LOGGER = Logger.get(service="version-history")
 
@@ -15,7 +14,10 @@ LOGGER = Logger.get(service="version-history")
 @LOGGER.inject_lambda_context
 def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     """
-    Lambda handler for writing test data to version history table.
+    Lambda handler for processing DynamoDB stream events.
+
+    Processes change events from Organisation, Location, and HealthcareService
+    tables, detects field differences, and writes version history records.
 
     Args:
         event: DynamoDB stream event with Records array
@@ -24,31 +26,35 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
     Returns:
         Response with batchItemFailures for partial failure handling
     """
-    LOGGER.info("Version history lambda invoked - writing test data")
+    endpoint_url = os.getenv("ENDPOINT_URL")
 
     try:
-        # Get DynamoDB resource and table
-        dynamodb = get_dynamodb_resource()
-        version_history_table_name = get_table_name("version-history")
-        table = dynamodb.Table(version_history_table_name)
+        records = event.get("Records", [])
+        LOGGER.log("VH_LAMBDA_001", record_count=len(records))
 
-        # Create test data
-        test_item = {
-            "entity_id": f"test-table|{uuid.uuid4()}|test-field",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-            "change_type": "TEST",
-            "changed_fields": {"test_field": {"old": "old_value", "new": "new_value"}},
-            "changed_by": {
-                "display": "Test Lambda",
-                "type": "system",
-                "value": "version-history-lambda",
-            },
-        }
+        if not records:
+            LOGGER.log("VH_LAMBDA_002")
+            return {"batchItemFailures": []}
 
-        # Write to version history table
-        table.put_item(Item=test_item)
-        LOGGER.info(f"Test data written successfully: {test_item['entity_id']}")
+        # Process stream records and get failed sequence numbers
+        failed_sequence_numbers = process_stream_records(records, endpoint_url)
+
+        # Build batch item failures response
+        batch_item_failures = [
+            {"itemIdentifier": seq_num} for seq_num in failed_sequence_numbers
+        ]
+
+        if batch_item_failures:
+            LOGGER.log("VH_LAMBDA_003", failure_count=len(batch_item_failures))
+        else:
+            LOGGER.log("VH_LAMBDA_004", success_count=len(records))
+
+        return {"batchItemFailures": batch_item_failures}
 
     except Exception as e:
-        LOGGER.error(f"Failed to write test data: {str(e)}", exc_info=True)
+        LOGGER.error(
+            f"Critical error in version history lambda handler: {e}",
+            exc_info=True,
+        )
+        # Return empty failures to avoid Lambda retry storm on systemic issues
         return {"batchItemFailures": []}
