@@ -8,98 +8,55 @@ Templates automatically apply to all resources - no key matching required.
 
 ```text
 templates/
-├── lambda/          # Lambda function monitoring
-├── api-gateway/     # API Gateway monitoring
-└── waf/             # WAF WebACL monitoring
+├── lambda/config.json          # Lambda function monitoring
+├── api-gateway/config.json     # API Gateway monitoring
+└── waf/config.json             # WAF WebACL monitoring
 ```
 
-## Lambda Templates
+## Lambda Template
 
-### lambda/minimal.json
-
-**Use for**: Basic production monitoring, low-traffic services
-
-**Alarms**: Errors, Throttles
-
-**Required thresholds**:
-
-- `errors-critical`
-- `throttles-critical`
-
-### lambda/standard.json (Default)
-
-**Use for**: Most production services
-
-**Alarms**: Duration p99, Errors, Throttles, Concurrent Executions
-
-**Required thresholds**:
-
-- `duration-p99-critical`
-- `errors-critical`
-- `throttles-critical`
-- `concurrent-executions-critical`
-
-### lambda/comprehensive.json
-
-**Use for**: High-criticality services
-
-**Alarms**: All metrics with Warning + Critical levels
-
-**Required thresholds**: All from standard + warning levels + invocations spike
-
-## API Gateway Templates
-
-### api-gateway/minimal.json
-
-**Use for**: Basic API monitoring
+**File**: `lambda/config.json`
 
 **Alarms**:
 
-- 5XX errors (critical)
-- Latency p99 (critical)
+- Duration p99 (warning + critical)
+- Errors (warning + critical)
+- Throttles (critical)
+- Concurrent Executions (warning + critical)
 
-**Required thresholds**:
+**Thresholds**:
 
-- `5xx-errors-critical`
-- `latency-p99-critical`
+- `duration-p99-warning` (optional)
+- `duration-p99-critical` (optional)
+- `errors-warning` (optional)
+- `errors-critical` (optional)
+- `throttles-critical` (optional)
+- `concurrent-executions-warning` (optional)
+- `concurrent-executions-critical` (optional)
 
-### api-gateway/standard.json
+## API Gateway Template
 
-**Use for**: Production APIs
+**File**: `api-gateway/config.json`
 
 **Alarms**:
 
 - 4XX errors (warning)
-- 5XX errors (critical)
-- Latency p99 (critical)
+- 5XX errors (warning + critical)
+- Latency p99 (warning + critical)
 - Request spike (critical)
 
-**Required thresholds**:
+**Thresholds**:
 
-- `4xx-errors-warning`
-- `5xx-errors-critical`
-- `latency-p99-critical`
-- `request-spike-critical`
+- `4xx-errors-warning` (optional)
+- `5xx-errors-warning` (optional)
+- `5xx-errors-critical` (optional)
+- `latency-p99-warning` (optional)
+- `latency-p99-critical` (optional)
+- `request-spike-critical` (optional)
 
-## WAF Templates
+## WAF Template
 
-### waf/minimal.json
-
-**Use for**: Basic WAF monitoring
-
-**Alarms**:
-
-- Blocked requests (warning)
-- Allowed requests spike (critical)
-
-**Required thresholds**:
-
-- `blocked-requests-warning`
-- `allowed-requests-spike-critical`
-
-### waf/standard.json
-
-**Use for**: Production WAF monitoring
+**File**: `waf/config.json`
 
 **Alarms**:
 
@@ -107,12 +64,12 @@ templates/
 - Allowed requests spike (critical)
 - Counted requests (warning)
 
-**Required thresholds**:
+**Thresholds**:
 
-- `blocked-requests-warning`
-- `blocked-requests-critical`
-- `allowed-requests-spike-critical`
-- `counted-requests-warning`
+- `blocked-requests-warning` (optional)
+- `blocked-requests-critical` (optional)
+- `allowed-requests-spike-critical` (optional)
+- `counted-requests-warning` (optional)
 
 ## Using Templates
 
@@ -122,28 +79,36 @@ templates/
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "standard"  # Uses lambda/standard.json
+  alarm_config_path = "${path.module}/templates/lambda/config.json"
 
-  # Template applies to all lambda functions
-  lambda_functions = {
+  monitored_resources = {
     api_lambda    = module.api_lambda.lambda_function_name
     worker_lambda = module.worker_lambda.lambda_function_name
   }
 
-  # Optional: only apply alarms to specific resources
-  resource_type_filter = ["api_lambda"]  # Only api_lambda gets alarms
-
-  # Define thresholds per function
   alarm_thresholds = {
     api_lambda = {
+      "duration-p99-warning"           = 2000
       "duration-p99-critical"          = 3000
+      "errors-warning"                 = 3
       "errors-critical"                = 5
       "throttles-critical"             = 1
+      "concurrent-executions-warning"  = 80
       "concurrent-executions-critical" = 100
+    }
+    worker_lambda = {
+      "errors-critical"    = 10
+      "throttles-critical" = 2
     }
   }
 
-  # ... evaluation periods and periods
+  alarm_evaluation_periods = {
+    api_lambda = { "errors-critical" = 2 }
+  }
+
+  alarm_periods = {
+    api_lambda = { "errors-critical" = 60 }
+  }
 }
 ```
 
@@ -153,7 +118,7 @@ module "monitoring" {
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "api-gateway/standard"
+  alarm_config_path = "${path.module}/templates/api-gateway/config.json"
 
   monitored_resources = {
     api = module.api_gateway.api_name
@@ -161,14 +126,22 @@ module "monitoring" {
 
   alarm_thresholds = {
     api = {
-      "4xx-errors-warning"      = 100
-      "5xx-errors-critical"     = 10
-      "latency-p99-critical"    = 5000
-      "request-spike-critical"  = 10000
+      "4xx-errors-warning"     = 100
+      "5xx-errors-warning"     = 5
+      "5xx-errors-critical"    = 10
+      "latency-p99-warning"    = 3000
+      "latency-p99-critical"   = 5000
+      "request-spike-critical" = 10000
     }
   }
 
-  # ... evaluation periods and periods
+  alarm_evaluation_periods = {
+    api = { "5xx-errors-critical" = 2 }
+  }
+
+  alarm_periods = {
+    api = { "5xx-errors-critical" = 60 }
+  }
 }
 ```
 
@@ -178,7 +151,7 @@ module "monitoring" {
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "WAF/standard"
+  alarm_config_path = "${path.module}/templates/waf/config.json"
 
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
@@ -193,7 +166,13 @@ module "monitoring" {
     }
   }
 
-  # ... evaluation periods and periods
+  alarm_evaluation_periods = {
+    waf = { "blocked-requests-critical" = 3 }
+  }
+
+  alarm_periods = {
+    waf = { "blocked-requests-critical" = 300 }
+  }
 }
 ```
 
@@ -203,22 +182,39 @@ module "monitoring" {
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  # Use custom config with multiple resource types
-  alarm_config_path = "${path.module}/alarms/multi-resource-config.json"
+  alarm_config_path = "${path.module}/templates/custom-config.json"
 
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
     api        = module.api_gateway.api_name
-    WAF        = aws_wafv2_web_acl.main.name
+    waf        = aws_wafv2_web_acl.main.name
   }
 
-  # ... thresholds for all resources
+  alarm_thresholds = {
+    api_lambda = { "errors-critical" = 5 }
+    api        = { "5xx-errors-critical" = 10 }
+    waf        = { "blocked-requests-critical" = 5000 }
+  }
+
+  alarm_evaluation_periods = {
+    api_lambda = { "errors-critical" = 2 }
+    api        = { "5xx-errors-critical" = 2 }
+    waf        = { "blocked-requests-critical" = 3 }
+  }
+
+  alarm_periods = {
+    api_lambda = { "errors-critical" = 60 }
+    api        = { "5xx-errors-critical" = 60 }
+    waf        = { "blocked-requests-critical" = 300 }
+  }
 }
 ```
 
-## Custom Templates
+## Creating Additional Templates
 
-Create your own template with the following structure:
+You can create additional templates for specific use cases (e.g., minimal monitoring, comprehensive monitoring) by following the same structure as the default `config.json` files.
+
+### Template Structure
 
 ```json
 {
@@ -239,48 +235,62 @@ Create your own template with the following structure:
 
 ### Key Fields
 
-- `resource_type`: Generic type (e.g., "lambda", "api", "WAF") - template applies to all resources
+- `resource_type`: Generic type (e.g., "lambda", "api", "waf") - template applies to all resources
 - `metric_name`: CloudWatch metric name
-- `statistic`: Statistical function
-- `comparison_operator`: Comparison type
+- `statistic`: Statistical function (Sum, Average, p99, Maximum, etc.)
+- `comparison_operator`: Comparison type (GreaterThanThreshold, LessThanThreshold, etc.)
 - `alarm_suffix`: Unique identifier for threshold mapping
 - `description`: Human-readable description
 - `severity`: `warning` or `critical`
-- `namespace`: AWS service namespace
-- `dimension_name`: Dimension name for the resource
+- `namespace`: AWS service namespace (AWS/Lambda, AWS/ApiGateway, AWS/WAFV2)
+- `dimension_name`: Dimension name for the resource (FunctionName, ApiName, WebACL)
 
-## Supported Namespaces
+### Example: Minimal Lambda Template
 
-| Namespace | Resource Type | Dimension Name |
-| ----------- | --------------- | ---------------- |
-| AWS/Lambda | Lambda functions | FunctionName |
-| AWS/ApiGateway | API Gateway REST APIs | ApiName |
-| AWS/ApiGateway | API Gateway HTTP APIs | ApiId |
-| AWS/WAFV2 | WAF WebACLs | WebACL |
+Create `lambda/minimal-config.json` for basic monitoring:
 
-## Common Issues
-
-### Alarms Not Created
-
-**Symptom**: `terraform plan` shows no alarm resources being created
-
-**Cause**: Missing thresholds in `alarm_thresholds` for your resources
-
-**Solution**: Ensure each resource has thresholds defined for the alarms you want:
-
-```hcl
-alarm_thresholds = {
-  my_lambda = {
-    "errors-critical" = 5  # Must match alarm_suffix in template
-  }
+```json
+{
+  "lambda": [
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-critical",
+      "description": "Lambda errors critical threshold",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "throttles-critical",
+      "description": "Lambda throttles critical threshold",
+      "severity": "critical"
+    }
+  ]
 }
 ```
 
+Then reference it:
+
+```hcl
+alarm_config_path = "${path.module}/templates/lambda/minimal-config.json"
+```
+
+## Supported AWS Services
+
+| Service | Namespace | Resource Type | Dimension Name |
+| ------- | --------- | ------------- | -------------- |
+| Lambda | AWS/Lambda | lambda | FunctionName |
+| API Gateway | AWS/ApiGateway | api | ApiName |
+| WAF | AWS/WAFV2 | waf | WebACL |
+
 ## Best Practices
 
-1. **Define thresholds**: Only alarms with thresholds are created
-2. **Start with templates**: Use built-in templates as a baseline
-3. **Customize thresholds**: Adjust based on your service's behavior
-4. **Monitor gradually**: Start with minimal, expand to standard/comprehensive
-5. **Test alarms**: Trigger test alarms to verify notifications
-6. **Document thresholds**: Keep track of why specific values were chosen
+1. **Define thresholds**: Only alarms with defined thresholds are created
+2. **Use templates as baseline**: Start with provided templates and customize as needed
+3. **Adjust thresholds**: Tune based on actual service behavior and traffic patterns
+4. **Test alarms**: Verify notifications work by triggering test alarms
+5. **Document decisions**: Track why specific threshold values were chosen
+6. **Review regularly**: Update thresholds as service usage patterns change

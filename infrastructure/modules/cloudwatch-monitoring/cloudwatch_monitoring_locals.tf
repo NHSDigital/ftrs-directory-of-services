@@ -1,21 +1,14 @@
 locals {
-  # Support both template names and custom paths
-  config_path = contains(["minimal", "standard", "comprehensive"], var.alarm_config_path) ? "${path.module}/templates/lambda/${var.alarm_config_path}.json" : var.alarm_config_path
+  config_path = var.alarm_config_path
 
   alarm_config = jsondecode(file(local.config_path))
 
-  # Backward compatibility: merge lambda_functions into monitored_resources
-  resources = merge(var.monitored_resources, var.lambda_functions)
+  resources = var.monitored_resources
 
-  # Filter resources by template resource_type_filter if specified
-  filtered_resources = var.resource_type_filter != null ? {
-    for k, v in local.resources : k => v if contains(var.resource_type_filter, k)
-  } : local.resources
-
-  # Flatten alarm config: apply each template type to filtered resources
+  #Flatten alarm config: apply each template type to resources
   alarms = merge([
     for template_key, alarm_configs in local.alarm_config : merge([
-      for resource_key, resource_identifier in local.filtered_resources : {
+      for resource_key, resource_identifier in local.resources : {
         for alarm in alarm_configs :
         "${resource_key}_${alarm.alarm_suffix}" => {
           resource_identifier = resource_identifier

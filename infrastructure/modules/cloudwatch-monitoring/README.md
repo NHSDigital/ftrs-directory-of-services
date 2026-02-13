@@ -25,16 +25,16 @@ module "lambda_monitoring" {
 
   resource_prefix  = "my-service"
   workspace_suffix = "-prod"
-  
+
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
-  
+
   alarm_config_path = "lambda/standard"
-  
+
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
   }
-  
+
   alarm_thresholds = {
     api_lambda = {
       "duration-p99-critical"          = 3000
@@ -43,7 +43,7 @@ module "lambda_monitoring" {
       "concurrent-executions-critical" = 100
     }
   }
-  
+
   alarm_evaluation_periods = {
     api_lambda = {
       "duration-p99-critical"          = 2
@@ -52,7 +52,7 @@ module "lambda_monitoring" {
       "concurrent-executions-critical" = 2
     }
   }
-  
+
   alarm_periods = {
     api_lambda = {
       "duration-p99-critical"          = 300
@@ -72,16 +72,16 @@ module "api_monitoring" {
 
   resource_prefix  = "my-api"
   workspace_suffix = "-prod"
-  
+
   sns_topic_name   = "my-api-alarms-prod"
   sns_display_name = "My API Gateway Alarms"
-  
+
   alarm_config_path = "api-gateway/standard"
-  
+
   monitored_resources = {
     api = module.api_gateway.api_name
   }
-  
+
   alarm_thresholds = {
     api = {
       "4xx-errors-warning"      = 100
@@ -90,7 +90,7 @@ module "api_monitoring" {
       "request-spike-critical"  = 10000
     }
   }
-  
+
   alarm_evaluation_periods = {
     api = {
       "4xx-errors-warning"      = 3
@@ -99,7 +99,7 @@ module "api_monitoring" {
       "request-spike-critical"  = 1
     }
   }
-  
+
   alarm_periods = {
     api = {
       "4xx-errors-warning"      = 300
@@ -119,16 +119,16 @@ module "waf_monitoring" {
 
   resource_prefix  = "my-waf"
   workspace_suffix = "-prod"
-  
+
   sns_topic_name   = "my-waf-alarms-prod"
   sns_display_name = "My WAF Alarms"
-  
+
   alarm_config_path = "waf/standard"
-  
+
   monitored_resources = {
     waf = aws_wafv2_web_acl.main.name
   }
-  
+
   alarm_thresholds = {
     waf = {
       "blocked-requests-warning"        = 1000
@@ -137,7 +137,7 @@ module "waf_monitoring" {
       "counted-requests-warning"        = 500
     }
   }
-  
+
   alarm_evaluation_periods = {
     waf = {
       "blocked-requests-warning"        = 2
@@ -146,7 +146,7 @@ module "waf_monitoring" {
       "counted-requests-warning"        = 2
     }
   }
-  
+
   alarm_periods = {
     waf = {
       "blocked-requests-warning"        = 300
@@ -166,18 +166,18 @@ module "full_stack_monitoring" {
 
   resource_prefix  = "my-service"
   workspace_suffix = "-prod"
-  
+
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Full Stack Alarms"
-  
+
   alarm_config_path = "${path.module}/alarms/full-stack-config.json"
-  
+
   monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
     api        = module.api_gateway.api_name
     waf        = aws_wafv2_web_acl.main.name
   }
-  
+
   alarm_thresholds = {
     api_lambda = {
       "duration-p99-critical"          = 3000
@@ -198,7 +198,7 @@ module "full_stack_monitoring" {
       "counted-requests-warning"        = 500
     }
   }
-  
+
   # ... evaluation periods and periods
 }
 ```
@@ -211,17 +211,17 @@ module "monitoring" {
 
   resource_prefix  = "my-service"
   workspace_suffix = "-prod"
-  
+
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
-  
+
   alarm_config_path = "lambda/standard"
-  
+
   monitored_resources = {
     api_lambda    = module.api_lambda.lambda_function_name
     worker_lambda = module.worker_lambda.lambda_function_name
   }
-  
+
   alarm_thresholds = {
     api_lambda = {
       "duration-p99-critical"          = 3000
@@ -236,7 +236,7 @@ module "monitoring" {
       "concurrent-executions-critical" = 50
     }
   }
-  
+
   # ... evaluation periods and periods
 }
 ```
@@ -387,10 +387,8 @@ module "lambda_monitoring" {
 
 module "slack_notifications" {
   source = "../../modules/slack-notifications"
-  
+
   sns_topic_arn = module.lambda_monitoring.sns_topic_arn
   # ... configuration
 }
 ```
-
-See the [slack-notifications module](../slack-notifications/README.md) for details.

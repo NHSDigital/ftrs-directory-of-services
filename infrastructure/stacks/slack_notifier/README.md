@@ -1,45 +1,47 @@
 # CloudWatch Monitoring & Slack Notifications
 
-Reusable Terraform modules and stacks for AWS resource monitoring with CloudWatch alarms and Slack notifications.
+**Pre-configured monitoring infrastructure for service teams.** Everything is already set up - just use the modules, pick a template, and enable via `.tfvars`.
 
-## Overview
+## What's Already Configured
 
-This solution provides:
+- **Reusable Terraform modules** - Drop into your stack
+- **Alarm templates** - Lambda, API Gateway, WAF patterns ready to use
+- **Slack integration** - Centralised notification handler deployed
+- **SNS topics** - Automatically created per service
 
-- **CloudWatch alarms** for Lambda, API Gateway, and WAF
-- **Slack notifications** for alarm events
-- **Built-in templates** for quick adoption
-- **Reusable modules** following DRY principles
+**Your job**: Define which resources to monitor and enable notifications in your `.tfvars`
 
 ## Architecture
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    Your Stack (e.g., dos_search)             │
-│                                                              │
+│                Your Stack (e.g., dos_search)                │
+│                                                             │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │  CloudWatch Monitoring                                 │ │
 │  │  Module: cloudwatch-monitoring                         │ │
 │  │  - Lambda/API Gateway/WAF alarms                       │ │
 │  │  - SNS topic for notifications                         │ │
 │  └────────────────────────────┬───────────────────────────┘ │
-│                               │                              │
+│                               │                             │
 │  ┌────────────────────────────▼───────────────────────────┐ │
-│  │  Slack Notifications (optional)                        │ │
+│  │  Slack Notifications                                   │ │
 │  │  Module: slack-notifications                           │ │
 │  │  - Lambda function                                     │ │
 │  │  - SNS subscription                                    │ │
 │  │  - Formats and sends to Slack                          │ │
 │  └────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-                         Slack Channel
+                                │
+                                ▼
+                          Slack Channel
 ```
 
-## Quick Start
+## Quick Start (3 Steps)
 
-### Step 1: Add CloudWatch Monitoring
+### Step 1: Use the Module + Pick a Template
+
+Add to your stack's `monitoring.tf` using a **pre-built template**:
 
 ```bash
 # In your stack (e.g., infrastructure/stacks/my_service/monitoring.tf)
@@ -52,10 +54,10 @@ module "lambda_monitoring" {
   sns_topic_name   = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
   sns_display_name = "My Service Lambda Alarms"
 
-  # Use built-in template
-  alarm_config_path = "lambda/standard"
+  # Use pre-built template (no custom config needed!)
+  alarm_config_path = "comprehensive"
 
-  monitored_resources = {
+  lambda_functions = {
     api_lambda = module.api_lambda.lambda_function_name
   }
 
@@ -88,32 +90,39 @@ module "lambda_monitoring" {
 }
 ```
 
-### Step 2: Add Slack Notifications (Optional)
+### Step 2: Define Slack Integration
+
+Add to your stack's `slack_notifications.tf` (references centralised slack_notifier):
 
 ```bash
 # In your stack (e.g., infrastructure/stacks/my_service/slack_notifications.tf)
-data "terraform_remote_state" "slack_notifier" {
-  count   = var.enable_slack_notifications ? 1 : 0
-  backend = "s3"
+data "aws_lambda_function" "slack_notifier" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  function_name = "${local.project_prefix}-slack-notifier${local.workspace_suffix}"
+}
 
-  config = {
-    bucket         = "nhse-${var.environment}-${var.repo_name}-terraform-state"
-    key            = "slack_notifier/terraform.state"
-    region         = var.aws_region
-    dynamodb_table = "nhse-${var.environment}-${var.repo_name}-terraform-state-lock"
-    encrypt        = true
-  }
+resource "aws_lambda_permission" "allow_sns_invoke" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  statement_id  = "AllowExecutionFromSNS-${local.resource_prefix}"
+  action        = "lambda:InvokeFunction"
+  function_name = data.aws_lambda_function.slack_notifier[0].function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.lambda_monitoring.sns_topic_arn
 }
 
 resource "aws_sns_topic_subscription" "lambda_alarms_to_slack" {
   count     = var.enable_slack_notifications ? 1 : 0
   topic_arn = module.lambda_monitoring.sns_topic_arn
   protocol  = "lambda"
-  endpoint  = data.terraform_remote_state.slack_notifier[0].outputs.lambda_function_arn
+  endpoint  = data.aws_lambda_function.slack_notifier[0].arn
+
+  depends_on = [aws_lambda_permission.allow_sns_invoke]
 }
 ```
 
-### Step 3: Enable in Variables
+### Step 3: Enable via .tfvars
+
+Add the variable definition:
 
 ```text
 # In your stack variables.tf
@@ -129,83 +138,16 @@ variable "enable_slack_notifications" {
 enable_slack_notifications = true
 ```
 
+**That's it!** Alarms are created and Slack notifications flow automatically.
+
 ## Available Templates
 
-### Lambda Monitoring
-
 | Template | Alarms | Use Case |
 |----------|--------|----------|
-| `lambda/minimal` | Errors, Throttles | Basic monitoring |
-| `lambda/standard` | Duration p99, Errors, Throttles, Concurrency | Recommended |
-| `lambda/comprehensive` | All metrics + Warning levels | High-criticality |
-
-### API Gateway Monitoring
-
-| Template | Alarms | Use Case |
-|----------|--------|----------|
-| `api-gateway/minimal` | 5XX errors, Latency | Basic API monitoring |
-| `api-gateway/standard` | 4XX/5XX errors, Latency, Request spike | Production APIs |
-
-### WAF Monitoring
-
-| Template | Alarms | Use Case |
-|----------|--------|----------|
-| `waf/minimal` | Blocked requests, Allowed spike | Basic WAF monitoring |
-| `waf/standard` | Blocked/Counted requests, Allowed spike | Production WAF |
-
-## Modules
-
-### cloudwatch-monitoring
-
-**Location**: `infrastructure/modules/cloudwatch-monitoring/`
-
-**Purpose**: Creates CloudWatch alarms and SNS topic for AWS resources
-
-**Supports**:
-
-- Lambda functions
-- API Gateway (REST/HTTP)
-- WAF WebACLs
-
-**Key Features**:
-
-- Built-in templates for common patterns
-- Custom configuration support
-- Multiple resource monitoring
-- Warning/Critical severity levels
-
-**Documentation**: [cloudwatch-monitoring/README.md](./modules/cloudwatch-monitoring/README.md)
-
-### slack-notifications
-
-**Location**: `infrastructure/modules/slack-notifications/`
-
-**Purpose**: Lambda function that sends CloudWatch alarms to Slack
-
-**Key Features**:
-
-- Resource-agnostic (works with any SNS topic)
-- VPC support
-- Configurable Lambda settings
-- X-Ray tracing
-
-**Documentation**: [slack-notifications/README.md](./modules/slack-notifications/README.md)
-
-## Stacks
-
-### slack_notifier
-
-**Location**: `infrastructure/stacks/slack_notifier/`
-
-**Purpose**: Standalone deployable stack for Slack notifications
-
-**Use Cases**:
-
-- Subscribe to multiple SNS topics from different stacks
-- Centralized notification management
-- Independent deployment lifecycle
-
-**Documentation**: [slack_notifier/README.md](./stacks/slack_notifier/README.md)
+| `minimal` | Errors, Throttles | Basic monitoring |
+| `standard` | Duration p99, Errors, Throttles, Concurrency | Recommended |
+| `comprehensive` | All metrics + Warning levels | High-criticality |
+| Custom path | Your own config | `${path.module}/custom-config.json` |
 
 ## Examples
 
@@ -215,9 +157,9 @@ enable_slack_notifications = true
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "lambda/minimal"
+  alarm_config_path = "minimal"
 
-  monitored_resources = {
+  lambda_functions = {
     lambda = module.my_lambda.lambda_function_name
   }
 
@@ -233,10 +175,8 @@ module "monitoring" {
 
   alarm_config_path = "${path.module}/custom-config.json"
 
-  monitored_resources = {
+  lambda_functions = {
     api_lambda = module.api_lambda.lambda_function_name
-    api        = module.api_gateway.api_name
-    waf        = aws_wafv2_web_acl.main.name
   }
 
   # ... thresholds for all resources
@@ -245,58 +185,58 @@ module "monitoring" {
 
 ### Example 3: With Slack Notifications
 
-```hcl
+```text
 # Monitoring
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
   # ... configuration
 }
 
-# Slack notifications via remote state
-data "terraform_remote_state" "slack_notifier" {
-  count   = var.enable_slack_notifications ? 1 : 0
-  backend = "s3"
-  config = {
-    bucket = "nhse-${var.environment}-${var.repo_name}-terraform-state"
-    key    = "slack_notifier/terraform.state"
-    region = var.aws_region
-  }
+# Slack notifications via Lambda data source
+data "aws_lambda_function" "slack_notifier" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  function_name = "${local.project_prefix}-slack-notifier${local.workspace_suffix}"
+}
+
+resource "aws_lambda_permission" "allow_sns_invoke" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  statement_id  = "AllowExecutionFromSNS-${local.resource_prefix}"
+  action        = "lambda:InvokeFunction"
+  function_name = data.aws_lambda_function.slack_notifier[0].function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.monitoring.sns_topic_arn
 }
 
 resource "aws_sns_topic_subscription" "alarms_to_slack" {
-  count     = var.enable_slack_notifications ? 1 : 0
-  topic_arn = module.monitoring.sns_topic_arn
-  protocol  = "lambda"
-  endpoint  = data.terraform_remote_state.slack_notifier[0].outputs.lambda_function_arn
+  count      = var.enable_slack_notifications ? 1 : 0
+  topic_arn  = module.monitoring.sns_topic_arn
+  protocol   = "lambda"
+  endpoint   = data.aws_lambda_function.slack_notifier[0].arn
+  depends_on = [aws_lambda_permission.allow_sns_invoke]
 }
 ```
 
-## Configuration
+## Configuration Reference
 
-### Enabling Slack Notifications Per Environment
+### Enabling Slack Notifications
 
-Slack notifications are controlled by the `enable_slack_notifications` variable and configured per environment.
+**Per-environment control** via `.tfvars` files:
 
-**To enable for a specific environment:**
-
-1. Edit `/infrastructure/environments/{env}/{stack_name}.tfvars`
-2. Add:
-
-   ```text
-   # Slack Notifications
-   enable_slack_notifications = true
-   ```
+```text
+# infrastructure/environments/{env}/{stack_name}.tfvars
+enable_slack_notifications = true
+```
 
 **Example - dos_search stack:**
 
-- ✅ Enabled: `dev`, `int`
-- ❌ Disabled: `test`, `ref`, `prod`
+- Enabled: `dev`, `int`
+- Disabled: `ref`, `prod`
 
-**Requirements:**
+**Prerequisites:**
 
-- `slack_notifier` stack must be deployed first (webhook configured via GitHub secrets)
-- Alarms are always created; Slack is optional
-- Each stack manages its own Slack notification setting
+- `slack_notifier` stack deployed (already done centrally)
+- Webhook configured via GitHub secrets (already done)
+- Alarms always created; Slack is optional per environment
 
 ### Filtering Alarms by Resource
 
@@ -320,9 +260,9 @@ module "lambda_monitoring" {
 
 **Default**: `null` (all resources get alarms)
 
-### Required Variables
+### Minimal Required Configuration
 
-**For cloudwatch-monitoring**:
+**For cloudwatch-monitoring module**:
 
 - `resource_prefix` - Prefix for alarm names
 - `workspace_suffix` - Workspace suffix
@@ -335,9 +275,9 @@ module "lambda_monitoring" {
 
 **For slack-notifications**:
 
-- `environment` - Environment name
-- `project` - Project name
-- `aws_region` - AWS region
+- Service teams don't configure this directly
+- The `slack_notifier` stack is deployed and maintained centrally
+- Reference it via `aws_lambda_function` data source (see Quick Start)
 
 **Note**: Slack webhook URL is configured via GitHub environment secrets (`SLACK_WEBHOOK_ALARMS_URL`) and deployed through the centralized `slack_notifier` stack.
 
@@ -349,27 +289,7 @@ module "lambda_monitoring" {
 
 ## Testing
 
-### Test Alarm Trigger
-
-```bash
-aws cloudwatch set-alarm-state \
-  --alarm-name "my-service-api-lambda-errors-critical" \
-  --state-value ALARM \
-  --state-reason "Testing Slack notifications"
-```
-
-### Check Lambda Logs
-
-```bash
-aws logs tail /aws/lambda/my-service-slack-notifier-slack-notification --follow
-```
-
-### Verify SNS Subscription
-
-```bash
-aws sns list-subscriptions-by-topic \
-  --topic-arn "arn:aws:sns:region:account:topic-name"
-```
+See the [alarm templates documentation](../../modules/cloudwatch-monitoring/templates/README.md) for testing alarm configurations and make targets.
 
 ## Best Practices
 
@@ -399,22 +319,11 @@ aws sns list-subscriptions-by-topic \
 5. Verify VPC configuration (if applicable)
 6. Check Lambda permissions
 
-### High Costs
-
-1. Review alarm count
-2. Check evaluation frequency
-3. Optimize CloudWatch Logs retention
-4. Consider using minimal templates for non-critical services
-
-## Migration Guide
-
-See [cloudwatch-monitoring/MIGRATION.md](./modules/cloudwatch-monitoring/MIGRATION.md) for migrating from embedded alarm configurations.
-
 ## Support
 
-- **CloudWatch Monitoring**: [modules/cloudwatch-monitoring/](./modules/cloudwatch-monitoring/)
-- **Slack Notifications**: [modules/slack-notifications/](./modules/slack-notifications/)
-- **Slack Notifier Stack**: [stacks/slack_notifier/](./stacks/slack_notifier/)
+- **CloudWatch Monitoring Module**: [modules/cloudwatch-monitoring/](../../modules/cloudwatch-monitoring/)
+- **Alarm Templates**: [modules/cloudwatch-monitoring/templates/](../../modules/cloudwatch-monitoring/templates/)
+- **Centralized Slack Handler**: Deployed via `slack_notifier` stack (this directory)
 
 ## Contributing
 

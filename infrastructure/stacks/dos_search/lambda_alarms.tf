@@ -8,7 +8,7 @@ module "lambda_monitoring" {
   sns_display_name = "DoS Search Lambda Alarms"
   kms_key_id       = null
 
-  alarm_config_path = "comprehensive"
+  alarm_config_path = "config"
 
   # Optional: filter which resources get alarms
   resource_type_filter = ["search_lambda", "health_check_lambda"] # Uncomment to only alarm search_lambda

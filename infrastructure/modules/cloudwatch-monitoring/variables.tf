@@ -31,19 +31,12 @@ variable "tags" {
 }
 
 variable "alarm_config_path" {
-  description = "Path to JSON file containing alarm configurations. Use module templates or provide custom path"
+  description = "Path to JSON file containing alarm configurations (e.g., templates/lambda/config.json)"
   type        = string
-  default     = "standard"
 }
 
 variable "monitored_resources" {
-  description = "Map of resource keys to their identifiers (e.g., Lambda function names, API Gateway IDs, WAF WebACL names)"
-  type        = map(string)
-  default     = {}
-}
-
-variable "lambda_functions" {
-  description = "(Deprecated: use monitored_resources) Map of lambda function keys to their names"
+  description = "Map of resource keys to their identifiers (e.g., Lambda function names, API Gateway names, WAF WebACL names)"
   type        = map(string)
   default     = {}
 }
@@ -69,8 +62,3 @@ variable "enable_warning_alarms" {
   default     = true
 }
 
-variable "resource_type_filter" {
-  description = "List of resource keys to apply alarms to. If null, applies to all resources"
-  type        = list(string)
-  default     = null
-}

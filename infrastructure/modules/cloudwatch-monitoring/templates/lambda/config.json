@@ -4,9 +4,25 @@
       "metric_name": "Duration",
       "statistic": "p99",
       "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "duration-p99-warning",
+      "description": "Lambda duration p99 warning threshold",
+      "severity": "warning"
+    },
+    {
+      "metric_name": "Duration",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "duration-p99-critical",
       "description": "Lambda duration p99 critical threshold",
       "severity": "critical"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-warning",
+      "description": "Lambda errors warning threshold",
+      "severity": "warning"
     },
     {
       "metric_name": "Errors",
@@ -23,6 +39,14 @@
       "alarm_suffix": "throttles-critical",
       "description": "Lambda throttles critical threshold",
       "severity": "critical"
+    },
+    {
+      "metric_name": "ConcurrentExecutions",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "concurrent-executions-warning",
+      "description": "Lambda concurrent executions warning threshold",
+      "severity": "warning"
     },
     {
       "metric_name": "ConcurrentExecutions",
