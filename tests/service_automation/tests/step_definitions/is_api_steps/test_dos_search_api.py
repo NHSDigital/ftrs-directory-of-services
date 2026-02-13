@@ -77,7 +77,10 @@ def dns_resolvable(api_name, env, workspace):
 )
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     # headers can be manipulated in individual tests if needed
-    headers = {**MANDATORY_REQUEST_HEADERS}
+    headers = {
+        "NHSD-Request-Id": "req_id",
+        **MANDATORY_REQUEST_HEADERS,
+    }
     url = get_url(api_name) + "/" + resource_name
 
     return _send_api_request(api_request_context_mtls, url, params, headers)
