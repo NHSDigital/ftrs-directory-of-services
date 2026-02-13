@@ -33,7 +33,7 @@ variable "workspace" {
 variable "lambda_handler" {
   description = "Lambda function handler"
   type        = string
-  default     = "functions.slack_alarm_handler.lambda_handler"
+  default     = "slack_alarm_handler.lambda_handler"
 }
 
 variable "lambda_runtime" {
