@@ -290,7 +290,7 @@ variable "enable_warning_alarms" {
 ################################################################################
 
 variable "enable_slack_notifications" {
-  description = "Enable Slack notifications for CloudWatch alarms"
+  description = "Enable Slack notifications for CloudWatch alarms (requires slack_notifier stack to be deployed)"
   type        = bool
   default     = false
 }

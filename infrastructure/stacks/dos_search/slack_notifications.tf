@@ -1,22 +1,22 @@
-# Forward dos_search alarms to centralized slack_notifier Lambda
-# Requires slack_notifier stack to be deployed first
+data "aws_lambda_function" "slack_notifier" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  function_name = "${var.project}-${var.environment}-slack-notifier-slack-notification"
+}
 
-data "terraform_remote_state" "slack_notifier" {
-  count   = var.enable_slack_notifications ? 1 : 0
-  backend = "s3"
-
-  config = {
-    bucket         = "nhse-${var.environment}-${var.repo_name}-terraform-state"
-    key            = "slack_notifier/terraform.state"
-    region         = var.aws_region
-    dynamodb_table = "nhse-${var.environment}-${var.repo_name}-terraform-state-lock"
-    encrypt        = true
-  }
+resource "aws_lambda_permission" "allow_sns_invoke" {
+  count         = var.enable_slack_notifications ? 1 : 0
+  statement_id  = "AllowExecutionFromSNS-${local.resource_prefix}"
+  action        = "lambda:InvokeFunction"
+  function_name = data.aws_lambda_function.slack_notifier[0].function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.lambda_monitoring.sns_topic_arn
 }
 
 resource "aws_sns_topic_subscription" "lambda_alarms_to_slack" {
   count     = var.enable_slack_notifications ? 1 : 0
   topic_arn = module.lambda_monitoring.sns_topic_arn
   protocol  = "lambda"
-  endpoint  = data.terraform_remote_state.slack_notifier[0].outputs.lambda_function_arn
+  endpoint  = data.aws_lambda_function.slack_notifier[0].arn
+
+  depends_on = [aws_lambda_permission.allow_sns_invoke]
 }
