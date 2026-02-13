@@ -133,5 +133,5 @@ resource "aws_iam_policy" "infrastructure_resilience_rw" {
 resource "aws_iam_policy" "infrastructure_resilience_ro" {
   name        = "ro_infrastructure_resilience"
   description = "Read-only policies for aws resilience services"
-  policy      = jsonencode(local.infrastructure_resilience_wo_policy)
+  policy      = jsonencode(local.infrastructure_resilience_ro_policy)
 }

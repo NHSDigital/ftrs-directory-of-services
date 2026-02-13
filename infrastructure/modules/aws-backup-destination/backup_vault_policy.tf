@@ -4,6 +4,8 @@ resource "aws_backup_vault_policy" "vault_policy" {
 }
 
 data "aws_iam_policy_document" "vault_policy" {
+  #checkov:skip=CKV_AWS_356:AWS Backup vault policy requires wildcard resources for cross-account backup operations
+  #checkov:skip=CKV_AWS_111:AWS Backup vault policy requires write access for backup copy operations
 
   statement {
     sid    = "AllowCopyToVault"

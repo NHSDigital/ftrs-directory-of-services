@@ -1,4 +1,4 @@
-# AWS Backup Module - https://github.com/NHSDigital/terraform-aws-backup
+# AWS Backup Module - <https://github.com/NHSDigital/terraform-aws-backup>
 
 The AWS Backup Module helps automates the setup of AWS Backup resources in a destination account. It streamlines the process of creating, managing, and standardising backup configurations.
 
