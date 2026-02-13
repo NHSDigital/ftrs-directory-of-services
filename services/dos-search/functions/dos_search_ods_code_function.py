@@ -65,14 +65,14 @@ def _validate_headers(headers: dict[str, str] | None) -> None:
         raise MissingMandatoryHeadersError(missing_mandatory_headers)
 
     invalid_type_headers = {}
-    if "version" not in missing_mandatory_headers:
-        # Check 'version' header is a valid integer
-        if (
-            not headers["version"].isdigit()
-            if isinstance(headers.get("version"), str)
-            else True
-        ):
-            invalid_type_headers["version"] = type(headers["version"]).__name__
+    # Check 'version' header is a valid integer
+    if not headers.get("version") == "1" and (
+        not headers["version"].isdigit()
+        if isinstance(headers.get("version"), str)
+        else True
+    ):
+        # Add the invalid header and its stringified type to the dictionary
+        invalid_type_headers["version"] = type(headers["version"]).__name__
 
     if invalid_type_headers:
         raise InvalidHeaderTypeError(invalid_type_headers)
