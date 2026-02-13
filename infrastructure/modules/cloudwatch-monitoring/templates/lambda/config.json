@@ -2,10 +2,10 @@
   "lambda": [
     {
       "metric_name": "Duration",
-      "statistic": "p99",
+      "statistic": "p95",
       "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "duration-p99-warning",
-      "description": "Lambda duration p99 warning threshold",
+      "alarm_suffix": "duration-p95-warning",
+      "description": "Lambda duration p95 warning threshold",
       "severity": "warning"
     },
     {
@@ -14,30 +14,6 @@
       "comparison_operator": "GreaterThanThreshold",
       "alarm_suffix": "duration-p99-critical",
       "description": "Lambda duration p99 critical threshold",
-      "severity": "critical"
-    },
-    {
-      "metric_name": "Errors",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "errors-warning",
-      "description": "Lambda errors warning threshold",
-      "severity": "warning"
-    },
-    {
-      "metric_name": "Errors",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "errors-critical",
-      "description": "Lambda errors critical threshold",
-      "severity": "critical"
-    },
-    {
-      "metric_name": "Throttles",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "throttles-critical",
-      "description": "Lambda throttles critical threshold",
       "severity": "critical"
     },
     {
@@ -54,6 +30,38 @@
       "comparison_operator": "GreaterThanOrEqualToThreshold",
       "alarm_suffix": "concurrent-executions-critical",
       "description": "Lambda concurrent executions critical threshold",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Throttles",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "throttles-critical",
+      "description": "Lambda throttles critical threshold",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Invocations",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "invocations-spike-critical",
+      "description": "Lambda invocations spike critical threshold",
+      "severity": "critical"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-warning",
+      "description": "Lambda errors warning threshold",
+      "severity": "warning"
+    },
+    {
+      "metric_name": "Errors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "errors-critical",
+      "description": "Lambda errors critical threshold",
       "severity": "critical"
     }
   ]
