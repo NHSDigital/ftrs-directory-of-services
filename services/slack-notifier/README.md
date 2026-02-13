@@ -24,7 +24,7 @@ Set the `SLACK_WEBHOOK_URL` environment variable to your Slack webhook URL.
 ## Development
 
 ```bash
-make install    # Install dependencies
+make install   # Install dependencies
 make lint      # Run linting
 make test      # Run tests
 make build     # Build artifacts
