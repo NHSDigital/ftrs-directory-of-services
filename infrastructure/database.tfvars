@@ -71,7 +71,25 @@ dynamodb_tables = {
         projection_type = "ALL"
       }
     ]
+    stream_enabled = false
+  }
+  "version-history" = {
+    hash_key  = "entity_id"
+    range_key = "timestamp"
+    attributes = [
+      { name = "entity_id", type = "S" },
+      { name = "timestamp", type = "S" }
+    ]
+    global_secondary_indexes = []
   }
 }
 
 team_owner = "future-directory"
+
+version_history_lambda_runtime      = "python3.12"
+version_history_lambda_name         = "version-history-lambda"
+version_history_lambda_handler      = "version_history.lambda_handler.lambda_handler"
+version_history_lambda_timeout      = 30
+version_history_lambda_memory_size  = 256
+version_history_batch_size          = 10
+version_history_maximum_concurrency = 2

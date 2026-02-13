@@ -1,0 +1,1 @@
+version_history_lambda_logs_retention = 14

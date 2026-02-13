@@ -35,7 +35,6 @@ reference_data_lambda_handler     = "reference_data_load.lambda_handler.lambda_h
 reference_data_lambda_timeout     = 300
 reference_data_lambda_memory_size = 1024
 
-
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 7
 
