@@ -40,15 +40,15 @@ infrastructure/
 Deployable infrastructure components organised by functional area:
 
 - **account_policies**: AWS account-level policies and configurations
-- **account_security**: Security controls and compliance configurations
-- **account_wide**: VPC, networking, and shared account resources
+- **`account_security`**: Security controls and compliance configurations
+- **`account_wide`**: VPC, networking, and shared account resources
 - **app_config**: AWS AppConfig for feature toggles and configuration
-- **artefact_management**: S3 buckets for build artifacts and deployments
-- **athena**: Athena workgroups and query configurations
+- **`artefact_management`**: S3 buckets for build artifacts and deployments
+- **`athena`**: Athena workgroups and query configurations
 - **crud_apis**: Infrastructure for internal CRUD API services
-- **data_migration**: Resources for data migration processes
+- **`data_migration`**: Resources for data migration processes
 - **database**: DynamoDB tables and database configurations
-- **domain_name**: Route53 domains and DNS configurations
+- **`domain_name`**: Route53 domains and DNS configurations
 - **dos_search**: DoS Search API infrastructure and monitoring
 - **etl_ods**: ETL pipeline infrastructure for ODS data processing
 - **github_runner**: Self-hosted GitHub Actions runners
@@ -67,13 +67,13 @@ Each stack has its own directory under `stacks/` with corresponding `.tfvars` fi
 
 Reusable Terraform modules for common infrastructure patterns:
 
-- **acm**: AWS Certificate Manager certificates
+- **`acm`**: AWS Certificate Manager certificates
 - **api-gateway-rest**: REST API Gateway configurations
 - **api-gateway-v2-http**: HTTP API Gateway configurations
 - **app-config**: AppConfig applications and environments
 - **cloudwatch-alarm**: Individual CloudWatch alarm creation
 - **cloudwatch-monitoring**: Complete monitoring solution with templates
-- **dynamodb**: DynamoDB table configurations
+- **`dynamodb`**: DynamoDB table configurations
 - **kms**: KMS key management
 - **lambda**: Lambda function deployments
 - **ods-mock-api**: Mock ODS API for testing
