@@ -2,45 +2,63 @@
 
 Directory containing the services that make up the FtRS suite.
 
-Any new services should be added into this directory.
-
 ## Table of Contents
 
 - [Services](#services)
   - [Table of Contents](#table-of-contents)
+  - [CRUD APIs](#crud-apis)
   - [Data Migration](#data-migration)
+  - [DoS Search](#dos-search)
+  - [DoS UI](#dos-ui)
+  - [ETL ODS](#etl-ods)
   - [Read-Only Viewer](#read-only-viewer)
-  - [Opensearch ingestion pipelines](#opensearch-ingestion-pipelines)
-  - [Sandbox](#sandbox)
+  - [Sandbox DoS Search](#sandbox-dos-search)
+  - [Slack Notifier](#slack-notifier)
+
+## CRUD APIs
+
+Internal APIs for making CRUD updates to the data store. Currently includes the Organisation API for updating data in the Organisation table. Each API is organised as a subdirectory under `crud-apis/`.
+
+[View CRUD APIs README](crud-apis/README.md)
 
 ## Data Migration
 
-This service is responsible for the migration of data from the current live Directory of Services to the future Find the Right Service solution. More details can be found in the [README for the service](https://github.com/NHSDigital/ftrs-directory-of-services/blob/main/services/data-migration/README.md).
+Service responsible for migrating data from the current live Directory of Services to the future Find the Right Service solution. Includes local OpenSearch configuration for testing and development.
+
+[View Data Migration README](data-migration/README.md)
+
+## DoS Search
+
+FHIR-compliant API service for healthcare system integrations. Provides endpoints to search for Directory of Services (DoS) data by ODS code, returning organization and endpoint information in FHIR Bundle format. Includes monitoring, alerting, and Slack notifications.
+
+[View DoS Search README](dos-search/README.md)
+
+## DoS UI
+
+React and TypeScript-based user interface for the Find the Right Service Directory of Services. Built with TanStack Router for routing and data fetching, and uses NHS.UK Frontend for styling.
+
+[View DoS UI README](dos-ui/README.md)
+
+## ETL ODS
+
+ETL (Extract, Transform, Load) pipeline for processing Organisation Data Service (ODS) data. Includes extractor, transformer, and consumer components for ingesting and processing healthcare organization data.
+
+[View ETL ODS README](etl-ods/README.md)
 
 ## Read-Only Viewer
 
-The FtRS Read-Only Viewer is a test utility for the Find the Right Service database. It allows users to view the data in the database and test the APIs that are available. More details can be found in the [README for the service](https://github.com/NHSDigital/ftrs-directory-of-services/blob/main/services/read-only-viewer/README.md).
+Test utility for viewing and testing the Find the Right Service database. Allows users to view data and test available APIs in a read-only mode.
 
-## Opensearch ingestion pipelines
+[View Read-Only Viewer README](read-only-viewer/README.md)
 
-A github workflow is scheduled to run at the end of the day (currently 18:00) and stop any active opensearch
-ingestion pipelines in develop. This is to help keep costs down. If you need to restart an ingestion pipeline then either log into the AWS console (Amazon OpenSearch Ingestion Service> Ingestion Pipelines) and start from there or
+## Sandbox DoS Search
 
-- assume a role in develop account
-- identify name of ingestion pipeline to restart (via console or using script below)
+API sandbox serving canned responses for API Management (APIM) testing and development. Provides mock responses for DoS Search endpoints without requiring live backend services.
 
-```shell
-aws osis list-pipelines --region "${AWS_REGION}" | jq -r '.Pipelines[] | .PipelineName, .Status'
-```
+[View Sandbox DoS Search README](sandbox-dos-search/README.md)
 
-- run following command to restart your chosen pipeline - eg organisation-fdos-222 - this will return the pipeline's new status - ie `STARTING`
+## Slack Notifier
 
-```shell
-aws osis start-pipeline --region "${AWS_REGION}" --pipeline-name organisation-fdos-222 | jq -r '.Pipeline | .Status'
-```
+Reusable service for sending formatted CloudWatch alarm notifications to Slack channels. Processes alarm data from SNS topics and delivers rich, formatted messages with severity detection and AWS console links. Designed to support multiple alarm types across the platform.
 
-- you can check via console or by re-running the list-pipelines command above to check the pipeline is restarting. Note it will take a few minutes to become `ACTIVE`
-
-## Sandbox
-
-The API sandbox serving canned responses for APIM now lives under `services/sandbox-dos-search`. Use the local `Makefile` targets there to build, test, and publish the Docker image that the application pipeline consumes.
+[View Slack Notifier README](slack-notifier/README.md)

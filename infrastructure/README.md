@@ -1,61 +1,197 @@
-# Find the right service infrastructure
+# Infrastructure
+
+Terraform infrastructure as code for the Find the Right Service platform.
 
 ## Table of Contents
 
-- [Find the right service infrastructure](#find-the-right-service-infrastructure)
+- [Infrastructure](#infrastructure)
   - [Table of Contents](#table-of-contents)
-  - [Resource naming conventions](#resource-naming-conventions)
-    - [Account wide resources](#account-wide-resources)
-    - [Application resources](#application-resources)
+  - [Overview](#overview)
+  - [Structure](#structure)
+  - [Stacks](#stacks)
+  - [Modules](#modules)
+  - [Environments](#environments)
+  - [Resource Naming Conventions](#resource-naming-conventions)
+    - [Account-Wide Resources](#account-wide-resources)
+    - [Application Resources](#application-resources)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Deploying a Stack](#deploying-a-stack)
+    - [Common Commands](#common-commands)
 
-## Resource naming conventions
+## Overview
 
-We have introduced some naming conventions to
+This directory contains all Terraform configurations for deploying and managing FtRS infrastructure across multiple AWS environments. The infrastructure follows a modular approach with reusable components and environment-specific configurations.
 
-- identify the project that owns the resources
-- trace resources back to the IAC that built those resources
-- identify account wide resources
-- identify the environment for which the resources were built
-- identify the workspace in which the resources have been built
+## Structure
 
-### Account wide resources
+```text
+infrastructure/
+├── common/           # Shared Terraform configuration (providers, locals)
+├── environments/     # Environment-specific variable files
+├── modules/          # Reusable Terraform modules
+├── stacks/           # Deployable infrastructure stacks
+├── toggles/          # Feature toggle configurations
+└── *.tfvars          # Stack-specific variable files
+```
 
-Some infrastructure we expect to build once per AWS account/environment. Currently these account-wide resources are
+## Stacks
 
-- the vpc, vpn
-- Terraform management resources and
+Deployable infrastructure components organised by functional area:
 
-The names for these resources is linked to the name of the github repository (eg ftrs-directory-of-services)
+- **account_policies**: AWS account-level policies and configurations
+- **account_security**: Security controls and compliance configurations
+- **account_wide**: VPC, networking, and shared account resources
+- **app_config**: AWS AppConfig for feature toggles and configuration
+- **artefact_management**: S3 buckets for build artifacts and deployments
+- **athena**: Athena workgroups and query configurations
+- **crud_apis**: Infrastructure for internal CRUD API services
+- **data_migration**: Resources for data migration processes
+- **database**: DynamoDB tables and database configurations
+- **domain_name**: Route53 domains and DNS configurations
+- **dos_search**: DoS Search API infrastructure and monitoring
+- **etl_ods**: ETL pipeline infrastructure for ODS data processing
+- **github_runner**: Self-hosted GitHub Actions runners
+- **is_performance**: Performance testing infrastructure
+- **opensearch**: OpenSearch clusters and ingestion pipelines
+- **read_only_viewer**: Read-only viewer application infrastructure
+- **slack_notifier**: Centralised Slack notification service
+- **terraform_management**: Terraform state management (S3, DynamoDB)
+- **ui**: Frontend application infrastructure
 
-The convention for naming account wide infrastructure is
+Each stack has its own directory under `stacks/` with corresponding `.tfvars` file at the root.
 
-- the name of the repository
-- the environment for which they are built
-- the unique name of the resource
+[View detailed monitoring documentation](MONITORING.md)
 
-For example a vpc built from this repository for the develop environment would be `ftrs-directory-of-services-dev-my-vpc`
+## Modules
 
-The `account_prefix` variable has been created to simplify resource naming by concatenating the name of the repository and environment
-See ftrs-directory-of-services/infrastructure/common/locals.tf
+Reusable Terraform modules for common infrastructure patterns:
 
-Note
+- **acm**: AWS Certificate Manager certificates
+- **api-gateway-rest**: REST API Gateway configurations
+- **api-gateway-v2-http**: HTTP API Gateway configurations
+- **app-config**: AppConfig applications and environments
+- **cloudwatch-alarm**: Individual CloudWatch alarm creation
+- **cloudwatch-monitoring**: Complete monitoring solution with templates
+- **dynamodb**: DynamoDB table configurations
+- **kms**: KMS key management
+- **lambda**: Lambda function deployments
+- **ods-mock-api**: Mock ODS API for testing
+- **route-53**: Route53 DNS configurations
+- **s3**: S3 bucket configurations
+- **shield**: AWS Shield protection
+- **slack-notifications**: Slack notification Lambda integration
+- **sns**: SNS topic configurations
 
-- the github runner stack is an exception to that rule and the name is based on the repository name (ie minus the environment)
-- the Terraform management stack is also an exception to the rule remaining unchanged
+[View monitoring modules documentation](modules/MONITORING.md)
 
-Both these stacks could be brought into line later - but consideration would have to given to the configure-credentials action (passing an environment) and how to transfer state between buckets and lock tables etc
+## Environments
 
-### Application resources
+Environment-specific configurations stored in `environments/`:
 
-The resources built specifically for business user cases are named slightly differently and should follow these conventions.
+- **dev**: Development environment
+- **int**: Integration environment
+- **test**: Testing environment
+- **ref**: Reference environment
+- **sandpit**: Experimental/sandbox environment
+- **prod**: Production environment
+- **non-prod**: Non-production shared resources
+- **mgmt**: Management/tooling environment
 
-- the owning project - ie ftrs-dos
-- the environment for which they are built - eg dev/test/prod etc
-- the stack that holds the Terraform code - eg database
-- the unique name of the resource - eg example
-- the Terraform workspace (if not the default workspace)
+Each environment directory contains `.tfvars` files for each stack with environment-specific values.
 
-For example an S3 bucket called `example` defined in the `demo` stack and built in the test environment for the default workspace would be named `ftrs-dos-test-demo-example`. The corresponding bucket built in the `fdos-000` workspace would be `ftrs-dos-test-demo-example-fdos-000`
+## Resource Naming Conventions
 
-The `resource_prefix` variable has been created to simplify resource naming by concatenating the name of the project, the environment and the stack
-See ftrs-directory-of-services/infrastructure/common/locals.tf
+### Account-Wide Resources
+
+Resources built once per AWS account/environment (VPC, Terraform state):
+
+**Format**: `{repository-name}-{environment}-{resource-name}`
+
+**Example**: `ftrs-directory-of-services-dev-my-vpc`
+
+The `account_prefix` variable simplifies naming by concatenating repository name and environment.
+
+**Exceptions**:
+
+- GitHub runner stack: Uses repository name only (no environment)
+- Terraform management stack: Unchanged naming
+
+### Application Resources
+
+Resources for specific business use cases:
+
+**Format**: `{project}-{environment}-{stack}-{resource-name}[-{workspace}]`
+
+**Examples**:
+
+- Default workspace: `ftrs-dos-test-demo-example`
+- Named workspace: `ftrs-dos-test-demo-example-ftrs-000`
+
+The `resource_prefix` variable simplifies naming by concatenating project, environment, and stack.
+
+**Components**:
+
+- **project**: `ftrs-dos`
+- **environment**: `dev`, `test`, `prod`, etc.
+- **stack**: `database`, `dos_search`, etc.
+- **resource-name**: Unique identifier for the resource
+- **workspace**: Optional Terraform workspace suffix
+
+See `infrastructure/common/locals.tf` for variable definitions.
+
+## Getting Started
+
+### Prerequisites
+
+- Terraform (version specified in `common/versions.tf`)
+- AWS CLI configured with appropriate credentials
+- Access to the target AWS account
+
+### Deploying a Stack
+
+1. Navigate to the stack directory:
+
+   ```bash
+   cd infrastructure/stacks/{stack_name}
+   ```
+
+2. Initialize Terraform:
+
+   ```bash
+   terraform init
+   ```
+
+3. Select workspace (if applicable):
+
+   ```bash
+   terraform workspace select {workspace_name}
+   ```
+
+4. Plan changes:
+
+   ```bash
+   terraform plan -var-file=../../environments/{env}/{stack_name}.tfvars
+   ```
+
+5. Apply changes:
+
+   ```bash
+   terraform apply -var-file=../../environments/{env}/{stack_name}.tfvars
+   ```
+
+### Common Commands
+
+```bash
+# List workspaces
+terraform workspace list
+
+# Show current state
+terraform show
+
+# Validate configuration
+terraform validate
+
+# Format code
+terraform fmt -recursive
+```
