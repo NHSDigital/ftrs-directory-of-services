@@ -31,7 +31,7 @@ variable "tags" {
 }
 
 variable "alarm_config_path" {
-  description = "Path to JSON file containing alarm configurations (e.g., templates/lambda/config.json)"
+  description = "Template name for alarm configurations (e.g., 'lambda/config', 'api-gateway/config', 'waf/config')"
   type        = string
 }
 

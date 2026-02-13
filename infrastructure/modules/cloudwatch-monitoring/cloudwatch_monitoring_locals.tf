@@ -1,5 +1,5 @@
 locals {
-  config_path = var.alarm_config_path
+  config_path = "${path.module}/templates/${var.alarm_config_path}.json"
 
   alarm_config = jsondecode(file(local.config_path))
 
