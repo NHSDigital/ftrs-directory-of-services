@@ -27,6 +27,7 @@ runs:
         COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
+            --comment "Clear performance run lock file on EC2 instance $EC2_INSTANCE_ID" \
             --parameters "{\"commands\": $COMMANDS}" \
             --query "Command.CommandId" \
             --output text)

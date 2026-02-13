@@ -23,7 +23,6 @@ runs:
       shell: bash
       env:
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
-        FAIL_ON_LOCK_FILE: ${{ inputs.fail-on-lock-file }}
         LOCK_FILE_PATH: ${{ inputs.lock-file-path }}
       run: |
         COMMANDS=$(cat <<EOF
@@ -37,6 +36,7 @@ runs:
           aws ssm send-command \
           --instance-ids "$EC2_INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
+          --comment "Check performance test lock file of $LOCK_FILE_PATH" \
           --parameters "{\"commands\": $COMMANDS}" \
           --query "Command.CommandId" \
           --output text)

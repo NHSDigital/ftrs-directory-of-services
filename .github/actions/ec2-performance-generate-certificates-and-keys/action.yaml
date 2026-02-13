@@ -47,6 +47,7 @@ runs:
             aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
+            --comment "Generate certificates and keys on EC2 instance $EC2_INSTANCE_ID" \
             --parameters "{\"commands\": $COMMANDS}" \
             --query "Command.CommandId" \
             --output text
