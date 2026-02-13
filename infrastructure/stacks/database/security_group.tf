@@ -15,6 +15,6 @@ resource "aws_vpc_security_group_egress_rule" "allow_dynamodb_access_from_versio
   description       = "Version history lambda egress rule to allow DynamoDB traffic"
   prefix_list_id    = data.aws_prefix_list.dynamodb[0].id
   ip_protocol       = "tcp"
-  from_port         = 443
-  to_port           = 443
+  from_port         = var.https_port
+  to_port           = var.https_port
 }
