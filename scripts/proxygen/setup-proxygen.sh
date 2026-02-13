@@ -46,6 +46,9 @@ if ! command -v proxygen >/dev/null 2>&1; then
         echo "proxygen-cli installed successfully"
     else
         echo "Error: proxygen-cli installation failed"
+        echo "Have you added the asdf shims directory to your path?"
+        echo "For ZSH, add the following to ~/.zshrc:"
+        echo "  export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\""
         exit 1
     fi
 fi
