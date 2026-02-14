@@ -1,0 +1,1123 @@
+openapi: 3.0.3
+info:
+  title: Directory of Services Search API
+  description: |
+    ## Overview
+    Use this API to access healthcare services details profiled in the Directory of Services. This API provides read-only access to the data held in the directory.
+
+    You can:
+    - obtain Organisation details (including endpoints managed by the Organisation) for a given Organisation ODS Code
+    - obtain HealthcareService details for a given service identifier (UUID)
+    - search for HealthcareService details for services associated with a given Organisation ODS Code
+
+    In the future you will be able to:
+    - obtain Organisation details (including endpoints managed by the Organisation) for a given service Identifier
+
+    ## Who can use this API
+    This API can only be used where you have a valid use case to do so. Please [contact us](https://digital.nhs.uk/developer/help-and-support) before you go too far with your development.
+    You must do this before you can go live (see 'Onboarding' below).
+
+    ## Access modes
+    This API supports the following access modes:
+    - restricted access
+
+    ### Restricted access
+    This is the only access mode supported by the API and it is [application-restricted](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#application-restricted-apis), meaning we authenticate and authorise the calling application but not the end user. This mode is used as part of a back-end process to retrieve healthcare service details.
+
+    This access mode adopts the following security/authentication patterns:
+    - JWT Private Key authentication
+
+    ## Roadmap
+    Over 2026 and 2027, we will be making further endpoints available covering the functionality of:
+
+    - [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap)
+    - [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest)
+    - [Electronic Prescription Service Directory of Services API](https://digital.nhs.uk/developer/api-catalogue/electronic-prescription-service-directory-of-services)
+
+    ## Service level
+    Business hours support between 8am and 6pm, Monday to Friday, but not bank holidays.
+
+    For more details, see [service levels](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#service-levels)
+
+    ## Rate limits
+    The default rate limit is 10TPS (Transactions Per Second), per app.
+
+    If you exceed this limit, you will receive a 429 'Too Many Requests' response. For more information, see [rate limits](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#rate-limits)
+
+    ## Technology
+    This API is [RESTful](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#basic-rest).
+
+    It conforms to the FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1
+
+    You do not need to know much about [FHIR](https://digital.nhs.uk/developer/guides-and-documentation/our-api-technologies#fhir) to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
+    - resource names are capitalised and singular, for example /Patient not /patients
+    - array names are singular, for example entry not entries for Bundle entries
+    - data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object.
+
+    There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
+
+    ## Data Dictionary
+
+    | Field Name | Type | Description |
+    |------------|------|-------------|
+    | `Organization.id` | `string` | Internal UUID identifying the Organisation |
+    | `Organization.identifier` | `string` | Stores the ODS (Organisation Data Service) code identifying the Organisation |
+    | `Organization.active` | `boolean` | Whether the Organisation's record is still in active use |
+    | `Organization.name` | `string` | Name used for the Organisation |
+    | `Endpoint.id` | `string` | Internal UUID identifying the Endpoint |
+    | `Endpoint.extension Extension-England-OrganizationEndpointOrder` | `integer` | When multiple endpoints are returned for an Organisation, we need to know the order so that we communicate with the right system first. |
+    | `Endpoint.extension Extension-England-EndpointCompression` | `boolean` | Whether the Endpoint uses compression. Compression reduces bandwidth requirements and can reduce messaging delays and/or failure. |
+    | `Endpoint.extension Extension-England-EndpointBusinessScenario` | `enum` | Indicates the business scenario for which an Endpoint is intended, particularly distinguishing between primary message recipients and copy recipients for NHS England messaging scenarios. Possible values: <ul><li>`primary-recipient`</li><li>`copy-recipient`</li></ul> |
+    | `Endpoint.status` | `enum` | The status of the Endpoint. This tells you if the Endpoint is currently in use. Possible values: <ul><li>`active`</li><li>`off`</li></ul> |
+    | `Endpoint.connectionType` | `enum` | Protocol/Profile/Standard to be used with this Endpoint connection. Values include: <ul><li>`itk` (NHS 111 Interoperability Specification)</li><li>`email`</li><li>`telno`</li><li>`http`</li></ul> |
+    | `Endpoint.managingOrganization` | `string` | A FHIR reference to the Organisation that manages this Endpoint (might not be the Organisation that exposes the Endpoint) |
+    | `Endpoint.payloadType` | `enum` | The type of content that may be used at this Endpoint (e.g. XDS Discharge summaries). Values include: <ul><li>`urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0`</li><li>`urn:nhs-itk:interaction:primaryNHS111RequestforAmbulance-v2-0`</li><li>`scheduling`</li></ul> |
+    | `Endpoint.payloadMimeType` | `enum` | The mime type of the payload to be delivered to this Endpoint. Values include: <ul><li>`application/pdf`</li><li>`text/html`</li><li>`application/fhir+json`</li><li>`application/fhir+xml`</li><li>`message/rfc822` (email)</li><li>`text/vcard` (telno)</li><li>`application/hl7-cda+xml` (CDA)</li></ul> |
+    | `Endpoint.address` | `string` | The technical base address for connecting to this Endpoint |
+
+    ## Network access
+    This API is available over the internet.
+
+    This API is accessible from the public internet using standard HTTPS connections. See access mode section for authentication methods.
+
+    This API does not support static IP hosting. The IP addresses that host this API are dynamic and subject to change without notice.
+
+    ## Errors
+    We use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:
+    - 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action
+    - 400 to 499 if it failed because of a client error by your application
+    - 500 to 599 if it failed because of an error on our server.
+
+    Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+    Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
+
+    ## Environments and testing
+
+    ### Sandbox testing
+    Our [sandbox environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#sandbox-testing) is for early developer testing, only covers a limited set of scenarios, and is open access, so does not allow you to test authorisation.
+    Link to sandbox test environment: `https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4`
+
+    ### Integration testing
+    Our [integration test environment](https://digital.nhs.uk/developer/guides-and-documentation/testing#integration-testing) is for formal integration testing and includes authorisation via JWT Private Key.
+    Link to integration test environment: `https://int.api.service.nhs.uk/dos-search/FHIR/R4`
+
+    ## Onboarding
+    You need to get your software approved by us before it can go live with this API. We call this onboarding. The onboarding process can sometimes be quite long, so it's worth planning well ahead.
+
+    For more information about the onboarding process, see [digital onboarding](https://digital.nhs.uk/developer/guides-and-documentation/digital-onboarding).
+
+    ## Open source
+    You might find it useful to know that the [FHIR specification](https://www.hl7.org/fhir/) is open source and available on GitHub.
+
+    ## Related APIs
+    The following APIs are related to this API:
+    - [Directory of Services - Urgent and Emergency Care - SOAP API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-soap)
+    - [Directory of Services - Urgent and Emergency Care - REST API](https://digital.nhs.uk/developer/api-catalogue/directory-of-services-urgent-and-emergency-care-rest)
+    - [Electronic Prescription Service - Directory of Services API](https://digital.nhs.uk/developer/api-catalogue/electronic-prescription-service-directory-of-services)
+
+    ## Contact us
+    For support or to provide feedback on this API, please [contact us](https://digital.nhs.uk/developer/help-and-support).
+  version: 1.0.0
+servers:
+  - url: 'https://internal-dev.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Development
+  - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Internal Sandbox
+  - url: 'https://internal-qa.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Internal QA
+  - url: 'https://sandbox.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Sandbox
+  - url: 'https://int.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Integration
+  - url: 'https://ref.api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Reference
+  - url: 'https://api.service.nhs.uk/dos-search/FHIR/R4'
+    description: Production
+security:
+  - app-level3: [ ]
+paths:
+  /Organization:
+    get:
+      summary: Search for organisations by ODS code to return Organisation details (including endpoints managed by the Organisation)
+      description: |
+        ## Overview
+        Retrieve an Organisation identified by an ODS code (including endpoints managed by the Organisation).
+
+        ## Request requirements
+        A valid ODS code must be provided as a query parameter. An ODS code is deemed valid if it meets the following criteria:
+        - it has a minimum of 5 alpha-numeric characters
+        - it has a maximum of 12 alpha-numeric characters
+      operationId: searchOrganizations
+      security:
+        - app-level3: [ ]
+      parameters:
+        - in: header
+          name: Authorization
+          description: >
+            An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+            Required in all environments except sandbox.
+          required: false
+          schema:
+            type: string
+            format: '^Bearer\ [[:ascii:]]+$'
+            example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+        - in: header
+          name: X-Request-ID
+          required: true
+          description: >
+            A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+
+            Must be a universally unique identifier (UUID) (ideally version 4).
+
+            Mirrored back in a response header.
+
+            This is a mandatory header.
+
+            If you re-send a failed request, use the same value in this header.
+          schema:
+            type: string
+            pattern: >-
+              ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+        - in: header
+          name: X-Correlation-ID
+          required: false
+          description: >
+            An optional ID which you can use to track transactions across multiple systems.
+            It can take any value, but we recommend avoiding `.` characters.
+
+            Mirrored back in a response header.
+          schema:
+            type: string
+            example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+        - in: query
+          name: identifier
+          description: ODS code in the format "odsOrganisationCode|{CODE}"
+          required: true
+          schema:
+            type: string
+            pattern: '^odsOrganisationCode\|[A-Za-z0-9]{5,12}$'
+            example: "odsOrganisationCode|ABC123"
+        - in: query
+          name: _revinclude
+          description: |
+            Include relevant Endpoint resources for requested Organization resource matches in the returned Bundle.
+
+            Must be set to `Endpoint:organization`.
+          required: true
+          schema:
+            type: string
+            enum: [ "Endpoint:organization" ]
+            default: "Endpoint:organization"
+            example: "Endpoint:organization"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+              example:
+                resourceType: "Bundle"
+                id: "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe"
+                type: "searchset"
+                link:
+                  - relation: "self"
+                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=odsOrganisationCode|ABC123&_revinclude=Endpoint:organization"
+                entry:
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                    resource:
+                      resourceType: "Organization"
+                      id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      identifier:
+                        - use: "official"
+                          system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                          value: "ABC123"
+                      active: true
+                      name: "Example Organization"
+                    search:
+                      mode: "match"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "1b62110d-4db5-4230-bf37-cbe948aecf76"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
+                          valueInteger: 1
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "primary-recipient"
+                      status: "active"
+                      connectionType:
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
+                        code: "email"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
+                    search:
+                      mode: "include"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Endpoint/5df57f63-7f48-5754-b056-ba362834c1e7"
+                    resource:
+                      resourceType: "Endpoint"
+                      id: "5df57f63-7f48-5754-b056-ba362834c1e7"
+                      extension:
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganizationEndpointOrder"
+                          valueInteger: 2
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointCompression"
+                          valueBoolean: false
+                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-EndpointBusinessScenario"
+                          valueCode: "copy-recipient"
+                      status: "active"
+                      connectionType:
+                        system: "https://fhir.nhs.uk/England/CodeSystem/England-EndpointConnection"
+                        code: "email"
+                      managingOrganization:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      payloadType:
+                        - coding:
+                            - system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
+                              code: "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
+                      payloadMimeType:
+                        - "application/pdf"
+                      address: "dummy-endpoint-email@nhs.net"
+                    search:
+                      mode: "include"
+        '400':
+          description: Bad request
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              examples:
+                invalid-identifier-value:
+                  summary: Invalid ODS code format
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+                missing-revinclude:
+                  summary: Missing required _revinclude parameter
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+                invalid-identifier-system:
+                  summary: Invalid identifier system
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "code-invalid"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Invalid identifier system 'foo' - expected 'odsOrganisationCode'"
+                unexpected-query-param:
+                  summary: Unexpected query parameter
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
+
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "forbidden"
+                    diagnostics: "Insufficient permissions to access this resource"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "FORBIDDEN"
+                          display: "Forbidden"
+        '500':
+          description: Internal server error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "fatal"
+                    code: "exception"
+                    diagnostics: "Internal server error"
+
+  /HealthcareService/{id}:
+    get:
+      summary: Read a HealthcareService by its identifier
+      description: |
+        ## Overview
+        Retrieve a single HealthcareService resource by its unique identifier (UUID).
+
+        This endpoint returns the core HealthcareService resource.
+      operationId: readHealthcareService
+      security:
+        - app-level3: [ ]
+      parameters:
+        - in: header
+          name: Authorization
+          description: >
+            An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+            Required in all environments except sandbox.
+          required: false
+          schema:
+            type: string
+            format: '^Bearer\ [[:ascii:]]+$'
+            example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+        - in: header
+          name: X-Request-ID
+          required: true
+          description: >
+            A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+
+            Must be a universally unique identifier (UUID) (ideally version 4).
+
+            Mirrored back in a response header.
+
+            This is a mandatory header.
+
+            If you re-send a failed request, use the same value in this header.
+          schema:
+            type: string
+            pattern: >-
+              ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+        - in: header
+          name: X-Correlation-ID
+          required: false
+          description: >
+            An optional ID which you can use to track transactions across multiple systems.
+            It can take any value, but we recommend avoiding `.` characters.
+            Mirrored back in a response header.
+          schema:
+            type: string
+            example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+        - in: path
+          name: id
+          description: The logical UUID identifier of the HealthcareService resource
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "55393ec4-198f-42dd-9507-f4fa5e9ebf80"
+      responses:
+        '200':
+          description: Successful response - returns a single HealthcareService resource
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/HealthcareService'
+              example:
+                resourceType: "HealthcareService"
+                id: "55393ec4-198f-42dd-9507-f4fa5e9ebf80"
+                providedBy:
+                  reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                type:
+                  - coding:
+                      - system: "TO-DO"
+                        code: "Pharmacy"
+                        display: "Test Pharmacy Service"
+                location:
+                  - reference: "Location/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                endpoint:
+                  - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                telecom:
+                  - system: "phone"
+                    value: "01234567890"
+                    extension:
+                      - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                        valueString: "Public"
+                  - system: "phone"
+                    value: "01234567890"
+                    extension:
+                      - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                        valueString: "Clinician Access Only"
+                  - system: "email"
+                    value: "example@example.com"
+                  - system: "url"
+                    value: "https://www.example.com"
+                eligibility:
+                  - code:
+                      - coding:
+                          system: "http://hl7.org/fhir/administrative-gender"
+                          code: "male"
+                          display: "Male"
+
+        '404':
+          description: HealthcareService not found
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "not-found"
+                    diagnostics: "HealthcareService resource with id '55393ec4-198f-42dd-9507-f4fa5e9ebf80' not found"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1"
+                          code: "RESOURCE_NOT_FOUND"
+                          display: "Resource not found"
+        '400':
+          description: Bad request
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "invalid"
+                    diagnostics: "Invalid id parameter value 'foo' - must be a valid UUID"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1"
+                          code: "INVALID_RESOURCE_ID"
+                          display: "Invalid resource ID"
+        '401':
+          description: Unauthorized
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1"
+                          code: "ACCESS_DENIED"
+                          display: "Access has been denied to process this request"
+        '500':
+          description: Internal server error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "fatal"
+                    code: "exception"
+                    diagnostics: "Internal server error"
+
+  /HealthcareService:
+    get:
+      summary: Search for HealthcareService resources
+      description: |
+        ## Overview
+        Search for HealthcareService resources. Currently supports searching by managing organization (ODS code).
+
+      operationId: searchHealthcareServices
+      security:
+        - app-level3: [ ]
+      parameters:
+        - in: header
+          name: Authorization
+          description: >
+            An [OAuth 2.0 bearer token](https://digital.nhs.uk/developer/guides-and-documentation/security-and-authorisation#user-restricted-apis).
+
+            Required in all environments except sandbox.
+          required: false
+          schema:
+            type: string
+            format: '^Bearer\ [[:ascii:]]+$'
+            example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+        - in: header
+          name: X-Request-ID
+          required: true
+          description: >
+            A globally unique identifier (GUID) for the request.
+
+            Must be a universally unique identifier (UUID).
+
+            Mirrored back in a response header.
+          schema:
+            type: string
+            pattern: >-
+              ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+            example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+        - in: header
+          name: X-Correlation-ID
+          required: false
+          description: >
+            An optional ID which you can use to track transactions across multiple systems.
+            It can take any value, but we recommend avoiding `.` characters.
+            Mirrored back in a response header.
+          schema:
+            type: string
+            example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+        - in: query
+          name: Organization
+          description: |
+            Search for HealthcareService resources managed by a specific organization.
+            Use the format "https://fhir.nhs.uk/Id/ods-organization-code|{ODS_CODE}"
+          required: false
+          schema:
+            type: string
+            pattern: '^https://fhir\.nhs\.uk/Id/ods-organization-code\|[A-Za-z0-9]{5,12}$'
+            example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+      responses:
+        '200':
+          description: Successful response - returns a Bundle of HealthcareService resources
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/Bundle'
+              example:
+                resourceType: "Bundle"
+                id: "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe"
+                type: "searchset"
+                total: 2
+                link:
+                  - relation: "self"
+                    url: "https://api.service.nhs.uk/FHIR/R4/HealthcareService?Organization=odsOrganisationCode|ABC123"
+                entry:
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/HealthcareService/e9f5f15a-7d5d-4a3b-9c8d-2e1f3a4b5c6d"
+                    resource:
+                      resourceType: "HealthcareService"
+                      id: "e9f5f15a-7d5d-4a3b-9c8d-2e1f3a4b5c6d"
+                      identifier:
+                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                          value: "ABC123"
+                      providedBy:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      type:
+                        - coding:
+                            - system: "TO-DO"
+                              code: "Pharmacy"
+                              display: "Test Pharmacy Service"
+                      location:
+                        - reference: "Location/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      endpoint:
+                        - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                      telecom:
+                        - system: "phone"
+                          value: "01234567890"
+                          extension:
+                            - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                              valueString: "Public"
+                        - system: "phone"
+                          value: "01234567890"
+                          extension:
+                            - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                              valueString: "Clinician Access Only"
+                        - system: "email"
+                          value: "example@example.com"
+                        - system: "url"
+                          value: "https://www.example.com"
+                      eligibility:
+                        - code:
+                            - coding:
+                                system: "http://hl7.org/fhir/administrative-gender"
+                                code: "male"
+                                display: "Male"
+                    search:
+                      mode: "match"
+                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/HealthcareService/r6aba1f9-08fb-41cf-bc81-9909913048mi"
+                    resource:
+                      resourceType: "HealthcareService"
+                      id: "r6aba1f9-08fb-41cf-bc81-9909913048mi"
+                      identifier:
+                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                          value: "ABC123"
+                      providedBy:
+                        reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      type:
+                        - coding:
+                            - system: "TO-DO"
+                              code: "Pharmacy"
+                              display: "Test Pharmacy Service"
+                      location:
+                        - reference: "Location/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                      endpoint:
+                        - reference: "Endpoint/1b62110d-4db5-4230-bf37-cbe948aecf76"
+                      telecom:
+                        - system: "phone"
+                          value: "01234567890"
+                          extension:
+                            - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                              valueString: "Public"
+                        - system: "phone"
+                          value: "01234567890"
+                          extension:
+                            - url: "http://hl7.org/fhir/StructureDefinition/contactpoint-comment"
+                              valueString: "Clinician Access Only"
+                        - system: "email"
+                          value: "example@example.com"
+                        - system: "url"
+                          value: "https://www.example.com"
+                      eligibility:
+                        - code:
+                            - coding:
+                                system: "http://hl7.org/fhir/administrative-gender"
+                                code: "male"
+                                display: "Male"
+                    search:
+                      mode: "match"
+        '400':
+          description: Bad request
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "invalid"
+                    diagnostics: "Invalid organization parameter value 'foo' - must follow format 'https://fhir.nhs.uk/Id/ods-organization-code|{ODS_CODE}'"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1"
+                          code: "INVALID_SEARCH_DATA"
+                          display: "Invalid search data"
+        '401':
+          description: Unauthorized
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    diagnostics: "Invalid or missing authentication token"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1"
+                          code: "ACCESS_DENIED"
+                          display: "Access has been denied to process this request"
+        '500':
+          description: Internal server error
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "fatal"
+                    code: "exception"
+                    diagnostics: "Internal server error"
+
+components:
+  securitySchemes:
+    app-level3:
+      $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
+
+  schemas:
+    Bundle:
+      type: object
+      description: A FHIR resource for the collection of FHIR resources returned in a contained manner.
+      required:
+        - resourceType
+        - type
+        - entry
+      properties:
+        resourceType:
+          type: string
+          enum: [ "Bundle" ]
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [ "searchset" ]
+        link:
+          type: array
+          items:
+            type: object
+            properties:
+              relation:
+                type: string
+              url:
+                type: string
+                format: uri
+        entry:
+          type: array
+          # checkov:skip=CKV_OPENAPI_21: TODO add max items after pagination implemented https://nhsd-jira.digital.nhs.uk/browse/DOSIS-1872
+          items:
+            type: object
+            properties:
+              fullUrl:
+                type: string
+                format: uri
+              resource:
+                oneOf:
+                  - $ref: '#/components/schemas/Organization'
+                  - $ref: '#/components/schemas/Endpoint'
+                  - $ref: '#/components/schemas/HealthcareService'
+              search:
+                type: object
+                properties:
+                  mode:
+                    type: string
+                    enum: [ "match", "include" ]
+
+    Organization:
+      type: object
+      description: A FHIR resource that returns the included components.
+      required:
+        - resourceType
+        - identifier
+        - active
+        - name
+      properties:
+        resourceType:
+          type: string
+          enum: [ "Organization" ]
+        id:
+          type: string
+          format: uuid
+        identifier:
+          type: array
+          items:
+            type: object
+            properties:
+              use:
+                type: string
+                enum: [ "official" ]
+              system:
+                type: string
+              value:
+                type: string
+        active:
+          type: boolean
+        name:
+          type: string
+        endpoint:
+          type: array
+          items:
+            type: object
+            properties:
+              reference:
+                type: string
+
+    Endpoint:
+      type: object
+      description: A FHIR resource that returns the included components.
+      required:
+        - resourceType
+        - status
+        - connectionType
+        - payloadType
+        - address
+      properties:
+        resourceType:
+          type: string
+          enum: [ "Endpoint" ]
+        id:
+          type: string
+          format: uuid
+        identifier:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+              value:
+                type: string
+        status:
+          type: string
+          enum: [ "active", "off" ]
+        connectionType:
+          type: object
+          properties:
+            system:
+              type: string
+            code:
+              type: string
+        payloadType:
+          type: array
+          items:
+            type: object
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    system:
+                      type: string
+                    code:
+                      type: string
+        payloadMimeType:
+          type: array
+          items:
+            type: string
+        address:
+          type: string
+          format: uri
+        extension:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              valueInteger:
+                type: integer
+              valueBoolean:
+                type: boolean
+              valueCode:
+                type: string
+        managingOrganization:
+          type: object
+          properties:
+            reference:
+              type: string
+
+    HealthcareService:
+      type: object
+      description: A FHIR resource representing a healthcare service
+      required:
+        - resourceType
+        - id
+        - identifier
+        - active
+        - providedBy
+        - category
+        - type
+        - name
+      properties:
+        resourceType:
+          type: string
+          enum: [ "HealthcareService" ]
+        id:
+          type: string
+          format: uuid
+        identifier:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+              value:
+                type: string
+        active:
+          type: boolean
+        providedBy:
+          type: object
+          properties:
+            reference:
+              type: string
+            identifier:
+              type: object
+              properties:
+                system:
+                  type: string
+                value:
+                  type: string
+            display:
+              type: string
+        category:
+          type: array
+          items:
+            type: object
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    system:
+                      type: string
+                    code:
+                      type: string
+                    display:
+                      type: string
+        type:
+          type: array
+          items:
+            type: object
+            properties:
+              coding:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    system:
+                      type: string
+                    code:
+                      type: string
+                    display:
+                      type: string
+        name:
+          type: string
+        comment:
+          type: string
+        extraDetails:
+          type: string
+        eligibility:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: object
+                properties:
+                  coding:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        system:
+                          type: string
+                        code:
+                          type: string
+                        display:
+                          type: string
+                  text:
+                    type: string
+              comment:
+                type: string
+        extension:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              valueReference:
+                type: object
+                properties:
+                  reference:
+                    type: string
+              valueString:
+                type: string
+              valueBoolean:
+                type: boolean
+
+    OperationOutcome:
+      type: object
+      required:
+        - resourceType
+        - issue
+      properties:
+        resourceType:
+          type: string
+          enum: [ "OperationOutcome" ]
+        issue:
+          type: array
+          items:
+            type: object
+            required:
+              - severity
+              - code
+              - diagnostics
+            properties:
+              severity:
+                type: string
+                enum: [ "error", "fatal" ]
+              code:
+                type: string
+                enum: [ "code-invalid", "value", "security", "forbidden", "exception", "not-supported", "required" ]
+              diagnostics:
+                type: string
+              details:
+                type: object
+                properties:
+                  coding:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        system:
+                          type: string
+                        version:
+                          type: string
+                        code:
+                          type: string
+                        display:
+                          type: string
+
+x-nhsd-apim:
+  target:
+    type: external
+    healthcheck: /_status
+    url: https://dos-search.dev.ftrs.cloud.nhs.uk
+    security:
+      type: mtls
+      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+      secret: dos-search-mtls-secret
+  access:
+    - title: Application-restricted with Private Key JWT
+      grants:
+        app-level3: [ ]
