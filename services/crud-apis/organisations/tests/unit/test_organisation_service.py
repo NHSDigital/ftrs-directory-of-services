@@ -48,7 +48,7 @@ def test_get_outdated_fields_no_changes() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -89,7 +89,7 @@ def test_apply_updates_with_modified_by_and_two_fields() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -148,7 +148,7 @@ def test_get_outdated_fields_with_changes(caplog: pytest.LogCaptureFixture) -> N
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -233,7 +233,7 @@ def test_creates_organisation_when_valid_data_provided() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -308,7 +308,7 @@ def test_generates_new_id_when_id_already_exists() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -359,7 +359,7 @@ def test_process_organisation_update_no_changes(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -410,7 +410,7 @@ def test_process_organisation_update_with_changes(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -433,7 +433,7 @@ def test_process_organisation_update_with_changes(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "app",
             "value": TEST_PRODUCT_ID,
@@ -487,7 +487,7 @@ def test_process_organisation_update_with_changes_and_nhse_product_id(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "app",
             "value": "INGRESS_API_ID",
@@ -510,7 +510,7 @@ def test_process_organisation_update_with_changes_and_nhse_product_id(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "app",
             "value": TEST_PRODUCT_ID,
@@ -563,7 +563,7 @@ def test_process_organisation_update_with_changes_and_no_nhse_product_id(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "app",
             "value": "INGRESS_API_ID",
@@ -665,7 +665,7 @@ def test_process_organisation_update_with_invalid_phone_number(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -718,7 +718,7 @@ def test_process_organisation_update_with_invalid_email_number(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -771,7 +771,7 @@ def test_process_organisation_update_with_invalid_url(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -824,7 +824,7 @@ def test_process_organisation_update_with_invalid_char_in_phone_number(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -928,7 +928,7 @@ def test_process_organisation_update_with_invalid_no_telecom_system(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -982,7 +982,7 @@ def test_process_organisation_update_with_invalid_telecom_system_fax(
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -1016,7 +1016,7 @@ def test_get_by_ods_code_success() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -1074,7 +1074,7 @@ def test_get_all_organisations() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -1094,7 +1094,7 @@ def test_get_all_organisations() -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        createdTime=FIXED_CREATED_TIME,
+        created=FIXED_CREATED_TIME,
         lastUpdatedBy={
             "type": "user",
             "value": "INGRESS_API_ID",

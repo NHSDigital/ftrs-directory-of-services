@@ -24,7 +24,7 @@ def get_mock_service() -> HealthcareService:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2025-05-27T12:50:55.481233Z",
+        "created": "2025-05-27T12:50:55.481233Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -166,7 +166,7 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "dispositions": [],
         "id": "841ef1a7-1adf-440f-9ca0-5e969ec61a5e",
         "identifier_oldDoS_uid": None,

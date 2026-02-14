@@ -32,11 +32,11 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700001' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the organisation record for healthcare service has "createdTime" populated
+    And the organisation record for healthcare service has "created" populated
     And the organisation "createdBy.type" is "app"
     And the organisation "createdBy.value" is "INTERNAL001"
     And the organisation "createdBy.display" is "Data Migration"
-    And the organisation "lastUpdated" equals "createdTime"
+    And the organisation "lastUpdated" equals "created"
     And the organisation "lastUpdatedBy" equals "createdBy"
 
   Scenario: INSERT operation - Audit fields populated on Location creation
@@ -64,11 +64,11 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700002' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the location record has "createdTime" populated
+    And the location record has "created" populated
     And the location "createdBy.type" is "app"
     And the location "createdBy.value" is "INTERNAL001"
     And the location "createdBy.display" is "Data Migration"
-    And the location "lastUpdated" equals "createdTime"
+    And the location "lastUpdated" equals "created"
     And the location "lastUpdatedBy" equals "createdBy"
 
   Scenario: INSERT operation - Audit fields populated on HealthcareService creation
@@ -96,11 +96,11 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700003' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the healthcare service record has "createdTime" populated
+    And the healthcare service record has "created" populated
     And the healthcare service "createdBy.type" is "app"
     And the healthcare service "createdBy.value" is "INTERNAL001"
     And the healthcare service "createdBy.display" is "Data Migration"
-    And the healthcare service "lastUpdated" equals "createdTime"
+    And the healthcare service "lastUpdated" equals "created"
     And the healthcare service "lastUpdatedBy" equals "createdBy"
 
   Scenario: INSERT operation - Audit fields populated on Endpoint creation
@@ -137,11 +137,11 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700004' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the endpoint records have "createdTime" populated
+    And the endpoint records have "created" populated
     And all endpoints "createdBy.type" is "app"
     And all endpoints "createdBy.value" is "INTERNAL001"
     And all endpoints "createdBy.display" is "Data Migration"
-    And all endpoints "lastUpdated" equals "createdTime"
+    And all endpoints "lastUpdated" equals "created"
     And all endpoints "lastUpdatedBy" equals "createdBy"
 
   Scenario: UPDATE operation - Audit fields updated on Organisation modification
@@ -178,9 +178,9 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700005' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    And the organisation "createdTime" is unchanged from stored value
+    And the organisation "created" is unchanged from stored value
     And the organisation "createdBy" is unchanged from stored value
-    And the organisation "lastUpdated" is greater than stored "createdTime"
+    And the organisation "lastUpdated" is greater than stored "created"
     And the organisation "lastUpdatedBy.type" is "app"
     And the organisation "lastUpdatedBy.value" is "INTERNAL001"
     And the organisation "lastUpdatedBy.display" is "Data Migration"
@@ -220,9 +220,9 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700006' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    And the location "createdTime" is unchanged from stored value
+    And the location "created" is unchanged from stored value
     And the location "createdBy" is unchanged from stored value
-    And the location "lastUpdated" is greater than stored "createdTime"
+    And the location "lastUpdated" is greater than stored "created"
     And the location "lastUpdatedBy.type" is "app"
     And the location "lastUpdatedBy.value" is "INTERNAL001"
     And the location "lastUpdatedBy.display" is "Data Migration"
@@ -261,9 +261,9 @@ Feature: Data Migration - Audit Event Tracking
 
     When the data migration process is run for table 'services', ID '700007' and method 'update'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
-    And the healthcare service "createdTime" is unchanged from stored value
+    And the healthcare service "created" is unchanged from stored value
     And the healthcare service "createdBy" is unchanged from stored value
-    And the healthcare service "lastUpdated" is greater than stored "createdTime"
+    And the healthcare service "lastUpdated" is greater than stored "created"
     And the healthcare service "lastUpdatedBy.type" is "app"
     And the healthcare service "lastUpdatedBy.value" is "INTERNAL001"
     And the healthcare service "lastUpdatedBy.display" is "Data Migration"
