@@ -87,6 +87,8 @@ info:
     - 500 to 599 if it failed because of an error on our server.
 
     Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+    For 404 errors, see our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/troubleshooting-4xx-status-codes#404-resource-not-found).
+    For 5xx errors, see our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/troubleshooting-5xx-status-codes).
     Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
 
     ## Environments and testing
@@ -389,6 +391,24 @@ paths:
                           version: "1"
                           code: "FORBIDDEN"
                           display: "Forbidden"
+        '429':
+          description: Too many requests – Rate limit exceeded
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "throttled"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/Codesystem/http-error-codes"
+                          version: "0.1.0"
+                          code: "SEND_TOO_MANY_REQUESTS"
+                          display: "429: Too many requests have been made by this source to the API in a given amount of time."
+                    diagnostics: "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
         '500':
           description: Internal server error
           content:
