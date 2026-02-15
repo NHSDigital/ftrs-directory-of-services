@@ -27,3 +27,6 @@ organisation_table_name = "organisation"
 rds_port = 5432
 
 firehose_name = "splunk-firehose"
+
+# Firehose subscription filter for lambda logs to Splunk
+build_splunk_subscription = true

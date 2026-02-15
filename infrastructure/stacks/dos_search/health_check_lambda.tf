@@ -42,6 +42,9 @@ module "health_check_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.health_check_lambda_cloudwatch_logs_retention_days
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
 
 data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {

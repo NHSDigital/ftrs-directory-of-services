@@ -292,3 +292,11 @@ data "aws_security_group" "rds_connector_security_group" {
   count = var.athena_stack_enabled && local.is_primary_environment ? 1 : 0
   name  = "${local.account_prefix}-athena-rds-connector-sg"
 }
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
+}
+
+data "aws_iam_role" "firehose_role" {
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
+}

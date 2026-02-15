@@ -28,6 +28,3 @@ api_gateway_integration_timeout        = 10000
 api_gateway_access_logs_retention_days = 7
 api_gateway_throttling_burst_limit     = 100
 api_gateway_throttling_rate_limit      = 10
-
-# Firehose subscription filter for lambda logs to Splunk
-build_splunk_subscription = true

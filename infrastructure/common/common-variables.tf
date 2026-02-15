@@ -213,3 +213,8 @@ variable "firehose_name" {
   description = "Name for firehose resources (without account prefix or stack name) - hyphenated"
   type        = string
 }
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the Splunk subscription filter for Lambda logs"
+  type        = bool
+}
