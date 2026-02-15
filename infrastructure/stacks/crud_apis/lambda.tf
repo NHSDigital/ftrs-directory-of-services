@@ -123,6 +123,10 @@ module "healthcare_service_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
+
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
 
 module "location_api_lambda" {
@@ -174,4 +178,8 @@ module "location_api_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.crud_api_lambda_logs_retention
+
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
