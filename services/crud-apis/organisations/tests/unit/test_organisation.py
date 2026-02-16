@@ -133,9 +133,6 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     service_mock.create_organisation.return_value = Organisation(**get_organisation())
     service_mock.process_organisation_update.return_value = True
     service_mock.get_by_ods_code.return_value = [Organisation(**get_organisation())]
-    service_mock.get_all_organisations.return_value = [
-        Organisation(**get_organisation())
-    ]
     return service_mock
 
 
@@ -186,13 +183,17 @@ def test__get_organization_query_params_with_identifier() -> None:
     assert result.identifier == identifier
 
 
-def test_get_handle_organisation_requests_all_success(mocker: MockerFixture) -> None:
-    response = client.get("/Organization")
-    assert response.status_code == HTTPStatus.OK
-    bundle = response.json()
-    assert bundle["resourceType"] == "Bundle"
-    assert str(len(bundle["entry"])) == "1"
-    assert bundle["entry"][0]["resource"]["id"] == str(get_organisation()["id"])
+def test_get_handle_organisation_requests_missing_identifier(
+    mocker: MockerFixture,
+) -> None:
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.get("/Organization")
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
+    assert "identifier must be provided" in outcome["issue"][0]["diagnostics"]
 
 
 # Additional test to cover identifier with different valid ODS code (lines 79-85)
@@ -280,23 +281,12 @@ def test_get_handle_organisation_requests_by_identifier_not_found(
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()
 
 
-def test_get_handle_organisation_requests_all_empty(
-    mock_organisation_service: MockerFixture,
-) -> None:
-    mock_organisation_service.get_all_organisations.return_value = []
-    response = client.get("/Organization")
-    assert response.status_code == HTTPStatus.OK
-    bundle = response.json()
-    assert bundle["resourceType"] == "Bundle"
-    assert bundle.get("entry", []) == []
-
-
 def test_get_handle_organisation_requests_unhandled_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    mock_organisation_service.get_all_organisations.side_effect = Exception("fail")
+    mock_organisation_service.get_by_ods_code.side_effect = Exception("fail")
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization")
+        client.get("/Organization?identifier=odsOrganisationCode|ABC123")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
