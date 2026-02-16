@@ -71,6 +71,9 @@ module "extractor_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.extractor_lambda_logs_retention
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
 
 module "transformer_lambda" {
@@ -119,6 +122,9 @@ module "transformer_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.transformer_lambda_logs_retention
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
 
 resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
@@ -184,6 +190,9 @@ module "consumer_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.consumer_lambda_logs_retention
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
 
 
