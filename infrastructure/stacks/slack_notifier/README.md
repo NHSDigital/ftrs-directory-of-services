@@ -307,7 +307,7 @@ module "lambda_monitoring" {
 
 ## Testing
 
-See the [cloudwatch alarm testing documentation](../../../tests/alarms/README.md) for testing alarm configurations and make targets.
+See the [CloudWatch alarm testing documentation](../../../tests/alarms/README.md) for testing alarm configurations and make targets.
 
 ## Best Practices
 
