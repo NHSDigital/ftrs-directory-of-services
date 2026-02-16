@@ -35,6 +35,7 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.529/aws-java-sdk-core-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.9/postgresql-42.7.9.jar
 
 
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]

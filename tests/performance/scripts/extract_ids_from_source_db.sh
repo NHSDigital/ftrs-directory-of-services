@@ -1,0 +1,62 @@
+if [[ -z "$DB_HOST" ]]; then
+    echo "Must provide DB_HOST in environment" 1>&2
+    exit 1
+fi
+
+if [[ -z "$PGUSER" ]]; then
+    echo "Must provide PGUSER in environment" 1>&2
+    exit 1
+fi
+
+if [[ -z "$PGPASSWORD" ]]; then
+    echo "Must provide PGPASSWORD in environment" 1>&2
+    exit 1
+fi
+
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 132 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_132.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 131 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_131.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 12 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_12.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 100 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_100.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 20 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_20.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 13 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_13.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 149 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_149.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 7  and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_7.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 148 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_148.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 21 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_21.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 112 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_112.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 14 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_14.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 29 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_29.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 48 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_48.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 25 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_25.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 11 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_11.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 140 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_140.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 38 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_38.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 156 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_156.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 50 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_50.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 135 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_135.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 105 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_105.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT id FROM pathwaysdos.services WHERE typeid = 146 and id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/services_146.csv' WITH CSV HEADER;"
+
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 132 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_132.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 131 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_131.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 12 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_12.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 100 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_100.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 20 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_20.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 13 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_13.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 149 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_149.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 7  and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_7.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 148 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_148.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 21 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_21.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 112 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_112.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 14 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_14.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 29 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_29.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 48 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_48.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 25 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_25.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 11 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_11.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 140 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_140.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 38 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_38.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 156 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_156.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 50 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_50.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 135 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_135.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 105 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_105.csv' WITH CSV HEADER;"
+psql -h $DB_HOST -d dos -c "\COPY (SELECT se.id FROM pathwaysdos.serviceendpoints se join pathwaysdos.services s on se.serviceid = s.id WHERE s.typeid = 146 and s.id between 100000 and 200000) TO 'data_generation/database_updates/test_data_exports/serviceendpoints_146.csv' WITH CSV HEADER;"
