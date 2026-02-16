@@ -119,3 +119,7 @@ data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
 data "aws_iam_role" "firehose_role" {
   name = "${local.account_prefix}-${var.firehose_name}-cw-role"
 }
+
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
+}

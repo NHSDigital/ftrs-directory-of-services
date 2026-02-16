@@ -31,3 +31,14 @@ resource "aws_vpc_security_group_egress_rule" "crud_apis_allow_s3_access" {
   from_port         = var.https_port
   to_port           = var.https_port
 }
+
+resource "aws_vpc_security_group_egress_rule" "crud_apis_allow_vpce_access" {
+  count = local.is_primary_environment ? 1 : 0
+
+  security_group_id            = aws_security_group.crud_apis_lambda_security_group[0].id
+  description                  = "Allow egress to VPC endpoints (Secrets Manager, SQS, KMS, AppConfig)"
+  referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
+  ip_protocol                  = "tcp"
+  from_port                    = var.https_port
+  to_port                      = var.https_port
+}
