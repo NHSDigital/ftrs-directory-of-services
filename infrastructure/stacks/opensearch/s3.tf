@@ -6,7 +6,7 @@ data "aws_iam_policy_document" "ddb_export_policy" {
       "s3:PutObject",
       "s3:PutObjectAcl"
     ]
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.ddb_export_bucket_name}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
     principals {
       type        = "Service"
       identifiers = ["dynamodb.amazonaws.com"]
@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "s3_opensearch_pipeline_dlq_bucket_policy" {
       "s3:PutObject",
       "s3:PutObjectAcl"
     ]
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.opensearch_pipeline_s3_dlq_bucket_name}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
     principals {
       type        = "Service"
       identifiers = ["osis-pipelines.amazonaws.com"]

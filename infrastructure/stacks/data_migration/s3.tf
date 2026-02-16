@@ -38,8 +38,8 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
     ]
 
     resources = [
-      "arn:aws:s3:::${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}",
-      "arn:aws:s3:::${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}/*",
+      "_S3_BUCKET_ARN_",
+      "_S3_BUCKET_ARN_/*",
     ]
   }
 }

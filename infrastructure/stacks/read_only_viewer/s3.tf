@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 
     actions = ["s3:GetObject"]
     resources = [
-      "arn:aws:s3:::${local.resource_prefix}-${var.read_only_viewer_bucket_name}/*",
+      "_S3_BUCKET_ARN_/*",
     ]
 
     condition {
@@ -58,7 +58,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     ]
 
     resources = [
-      "arn:aws:s3:::${local.resource_prefix}-${var.read_only_viewer_bucket_name}/*",
+      "_S3_BUCKET_ARN_/*",
     ]
   }
 }

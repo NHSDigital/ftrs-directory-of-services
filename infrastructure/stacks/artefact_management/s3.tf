@@ -70,7 +70,7 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
       "s3:ListBucket",
     ]
     resources = [
-      "arn:aws:s3:::${local.artefacts_bucket}"
+      "_S3_BUCKET_ARN_"
     ]
   }
 
@@ -98,7 +98,7 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
 
     ]
     resources = [
-      "arn:aws:s3:::${local.artefacts_bucket}/*",
+      "_S3_BUCKET_ARN_/*",
     ]
   }
 }

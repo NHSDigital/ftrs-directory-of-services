@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "etl_ods_store_bucket_policy_document" {
     sid     = "AllowSSLRequestsOnly"
     actions = ["s3:*"]
     resources = [
-      "arn:aws:s3:::${local.resource_prefix}-${var.etl_ods_pipeline_store_bucket_name}"
+      "_S3_BUCKET_ARN_"
     ]
     effect = "Deny"
     principals {

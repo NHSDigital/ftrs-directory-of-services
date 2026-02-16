@@ -51,7 +51,7 @@ data "aws_iam_policy_document" "enforce_kms_truststore" {
       type        = "*"
     }
     actions   = ["s3:PutObject"]
-    resources = ["${module.s3.s3_bucket_arn}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
     condition {
       test     = "ArnNotEquals"
       variable = "s3:x-amz-server-side-encryption-aws-kms-key-id"
@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "enforce_kms_truststore" {
       type        = "*"
     }
     actions   = ["s3:PutObject"]
-    resources = ["${module.s3.s3_bucket_arn}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
     condition {
       test     = "StringNotEquals"
       variable = "s3:x-amz-server-side-encryption"

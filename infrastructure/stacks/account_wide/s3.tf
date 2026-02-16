@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:PutObject"]
 
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
   }
 
   statement {
@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:GetBucketAcl"]
 
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}"]
+    resources = ["_S3_BUCKET_ARN_"]
   }
 }
 
@@ -82,7 +82,7 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:PutObject"]
 
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
   }
 
   statement {
@@ -95,7 +95,7 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:GetBucketAcl"]
 
-    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}"]
+    resources = ["_S3_BUCKET_ARN_"]
   }
 }
 
@@ -122,7 +122,7 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
       "s3:GetObjectVersion"
     ]
     resources = [
-      "arn:aws:s3:::${local.s3_trust_store_bucket_name}/*"
+      "_S3_BUCKET_ARN_/*"
     ]
   }
 
@@ -130,8 +130,8 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
     sid     = "AllowSSLRequestsOnly"
     actions = ["s3:*"]
     resources = [
-      "arn:aws:s3:::${local.s3_trust_store_bucket_name}",
-      "arn:aws:s3:::${local.s3_trust_store_bucket_name}/*"
+      "_S3_BUCKET_ARN_",
+      "_S3_BUCKET_ARN_/*"
     ]
     effect = "Deny"
     principals {

@@ -37,6 +37,6 @@ data "aws_iam_policy_document" "logging_bucket_policy_document" {
       "s3:PutObject",
     ]
 
-    resources = ["arn:aws:s3:::${var.terraform_state_bucket_name}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
   }
 }
