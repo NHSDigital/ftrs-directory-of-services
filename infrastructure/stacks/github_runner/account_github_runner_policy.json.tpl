@@ -48,6 +48,17 @@
             }
         },
         {
+            "Sid": "AllowAccessAnalyzerServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "access-analyzer.amazonaws.com"
+                }
+            }
+        },
+        {
             "Sid": "MonitoringFullAccess",
             "Effect": "Allow",
             "Action": [
