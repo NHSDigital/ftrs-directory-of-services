@@ -43,12 +43,9 @@ export AWS_PROFILE=ftrs-dev
 
 export ENVIRONMENT=dev
 
-
 # Trigger an error alarm for the search Lambda
 make test-lambda-alarm-errors-warning
 ```
-
-
 
 ### Search Lambda Alarms
 
