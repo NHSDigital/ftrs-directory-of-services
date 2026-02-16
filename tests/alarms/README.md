@@ -16,14 +16,14 @@ This directory contains tools for testing CloudWatch alarms by triggering them m
 
    ```bash
    export ENVIRONMENT=dev  # or test, prod, etc.
-   export WORKSPACE=your-workspace  # optional, if using workspaces i.e ftrs-765
+   
    ```
 
 ## Quick Start
 
 From the `tests/alarms` directory:
 
-**For main environment (no workspace):**
+**Quick Start:**
 
 ```bash
 # Set your AWS profile
@@ -38,21 +38,18 @@ export ENVIRONMENT=dev
 
 This targets: `ftrs-dos-dev-dos-search-ods-code-lambda`
 
-**For feature branch workspace:**
-
 ```bash
 # Set your AWS profile
 export AWS_PROFILE=ftrs-dev
 
-# Set environment and workspace
 export ENVIRONMENT=dev
-export WORKSPACE=ftrs-765
+
 
 # Trigger an error alarm for the search Lambda
 make test-lambda-alarm-errors-warning
 ```
 
-This targets: `ftrs-dos-dev-dos-search-ods-code-lambda-ftrs-765`
+
 
 ## Available Make Targets
 
@@ -157,7 +154,7 @@ Or check Slack notifications in the configured alerts channel (#ftrs-dos-search-
 Check if errors are being recorded:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 
@@ -184,7 +181,7 @@ aws cloudwatch get-metric-statistics \
 Verify actual execution time:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 
@@ -216,7 +213,7 @@ If execution time is below the threshold (600ms for p95, 800ms for p99), the ala
 Check current concurrency levels:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 
@@ -249,7 +246,7 @@ The default threshold of 100 concurrent executions can be difficult to trigger. 
    }
    ```
 
-2. Apply the change: Running the workspace via pipeline.
+2. Apply the change: Running via pipeline.
 
 3. Update the test to match: `./scripts/trigger-alarms.sh concurrent search 15`
 
@@ -260,7 +257,7 @@ The default threshold of 100 concurrent executions can be difficult to trigger. 
 Check if throttling is occurring:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 
@@ -286,7 +283,7 @@ aws cloudwatch get-metric-statistics \
 Throttles alarm requires reserved concurrency to be set. To enable testing:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 
@@ -310,7 +307,7 @@ aws lambda delete-function-concurrency \
 Check invocation rate:
 
 ```bash
-# Set Lambda name (adjust for workspace if needed)
+# Set Lambda name 
 LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
 [ -n "${WORKSPACE}" ] && [ "${WORKSPACE}" != "default" ] && LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 

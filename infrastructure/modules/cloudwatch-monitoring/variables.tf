@@ -3,11 +3,6 @@ variable "resource_prefix" {
   type        = string
 }
 
-variable "workspace_suffix" {
-  description = "Workspace suffix for resource naming"
-  type        = string
-}
-
 variable "sns_topic_name" {
   description = "Name of the SNS topic for alarm notifications"
   type        = string

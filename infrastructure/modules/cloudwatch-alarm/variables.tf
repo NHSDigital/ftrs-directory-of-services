@@ -64,11 +64,6 @@ variable "function_name" {
   type        = string
 }
 
-variable "workspace_suffix" {
-  description = "Workspace suffix for naming"
-  type        = string
-}
-
 variable "treat_missing_data" {
   description = "How to treat missing data (notBreaching, breaching, ignore, missing)"
   type        = string

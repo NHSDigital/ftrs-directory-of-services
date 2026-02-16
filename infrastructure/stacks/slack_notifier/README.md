@@ -43,21 +43,20 @@
 
 Add to your stack's `monitoring.tf` using a **pre-built template**:
 
-```bash
+```hcl
 # In your stack (e.g., infrastructure/stacks/my_service/monitoring.tf)
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = local.resource_prefix
-  workspace_suffix = local.workspace_suffix
 
-  sns_topic_name   = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+  sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
   sns_display_name = "My Service Lambda Alarms"
 
-  # Use pre-built template (no custom config needed!)
-  alarm_config_path = "comprehensive"
+  # Use pre-built template
+  alarm_config_path = "lambda/config"
 
-  lambda_functions = {
+  monitored_resources = {
     api_lambda = module.api_lambda.lambda_function_name
   }
 
@@ -94,11 +93,11 @@ module "lambda_monitoring" {
 
 Add to your stack's `slack_notifications.tf` (references centralised slack_notifier):
 
-```bash
+```hcl
 # In your stack (e.g., infrastructure/stacks/my_service/slack_notifications.tf)
 data "aws_lambda_function" "slack_notifier" {
   count         = var.enable_slack_notifications ? 1 : 0
-  function_name = "${local.project_prefix}-slack-notifier${local.workspace_suffix}"
+  function_name = "${local.project_prefix}-slack-notifier"
 }
 
 resource "aws_lambda_permission" "allow_sns_invoke" {
@@ -144,48 +143,89 @@ enable_slack_notifications = true
 
 | Template | Alarms | Use Case |
 |----------|--------|----------|
-| `minimal` | Errors, Throttles | Basic monitoring |
-| `standard` | Duration p99, Errors, Throttles, Concurrency | Recommended |
-| `comprehensive` | All metrics + Warning levels | High-criticality |
+| `lambda/config` | Duration (p95/p99), Errors (warning/critical), Throttles, Concurrent Executions (warning/critical), Invocations spike | Lambda monitoring |
+| `api-gateway/config` | API Gateway metrics | API monitoring |
+| `waf/config` | WAF metrics | WAF monitoring |
 | Custom path | Your own config | `${path.module}/custom-config.json` |
 
 ## Examples
 
 ### Example 1: Lambda Monitoring Only
 
-```shell
+```hcl
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "minimal"
+  resource_prefix  = local.resource_prefix
 
-  lambda_functions = {
-    lambda = module.my_lambda.lambda_function_name
+  sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
+  sns_display_name = "Lambda Alarms"
+
+  alarm_config_path = "lambda/config"
+
+  monitored_resources = {
+    my_lambda = module.my_lambda.lambda_function_name
   }
 
-  # ... thresholds, periods, etc.
+  alarm_thresholds = {
+    my_lambda = {
+      "errors-critical" = 5
+      "throttles-critical" = 0
+    }
+  }
+
+  alarm_evaluation_periods = {
+    my_lambda = {
+      "errors-critical" = 2
+      "throttles-critical" = 1
+    }
+  }
+
+  alarm_periods = {
+    my_lambda = {
+      "errors-critical" = 300
+      "throttles-critical" = 60
+    }
+  }
 }
 ```
 
-### Example 2: Multi-Resource Monitoring
+### Example 2: Multiple Lambda Functions
 
-```shell
+```hcl
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  alarm_config_path = "${path.module}/custom-config.json"
+  resource_prefix  = local.resource_prefix
 
-  lambda_functions = {
-    api_lambda = module.api_lambda.lambda_function_name
+  sns_topic_name   = "${local.resource_prefix}-alarms"
+  sns_display_name = "Service Alarms"
+
+  alarm_config_path = "lambda/config"
+
+  monitored_resources = {
+    api_lambda    = module.api_lambda.lambda_function_name
+    worker_lambda = module.worker_lambda.lambda_function_name
   }
 
-  # ... thresholds for all resources
+  alarm_thresholds = {
+    api_lambda = {
+      "duration-p99-critical" = 3000
+      "errors-critical"       = 5
+    }
+    worker_lambda = {
+      "duration-p99-critical" = 30000
+      "errors-critical"       = 10
+    }
+  }
+
+  # ... evaluation_periods and periods
 }
 ```
 
 ### Example 3: With Slack Notifications
 
-```text
+```hcl
 # Monitoring
 module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
@@ -195,7 +235,7 @@ module "monitoring" {
 # Slack notifications via Lambda data source
 data "aws_lambda_function" "slack_notifier" {
   count         = var.enable_slack_notifications ? 1 : 0
-  function_name = "${local.project_prefix}-slack-notifier${local.workspace_suffix}"
+  function_name = "${local.project_prefix}-slack-notifier"
 }
 
 resource "aws_lambda_permission" "allow_sns_invoke" {
@@ -242,7 +282,7 @@ enable_slack_notifications = true
 
 To apply alarms to specific resources only, define thresholds for those resources. Alarms are only created for resources with defined thresholds:
 
-```text
+```hcl
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
@@ -283,7 +323,6 @@ module "lambda_monitoring" {
 **For cloudwatch-monitoring module**:
 
 - `resource_prefix` - Prefix for alarm names
-- `workspace_suffix` - Workspace suffix
 - `sns_topic_name` - SNS topic name
 - `sns_display_name` - SNS display name
 - `monitored_resources` - Map of resources to monitor

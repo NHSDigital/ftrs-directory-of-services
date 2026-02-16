@@ -7,7 +7,6 @@ set -euo pipefail
 ALARM_TYPE="${1:-}"
 LAMBDA_TYPE="${2:-search}"
 ITERATIONS="${3:-5}"
-WORKSPACE="${WORKSPACE:-}"
 ENVIRONMENT="${ENVIRONMENT:-}"
 
 # Build AWS CLI profile argument if AWS_PROFILE is set
@@ -46,11 +45,6 @@ elif [ "$LAMBDA_TYPE" = "health-check" ]; then
 else
   echo "Error: Invalid lambda type. Use 'search' or 'health-check'"
   exit 1
-fi
-
-# Add workspace suffix if set
-if [ -n "$WORKSPACE" ] && [ "$WORKSPACE" != "default" ]; then
-  LAMBDA_NAME="${LAMBDA_NAME}-${WORKSPACE}"
 fi
 
 echo "Testing alarm: $ALARM_TYPE for Lambda: $LAMBDA_NAME"

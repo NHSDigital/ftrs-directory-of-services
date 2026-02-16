@@ -24,7 +24,6 @@ module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-service"
-  workspace_suffix = "-prod"
 
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
@@ -71,7 +70,6 @@ module "api_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-api"
-  workspace_suffix = "-prod"
 
   sns_topic_name   = "my-api-alarms-prod"
   sns_display_name = "My API Gateway Alarms"
@@ -118,7 +116,6 @@ module "waf_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-waf"
-  workspace_suffix = "-prod"
 
   sns_topic_name   = "my-waf-alarms-prod"
   sns_display_name = "My WAF Alarms"
@@ -165,7 +162,6 @@ module "full_stack_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-service"
-  workspace_suffix = "-prod"
 
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Full Stack Alarms"
@@ -210,7 +206,6 @@ module "monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix  = "my-service"
-  workspace_suffix = "-prod"
 
   sns_topic_name   = "my-service-alarms-prod"
   sns_display_name = "My Service Alarms"
@@ -350,7 +345,6 @@ module "monitoring" {
 | Name | Description | Type | Required |
 |------|-------------|------|----------|
 | resource_prefix | Prefix for alarm names | string | yes |
-| workspace_suffix | Workspace suffix for resource naming | string | yes |
 | sns_topic_name | Name of the SNS topic | string | yes |
 | sns_display_name | Display name for the SNS topic | string | yes |
 | alarm_config_path | Path to JSON alarm configuration or template name (e.g., 'lambda/config', 'api-gateway/config', 'waf/config') | string | no (default: 'lambda/config') |

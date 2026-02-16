@@ -1,10 +1,9 @@
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  resource_prefix  = local.resource_prefix
-  workspace_suffix = local.workspace_suffix
+  resource_prefix = local.resource_prefix
 
-  sns_topic_name   = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+  sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
   sns_display_name = "DoS Search Lambda Alarms"
   kms_key_id       = null
 
@@ -69,6 +68,6 @@ module "lambda_monitoring" {
   enable_warning_alarms = var.enable_warning_alarms
 
   tags = {
-    Name = "${local.resource_prefix}-lambda-alarms${local.workspace_suffix}"
+    Name = "${local.resource_prefix}-lambda-alarms"
   }
 }
