@@ -58,6 +58,9 @@ model {
   odsTerminologyApi = system "ODS Data Terminology API" {
     description 'ODS holds information for many different types of organisation related to health and social care'
     technology 'External NHS API'
+    style {
+      color muted
+    }
   }
 
   // ========================================
@@ -70,26 +73,21 @@ model {
   // Data flow: Transform stage
   // ========================================
   ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "Triggers Lambda (SQS event, batch size 10)"
-  ftrs.etlOds.odsTransformer -> apim.dosReadProxy "Fetches organisation UUIDs by ODS code"
+  ftrs.etlOds.odsTransformer -> apim.dosIngestProxy "Fetches organisation UUIDs by ODS code - GET /Organization"
   ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "Sends transformed FHIR payloads"
 
   // ========================================
   // Data flow: Load stage
   // ========================================
   ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "Triggers Lambda (SQS event, batch size 10)"
-  ftrs.etlOds.odsLoader -> apim.dosWriteProxy "PUT /Organization/{uuid} updates"
+  ftrs.etlOds.odsLoader -> apim.dosIngestProxy "PUT /Organization/{uuid} updates"
 
   // ========================================
-  // Data flow: Through CRUD APIs (write path)
+  // Data flow: Through CRUD APIs
   // ========================================
-  apim.dosWriteProxy -> ftrs.apiGateway "Proxies PUT request"
+  apim.dosIngestProxy -> ftrs.apiGateway "Proxies GET/PUT requests"
+  ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "Routes to query handler (UUID lookup)"
+  ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "Queries organisation by ODS code"
   ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "Routes to update handler"
   ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "Persists organisation data"
-
-  // ========================================
-  // Data flow: Through CRUD APIs (read path for UUID lookup)
-  // ========================================
-  apim.dosReadProxy -> ftrs.apiGateway "Proxies GET request"
-  ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "Routes to query handler"
-  ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "Queries organisation by ODS code"
 }

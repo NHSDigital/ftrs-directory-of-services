@@ -34,6 +34,14 @@ module "api_gateway" {
       }
     }
 
+    "GET /_status" = {
+      integration = {
+        uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
     "ANY /healthcare-service/{proxy+}" = {
       authorization_type = var.api_gateway_authorization_type
       integration = {
