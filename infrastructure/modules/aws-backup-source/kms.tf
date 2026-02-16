@@ -1,6 +1,6 @@
 resource "aws_kms_key" "aws_backup_key" {
   description             = "AWS Backup KMS Key"
-  deletion_window_in_days = 30
+  deletion_window_in_days = var.kms_deletion_window_in_days
   enable_key_rotation     = true
   policy                  = data.aws_iam_policy_document.backup_key_policy.json
 }

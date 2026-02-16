@@ -19,6 +19,12 @@ variable "bootstrap_kms_key_arn" {
   type        = string
 }
 
+variable "kms_deletion_window_in_days" {
+  description = "The number of days before the KMS key is deleted after being scheduled for deletion."
+  type        = number
+  default     = 30
+}
+
 variable "reports_bucket" {
   description = "Bucket to drop backup reports into"
   type        = string
