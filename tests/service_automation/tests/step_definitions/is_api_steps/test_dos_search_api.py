@@ -1,3 +1,4 @@
+import json
 import os
 
 import pytest
@@ -78,8 +79,8 @@ def dns_resolvable(api_name, env, workspace):
 def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
     # headers can be manipulated in individual tests if needed
     headers = {
-        "NHSD-Request-Id": "req_id",
         **MANDATORY_REQUEST_HEADERS,
+        "NHSD-Request-Id": "req_id",
     }
     url = get_url(api_name) + "/" + resource_name
 
@@ -96,6 +97,21 @@ def send_to_apim_get_with_params(
     apim_request_context, nhsd_apim_proxy_url, params, resource_name
 ):
     headers = {**MANDATORY_REQUEST_HEADERS}
+    url = nhsd_apim_proxy_url + "/" + resource_name
+
+    return _send_api_request(apim_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with headers "(?P<headers>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_get_with_params_with_headers(
+    apim_request_context, nhsd_apim_proxy_url, params, resource_name, headers
+):
+    headers = {**json.loads(headers)}
     url = nhsd_apim_proxy_url + "/" + resource_name
 
     return _send_api_request(apim_request_context, url, params, headers)
