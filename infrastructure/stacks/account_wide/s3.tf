@@ -17,11 +17,8 @@ module "vpc_flow_logs_s3_bucket" {
     }
   ]
   s3_logging_bucket = local.s3_logging_bucket
-}
-
-resource "aws_s3_bucket_policy" "vpc_flow_logs_s3_bucket_policy" {
-  bucket = module.vpc_flow_logs_s3_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.vpc_flow_logs_s3_bucket_policy_doc.json
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.vpc_flow_logs_s3_bucket_policy_doc.json
 }
 
 data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
@@ -35,7 +32,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:PutObject"]
 
-    resources = ["${module.vpc_flow_logs_s3_bucket.s3_bucket_arn}/*"]
+    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}/*"]
   }
 
   statement {
@@ -48,7 +45,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:GetBucketAcl"]
 
-    resources = [module.vpc_flow_logs_s3_bucket.s3_bucket_arn]
+    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}"]
   }
 }
 
@@ -70,11 +67,8 @@ module "subnet_flow_logs_s3_bucket" {
       }
     }
   ]
-}
-
-resource "aws_s3_bucket_policy" "subnet_flow_logs_s3_bucket_policy" {
-  bucket = module.subnet_flow_logs_s3_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.subnet_flow_logs_s3_bucket_policy_doc.json
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.subnet_flow_logs_s3_bucket_policy_doc.json
 }
 
 data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
@@ -88,7 +82,7 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:PutObject"]
 
-    resources = ["${module.subnet_flow_logs_s3_bucket.s3_bucket_arn}/*"]
+    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}/*"]
   }
 
   statement {
@@ -101,7 +95,7 @@ data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
 
     actions = ["s3:GetBucketAcl"]
 
-    resources = [module.subnet_flow_logs_s3_bucket.s3_bucket_arn]
+    resources = ["arn:aws:s3:::${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}"]
   }
 }
 
@@ -112,11 +106,8 @@ module "trust_store_s3_bucket" {
   s3_logging_bucket     = local.s3_logging_bucket
   s3_encryption_key_arn = module.s3_encryption_key.arn
   enable_kms_encryption = var.enable_s3_kms_encryption
-}
-
-resource "aws_s3_bucket_policy" "trust_store_bucket_policy" {
-  bucket = module.trust_store_s3_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.trust_store_bucket_policy.json
+  attach_policy         = true
+  policy                = data.aws_iam_policy_document.trust_store_bucket_policy.json
 }
 
 data "aws_iam_policy_document" "trust_store_bucket_policy" {
@@ -131,7 +122,7 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
       "s3:GetObjectVersion"
     ]
     resources = [
-      "${module.trust_store_s3_bucket.s3_bucket_arn}/*"
+      "arn:aws:s3:::${local.s3_trust_store_bucket_name}/*"
     ]
   }
 
@@ -139,8 +130,8 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
     sid     = "AllowSSLRequestsOnly"
     actions = ["s3:*"]
     resources = [
-      module.trust_store_s3_bucket.s3_bucket_arn,
-      "${module.trust_store_s3_bucket.s3_bucket_arn}/*"
+      "arn:aws:s3:::${local.s3_trust_store_bucket_name}",
+      "arn:aws:s3:::${local.s3_trust_store_bucket_name}/*"
     ]
     effect = "Deny"
     principals {

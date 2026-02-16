@@ -4,6 +4,8 @@ module "read_only_viewer_bucket" {
   bucket_name   = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
   versioning    = var.s3_versioning
   force_destroy = var.force_destroy
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.read_only_viewer_bucket_policy[0].json
   lifecycle_rule_inputs = [
     {
       id                                     = "delete_old_release_versions"
@@ -20,12 +22,6 @@ module "read_only_viewer_bucket" {
   ]
 }
 
-resource "aws_s3_bucket_policy" "read_only_viewer_bucket_policy" {
-  count  = local.stack_enabled
-  bucket = module.read_only_viewer_bucket[0].s3_bucket_id
-  policy = data.aws_iam_policy_document.read_only_viewer_bucket_policy[0].json
-}
-
 data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
   count = local.stack_enabled
   statement {
@@ -36,7 +32,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
 
     actions = ["s3:GetObject"]
     resources = [
-      "${module.read_only_viewer_bucket[0].s3_bucket_arn}/*",
+      "arn:aws:s3:::${local.resource_prefix}-${var.read_only_viewer_bucket_name}/*",
     ]
 
     condition {
@@ -62,7 +58,7 @@ data "aws_iam_policy_document" "read_only_viewer_bucket_policy" {
     ]
 
     resources = [
-      "${module.read_only_viewer_bucket[0].s3_bucket_arn}/*",
+      "arn:aws:s3:::${local.resource_prefix}-${var.read_only_viewer_bucket_name}/*",
     ]
   }
 }

@@ -3,11 +3,8 @@ module "crud_apis_bucket" {
   bucket_name       = "${local.resource_prefix}-${var.crud_apis_store_bucket_name}"
   versioning        = var.s3_versioning
   s3_logging_bucket = local.s3_logging_bucket
-}
-
-resource "aws_s3_bucket_policy" "crud_apis_bucket_policy" {
-  bucket = module.crud_apis_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.crud_apis_bucket_policy_document.json
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.crud_apis_bucket_policy_document.json
 }
 
 data "aws_iam_policy_document" "crud_apis_bucket_policy_document" {
@@ -15,7 +12,7 @@ data "aws_iam_policy_document" "crud_apis_bucket_policy_document" {
     sid     = "AllowSSLRequestsOnly"
     actions = ["s3:*"]
     resources = [
-      module.crud_apis_bucket.s3_bucket_arn,
+      "arn:aws:s3:::${local.resource_prefix}-${var.crud_apis_store_bucket_name}"
     ]
     effect = "Deny"
     principals {

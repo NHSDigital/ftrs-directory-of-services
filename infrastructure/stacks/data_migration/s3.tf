@@ -1,8 +1,10 @@
 module "migration_store_bucket" {
-  source      = "../../modules/s3"
-  count       = local.is_primary_environment ? 1 : 0
-  bucket_name = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
-  versioning  = var.s3_versioning
+  source        = "../../modules/s3"
+  count         = local.is_primary_environment ? 1 : 0
+  bucket_name   = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
+  versioning    = var.s3_versioning
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.migration_store_bucket_policy_document[0].json
 
   lifecycle_rule_inputs = [
     {
@@ -16,12 +18,6 @@ module "migration_store_bucket" {
       }
     }
   ]
-}
-
-resource "aws_s3_bucket_policy" "migration_store_bucket_policy" {
-  count  = local.is_primary_environment ? 1 : 0
-  bucket = module.migration_store_bucket[0].s3_bucket_id
-  policy = data.aws_iam_policy_document.migration_store_bucket_policy_document[0].json
 }
 
 data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
@@ -42,8 +38,8 @@ data "aws_iam_policy_document" "migration_store_bucket_policy_document" {
     ]
 
     resources = [
-      module.migration_store_bucket[0].s3_bucket_arn,
-      "${module.migration_store_bucket[0].s3_bucket_arn}/*",
+      "arn:aws:s3:::${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}",
+      "arn:aws:s3:::${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}/*",
     ]
   }
 }
