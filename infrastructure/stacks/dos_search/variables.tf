@@ -14,7 +14,7 @@ variable "health_check_lambda_name" {
   description = "The name of the health check lambda for gp search"
 }
 
-variable "service_lambda_name" {
+variable "healthcare_service_lambda_name" {
   description = "The name of the healthcare service lambda"
 }
 

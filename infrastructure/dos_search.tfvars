@@ -1,10 +1,10 @@
 dos_search_service_name = "ftrs-dos-search"
 
 # Resource names
-s3_bucket_name           = "dos-search-s3"
-lambda_name              = "ods-code-lambda"
-health_check_lambda_name = "health-check-lambda"
-service_lambda_name      = "healthcare-service-lambda"
+s3_bucket_name                 = "dos-search-s3"
+lambda_name                    = "ods-code-lambda"
+health_check_lambda_name       = "health-check-lambda"
+healthcare_service_lambda_name = "healthcare-service-lambda"
 
 #Lambda
 lambda_runtime     = "python3.12"

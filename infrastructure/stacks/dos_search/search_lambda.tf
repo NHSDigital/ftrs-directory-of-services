@@ -66,7 +66,7 @@ module "lambda" {
 
 module "healthcare_service_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.service_lambda_name}"
+  function_name           = "${local.resource_prefix}-${var.healthcare_service_lambda_name}"
   description             = "This lambda provides search logic to return healthcare services by ODS code"
   handler                 = "functions/dos_search_healthcare_service_function.lambda_handler"
   runtime                 = var.lambda_runtime
