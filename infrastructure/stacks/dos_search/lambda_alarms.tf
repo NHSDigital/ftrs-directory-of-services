@@ -1,7 +1,7 @@
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  resource_prefix = local.resource_prefix
+  resource_prefix = local.resource_prefix # Used for naming SNS topic and alarms
 
   sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
   sns_display_name = "DoS Search Lambda Alarms"
