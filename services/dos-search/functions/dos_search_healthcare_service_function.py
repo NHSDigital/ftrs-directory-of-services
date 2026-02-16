@@ -7,7 +7,9 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.ftrs_service.ftrs_service import FtrsService
+from functions.ftrs_service.healthcare_services_by_ods import (
+    HealthcareServicesByOdsService,
+)
 from functions.healthcare_service_query_params import HealthcareServiceQueryParams
 from functions.logger.dos_logger import DosLogger
 
@@ -43,7 +45,7 @@ def get_healthcare_service() -> Response:
             dos_message_category="REQUEST",
         )
 
-        ftrs_service = FtrsService()
+        ftrs_service = HealthcareServicesByOdsService()
         fhir_resource = ftrs_service.healthcare_services_by_ods(ods_code)
 
     except ValidationError as exception:

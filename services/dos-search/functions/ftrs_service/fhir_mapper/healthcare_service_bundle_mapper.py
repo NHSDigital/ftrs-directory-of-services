@@ -6,6 +6,9 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.utils.api_url_util import get_fhir_url
 from ftrs_data_layer.domain import HealthcareService
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+)
 from functions.ftrs_service.fhir_mapper.healthcare_service_mapper import (
     HealthcareServiceMapper,
 )
@@ -69,7 +72,7 @@ class HealthcareServiceBundleMapper:
         bundle_id = str(uuid4())
         url = (
             f"{get_fhir_url('dos-search', 'HealthcareService')}"
-            f"?organization.identifier=odsOrganisationCode|{ods_code}"
+            f"?organization.identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}"
         )
         bundle_link = [
             {

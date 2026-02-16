@@ -28,7 +28,7 @@ def mock_error_util():
 @pytest.fixture
 def mock_ftrs_service():
     with patch(
-        "functions.dos_search_healthcare_service_function.FtrsService"
+        "functions.dos_search_healthcare_service_function.HealthcareServicesByOdsService"
     ) as mock_class:
         mock_service = mock_class.return_value
         yield mock_service
