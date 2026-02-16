@@ -78,6 +78,6 @@ data "aws_iam_policy_document" "enforce_kms_truststore" {
 data "aws_iam_policy_document" "combined_policy" {
   source_policy_documents = compact([
     var.enable_kms_encryption ? data.aws_iam_policy_document.enforce_kms_truststore.json : "",
-    var.attach_policy ? var.var.policy : ""
+    var.attach_policy ? var.policy : ""
   ])
 }
