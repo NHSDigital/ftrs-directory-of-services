@@ -27,10 +27,7 @@ resource "aws_kms_key" "encryption_key" {
           "kms:GenerateDataKey*",
           "kms:DescribeKey",
           "kms:ListAliases",
-          "kms:ListKeys",
-          "kms:CreateGrant",
-          "kms:RetireGrant",
-          "kms:RevokeGrant"
+          "kms:ListKeys"
         ],
         "Resource" : "*",
         "Condition" : {
