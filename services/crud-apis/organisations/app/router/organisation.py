@@ -87,7 +87,7 @@ async def get_handle_organisation_requests(
                 diagnostics="Missing required parameter: identifier must be provided in format 'identifier=odsOrganisationCode|{code}'",
                 code="invalid",
             )
-        
+
         ods_code = organization_query_params.ods_code
         result = organisation_service.get_by_ods_code(ods_code)
         bundle = organisation_mapper.to_fhir_bundle(result)

@@ -188,7 +188,7 @@ def test_get_handle_organisation_requests_missing_identifier(
 ) -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.get("/Organization")
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
