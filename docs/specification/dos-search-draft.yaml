@@ -411,6 +411,17 @@ paths:
         Retrieve a single HealthcareService resource by its unique identifier (UUID).
 
         This endpoint returns the core HealthcareService resource.
+
+        | Field Name | Type | Description |
+        |------------|------|-------------|
+        | `HealthcareService.id` | `string` | Internal UUID identifying the HealthcareService |
+        | `HealthcareService.type` | `string` | Type of service (e.g., Pharmacy, GP) |
+        | `HealthcareService.telecom` | `enum` | Contact details for the service |
+        | `HealthcareService.eligibility` | `enum` | Eligibility requirements to use the service |
+        | `HealthcareService.providedBy` | `string` | Reference to organization providing the service |
+        | `HealthcareService.location` | `string` | Reference to location(s) where service is provided |
+        | `HealthcareService.endpoint` | `boolean` | Reference to technical endpoints for service interactions |
+
       operationId: readHealthcareService
       security:
         - app-level3: [ ]
@@ -579,6 +590,19 @@ paths:
         ## Overview
         Search for HealthcareService resources. Currently supports searching by managing organization (ODS code).
 
+        ## Data Dictionary
+
+        | Field Name | Type | Description |
+        |------------|------|-------------|
+        | `Bundle.id` | `string` | UUID representing transaction identifier |
+        | `HealthcareService.id` | `string` | Internal UUID identifying the HealthcareService |
+        | `HealthcareService.type` | `string` | Type of service (e.g., Pharmacy, GP) |
+        | `HealthcareService.telecom` | `enum` | Contact details for the service |
+        | `HealthcareService.eligibility` | `enum` | Eligibility requirements to use the service |
+        | `HealthcareService.providedBy` | `string` | Reference to organization providing the service |
+        | `HealthcareService.location` | `string` | Reference to location(s) where service is provided |
+        | `HealthcareService.endpoint` | `boolean` | Reference to technical endpoints for service interactions |
+
       operationId: searchHealthcareServices
       security:
         - app-level3: [ ]
@@ -619,14 +643,14 @@ paths:
             type: string
             example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         - in: query
-          name: Organization
+          name: organization.identifier
           description: |
             Search for HealthcareService resources managed by a specific organization.
             Use the format "https://fhir.nhs.uk/Id/ods-organization-code|{ODS_CODE}"
-          required: false
+          required: true
           schema:
             type: string
-            pattern: '^https://fhir\.nhs\.uk/Id/ods-organization-code\|[A-Za-z0-9]{5,12}$'
+            pattern: '^https:\/\/fhir\.nhs\.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
             example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
       responses:
         '200':
@@ -642,15 +666,12 @@ paths:
                 total: 2
                 link:
                   - relation: "self"
-                    url: "https://api.service.nhs.uk/FHIR/R4/HealthcareService?Organization=odsOrganisationCode|ABC123"
+                    url: "https://api.service.nhs.uk/FHIR/R4/HealthcareService?organization.identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
                 entry:
                   - fullUrl: "https://api.service.nhs.uk/FHIR/R4/HealthcareService/e9f5f15a-7d5d-4a3b-9c8d-2e1f3a4b5c6d"
                     resource:
                       resourceType: "HealthcareService"
                       id: "e9f5f15a-7d5d-4a3b-9c8d-2e1f3a4b5c6d"
-                      identifier:
-                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
-                          value: "ABC123"
                       providedBy:
                         reference: "Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                       type:
@@ -947,62 +968,14 @@ components:
       type: object
       description: A FHIR resource representing a healthcare service
       required:
-        - resourceType
         - id
-        - identifier
-        - active
-        - providedBy
-        - category
-        - type
-        - name
       properties:
-        resourceType:
-          type: string
-          enum: [ "HealthcareService" ]
         id:
           type: string
           format: uuid
-        identifier:
-          type: array
-          items:
-            type: object
-            properties:
-              system:
-                type: string
-              value:
-                type: string
-        active:
-          type: boolean
-        providedBy:
-          type: object
-          properties:
-            reference:
-              type: string
-            identifier:
-              type: object
-              properties:
-                system:
-                  type: string
-                value:
-                  type: string
-            display:
-              type: string
-        category:
-          type: array
-          items:
-            type: object
-            properties:
-              coding:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    system:
-                      type: string
-                    code:
-                      type: string
-                    display:
-                      type: string
+        resourceType:
+          type: string
+          enum: [ "HealthcareService" ]
         type:
           type: array
           items:
@@ -1019,12 +992,25 @@ components:
                       type: string
                     display:
                       type: string
-        name:
-          type: string
-        comment:
-          type: string
-        extraDetails:
-          type: string
+        telecom:
+          type: array
+          items:
+            type: object
+            properties:
+              system:
+                type: string
+                enum: [ "phone", "email", "url" ]
+              value:
+                type: string
+              extension:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                    valueString:
+                      type: string
         eligibility:
           type: array
           items:
@@ -1048,22 +1034,35 @@ components:
                     type: string
               comment:
                 type: string
-        extension:
+        providedBy:
+          type: object
+          properties:
+            reference:
+              type: string
+            identifier:
+              type: object
+              properties:
+                system:
+                  type: string
+                value:
+                  type: string
+            display:
+              type: string
+        location:
           type: array
           items:
             type: object
             properties:
-              url:
+              reference:
                 type: string
-              valueReference:
-                type: object
-                properties:
-                  reference:
-                    type: string
-              valueString:
+        endpoint:
+          type: array
+          items:
+            type: object
+            properties:
+              reference:
                 type: string
-              valueBoolean:
-                type: boolean
+
 
     OperationOutcome:
       type: object
