@@ -4,6 +4,8 @@ resource "aws_accessanalyzer_analyzer" "account_analyzer" {
   type          = "ACCOUNT"
 }
 
+# checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
+# checkov:skip=CKV_AWS_338: Justification: Non-production do not require long term log retention.
 resource "aws_cloudwatch_log_group" "access_analyzer_findings" {
   count             = var.enable_iam_analyzer ? 1 : 0
   name              = "/aws/accessanalyzer/${local.resource_prefix}-access-analyzer-findings"
