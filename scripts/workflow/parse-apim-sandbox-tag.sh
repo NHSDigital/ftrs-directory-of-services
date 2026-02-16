@@ -53,6 +53,7 @@ resolve_tag_commit() {
   else
     return 1
   fi
+  return 0
 }
 
 ensure_tag_on_main() {
@@ -133,6 +134,7 @@ main() {
     fail_and_exit "Tag '${TAG}' does not match <environment>-<service>-<version>"
   fi
   print_and_write_success
+  return 0
 }
 
 main

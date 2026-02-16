@@ -70,7 +70,8 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
       "dynamodb:Scan",
-      "dynamodb:Query"
+      "dynamodb:Query",
+      "dynamodb:DescribeTable"
     ]
     resources = flatten([
       for table in local.dynamodb_tables : [
