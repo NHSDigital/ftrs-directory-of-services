@@ -240,25 +240,43 @@ enable_slack_notifications = true
 
 ### Filtering Alarms by Resource
 
-To apply alarms to specific resources only, add `resource_type_filter` to your monitoring module:
+To apply alarms to specific resources only, define thresholds for those resources. Alarms are only created for resources with defined thresholds:
 
 ```text
 module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
-  # Only apply alarms to specific resources
-  resource_type_filter = ["api_lambda"]  # Only api_lambda gets alarms
-
-  lambda_functions = {
+  monitored_resources = {
     api_lambda    = module.api_lambda.lambda_function_name
     worker_lambda = module.worker_lambda.lambda_function_name
   }
 
-  # ... rest of configuration
+  # Only api_lambda gets alarms (worker_lambda is excluded)
+  alarm_thresholds = {
+    api_lambda = {
+      "duration-p99-critical" = 3000
+      "errors-critical"       = 5
+    }
+  }
+
+  alarm_evaluation_periods = {
+    api_lambda = {
+      "duration-p99-critical" = 2
+      "errors-critical"       = 2
+    }
+  }
+
+  alarm_periods = {
+    api_lambda = {
+      "duration-p99-critical" = 300
+      "errors-critical"       = 300
+    }
+  }
 }
 ```
 
-**Default**: `null` (all resources get alarms)
+   > [!NOTE]
+   > Resources without threshold definitions will not have alarms created
 
 ### Minimal Required Configuration
 
@@ -289,7 +307,7 @@ module "lambda_monitoring" {
 
 ## Testing
 
-See the [alarm templates documentation](../../modules/cloudwatch-monitoring/templates/README.md) for testing alarm configurations and make targets.
+See the [cloudwatch alarm testing documentation](../../../tests/alarms/README.md) for testing alarm configurations and make targets.
 
 ## Best Practices
 
@@ -322,7 +340,7 @@ See the [alarm templates documentation](../../modules/cloudwatch-monitoring/temp
 ## Support
 
 - **CloudWatch Monitoring Module**: [modules/cloudwatch-monitoring/](../../modules/cloudwatch-monitoring/)
-- **Alarm Templates**: [modules/cloudwatch-monitoring/templates/](../../modules/cloudwatch-monitoring/templates/)
+- **Alarm Templates**: [modules/cloudwatch-monitoring/templates/](../../modules/cloudwatch-monitoring/templates/README.md)
 - **Centralized Slack Handler**: Deployed via `slack_notifier` stack (this directory)
 
 ## Contributing
