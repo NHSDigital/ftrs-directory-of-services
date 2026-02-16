@@ -51,13 +51,14 @@ function main() {
       ;;
   esac
 
-  if [ -n "$files" ]; then
+  if [[ -n "$files" ]]; then
     if command -v markdownlint > /dev/null 2>&1 && ! is-arg-true "${FORCE_USE_DOCKER:-false}"; then
       files="$files" run-markdownlint-natively
     else
       files="$files" run-markdownlint-in-docker
     fi
   fi
+  return 0
 }
 
 # Run markdownlint natively.
@@ -69,6 +70,7 @@ function run-markdownlint-natively() {
   markdownlint \
     $files \
     --config "$PWD/scripts/config/markdownlint.yaml"
+  return 0
 }
 
 # Run markdownlint in a Docker container.
@@ -89,6 +91,7 @@ function run-markdownlint-in-docker() {
     "$image" \
       $files \
       --config /workdir/scripts/config/markdownlint.yaml
+  return 0
 }
 
 # ==============================================================================

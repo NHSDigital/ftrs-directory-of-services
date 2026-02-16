@@ -25,6 +25,9 @@ packages = [{ include = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.6"
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+httpx = "^0.28.1"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
@@ -35,7 +38,10 @@ indent-width = 4
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB"]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -46,6 +52,13 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-v"
-testpaths = ["tests"]
-
+python_files = "test_*.py"
+testpaths = "tests"
+addopts = [
+    "-v",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+    "--cov-branch",
+    "--cov-context=test"
+]

@@ -11,6 +11,11 @@ on:
         description: "The branch, tag or SHA to checkout"
         required: false
         type: string
+      python_version:
+        description: "Python version for SonarCloud analysis"
+        required: false
+        type: string
+        default: "3.12"
     secrets:
       SONAR_TOKEN:
         description: "SonarCloud token"
@@ -37,3 +42,4 @@ jobs:
           sonar_organisation_key: ${{ vars.SONAR_ORGANISATION_KEY }}
           sonar_project_key: ${{ vars.SONAR_PROJECT_KEY }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
+          python_version: ${{ inputs.python_version }}

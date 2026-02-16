@@ -2,6 +2,7 @@ import pytest
 from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganization
 
+from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from functions.ftrs_service.fhir_mapper.organization_mapper import OrganizationMapper
 
 
@@ -30,7 +31,7 @@ class TestOrganizationMapper:
         assert len(identifiers) == 1
         assert isinstance(identifiers[0], Identifier)
         assert identifiers[0].use == "official"
-        assert identifiers[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
+        assert identifiers[0].system == ODS_ORG_CODE_IDENTIFIER_SYSTEM
         assert identifiers[0].value == "123456"
 
     @pytest.mark.parametrize(

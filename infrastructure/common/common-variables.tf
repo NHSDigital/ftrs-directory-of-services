@@ -196,3 +196,9 @@ variable "read_only_viewer_stack_enabled" {
   type        = bool
   default     = true
 }
+
+variable "athena_stack_enabled" {
+  description = "Enable or disable the Amazon athena stack"
+  type        = bool
+  default     = true
+}

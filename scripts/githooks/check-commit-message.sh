@@ -20,6 +20,7 @@ function check_jira_ref {
   fi
 
   echo $COMMIT_MESSAGE
+  return 0
 }
 
 function check_commit_message_format {
@@ -30,6 +31,7 @@ function check_commit_message_format {
     echo -e "\033[0;31mInvalid conventional commit message format! Expected: <type>(<scope>): <JIRA-1234> <Description>\033[0m"
     return 1
   fi
+  return 0
 }
 
 function check_commit_message_length {
@@ -39,6 +41,7 @@ function check_commit_message_length {
     if [[ "$COMMIT_MESSAGE_LENGTH" -gt $GIT_COMMIT_MESSAGE_MAX_LENGTH ]] ; then
     echo "At $COMMIT_MESSAGE_LENGTH characters the commit message exceeds limit of $GIT_COMMIT_MESSAGE_MAX_LENGTH"
   fi
+  return 0
 }
 
 function check_git_commit_message {
@@ -52,6 +55,7 @@ function check_git_commit_message {
     [[ ! -z "$VALID_LENGTH" ]] && echo $VALID_LENGTH
     return 1
   fi
+  return 0
 }
 
 # ---- MAIN EXECUTION ----

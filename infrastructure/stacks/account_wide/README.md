@@ -7,8 +7,10 @@ Infrastructure that is deployed once per environment inside an account.
 This stack provisions:
 
 1. IAM role for GitHub Actions (via OIDC)
-2. Environment wide VPC, including public, private, and database subnets
+2. Environment-wide VPC, including public, private, and database subnets
 3. A performance EC2 host for Apache `JMeter`–based testing
+4. Two WAFv2 Web ACLs (CloudFront and regional API Gateway)
+5. Firehose connected to Splunk via HEC Endpoint and HEC Token
 
 ---
 
@@ -75,3 +77,14 @@ Set these in your environment tfvars, for example `infrastructure/environments/d
 - If Apache `JMeter`, plugins, or the JWT JAR are missing, check `/var/log/user-data.log` and confirm outbound access
 - Confirm the SSM Agent is running: `systemctl status amazon-ssm-agent`
 - `JAVA_HOME` and `JMETER_HOME` are exported in profile scripts; the `jmeter-run` wrapper also sets them if missing
+
+---
+
+## WAF (CloudFront + Regional)
+
+This stack creates two Web ACLs:
+
+- **CloudFront WAF** (scope `CLOUDFRONT`) for front-end distributions
+- **Regional WAF** (scope `REGIONAL`) for regional API Gateways
+
+Both Web ACLs enable WAF logging to CloudWatch Logs. The CloudFront WAF logs are written in `us-east-1`, while the Regional WAF logs are written in the default region.

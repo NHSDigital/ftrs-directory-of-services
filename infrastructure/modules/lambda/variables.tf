@@ -150,3 +150,21 @@ variable "reserved_concurrent_executions" {
   type        = number
   default     = null
 }
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the CloudWatch subscription"
+  type        = bool
+  default     = false
+}
+
+variable "firehose_name" {
+  description = "Name of the Kinesis Firehose delivery stream for Splunk"
+  type        = string
+  default     = ""
+}
+
+variable "firehose_role_name" {
+  description = "Name of the IAM role used by Kinesis Firehose"
+  type        = string
+  default     = ""
+}

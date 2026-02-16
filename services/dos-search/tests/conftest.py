@@ -19,6 +19,8 @@ from ftrs_data_layer.domain.enums import (
     EndpointStatus,
 )
 
+from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
+
 
 @pytest.fixture
 def create_endpoint():
@@ -148,7 +150,7 @@ def create_fhir_organization():
                 "identifier": [
                     {
                         "use": "official",
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": ods_code,
                     }
                 ],

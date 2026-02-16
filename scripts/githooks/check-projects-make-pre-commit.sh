@@ -6,7 +6,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 # Function to check if a Makefile has a pre-commit target
 has_pre_commit_target() {
-  if [ -f "$1/Makefile" ]; then
+  if [[ -f "$1/Makefile" ]]; then
     grep -q "^pre-commit:" "$1/Makefile" && return 0
   fi
   return 1
@@ -68,9 +68,9 @@ while read -r makefile; do
 done < "$TEMP_FILE"
 
 # Check if any directories were processed
-if [ $FOUND_DIRECTORIES -eq 0 ]; then
+if [[ $FOUND_DIRECTORIES -eq 0 ]]; then
   echo "No directories with Makefiles and staged changes found"
-elif [ $EXIT_CODE -eq 0 ]; then
+elif [[ $EXIT_CODE -eq 0 ]]; then
   echo "All pre-commit checks passed"
 else
   echo "One or more pre-commit checks failed"

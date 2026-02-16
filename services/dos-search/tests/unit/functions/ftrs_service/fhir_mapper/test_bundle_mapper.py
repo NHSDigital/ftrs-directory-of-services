@@ -4,6 +4,7 @@ import pytest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.organization import Organization as FhirOrganization
 
+from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
 
 
@@ -31,7 +32,7 @@ class TestBundleMapper:
                 "identifier": [
                     {
                         "use": "official",
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": "O123",
                     }
                 ],
@@ -77,7 +78,7 @@ class TestBundleMapper:
                 "identifier": [
                     {
                         "use": "official",
-                        "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": "O123",
                     }
                 ],

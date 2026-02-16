@@ -12,19 +12,25 @@ runs:
     - name: "Derive workspace"
       id: "derive-workspace"
       shell: bash
+      env:
+        GITHUB_REF_TYPE: ${{ github.ref_type }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        GITHUB_HEAD_REF: ${{ github.head_ref }}
+        GITHUB_EVENT_REF: ${{ github.event.ref }}
       run: |
         # Determine if we're on a tag
         if git describe --exact-match --tags HEAD 2>/dev/null; then
           export TRIGGER=tag
           export TRIGGER_REFERENCE=$(git describe --exact-match --tags HEAD)
         else
-          export TRIGGER=${{ github.ref_type }}
-          export TRIGGER_REFERENCE=${{ github.ref_name }}
+          export TRIGGER="$GITHUB_REF_TYPE"
+          export TRIGGER_REFERENCE="$GITHUB_REF_NAME"
         fi
 
-        export TRIGGER_ACTION=${{ github.event_name }}
-        export TRIGGER_HEAD_REFERENCE=${{ github.head_ref }}
-        export TRIGGER_EVENT_REF=${{ github.event.ref}}
+        export TRIGGER_ACTION="$GITHUB_EVENT_NAME"
+        export TRIGGER_HEAD_REFERENCE="$GITHUB_HEAD_REF"
+        export TRIGGER_EVENT_REF="$GITHUB_EVENT_REF"
         export COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)
         . scripts/workflow/derive-workspace.sh
         echo "Workspace Name: ${WORKSPACE}"

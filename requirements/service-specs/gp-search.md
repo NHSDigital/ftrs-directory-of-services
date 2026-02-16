@@ -49,10 +49,10 @@ Key use cases:
 
 ### 4.2 Required Query Parameters
 
-| Name          | Example                 | Description                                                   |
-| ------------- | ----------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `identifier`  | `odsOrganisationCode    | A1234`                                                        | Encoded ODS code with system prefix. Must match regex `^[A-Za-z0-9]{5,12}$` after separator. |
-| `_revinclude` | `Endpoint:organization` | Instructs inclusion of linked Endpoint resources (mandatory). |
+| Name           | Example                                               | Description                                                                                  |
+| -------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `identifier`   | `https://fhir.nhs.uk/Id/ods-organization-code\|A1234` | Encoded ODS code with system prefix. Must match regex `^[A-Za-z0-9]{5,12}$` after separator. |
+| `_revinclude`  | `Endpoint:organization`                               | Instructs inclusion of linked Endpoint resources (mandatory).                                |
 
 ### 4.3 Responses
 

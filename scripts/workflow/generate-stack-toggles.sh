@@ -15,20 +15,20 @@ TOGGLE_REGISTRY_FILE="${TOGGLE_REGISTRY_FILE:-"$ROOT_DIR/infrastructure/toggles/
 TOGGLE_DIR="${TOGGLE_DIR:-"$ROOT_DIR/infrastructure/toggles"}"
 
 # Validate required environment variables
-if [ -z "$ENVIRONMENT" ]; then
+if [[ -z "$ENVIRONMENT" ]]; then
   echo "Error: ENVIRONMENT environment variable is required"
   echo "Usage: ENVIRONMENT=dev $0"
   exit 1
 fi
 
 # Check if toggle registry file exists
-if [ ! -f "$TOGGLE_REGISTRY_FILE" ]; then
+if [[ ! -f "$TOGGLE_REGISTRY_FILE" ]]; then
   echo "Error: Toggle registry file not found: $TOGGLE_REGISTRY_FILE"
   exit 1
 fi
 
 # Check if output directory exists
-if [ ! -d "$TOGGLE_DIR" ]; then
+if [[ ! -d "$TOGGLE_DIR" ]]; then
   echo "Error: Output directory not found: $TOGGLE_DIR"
   exit 1
 fi
@@ -48,14 +48,14 @@ GENERATED_FILE=$(ENVIRONMENT="$ENVIRONMENT" \
   python3 "$SCRIPT_DIR/generate-stack-toggles.py")
 
 # Check if the generation was successful
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
   echo "✗ Failed to generate stack toggles for environment: $ENVIRONMENT"
   echo "✗ Python script exited with error code: $?"
   exit 1
 fi
 
 # Use the returned path from the Python script
-if [ -n "$GENERATED_FILE" ] && [ -f "$GENERATED_FILE" ]; then
+if [[ -n "$GENERATED_FILE" && -f "$GENERATED_FILE" ]]; then
   echo "✓ Stack toggles generated successfully: $GENERATED_FILE"
 
   # Display a summary of the generated file

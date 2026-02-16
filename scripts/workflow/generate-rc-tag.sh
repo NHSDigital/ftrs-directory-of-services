@@ -19,7 +19,7 @@ git fetch --tags "$GIT_REMOTE"
 LAST_RC=$(git tag --list "${RC_BASE}.*" | sort -V | tail -n 1)
 
 # Determine next RC number
-if [ -z "$LAST_RC" ]; then
+if [[ -z "$LAST_RC" ]]; then
   NEXT_RC_NUMBER=1
 else
   LAST_NUMBER=${LAST_RC##*-rc.}    # Extract the number after -rc.

@@ -59,6 +59,20 @@ stack_toggles:
       ref: false
       prod: false
 
+  - id: stack_athena_enabled
+    name: "Athena Stack Enabled"
+    description: "Enable/disable Athena stack deployment"
+    terraform_variable: athena_stack_enabled
+    stack_path: infrastructure/stacks/athena
+    owner: "Infrastructure Team"
+    environments:
+      workspace: false
+      dev: true
+      test: true
+      int: true
+      ref: true
+      prod: false
+
 api_gateway_toggles:
   - id: dos_search_organisation_search_enabled
     name: "DoS Search - Organisation Search Enabled"

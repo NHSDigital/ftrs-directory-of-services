@@ -1,6 +1,10 @@
 import pytest
 from pydantic import ValidationError
 
+from functions.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
 from functions.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
@@ -13,12 +17,18 @@ class TestOrganizationQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_ods_code"),
         [
-            ("odsOrganisationCode|ABC12", "ABC12"),
-            ("odsOrganisationCode|ABC123456789", "ABC123456789"),
-            ("odsOrganisationCode|ABC123", "ABC123"),
-            ("odsOrganisationCode|ABCDEF", "ABCDEF"),
-            ("odsOrganisationCode|123456", "123456"),
-            ("odsOrganisationCode|abc123", "ABC123"),  # lowercase
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC12", "ABC12"),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123456789",
+                "ABC123456789",
+            ),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123", "ABC123"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABCDEF", "ABCDEF"),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|123456", "123456"),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123",
+                "ABC123",
+            ),  # lowercase
         ],
         ids=[
             "minimum length",
@@ -32,23 +42,41 @@ class TestOrganizationQueryParams:
     def test_valid_organization_query_params(self, identifier, expected_ods_code):
         # Act
         params = OrganizationQueryParams(
-            identifier=identifier, _revinclude="Endpoint:organization"
+            identifier=identifier, _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION
         )
 
         # Assert
         assert params.identifier == identifier
-        assert params.revinclude == "Endpoint:organization"
+        assert params.revinclude == REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION
         assert params.ods_code == expected_ods_code
 
     @pytest.mark.parametrize(
         ("identifier", "expected_exception"),
         [
-            ("odsOrganisationCode|", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC1", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABCD123456789", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC-123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC 123", ODSCodeInvalidFormatError),
-            ("odsOrganisationCode|ABC@123", ODSCodeInvalidFormatError),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC1",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABCD123456789",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC-123",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC 123",
+                ODSCodeInvalidFormatError,
+            ),
+            (
+                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC@123",
+                ODSCodeInvalidFormatError,
+            ),
             ("", InvalidIdentifierSystem),
             ("wrongPrefix|ABC123", InvalidIdentifierSystem),
             ("ABC123", InvalidIdentifierSystem),
@@ -69,7 +97,8 @@ class TestOrganizationQueryParams:
         # Act
         with pytest.raises(ValidationError) as exc_info:
             OrganizationQueryParams(
-                identifier=identifier, _revinclude="Endpoint:organization"
+                identifier=identifier,
+                _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
             )
 
         # Assert
@@ -82,7 +111,8 @@ class TestOrganizationQueryParams:
         # Act
         with pytest.raises(ValidationError) as exc_info:
             OrganizationQueryParams(
-                identifier="odsOrganisationCode|ABC123", _revinclude="Invalid:value"
+                identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123",
+                _revinclude="Invalid:value",
             )
 
         # Assert
@@ -95,7 +125,8 @@ class TestOrganizationQueryParams:
     def test_ods_code_computed_field(self):
         # Act
         params = OrganizationQueryParams(
-            identifier="odsOrganisationCode|abc123", _revinclude="Endpoint:organization"
+            identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|abc123",
+            _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
         )
 
         # Assert

@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-log(){ printf '[push-to-ecr] %s\n' "$1"; }
+log(){ printf '[push-to-ecr] %s\n' "$1"; return 0; }
 die(){ printf '[push-to-ecr] ERROR: %s\n' "$1" >&2; exit 1; }
 
 usage(){ cat >&2 <<'EOF'
@@ -20,6 +20,7 @@ trim_ws(){
   s="${s#${s%%[![:space:]]*}}"
   s="${s%${s##*[![:space:]]}}"
   printf '%s' "$s"
+  return 0
 }
 
 strip_quotes(){
@@ -27,6 +28,7 @@ strip_quotes(){
   s="${s#\"}"
   s="${s%\"}"
   printf '%s' "$s"
+  return 0
 }
 
 normalise_token(){
@@ -37,6 +39,7 @@ normalise_token(){
   token="${token#\"}"
   token="${token%\"}"
   printf '%s' "$token"
+  return 0
 }
 
 retry_push(){
@@ -47,6 +50,7 @@ retry_push(){
     sleep $(( attempt * 2 ))
     attempt=$(( attempt + 1 ))
   done
+  return 0
 }
 
 retry_pull(){
@@ -57,6 +61,7 @@ retry_pull(){
     sleep $(( attempt * 2 ))
     attempt=$(( attempt + 1 ))
   done
+  return 0
 }
 
 init(){
@@ -67,6 +72,7 @@ init(){
   VERSION_TAG="${5:-}"
   PUSH_RETRIES=$(( ${PUSH_RETRIES:-3} ))
   [[ -n "$API_NAME" && -n "$LOCAL_IMAGE" && -n "$REMOTE_IMAGE_NAME" && -n "$REMOTE_IMAGE_TAG" ]] || usage
+  return 0
 }
 
 fetch_proxygen_registry_credentials(){
@@ -97,16 +103,19 @@ fetch_proxygen_registry_credentials(){
   PASSWORD="$password"
   REGISTRY="$registry"
   REGISTRY_HOST=$(printf '%s' "$REGISTRY" | sed -E 's#^https?://##' | sed -E 's#/$##')
+  return 0
 }
 
 docker_login(){
   [[ -n "$USER" && -n "$PASSWORD" ]] || die "No usable login credentials returned from Proxygen"
   printf '%s' "$PASSWORD" | docker login --username "$USER" --password-stdin "$REGISTRY_HOST"
+  return 0
 }
 
 remote_image_ref(){
   local tag="$1"
   printf '%s/%s:%s' "$REGISTRY_HOST" "$REMOTE_IMAGE_NAME" "$tag"
+  return 0
 }
 
 push_image(){
@@ -115,6 +124,7 @@ push_image(){
   docker tag "$LOCAL_IMAGE" "$REMOTE_COMMIT_TAG"
   retry_push "$REMOTE_COMMIT_TAG"
   log "Image pushed successfully to ${REMOTE_COMMIT_TAG}"
+  return 0
 }
 
 re_tag_image(){
@@ -127,11 +137,13 @@ re_tag_image(){
   docker tag "$source_ref" "$version_ref"
   retry_push "$version_ref"
   log "Version tag pushed successfully to ${version_ref}"
+  return 0
 }
 
 fetch_manifest_header(){
   curl -fsSI -u "${USER}:${PASSWORD}" -H 'Accept: application/vnd.docker.distribution.manifest.v2+json' \
     "https://${REGISTRY_HOST}/v2/${REMOTE_IMAGE_NAME}/manifests/${REMOTE_IMAGE_TAG}" 2>/dev/null | awk -F': ' '/[Dd]ocker-Content-Digest/ {print $2}' | tr -d '\r' || true
+  return 0
 }
 
 print_manifest_metadata(){
@@ -153,6 +165,7 @@ print_manifest_metadata(){
   printf '\n%-40s %s\n' "IMAGE" "DIGEST"
   printf '%-40s %s\n' "----------------------------------------" "----------------------------------------------------------------"
   printf '%-40s %s\n' "${REMOTE_IMAGE_NAME}:${manifest_tag}" "${DIGEST}"
+  return 0
 }
 
 main(){
@@ -167,6 +180,7 @@ main(){
     re_tag_image
   fi
   print_manifest_metadata
+  return 0
 }
 
 main "$@"

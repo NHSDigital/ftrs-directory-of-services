@@ -2,6 +2,8 @@ from fhir.resources.R4B.identifier import Identifier
 from fhir.resources.R4B.organization import Organization as FhirOrganization
 from ftrs_data_layer.domain import Organisation
 
+from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
+
 
 class OrganizationMapper:
     def map_to_fhir_organization(self, organisation: Organisation) -> FhirOrganization:
@@ -24,7 +26,7 @@ class OrganizationMapper:
         identifier = Identifier.model_validate(
             {
                 "use": "official",
-                "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                 "value": organisation.identifier_ODS_ODSCode,
             }
         )

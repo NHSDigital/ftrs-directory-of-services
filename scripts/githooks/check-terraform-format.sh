@@ -23,6 +23,7 @@ function main() {
 
   local check_only=${check_only:-false}
   check_only=$check_only terraform-fmt
+  return 0
 }
 
 # Format Terraform files.
@@ -36,7 +37,7 @@ function terraform-fmt() {
   fi
 
   opts=$opts dir=infrastructure make terraform-fmt
-
+  return 0
 }
 
 # ==============================================================================

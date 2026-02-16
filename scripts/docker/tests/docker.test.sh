@@ -44,7 +44,7 @@ function main() {
   done
   echo "Total: ${#tests[@]}, Passed: $(( ${#tests[@]} - status )), Failed: $status"
   test-docker-suite-teardown
-  [ $status -gt 0 ] && return 1 || return 0
+  [[ $status -gt 0 ]] && return 1 || return 0
 }
 
 # ==============================================================================
@@ -52,11 +52,13 @@ function main() {
 function test-docker-suite-setup() {
 
   :
+  return 0
 }
 
 function test-docker-suite-teardown() {
 
   :
+  return 0
 }
 
 # ==============================================================================

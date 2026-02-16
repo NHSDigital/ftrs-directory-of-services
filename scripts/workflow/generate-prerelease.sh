@@ -19,6 +19,7 @@ bump_patch() {
   IFS='.' read -r major minor patch <<<"${version#v}"
   patch=$((patch + 1))
   echo "v${major}.${minor}.${patch}"
+  return 0
 }
 
 # Determine base version
@@ -59,7 +60,7 @@ git push origin "$next_tag"
 export PRERELEASE_TAG="$next_tag"
 
 # Export for GitHub Actions
-if [ -n "${GITHUB_OUTPUT:-}" ]; then
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "prerelease_tag=${next_tag}" >> "$GITHUB_OUTPUT"
 fi
 

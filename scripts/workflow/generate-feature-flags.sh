@@ -16,14 +16,14 @@ OUTPUT_FILE="${OUTPUT_FILE:-"$ROOT_DIR/infrastructure/toggles/feature-flags.json
 CREATED_DATE="${CREATED_DATE:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}"
 
 # Validate required environment variables
-if [ -z "$ENVIRONMENT" ]; then
+if [[ -z "$ENVIRONMENT" ]]; then
   echo "Error: ENVIRONMENT environment variable is required"
   echo "Usage: ENVIRONMENT=dev $0"
   exit 1
 fi
 
 # Check if toggle registry file exists
-if [ ! -f "$TOGGLE_REGISTRY_FILE" ]; then
+if [[ ! -f "$TOGGLE_REGISTRY_FILE" ]]; then
   echo "Error: Toggle registry file not found: $TOGGLE_REGISTRY_FILE"
   exit 1
 fi
@@ -44,11 +44,11 @@ GENERATED_FILE=$(ENVIRONMENT="$ENVIRONMENT" \
   CREATED_DATE="$CREATED_DATE" \
   python3 "$SCRIPT_DIR/generate_feature_flags.py")
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
   echo "✓ Feature flags generated successfully: $GENERATED_FILE"
 
   # Display a summary of the generated file
-  if [ -f "$GENERATED_FILE" ]; then
+  if [[ -f "$GENERATED_FILE" ]]; then
     FLAG_COUNT=$(python3 -c "import json; f=open('$GENERATED_FILE'); data=json.load(f); print(len(data.get('flags', {})))")
     echo "✓ Total flags generated: $FLAG_COUNT"
 

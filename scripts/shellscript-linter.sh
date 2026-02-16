@@ -21,13 +21,14 @@ function main() {
 
   cd "$(git rev-parse --show-toplevel)"
 
-  [ -z "${file:-}" ] && echo "WARNING: 'file' variable not set, defaulting to itself"
+  [[ -z "${file:-}" ]] && echo "WARNING: 'file' variable not set, defaulting to itself"
   local file=${file:-scripts/shellscript-linter.sh}
   if command -v shellcheck > /dev/null 2>&1 && ! is-arg-true "${FORCE_USE_DOCKER:-false}"; then
     file="$file" run-shellcheck-natively
   else
     file="$file" run-shellcheck-in-docker
   fi
+  return 0
 }
 
 # Run ShellCheck natively.
@@ -37,6 +38,7 @@ function run-shellcheck-natively() {
 
   # shellcheck disable=SC2001
   shellcheck "$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # Run ShellCheck in a Docker container.
@@ -56,6 +58,7 @@ function run-shellcheck-in-docker() {
     --workdir /workdir \
     "$image" \
       "/workdir/$(echo "$file" | sed "s#$PWD#.#")"
+  return 0
 }
 
 # ==============================================================================

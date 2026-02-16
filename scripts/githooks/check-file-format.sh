@@ -71,6 +71,7 @@ function main() {
   else
     filter="$filter" dry_run_opt="${dry_run_opt:-}" run-editorconfig-in-docker
   fi
+  return 0
 }
 
 # Run editorconfig natively.
@@ -82,6 +83,7 @@ function run-editorconfig-natively() {
   # shellcheck disable=SC2046,SC2086
   editorconfig \
     --exclude '.git/' --exclude '*.sql' $dry_run_opt $($filter)
+  return 0
 }
 
 # Run editorconfig in a Docker container.
@@ -104,6 +106,7 @@ function run-editorconfig-in-docker() {
     --volume "$PWD":/check \
     "$image" \
       sh -c "ec --exclude '.git/' --exclude '*.sql' $dry_run_opt \$($filter) /dev/null"
+  return 0
 }
 
 # ==============================================================================

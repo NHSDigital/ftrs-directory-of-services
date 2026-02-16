@@ -7,7 +7,7 @@ views {
       FHIR-compliant search for GP endpoints by ODS code.
 
       The service:
-      1. Receives GET /Organization?identifier=odsOrganisationCode|{code}&_revinclude=Endpoint:organization
+      1. Receives GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization
       2. Queries DynamoDB for organisation data
       3. Maps to FHIR Organization and Endpoint resources
       4. Returns FHIR Bundle (searchset)
@@ -27,7 +27,7 @@ views {
       Sequence showing the data flow through DoS Search service
     '
 
-    apim.dosReadProxy -> ftrs.apiGateway "1. GET /Organization?identifier=odsOrganisationCode|{code}"
+    apim.dosReadProxy -> ftrs.apiGateway "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "2. Route to Lambda"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "3. Call service"
     ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "4. Query by ODS code"

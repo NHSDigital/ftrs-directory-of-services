@@ -23,3 +23,5 @@ flow_logs_s3_expiration_days = 30
 enable_nat_gateway     = true
 single_nat_gateway     = false
 one_nat_gateway_per_az = true
+
+regional_waf_log_group_retention_days = 90

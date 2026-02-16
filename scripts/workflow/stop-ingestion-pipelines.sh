@@ -16,7 +16,7 @@ aws osis list-pipelines \
     --region "${AWS_REGION}" | \
     jq -r '.Pipeline | .Status')
     echo "${RESPONSE}"
-    if [ "${RESPONSE}" != "STOPPING" ]; then
+    if [[ "${RESPONSE}" != "STOPPING" ]]; then
       echo "Pipeline ${PIPELINE_NAME} did not stop successfully"
       OUTCOME=1
     fi
