@@ -173,29 +173,16 @@ def test_reject_special_symbols(
         ("Smith @ Medical Centre", "Smith @ Medical Centre"),
         ("Health+Plus", "Health+Plus"),
         ("Practice: Dr Smith", "Practice: Dr Smith"),
-    ],
-)
-def test_allow_special_characters(
-    validator: GPPracticeValidator, input_name: str, expected: str
-) -> None:
-    """Test that @, +, and : characters are allowed in practice names."""
-    assert_valid_name(validator, input_name, expected)
-
-
-# Ampersand Tests
-@pytest.mark.parametrize(
-    "input_name,expected",
-    [
         ("Smith & Jones", "Smith & Jones"),
         ("Smith& Jones", "Smith& Jones"),
         ("Smith &Jones", "Smith &Jones"),
         ("Smith&Jones", "Smith&Jones"),
     ],
 )
-def test_ampersand_allowed(
+def test_allow_special_characters(
     validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that ampersand is allowed in practice names (with or without spaces)."""
+    """Test that @, +, :, and & characters are allowed in practice names."""
     assert_valid_name(validator, input_name, expected)
 
 
