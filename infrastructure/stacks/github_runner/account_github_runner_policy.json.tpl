@@ -305,6 +305,52 @@
               "iam:PassedToService": "firehose.amazonaws.com"
             }
           }
+        },
+        {
+          "Sid": "AWSBackupFullAccess",
+          "Effect": "Allow",
+          "Action": [
+            "backup:ListBackupPlans",
+            "backup:CreateBackupPlan",
+            "backup:DeleteBackupPlan",
+            "backup:DescribeBackupPlan",
+            "backup:UpdateBackupPlan",
+            "backup:GetBackupPlan",
+            "backup:CreateReportPlan",
+            "backup:DeleteReportPlan",
+            "backup:DescribeReportPlan",
+            "backup:UpdateReportPlan",
+            "backup:ListReportPlans",
+            "backup:TagResource",
+            "backup:ListTags",
+            "backup:CreateFramework",
+            "backup:DeleteFramework",
+            "backup:DescribeFramework",
+            "backup:ListFrameworks",
+            "backup:CreateBackupVault",
+            "backup:DeleteBackupVault",
+            "backup:DescribeBackupVault",
+            "backup:ListBackupVaults",
+            "backup:PutBackupVaultAccessPolicy",
+            "backup:GetBackupVaultAccessPolicy",
+            "backup:CreateBackupSelection",
+            "backup:GetBackupSelection",
+            "backup:DeleteBackupSelection",
+            "backup:CreateRestoreTestingPlan",
+            "backup:DeleteRestoreTestingPlan",
+            "backup:GetRestoreTestingPlan",
+            "backup:ListRestoreTestingPlans",
+            "backup:UpdateRestoreTestingPlan"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "AWSBackupStorageAccess",
+          "Effect": "Allow",
+          "Action": [
+            "backup-storage:*"
+          ],
+          "Resource": "*"
         }
   ]
 }
