@@ -64,7 +64,7 @@ def get_status() -> Response:
 
 @router.get(
     "/Organization",
-    summary="Get organisation uuid by ods_code",
+    summary="Get organisation by ods_code",
     response_class=JSONResponse,
 )
 async def get_handle_organisation_requests(
