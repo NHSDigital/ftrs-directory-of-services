@@ -1,6 +1,6 @@
 import re
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from functions.constants import (
     ODS_ORG_CODE_IDENTIFIER_SYSTEM,
@@ -51,11 +51,12 @@ def _extract_identifier_value(identifier: str) -> str:
 
 class OrganizationQueryParams(BaseModel):
     identifier: str = Field(
+        alias="identifier",
         description=f"Organization identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{code}}'",
     )
     revinclude: str = Field(alias="_revinclude")
 
-    model_config = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
     @computed_field
     @property
@@ -85,3 +86,12 @@ class OrganizationQueryParams(BaseModel):
         if v != REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION:
             raise InvalidRevincludeError
         return v
+
+    @classmethod
+    def get_required_query_params(cls) -> list[str]:
+        """Get required query parameters from OrganizationQueryParams model."""
+        return [
+            field_info.alias
+            for field_info in cls.model_fields.values()
+            if field_info.alias and field_info.is_required()
+        ]
