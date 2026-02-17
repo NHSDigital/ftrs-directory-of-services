@@ -12,6 +12,12 @@ from utilities.infra.api_util import get_r53, get_url
 from utilities.infra.dns_util import wait_for_dns
 
 CODING_MAP = {
+    "REC_BAD_REQUEST": {
+        "system": "https://fhir.nhs.uk/CodeSystem/http-error-codes",
+        "version": "1",
+        "code": "REC_BAD_REQUEST",
+        "display": "400: The Receiver was unable to process the request.",
+    },
     "INVALID_SEARCH_DATA": {
         "coding": [
             {
