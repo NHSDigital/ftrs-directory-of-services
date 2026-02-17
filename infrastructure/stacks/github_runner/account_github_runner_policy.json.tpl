@@ -109,7 +109,8 @@
                 "arn:aws:iam::*:instance-profile/${repo_name}-*",
                 "arn:aws:iam::*:role/dms-vpc-role",
                 "arn:aws:iam::*:role/${project}-*",
-                "arn:aws:iam::*:policy/${project}-*"
+                "arn:aws:iam::*:policy/${project}-*",
+                "arn:aws:iam::*:role/aws-service-role/shield.amazonaws.com/AWSServiceRoleForAWSShield"
             ]
         },
         {
