@@ -194,7 +194,10 @@ def test_reject_special_symbols(
         ("Smith &Jones", "Smith &Jones"),
         ("Smith&Jones", "Smith&Jones"),
         # Multiple special characters combined
-        ("Dr. Smith's Practice: Health+Plus (Main)", "Dr. Smith's Practice: Health+Plus (Main)"),
+        (
+            "Dr. Smith's Practice: Health+Plus (Main)",
+            "Dr. Smith's Practice: Health+Plus (Main)",
+        ),
     ],
 )
 def test_allow_special_characters(
