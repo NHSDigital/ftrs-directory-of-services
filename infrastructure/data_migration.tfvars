@@ -56,7 +56,6 @@ full_migration_completion_event_queue_name = "full-migration-completion-event"
 target_rds_credentials                     = "target-rds-credentials"
 dms_user_password                          = "dms-user-password"
 source_rds_credentials                     = "source-rds-credentials"
-replica_rds_credentials                    = "target-rds-credentials"
 
 dms_replication_instance_class = "dms.t3.small"
 dms_engine                     = "aurora-postgresql"
