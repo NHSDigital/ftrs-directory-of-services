@@ -1,5 +1,7 @@
+from collections.abc import Callable
+
 from fhir.resources.R4B.operationoutcome import OperationOutcome
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from functions.constants import (
     ODS_ORG_CODE_IDENTIFIER_SYSTEM,
@@ -9,13 +11,28 @@ from functions.error_util import (
     INVALID_SEARCH_DATA_CODING,
     REC_BAD_REQUEST_CODING,
     _create_issue,
-    create_invalid_header_operation_outcome,
-    create_invalid_version_operation_outcome,
-    create_missing_mandatory_header_operation_outcome,
     create_resource_internal_server_error,
     create_validation_error_operation_outcome,
 )
+from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
+
+
+def _get_validation_error(
+    model_build: Callable[[], BaseModel],
+) -> ValidationError:
+    try:
+        model_build()
+    except ValidationError as e:
+        return e
+    raise AssertionError("Expected a ValidationError but model built successfully")  # noqa: TRY003
+
+
+REQUIRED_HEADERS = {
+    "Authorization": "Bearer abcdefg",
+    "NHSD-Request-ID": "123456789",
+    "Version": "1",
+}
 
 
 class TestErrorUtil:
@@ -33,15 +50,12 @@ class TestErrorUtil:
 
     def test_create_validation_error_invalid_ods_code_format(self):
         # Arrange - ODS code too short
-        validation_error = None
-        try:
-            OrganizationQueryParams(
+        validation_error = _get_validation_error(
+            lambda: OrganizationQueryParams(
                 identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC",
                 _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
             )
-        except ValidationError as e:
-            validation_error = e
-
+        )
         # Act
         result = create_validation_error_operation_outcome(validation_error)
 
@@ -58,14 +72,12 @@ class TestErrorUtil:
 
     def test_create_validation_error_invalid_identifier_system(self):
         # Arrange - Wrong identifier system
-        validation_error = None
-        try:
-            OrganizationQueryParams(
+        validation_error = _get_validation_error(
+            lambda: OrganizationQueryParams(
                 identifier="wrongSystem|ABC12345",
                 _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
             )
-        except ValidationError as e:
-            validation_error = e
+        )
 
         # Act
         result = create_validation_error_operation_outcome(validation_error)
@@ -126,7 +138,7 @@ class TestErrorUtil:
         assert result.issue[0].code == "required"
         assert (
             result.issue[0].diagnostics
-            == "Missing required search parameter '_revinclude'"
+            == "Missing required query parameter(s): '_revinclude'"
         )
         assert result.issue[0].details.model_dump() == INVALID_SEARCH_DATA_CODING
 
@@ -183,7 +195,7 @@ class TestErrorUtil:
         # Updated fallback expectations: client error, not internal fatal
         assert result.issue[0].severity == "error"
         assert result.issue[0].code == "invalid"
-        assert result.issue[0].diagnostics == "Input should be a valid string"
+        assert result.issue[0].diagnostics == "Invalid input"
 
     def test_create_validation_error_unmapped_value_error(self):
         # Simulate a value_error with an unmapped custom error class
@@ -205,15 +217,22 @@ class TestErrorUtil:
         result = create_validation_error_operation_outcome(err)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
-        # Updated fallback expectations: client error, not internal fatal
         assert result.issue[0].severity == "error"
         assert result.issue[0].code == "invalid"
-        assert result.issue[0].diagnostics == "boom"
+        assert result.issue[0].diagnostics == "Invalid input"
 
     def test_create_invalid_header_operation_outcome(self):
-        headers = ["X-NHSD-Z", "Authorization"]
+        # Arrange - non-allowed headers
+        headers = {
+            "X-NHSD-Z": "foo",
+            "Random": "bar",
+        } | REQUIRED_HEADERS
 
-        result = create_invalid_header_operation_outcome(headers)
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
+        )
+
+        result = create_validation_error_operation_outcome(validation_error)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
@@ -221,48 +240,33 @@ class TestErrorUtil:
         assert issue.severity == "error"
         assert issue.code == "value"
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
-        assert (
-            issue.diagnostics
-            == "Invalid request headers supplied: authorization, x-nhsd-z"
-        )
-
-    def test_create_invalid_header_operation_outcome_empty_list(self):
-        # Test with empty list of headers
-        result = create_invalid_header_operation_outcome([])
-
-        assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        issue = result.issue[0]
-        assert issue.severity == "error"
-        assert issue.code == "value"
-        assert issue.diagnostics == "Invalid request headers supplied"
+        assert issue.diagnostics == "Unexpected header(s): x-nhsd-z, random."
 
     def test_create_invalid_header_operation_outcome_single_header(self):
         # Test with single header
-        headers = ["X-Custom-Header"]
+        headers = {
+            "X-Custom-Header": "foo",
+        } | REQUIRED_HEADERS
 
-        result = create_invalid_header_operation_outcome(headers)
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
+        )
+
+        result = create_validation_error_operation_outcome(validation_error)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         assert "x-custom-header" in result.issue[0].diagnostics
 
-    def test_create_invalid_header_operation_outcome_sorts_headers(self):
-        # Test that headers are sorted alphabetically
-        headers = ["Z-Header", "A-Header", "M-Header"]
+    def test_create_invalid_version_operation_outcome(self):
+        headers = REQUIRED_HEADERS.copy()
+        headers["Version"] = "2"
 
-        result = create_invalid_header_operation_outcome(headers)
-
-        diagnostics = result.issue[0].diagnostics
-        assert (
-            diagnostics
-            == "Invalid request headers supplied: a-header, m-header, z-header"
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
         )
 
-    def test_create_invalid_version_operation_outcome(self):
-        headers = {"version": "1"}
-
-        result = create_invalid_version_operation_outcome(headers)
+        result = create_validation_error_operation_outcome(validation_error)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
@@ -272,71 +276,57 @@ class TestErrorUtil:
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
             issue.diagnostics
-            == "Invalid version found in supplied headers: version - 1"
+            == "Invalid version found in supplied headers: version must be '1'"
         )
-
-    def test_create_invalid_version_operation_outcome_empty_dict(self):
-        headers = {}
-
-        result = create_invalid_version_operation_outcome(headers)
-
-        assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        issue = result.issue[0]
-        assert issue.severity == "error"
-        assert issue.code == "value"
-        assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
-        assert issue.diagnostics == "Invalid version found in supplied headers."
 
     def test_create_missing_mandatory_header_operation_outcome(self):
-        headers = ["nhsd-request-id"]
+        headers = {"nhsd-request-id": "foo"}
 
-        result = create_missing_mandatory_header_operation_outcome(headers)
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
+        )
+
+        result = create_validation_error_operation_outcome(validation_error)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         issue = result.issue[0]
         assert issue.severity == "error"
-        assert issue.code == "value"
+        assert issue.code == "required"
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
             issue.diagnostics
-            == "Missing the following mandatory header(s): nhsd-request-id"
+            == "Missing required header(s): 'authorization', 'version'"
         )
 
     def test_create_missing_mandatory_header_operation_outcome_empty_list(self):
-        # Test with empty list of headers
-        result = create_missing_mandatory_header_operation_outcome([])
+        headers = {}
+
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
+        )
+
+        result = create_validation_error_operation_outcome(validation_error)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         issue = result.issue[0]
         assert issue.severity == "error"
-        assert issue.code == "value"
-        assert issue.diagnostics == "Missing mandatory headers"
-
-    def test_create_missing_mandatory_header_operation_outcome_sorts_headers(self):
-        # Test that headers are sorted alphabetically
-        headers = ["Z-Header", "A-Header", "M-Header"]
-
-        result = create_missing_mandatory_header_operation_outcome(headers)
-
-        diagnostics = result.issue[0].diagnostics
+        assert issue.code == "required"
+        assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
-            diagnostics
-            == "Missing the following mandatory header(s): a-header, m-header, z-header"
+            issue.diagnostics
+            == "Missing required header(s): 'authorization', 'version', 'nhsd-request-id'"
         )
 
     def test_multiple_validation_errors(self):
         # Test handling of multiple validation errors at once
-        validation_error = None
-        try:
-            OrganizationQueryParams(
+        validation_error = _get_validation_error(
+            lambda: OrganizationQueryParams(
                 identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC",  # Too short
                 _revinclude="Wrong:value",  # Wrong revinclude
             )
-        except ValidationError as e:
-            validation_error = e
+        )
 
         result = create_validation_error_operation_outcome(validation_error)
         assert isinstance(result, OperationOutcome)
@@ -373,39 +363,14 @@ class TestErrorUtil:
         assert issue["severity"] == "error"
         assert "diagnostics" not in issue
 
-    def test_handle_custom_error_with_empty_message(self):
-        # Test custom ValueError with empty message
-        class CustomValueError(ValueError):
-            pass
-
-        err = ValidationError.from_exception_data(
-            "ValidationError",
-            [
-                {
-                    "type": "value_error",
-                    "loc": ("field",),
-                    "msg": "value error",
-                    "input": None,
-                    "ctx": {"error": CustomValueError("")},
-                }
-            ],
-        )
-        result = create_validation_error_operation_outcome(err)
-        assert isinstance(result, OperationOutcome)
-        assert result.issue[0].diagnostics == "Invalid search parameter value"
-
     def test_create_validation_error_unexpected_query_param(self) -> None:
-        validation_error = None
-        try:
-            OrganizationQueryParams(
+        validation_error = _get_validation_error(
+            lambda: OrganizationQueryParams(
                 identifier=f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC12345",
                 _revinclude=REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
                 foo="bar",
             )
-        except ValidationError as exc:
-            validation_error = exc
-
-        assert validation_error is not None
+        )
 
         result = create_validation_error_operation_outcome(validation_error)
 
@@ -421,22 +386,3 @@ class TestErrorUtil:
         assert "foo" in diagnostics
         assert "identifier" in diagnostics
         assert "_revinclude" in diagnostics
-
-    def test_unexpected_query_param_diagnostics_uses_last_loc_entry(self) -> None:
-        err = ValidationError.from_exception_data(
-            "ValidationError",
-            [
-                {
-                    "type": "extra_forbidden",
-                    "loc": ("query", "foo"),
-                    "msg": "Extra inputs are not permitted",
-                    "input": "bar",
-                }
-            ],
-        )
-
-        result = create_validation_error_operation_outcome(err)
-
-        assert isinstance(result, OperationOutcome)
-        assert len(result.issue) == 1
-        assert "foo" in (result.issue[0].diagnostics or "")

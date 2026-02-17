@@ -1,14 +1,35 @@
+from collections import defaultdict
+from dataclasses import dataclass
 from typing import Any, Type
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
+from functions.organization_headers import InvalidVersionError, OrganizationHeaders
 from functions.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
     ODSCodeInvalidFormatError,
+    OrganizationQueryParams,
 )
+
+FRIENDLY_NAME_HEADERS = "header"
+FRIENDLY_NAME_QUERY_PARAMETERS = "query parameter"
+
+
+@dataclass
+class ErrorDetail:
+    field: str
+    value: Any
+    custom_error: ValueError | None
+
+
+@dataclass
+class ErrorGroup:
+    error_type: str
+    friendly_name: str
+    error_details: list[ErrorDetail]
+
 
 INVALID_SEARCH_DATA_CODING: dict[str, list] = {
     "coding": [
@@ -36,73 +57,13 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
+    InvalidVersionError: {"code": "value", "severity": "error"},
 }
 
-
-def create_invalid_header_operation_outcome(headers: list[str]) -> OperationOutcome:
-    diagnostics = (
-        "Invalid request headers supplied: "
-        + ", ".join(sorted(header.lower() for header in headers))
-        if headers
-        else "Invalid request headers supplied"
-    )
-    return OperationOutcome.model_validate(
-        {
-            "issue": [
-                _create_issue(
-                    "value",
-                    "error",
-                    details=REC_BAD_REQUEST_CODING,
-                    diagnostics=diagnostics,
-                )
-            ]
-        }
-    )
-
-
-def create_invalid_version_operation_outcome(
-    headers: dict[str, str],
-) -> OperationOutcome:
-    diagnostics = (
-        f"Invalid version found in supplied headers: version - {headers['version']}"
-        if headers
-        else "Invalid version found in supplied headers."
-    )
-    return OperationOutcome.model_validate(
-        {
-            "issue": [
-                _create_issue(
-                    "value",
-                    "error",
-                    details=REC_BAD_REQUEST_CODING,
-                    diagnostics=diagnostics,
-                )
-            ]
-        }
-    )
-
-
-def create_missing_mandatory_header_operation_outcome(
-    headers: list[str],
-) -> OperationOutcome:
-    diagnostics = (
-        "Missing the following mandatory header(s): "
-        + ", ".join(sorted(header.lower() for header in headers))
-        if headers
-        else "Missing mandatory headers"
-    )
-    return OperationOutcome.model_validate(
-        {
-            "issue": [
-                _create_issue(
-                    "value",
-                    "error",
-                    details=REC_BAD_REQUEST_CODING,
-                    diagnostics=diagnostics,
-                )
-            ]
-        }
-    )
+FRIENDLY_MODEL_NAME_MAP: dict[str, str] = {
+    OrganizationQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
+    OrganizationHeaders.__name__: FRIENDLY_NAME_HEADERS,
+}
 
 
 def create_resource_internal_server_error() -> OperationOutcome:
@@ -118,67 +79,87 @@ def create_resource_internal_server_error() -> OperationOutcome:
 def create_validation_error_operation_outcome(
     exception: ValidationError,
 ) -> OperationOutcome:
-    return OperationOutcome.model_validate(
-        {"issue": [_create_issue_from_error(error) for error in exception.errors()]}
-    )
+    error_groups = _extract_validation_error_error_details_by_type(exception)
+
+    issues = [
+        issue
+        for error_group in error_groups
+        for issue in _create_issues_from_error(error_group)
+    ]
+
+    return OperationOutcome.model_validate({"issue": issues})
 
 
-def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
-    if error.get("type") == "extra_forbidden":
-        loc = error.get("loc") or ()
-        unexpected = str(loc[-1]) if isinstance(loc, (list, tuple)) and loc else ""
-        return _create_issue(
-            "value",
-            "error",
-            details=INVALID_SEARCH_DATA_CODING,
-            diagnostics=(
-                f"Unexpected query parameter(s): {unexpected}. Only 'identifier' and '_revinclude' are allowed."
-            ),
+def _create_issues_from_error(error_group: ErrorGroup) -> list[dict[str, Any]]:
+    issues = []
+
+    if error_group.error_type == "extra_forbidden":
+        unexpected = ", ".join(
+            [error_detail.field for error_detail in error_group.error_details]
+        )
+        diagnostics = f"Unexpected {error_group.friendly_name}(s): {unexpected}."
+        if error_group.friendly_name == FRIENDLY_NAME_QUERY_PARAMETERS:
+            allowed_fields = " and ".join(
+                f"'{field}'"
+                for field in OrganizationQueryParams.get_required_query_params()
+            )
+            diagnostics += f" Only {allowed_fields} are allowed."
+        issues.append(
+            _create_issue(
+                "value",
+                "error",
+                details=_get_details(error_group),
+                diagnostics=diagnostics,
+            )
         )
 
-    if error.get("type") == "value_error":
-        if custom_error := error.get("ctx", {}).get("error"):
-            return _handle_custom_error(custom_error)
-        # Unmapped value_error: treat as client invalid input (400)
-        return _create_issue(
-            "invalid",
-            "error",
-            details=INVALID_SEARCH_DATA_CODING,
-            diagnostics="Invalid search parameter value",
+    elif error_group.error_type == "value_error":
+        issues.extend(
+            issue
+            for error_field in error_group.error_details
+            if (custom_error := error_field.custom_error)
+            and (issue := _handle_custom_error(custom_error, error_group))
         )
 
-    if error.get("type") == "missing":
-        return _create_issue(
-            "required",
-            "error",
-            details=INVALID_SEARCH_DATA_CODING,
-            diagnostics=f"Missing required search parameter '{error.get('loc')[0]}'",
+    elif error_group.error_type == "missing":
+        fields = ", ".join(
+            f"'{error_detail.field}'" for error_detail in error_group.error_details
+        )
+        issues.append(
+            _create_issue(
+                "required",
+                "error",
+                details=_get_details(error_group),
+                diagnostics=f"Missing required {error_group.friendly_name}(s): {fields}",
+            )
         )
 
     # Any other pydantic error type: treat as generic client invalid input (400)
-    return _create_issue(
-        "invalid",
-        "error",
-        details=INVALID_SEARCH_DATA_CODING,
-        diagnostics=error.get("msg") or "Invalid request",
-    )
+    if not issues:
+        issues.append(
+            _create_issue(
+                "invalid",
+                "error",
+                details=_get_details(error_group),
+                diagnostics=f"Invalid {error_group.friendly_name}",
+            )
+        )
+
+    return issues
 
 
-def _handle_custom_error(custom_error: ValueError) -> dict:
+def _handle_custom_error(
+    custom_error: ValueError, error_group: ErrorGroup
+) -> dict | None:
     if error_config := VALUE_ERROR_MAPPINGS.get(type(custom_error)):
         return _create_issue(
-            error_config["code"],
-            error_config["severity"],
-            details=INVALID_SEARCH_DATA_CODING,
+            code=error_config["code"],
+            severity=error_config["severity"],
+            details=_get_details(error_group),
             diagnostics=str(custom_error),
         )
-    # Fallback for unmapped custom ValueError: treat as client invalid input (400)
-    return _create_issue(
-        "invalid",
-        "error",
-        details=INVALID_SEARCH_DATA_CODING,
-        diagnostics=str(custom_error) or "Invalid search parameter value",
-    )
+
+    return None
 
 
 def _create_issue(
@@ -193,3 +174,36 @@ def _create_issue(
     if diagnostics:
         issue["diagnostics"] = diagnostics
     return issue
+
+
+def _extract_validation_error_error_details_by_type(
+    exception: ValidationError,
+) -> list[ErrorGroup]:
+    """Extract useful error details from ValidationError and group by error type."""
+    title = exception.title
+    friendly_name = FRIENDLY_MODEL_NAME_MAP.get(title, "input")
+    error_details_by_type = defaultdict(list)
+
+    for error in exception.errors():
+        error_type = error.get("type", "unknown")
+        error_details_by_type[error_type].append(
+            ErrorDetail(
+                field=error.get("loc", ("unknown",))[0],
+                value=error.get("input"),
+                custom_error=error.get("ctx", {}).get("error"),
+            )
+        )
+
+    return [
+        ErrorGroup(
+            error_type=error_type, friendly_name=friendly_name, error_details=errors
+        )
+        for error_type, errors in error_details_by_type.items()
+    ]
+
+
+def _get_details(error_group: ErrorGroup) -> dict[str, list]:
+    if error_group.friendly_name == FRIENDLY_NAME_QUERY_PARAMETERS:
+        return INVALID_SEARCH_DATA_CODING
+    else:
+        return REC_BAD_REQUEST_CODING

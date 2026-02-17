@@ -10,7 +10,6 @@ from functions.constants import (
 )
 from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
-    MANDATORY_REQUEST_HEADERS,
     lambda_handler,
 )
 
@@ -85,132 +84,6 @@ def assert_response(
 
 class TestLambdaHandler:
     @pytest.mark.parametrize(
-        "header_name",
-        [
-            "Authorization",
-            "Content-Type",
-            "NHSD-Correlation-ID",
-            "nhsd-correlation-id",
-            "NHSD-Request-ID",
-            "nhsd-request-id",
-            "end-user-role",
-            "application-id",
-            "application-name",
-            "Accept",
-            "Accept-Encoding",
-            "Accept-Language",
-            "User-Agent",
-            "Host",
-            "X-Amzn-Trace-Id",
-            "X-Forwarded-For",
-            "X-Forwarded-Port",
-            "X-Forwarded-Proto",
-        ],
-    )
-    def test_lambda_handler_allows_valid_custom_headers(
-        self,
-        header_name,
-        lambda_context,
-        mock_ftrs_service,
-        mock_logger,
-        bundle,
-    ):
-        mock_ftrs_service.endpoints_by_ods.return_value = bundle
-
-        event_with_headers = _build_event_with_headers(
-            {
-                "nhsd-request-id": "req-id",
-                "version": "1",
-                header_name: "value",
-            }
-        )
-
-        response = lambda_handler(event_with_headers, lambda_context)
-
-        assert_response(
-            response, expected_status_code=200, expected_body=bundle.model_dump_json()
-        )
-
-    def test_lambda_handler_rejects_invalid_custom_headers(
-        self,
-        lambda_context,
-        mock_logger,
-        mock_error_util,
-    ):
-        event_with_headers = _build_event_with_headers(
-            {
-                "Authorization": "token",
-                "nhsd-request-id": "req-id",
-                "version": "1",
-                "X-NHSD-UNKNOWN": "abc",
-            }
-        )
-
-        response = lambda_handler(event_with_headers, lambda_context)
-
-        mock_error_util.create_invalid_header_operation_outcome.assert_called_once_with(
-            ["x-nhsd-unknown"]
-        )
-        mock_logger.warning.assert_called_with(
-            "Invalid request headers supplied",
-            invalid_headers=["x-nhsd-unknown"],
-        )
-        assert_response(
-            response,
-            expected_status_code=400,
-            expected_body=mock_error_util.create_invalid_header_operation_outcome.return_value.model_dump_json(),
-        )
-
-    def test_lambda_handler_rejects_when_invalid_version_header(
-        self,
-        lambda_context,
-        mock_logger,
-        mock_error_util,
-    ):
-        event_with_headers = _build_event_with_headers(
-            {"nhsd-request-id": "req-id", "version": "DROP TABLES"}
-        )
-
-        response = lambda_handler(event_with_headers, lambda_context)
-
-        mock_error_util.create_invalid_version_operation_outcome.assert_called_once_with(
-            {"version": "DROP TABLES"}
-        )
-        mock_logger.warning.assert_called_with(
-            "Invalid type found in supplied headers",
-            invalid_version_header={"version": "DROP TABLES"},
-        )
-        assert_response(
-            response,
-            expected_status_code=400,
-            expected_body=mock_error_util.create_invalid_version_operation_outcome.return_value.model_dump_json(),
-        )
-
-    def test_lambda_handler_rejects_when_missing_mandatory_headers(
-        self,
-        lambda_context,
-        mock_logger,
-        mock_error_util,
-    ):
-        header_list = [header for header in MANDATORY_REQUEST_HEADERS]
-        event_with_headers = _build_event_with_headers({})
-
-        response = lambda_handler(event_with_headers, lambda_context)
-
-        mock_error_util.create_missing_mandatory_header_operation_outcome.assert_called_once_with(
-            header_list
-        )
-        mock_logger.warning.assert_called_with(
-            "Missing mandatory headers",
-            missing_headers=header_list,
-        )
-        assert_response(
-            response,
-            expected_status_code=400,
-            expected_body=mock_error_util.create_missing_mandatory_header_operation_outcome.return_value.model_dump_json(),
-        )
-
-    @pytest.mark.parametrize(
         "ods_code",
         [
             "ABC12",
@@ -274,8 +147,22 @@ class TestLambdaHandler:
             response, expected_status_code=200, expected_body=bundle.model_dump_json()
         )
 
-    def test_lambda_handler_with_validation_error(
-        self, lambda_context, mock_error_util, mock_logger, event, log_data, details
+    @pytest.mark.parametrize(
+        "model_to_throw_validation_error",
+        [
+            "OrganizationHeaders",
+            "OrganizationQueryParams",
+        ],
+    )
+    def test_lambda_handler_with_request_validation_error(
+        self,
+        lambda_context,
+        mock_error_util,
+        mock_logger,
+        event,
+        log_data,
+        details,
+        model_to_throw_validation_error,
     ):
         # Arrange
         validation_error = ValidationError.from_exception_data("ValidationError", [])
@@ -288,7 +175,7 @@ class TestLambdaHandler:
 
         # Act
         with patch(
-            "functions.dos_search_ods_code_function.OrganizationQueryParams.model_validate",
+            f"functions.dos_search_ods_code_function.{model_to_throw_validation_error}.model_validate",
             side_effect=validation_error,
         ):
             response = lambda_handler(event, lambda_context)
