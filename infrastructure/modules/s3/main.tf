@@ -1,6 +1,6 @@
 module "s3" {
-  # Module version: 5.7.0
-  source = "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git?ref=c375418373496865e2770ad8aabfaf849d4caee5"
+  # Module version: 5.8.2
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git?ref=v5.8.2"
 
   bucket                                = "${var.bucket_name}${local.workspace_suffix}"
   attach_policy                         = var.attach_policy || var.enable_kms_encryption
