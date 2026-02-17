@@ -22,6 +22,10 @@ data "aws_security_group" "vpce_rds_security_group" {
   name = "${local.account_prefix}-current-dos-rds-vpc-endpoint-sg"
 }
 
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
+}
+
 data "aws_subnets" "private_subnets" {
   filter {
     name   = "vpc-id"
@@ -74,7 +78,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.replica_rds_credentials}-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_credentials}-*"
     ]
   }
 
