@@ -592,113 +592,6 @@ components:
                   mode:
                     type: string
                     enum: [ "match", "include" ]
-  responses:
-    Unauthorized:
-      description: Unauthorized - Invalid or missing authentication token
-      content:
-        application/fhir+json:
-          schema:
-            $ref: '#/components/schemas/OperationOutcome'
-          example:
-            resourceType: "OperationOutcome"
-            issue:
-              - severity: "error"
-                code: "security"
-                diagnostics: "Invalid or missing authentication token"
-                details:
-                  coding:
-                    - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
-                      version: "1"
-                      code: "UNAUTHORIZED"
-                      display: "Unauthorized"
-    ServerError:
-      description: Internal server error
-      content:
-        application/fhir+json:
-          schema:
-            $ref: '#/components/schemas/OperationOutcome'
-          example:
-            resourceType: "OperationOutcome"
-            issue:
-              - severity: "fatal"
-                code: "exception"
-                diagnostics: "Internal server error"
-    InvalidId:
-      description: Bad request
-      content:
-        application/fhir+json:
-          schema:
-            $ref: '#/components/schemas/OperationOutcome'
-          example:
-            resourceType: "OperationOutcome"
-            issue:
-              - severity: "error"
-                code: "invalid"
-                diagnostics: "Invalid id parameter value 'foo' - must be a valid UUID"
-                details:
-                  coding:
-                    - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                      version: "1"
-                      code: "INVALID_RESOURCE_ID"
-                      display: "Invalid resource ID"
-  examples:
-    InvalidIdentifierValue:
-      summary: Invalid ODS code format
-      value:
-        resourceType: "OperationOutcome"
-        issue:
-          - severity: "error"
-            code: "value"
-            details:
-              coding:
-                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                  version: "1.0.0"
-                  code: "INVALID_SEARCH_DATA"
-                  display: "Invalid search data"
-            diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
-    MissingRevInclude:
-      summary: Missing required _revinclude parameter
-      value:
-        resourceType: "OperationOutcome"
-        issue:
-          - severity: "error"
-            code: "value"
-            details:
-              coding:
-                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                  version: "1.0.0"
-                  code: "INVALID_SEARCH_DATA"
-                  display: "Invalid search data"
-            diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
-    InvalidIdentifierSystem:
-      summary: Invalid identifier system
-      value:
-        resourceType: "OperationOutcome"
-        issue:
-          - severity: "error"
-            code: "code-invalid"
-            details:
-              coding:
-                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                  version: "1.0.0"
-                  code: "INVALID_SEARCH_DATA"
-                  display: "Invalid search data"
-            diagnostics: "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
-    UnexpectedQueryParam:
-      summary: Unexpected query parameter
-      value:
-        resourceType: "OperationOutcome"
-        issue:
-          - severity: "error"
-            code: "value"
-            details:
-              coding:
-                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                  version: "1.0.0"
-                  code: "INVALID_SEARCH_DATA"
-                  display: "Invalid search data"
-            diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
-
     Organization:
       type: object
       description: A FHIR resource that returns the included components.
@@ -955,6 +848,114 @@ components:
                           type: string
                         display:
                           type: string
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/fhir+json:
+          schema:
+            $ref: '#/components/schemas/OperationOutcome'
+          example:
+            resourceType: "OperationOutcome"
+            issue:
+              - severity: "error"
+                code: "security"
+                diagnostics: "Invalid or missing authentication token"
+                details:
+                  coding:
+                    - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                      version: "1"
+                      code: "UNAUTHORIZED"
+                      display: "Unauthorized"
+    ServerError:
+      description: Internal server error
+      content:
+        application/fhir+json:
+          schema:
+            $ref: '#/components/schemas/OperationOutcome'
+          example:
+            resourceType: "OperationOutcome"
+            issue:
+              - severity: "fatal"
+                code: "exception"
+                diagnostics: "Internal server error"
+    InvalidId:
+      description: Bad request
+      content:
+        application/fhir+json:
+          schema:
+            $ref: '#/components/schemas/OperationOutcome'
+          example:
+            resourceType: "OperationOutcome"
+            issue:
+              - severity: "error"
+                code: "invalid"
+                diagnostics: "Invalid id parameter value 'foo' - must be a valid UUID"
+                details:
+                  coding:
+                    - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                      version: "1"
+                      code: "INVALID_RESOURCE_ID"
+                      display: "Invalid resource ID"
+  examples:
+    InvalidIdentifierValue:
+      summary: Invalid ODS code format
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "value"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "INVALID_SEARCH_DATA"
+                  display: "Invalid search data"
+            diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
+    MissingRevInclude:
+      summary: Missing required _revinclude parameter
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "value"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "INVALID_SEARCH_DATA"
+                  display: "Invalid search data"
+            diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
+    InvalidIdentifierSystem:
+      summary: Invalid identifier system
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "code-invalid"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "INVALID_SEARCH_DATA"
+                  display: "Invalid search data"
+            diagnostics: "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
+    UnexpectedQueryParam:
+      summary: Unexpected query parameter
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "value"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "INVALID_SEARCH_DATA"
+                  display: "Invalid search data"
+            diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
+
   parameters:
     Authorization:
       in: header
