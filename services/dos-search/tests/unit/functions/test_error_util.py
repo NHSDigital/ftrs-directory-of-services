@@ -2,6 +2,7 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 
 from functions.constants import (
+    GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE,
     ODS_ORG_CODE_IDENTIFIER_SYSTEM,
     REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
 )
@@ -41,7 +42,9 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -66,7 +69,9 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -91,7 +96,9 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -115,7 +122,9 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -140,7 +149,9 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -175,7 +186,9 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err, None)
+        result = create_validation_error_operation_outcome(
+            err, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         # Updated fallback expectations: client error, not internal fatal
@@ -200,7 +213,9 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err, None)
+        result = create_validation_error_operation_outcome(
+            err, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         # Updated fallback expectations: client error, not internal fatal
@@ -268,7 +283,9 @@ class TestErrorUtil:
         except ValidationError as e:
             validation_error = e
 
-        result = create_validation_error_operation_outcome(validation_error, None)
+        result = create_validation_error_operation_outcome(
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 2  # Should have 2 issues
 
@@ -320,7 +337,9 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err, None)
+        result = create_validation_error_operation_outcome(
+            err, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
         assert isinstance(result, OperationOutcome)
         assert result.issue[0].diagnostics == "Invalid search parameter value"
 
@@ -367,7 +386,9 @@ class TestErrorUtil:
             ],
         )
 
-        result = create_validation_error_operation_outcome(err, None)
+        result = create_validation_error_operation_outcome(
+            err, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
+        )
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1

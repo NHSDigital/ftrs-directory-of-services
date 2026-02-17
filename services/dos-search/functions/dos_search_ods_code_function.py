@@ -7,6 +7,9 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.constants import (
+    GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE,
+)
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logger.dos_logger import DosLogger
 from functions.organization_query_params import OrganizationQueryParams
@@ -81,7 +84,7 @@ def get_organization() -> Response:
         except ValidationError as exception:
             # Log warning with structured fields
             fhir_resource = error_util.create_validation_error_operation_outcome(
-                exception, "Only 'identifier' and '_revinclude' are allowed."
+                exception, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
             )
 
             response_size, duration_ms = dos_logger.get_response_size_and_duration(

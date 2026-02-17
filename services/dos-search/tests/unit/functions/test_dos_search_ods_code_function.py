@@ -10,6 +10,7 @@ from functions.constants import (
 )
 from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
+    GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE,
     lambda_handler,
 )
 
@@ -223,7 +224,7 @@ class TestLambdaHandler:
 
         # Assert
         mock_error_util.create_validation_error_operation_outcome.assert_called_once_with(
-            validation_error, "Only 'identifier' and '_revinclude' are allowed."
+            validation_error, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
         )
 
         mock_logger.assert_has_calls(
