@@ -37,28 +37,6 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowOpenSearchServerlessServiceLinkedRoleCreation",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                "iam:AWSServiceName": "observability.aoss.amazonaws.com"
-                }
-            }
-        },
-        {
-            "Sid": "AllowAccessAnalyzerServiceLinkedRoleCreation",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                    "iam:AWSServiceName": "access-analyzer.amazonaws.com"
-                }
-            }
-        },
-        {
             "Sid": "MonitoringFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -269,20 +247,6 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowInspector2ServiceLinkedRoleCreation",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                "iam:AWSServiceName": [
-                    "agentless.inspector2.amazonaws.com",
-                    "inspector2.amazonaws.com"
-                ]
-                }
-            }
-        },
-        {
             "Sid": "AssumeSteamPipeReadOnlyRole",
             "Effect": "Allow",
             "Action": [
@@ -362,6 +326,22 @@
             "backup-storage:*"
           ],
           "Resource": "*"
+        },
+        {
+            "Sid": "AllowServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "observability.aoss.amazonaws.com",
+                        "access-analyzer.amazonaws.com",
+                        "agentless.inspector2.amazonaws.com",
+                        "inspector2.amazonaws.com"
+                    ]
+                }
+            }
         }
   ]
 }
