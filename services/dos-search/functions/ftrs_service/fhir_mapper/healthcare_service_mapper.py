@@ -12,13 +12,11 @@ class HealthcareServiceMapper:
     ) -> FhirHealthcareService:
         """Map a domain HealthcareService to a FHIR HealthcareService resource."""
         service_id = str(healthcare_service.id)
-        name = healthcare_service.name
 
         fhir_healthcare_service = FhirHealthcareService.model_validate(
             {
                 "id": service_id,
                 "identifier": self._create_identifiers(healthcare_service),
-                "name": name,
                 "providedBy": self._create_provided_by_reference(healthcare_service),
                 "location": self._create_location_references(healthcare_service),
                 "type": self._create_type(healthcare_service),

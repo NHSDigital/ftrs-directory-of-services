@@ -73,7 +73,6 @@ class TestHealthcareServiceMapper:
 
         assert isinstance(result, FhirHealthcareService)
         assert result.id == str(mock_healthcare_service.id)
-        assert result.name == mock_healthcare_service.name
 
     def test_map_to_fhir_healthcare_service_identifiers(
         self,

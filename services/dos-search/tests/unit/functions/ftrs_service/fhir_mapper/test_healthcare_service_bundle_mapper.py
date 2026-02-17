@@ -216,7 +216,7 @@ class TestHealthcareServiceBundleMapper:
 
         # Assert
         assert isinstance(result.entry[0].resource, FhirHealthcareService)
-        assert result.entry[0].resource.name == mock_healthcare_service.name
+        assert result.entry[0].resource.id == str(mock_healthcare_service.id)
 
     @patch(
         "functions.ftrs_service.fhir_mapper.healthcare_service_bundle_mapper.get_fhir_url"
