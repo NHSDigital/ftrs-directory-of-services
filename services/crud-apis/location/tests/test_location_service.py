@@ -39,7 +39,7 @@ def get_mock_location() -> Location:
             "value": "ROBOT",
             "display": "Robot User",
         },
-        "createdTime": "2025-03-27T12:00:00Z",
+        "created": "2025-03-27T12:00:00Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "ROBOT",

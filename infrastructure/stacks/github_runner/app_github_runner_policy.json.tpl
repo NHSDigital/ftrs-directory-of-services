@@ -30,7 +30,7 @@
             "Resource": "*"
         },
         {
-            "Sid": "AllowDMSRDSServiceLinkedRoleCreation",
+            "Sid": "AllowServiceLinkedRoleCreation",
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
             "Resource": "*",
@@ -38,7 +38,8 @@
                 "StringEquals": {
                 "iam:AWSServiceName": [
                     "rds.amazonaws.com",
-                    "dms.amazonaws.com"
+                    "dms.amazonaws.com",
+                    "osis.amazonaws.com"
                 ]
                 }
             }
@@ -64,17 +65,6 @@
                 "cloudformation:*"
             ],
             "Resource": "*"
-        },
-        {
-            "Sid": "AllowOpenSearchServiceLinkedRoleCreation",
-            "Effect": "Allow",
-            "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                "iam:AWSServiceName": "osis.amazonaws.com"
-                }
-            }
         },
         {
             "Sid": "MonitoringFullAccess",

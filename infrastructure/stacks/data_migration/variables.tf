@@ -330,11 +330,6 @@ variable "source_rds_credentials" {
   type        = string
 }
 
-variable "replica_rds_credentials" {
-  description = "The secrets manager name for the replica RDS credentials"
-  type        = string
-}
-
 variable "dns_port" {
   description = "The port for DNS queries"
   type        = number

@@ -66,7 +66,7 @@ def get_organisation() -> dict:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -89,7 +89,7 @@ def get_organisation() -> dict:
                     "value": "INGRESS_API_ID",
                     "display": "FtRS Ingress API",
                 },
-                "createdTime": "2023-10-01T00:00:00Z",
+                "created": "2023-10-01T00:00:00Z",
                 "lastUpdatedBy": {
                     "type": "user",
                     "value": "INGRESS_API_ID",
@@ -187,7 +187,7 @@ def test_get_handle_organisation_requests_missing_identifier(
     mocker: MockerFixture,
 ) -> None:
     response = client.get("/Organization")
-    
+
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     data = response.json()
     assert "detail" in data
@@ -1085,12 +1085,14 @@ def test_update_organisation_identifier_empty_list() -> None:
 
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
     assert outcome["issue"][0]["severity"] == "error"
-    assert "at least one identifier must be provided" in outcome["issue"][0]["diagnostics"]
+    assert (
+        "at least one identifier must be provided" in outcome["issue"][0]["diagnostics"]
+    )
 
 
 def test_post_organisation_returns_503_when_feature_flag_disabled(

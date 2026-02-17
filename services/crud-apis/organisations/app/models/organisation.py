@@ -135,7 +135,9 @@ class OrganisationUpdatePayload(BaseModel):
             ]
         },
     )
-    identifier: list[Identifier] = Field(..., description="Organization identifiers", min_length=1)
+    identifier: list[Identifier] = Field(
+        ..., description="Organization identifiers", min_length=1
+    )
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
     telecom: Optional[list[ContactPoint]] = []

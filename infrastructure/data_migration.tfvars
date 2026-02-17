@@ -35,7 +35,6 @@ reference_data_lambda_handler     = "reference_data_load.lambda_handler.lambda_h
 reference_data_lambda_timeout     = 300
 reference_data_lambda_memory_size = 1024
 
-
 data_migration_rds_min_capacity = 1
 data_migration_rds_max_capacity = 7
 
@@ -56,7 +55,6 @@ full_migration_completion_event_queue_name = "full-migration-completion-event"
 target_rds_credentials                     = "target-rds-credentials"
 dms_user_password                          = "dms-user-password"
 source_rds_credentials                     = "source-rds-credentials"
-replica_rds_credentials                    = "replica-rds-credentials"
 
 dms_replication_instance_class = "dms.t3.small"
 dms_engine                     = "aurora-postgresql"
