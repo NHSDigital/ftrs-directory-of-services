@@ -1,0 +1,33 @@
+{
+  "identifier_oldDoS_uid": "78901",
+  "identifier_ODS_ODSCode": "X98765",
+  "name": "Village Surgery & Health Centre",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [
+    "RO177"
+  ],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "01603 123456",
+      "isPublic": true
+    },
+    {
+      "type": "phone",
+      "value": "01603 123457",
+      "isPublic": false
+    },
+    {
+      "type": "email",
+      "value": "surgery@villagehealth.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2013-07-01",
+    "end": null
+  }
+}

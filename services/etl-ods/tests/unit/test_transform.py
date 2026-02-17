@@ -1,6 +1,5 @@
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockFixture
-
 from transformer.transform import transform_to_payload
 
 

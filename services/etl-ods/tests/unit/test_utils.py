@@ -6,11 +6,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 from botocore.exceptions import ClientError
-from ftrs_common.fhir.operation_outcome import OperationOutcomeException
-from ftrs_data_layer.logbase import OdsETLPipelineLogBase
-from pytest_mock import MockerFixture
-from requests_mock import Mocker as RequestsMock
-
 from common.utils import (
     _get_api_key_for_url,
     build_headers,
@@ -21,6 +16,10 @@ from common.utils import (
     is_ods_terminology_request,
     make_request,
 )
+from ftrs_common.fhir.operation_outcome import OperationOutcomeException
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockerFixture
+from requests_mock import Mocker as RequestsMock
 
 
 class TestUtils:

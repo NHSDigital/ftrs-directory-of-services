@@ -275,7 +275,7 @@ class DataMigrationProcessor:
         Uses get_item with the source_record_id as the key.
         """
         dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-        state_table = get_table_name("data-migration-state")
+        state_table = get_table_name("state", stack="data-migration")
 
         source_record_id = ServiceMigrationState.format_source_record_id(service_id)
 

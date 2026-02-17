@@ -1,0 +1,21 @@
+{
+  "identifier_oldDoS_uid": "11122",
+  "identifier_ODS_ODSCode": "K88776",
+  "name": "Sunset Medical Centre",
+  "active": false,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "0114 276 5432",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2005-03-01",
+    "end": "2024-06-30"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "identifier_ODS_ODSCode": "W12345",
+  "name": "Modern Family Health Centre",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "0116 234 5678",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "appointments@modernfamily.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "web",
+      "value": "https://www.modernfamilyhealth.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2022-03-15",
+    "end": null
+  }
+}

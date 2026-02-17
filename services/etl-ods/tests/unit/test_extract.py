@@ -1,10 +1,6 @@
 from http import HTTPStatus
 
 import pytest
-from ftrs_data_layer.domain.enums import OrganisationTypeCode
-from pytest_mock import MockerFixture
-from requests import HTTPError
-
 from common.extract import (
     _build_ods_query_params,
     _extract_next_page_url,
@@ -14,6 +10,9 @@ from common.extract import (
     fetch_outdated_organisations,
     validate_ods_code,
 )
+from ftrs_data_layer.domain.enums import OrganisationTypeCode
+from pytest_mock import MockerFixture
+from requests import HTTPError
 
 
 def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:

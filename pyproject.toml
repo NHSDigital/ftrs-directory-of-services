@@ -1,0 +1,73 @@
+[project]
+name = "ftrs-directory-of-services"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = ["allure-pytest-bdd (>=2.15.3,<3.0.0)"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.service.dependencies]
+crud-apis = {path = "services/crud-apis", develop = true}
+pipeline = {path = "services/data-migration", develop = true}
+dos-search = {path = "services/dos-search", develop = true}
+etl-ods = {path = "services/etl-ods", develop = true}
+
+[tool.poetry.group.shared.dependencies]
+ftrs-python-packages = {path = "application/packages/python", develop = true}
+ftrs-utilities = {path = "application/packages/utilities", develop = true}
+
+[tool.poetry.group.test.dependencies]
+service-test-automation = {path = "tests/service_automation", develop = true}
+
+[tool.poetry.group.tools.dependencies]
+ruff = "^0.15.0"
+pytest = ">=8.2.0,<9.0.0"
+pytest-nhsd-apim = "^6.0.6"
+pytest-bdd = "^8.1.0"
+pytest-html = "^4.2.0"
+pytest-metadata = "^3.1.1"
+pytest-playwright = "^0.7.2"
+playwright = "^1.58.0"
+uvicorn = "^0.40.0"
+testcontainers = {extras = ["localstack", "postgres"], version = "^4.14.1"}
+pytest-mock = "^3.15.1"
+pytest-cov = "^7.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pyjwt = "^2.11.0"
+loguru = "^0.7.3"
+freezegun = "^1.5.5"
+awswrangler = "^3.15.1"
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/service_automation/*" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
+
+[tool.pytest.ini_options]
+addopts = "-p no:allure_pytest_bdd -p no:allure_pytest"
+minversion = "6.0"
+markers = [
+  "component: marks tests as component tests (requires Docker)",
+]

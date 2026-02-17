@@ -3,11 +3,10 @@ from http import HTTPStatus
 
 import pytest
 import requests
+from common.http_client import build_headers, handle_operation_outcomes, make_request
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pytest_mock import MockerFixture
 from requests_mock import Mocker as RequestsMock
-
-from common.http_client import build_headers, handle_operation_outcomes, make_request
 
 
 def test_make_request_success(

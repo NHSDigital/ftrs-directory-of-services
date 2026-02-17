@@ -62,3 +62,6 @@ services/nfrs-maintenance/node_modules/
 
 # Generated NFR documentation (rebuilt from YAML/scripts)
 docs/nfrs/
+
+# Docker Compose
+.volumes/

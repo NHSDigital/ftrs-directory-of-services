@@ -1,10 +1,9 @@
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
+from common.ods_client import ODSClient
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 from pytest_mock import MockerFixture
-
-from common.ods_client import ODSClient
 
 
 class TestODSClient:

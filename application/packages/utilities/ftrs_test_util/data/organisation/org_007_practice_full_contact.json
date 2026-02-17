@@ -1,0 +1,42 @@
+{
+  "identifier_ODS_ODSCode": "L55443",
+  "name": "Parkside Surgery",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [
+    "RO177"
+  ],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "0121 456 7890",
+      "isPublic": true
+    },
+    {
+      "type": "phone",
+      "value": "0121 456 7891",
+      "isPublic": false
+    },
+    {
+      "type": "email",
+      "value": "enquiries@parksidesurgery.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "admin@parksidesurgery.nhs.uk",
+      "isPublic": false
+    },
+    {
+      "type": "web",
+      "value": "https://www.parksidesurgery.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2016-11-01",
+    "end": null
+  }
+}

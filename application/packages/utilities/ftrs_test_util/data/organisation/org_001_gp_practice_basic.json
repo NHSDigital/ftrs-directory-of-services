@@ -1,0 +1,25 @@
+{
+  "identifier_ODS_ODSCode": "A12345",
+  "name": "Central Medical Practice",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "01234 567890",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "reception@centralmedical.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2015-03-15",
+    "end": null
+  }
+}

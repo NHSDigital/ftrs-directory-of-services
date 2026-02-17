@@ -1,0 +1,26 @@
+{
+  "identifier_oldDoS_uid": "98765",
+  "identifier_ODS_ODSCode": "J33221",
+  "name": "Legacy Medical Practice",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "01865 123456",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "reception@legacymed.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2008-05-20",
+    "end": null
+  }
+}

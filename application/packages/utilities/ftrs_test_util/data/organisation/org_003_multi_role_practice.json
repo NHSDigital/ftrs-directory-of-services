@@ -1,0 +1,39 @@
+{
+  "identifier_oldDoS_uid": "67890",
+  "identifier_ODS_ODSCode": "F44556",
+  "name": "Comprehensive Care Medical Centre",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [
+    "RO177",
+    "RO80"
+  ],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "0141 332 4567",
+      "isPublic": true
+    },
+    {
+      "type": "phone",
+      "value": "0141 332 4568",
+      "isPublic": false
+    },
+    {
+      "type": "email",
+      "value": "admin@comprehensivecare.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "web",
+      "value": "https://www.comprehensivecare.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2012-09-15",
+    "end": null
+  }
+}

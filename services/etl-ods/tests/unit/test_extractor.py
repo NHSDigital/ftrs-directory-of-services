@@ -2,14 +2,13 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 from unittest.mock import MagicMock
 
-from pytest_mock import MockerFixture
-
 from extractor.extractor import (
     _send_organisations_to_queue,
     _validate_date,
     extractor_lambda_handler,
     processor,
 )
+from pytest_mock import MockerFixture
 
 
 def test_processor_success(mocker: MockerFixture) -> None:

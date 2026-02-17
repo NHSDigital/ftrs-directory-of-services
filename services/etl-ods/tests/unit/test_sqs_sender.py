@@ -3,15 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from botocore.exceptions import ClientError
-from ftrs_data_layer.logbase import OdsETLPipelineLogBase
-from pytest_mock import MockerFixture
-
 from common.sqs_sender import (
     get_queue_name,
     get_queue_url,
     load_data,
     send_messages_to_queue,
 )
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockerFixture
 
 EXPECTED_BATCH_COUNT = 3
 

@@ -1,0 +1,15 @@
+{
+  "identifier_oldDoS_uid": "12345",
+  "identifier_ODS_ODSCode": "C54321",
+  "name": "Riverside Health Centre",
+  "active": false,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2010-01-01",
+    "end": "2023-12-31"
+  }
+}

@@ -6,10 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import rsa
-from ftrs_data_layer.logbase import OdsETLPipelineLogBase
-from pytest_mock import MockerFixture
-from requests_mock import Mocker as RequestsMock
-
 from common import auth
 from consumer.consumer import (
     RequestProcessingError,
@@ -17,6 +13,9 @@ from consumer.consumer import (
     consumer_lambda_handler,
     process_message_and_send_request,
 )
+from ftrs_data_layer.logbase import OdsETLPipelineLogBase
+from pytest_mock import MockerFixture
+from requests_mock import Mocker as RequestsMock
 
 RSA_PRIVATE_KEY = None
 RSA_PUBLIC_KEY = None

@@ -1,0 +1,11 @@
+{
+  "identifier_ODS_ODSCode": "G00112",
+  "name": "Basic Medical Practice",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [],
+  "endpoints": [],
+  "legalDates": null
+}

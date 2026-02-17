@@ -1,0 +1,25 @@
+{
+  "identifier_ODS_ODSCode": "U55443",
+  "name": "Digital Health Medical Practice",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "web",
+      "value": "https://www.digitalhealthpractice.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "contact@digitalhealthpractice.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2023-09-01",
+    "end": null
+  }
+}

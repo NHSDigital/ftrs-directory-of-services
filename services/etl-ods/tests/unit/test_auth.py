@@ -1,9 +1,8 @@
 import os
 from unittest.mock import patch
 
-from pytest_mock import MockerFixture
-
 from common import auth
+from pytest_mock import MockerFixture
 
 
 class TestGetJWTAuthenticator:

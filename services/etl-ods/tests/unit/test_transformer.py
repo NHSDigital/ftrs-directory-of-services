@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_mock import MockerFixture
-
 from transformer.transformer import _process_organisation, transformer_lambda_handler
 
 # Test constants

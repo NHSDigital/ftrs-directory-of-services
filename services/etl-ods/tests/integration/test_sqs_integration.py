@@ -5,13 +5,19 @@ using LocalStack testcontainers for realistic AWS interactions.
 """
 
 import json
-from typing import Any
+import os
+from typing import TYPE_CHECKING
 
 import boto3
-from ftrs_common.testing.sqs_fixtures import (
+from ftrs_test_util.secrets_fixtures import get_secret
+from ftrs_test_util.sqs_fixtures import (
     get_queue_message_count,
     get_queue_messages,
 )
+
+if TYPE_CHECKING:
+    from mypy_boto3_secretsmanager import SecretsManagerClient
+    from mypy_boto3_sqs import SQSClient
 
 
 class TestSQSMessageFlow:
@@ -19,7 +25,7 @@ class TestSQSMessageFlow:
 
     def test_send_and_receive_single_message(
         self,
-        sqs_client: Any,
+        sqs_client: SQSClient,
         sqs_queue: dict[str, str],
     ) -> None:
         """Test sending and receiving a single message."""
@@ -47,7 +53,7 @@ class TestSQSMessageFlow:
 
     def test_send_batch_messages(
         self,
-        sqs_client: Any,
+        sqs_client: SQSClient,
         sqs_queue: dict[str, str],
     ) -> None:
         """Test sending a batch of messages."""
@@ -62,12 +68,12 @@ class TestSQSMessageFlow:
             Entries=messages,
         )
 
-        assert len(response.get("Successful", [])) == 5
+        assert len(response.get("Successful", [])) == len(messages)
         assert len(response.get("Failed", [])) == 0
 
         # Verify message count
         count = get_queue_message_count(sqs_client, sqs_queue["queue_url"])
-        assert count == 5
+        assert count == len(messages)
 
 
 class TestETLODSQueues:
@@ -89,7 +95,7 @@ class TestETLODSQueues:
 
     def test_extraction_to_transform_flow(
         self,
-        sqs_client: Any,
+        sqs_client: SQSClient,
         etl_ods_queues: dict[str, dict[str, str]],
         clean_queues: None,
     ) -> None:
@@ -113,7 +119,7 @@ class TestETLODSQueues:
             delete_after_receive=True,
         )
 
-        assert len(messages) == 3
+        assert len(messages) == len(org_ids)
 
         # Simulate transformer sending transformed data to transform queue
         for msg in messages:
@@ -135,7 +141,7 @@ class TestETLODSQueues:
             max_messages=10,
         )
 
-        assert len(transform_messages) == 3
+        assert len(transform_messages) == len(org_ids)
         for msg in transform_messages:
             body = json.loads(msg["Body"])
             assert body["transformed"] is True
@@ -155,12 +161,10 @@ class TestSecretsManager:
 
     def test_retrieve_ods_api_key(
         self,
-        secrets_client: Any,
+        secrets_client: SecretsManagerClient,
         etl_ods_secrets: dict[str, str],
     ) -> None:
         """Test retrieving the ODS API key secret."""
-        from ftrs_common.testing.secrets_fixtures import get_secret
-
         secret = get_secret(secrets_client, etl_ods_secrets["ods_api_key"])
 
         assert isinstance(secret, dict)
@@ -169,12 +173,10 @@ class TestSecretsManager:
 
     def test_retrieve_jwt_credentials(
         self,
-        secrets_client: Any,
+        secrets_client: SecretsManagerClient,
         etl_ods_secrets: dict[str, str],
     ) -> None:
         """Test retrieving JWT credentials secret."""
-        from ftrs_common.testing.secrets_fixtures import get_secret
-
         secret = get_secret(secrets_client, etl_ods_secrets["jwt_credentials"])
 
         assert isinstance(secret, dict)
@@ -192,8 +194,6 @@ class TestEnvironmentSetup:
         etl_ods_environment: dict[str, str],
     ) -> None:
         """Verify environment variables are correctly set."""
-        import os
-
         assert os.environ.get("AWS_REGION") == "eu-west-2"
         assert os.environ.get("ENVIRONMENT") == "test"
         assert os.environ.get("PROJECT_NAME") == "ftrs"
@@ -204,7 +204,6 @@ class TestEnvironmentSetup:
         etl_ods_environment: dict[str, str],
     ) -> None:
         """Verify boto3 can connect to LocalStack."""
-        import os
 
         endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
         assert endpoint_url is not None

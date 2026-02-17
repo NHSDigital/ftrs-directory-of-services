@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from botocore.exceptions import ClientError
-
 from common.ods_client import SecretManager
 
 

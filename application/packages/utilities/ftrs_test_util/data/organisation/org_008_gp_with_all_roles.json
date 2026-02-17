@@ -1,0 +1,45 @@
+{
+  "identifier_oldDoS_uid": "44332",
+  "identifier_ODS_ODSCode": "S77665",
+  "name": "Central Hub Medical Practice",
+  "active": true,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [
+    "RO177",
+    "RO80",
+    "RO87"
+  ],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "0151 123 4567",
+      "isPublic": true
+    },
+    {
+      "type": "phone",
+      "value": "0151 123 4568",
+      "isPublic": false
+    },
+    {
+      "type": "phone",
+      "value": "0151 123 4569",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "info@centralhubmed.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "web",
+      "value": "https://www.centralhubmed.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2014-08-01",
+    "end": null
+  }
+}

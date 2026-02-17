@@ -610,10 +610,10 @@ class CrudApisLogBase(LogBase):
         level=ERROR,
         message="Organisation with ODS code {ods_code} already exists.",
     )
-    ORGANISATION_014 = LogReference(
-        level=INFO,
-        message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creating a new organisation with a new ID.",
-    )
+    # ORGANISATION_014 = LogReference(
+    #     level=INFO,
+    #     message="Organisation ID {organisation_id} provided for new organisations,Will be ignored.Creating a new organisation with a new ID.",
+    # )
     ORGANISATION_015 = LogReference(
         level=INFO,
         message="Successfully created organisation with ODS code: {ods_code} & organisation ID {organisation_id}.",
@@ -693,10 +693,6 @@ class CrudApisLogBase(LogBase):
     HEALTHCARESERVICE_010 = LogReference(
         level=INFO,
         message="Successfully deleted healthcare service with ID: {service_id}.",
-    )
-    HEALTHCARESERVICE_011 = LogReference(
-        level=INFO,
-        message="Successfully created healthcare service: {service}.",
     )
     HEALTHCARESERVICE_012 = LogReference(
         level=INFO,

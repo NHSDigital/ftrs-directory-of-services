@@ -1,0 +1,31 @@
+{
+  "identifier_oldDoS_uid": "22114",
+  "identifier_ODS_ODSCode": "T99887",
+  "name": "Oakwood Family Practice",
+  "active": false,
+  "type": "GP Practice",
+  "primary_role_code": "RO76",
+  "non_primary_role_codes": [],
+  "telecom": [
+    {
+      "type": "phone",
+      "value": "01223 456789",
+      "isPublic": true
+    },
+    {
+      "type": "email",
+      "value": "practice@oakwoodfamily.nhs.uk",
+      "isPublic": true
+    },
+    {
+      "type": "web",
+      "value": "https://www.oakwoodfamily.nhs.uk",
+      "isPublic": true
+    }
+  ],
+  "endpoints": [],
+  "legalDates": {
+    "start": "2011-04-01",
+    "end": "2026-01-31"
+  }
+}
