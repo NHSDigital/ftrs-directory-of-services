@@ -1,6 +1,7 @@
 from fhir.resources.R4B.bundle import Bundle
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService
+from ftrs_data_layer.domain.organisation import Organisation
 
 from functions.ftrs_service.fhir_mapper.healthcare_service_bundle_mapper import (
     HealthcareServiceBundleMapper,
@@ -12,6 +13,7 @@ dos_logger = DosLogger.get(service="dos-search")
 
 class HealthcareServicesByOdsService:
     def __init__(self) -> None:
+        self.repository = get_service_repository(Organisation, "organisation")
         self.healthcare_service_repository = get_service_repository(
             HealthcareService, "healthcare-service"
         )

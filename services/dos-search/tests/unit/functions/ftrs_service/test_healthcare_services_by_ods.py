@@ -16,13 +16,19 @@ def mock_organisation() -> MagicMock:
 
 
 @pytest.fixture
-def mock_healthcare_service_repository():
+def mock_healthcare_service_repository() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_organisation_repository(mock_healthcare_service_repository: MagicMock):
     with patch(
         "functions.ftrs_service.healthcare_services_by_ods.get_service_repository"
     ) as mock_get_repo:
-        mock_repo = MagicMock()
-        mock_get_repo.return_value = mock_repo
-        yield mock_repo
+        mock_org_repo = MagicMock()
+        # First call returns org repo, second call returns healthcare service repo
+        mock_get_repo.side_effect = [mock_org_repo, mock_healthcare_service_repository]
+        yield mock_org_repo, mock_healthcare_service_repository
 
 
 @pytest.fixture
@@ -40,12 +46,10 @@ def mock_healthcare_service_bundle_mapper():
 
 @pytest.fixture
 def ftrs_service(
-    mock_healthcare_service_repository: MagicMock,
+    mock_organisation_repository: tuple,
     mock_healthcare_service_bundle_mapper: MagicMock,
 ) -> HealthcareServicesByOdsService:
     service = HealthcareServicesByOdsService()
-    # The service needs a reference to the organisation repository for _get_records_by_ods_code
-    service.repository = MagicMock()
     return service
 
 
@@ -66,7 +70,6 @@ class TestFtrsServiceHealthcareServices:
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = [
             mock_healthcare_service
         ]
-        ftrs_service.healthcare_service_repository = mock_healthcare_service_repository
 
         # Act
         result = ftrs_service.healthcare_services_by_ods(ods_code)
@@ -117,7 +120,6 @@ class TestFtrsServiceHealthcareServices:
             mock_organisation
         ]
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = []
-        ftrs_service.healthcare_service_repository = mock_healthcare_service_repository
 
         # Act
         result = ftrs_service.healthcare_services_by_ods(ods_code)
@@ -150,7 +152,6 @@ class TestFtrsServiceHealthcareServices:
             [mock_healthcare_service_1],
             [mock_healthcare_service_2],
         ]
-        ftrs_service.healthcare_service_repository = mock_healthcare_service_repository
 
         # Act
         result = ftrs_service.healthcare_services_by_ods(ods_code)
@@ -193,7 +194,6 @@ class TestFtrsServiceHealthcareServices:
         mock_healthcare_service_repository.get_records_by_provided_by.side_effect = (
             expected_exc
         )
-        ftrs_service.healthcare_service_repository = mock_healthcare_service_repository
 
         # Act & Assert
         with pytest.raises(Exception, match="Healthcare repo error"):
@@ -213,7 +213,6 @@ class TestFtrsServiceHealthcareServices:
             mock_organisation
         ]
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = []
-        ftrs_service.healthcare_service_repository = mock_healthcare_service_repository
         mock_healthcare_service_bundle_mapper.map_to_fhir.side_effect = expected_exc
 
         # Act & Assert
