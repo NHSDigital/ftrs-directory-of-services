@@ -99,7 +99,7 @@ jobs:
       # Install Powerpipe CLI using Github Action
       - name: Install Powerpipe
         if: steps.should-run.outputs.should_run == 'true'
-        uses: turbot/powerpipe-action-setup@cc29d145314973ee3afc3ce09f902d7524e28bb3 # v1
+        uses: turbot/powerpipe-action-setup@0b905d17e8b6970bc39bcd347c053992bd8770de # v1.0.1
 
       - name: Start steampipe service
         if: steps.should-run.outputs.should_run == 'true'
