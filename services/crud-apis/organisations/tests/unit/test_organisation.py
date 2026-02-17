@@ -225,7 +225,7 @@ def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> No
             "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|abc!@"
         )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
         "Invalid identifier value: ODS code 'ABC!@' must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]
@@ -913,7 +913,7 @@ def test_organization_query_params_invalid_system() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         OrganizationQueryParams(identifier="wrongSystem|ABC123")
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert "Invalid identifier system" in outcome["issue"][0]["diagnostics"]
 
 
@@ -923,7 +923,7 @@ def test_organization_query_params_invalid_ods_code() -> None:
             identifier="https://fhir.nhs.uk/Id/ods-organization-code|abc!@invalid"
         )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
         "Invalid identifier value: ODS code 'ABC!@INVALID' must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]
@@ -936,7 +936,7 @@ def test_organization_query_params_missing_separator() -> None:
             identifier="https://fhir.nhs.uk/Id/ods-organization-codeABC123"
         )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
         "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]

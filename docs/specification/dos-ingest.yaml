@@ -296,11 +296,11 @@ paths:
                     resourceType: OperationOutcome
                     issue:
                       - severity: error
-                        code: invalid
+                        code: structure
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: SEND_BAD_REQUEST
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
+                              code: BAD_REQUEST
                               display: Parameter content is invalid
                           text: Identifier format is invalid
                         diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
@@ -310,11 +310,11 @@ paths:
                     resourceType: OperationOutcome
                     issue:
                       - severity: error
-                        code: invalid
+                        code: structure
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: SEND_BAD_REQUEST
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
+                              code: BAD_REQUEST
                               display: Parameter content is invalid
                           text: Identifier system is invalid
                         diagnostics: "Invalid identifier system 'wrongSystem' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
@@ -327,8 +327,8 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: SEND_BAD_REQUEST
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
+                              code: BAD_REQUEST
                               display: Parameter content is invalid
                           text: ODS code format is invalid
                         diagnostics: "Invalid identifier value: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$"
@@ -338,11 +338,11 @@ paths:
                     resourceType: OperationOutcome
                     issue:
                       - severity: error
-                        code: invalid
+                        code: structure
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
-                              code: SEND_BAD_REQUEST
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
+                              code: BAD_REQUEST
                               display: Parameter not understood
                           text: Unexpected query parameters provided
                         diagnostics: "Unexpected query parameter(s): foo, bar. Only 'identifier' is allowed."
@@ -372,7 +372,7 @@ paths:
                     code: not-found
                     details:
                       coding:
-                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                        - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: NOT_FOUND
                           display: The Server was unable to find the specified resource.
                       text: The requested organisation was not found
@@ -403,7 +403,7 @@ paths:
                     code: invalid
                     details:
                       coding:
-                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                        - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: UNPROCESSABLE_ENTITY
                           display: Message was not malformed but deemed unprocessable by the server.
                       text: Validation failed for resource
@@ -434,7 +434,7 @@ paths:
                     code: exception
                     details:
                       coding:
-                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                        - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: SERVER_ERROR
                           display: The Server has encountered an error processing the request.
                       text: An unexpected error occurred
@@ -663,7 +663,7 @@ paths:
                     code: not-found
                     details:
                       coding:
-                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                        - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: NOT_FOUND
                           display: The Server was unable to find the specified resource.
                       text: The requested organisation was not found
@@ -697,7 +697,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Required field is missing
@@ -711,7 +711,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Extension URL is invalid
@@ -725,7 +725,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Extension URL is missing
@@ -739,7 +739,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is invalid
@@ -753,7 +753,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension is incomplete
@@ -767,7 +767,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: dateType must be Legal
@@ -781,7 +781,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: dateType system is invalid
@@ -795,7 +795,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Legal period start date is required
@@ -809,7 +809,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Legal period start date is required
@@ -823,7 +823,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: Start and end dates must not be equal
@@ -837,7 +837,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension is required
@@ -851,7 +851,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is empty
@@ -865,7 +865,7 @@ paths:
                         code: invalid
                         details:
                           coding:
-                            - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: UNPROCESSABLE_ENTITY
                               display: Message was not malformed but deemed unprocessable by the server.
                           text: TypedPeriod extension URL is missing
@@ -1265,8 +1265,8 @@ components:
                         system:
                           type: string
                           enum:
-                            - http://terminology.hl7.org/CodeSystem/operation-outcome
-                          example: http://terminology.hl7.org/CodeSystem/operation-outcome
+                            - https://fhir.nhs.uk/CodeSystem/http-error-codes
+                          example: https://fhir.nhs.uk/CodeSystem/http-error-codes
                         code:
                           type: string
                           description: Code from the FHIR operation-outcome CodeSystem

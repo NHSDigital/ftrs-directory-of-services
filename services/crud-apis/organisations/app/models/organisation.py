@@ -82,7 +82,7 @@ class OrganizationQueryParams(BaseModel):
         if IDENTIFIER_SEPARATOR not in v:
             outcome = OperationOutcomeHandler.build(
                 diagnostics=f"Invalid identifier value: missing separator '{IDENTIFIER_SEPARATOR}'. Must be in format '{IDENTIFIER_SYSTEM}|<code>' and code must follow format {ODS_REGEX}",
-                code="invalid",
+                code="structure",
                 severity="error",
             )
             raise OperationOutcomeException(outcome)
@@ -90,7 +90,7 @@ class OrganizationQueryParams(BaseModel):
         if identifier_system != IDENTIFIER_SYSTEM:
             outcome = OperationOutcomeHandler.build(
                 diagnostics=f"Invalid identifier system '{identifier_system}' - expected '{IDENTIFIER_SYSTEM}'",
-                code="invalid",
+                code="structure",
                 severity="error",
             )
             raise OperationOutcomeException(outcome)
@@ -98,7 +98,7 @@ class OrganizationQueryParams(BaseModel):
         if not re.match(ODS_REGEX, identifier_value):
             outcome = OperationOutcomeHandler.build(
                 diagnostics=f"Invalid identifier value: ODS code '{identifier_value}' must follow format {ODS_REGEX}",
-                code="invalid",
+                code="structure",
                 severity="error",
             )
             raise OperationOutcomeException(outcome)

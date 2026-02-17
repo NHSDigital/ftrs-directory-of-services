@@ -75,7 +75,7 @@ class OrganizationMapper(FhirMapper):
         # Add primary role extension with legal dates
         if organisation.primary_role_code:
             primary_ext = self._build_organisation_role_extension(
-                organisation.primary_role_code, legal_start_str, legal_end_str
+                organisation.primary_role_code, legal_start_str, legal_end_str, active=organisation.active
             )
             if primary_ext:
                 extensions.append(primary_ext)
@@ -83,7 +83,7 @@ class OrganizationMapper(FhirMapper):
         # Add non-primary role extensions without legal dates
         if organisation.non_primary_role_codes:
             for role_code in organisation.non_primary_role_codes:
-                non_primary_ext = self._build_organisation_role_extension(role_code)
+                non_primary_ext = self._build_organisation_role_extension(role_code, active=organisation.active)
                 if non_primary_ext:
                     extensions.append(non_primary_ext)
 
@@ -94,6 +94,7 @@ class OrganizationMapper(FhirMapper):
         role_code: str | None,
         legal_start_date: str | None = None,
         legal_end_date: str | None = None,
+        active: bool | None = None,
     ) -> Extension | None:
         """
         Build FHIR OrganisationRole extension with role code and optional legal dates.
@@ -124,8 +125,8 @@ class OrganizationMapper(FhirMapper):
         if typed_period_ext:
             extension_list.append(typed_period_ext.model_dump())
 
-        active_state = not legal_start_date or not legal_end_date
-        extension_list.append({"url": "active", "valueBoolean": not active_state})
+        if  legal_start_date and legal_end_date: 
+            extension_list.append({"url": "active", "valueBoolean": active})
 
         return Extension.model_validate(
             {
@@ -164,9 +165,7 @@ class OrganizationMapper(FhirMapper):
                 ],
             }
         )
-
-    def _build_active_extension(self) -> Extension | None:
-        return Extension.model_validate({"url": "active", "value": [True]})
+    
 
     def _build_legal_dates_from_fhir(
         self, fhir_resource: FhirOrganisation
