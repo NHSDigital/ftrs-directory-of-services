@@ -71,7 +71,7 @@
           <stringProp name="throughput">${__P(feed_updates_per_minute, 10)}</stringProp>
         </ConstantThroughputTimer>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario">
           <stringProp name="SwitchController.value">${scenario}</stringProp>
         </SwitchController>
         <hashTree>
@@ -259,11 +259,11 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk">
         <stringProp name="ThreadGroup.num_threads">${__P(bulk_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(bulk_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
-        <stringProp name="ThreadGroup.delay">${__P(bulk_startup_delay,30}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(bulk_startup_delay,30)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -285,11 +285,11 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           <stringProp name="shareMode">shareMode.group</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario">
           <stringProp name="SwitchController.value">${scenario}</stringProp>
         </SwitchController>
         <hashTree>
-          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid" enabled="true"/>
+          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid"/>
           <hashTree>
             <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid in bulk" enabled="true">
               <stringProp name="dataSource">db_connection_pool</stringProp>
