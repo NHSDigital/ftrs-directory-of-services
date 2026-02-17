@@ -39,7 +39,7 @@ def get_mock_location() -> dict:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2025-03-27T12:00:00Z",
+        "created": "2025-03-27T12:00:00Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "ROBOT",
@@ -215,7 +215,7 @@ def test_update_location_success(mock_repository: MockerFixture) -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "managingOrganisation": "96602abd-f265-4803-b4fb-413692279b5c",
         "lastUpdatedBy": {
             "type": "user",
@@ -257,7 +257,7 @@ def test_update_location_not_found(mock_repository: MockerFixture) -> None:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "managingOrganisation": "96602abd-f265-4803-b4fb-413692279b5c",
         "lastUpdatedBy": {
             "type": "user",
