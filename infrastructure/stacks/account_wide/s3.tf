@@ -125,25 +125,6 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
       "_S3_BUCKET_ARN_/*"
     ]
   }
-
-  statement {
-    sid     = "AllowSSLRequestsOnly"
-    actions = ["s3:*"]
-    resources = [
-      "_S3_BUCKET_ARN_",
-      "_S3_BUCKET_ARN_/*"
-    ]
-    effect = "Deny"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    condition {
-      test     = "Bool"
-      variable = "aws:SecureTransport"
-      values   = ["false"]
-    }
-  }
 }
 
 # IS Performance S3 Bucket
