@@ -186,14 +186,13 @@ def test__get_organization_query_params_with_identifier() -> None:
 def test_get_handle_organisation_requests_missing_identifier(
     mocker: MockerFixture,
 ) -> None:
-    with pytest.raises(OperationOutcomeException) as exc_info:
-        client.get("/Organization")
-
-    outcome = exc_info.value.outcome
-    assert outcome["resourceType"] == "OperationOutcome"
-    assert outcome["issue"][0]["code"] == "invalid"
-    assert outcome["issue"][0]["severity"] == "error"
-    assert "identifier must be provided" in outcome["issue"][0]["diagnostics"]
+    response = client.get("/Organization")
+    
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = response.json()
+    assert "detail" in data
+    assert data["detail"][0]["type"] == "missing"
+    assert data["detail"][0]["loc"] == ["query", "identifier"]
 
 
 # Additional test to cover identifier with different valid ODS code (lines 79-85)
@@ -1084,20 +1083,14 @@ def test_update_organisation_identifier_empty_list() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
-    assert (
-        identifier_errors[0]["msg"]
-        == "Value error, at least one identifier must be provided"
-    )
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
+    assert "at least one identifier must be provided" in outcome["issue"][0]["diagnostics"]
 
 
 def test_post_organisation_returns_503_when_feature_flag_disabled(

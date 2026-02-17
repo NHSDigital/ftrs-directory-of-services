@@ -46,12 +46,10 @@ organisation_mapper = OrganizationMapper()
 
 def _get_organization_query_params(
     identifier: str = Query(
-        None,
+        ...,
         description="Organization identifier in format 'odsOrganisationCode|{code}'",
     ),
 ) -> OrganizationQueryParams | None:
-    if identifier is None:
-        return None
     return OrganizationQueryParams(identifier=identifier)
 
 
@@ -78,15 +76,6 @@ async def get_handle_organisation_requests(
     """
     try:
         organisation_service.check_organisation_params(request.query_params)
-
-        if not organization_query_params or not organization_query_params.identifier:
-            crud_organisation_logger.log(
-                CrudApisLogBase.ORGANISATION_012,
-            )
-            raise_fhir_exception(
-                diagnostics="Missing required parameter: identifier must be provided in format 'identifier=odsOrganisationCode|{code}'",
-                code="invalid",
-            )
 
         ods_code = organization_query_params.ods_code
         result = organisation_service.get_by_ods_code(ods_code)

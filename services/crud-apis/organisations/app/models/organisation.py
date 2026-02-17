@@ -135,7 +135,7 @@ class OrganisationUpdatePayload(BaseModel):
             ]
         },
     )
-    identifier: list[Identifier] = Field(..., description="Organization identifiers")
+    identifier: list[Identifier] = Field(..., description="Organization identifiers", min_length=1)
     name: str = Field(max_length=100, example="GP Practice Name")
     active: bool = Field(..., example=True)
     telecom: Optional[list[ContactPoint]] = []
@@ -146,8 +146,13 @@ class OrganisationUpdatePayload(BaseModel):
     @field_validator("identifier", mode="before")
     @classmethod
     def validate_identifier_list(cls, v: list[dict]) -> list[dict]:
-        if not v:
-            raise ValueError(ERROR_IDENTIFIER_EMPTY)
+        if v is None or not v:
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=ERROR_IDENTIFIER_EMPTY,
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
 
         ods_identifiers = [
             identifier
