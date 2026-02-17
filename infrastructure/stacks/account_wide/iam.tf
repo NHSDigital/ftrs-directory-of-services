@@ -70,8 +70,8 @@ resource "aws_iam_role" "cw_to_firehose_role" {
   })
 }
 
-resource "aws_iam_role_policy" "cw_to_firehose_policy" {
-  role = aws_iam_role.cw_to_firehose_role.id
+# resource "aws_iam_role_policy" "cw_to_firehose_policy" {
+#   role = aws_iam_role.cw_to_firehose_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
