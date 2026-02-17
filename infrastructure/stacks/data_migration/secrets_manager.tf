@@ -99,23 +99,3 @@ resource "aws_secretsmanager_secret_version" "target_rds_credentials" {
   })
 }
 
-resource "aws_secretsmanager_secret" "replica_rds_credentials" {
-  # checkov:skip=CKV2_AWS_57: Justification: This is generated manually.
-  count = local.is_primary_environment ? 1 : 0
-
-  name       = "/${var.project}/${var.environment}/${var.replica_rds_credentials}"
-  kms_key_id = data.aws_kms_key.secrets_manager_kms_key.arn
-}
-
-resource "aws_secretsmanager_secret_version" "replica_rds_credentials" {
-  count = local.is_primary_environment ? 1 : 0
-
-  secret_id = aws_secretsmanager_secret.replica_rds_credentials[0].id
-  secret_string = jsonencode({
-    host     = module.rds_replication_target_db[0].cluster_endpoint,
-    port     = var.rds_port,
-    username = aws_secretsmanager_secret_version.rds_username[0].secret_string,
-    password = aws_secretsmanager_secret_version.rds_password[0].secret_string,
-    dbname   = var.replica_rds_database
-  })
-}
