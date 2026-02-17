@@ -20,7 +20,7 @@
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="JDBC Connection Configuration">
+        <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="JDBC Connection Configuration" enabled="true">
           <boolProp name="autocommit">true</boolProp>
           <stringProp name="checkQuery"></stringProp>
           <stringProp name="connectionAge">5000</stringProp>
@@ -31,7 +31,7 @@
           <stringProp name="initQuery"></stringProp>
           <boolProp name="keepAlive">true</boolProp>
           <stringProp name="password">${__P(dos_db_password)}</stringProp>
-          <stringProp name="poolMax">3</stringProp>
+          <stringProp name="poolMax">4</stringProp>
           <boolProp name="preinit">true</boolProp>
           <stringProp name="timeout">10000</stringProp>
           <stringProp name="transactionIsolation">DEFAULT</stringProp>
@@ -40,11 +40,11 @@
         </JDBCDataSource>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Service update feed">
-        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,3)}</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update feed">
+        <stringProp name="ThreadGroup.num_threads">${__P(feed_num_threads,3)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(feed_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
-        <stringProp name="ThreadGroup.delay">${__P(startup_delay,0)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(feed_startup_delay,0)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -54,10 +54,10 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
-          <stringProp name="filename">parameter_files/dos/service_updates.csv</stringProp>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config" enabled="true">
+          <stringProp name="filename">parameter_files/dos/feed_data.csv</stringProp>
           <stringProp name="fileEncoding"></stringProp>
-          <stringProp name="variableNames">service_type_id,update_table,row_id,update_field,update_value</stringProp>
+          <stringProp name="variableNames">service_type_id,scenario,row_id,data</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <stringProp name="delimiter">,</stringProp>
           <boolProp name="quotedData">true</boolProp>
@@ -68,160 +68,227 @@
         <hashTree/>
         <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer">
           <intProp name="calcMode">2</intProp>
-          <stringProp name="throughput">${__P(dos_updates_per_minute, 10)}</stringProp>
+          <stringProp name="throughput">${__P(feed_updates_per_minute, 10)}</stringProp>
         </ConstantThroughputTimer>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Update specific table - switch">
-          <stringProp name="SwitchController.value">${update_table}</stringProp>
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
+          <stringProp name="SwitchController.value">${scenario}</stringProp>
         </SwitchController>
         <hashTree>
-          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="services">
-            <stringProp name="TestPlan.comments">Name must match the values in the switch</stringProp>
-          </GenericController>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmspublicname" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set publicname = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmsorgname" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set name = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="postaladdress" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set address = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmstepephoneno" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set nonpublicphone = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmscontact" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set email = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmsorgstatus" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set statusid = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">${data},${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">INTEGER,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmsreferraltext" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set publicreferralinstructions = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmsorgtype" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set typeid = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">${data},${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">INTEGER,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmsurl" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.services set web = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmscontactdetails" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">update pathwaysdos.serviceendpoints set address = ? where id = ?</stringProp>
+            <stringProp name="queryArguments">&quot;${data}&quot;,${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree/>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid" enabled="true">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values ((select max(id) + 1 from pathwaysdos.servicesgsds), ?, ?, ?);
+update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
+            <stringProp name="queryArguments">${row_id},${sgid},${sdid},${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">INTEGER,INTEGER,INTEGER,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
           <hashTree>
-            <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Update specific field - switch">
-              <stringProp name="SwitchController.value">${update_field}</stringProp>
-            </SwitchController>
-            <hashTree>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="publicname">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set publicname = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="name" enabled="true">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set name = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="address">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set address = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="nonpublicphone">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set nonpublicphone = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="email">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set email = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="statusid" enabled="true">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set statusid = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">${update_value},${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">INTEGER,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="publicreferralinstructions">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set publicreferralinstructions = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="typeid">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set typeid = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">${update_value},${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">INTEGER,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="web">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set web = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
-              <hashTree/>
-            </hashTree>
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Split data into sgid and sdid" enabled="true">
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">data = vars.get(&quot;data&quot;);
+sgid_sdid = data.split(&apos;#&apos;);
+vars.put(&quot;sgid&quot;, sgid_sdid[0]);
+vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PreProcessor>
+            <hashTree/>
           </hashTree>
-          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="serviceendpoints" enabled="true">
-            <stringProp name="TestPlan.comments">Name must match the values in the switch</stringProp>
-          </GenericController>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk">
+        <stringProp name="ThreadGroup.num_threads">${__P(bulk_num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(bulk_ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(bulk_startup_delay,30}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(bulk_size,10)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
+          <stringProp name="filename">parameter_files/dos/bulk_data.csv</stringProp>
+          <stringProp name="fileEncoding"></stringProp>
+          <stringProp name="variableNames">service_type_id,scenario,row_id,data</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">false</boolProp>
+          <boolProp name="stopThread">true</boolProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario">
+          <stringProp name="SwitchController.value">${scenario}</stringProp>
+        </SwitchController>
+        <hashTree>
+          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid" enabled="true"/>
           <hashTree>
-            <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Update specific field - switch" enabled="true">
-              <stringProp name="SwitchController.value">${update_field}</stringProp>
-            </SwitchController>
+            <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid in bulk" enabled="true">
+              <stringProp name="dataSource">db_connection_pool</stringProp>
+              <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values ((select max(id) + 1 from pathwaysdos.servicesgsds), ?, ?, ?);
+update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
+              <stringProp name="queryArguments">${row_id},${sgid},${sdid},${row_id}</stringProp>
+              <stringProp name="queryArgumentsTypes">INTEGER,INTEGER,INTEGER,INTEGER</stringProp>
+              <stringProp name="queryTimeout"></stringProp>
+              <stringProp name="queryType">Prepared Update Statement</stringProp>
+              <stringProp name="resultSetHandler">Store as String</stringProp>
+              <stringProp name="resultSetMaxRows"></stringProp>
+              <stringProp name="resultVariable"></stringProp>
+              <stringProp name="variableNames"></stringProp>
+            </JDBCSampler>
             <hashTree>
-              <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="address" enabled="true">
-                <stringProp name="dataSource">db_connection_pool</stringProp>
-                <stringProp name="query">update pathwaysdos.services set address = ? where id = ?</stringProp>
-                <stringProp name="queryArguments">&quot;${update_value}&quot;,${row_id}</stringProp>
-                <stringProp name="queryArgumentsTypes">VARCHAR,INTEGER</stringProp>
-                <stringProp name="queryTimeout"></stringProp>
-                <stringProp name="queryType">Prepared Update Statement</stringProp>
-                <stringProp name="resultSetHandler">Store as String</stringProp>
-                <stringProp name="resultSetMaxRows"></stringProp>
-                <stringProp name="resultVariable"></stringProp>
-                <stringProp name="variableNames"></stringProp>
-              </JDBCSampler>
+              <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Split data into sgid and sdid" enabled="true">
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="script">data = vars.get(&quot;data&quot;);
+sgid_sdid = data.split(&apos;#&apos;);
+vars.put(&quot;sgid&quot;, sgid_sdid[0]);
+vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
+                <stringProp name="scriptLanguage">groovy</stringProp>
+              </JSR223PreProcessor>
               <hashTree/>
             </hashTree>
           </hashTree>

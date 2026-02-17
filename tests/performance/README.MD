@@ -121,8 +121,11 @@ Parameters relevant for FDOS test plan:
 | `dos_db_url` | Soruce database url | (required) |
 | `dos_db_user` | Soruce database user  |(required) |
 | `dos_db_password` | Soruce database password | (required) |
-| `dos_updates_per_minute` | Throughput for database update feed | 10 |
+| `feed_updates_per_minute` | Throughput for database update feed | 10 |
 | `duration` | Test duration in seconds | 3600 |
+| `bulk_num_threads` | Expect 0 or 1, 1 - user journey would be enabled | 1 |
+| `bulk_size` | The amount of changes done in a row | 10 |
+| `bulk_startup_delay` | Bulk update batch to start after a delay in seconds. The user journey performs a single batch of some size and stops | 30 |
 
 Running with UI:
 
@@ -131,7 +134,10 @@ jmeter -t FDOS_Test_Plan.jmx \
   -J dos_db_url="jdbc:postgresql://$DB_HOST:5432/dos" \
   -J dos_db_password="${PGPASSWORD}" \
   -J dos_db_user="${PGUSER}" \
-  -J dos_updates_per_minute=10 \
+  -J feed_updates_per_minute=10 \
+  -J bulk_num_threads=1 \
+  -J bulk_size=10 \
+  -J bulk_startup_delay=30 \
   -J duration=3600
 ```
 
