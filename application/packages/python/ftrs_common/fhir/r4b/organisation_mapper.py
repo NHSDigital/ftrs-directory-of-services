@@ -86,9 +86,7 @@ class OrganizationMapper(FhirMapper):
         # Add non-primary role extensions without legal dates
         if organisation.non_primary_role_codes:
             for role_code in organisation.non_primary_role_codes:
-                non_primary_ext = self._build_organisation_role_extension(
-                    role_code, active=organisation.active
-                )
+                non_primary_ext = self._build_organisation_role_extension(role_code)
                 if non_primary_ext:
                     extensions.append(non_primary_ext)
 
@@ -99,7 +97,7 @@ class OrganizationMapper(FhirMapper):
         role_code: str | None,
         legal_start_date: str | None = None,
         legal_end_date: str | None = None,
-        active: bool | None = None,
+        active: bool | None = False,
     ) -> Extension | None:
         """
         Build FHIR OrganisationRole extension with role code and optional legal dates.
