@@ -95,6 +95,7 @@ CLIENT_ID=$(echo "$SECRET_JSON" | yq -r '.client_id')
 KID=$(echo "$SECRET_JSON" | yq -r '.kid')
 PRIVATE_KEY=$(echo "$SECRET_JSON" | yq -r '.private_key')
 TOKEN_URL=$(echo "$SECRET_JSON" | yq -r '.token_url')
+PROXYGEN_URL=$(echo "$SECRET_JSON" | yq -r '.proxygen_url')
 
 # Extract PROXYGEN_API_NAME from CLIENT_ID
 PROXYGEN_API_NAME=${CLIENT_ID%-client}
@@ -127,10 +128,10 @@ BASE_URL=$BASE_URL CLIENT_ID=$CLIENT_ID KID=$KID PRIVATE_KEY_FILE=$PRIVATE_KEY_F
 
 echo "Writing settings to $SETTINGS_FILE..."
 touch "$SETTINGS_FILE"
-PROXYGEN_API_NAME=$PROXYGEN_API_NAME \
+PROXYGEN_API_NAME=$PROXYGEN_API_NAME PROXYGEN_URL=$PROXYGEN_URL \
   yq eval '
     .api = env(PROXYGEN_API_NAME) |
-    .endpoint_url = "https://proxygen.ptl.api.platform.nhs.uk" |
+    .endpoint_url = env(PROXYGEN_URL) |
     .spec_output_format = "yaml"
   ' -i "$SETTINGS_FILE"
 
