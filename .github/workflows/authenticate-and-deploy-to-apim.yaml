@@ -30,9 +30,6 @@ on:
       AWS_REGION:
         description: 'AWS Region'
         required: true
-      PROXYGEN_URL:
-        description: 'Proxygen API URL'
-        required: true
 
 permissions: {}
 
@@ -59,6 +56,14 @@ jobs:
           environment: ${{ inputs.environment }}
           type: app
 
+      - name: Get Proxygen Configuration
+        id: get-proxygen-config
+        uses: ./.github/actions/get-proxygen-configuration
+        with:
+          api_name: ${{ inputs.api_name }}
+          environment: ${{ inputs.environment }}
+          secret_version: latest
+
       - name: Get Proxygen Access Token
         id: get-token
         uses: ./.github/actions/authenticate-apim
@@ -66,6 +71,7 @@ jobs:
           api_name: ${{ inputs.api_name }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ secrets.AWS_REGION }}
+          proxygen_token_url: ${{ steps.get-proxygen-config.outputs.token_url }}
 
       - name: Deploy API Specification
         uses: ./.github/actions/deploy-to-apim
@@ -75,7 +81,7 @@ jobs:
           environment: ${{ inputs.environment }}
           apim_env: ${{ inputs.apim_env }}
           access_token: ${{ steps.get-token.outputs.access_token }}
-          proxygen_url: ${{ secrets.PROXYGEN_URL }}
+          proxygen_url: ${{ steps.get-proxygen-config.outputs.proxygen_url }}
 
       - name: Deployment Summary
         shell: bash

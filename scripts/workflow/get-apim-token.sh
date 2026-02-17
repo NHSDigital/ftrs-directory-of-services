@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to generate JWT and retrieve APIM access token
-# Required environment variables: ENV, API_NAME, AWS_REGION
+# Required environment variables: ENV, API_NAME, AWS_REGION, PROXYGEN_TOKEN_URL
 
 set -e
 
@@ -24,10 +24,9 @@ if [[ -z "$SIGNED_JWT" ]]; then
     exit 1
 fi
 
-TOKEN_URL=$(echo "$PROXYGEN_JWT_SECRETS" | jq -r .token_url)
 # Request access token
 echo "Requesting access token from APIM..." >&2
-RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$TOKEN_URL" \
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$PROXYGEN_TOKEN_URL" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "grant_type=client_credentials" \
     -d "client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer" \

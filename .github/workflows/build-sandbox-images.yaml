@@ -24,9 +24,6 @@ on:
       ACCOUNT_ID:
         description: "AWS Account ID"
         required: true
-      PROXYGEN_URL:
-        description: "Proxygen API base URL"
-        required: false
 
 permissions: {}
 
@@ -115,21 +112,28 @@ jobs:
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
+      - name: "Get Proxygen Configuration"
+        id: get-proxygen-config
+        uses: ./.github/actions/get-proxygen-configuration
+        with:
+          api_name: ${{ env.API_NAME }}
+          environment: ${{ inputs.environment }}
+          secret_version: latest
+
       - name: Get APIM Access Token
         id: get-token
-        if: ${{ github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/authenticate-apim
         with:
           api_name: ${{ env.API_NAME }}
           environment: ${{ inputs.environment }}
           aws_region: ${{ vars.AWS_REGION }}
+          proxygen_token_url: ${{ steps.get-proxygen-config.outputs.token_url }}
 
       - name: Get APIM Docker Token
         id: get-docker-token
-        if: ${{ github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/authenticate-apim-docker
         env:
-          PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
+          PROXYGEN_BASE_URL: ${{ steps.get-proxygen-config.outputs.proxygen_url || '' }}
         with:
           access_token: ${{ steps.get-token.outputs.access_token }}
           api_name: ${{ env.API_NAME }}

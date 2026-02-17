@@ -146,7 +146,6 @@ jobs:
       ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
-      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   perform-code-analysis:
     name: "Perform static code analysis"
@@ -219,7 +218,6 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
 
   # TODO : FTRS-1899 Re-enable data migration step once ETL process is stable
   # migrate-data:

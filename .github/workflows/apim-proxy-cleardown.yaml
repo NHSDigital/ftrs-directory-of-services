@@ -29,9 +29,6 @@ on:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"
         required: true
-      PROXYGEN_URL:
-        description: "Proxygen URL for APIM"
-        required: true
 
 jobs:
   cleardown-apim-proxy:
@@ -60,6 +57,14 @@ jobs:
           type: app
           environment: ${{ inputs.environment }}
 
+      - name: "Get Proxygen Configuration"
+        id: get-proxygen-config
+        uses: ./.github/actions/get-proxygen-configuration
+        with:
+          api_name: ${{ matrix.api_name }}
+          environment: ${{ inputs.environment }}
+          secret_version: latest
+
       - name: "Cleardown proxy"
         uses: ./.github/actions/cleardown-apim-proxy
         with:
@@ -68,4 +73,4 @@ jobs:
           environment: ${{ inputs.environment }}
           apim_env: ${{ inputs.apim_env }}
           aws_region: ${{ vars.AWS_REGION }}
-          proxygen_url: ${{ secrets.PROXYGEN_URL }}
+          proxygen_url: ${{ steps.get-proxygen-config.outputs.proxygen_url }}

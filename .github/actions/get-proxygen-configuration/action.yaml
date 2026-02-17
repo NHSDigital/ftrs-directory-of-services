@@ -1,0 +1,51 @@
+name: 'Get Proxygen Configuration Action'
+description: 'Retrieve Proxygen configurations'
+inputs:
+  api_name:
+    description: 'Name of the API for which to retrieve Proxygen configuration'
+    required: true
+  environment:
+    description: 'The environment (e.g., dev, test, prod)'
+    required: true
+  secret_version:
+    description: 'Version of the secret to retrieve (e.g., latest or specific version number)'
+    required: false
+
+outputs:
+  token_url:
+    description: 'The Proxygen token URL'
+    value: ${{ steps.get-proxygen-configuration.outputs.token_url }}
+  proxygen_url:
+    description: 'The Proxygen API URL'
+    value: ${{ steps.get-proxygen-configuration.outputs.proxygen_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get Proxygen Configuration
+      id: get-proxygen-configuration
+      shell: bash
+      env:
+        API_NAME: ${{ inputs.api_name }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        SECRET_VERSION: ${{ inputs.secret_version }}
+      run: |
+        set -euo pipefail
+
+        # Run the script and capture output
+        PROXYGEN_CONFIG=$(/bin/bash ./scripts/workflow/get-proxygen-configuration.sh)
+
+        # Parse output into variables
+        TOKEN_URL=$(echo "$PROXYGEN_CONFIG" | jq -r .token_url)
+        PROXYGEN_URL=$(echo "$PROXYGEN_CONFIG" | jq -r .proxygen_url)
+
+        # Validate that all required values were retrieved
+        if [ -z "${TOKEN_URL:-}" ] || [ -z "${PROXYGEN_URL:-}" ]; then
+          echo "Failed to retrieve all required secrets from Proxygen JWT Secret store" >&2
+          exit 1
+        fi
+
+        # Set outputs for use in subsequent steps
+        printf 'token_url=%s\n' "$TOKEN_URL" >> "$GITHUB_OUTPUT"
+        printf 'proxygen_url=%s\n' "$PROXYGEN_URL" >> "$GITHUB_OUTPUT"
+

@@ -8,6 +8,9 @@ inputs:
   environment:
     description: 'Environment to authenticate against (e.g., dev, test, prod)'
     required: true
+  proxygen_token_url:
+    description: 'The Proxygen token URL (retrieved from get-proxygen-configuration action)'
+    required: true
   aws_region:
     description: 'AWS region for Secrets Manager'
     required: true
@@ -34,6 +37,7 @@ runs:
         API_NAME: ${{ inputs.api_name }}
         ENV: ${{ inputs.environment }}
         AWS_REGION: ${{ inputs.aws_region }}
+        PROXYGEN_TOKEN_URL: ${{ inputs.proxygen_token_url }}
       run: |
         set -euo pipefail
 
