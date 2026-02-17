@@ -4,8 +4,8 @@ from pydantic import ValidationError
 from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from functions.healthcare_service_query_params import (
     HealthcareServiceQueryParams,
-    InvalidIdentifierSystem,
-    ODSCodeInvalidFormatError,
+    HsInvalidIdentifierSystem,
+    HsODSCodeInvalidFormatError,
 )
 
 
@@ -43,18 +43,18 @@ class TestHealthcareServiceQueryParams:
     @pytest.mark.parametrize(
         ("identifier", "expected_exception"),
         [
-            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|", ODSCodeInvalidFormatError),
-            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC1", ODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|", HsODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC1", HsODSCodeInvalidFormatError),
             (
                 f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABCD123456789",
-                ODSCodeInvalidFormatError,
+                HsODSCodeInvalidFormatError,
             ),
-            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC-123", ODSCodeInvalidFormatError),
-            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC 123", ODSCodeInvalidFormatError),
-            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC@123", ODSCodeInvalidFormatError),
-            ("", InvalidIdentifierSystem),
-            ("wrongPrefix|ABC123", InvalidIdentifierSystem),
-            ("ABC123", InvalidIdentifierSystem),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC-123", HsODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC 123", HsODSCodeInvalidFormatError),
+            (f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC@123", HsODSCodeInvalidFormatError),
+            ("", HsInvalidIdentifierSystem),
+            ("wrongPrefix|ABC123", HsInvalidIdentifierSystem),
+            ("ABC123", HsInvalidIdentifierSystem),
         ],
         ids=[
             "odsCode empty after prefix",

@@ -41,7 +41,7 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -66,7 +66,7 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -91,7 +91,7 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -115,7 +115,7 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -140,7 +140,7 @@ class TestErrorUtil:
             validation_error = e
 
         # Act
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
 
         # Assert
         assert isinstance(result, OperationOutcome)
@@ -175,7 +175,7 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err)
+        result = create_validation_error_operation_outcome(err, None)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         # Updated fallback expectations: client error, not internal fatal
@@ -200,7 +200,7 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err)
+        result = create_validation_error_operation_outcome(err, None)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
         # Updated fallback expectations: client error, not internal fatal
@@ -268,7 +268,7 @@ class TestErrorUtil:
         except ValidationError as e:
             validation_error = e
 
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(validation_error, None)
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 2  # Should have 2 issues
 
@@ -320,7 +320,7 @@ class TestErrorUtil:
                 }
             ],
         )
-        result = create_validation_error_operation_outcome(err)
+        result = create_validation_error_operation_outcome(err, None)
         assert isinstance(result, OperationOutcome)
         assert result.issue[0].diagnostics == "Invalid search parameter value"
 
@@ -337,7 +337,9 @@ class TestErrorUtil:
 
         assert validation_error is not None
 
-        result = create_validation_error_operation_outcome(validation_error)
+        result = create_validation_error_operation_outcome(
+            validation_error, "Only 'identifier' and '_revinclude' are allowed."
+        )
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1
@@ -365,7 +367,7 @@ class TestErrorUtil:
             ],
         )
 
-        result = create_validation_error_operation_outcome(err)
+        result = create_validation_error_operation_outcome(err, None)
 
         assert isinstance(result, OperationOutcome)
         assert len(result.issue) == 1

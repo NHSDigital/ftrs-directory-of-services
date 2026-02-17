@@ -7,14 +7,14 @@ from functions.constants import (
 )
 
 
-class InvalidIdentifierSystem(ValueError):
+class HsInvalidIdentifierSystem(ValueError):
     def __init__(self, identifier: str) -> None:
         super().__init__(
             f"Invalid identifier system '{identifier}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'"
         )
 
 
-class ODSCodeInvalidFormatError(ValueError):
+class HsODSCodeInvalidFormatError(ValueError):
     def __init__(self, ods_code: str) -> None:
         super().__init__(
             f"Invalid identifier value: ODS code '{ods_code}' must follow format {ODS_REGEX}"
@@ -60,11 +60,11 @@ class HealthcareServiceQueryParams(BaseModel):
         identifier_system = _extract_identifier_system(v)
 
         if identifier_system != ODS_ORG_CODE_IDENTIFIER_SYSTEM:
-            raise InvalidIdentifierSystem(identifier_system)
+            raise HsInvalidIdentifierSystem(identifier_system)
 
         identifier_value = _extract_identifier_value(v)
 
         if not re.match(ODS_REGEX, identifier_value):
-            raise ODSCodeInvalidFormatError(identifier_value)
+            raise HsODSCodeInvalidFormatError(identifier_value)
 
         return v

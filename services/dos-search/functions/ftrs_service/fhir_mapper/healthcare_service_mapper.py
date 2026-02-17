@@ -85,6 +85,19 @@ class HealthcareServiceMapper:
             )
         ]
 
+    def _create_phone_telecom(self, phone_number: str, comment: str) -> dict:
+        return {
+            "system": "phone",
+            "value": phone_number,
+            "use": "work",
+            "extension": [
+                {
+                    "url": "http://hl7.org/fhir/StructureDefinition/contactpoint-comment",
+                    "valueString": comment,
+                }
+            ],
+        }
+
     def _create_telecom(self, healthcare_service: HealthcareService) -> list[dict]:
         telecom_list = []
 
@@ -95,31 +108,13 @@ class HealthcareServiceMapper:
 
         if telecom.phone_public:
             telecom_list.append(
-                {
-                    "system": "phone",
-                    "value": telecom.phone_public,
-                    "use": "work",
-                    "extension": [
-                        {
-                            "url": "http://hl7.org/fhir/StructureDefinition/contactpoint-comment",
-                            "valueString": "Public",
-                        }
-                    ],
-                }
+                self._create_phone_telecom(telecom.phone_public, "Public")
             )
         if telecom.phone_private:
             telecom_list.append(
-                {
-                    "system": "phone",
-                    "value": telecom.phone_private,
-                    "use": "work",
-                    "extension": [
-                        {
-                            "url": "http://hl7.org/fhir/StructureDefinition/contactpoint-comment",
-                            "valueString": "Clinician Access Only",
-                        }
-                    ],
-                }
+                self._create_phone_telecom(
+                    telecom.phone_private, "Clinician Access Only"
+                )
             )
 
         if telecom.email:

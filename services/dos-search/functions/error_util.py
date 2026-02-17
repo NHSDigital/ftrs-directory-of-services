@@ -4,6 +4,10 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
+from functions.healthcare_service_query_params import (
+    HsInvalidIdentifierSystem,
+    HsODSCodeInvalidFormatError,
+)
 from functions.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
@@ -36,6 +40,9 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
+    # HealthcareService query params error types
+    HsInvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
+    HsODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
 }
 
 
@@ -71,14 +78,19 @@ def create_resource_internal_server_error() -> OperationOutcome:
 
 
 def create_validation_error_operation_outcome(
-    exception: ValidationError,
+    exception: ValidationError, qualifiers: str
 ) -> OperationOutcome:
     return OperationOutcome.model_validate(
-        {"issue": [_create_issue_from_error(error) for error in exception.errors()]}
+        {
+            "issue": [
+                _create_issue_from_error(error, qualifiers)
+                for error in exception.errors()
+            ]
+        }
     )
 
 
-def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
+def _create_issue_from_error(error: ErrorDetails, qualifiers: str) -> dict[str, Any]:
     if error.get("type") == "extra_forbidden":
         loc = error.get("loc") or ()
         unexpected = str(loc[-1]) if isinstance(loc, (list, tuple)) and loc else ""
@@ -86,9 +98,7 @@ def _create_issue_from_error(error: ErrorDetails) -> dict[str, Any]:
             "value",
             "error",
             details=INVALID_SEARCH_DATA_CODING,
-            diagnostics=(
-                f"Unexpected query parameter(s): {unexpected}. Only 'identifier' and '_revinclude' are allowed."
-            ),
+            diagnostics=(f"Unexpected query parameter(s): {unexpected}. {qualifiers}"),
         )
 
     if error.get("type") == "value_error":

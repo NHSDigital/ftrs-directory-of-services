@@ -81,7 +81,7 @@ def get_organization() -> Response:
         except ValidationError as exception:
             # Log warning with structured fields
             fhir_resource = error_util.create_validation_error_operation_outcome(
-                exception
+                exception, "Only 'identifier' and '_revinclude' are allowed."
             )
 
             response_size, duration_ms = dos_logger.get_response_size_and_duration(

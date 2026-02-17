@@ -223,7 +223,7 @@ class TestLambdaHandler:
 
         # Assert
         mock_error_util.create_validation_error_operation_outcome.assert_called_once_with(
-            validation_error
+            validation_error, "Only 'identifier' and '_revinclude' are allowed."
         )
 
         mock_logger.assert_has_calls(

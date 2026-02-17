@@ -49,7 +49,9 @@ def get_healthcare_service() -> Response:
         fhir_resource = ftrs_service.healthcare_services_by_ods(ods_code)
 
     except ValidationError as exception:
-        fhir_resource = error_util.create_validation_error_operation_outcome(exception)
+        fhir_resource = error_util.create_validation_error_operation_outcome(
+            exception, "Only 'organization.identifier' is allowed."
+        )
         response_size, duration_ms = dos_logger.get_response_size_and_duration(
             fhir_resource, start
         )
