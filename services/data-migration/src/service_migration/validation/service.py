@@ -59,7 +59,8 @@ class GPPracticeValidator(ServiceValidator):
         # ASCII letters and digits
         # Unicode characters (accented letters, curly quotes, etc.)
         # Whitespace (space, tab, newline)
-        # Safe punctuation: at, hyphen, apostrophe, period, comma, parentheses, ampersand
+        # Safe punctuation: hyphen, forward slash, at symbol, plus sign, colon,
+        #   apostrophe, period, comma, left parenthesis, right parenthesis, ampersand
         # One or more of the above characters
         # End of string
     )

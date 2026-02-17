@@ -170,19 +170,37 @@ def test_reject_special_symbols(
 @pytest.mark.parametrize(
     "input_name,expected",
     [
+        # Hyphen
+        ("Smith-Jones Medical Centre", "Smith-Jones Medical Centre"),
+        # Forward slash
+        ("Smith/Jones Practice", "Smith/Jones Practice"),
+        # At symbol
         ("Smith @ Medical Centre", "Smith @ Medical Centre"),
+        # Plus sign
         ("Health+Plus", "Health+Plus"),
+        # Colon
         ("Practice: Dr Smith", "Practice: Dr Smith"),
+        # Apostrophe
+        ("St Mary's Surgery", "St Mary's Surgery"),
+        # Period
+        ("Dr. Smith Practice", "Dr. Smith Practice"),
+        # Comma
+        ("Smith, Jones & Associates", "Smith, Jones & Associates"),
+        # Parentheses
+        ("Practice (Main Branch)", "Practice (Main Branch)"),
+        # Ampersand
         ("Smith & Jones", "Smith & Jones"),
         ("Smith& Jones", "Smith& Jones"),
         ("Smith &Jones", "Smith &Jones"),
         ("Smith&Jones", "Smith&Jones"),
+        # Multiple special characters combined
+        ("Dr. Smith's Practice: Health+Plus (Main)", "Dr. Smith's Practice: Health+Plus (Main)"),
     ],
 )
 def test_allow_special_characters(
     validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that @, +, :, and & characters are allowed in practice names."""
+    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) &"""
     assert_valid_name(validator, input_name, expected)
 
 
