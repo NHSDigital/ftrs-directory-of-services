@@ -22,7 +22,7 @@ class DecimalEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-META_TIME_FIELDS = ["createdTime", "lastUpdated"]
+META_TIME_FIELDS = ["created", "lastUpdated"]
 
 # Audit event fields that should be ignored in comparisons
 AUDIT_FIELDS = ["createdBy", "lastUpdatedBy"]
