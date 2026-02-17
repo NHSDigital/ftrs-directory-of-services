@@ -14,6 +14,10 @@ from functions.slack_formatter import build_slack_message
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+class AlarmProcessingError(Exception):
+    """Raised when alarm processing fails."""
+    pass
+
 
 def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     """
@@ -64,6 +68,7 @@ def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
 
         if failed > 0:
             logger.error(f"Failed to process {failed} of {processed + failed} record(s)")
+            raise AlarmProcessingError(f"Failed to process {failed} record(s)")
 
         return {
             "statusCode": 200,

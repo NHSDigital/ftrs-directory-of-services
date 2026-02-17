@@ -1,19 +1,19 @@
 output "sns_topic_arn" {
   description = "ARN of the SNS topic for CloudWatch alarms"
-  value       = aws_sns_topic.slack_notifications.arn
+  value       = local.stack_enabled == 1 ? module.sns_topic[0].topic_arn : ""
 }
 
 output "lambda_function_arn" {
   description = "ARN of the Slack notification Lambda function"
-  value       = module.slack_notifications.lambda_function_arn
+  value       = local.stack_enabled == 1 ? module.slack_lambda[0].lambda_function_arn : ""
 }
 
 output "lambda_function_name" {
   description = "Name of the Slack notification Lambda function"
-  value       = module.slack_notifications.lambda_function_name
+  value       = local.stack_enabled == 1 ? module.slack_lambda[0].lambda_function_name : ""
 }
 
 output "sns_subscription_arn" {
   description = "ARN of the SNS topic subscription"
-  value       = module.slack_notifications.sns_subscription_arn
+  value       = local.stack_enabled == 1 ? aws_sns_topic_subscription.slack_notification[0].arn : ""
 }

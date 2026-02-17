@@ -85,7 +85,7 @@ stack_toggles:
       test: true
       int: true
       ref: true
-      prod: false
+      prod: true
 
 api_gateway_toggles:
   - id: dos_search_organisation_search_enabled
