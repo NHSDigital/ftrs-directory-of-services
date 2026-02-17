@@ -122,24 +122,24 @@ jobs:
               RAMP_TIME="${RAMP_TIME:-1}"
               STARTUP_DELAY="${STARTUP_DELAY:-10}"
               DURATION="${DURATION:-20}"
-              THROUGHPUT=${THROUGHPUT:-10}
-              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              THROUGHPUT="${THROUGHPUT:-10}"
+              THROUGHPUT_PERIOD="${THROUGHPUT_PERIOD:-60}"
               ;;
             "load")
-              NUM_THREADS=${NUM_THREADS:-100}
-              RAMP_TIME=${RAMP_TIME:-1}
-              STARTUP_DELAY=${STARTUP_DELAY:-10}
-              DURATION=${DURATION:-3660}
-              THROUGHPUT=${THROUGHPUT:-9000}
-              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-60}
+              NUM_THREADS="${NUM_THREADS:-100}"
+              RAMP_TIME="${RAMP_TIME:-1}"
+              STARTUP_DELAY="${STARTUP_DELAY:-10}"
+              DURATION="${DURATION:-3660}"
+              THROUGHPUT="${THROUGHPUT:-9000}"
+              THROUGHPUT_PERIOD="${THROUGHPUT_PERIOD:-60}"
               ;;
             "stress")
-              NUM_THREADS=${NUM_THREADS:-10}
-              RAMP_TIME=${RAMP_TIME:-1}
-              STARTUP_DELAY=${STARTUP_DELAY:-10}
-              DURATION=${DURATION:-70}
-              THROUGHPUT=${THROUGHPUT:-1}
-              THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD:-5}
+              NUM_THREADS="${NUM_THREADS:-10}"
+              RAMP_TIME="${RAMP_TIME:-1}"
+              STARTUP_DELAY="${STARTUP_DELAY:-10}"
+              DURATION="${DURATION:-70}"
+              THROUGHPUT="${THROUGHPUT:-1}"
+              THROUGHPUT_PERIOD="${THROUGHPUT_PERIOD:-5}"
               ;;
             *)
               echo "Invalid test type: $TEST_TYPE"
@@ -154,12 +154,14 @@ jobs:
           echo "throughput/throughput_step=$THROUGHPUT"
           echo "throughput_period/step_duration=$THROUGHPUT_PERIOD"
 
-          echo "num_threads=$NUM_THREADS" >> $GITHUB_OUTPUT
-          echo "ramp_time=$RAMP_TIME" >> $GITHUB_OUTPUT
-          echo "startup_delay=$STARTUP_DELAY" >> $GITHUB_OUTPUT
-          echo "duration=$DURATION" >> $GITHUB_OUTPUT
-          echo "throughput=$THROUGHPUT" >> $GITHUB_OUTPUT
-          echo "throughput_period=$THROUGHPUT_PERIOD" >> $GITHUB_OUTPUT
+          {
+            echo "num_threads=$NUM_THREADS"
+            echo "ramp_time=$RAMP_TIME"
+            echo "startup_delay=$STARTUP_DELAY"
+            echo "duration=$DURATION"
+            echo "throughput=$THROUGHPUT"
+            echo "throughput_period=$THROUGHPUT_PERIOD"
+          } >> $GITHUB_OUTPUT
 
       - name: "Derive Endpoint URL"
         id: derive-endpoint
@@ -189,8 +191,11 @@ jobs:
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search-$WORKSPACE/FHIR/R4"
             fi
           fi
-          echo "endpoint=$ENDPOINT" >> $GITHUB_OUTPUT
-          echo "apim_env=$APIM_ENV" >> $GITHUB_OUTPUT
+
+          {
+            echo "endpoint=$ENDPOINT"
+            echo "apim_env=$APIM_ENV"
+          } >> $GITHUB_OUTPUT
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials

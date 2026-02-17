@@ -19,13 +19,17 @@ runs:
     - name: Upload test results to S3
       shell: bash
       id: run
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        S3_BUCKET: ${{ inputs.s3-bucket }}
       run: |
           COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "${{ inputs.ec2-instance-id }}" \
+            --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "Upload performance test results to S3 for environment ${{ inputs.environment }}" \
+            --comment "Upload performance test results to S3 for environment $ENVIRONMENT" \
             --parameters 'commands=["cd /home/ssm-user",
-                        "make upload-performance-test-result ENVIRONMENT=${{ inputs.environment }} PERFORMANCE_RESULTS_BUCKET=${{ inputs.s3-bucket }}"]' \
+                        "make upload-performance-test-result ENVIRONMENT=$ENVIRONMENT} PERFORMANCE_RESULTS_BUCKET=$S3_BUCKET"]' \
             --query "Command.CommandId" \
             --output text)
 

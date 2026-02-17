@@ -39,7 +39,7 @@ permissions:
 
 jobs:
   stop_performance_test:
-    name: "Stop performance EC2 instance if required"
+    name: "Stop performance test"
     timeout-minutes: 5
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
@@ -81,9 +81,9 @@ jobs:
               echo "Performance test is still running. Not stopping EC2 instance."
               exit 1
             fi
-            else
-              echo "No performance test running. Proceeding to stop EC2 instance."
-            fi
+          else
+            echo "No performance test running. Proceeding to stop EC2 instance."
+          fi
 
       - name: Clear Performance Run Lock
         if: ${{ inputs.stop-ec2-instance == 'true' && (inputs.force-ec2-instance-stop == 'true' || steps.check-perf-test-running.outputs.performance-test-running == 'false') }}
