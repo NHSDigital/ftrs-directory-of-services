@@ -276,7 +276,7 @@
           "Action": "iam:PassRole",
           "Resource": "arn:aws:iam::*:role/${repo_name}-*-splunk-firehose-role",
           "Condition": {
-            "StringEquals": {
+          "StringEquals": {
               "iam:PassedToService": "firehose.amazonaws.com"
             }
           }
@@ -334,14 +334,14 @@
           "Resource": "*",
           "Condition": {
             "StringEquals": {
-              "iam:AWSServiceName": [
-               "observability.aoss.amazonaws.com",
-               "access-analyzer.amazonaws.com",
-                "agentless.inspector2.amazonaws.com",
-                "inspector2.amazonaws.com"
-              ]
+                    "iam:AWSServiceName": [
+                        "observability.aoss.amazonaws.com",
+                        "access-analyzer.amazonaws.com",
+                        "agentless.inspector2.amazonaws.com",
+                        "inspector2.amazonaws.com"
+                    ]
+                }
             }
         }
-    }
-  ]
+    ]
 }
