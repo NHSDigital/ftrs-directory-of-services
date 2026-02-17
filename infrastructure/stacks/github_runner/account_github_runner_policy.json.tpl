@@ -276,7 +276,7 @@
           "Action": "iam:PassRole",
           "Resource": "arn:aws:iam::*:role/${repo_name}-*-splunk-firehose-role",
           "Condition": {
-          "StringEquals": {
+            "StringEquals": {
               "iam:PassedToService": "firehose.amazonaws.com"
             }
           }
