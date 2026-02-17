@@ -338,7 +338,8 @@
                         "observability.aoss.amazonaws.com",
                         "access-analyzer.amazonaws.com",
                         "agentless.inspector2.amazonaws.com",
-                        "inspector2.amazonaws.com"
+                        "inspector2.amazonaws.com",
+                        "shield.amazonaws.com"
                     ]
                 }
             }
