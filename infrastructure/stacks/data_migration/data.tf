@@ -121,6 +121,10 @@ data "aws_iam_policy_document" "secrets_access_policy_for_dms" {
   }
 }
 
+data "aws_kms_key" "dynamodb_kms_key" {
+  key_id = local.kms_aliases.dynamodb
+}
+
 data "aws_iam_policy_document" "dynamodb_access_policy" {
   statement {
     effect = "Allow"
@@ -153,6 +157,16 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       module.state_table.dynamodb_table_arn,
       "${module.state_table.dynamodb_table_arn}/index/*"
     ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
   }
 }
 
