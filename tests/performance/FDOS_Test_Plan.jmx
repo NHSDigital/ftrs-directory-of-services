@@ -207,6 +207,32 @@
           <hashTree/>
           <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid" enabled="true">
             <stringProp name="dataSource">db_connection_pool</stringProp>
+            <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values (default, ?, ?, ?);
+update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
+            <stringProp name="queryArguments">${row_id},${sgid},${sdid},${row_id}</stringProp>
+            <stringProp name="queryArgumentsTypes">INTEGER,INTEGER,INTEGER,INTEGER</stringProp>
+            <stringProp name="queryTimeout"></stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows"></stringProp>
+            <stringProp name="resultVariable"></stringProp>
+            <stringProp name="variableNames"></stringProp>
+          </JDBCSampler>
+          <hashTree>
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Split data into sgid and sdid" enabled="true">
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">data = vars.get(&quot;data&quot;);
+sgid_sdid = data.split(&apos;#&apos;);
+vars.put(&quot;sgid&quot;, sgid_sdid[0]);
+vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PreProcessor>
+            <hashTree/>
+          </hashTree>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid_against_replica" enabled="false">
+            <stringProp name="dataSource">db_connection_pool</stringProp>
             <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values ((select max(id) + 1 from pathwaysdos.servicesgsds), ?, ?, ?);
 update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
             <stringProp name="queryArguments">${row_id},${sgid},${sdid},${row_id}</stringProp>
@@ -233,7 +259,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(bulk_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(bulk_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
@@ -247,7 +273,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config" enabled="true">
           <stringProp name="filename">parameter_files/dos/bulk_data.csv</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">service_type_id,scenario,row_id,data</stringProp>
@@ -259,13 +285,39 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           <stringProp name="shareMode">shareMode.group</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario">
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
           <stringProp name="SwitchController.value">${scenario}</stringProp>
         </SwitchController>
         <hashTree>
           <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid" enabled="true"/>
           <hashTree>
             <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid in bulk" enabled="true">
+              <stringProp name="dataSource">db_connection_pool</stringProp>
+              <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values (default, ?, ?, ?);
+update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
+              <stringProp name="queryArguments">${row_id},${sgid},${sdid},${row_id}</stringProp>
+              <stringProp name="queryArgumentsTypes">INTEGER,INTEGER,INTEGER,INTEGER</stringProp>
+              <stringProp name="queryTimeout"></stringProp>
+              <stringProp name="queryType">Prepared Update Statement</stringProp>
+              <stringProp name="resultSetHandler">Store as String</stringProp>
+              <stringProp name="resultSetMaxRows"></stringProp>
+              <stringProp name="resultVariable"></stringProp>
+              <stringProp name="variableNames"></stringProp>
+            </JDBCSampler>
+            <hashTree>
+              <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Split data into sgid and sdid" enabled="true">
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="script">data = vars.get(&quot;data&quot;);
+sgid_sdid = data.split(&apos;#&apos;);
+vars.put(&quot;sgid&quot;, sgid_sdid[0]);
+vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
+                <stringProp name="scriptLanguage">groovy</stringProp>
+              </JSR223PreProcessor>
+              <hashTree/>
+            </hashTree>
+            <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid in bulk against replica" enabled="false">
               <stringProp name="dataSource">db_connection_pool</stringProp>
               <stringProp name="query">insert into pathwaysdos.servicesgsds(id, serviceid, sgid, sdid) values ((select max(id) + 1 from pathwaysdos.servicesgsds), ?, ?, ?);
 update pathwaysdos.services set modifiedtime = now() where id = ?;</stringProp>
