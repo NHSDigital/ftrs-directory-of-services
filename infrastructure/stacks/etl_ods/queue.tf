@@ -14,7 +14,7 @@ resource "aws_sqs_queue" "load_dead_letter_queue" {
         Effect    = "Allow"
         Principal = { Service = "sqs.amazonaws.com" }
         Action    = "sqs:SendMessage"
-        Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-dlq${local.workspace_suffix}"
+        Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-load-dlq${local.workspace_suffix}"
         Condition = {
           StringEquals = {
             "aws:SourceAccount" = "${data.aws_caller_identity.current.account_id}"
@@ -55,7 +55,7 @@ resource "aws_sqs_queue" "transform_dead_letter_queue" {
         Effect    = "Allow"
         Principal = { Service = "sqs.amazonaws.com" }
         Action    = "sqs:SendMessage"
-        Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-dlq${local.workspace_suffix}"
+        Resource  = "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${local.resource_prefix}-transform-dlq${local.workspace_suffix}"
         Condition = {
           StringEquals = {
             "aws:SourceAccount" = "${data.aws_caller_identity.current.account_id}"

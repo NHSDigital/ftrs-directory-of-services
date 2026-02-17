@@ -122,7 +122,7 @@ Failure modes: unsupported transformer, validation halt, DynamoDB upsert error, 
 
 ## 10. Security & Privacy
 
-Credentials sourced via Secrets Manager (`replica-rds-credentials`). No secret values logged (password redaction). Access is read-only to source DB. Data classification: healthcare service metadata – no patient identifiers. DMS events validated to prevent injection (table whitelist). JWT / CIS2 not directly handled (performed downstream). Ensure IAM least privilege for SQS, DynamoDB, Secrets Manager (SEC-012 alignment indirectly).
+Credentials sourced via Secrets Manager (`target-rds-credentials`). No secret values logged (password redaction). Access is read-only to source DB. Data classification: healthcare service metadata – no patient identifiers. DMS events validated to prevent injection (table whitelist). JWT / CIS2 not directly handled (performed downstream). Ensure IAM least privilege for SQS, DynamoDB, Secrets Manager (SEC-012 alignment indirectly).
 
 ## 11. Observability
 

@@ -12,10 +12,10 @@ from ftrs_common.utils.correlation_id import (
 from ftrs_common.utils.request_id import fetch_or_set_request_id, get_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from common.extract import (
+from common.sqs_sender import send_messages_to_queue
+from extractor.extract import (
     fetch_outdated_organisations,
 )
-from common.sqs_sender import send_messages_to_queue
 
 MAX_DAYS_PAST = 185
 ods_extractor_logger = Logger.get(service="ods_extractor")

@@ -35,7 +35,7 @@ class SecretManager:
         except ClientError as e:
             if e.response["Error"]["Code"] == "ResourceNotFoundException":
                 secrets_logger.log(
-                    OdsETLPipelineLogBase.ETL_UTILS_006,
+                    OdsETLPipelineLogBase.ETL_COMMON_011,
                     secret_name=secret_name,
                     error_message=str(e),
                 )
@@ -44,7 +44,7 @@ class SecretManager:
             raise
         except json.JSONDecodeError as json_err:
             secrets_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(json_err)
+                OdsETLPipelineLogBase.ETL_COMMON_012, error_message=str(json_err)
             )
             raise
 
@@ -65,14 +65,14 @@ class SecretManager:
         except KeyError as e:
             err_msg = f"Mock API key secret not found: {e}"
             secrets_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_006,
+                OdsETLPipelineLogBase.ETL_COMMON_011,
                 secret_name=secret_name,
                 error_message=err_msg,
             )
             raise KeyError(err_msg)
         except Exception as e:
             secrets_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_007,
+                OdsETLPipelineLogBase.ETL_COMMON_012,
                 error_message=f"Failed to retrieve mock API key: {e}",
             )
             raise
@@ -83,13 +83,13 @@ class SecretManager:
         env = os.environ.get("ENVIRONMENT")
 
         if env == "local":
-            secrets_logger.log(OdsETLPipelineLogBase.ETL_UTILS_005)
+            secrets_logger.log(OdsETLPipelineLogBase.ETL_COMMON_021)
             return os.environ.get(
                 "LOCAL_ODS_TERMINOLOGY_API_KEY", os.environ.get("LOCAL_API_KEY", "")
             )
 
         try:
-            secrets_logger.log(OdsETLPipelineLogBase.ETL_UTILS_010)
+            secrets_logger.log(OdsETLPipelineLogBase.ETL_COMMON_022)
             resource_prefix = cls.get_resource_prefix()
             secret_name = f"/{resource_prefix}/ods-terminology-api-key"
             return cls.get_secret_from_aws(secret_name)
@@ -98,6 +98,6 @@ class SecretManager:
             raise
         except Exception as e:
             secrets_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(e)
+                OdsETLPipelineLogBase.ETL_COMMON_012, error_message=str(e)
             )
             raise

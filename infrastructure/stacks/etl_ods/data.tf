@@ -81,6 +81,8 @@ data "aws_iam_policy_document" "sqs_access_policy" {
     resources = [
       aws_sqs_queue.load_queue.arn,
       aws_sqs_queue.transform_queue.arn,
+      aws_sqs_queue.load_dead_letter_queue.arn,
+      aws_sqs_queue.transform_dead_letter_queue.arn,
     ]
   }
 }
@@ -96,20 +98,6 @@ data "aws_iam_policy_document" "ssm_access_policy" {
       "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${local.project_prefix}-crud-apis${local.workspace_suffix}/endpoint"
     ]
   }
-}
-
-# TODO: FDOS-378 - This is overly permissive and should be resolved when we have control over stack deployment order.
-data "aws_iam_policy_document" "execute_api_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "execute-api:Invoke"
-    ]
-    resources = [
-      "arn:aws:execute-api:*:*:*/*/*/*/*"
-    ]
-  }
-
 }
 
 data "aws_iam_policy_document" "secretsmanager_jwt_credentials_access_policy" {
@@ -185,4 +173,16 @@ data "aws_security_group" "etl_ods_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
 
   name = "${local.resource_prefix}-lambda-sg"
+}
+
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
+}
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
+}
+
+data "aws_iam_role" "firehose_role" {
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
 }

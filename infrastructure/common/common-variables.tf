@@ -128,6 +128,18 @@ variable "rds_port" {
   type        = string
 }
 
+variable "udp_port" {
+  description = "The port for UDP traffic on port 53 (DNS)"
+  type        = number
+  default     = 53
+}
+
+variable "udp_ntp_port" {
+  description = "The port for UDP traffic on port 123 (NTP)"
+  type        = number
+  default     = 123
+}
+
 variable "release_tag" {
   description = "Semantic version tag (vMAJOR.MINOR.PATCH) for release builds"
   type        = string
@@ -201,4 +213,20 @@ variable "athena_stack_enabled" {
   description = "Enable or disable the Amazon athena stack"
   type        = bool
   default     = true
+}
+
+variable "firehose_stack" {
+  description = "Stack for firehose code - hyphenated"
+  type        = string
+  default     = "account-wide"
+}
+
+variable "firehose_name" {
+  description = "Name for firehose resources (without account prefix or stack name) - hyphenated"
+  type        = string
+}
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the Splunk subscription filter for Lambda logs"
+  type        = bool
 }

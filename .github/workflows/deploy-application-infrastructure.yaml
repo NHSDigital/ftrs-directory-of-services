@@ -43,7 +43,7 @@ on:
       stacks:
         description: "A list of the infrastructure stacks to deploy from the domain. If not supplied, no infrastructure will be deployed"
         required: false
-        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config']"
+        default: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config', 'athena']"
         type: string
       skip_manual_approval:
         description: "Whether to skip the manual approval step"

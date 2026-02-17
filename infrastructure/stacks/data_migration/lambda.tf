@@ -64,6 +64,10 @@ module "processor_lambda" {
 
   cloudwatch_logs_retention = var.processor_lambda_logs_retention
 
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
+
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
@@ -135,6 +139,10 @@ module "queue_populator_lambda" {
 
   cloudwatch_logs_retention = var.queue_populator_lambda_logs_retention
 
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
+
   depends_on = [aws_sqs_queue_policy.dms_event_queue_policy]
 }
 
@@ -174,6 +182,10 @@ module "rds_event_listener_lambda" {
 
   cloudwatch_logs_retention = var.rds_event_listener_lambda_logs_retention
   layers                    = [aws_lambda_layer_version.python_dependency_layer.arn, aws_lambda_layer_version.data_layer.arn]
+
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }
@@ -216,6 +228,10 @@ module "dms_db_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.dms_db_lambda_logs_retention
+
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 
   depends_on = [aws_sqs_queue.dms_event_queue]
 }
@@ -263,4 +279,8 @@ module "reference_data_lambda" {
   vpc_id         = data.aws_vpc.vpc.id
 
   cloudwatch_logs_retention = var.reference_data_lambda_logs_retention
+
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }

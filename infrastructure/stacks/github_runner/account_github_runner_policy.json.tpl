@@ -48,6 +48,17 @@
             }
         },
         {
+            "Sid": "AllowAccessAnalyzerServiceLinkedRoleCreation",
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": "access-analyzer.amazonaws.com"
+                }
+            }
+        },
+        {
             "Sid": "MonitoringFullAccess",
             "Effect": "Allow",
             "Action": [
@@ -261,10 +272,13 @@
             "Sid": "AllowInspector2ServiceLinkedRoleCreation",
             "Effect": "Allow",
             "Action": "iam:CreateServiceLinkedRole",
-            "Resource": "arn:aws:iam::*:role/aws-service-role/inspector2.amazonaws.com/AWSServiceRoleForAmazonInspector2",
+            "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                "iam:AWSServiceName": "inspector2.amazonaws.com"
+                "iam:AWSServiceName": [
+                    "agentless.inspector2.amazonaws.com",
+                    "inspector2.amazonaws.com"
+                ]
                 }
             }
         },
@@ -302,6 +316,52 @@
               "iam:PassedToService": "firehose.amazonaws.com"
             }
           }
+        },
+        {
+          "Sid": "AWSBackupFullAccess",
+          "Effect": "Allow",
+          "Action": [
+            "backup:ListBackupPlans",
+            "backup:CreateBackupPlan",
+            "backup:DeleteBackupPlan",
+            "backup:DescribeBackupPlan",
+            "backup:UpdateBackupPlan",
+            "backup:GetBackupPlan",
+            "backup:CreateReportPlan",
+            "backup:DeleteReportPlan",
+            "backup:DescribeReportPlan",
+            "backup:UpdateReportPlan",
+            "backup:ListReportPlans",
+            "backup:TagResource",
+            "backup:ListTags",
+            "backup:CreateFramework",
+            "backup:DeleteFramework",
+            "backup:DescribeFramework",
+            "backup:ListFrameworks",
+            "backup:CreateBackupVault",
+            "backup:DeleteBackupVault",
+            "backup:DescribeBackupVault",
+            "backup:ListBackupVaults",
+            "backup:PutBackupVaultAccessPolicy",
+            "backup:GetBackupVaultAccessPolicy",
+            "backup:CreateBackupSelection",
+            "backup:GetBackupSelection",
+            "backup:DeleteBackupSelection",
+            "backup:CreateRestoreTestingPlan",
+            "backup:DeleteRestoreTestingPlan",
+            "backup:GetRestoreTestingPlan",
+            "backup:ListRestoreTestingPlans",
+            "backup:UpdateRestoreTestingPlan"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "AWSBackupStorageAccess",
+          "Effect": "Allow",
+          "Action": [
+            "backup-storage:*"
+          ],
+          "Resource": "*"
         }
   ]
 }

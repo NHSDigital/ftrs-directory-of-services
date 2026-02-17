@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI, Request
@@ -13,11 +13,17 @@ from ftrs_common.api_middleware.response_logging_middleware import (
 )
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 
-from organisations.app.handler_organisation import (
-    app,
-    handler,
-    operation_outcome_exception_handler,
-)
+# Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
+with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
+    mock_ff_instance = MagicMock()
+    mock_ff_instance.is_enabled.return_value = True
+    mock_ff_class.return_value = mock_ff_instance
+
+    from organisations.app.handler_organisation import (
+        app,
+        handler,
+        operation_outcome_exception_handler,
+    )
 
 
 def test_lambda_handler_execution() -> None:
