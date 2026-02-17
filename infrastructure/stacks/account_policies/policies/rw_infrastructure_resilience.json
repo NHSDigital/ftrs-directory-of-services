@@ -2,6 +2,14 @@
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "AWSBackupFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "backup:*"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "AWSResilienceHubFullAccess",
             "Effect": "Allow",
             "Action": [

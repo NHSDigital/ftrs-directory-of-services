@@ -44,6 +44,6 @@ resource "aws_cloudwatch_log_subscription_filter" "cw_log_subscription_splunk" {
   name            = "${var.function_name}${local.workspace_suffix}-splunk-subscription"
   log_group_name  = module.lambda.lambda_cloudwatch_log_group_name
   filter_pattern  = "" # empty = all logs
-  destination_arn = data.aws_kinesis_firehose_delivery_stream.firehose_stream[0].arn
-  role_arn        = data.aws_iam_role.firehose_role[0].arn
+  destination_arn = var.firehose_arn
+  role_arn        = var.firehose_role_arn
 }
