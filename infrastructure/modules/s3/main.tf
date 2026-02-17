@@ -43,6 +43,7 @@ module "s3" {
 
 
 data "aws_iam_policy_document" "enforce_kms_truststore" {
+  count = var.enable_kms_encryption ? 1 : 0
   statement {
     sid    = "DenyUnencryptedUploads"
     effect = "Deny"
@@ -77,7 +78,7 @@ data "aws_iam_policy_document" "enforce_kms_truststore" {
 
 data "aws_iam_policy_document" "combined_policy" {
   source_policy_documents = compact([
-    var.enable_kms_encryption ? data.aws_iam_policy_document.enforce_kms_truststore.json : "",
+    var.enable_kms_encryption ? data.aws_iam_policy_document.enforce_kms_truststore[0].json : "",
     var.attach_policy ? var.policy : ""
   ])
 }
