@@ -115,26 +115,27 @@ jobs:
           path: ${{ steps.get-directories.outputs.build_directory }}
           if-no-files-found: error
 
-      - name: Get APIM Access Token
-        id: get-token
-        uses: ./.github/actions/authenticate-apim
-        with:
-          api_name: ${{ env.API_NAME }}
-          environment: ${{ inputs.environment }}
-          aws_region: ${{ vars.AWS_REGION }}
+      # TODO: Temporarily disabled - fix in https://nhsd-jira.digital.nhs.uk/browse/FTRS-3092
+      # - name: Get APIM Access Token
+      #   id: get-token
+      #   uses: ./.github/actions/authenticate-apim
+      #   with:
+      #     api_name: ${{ env.API_NAME }}
+      #     environment: ${{ inputs.environment }}
+      #     aws_region: ${{ vars.AWS_REGION }}
 
-      - name: Get APIM Docker Token
-        id: get-docker-token
-        uses: ./.github/actions/authenticate-apim-docker
-        env:
-          PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
-        with:
-          access_token: ${{ steps.get-token.outputs.access_token }}
-          api_name: ${{ env.API_NAME }}
+      # - name: Get APIM Docker Token
+      #   id: get-docker-token
+      #   uses: ./.github/actions/authenticate-apim-docker
+      #   env:
+      #     PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
+      #   with:
+      #     access_token: ${{ steps.get-token.outputs.access_token }}
+      #     api_name: ${{ env.API_NAME }}
 
-      - name: "Push image to ECR"
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: make publish
-        working-directory: ${{ steps.get-directories.outputs.working_directory }}
-        env:
-          DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
+      # - name: "Push image to ECR"
+      #   if: ${{ github.ref == 'refs/heads/main' }}
+      #   run: make publish
+      #   working-directory: ${{ steps.get-directories.outputs.working_directory }}
+      #   env:
+      #     DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}

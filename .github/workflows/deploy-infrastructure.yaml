@@ -66,7 +66,7 @@ on:
       toggle_stacks:
         description: "A list of the infrastructure stacks that consume feature toggle outputs"
         required: false
-        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config']"
+        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config', 'data_migration', 'athena']"
         type: string
     secrets:
       ACCOUNT_ID:

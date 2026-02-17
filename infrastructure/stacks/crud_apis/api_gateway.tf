@@ -1,10 +1,9 @@
 module "api_gateway" {
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2.git?ref=5d1548624b39145ead043794ae5762abb9aadb27"
 
-  name          = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
-  protocol_type = "HTTP"
-  # TODO: To be disabled after APIM, ETL and Dos Reader integration start using mTLS endpoint (SIA-647 & SIA-649 & TBC )
-  # disable_execute_api_endpoint = true
+  name                         = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
+  protocol_type                = "HTTP"
+  disable_execute_api_endpoint = true
 
   create_domain_name    = false
   create_domain_records = false
@@ -19,7 +18,23 @@ module "api_gateway" {
       }
     }
 
+    "POST /Organization" = {
+      integration = {
+        uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
     "ANY /Organization/{proxy+}" = {
+      integration = {
+        uri                    = module.organisation_api_lambda.lambda_function_arn
+        payload_format_version = var.api_gateway_payload_format_version
+        timeout_milliseconds   = var.api_gateway_integration_timeout
+      }
+    }
+
+    "GET /_status" = {
       integration = {
         uri                    = module.organisation_api_lambda.lambda_function_arn
         payload_format_version = var.api_gateway_payload_format_version

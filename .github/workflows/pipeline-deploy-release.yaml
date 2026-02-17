@@ -110,7 +110,7 @@ jobs:
       - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config', 'athena']"
       environment: ${{ inputs.environment }}
       workspace: default
       release_tag: ${{ inputs.release_tag }}
@@ -153,12 +153,16 @@ jobs:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ inputs.environment }} environment"
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
-          - tag: "ftrs-pipeline"
-            type: "api"
+          - tag: "integrated-search"
+            type: "apim"
+            api_name: "dos-search"
           - tag: "data-migration"
-            type: "data-migration"
+            type: "bdd"
+          - tag: "data-sourcing"
+            type: "bdd"
     needs:
       - deploy-application-infrastructure
     uses: ./.github/workflows/service-automation-test.yaml

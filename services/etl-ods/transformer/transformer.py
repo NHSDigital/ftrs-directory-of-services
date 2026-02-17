@@ -1,251 +1,220 @@
-import json
-import os
 import time
-from http import HTTPStatus
 
-import requests
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.logger import Logger
-from ftrs_common.utils.correlation_id import (
-    correlation_id_context,
-    current_correlation_id,
-)
-from ftrs_common.utils.request_id import (
-    current_request_id,
-    fetch_or_set_request_id,
-)
+from ftrs_common.utils.correlation_id import current_correlation_id
+from ftrs_common.utils.request_id import current_request_id
 from ftrs_data_layer.logbase import OdsETLPipelineLogBase
 
-from common.extract import (
-    fetch_organisation_uuid,
+from common.error_handling import (
+    handle_general_error,
+    handle_permanent_error,
+    handle_retryable_error,
+)
+from common.exceptions import PermanentProcessingError, RetryableProcessingError
+from common.message_utils import create_message_payload
+from common.sqs_processor import (
+    extract_record_metadata,
+    validate_required_fields,
+)
+from common.sqs_request_context import (
+    extract_correlation_id_from_sqs_records,
+    setup_request_context,
 )
 from common.sqs_sender import send_messages_to_queue
-
-from .transform import transform_to_payload
-
-
-class RateLimitExceededException(Exception):
-    def __init__(self, message: str = "Rate limit exceeded") -> None:
-        self.message = message
-        super().__init__(self.message)
-
+from transformer.transform import transform_to_payload
+from transformer.uuid_fetcher import fetch_organisation_uuid
 
 BATCH_SIZE = 10
 ods_transformer_logger = Logger.get(service="ods_transformer")
 
 
-def _process_organisation(organisation: dict) -> str | None:
-    ods_code = None
+def _send_batch_safely(batch: list[str], queue_suffix: str) -> None:
+    """
+    Send batch to queue with error handling to prevent loss of messages and ensure visibility of failures.
+    """
+    if not batch:
+        return
+
     try:
-        correlation_id = current_correlation_id.get()
-        request_id = current_request_id.get()
-
-        fhir_organisation = transform_to_payload(organisation)
-        ods_code = fhir_organisation.identifier[0].value
-
-        org_uuid = fetch_organisation_uuid(ods_code)
-        if org_uuid is None:
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-                ods_code=ods_code,
-                error_message="Organisation UUID not found in internal system.",
-            )
-            return None
-
-        fhir_organisation.id = org_uuid
-
-        return json.dumps(
-            {
-                "path": org_uuid,
-                "body": fhir_organisation.model_dump(mode="json"),
-                "correlation_id": correlation_id,
-                "request_id": request_id,
-            }
+        send_messages_to_queue(batch, queue_suffix=queue_suffix)
+    except Exception as err:
+        ods_transformer_logger.log(
+            OdsETLPipelineLogBase.ETL_COMMON_020,
+            error_message=f"Failed to send batch to {queue_suffix}: {str(err)}. Transformed messages lost.",
         )
-    except requests.exceptions.HTTPError as http_err:
-        if (
-            http_err.response is not None
-            and http_err.response.status_code == HTTPStatus.TOO_MANY_REQUESTS
-        ):
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-                ods_code=ods_code if ods_code else "unknown",
-                error_message=f"Rate limit exceeded: {str(http_err)}",
-            )
-            raise RateLimitExceededException()
-        else:
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-                ods_code=ods_code if ods_code else "unknown",
-                error_message=str(http_err),
-            )
-            return None
-    except Exception as e:
+
+
+def _transform_organisation(organisation: dict, message_id: str) -> str:
+    """
+    Transform organisation data to FHIR payload.
+
+    Returns:
+        str: JSON payload if successful
+
+    Raises:
+        Exception: For transformation or validation failures - handled by SQS handler
+    """
+    ods_code = "<unknown>"
+
+    # Transform to FHIR - if this fails, it's a bug in our transformation logic
+    try:
+        fhir_organisation = transform_to_payload(organisation)
+    except Exception as transform_error:
         ods_transformer_logger.log(
             OdsETLPipelineLogBase.ETL_TRANSFORMER_027,
-            ods_code=ods_code if ods_code else "unknown",
-            error_message=str(e),
+            ods_code=ods_code,
+            error_message=f"Transformation failed: {type(transform_error).__name__}: {str(transform_error)}",
+            exception_type=type(transform_error).__name__,
+            exception_details=str(transform_error)[:500],
+            troubleshooting_info=f"Transformation failed for ODS {ods_code} in message {message_id}. Review data structure and transformation logic.",
         )
-        return None
-
-
-def _handle_rate_limit_error(
-    message_id: str, receive_count: int, error: RateLimitExceededException
-) -> None:
-    """Handle rate limit exceeded errors with appropriate logging."""
-    max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
-    if receive_count >= max_receive_count:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_009,
+        raise PermanentProcessingError(
             message_id=message_id,
-            receive_count=receive_count,
-            error_message=f"Rate limit exceeded - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
-            exception=error,
+            status_code=400,
+            response_text=f"Transformation failed: {str(transform_error)}",
         )
-    else:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_009,
+
+    # Validate identifier exists - invalid FHIR = code bug, treat like 400
+    if not fhir_organisation.identifier:
+        raise PermanentProcessingError(
             message_id=message_id,
-            receive_count=receive_count,
-            error_message=f"Rate limit exceeded - message will be retried (attempt {receive_count}/{max_receive_count})",
+            status_code=400,
+            response_text="No ODS code identifier found in organization",
         )
 
+    ods_code = fhir_organisation.identifier[0].value
 
-def _handle_general_error(message_id: str, receive_count: int) -> None:
-    """Handle general processing errors with appropriate logging."""
-    max_receive_count = int(os.environ.get("MAX_RECEIVE_COUNT"))
-    if receive_count >= max_receive_count:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_005,
-            message_id=message_id,
-            error_message=f"Processing failed - final attempt, message will be sent to DLQ (attempt {receive_count}/{max_receive_count})",
-        )
-    else:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_005,
-            message_id=message_id,
-            error_message=f"Processing failed - message will be retried (attempt {receive_count}/{max_receive_count})",
-        )
+    # Fetch UUID for organisation (raises PermanentProcessingError for 404)
+    org_uuid = fetch_organisation_uuid(ods_code, message_id)
 
+    # Build payload
+    correlation_id = current_correlation_id.get()
+    request_id = current_request_id.get()
+    fhir_organisation.id = org_uuid
+    fhir_org = fhir_organisation.model_dump(mode="json")
+    payload = create_message_payload(
+        path=org_uuid,
+        body=fhir_org,
+        correlation_id=correlation_id,
+        request_id=request_id,
+    )
 
-def _process_single_record(
-    record: dict, transformed_batch: list, batch_item_failures: list
-) -> None:
-    """Process a single SQS record."""
-    message_id = record["messageId"]
-    receive_count = int(record["attributes"]["ApproximateReceiveCount"])
-
-    try:
-        # Parse the message body
-        body = json.loads(record["body"])
-        organisation = body.get("organisation")
-        correlation_id = body.get("correlation_id")
-        request_id = body.get("request_id")
-
-        if not organisation or not correlation_id or not request_id:
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_CONSUMER_006,
-                message_id=message_id,
-            )
-            batch_item_failures.append({"itemIdentifier": message_id})
-            return
-
-        # Set context for logging
-        with correlation_id_context(correlation_id):
-            current_request_id.set(request_id)
-            ods_transformer_logger.append_keys(
-                correlation_id=correlation_id, request_id=request_id
-            )
-
-            ods_transformer_logger.log(
-                OdsETLPipelineLogBase.ETL_EXTRACTOR_003,
-                message_id=message_id,
-                receive_count=receive_count,
-            )
-
-            # Process the organization using the exact same function
-            transformed_request = _process_organisation(organisation)
-            if transformed_request is not None:
-                transformed_batch.append(transformed_request)
-
-                # Send data in batches of BATCH_SIZE to final queue
-                if len(transformed_batch) == BATCH_SIZE:
-                    send_messages_to_queue(transformed_batch, queue_suffix="load-queue")
-                    transformed_batch.clear()
-
-                ods_transformer_logger.log(
-                    OdsETLPipelineLogBase.ETL_CONSUMER_004,
-                    message_id=message_id,
-                )
-
-    except RateLimitExceededException as rate_limit_error:
-        _handle_rate_limit_error(message_id, receive_count, rate_limit_error)
-        batch_item_failures.append({"itemIdentifier": message_id})
-    except Exception:
-        _handle_general_error(message_id, receive_count)
-        batch_item_failures.append({"itemIdentifier": message_id})
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_026,
+        ods_code=ods_code,
+    )
+    return payload
 
 
-def transformer_lambda_handler(event: dict, context: any) -> dict:
+def _process_record(record: dict) -> str:
     """
-    Lambda handler for processing individual organizations from SQS queue.
-    """
-    start_time = time.time()
+    Process a single SQS record.
 
+    Returns:
+        str: Transformed payload if successful
+
+    Raises:
+        PermanentProcessingError: Permanent failure - consumed immediately
+        RetryableProcessingError: Retryable failure - retries then DLQ
+        Exception: Processing error - retries then DLQ
+    """
+    metadata = extract_record_metadata(record)
+    message_id = metadata["message_id"]
+    body = metadata["body"]
+
+    validate_required_fields(
+        body,
+        ["organisation"],
+        message_id,
+        ods_transformer_logger,
+    )
+
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_EXTRACTOR_003,
+        message_id=message_id,
+    )
+
+    return _transform_organisation(body["organisation"], message_id)
+
+
+def process_transformation_message_with_batching(
+    event: dict, context: LambdaContext
+) -> dict:
+    """Process SQS event with request-scoped batching for safety and performance."""
     if not event:
         return {"batchItemFailures": []}
 
-    correlation_id = event.get("headers", {}).get("X-Correlation-ID")
-    request_id = fetch_or_set_request_id(
-        context_id=getattr(context, "aws_request_id", None) if context else None,
-        header_id=event.get("headers", {}).get("X-Request-ID"),
-    )
-
-    ods_transformer_logger.append_keys(
-        correlation_id=correlation_id, request_id=request_id
-    )
-
-    # Log Transformer start
-    ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_TRANSFORMER_START,
-        lambda_name="etl-ods-transformer",
-    )
-
-    batch_item_failures = []
     records = event.get("Records", [])
-    transformed_batch = []
-    successful_count = 0
-    failed_count = 0
+
+    correlation_id = extract_correlation_id_from_sqs_records(records)
+    setup_request_context(correlation_id, context, ods_transformer_logger)
+
+    start_time = time.time()
 
     ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_CONSUMER_002,
+        OdsETLPipelineLogBase.ETL_HANDLER_START,
+        handler_name="Transformer",
+    )
+
+    ods_transformer_logger.log(
+        OdsETLPipelineLogBase.ETL_TRANSFORMER_029,
         total_records=len(records),
     )
 
+    message_batch = []
+    batch_item_failures = []
+    successful_count = 0
+    failed_count = 0
+
+    def send_batch_if_full() -> None:
+        """Send batch when it reaches batch size."""
+        if len(message_batch) >= BATCH_SIZE:
+            _send_batch_safely(message_batch.copy(), "load-queue")
+            message_batch.clear()
+
     for record in records:
-        initial_failures = len(batch_item_failures)
-        _process_single_record(record, transformed_batch, batch_item_failures)
+        try:
+            payload = _process_record(record)
 
-        if len(batch_item_failures) > initial_failures:
-            failed_count += 1
-        else:
+            message_batch.append(payload)
             successful_count += 1
+            send_batch_if_full()
 
-    # Send any remaining transformed data to final queue
-    if transformed_batch:
-        send_messages_to_queue(transformed_batch, queue_suffix="load-queue")
+        except PermanentProcessingError as permanent_error:
+            message_id = record.get("messageId", "unknown")
+            handle_permanent_error(message_id, permanent_error, ods_transformer_logger)
+            failed_count += 1
+            # Permanent errors are consumed immediately (no retry, no DLQ)
 
-    # Log the number of messages being sent for retry
-    if batch_item_failures:
-        ods_transformer_logger.log(
-            OdsETLPipelineLogBase.ETL_CONSUMER_010,
-            retry_count=len(batch_item_failures),
-            total_records=len(records),
-        )
+        except RetryableProcessingError as retryable_error:
+            message_id = record.get("messageId", "unknown")
+            receive_count = int(
+                record.get("attributes", {}).get("ApproximateReceiveCount", "1")
+            )
+            handle_retryable_error(
+                message_id, receive_count, retryable_error, ods_transformer_logger
+            )
+            failed_count += 1
+            batch_item_failures.append({"itemIdentifier": message_id})
+
+        except Exception as e:
+            message_id = record.get("messageId", "unknown")
+            receive_count = int(
+                record.get("attributes", {}).get("ApproximateReceiveCount", "1")
+            )
+            handle_general_error(message_id, receive_count, e, ods_transformer_logger)
+            failed_count += 1
+            batch_item_failures.append({"itemIdentifier": message_id})
+
+    if message_batch:
+        _send_batch_safely(message_batch, "load-queue")
 
     # Log batch processing completion
     duration_ms = round((time.time() - start_time) * 1000, 2)
     ods_transformer_logger.log(
-        OdsETLPipelineLogBase.ETL_TRANSFORMER_BATCH_COMPLETE,
+        OdsETLPipelineLogBase.ETL_HANDLER_BATCH_COMPLETE,
+        handler_name="Transformer",
         lambda_name="etl-ods-transformer",
         duration_ms=duration_ms,
         total_records=len(records),
@@ -255,3 +224,6 @@ def transformer_lambda_handler(event: dict, context: any) -> dict:
     )
 
     return {"batchItemFailures": batch_item_failures}
+
+
+transformer_lambda_handler = process_transformation_message_with_batching

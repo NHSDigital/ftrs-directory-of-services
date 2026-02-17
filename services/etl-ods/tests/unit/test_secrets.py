@@ -1,68 +1,93 @@
-import os
-from unittest.mock import MagicMock, patch
-
 import pytest
 from botocore.exceptions import ClientError
+from pytest_mock import MockerFixture
 
-from common.ods_client import SecretManager
+from extractor.ods_client import SecretManager
 
 
-def test_get_resource_prefix() -> None:
+@pytest.fixture(scope="module")
+def standard_env_vars() -> dict[str, str]:
+    """File-scoped fixture for standard environment variables."""
+    return {
+        "PROJECT_NAME": "project-name",
+        "ENVIRONMENT": "dev",
+        "AWS_REGION": "eu-west-2",
+    }
+
+
+@pytest.fixture
+def dev_environment(
+    monkeypatch: pytest.MonkeyPatch, standard_env_vars: dict[str, str]
+) -> None:
+    """Set up standard dev environment variables."""
+    for key, value in standard_env_vars.items():
+        monkeypatch.setenv(key, value)
+
+
+@pytest.fixture
+def local_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Set up standard local environment variables."""
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    # Ensure these are not set
+    monkeypatch.delenv("PROJECT_NAME", raising=False)
+    monkeypatch.delenv("AWS_REGION", raising=False)
+    monkeypatch.delenv("LOCAL_ODS_TERMINOLOGY_API_KEY", raising=False)
+    monkeypatch.delenv("LOCAL_API_KEY", raising=False)
+
+
+def test_get_resource_prefix(dev_environment: None) -> None:
     """Test resource prefix functionality through SecretManager."""
-    with patch.dict(
-        os.environ,
-        {"PROJECT_NAME": "project-name", "ENVIRONMENT": "dev"},
-    ):
-        result = SecretManager.get_resource_prefix()
-        assert result == "project-name/dev"
+    result = SecretManager.get_resource_prefix()
+    assert result == "project-name/dev"
 
 
-@patch.dict(
-    os.environ,
-    {"ENVIRONMENT": "local", "LOCAL_ODS_TERMINOLOGY_API_KEY": "local-ods-key"},
-)
-def test_get_ods_terminology_api_key_local_environment() -> None:
+def test_get_ods_terminology_api_key_local_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test get_ods_terminology_api_key returns local key in local environment."""
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    monkeypatch.setenv("LOCAL_ODS_TERMINOLOGY_API_KEY", "local-ods-key")
+
     result = SecretManager.get_ods_terminology_api_key()
     assert result == "local-ods-key"
 
 
-@patch.dict(
-    os.environ,
-    {"ENVIRONMENT": "local", "LOCAL_API_KEY": "fallback-key"},
-)
-def test_get_ods_terminology_api_key_local_fallback() -> None:
+def test_get_ods_terminology_api_key_local_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test get_ods_terminology_api_key falls back to LOCAL_API_KEY."""
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    monkeypatch.setenv("LOCAL_API_KEY", "fallback-key")
+    monkeypatch.delenv("LOCAL_ODS_TERMINOLOGY_API_KEY", raising=False)
+
     result = SecretManager.get_ods_terminology_api_key()
     assert result == "fallback-key"
 
 
-@patch.dict(
-    os.environ,
-    {"ENVIRONMENT": "local"},
-    clear=True,
-)
-def test_get_ods_terminology_api_key_local_no_keys() -> None:
+def test_get_ods_terminology_api_key_local_no_keys(local_environment: None) -> None:
     """Test get_ods_terminology_api_key returns empty string when no local keys set."""
-    with patch.dict(os.environ, {"ENVIRONMENT": "local"}, clear=True):
-        result = SecretManager.get_ods_terminology_api_key()
-        assert result == ""
+    result = SecretManager.get_ods_terminology_api_key()
+    assert result == ""
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
+def test_get_ods_terminology_api_key_missing_required_env_vars(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test get_ods_terminology_api_key raises KeyError when required env vars missing."""
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.delenv("PROJECT_NAME", raising=False)
+    monkeypatch.delenv("AWS_REGION", raising=False)
+
+    with pytest.raises(KeyError):
+        SecretManager.get_ods_terminology_api_key()
+
+
 def test_get_ods_terminology_api_key_from_secrets_manager(
-    mock_boto_client: MagicMock,
+    dev_environment: None, mocker: MockerFixture
 ) -> None:
     """Test get_ods_terminology_api_key retrieves key from Secrets Manager."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": '{"api_key": "ods-terminology-key"}'
@@ -76,20 +101,12 @@ def test_get_ods_terminology_api_key_from_secrets_manager(
     assert result == "ods-terminology-key"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_client_error_logs(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test get_ods_terminology_api_key logs and raises ClientError when secret not found."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     error_response = {"Error": {"Code": "ResourceNotFoundException"}}
     mock_secretsmanager.get_secret_value.side_effect = ClientError(
@@ -108,20 +125,12 @@ def test_get_ods_terminology_api_key_client_error_logs(
         )
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_client_error_non_resource_not_found(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test get_ods_terminology_api_key raises ClientError without logging for non-ResourceNotFoundException."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     error_response = {"Error": {"Code": "AccessDeniedException"}}
     mock_secretsmanager.get_secret_value.side_effect = ClientError(
@@ -134,20 +143,12 @@ def test_get_ods_terminology_api_key_client_error_non_resource_not_found(
         assert "Error with secret:" not in caplog.text
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
 def test_get_ods_terminology_api_key_json_decode_error(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
-    """Test get_ods_terminology_api_key logs and raises JSONDecodeError."""
-    mock_secretsmanager = MagicMock()
+    """Test get_ods_terminology_api_key handles non-JSON secrets by returning raw string."""
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": "not-a-json-string"
@@ -155,29 +156,38 @@ def test_get_ods_terminology_api_key_json_decode_error(
 
     with caplog.at_level("WARNING"):
         result = SecretManager.get_ods_terminology_api_key()
-        # If implementation doesn't parse JSON, it should return the raw string
+        # Implementation should return the raw string when JSON parsing fails
         assert result == "not-a-json-string"
-        # Check if any warning was logged about JSON parsing
-        assert (
-            "Error decoding json with issue:" in caplog.text or len(caplog.records) >= 0
-        )
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "WORKSPACE": "test-workspace",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
+def test_get_ods_terminology_api_key_uses_aws_region(
+    dev_environment: None, mocker: MockerFixture
+) -> None:
+    """Test get_ods_terminology_api_key uses AWS_REGION environment variable."""
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
+    mock_boto_client.return_value = mock_secretsmanager
+    mock_secretsmanager.get_secret_value.return_value = {
+        "SecretString": '{"api_key": "test-key"}'
+    }
+
+    result = SecretManager.get_ods_terminology_api_key()
+
+    mock_boto_client.assert_called_once_with("secretsmanager", region_name="eu-west-2")
+    assert result == "test-key"
+
+
 def test_get_mock_api_key_from_secrets_with_workspace(
-    mock_boto_client: MagicMock,
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets retrieves mock key from Secrets Manager with workspace."""
-    mock_secretsmanager = MagicMock()
+    monkeypatch.setenv("PROJECT_NAME", "project-name")
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("WORKSPACE", "test-workspace")
+    monkeypatch.setenv("AWS_REGION", "eu-west-2")
+
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": '{"api_key": "mock-api-key"}'
@@ -191,21 +201,17 @@ def test_get_mock_api_key_from_secrets_with_workspace(
     assert result == "mock-api-key"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-    clear=True,
-)
-@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_without_workspace(
-    mock_boto_client: MagicMock,
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets retrieves mock key from Secrets Manager without workspace."""
-    mock_secretsmanager = MagicMock()
+    monkeypatch.setenv("PROJECT_NAME", "project-name")
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("AWS_REGION", "eu-west-2")
+    monkeypatch.delenv("WORKSPACE", raising=False)
+
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": '{"api_key": "mock-api-key-no-workspace"}'
@@ -219,20 +225,33 @@ def test_get_mock_api_key_from_secrets_without_workspace(
     assert result == "mock-api-key-no-workspace"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
+def test_get_mock_api_key_from_secrets_missing_project_name(
+    monkeypatch: pytest.MonkeyPatch, mocker: MockerFixture
+) -> None:
+    """Test get_mock_api_key_from_secrets with missing PROJECT_NAME uses invalid path."""
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("AWS_REGION", "eu-west-2")
+    monkeypatch.delenv("PROJECT_NAME", raising=False)
+
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
+    mock_boto_client.return_value = mock_secretsmanager
+
+    error_response = {"Error": {"Code": "ResourceNotFoundException"}}
+    mock_secretsmanager.get_secret_value.side_effect = ClientError(
+        error_response, "GetSecretValue"
+    )
+
+    with pytest.raises(KeyError, match="Mock API key secret not found"):
+        SecretManager.get_mock_api_key_from_secrets()
+
+
 def test_get_mock_api_key_from_secrets_client_error_resource_not_found(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets logs and raises KeyError when secret not found."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     error_response = {"Error": {"Code": "ResourceNotFoundException"}}
     mock_secretsmanager.get_secret_value.side_effect = ClientError(
@@ -245,20 +264,12 @@ def test_get_mock_api_key_from_secrets_client_error_resource_not_found(
         assert "Mock API key secret not found" in caplog.text
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_other_exception(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets logs and re-raises non-ClientError exceptions."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.side_effect = Exception("Network error")
 
@@ -268,20 +279,12 @@ def test_get_mock_api_key_from_secrets_other_exception(
         assert "Failed to retrieve mock API key" in caplog.text
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-)
-@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_plain_string(
-    mock_boto_client: MagicMock,
+    dev_environment: None, mocker: MockerFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets handles plain string secrets (non-JSON)."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": "plain-string-key"
@@ -292,28 +295,18 @@ def test_get_mock_api_key_from_secrets_plain_string(
     assert result == "plain-string-key"
 
 
-@patch.dict(
-    os.environ,
-    {
-        "PROJECT_NAME": "project-name",
-        "ENVIRONMENT": "dev",
-        "AWS_REGION": "eu-west-2",
-    },
-    clear=True,
-)
-@patch("common.secrets.boto3.client")
 def test_get_mock_api_key_from_secrets_json_decode_error(
-    mock_boto_client: MagicMock, caplog: pytest.LogCaptureFixture
+    dev_environment: None, mocker: MockerFixture, caplog: pytest.LogCaptureFixture
 ) -> None:
     """Test get_mock_api_key_from_secrets handles invalid JSON by returning raw string."""
-    mock_secretsmanager = MagicMock()
+    mock_secretsmanager = mocker.MagicMock()
+    mock_boto_client = mocker.patch("common.secrets.boto3.client")
     mock_boto_client.return_value = mock_secretsmanager
     mock_secretsmanager.get_secret_value.return_value = {
         "SecretString": "{ invalid json structure"
     }
 
     with caplog.at_level("WARNING"):
-        # If implementation doesn't parse JSON, it should return the raw string
         result = SecretManager.get_mock_api_key_from_secrets()
 
         # Implementation should return the raw string when JSON parsing fails
@@ -321,8 +314,7 @@ def test_get_mock_api_key_from_secrets_json_decode_error(
 
         # Check if any JSON error was logged
         json_error_logged = any(
-            "json" in record.getMessage().lower() or "ETL_UTILS_007" in str(record)
+            "json" in record.getMessage().lower() or "ETL_COMMON_012" in str(record)
             for record in caplog.records
         )
-        # If no JSON parsing attempted, no error would be logged
-        assert json_error_logged or len(caplog.records) >= 0
+        assert json_error_logged or result == "{ invalid json structure"
