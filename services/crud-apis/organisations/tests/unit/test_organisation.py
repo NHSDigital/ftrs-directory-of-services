@@ -941,7 +941,7 @@ def test_update_organisation_empty_identifier_object() -> None:
 
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -975,7 +975,7 @@ def test_update_organisation_identifier_missing_value() -> None:
 
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -1009,7 +1009,7 @@ def test_update_organisation_identifier_empty_value() -> None:
 
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -1043,7 +1043,7 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
 
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    
+
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
