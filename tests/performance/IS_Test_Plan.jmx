@@ -33,13 +33,13 @@
           </elementProp>
           <elementProp name="Apim_Workspace" elementType="Argument">
             <stringProp name="Argument.name">Apim_Workspace</stringProp>
-            <stringProp name="Argument.value">dos-search-${__groovy(props.get(&quot;workspace&quot;))}</stringProp>
+            <stringProp name="Argument.value">dos-search${__groovy(props.get(&quot;workspace&quot;))}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
       </Arguments>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -50,7 +50,7 @@
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables" enabled="true">
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -430,12 +430,12 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller" enabled="true">
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller">
             <boolProp name="TransactionController.parent">true</boolProp>
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
               <stringProp name="HTTPSampler.path">/${Apim_Workspace}/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -536,7 +536,7 @@ if (iteration == 1) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -556,7 +556,7 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
+          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
             <collectionProp name="load_profile">
               <collectionProp name="656718665">
                 <stringProp name="start">0</stringProp>
@@ -621,7 +621,7 @@ if (iteration == 1) {
             </collectionProp>
           </kg.apc.jmeter.timers.VariableThroughputTimer>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -632,7 +632,7 @@ if (iteration == 1) {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -646,7 +646,7 @@ if (iteration == 1) {
             <hashTree/>
           </hashTree>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Stress Mode" enabled="true">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Stress Mode">
           <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isStressMode&apos;) || props.get(&apos;isStressMode&apos;) == &apos;false&apos;)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
