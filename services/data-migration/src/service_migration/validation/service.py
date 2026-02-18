@@ -338,7 +338,9 @@ class GPPracticeValidator(ServiceValidator):
             categories.append("control_characters")
 
         # Catch-all for characters not in SAFE_NAME_PATTERN
-        if not categories and re.search(r"[^a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]", text):
+        if not categories and re.search(
+            r"[^a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]", text
+        ):
             categories.append("disallowed_characters")
 
         return ", ".join(categories) if categories else "unknown"
