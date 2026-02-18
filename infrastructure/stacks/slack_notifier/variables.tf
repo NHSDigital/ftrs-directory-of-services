@@ -51,12 +51,6 @@ variable "enable_vpc_endpoints" {
   default     = true
 }
 
-variable "https_port" {
-  description = "HTTPS port for security group rules"
-  type        = number
-  default     = 443
-}
-
 variable "slack_egress_cidr" {
   description = "CIDR block for Slack webhook egress traffic"
   type        = string

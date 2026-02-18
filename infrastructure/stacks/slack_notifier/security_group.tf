@@ -31,6 +31,7 @@ resource "aws_vpc_security_group_egress_rule" "to_slack" {
 }
 
 resource "aws_security_group" "vpce_sg" {
+  # checkov:skip=CKV2_AWS_5: Security group is attached to VPC endpoint in vpc_endpoints.tf
   count       = local.vpc_endpoints_enabled
   name        = "${local.resource_prefix}-vpce-sg"
   description = "Security group for VPC endpoints"
