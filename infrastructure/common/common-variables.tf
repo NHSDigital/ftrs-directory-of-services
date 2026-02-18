@@ -214,3 +214,25 @@ variable "athena_stack_enabled" {
   type        = bool
   default     = true
 }
+
+variable "version_history_enabled" {
+  description = "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
+  type        = bool
+  default     = true
+}
+
+variable "firehose_stack" {
+  description = "Stack for firehose code - hyphenated"
+  type        = string
+  default     = "account-wide"
+}
+
+variable "firehose_name" {
+  description = "Name for firehose resources (without account prefix or stack name) - hyphenated"
+  type        = string
+}
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the Splunk subscription filter for Lambda logs"
+  type        = bool
+}

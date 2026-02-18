@@ -14,7 +14,7 @@ model {
   }
 
   // Relationship: External consumer queries DoS Search
-  healthcareConsumer -> apim.dosReadProxy "Searches for GP endpoints by ODS code"
+  healthcareConsumer -> apim.dosSearchProxy "Searches for GP endpoints by ODS code"
 }
 
 views {
@@ -36,28 +36,30 @@ views {
       - DoS Search (query by ODS code)
     '
 
+    include apim
+
     // ---- EXTRACT: Fetch from ODS ----
     odsTerminologyApi -> ftrs.etlOds.odsExtractor "1. Fetch organisations modified on date (FHIR Bundle)"
     ftrs.etlOds.odsExtractor -> ftrs.etlOds.transformQueue "2. Queue raw organisation data for transformation"
 
     // ---- TRANSFORM: Process and lookup UUID ----
     ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "3. SQS event triggers transformer (batch size 10)"
-    ftrs.etlOds.odsTransformer -> apim.dosReadProxy "4. GET /Organization?identifier=odsOrganisationCode|{code} to lookup UUID"
-    apim.dosReadProxy -> ftrs.apiGateway "5. Proxy GET request to internal API"
+    ftrs.etlOds.odsTransformer -> apim.dosIngestProxy "4. GET /Organization?identifier=odsCode to lookup UUID"
+    apim.dosIngestProxy -> ftrs.apiGateway "5. Proxy GET request to internal API"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi.getOrgByOdsCode "6. Route to CRUD API query endpoint"
     ftrs.crudApis.organisationApi.getOrgByOdsCode -> ftrs.db.orgTable "7. Query DynamoDB by ODS code index"
     ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "8. Queue transformed FHIR payloads for loading"
 
     // ---- LOAD: Send to CRUD APIs ----
     ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "9. SQS event triggers loader (batch size 10)"
-    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "10. PUT /Organization/{uuid} with FHIR body"
-    apim.dosWriteProxy -> ftrs.apiGateway "11. Authenticate via JWT and proxy PUT request"
+    ftrs.etlOds.odsLoader -> apim.dosIngestProxy "10. PUT /Organization/{uuid} with FHIR body"
+    apim.dosIngestProxy -> ftrs.apiGateway "11. Authenticate via JWT and proxy PUT request"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "12. Route to CRUD API update endpoint"
     ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "13. Persist updated organisation to DynamoDB"
 
     // ---- DoS Search: External consumer queries ----
-    healthcareConsumer -> apim.dosReadProxy "14. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
-    apim.dosReadProxy -> ftrs.apiGateway "15. Authenticate and proxy search request"
+    healthcareConsumer -> apim.dosSearchProxy "14. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
+    apim.dosSearchProxy -> ftrs.apiGateway "15. Authenticate and proxy search request"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "16. Route to DoS Search Lambda"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "17. Invoke FTRS service layer"
     ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "18. Query organisation by ODS code"
@@ -85,18 +87,19 @@ views {
 
     // Transform stage
     ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "Trigger transformer to process batched messages"
+    ftrs.etlOds.odsTransformer -> apim.dosIngestProxy "Lookup UUID via Ingest Proxy"
     ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "Queue transformed FHIR payloads"
 
     // Load stage (write path)
     ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "Trigger loader to send to CRUD APIs"
-    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "Send PUT request with JWT authentication"
-    apim.dosWriteProxy -> ftrs.apiGateway "Proxy authenticated request to internal gateway"
+    ftrs.etlOds.odsLoader -> apim.dosIngestProxy "Send PUT request with JWT authentication"
+    apim.dosIngestProxy -> ftrs.apiGateway "Proxy authenticated request to internal gateway"
     ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "Route to organisation update handler"
     ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "Persist organisation changes to DynamoDB"
 
     // Read path (DoS Search)
-    healthcareConsumer -> apim.dosReadProxy "Search for GP endpoints by ODS code"
-    apim.dosReadProxy -> ftrs.apiGateway "Proxy authenticated search request"
+    healthcareConsumer -> apim.dosSearchProxy "Search for GP endpoints by ODS code"
+    apim.dosSearchProxy -> ftrs.apiGateway "Proxy authenticated search request"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "Route to DoS Search endpoint"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "Process FHIR search request"
     ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "Query organisation and endpoints from DynamoDB"
@@ -111,11 +114,11 @@ views {
   dynamic view writePathFlow {
     title "Write Path: Data Ingestion Flow"
     description '
-      How data enters the system via the write path (ETL → APIM → CRUD APIs → DynamoDB):
+      How data enters the system via the write path (ETL → DoS Ingest Proxy → CRUD APIs → DynamoDB):
 
       1. Extractor fetches from ODS API, queues raw data
-      2. Transformer processes data, looks up UUID, queues FHIR payloads
-      3. Loader sends PUT requests via APIM to CRUD APIs
+      2. Transformer looks up UUID via DoS Ingest Proxy, queues FHIR payloads
+      3. Loader sends PUT requests via DoS Ingest Proxy to CRUD APIs
     '
 
     // Extract stage
@@ -124,14 +127,15 @@ views {
 
     // Transform stage
     ftrs.etlOds.transformQueue -> ftrs.etlOds.odsTransformer "3. SQS triggers transformer Lambda"
-    ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "4. Transform to FHIR format, queue for loading"
+    ftrs.etlOds.odsTransformer -> apim.dosIngestProxy "4. GET /Organization to lookup UUID"
+    ftrs.etlOds.odsTransformer -> ftrs.etlOds.loadQueue "5. Transform to FHIR format, queue for loading"
 
     // Load stage
-    ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "5. SQS triggers loader Lambda"
-    ftrs.etlOds.odsLoader -> apim.dosWriteProxy "6. PUT /Organization/{uuid} with authenticated JWT"
-    apim.dosWriteProxy -> ftrs.apiGateway "7. Validate JWT and route to internal API"
-    ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "8. Invoke update handler with FHIR payload"
-    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "9. Update organisation record in DynamoDB"
+    ftrs.etlOds.loadQueue -> ftrs.etlOds.odsLoader "6. SQS triggers loader Lambda"
+    ftrs.etlOds.odsLoader -> apim.dosIngestProxy "7. PUT /Organization/{uuid} with authenticated JWT"
+    apim.dosIngestProxy -> ftrs.apiGateway "8. Validate JWT and route to internal API"
+    ftrs.apiGateway -> ftrs.crudApis.organisationApi.updateOrg "9. Invoke update handler with FHIR payload"
+    ftrs.crudApis.organisationApi.updateOrg -> ftrs.db.orgTable "10. Update organisation record in DynamoDB"
 
     autoLayout TopBottom
   }
@@ -144,11 +148,11 @@ views {
     title "Read Path: DoS Search Query Flow"
     description '
       How external consumers query the system via the read path:
-      Consumer -> APIM -> API Gateway -> DoS Search -> DynamoDB -> FHIR Bundle response
+      Consumer -> DoS Search Proxy -> API Gateway -> DoS Search -> DynamoDB -> FHIR Bundle response
     '
 
-    healthcareConsumer -> apim.dosReadProxy "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
-    apim.dosReadProxy -> ftrs.apiGateway "2. Validate API key and proxy to internal gateway"
+    healthcareConsumer -> apim.dosSearchProxy "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}&_revinclude=Endpoint:organization"
+    apim.dosSearchProxy -> ftrs.apiGateway "2. Validate API key and proxy to internal gateway"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "3. Route to DoS Search Lambda handler"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "4. Call FTRS service to retrieve organisation"
     ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "5. Query DynamoDB by ODS code index"

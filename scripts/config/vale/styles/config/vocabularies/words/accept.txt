@@ -130,3 +130,12 @@ JMeter
 env
 (?i)boolean
 (?i)ui
+account_id
+enable_vault_protection
+source_account_id
+source_account_name
+vault_lock_type
+backup_copy_vault_account_id
+backup_copy_vault_arn
+dynamodb
+project_name

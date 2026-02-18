@@ -16,7 +16,8 @@ views {
     include *
     include ftrs.apiGateway
     include ftrs.db.orgTable
-    include apim.dosReadProxy
+    include apim
+    include apim.dosSearchProxy
 
     autoLayout TopBottom 70 77
   }
@@ -27,7 +28,7 @@ views {
       Sequence showing the data flow through DoS Search service
     '
 
-    apim.dosReadProxy -> ftrs.apiGateway "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}"
+    apim.dosSearchProxy -> ftrs.apiGateway "1. GET /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|{code}"
     ftrs.apiGateway -> ftrs.dosSearch.getOrganizationByOds "2. Route to Lambda"
     ftrs.dosSearch.getOrganizationByOds -> ftrs.dosSearch.ftrsService "3. Call service"
     ftrs.dosSearch.ftrsService -> ftrs.db.orgTable "4. Query by ODS code"

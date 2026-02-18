@@ -10,7 +10,8 @@ views {
     include ftrs.db
 
     include ftrs
-    include apim.dosReadProxy
+    include apim
+    include apim.dosSearchProxy
     include ftrs.db.orgTable
     include ftrs.db.locationTable
     include ftrs.db.healthCareServiceTable

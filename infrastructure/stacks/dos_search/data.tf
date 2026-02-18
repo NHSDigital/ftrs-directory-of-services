@@ -104,3 +104,11 @@ data "aws_wafv2_web_acl" "regional" {
   name  = "${local.project_prefix}-${var.account_wide_stack_name}-${var.regional_waf_name}"
   scope = "REGIONAL"
 }
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
+}
+
+data "aws_iam_role" "firehose_role" {
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
+}
