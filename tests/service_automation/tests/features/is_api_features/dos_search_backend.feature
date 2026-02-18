@@ -72,25 +72,13 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter(s): '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
-      | params                                                             | missing_param |
-      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | _revinclude   |
-      | _revinclude=Endpoint:organization                                  | identifier    |
-
-
-  Scenario: I search for GP Endpoint with 2 missing parameters
-    When I request data from the "dos-search" endpoint "Organization" with query params ""
-    Then I receive a status code "400" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "2" issues
-    And the OperationOutcome has issues all with severity "error"
-    And the OperationOutcome has issues all with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
-    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
-
+      | params                                                             | missing_param           |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | _revinclude             |
+      | _revinclude=Endpoint:organization                                  | identifier              |
+      |                                                                    | identifier, _revinclude |
 
   # New health check scenario for GET /_status
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
