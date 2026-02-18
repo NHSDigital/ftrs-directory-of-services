@@ -12,7 +12,7 @@ appconfig_flags:
       workspace: true
       dev: true
       test: true
-      int: false
+      int: true
       ref: false
       prod: false
 
