@@ -14,8 +14,10 @@ from functions.slack_formatter import build_slack_message
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+
 class AlarmProcessingError(Exception):
     """Raised when alarm processing fails."""
+
     pass
 
 
