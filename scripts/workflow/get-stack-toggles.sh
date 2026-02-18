@@ -35,6 +35,8 @@ SLACK_NOTIFIER_ENABLED=${SLACK_NOTIFIER_ENABLED:-true}
 
 
 echo "ui_enabled=$UI_ENABLED" >> "$GITHUB_OUTPUT"
+echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> "$GITHUB_OUTPUT"
+echo "open_search_enabled=$OPEN_SEARCH_ENABLED" >> "$GITHUB_OUTPUT"
 echo "athena_enabled=$ATHENA_ENABLED" >> "$GITHUB_OUTPUT"
 echo "slack_notifier_enabled=$SLACK_NOTIFIER_ENABLED" >> "$GITHUB_OUTPUT"
 

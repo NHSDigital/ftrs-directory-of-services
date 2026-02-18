@@ -267,11 +267,6 @@ resource "aws_sns_topic_subscription" "alarms_to_slack" {
 enable_slack_notifications = true
 ```
 
-**Example - dos_search stack:**
-
-- Enabled: `dev`, `int`
-- Disabled: `ref`, `prod`
-
 **Prerequisites:**
 
 - `slack_notifier` stack deployed (already done centrally)

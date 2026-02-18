@@ -97,6 +97,9 @@ jobs:
           - name: "python"
             build_type: "package"
             build_enabled: true
+          - name: "slack-notifier"
+            build_type: "service"
+            build_enabled: ${{ needs.check-stack-toggles.outputs.slack_notifier_enabled == 'true' }}
           - name: "crud-apis"
             build_type: "service"
             build_enabled: true
@@ -115,9 +118,6 @@ jobs:
           - name: "dos-ui"
             build_type: "service"
             build_enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled == 'true' }}
-          - name: "slack-notifier"
-            build_type: "service"
-            build_enabled: true
     uses: ./.github/workflows/build-project.yaml
     with:
       name: ${{ matrix.name }}
