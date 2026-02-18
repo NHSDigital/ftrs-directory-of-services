@@ -147,15 +147,13 @@ def test_reject_nested_encoding(
     assert_invalid_name(validator, nested_encoding, "publicname_suspicious_encoding")
 
 
-# Security Tests - Special Symbols
+# Security Tests - Special Symbols (characters NOT in the allowed pattern)
 @pytest.mark.parametrize(
     "input_name",
     [
-        "Smith @ Medical Centre",
         "Practice #1",
         "Surgery 100%",
         "Clinic*Star",
-        "Health+Plus",
         'The "Best" Surgery',
         "Valid Name<script>",
         "O&#39;Brien&#39; OR 1=1",
@@ -164,28 +162,49 @@ def test_reject_nested_encoding(
 def test_reject_special_symbols(
     validator: GPPracticeValidator, input_name: str
 ) -> None:
-    """Test that special symbols are rejected."""
+    """Test that disallowed special symbols are rejected."""
     assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
 
 
-# Ampersand Rules Tests
+# Allowed Special Characters Tests (characters in the allowed pattern)
 @pytest.mark.parametrize(
-    "input_name,should_pass",
+    "input_name,expected",
     [
-        ("Smith & Jones", True),
-        ("Smith& Jones", False),
-        ("Smith &Jones", False),
-        ("Smith&Jones", False),
+        # Hyphen
+        ("Smith-Jones Medical Centre", "Smith-Jones Medical Centre"),
+        # Forward slash
+        ("Smith/Jones Practice", "Smith/Jones Practice"),
+        # At symbol
+        ("Smith @ Medical Centre", "Smith @ Medical Centre"),
+        # Plus sign
+        ("Health+Plus", "Health+Plus"),
+        # Colon
+        ("Practice: Dr Smith", "Practice: Dr Smith"),
+        # Apostrophe
+        ("St Mary's Surgery", "St Mary's Surgery"),
+        # Period
+        ("Dr. Smith Practice", "Dr. Smith Practice"),
+        # Comma
+        ("Smith, Jones & Associates", "Smith, Jones & Associates"),
+        # Parentheses
+        ("Practice (Main Branch)", "Practice (Main Branch)"),
+        # Ampersand
+        ("Smith & Jones", "Smith & Jones"),
+        ("Smith& Jones", "Smith& Jones"),
+        ("Smith &Jones", "Smith &Jones"),
+        ("Smith&Jones", "Smith&Jones"),
+        # Multiple special characters combined
+        (
+            "Dr. Smith's Practice: Health+Plus (Main)",
+            "Dr. Smith's Practice: Health+Plus (Main)",
+        ),
     ],
 )
-def test_ampersand_spacing_rules(
-    validator: GPPracticeValidator, input_name: str, should_pass: bool
+def test_allow_special_characters(
+    validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that ampersand must be surrounded by spaces."""
-    if should_pass:
-        assert_valid_name(validator, input_name, input_name)
-    else:
-        assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
+    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) &"""
+    assert_valid_name(validator, input_name, expected)
 
 
 # Whitespace Tests

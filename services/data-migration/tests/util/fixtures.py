@@ -112,7 +112,7 @@ def mock_legacy_service() -> Generator[Service, None, None]:
         email="firstname.lastname@nhs.net",
         web="http://example.com",
         createdby="test_user",
-        createdtime=datetime.fromisoformat("2023-01-01T00:00:00"),
+        created=datetime.fromisoformat("2023-01-01T00:00:00"),
         modifiedby="test_user",
         modifiedtime=datetime.fromisoformat("2023-01-02T00:00:00"),
         lasttemplatename=None,
@@ -476,7 +476,7 @@ def base_organisation() -> Organisation:
         ],
         endpoints=[],
         createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        createdTime=datetime(2023, 1, 1),
+        created=datetime(2023, 1, 1),
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 2, 1),
     )
@@ -502,7 +502,7 @@ def base_location() -> Location:
         ),
         primaryAddress=True,
         createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        createdTime=datetime(2023, 1, 1),
+        created=datetime(2023, 1, 1),
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 1, 1),
     )
@@ -529,7 +529,7 @@ def base_healthcare_service() -> HealthcareService:
         symptomGroupSymptomDiscriminators=[],
         dispositions=[],
         createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        createdTime=datetime(2023, 1, 1),
+        created=datetime(2023, 1, 1),
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 1, 1),
     )
@@ -552,7 +552,7 @@ def base_endpoint() -> Endpoint:
         order=1,
         isCompressionEnabled=False,
         createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        createdTime=datetime(2023, 1, 1),
+        created=datetime(2023, 1, 1),
         lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
         lastUpdated=datetime(2023, 1, 1),
     )
