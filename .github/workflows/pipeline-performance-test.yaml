@@ -258,7 +258,7 @@ jobs:
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
           aws-region: ${{ vars.AWS_REGION }}
           environment: ${{ inputs.environment }}
-          apim-env: ${{ steps.derive-endpoint.outputs.apim-env }}
+          apim-env: ${{ steps.derive-endpoint.outputs.apim_env }}
           endpoint-type: ${{ inputs.endpoint_type }}
           test-type: ${{ inputs.test_type }}
           endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
