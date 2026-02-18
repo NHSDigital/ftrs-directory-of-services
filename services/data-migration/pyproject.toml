@@ -81,5 +81,6 @@ packages = [
     { include = "reference_data_load", from = "src" },
     { include = "service_migration", from = "src" },
     { include = "queue_populator", from = "src" },
+    { include = "version_history", from = "src" },
     { include = "cli", from = "src" },
 ]

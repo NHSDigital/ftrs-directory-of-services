@@ -198,7 +198,10 @@ To add a new stack toggle:
 2. Define environment-specific values (true/false for each environment)
 3. Run `./scripts/workflow/generate-stack-toggles.sh` to regenerate the tfvars file. Verify the tfvars file is as you expect it to be
 4. Implement the toggle in your stack following the Stack Toggle Implementation pattern above
-5. Test in lower environments before enabling in production using the CI/CD pipeline
+5. Update the `toggle_stacks` list in workflow files that download AppConfig artifacts:
+   - `.github/workflows/deploy-infrastructure.yaml` (default parameter)
+   - Add your stack name to the list: `"['read_only_viewer', 'opensearch', 'ui', 'app_config', 'athena', 'database', 'your_stack']"`
+6. Test in lower environments before enabling in production using the CI/CD pipeline
 
 ### API Gateway Toggles
 
@@ -460,12 +463,12 @@ Feature toggles should not live forever. Once a feature is fully rolled out and 
 
 ### Anti-Patterns to Avoid
 
-❌ **Don't** create toggles for every small change  
-❌ **Don't** use toggles as a substitute for proper testing  
-❌ **Don't** leave toggles enabled in production without monitoring  
-❌ **Don't** create complex toggle dependencies  
-❌ **Don't** use toggles for configuration values (use environment variables instead)  
-❌ **Don't** forget to remove toggles after feature stabilization  
+❌ **Don't** create toggles for every small change
+❌ **Don't** use toggles as a substitute for proper testing
+❌ **Don't** leave toggles enabled in production without monitoring
+❌ **Don't** create complex toggle dependencies
+❌ **Don't** use toggles for configuration values (use environment variables instead)
+❌ **Don't** forget to remove toggles after feature stabilization
 
 ## Environment Configuration
 
