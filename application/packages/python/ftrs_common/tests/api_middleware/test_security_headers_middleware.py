@@ -30,7 +30,7 @@ async def test_middleware_adds_strict_transport_security_header() -> None:
 
     response = await middleware.dispatch(request, DummyCallNext())
 
-    assert response.status_code == 200
+    assert str(response.status_code) == "200"
     assert "strict-transport-security" in response.headers
     assert (
         response.headers["strict-transport-security"]
@@ -52,7 +52,7 @@ async def test_middleware_adds_x_content_type_options_header() -> None:
 
     response = await middleware.dispatch(request, DummyCallNext())
 
-    assert response.status_code == 200
+    assert str(response.status_code) == "200"
     assert "x-content-type-options" in response.headers
     assert response.headers["x-content-type-options"] == "nosniff"
 
@@ -71,7 +71,7 @@ async def test_middleware_adds_x_frame_options_header() -> None:
 
     response = await middleware.dispatch(request, DummyCallNext())
 
-    assert response.status_code == 200
+    assert str(response.status_code) == "200"
     assert "x-frame-options" in response.headers
     assert response.headers["x-frame-options"] == "DENY"
 
@@ -90,7 +90,7 @@ async def test_middleware_adds_cache_control_header() -> None:
 
     response = await middleware.dispatch(request, DummyCallNext())
 
-    assert response.status_code == 200
+    assert str(response.status_code) == "200"
     assert "cache-control" in response.headers
     assert response.headers["cache-control"] == "no-store"
 
@@ -109,7 +109,7 @@ async def test_middleware_adds_all_security_headers() -> None:
 
     response = await middleware.dispatch(request, DummyCallNext())
 
-    assert response.status_code == 200
+    assert str(response.status_code) == "200"
     for header_name, header_value in SECURITY_HEADERS.items():
         assert response.headers[header_name.lower()] == header_value
 
