@@ -76,6 +76,51 @@ ftrs-aws-local reset --env dev
 ftrs-aws-local reset --env dev --workspace my-workspace
 ```
 
+## Create or reset specific tables using --entity-type
+
+You can use the `--entity-type` flag to work with specific tables instead of all tables.
+
+Available entity types:
+
+- `organisation`
+- `healthcare-service`
+- `location`
+- `triage-code`
+- `data-migration-state`
+- `version-history`
+
+### Create only the version-history table locally
+
+```bash
+ftrs-aws-local reset \
+    --init \
+    --env local \
+    --endpoint-url http://localhost:8000 \
+    --entity-type version-history
+```
+
+### Create multiple specific tables
+
+```bash
+ftrs-aws-local reset \
+    --init \
+    --env local \
+    --endpoint-url http://localhost:8000 \
+    --entity-type organisation \
+    --entity-type location \
+    --entity-type version-history
+```
+
+### Clear only specific tables (without deleting them)
+
+```bash
+ftrs-aws-local reset \
+    --env local \
+    --endpoint-url http://localhost:8000 \
+    --entity-type organisation \
+    --entity-type healthcare-service
+```
+
 ## To load the local data clone
 
 To load the local data clone, you will need to have the Postgres database running and the data dump file available.
