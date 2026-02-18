@@ -22,6 +22,10 @@ data "aws_security_group" "vpce_rds_security_group" {
   name = "${local.account_prefix}-current-dos-rds-vpc-endpoint-sg"
 }
 
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
+}
+
 data "aws_subnets" "private_subnets" {
   filter {
     name   = "vpc-id"
@@ -74,7 +78,7 @@ data "aws_iam_policy_document" "secrets_access_policy" {
       "secretsmanager:GetSecretValue"
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.replica_rds_credentials}-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${local.account_id}:secret:/${var.project}/${var.environment}/${var.target_rds_credentials}-*"
     ]
   }
 
@@ -291,4 +295,12 @@ data "aws_security_group" "processor_lambda_security_group" {
 data "aws_security_group" "rds_connector_security_group" {
   count = var.athena_stack_enabled && local.is_primary_environment ? 1 : 0
   name  = "${local.account_prefix}-athena-rds-connector-sg"
+}
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
+}
+
+data "aws_iam_role" "firehose_role" {
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
 }

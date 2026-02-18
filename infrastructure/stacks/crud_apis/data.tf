@@ -70,7 +70,8 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
       "dynamodb:Scan",
-      "dynamodb:Query"
+      "dynamodb:Query",
+      "dynamodb:DescribeTable"
     ]
     resources = flatten([
       for table in local.dynamodb_tables : [
@@ -101,8 +102,24 @@ data "aws_iam_policy" "appconfig_access_policy" {
   name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
 }
 
+data "aws_prefix_list" "s3" {
+  name = "com.amazonaws.${var.aws_region}.s3"
+}
+
 data "aws_security_group" "crud_apis_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
 
   name = "${local.resource_prefix}-lambda-sg"
+}
+
+data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
+  name = "${local.project_prefix}-${var.firehose_stack}-${var.firehose_name}"
+}
+
+data "aws_iam_role" "firehose_role" {
+  name = "${local.account_prefix}-${var.firehose_name}-cw-role"
+}
+
+data "aws_security_group" "vpce_interface_security_group" {
+  name = "${local.account_prefix}-vpce-interface-sg"
 }

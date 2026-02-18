@@ -157,14 +157,14 @@ variable "build_splunk_subscription" {
   default     = false
 }
 
-variable "firehose_name" {
-  description = "Name of the Kinesis Firehose delivery stream for Splunk"
+variable "firehose_arn" {
+  description = "ARN of the Kinesis Firehose delivery stream for Splunk"
   type        = string
   default     = ""
 }
 
-variable "firehose_role_name" {
-  description = "Name of the IAM role used by Kinesis Firehose"
+variable "firehose_role_arn" {
+  description = "ARN of the IAM role used by Kinesis Firehose"
   type        = string
   default     = ""
 }

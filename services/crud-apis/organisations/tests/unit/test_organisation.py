@@ -66,7 +66,7 @@ def get_organisation() -> dict:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "createdTime": "2023-10-01T00:00:00Z",
+        "created": "2023-10-01T00:00:00Z",
         "lastUpdatedBy": {
             "type": "user",
             "value": "INGRESS_API_ID",
@@ -89,7 +89,7 @@ def get_organisation() -> dict:
                     "value": "INGRESS_API_ID",
                     "display": "FtRS Ingress API",
                 },
-                "createdTime": "2023-10-01T00:00:00Z",
+                "created": "2023-10-01T00:00:00Z",
                 "lastUpdatedBy": {
                     "type": "user",
                     "value": "INGRESS_API_ID",
@@ -137,6 +137,20 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
         Organisation(**get_organisation())
     ]
     return service_mock
+
+
+def test_status_table_active(mock_organisation_service: MockerFixture) -> None:
+    mock_organisation_service.check_if_table_active.return_value = True
+
+    response = client.get("/_status")
+    assert response.status_code == HTTPStatus.OK
+
+
+def test_status_table_inactive(mock_organisation_service: MockerFixture) -> None:
+    mock_organisation_service.check_if_table_active.return_value = False
+
+    response = client.get("/_status")
+    assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 def test_get_organisation_by_id_success() -> None:

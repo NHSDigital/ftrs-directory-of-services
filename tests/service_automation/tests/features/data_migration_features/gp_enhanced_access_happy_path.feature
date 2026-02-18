@@ -67,7 +67,7 @@ Feature: Data Migration
         "category": "GP Services",
         "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "ageEligibilityCriteria": null,
-        "createdTime": "2025-10-07T08:38:57.679754Z",
+        "created": "2025-10-07T08:38:57.679754Z",
         "dispositions": [],
         "identifier_oldDoS_uid": "2000094797",
         "location": null,

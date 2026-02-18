@@ -17,4 +17,6 @@ module "dynamodb_table" {
   server_side_encryption_enabled = true
 
   global_secondary_indexes = var.global_secondary_indexes
+
+  tags = var.tags
 }

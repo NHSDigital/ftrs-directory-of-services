@@ -398,79 +398,62 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Processing message id: {message_id} from ODS ETL queue.",
     )
-    ETL_EXTRACTOR_007 = LogReference(
-        level=WARNING, message="Organisation not found in database."
-    )
-    ETL_EXTRACTOR_012 = LogReference(
-        level=WARNING, message="ODS code extraction failed: {e}."
-    )
-    ETL_EXTRACTOR_013 = LogReference(
-        level=WARNING,
-        message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
-    )
-    ETL_EXTRACTOR_014 = LogReference(
-        level=INFO,
-        message="Trying to send {number} messages to sqs queue.",
-    )
-    ETL_EXTRACTOR_015 = LogReference(
-        level=WARNING,
-        message="Failed to send {failed} messages in batch.",
-    )
-    ETL_EXTRACTOR_016 = LogReference(
-        level=WARNING,
-        message="Message {id}: {message} - {code}.",
-    )
-    ETL_EXTRACTOR_017 = LogReference(
-        level=INFO,
-        message="Succeeded to send {successful} messages in batch.",
-    )
-    ETL_EXTRACTOR_018 = LogReference(
-        level=WARNING,
-        message="Error sending data to queue with error: {error_message}.",
-    )
     ETL_EXTRACTOR_020 = LogReference(
         level=INFO,
         message="No organisations found for the given date: {date}.",
     )
     ETL_EXTRACTOR_021 = LogReference(
         level=WARNING,
-        message="Invalid environment variable value '{invalid_value}' provided, using default value.",
+        message="Invalid environment variable {env_var} value '{invalid_value}' provided, using default value {default_value}.",
     )
     ETL_EXTRACTOR_022 = LogReference(
-        level=WARNING,
+        level=ERROR,
         message="Error fetching data: {error_message}.",
     )
     ETL_EXTRACTOR_023 = LogReference(
-        level=WARNING,
+        level=ERROR,
         message="Unexpected error: {error_message}.",
     )
-    ETL_TRANSFORMER_START = LogReference(
+    ETL_HANDLER_BATCH_COMPLETE = LogReference(
         level=INFO,
-        message="ETL ODS Transformer Lambda started.",
-    )
-    ETL_TRANSFORMER_BATCH_COMPLETE = LogReference(
-        level=INFO,
-        message="ETL ODS Transformer Lambda batch processing completed.",
+        message="ETL ODS {handler_name} Lambda batch processing completed.",
     )
     ETL_TRANSFORMER_026 = LogReference(
         level=INFO,
-        message="Successfully transformed data for ods_code: {ods_code}.",
+        message="Successfully transformed organisation with ods_code: {ods_code}.",
     )
     ETL_TRANSFORMER_027 = LogReference(
         level=WARNING,
-        message="Error processing organisation with ods_code {ods_code}: {error_message}",
+        message="Error processing organisation with ods_code {ods_code}: {error_message}.",
     )
-    ETL_EXTRACTOR_028 = LogReference(
+    ETL_TRANSFORMER_028 = LogReference(
+        level=INFO,
+        message="Received event for ODS ETL transformer lambda.",
+    )
+    ETL_TRANSFORMER_029 = LogReference(
+        level=INFO,
+        message="Processing {total_records} record(s) in transformer.",
+    )
+
+    ETL_TRANSFORMER_031 = LogReference(
         level=INFO,
         message="Fetching organisation uuid for ods code {ods_code}.",
+    )
+    ETL_TRANSFORMER_032 = LogReference(
+        level=WARNING,
+        message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
+    )
+    ETL_TRANSFORMER_033 = LogReference(
+        level=INFO,
+        message="Organisation not found in database for ods code {ods_code}.",
+    )
+    ETL_TRANSFORMER_034 = LogReference(
+        level=WARNING,
+        message="ODS code validation failed: {e}.",
     )
     ETL_EXTRACTOR_029 = LogReference(
         level=WARNING,
         message="Error processing date with code: {status_code} and message: {error_message}.",
-    )
-    ETL_EXTRACTOR_030 = LogReference(
-        level=WARNING,
-        message="Fetching organisation uuid for ods code {ods_code} failed, resource type {type} returned.",
     )
     ETL_EXTRACTOR_034 = LogReference(
         level=INFO, message="Processing page {page_num} for date {date}."
@@ -479,101 +462,109 @@ class OdsETLPipelineLogBase(LogBase):
         level=INFO,
         message="Page {page_num} returned {page_total} organisations. Cumulative total: {cumulative_total}.",
     )
-    ETL_CONSUMER_START = LogReference(
-        level=INFO,
-        message="ETL ODS Consumer Lambda started.",
-    )
-    ETL_CONSUMER_BATCH_COMPLETE = LogReference(
-        level=INFO,
-        message="ETL ODS Consumer Lambda batch processing completed.",
-    )
-    ETL_CONSUMER_001 = LogReference(
-        level=INFO,
-        message="Received event for ODS ETL consumer lambda.",
-    )
-    ETL_CONSUMER_002 = LogReference(
-        level=INFO,
-        message="Records received: {total_records}.",
-    )
-    ETL_CONSUMER_003 = LogReference(
-        level=INFO,
-        message="Processing message id: {message_id} of {total_records} from ODS ETL queue.",
-    )
-    ETL_CONSUMER_004 = LogReference(
-        level=INFO,
-        message="Message id: {message_id} processed successfully.",
-    )
-    ETL_CONSUMER_005 = LogReference(
+    ETL_EXTRACTOR_036 = LogReference(
         level=ERROR,
-        message="Failed to process message id: {message_id}.",
-    )
-    ETL_CONSUMER_006 = LogReference(
-        level=WARNING,
-        message="Message id: {message_id} is missing 'path' or 'body' fields.",
+        message="Mock testing scenarios cannot be enabled in environment '{env}'.",
     )
     ETL_CONSUMER_007 = LogReference(
         level=INFO,
-        message="Successfully sent request to API. Response status code: {status_code}.",
+        message="Sent PUT request for Organisation {organization_id}. Status code: {status_code}.",
     )
-    ETL_CONSUMER_008 = LogReference(
+    ETL_COMMON_001 = LogReference(
+        level=ERROR,
+        message="Rate limit exceeded for message id: {message_id}. Attempt {receive_count}/{max_receive_count}. {error_message}",
+    )
+    ETL_COMMON_002 = LogReference(
+        level=ERROR,
+        message="Processing failed for message id: {message_id}. Attempt {receive_count}/{max_receive_count}. {error_message}",
+    )
+    ETL_COMMON_003 = LogReference(
+        level=INFO,
+        message="Processing message id: {message_id} of {total_records} from ODS ETL queue.",
+    )
+    ETL_COMMON_004 = LogReference(
+        level=INFO,
+        message="Message id: {message_id} processed.",
+    )
+    ETL_COMMON_005 = LogReference(
+        level=INFO,
+        message="Received event for ODS ETL lambda.",
+    )
+    ETL_COMMON_006 = LogReference(
+        level=INFO,
+        message="Records received: {total_records}.",
+    )
+    ETL_COMMON_007 = LogReference(
+        level=WARNING,
+        message="Message id: {message_id} is missing required fields.",
+    )
+    ETL_COMMON_008 = LogReference(
         level=ERROR,
         message="Bad request returned for message id: {message_id}. Not re-processing.",
     )
-    ETL_CONSUMER_009 = LogReference(
+    ETL_COMMON_009 = LogReference(
         level=ERROR,
-        message="Request failed for message id: {message_id}.",
+        message="Request failed for message id: {message_id}. Status: {status_code}. {error_message}",
     )
-    ETL_CONSUMER_010 = LogReference(
+    ETL_COMMON_010 = LogReference(
         level=ERROR,
         message="Returning {retry_count} messages to queue due to failure out of {total_records} records.",
     )
-    ETL_UTILS_001 = LogReference(
-        level=INFO,
-        message="Running in local environment, using LOCAL_CRUD_API_URL environment variable.",
-    )
-    ETL_UTILS_002 = LogReference(
-        level=INFO,
-        message="Fetching base CRUD API URL from parameter store: {parameter_path}.",
-    )
-    ETL_UTILS_003 = LogReference(
-        level=WARNING,
-        message="HTTP error occurred: {http_err} - Status Code: {status_code}.",
-    )
-    ETL_UTILS_004 = LogReference(
-        level=WARNING,
-        message="Request to {method} {url} failed: {error_message}.",
-    )
-    ETL_UTILS_005 = LogReference(
-        level=INFO,
-        message="Running in local environment, using LOCAL api key environment variable.",
-    )
-    ETL_UTILS_006 = LogReference(
+    ETL_COMMON_011 = LogReference(
         level=ERROR,
         message="Error with secret: {secret_name} with message {error_message}.",
     )
-    ETL_UTILS_007 = LogReference(
+    ETL_COMMON_012 = LogReference(
         level=ERROR,
         message="Error decoding json with issue: {error_message}.",
     )
-    ETL_UTILS_008 = LogReference(
-        level=INFO,
-        message="Running in against automated tests, using api key for mock from secret manager.",
+    ETL_COMMON_013 = LogReference(
+        level=WARNING,
+        message="HTTP error occurred: {http_err} - Status Code: {status_code}.",
     )
-    ETL_UTILS_009 = LogReference(
-        level=INFO,
-        message="Running in against automated tests, sending request to mock API Gateway with x-api-key header",
+    ETL_COMMON_014 = LogReference(
+        level=WARNING,
+        message="Request to {method} {url} failed: {error_message}.",
     )
-    ETL_UTILS_010 = LogReference(
+    ETL_COMMON_015 = LogReference(
+        level=WARNING,
+        message="Error when requesting queue url with queue name: {queue_name} with error: {error_message}.",
+    )
+    ETL_COMMON_016 = LogReference(
+        level=INFO,
+        message="Sending {number} messages to sqs queue (batch {batch_range}, {remaining} remaining).",
+    )
+    ETL_COMMON_017 = LogReference(
+        level=WARNING,
+        message="Failed to send {failed} messages in batch {batch_range}.",
+    )
+    ETL_COMMON_018 = LogReference(
+        level=WARNING,
+        message="Message {id}: {message} - {code}.",
+    )
+    ETL_COMMON_019 = LogReference(
+        level=INFO,
+        message="Successfully sent {successful} messages in batch {batch_range} ({remaining} remaining).",
+    )
+    ETL_COMMON_020 = LogReference(
+        level=WARNING,
+        message="Error sending data to queue with error: {error_message}.",
+    )
+    ETL_COMMON_021 = LogReference(
+        level=INFO,
+        message="Running in local environment, using LOCAL api key environment variable.",
+    )
+    ETL_COMMON_022 = LogReference(
         level=INFO,
         message="Receiving API key for ODS Terminology API",
     )
-    ETL_UTILS_011 = LogReference(
-        level=INFO,
-        message="Attempting to use mock ODS api in unauthorized environment: {env}. Mock can only be used in dev and test",
+    ETL_COMMON_023 = LogReference(
+        level=WARNING,
+        message="Sending message {message_id} to DLQ ({queue_suffix}-dlq) due to unrecoverable error: {error_type}.",
     )
-    ETL_UTILS_012 = LogReference(
-        level=ERROR,
-        message="Unable to get ODS path with message: {error_message}.",
+    ETL_HANDLER_START = LogReference(
+        level=INFO,
+        message="ETL ODS {handler_name} Lambda started.",
     )
 
 

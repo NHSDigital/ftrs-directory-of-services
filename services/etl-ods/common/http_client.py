@@ -92,14 +92,14 @@ def make_request(
 
     except requests.exceptions.HTTPError as http_err:
         http_client_logger.log(
-            OdsETLPipelineLogBase.ETL_UTILS_003,
+            OdsETLPipelineLogBase.ETL_COMMON_013,
             http_err=http_err,
             status_code=getattr(http_err.response, "status_code", None),
         )
         raise
     except requests.exceptions.RequestException as e:
         http_client_logger.log(
-            OdsETLPipelineLogBase.ETL_UTILS_004,
+            OdsETLPipelineLogBase.ETL_COMMON_014,
             method=method,
             url=url,
             error_message=str(e),
@@ -110,7 +110,7 @@ def make_request(
             response_data = response.json()
         except json.JSONDecodeError as json_err:
             http_client_logger.log(
-                OdsETLPipelineLogBase.ETL_UTILS_007, error_message=str(json_err)
+                OdsETLPipelineLogBase.ETL_COMMON_012, error_message=str(json_err)
             )
             raise
         else:

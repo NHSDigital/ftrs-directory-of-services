@@ -233,12 +233,16 @@ jobs:
     name: "Run ${{ matrix.tag }} service automation tests on ${{ needs.metadata.outputs.environment }} environment"
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
-          - tag: "ftrs-pipeline"
-            type: "api"
+          - tag: "integrated-search"
+            type: "apim"
+            api_name: "dos-search"
           - tag: "data-migration"
-            type: "data-migration"
+            type: "bdd"
+          - tag: "data-sourcing"
+            type: "bdd"
     needs:
       - metadata
       - tag-release
@@ -267,7 +271,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger downstream cleardown pipeline
-        uses: peter-evans/repository-dispatch@5fc4efd1a4797ddb68ffd0714a238564e4cc0e6f # v4
+        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
         with:
           repository: ${{ github.repository }}
           event-type: release-build-cleardown

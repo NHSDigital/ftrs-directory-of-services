@@ -1,18 +1,13 @@
-from http import HTTPStatus
-
 import pytest
 from ftrs_data_layer.domain.enums import OrganisationTypeCode
 from pytest_mock import MockerFixture
-from requests import HTTPError
 
-from common.extract import (
+from extractor.extract import (
     _build_ods_query_params,
     _extract_next_page_url,
     _extract_organizations_from_bundle,
     _get_page_limit,
-    fetch_organisation_uuid,
     fetch_outdated_organisations,
-    validate_ods_code,
 )
 
 
@@ -52,7 +47,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     }
 
     make_request_mock = mocker.patch(
-        "common.extract.ods_client.make_request", return_value=mock_bundle
+        "extractor.extract.ods_client.make_request", return_value=mock_bundle
     )
 
     date = "2025-10-15"
@@ -79,7 +74,7 @@ def test_fetch_outdated_organisations_empty_results(
 ) -> None:
     """Test fetching organizations when no results found."""
     mocker.patch(
-        "common.extract.ods_client.make_request",
+        "extractor.extract.ods_client.make_request",
         return_value={
             "resourceType": "Bundle",
             "type": "searchset",
@@ -136,7 +131,7 @@ def test_fetch_outdated_organisations_with_pagination(mocker: MockerFixture) -> 
     EXPECTED_CALL_COUNT = 2
 
     make_request_mock = mocker.patch(
-        "common.extract.ods_client.make_request",
+        "extractor.extract.ods_client.make_request",
         side_effect=[first_page, second_page],
     )
 
@@ -165,155 +160,6 @@ def test_build_ods_query_params_includes_gp_practice_role_codes() -> None:
         OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value,
     ) in params
     assert ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value) in params
-
-
-def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
-    """Test fetching organisation UUID from APIM."""
-    mocker.patch(
-        "common.extract.get_base_apim_api_url",
-        return_value="http://apim-proxy",
-    )
-
-    mock_response = {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "status_code": 200,
-        "entry": [
-            {"resource": {"resourceType": "Organization", "id": "BUNDLE_ORG_ID"}}
-        ],
-    }
-    make_request_mock = mocker.patch(
-        "common.extract.make_request", return_value=mock_response
-    )
-
-    result_bundle = fetch_organisation_uuid("XYZ999")
-
-    assert result_bundle == "BUNDLE_ORG_ID"
-    make_request_mock.assert_called_once_with(
-        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
-        method="GET",
-        jwt_required=True,
-    )
-
-
-def test_fetch_organisation_uuid_logs_and_raises_on_not_found(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-) -> None:
-    mocker.patch(
-        "common.extract.get_base_apim_api_url",
-        return_value="http://apim-proxy",
-    )
-
-    class MockResponse:
-        status_code = HTTPStatus.NOT_FOUND
-
-    def raise_http_error_not_found(*args: object, **kwargs: object) -> None:
-        http_err = HTTPError()
-        http_err.response = MockResponse()
-        raise http_err
-
-    mocker.patch("common.extract.make_request", side_effect=raise_http_error_not_found)
-
-    with caplog.at_level("WARNING"):
-        with pytest.raises(ValueError) as excinfo:
-            fetch_organisation_uuid("ABC123")
-        assert str(excinfo.value) == "Organisation not found in database."
-
-    assert "Organisation not found in database" in caplog.text
-
-
-def test_fetch_organisation_uuid_logs_and_raises_on_bad_request(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-) -> None:
-    mocker.patch(
-        "common.extract.get_base_apim_api_url",
-        return_value="http://apim-proxy",
-    )
-
-    class MockResponse:
-        response = "Error"
-        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-
-    def raise_http_error_not_found(*args: object, **kwargs: object) -> Exception:
-        http_err = HTTPError()
-        http_err.response = MockResponse()
-        raise http_err
-
-    mocker.patch("common.extract.make_request", side_effect=raise_http_error_not_found)
-    with caplog.at_level("ERROR"):
-        with pytest.raises(HTTPError) as excinfo:
-            fetch_organisation_uuid("ABC123")
-        assert isinstance(excinfo.value, HTTPError)
-
-
-def test_fetch_organisation_uuid_invalid_resource_returned(
-    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test fetch_organisation_uuid handles invalid resource type."""
-    mocker.patch(
-        "common.extract.get_base_apim_api_url",
-        return_value="http://apim-proxy",
-    )
-    mocker.patch(
-        "common.extract.make_request",
-        return_value={
-            "resourceType": "Not Bundle",
-            "status_code": 200,
-        },
-    )
-
-    with caplog.at_level("WARNING"):
-        with pytest.raises(ValueError) as excinfo:
-            fetch_organisation_uuid("XYZ999")
-        assert (
-            "Fetching organisation uuid for ods code XYZ999 failed, resource type Not Bundle returned"
-            in caplog.text
-        )
-        assert "Organisation not found in database" in str(excinfo.value)
-
-
-def test_fetch_organisation_uuid_no_organisation_returned(
-    mocker: MockerFixture,
-) -> None:
-    """Test fetch_organisation_uuid returns None when no Organization found in Bundle."""
-    mocker.patch(
-        "common.extract.get_base_apim_api_url",
-        return_value="http://apim-proxy",
-    )
-    mocker.patch(
-        "common.extract.make_request",
-        return_value={
-            "resourceType": "Bundle",
-            "status_code": 200,
-            "entry": [{"resource": {"resourceType": "ABC", "id": "BUNDLE_ORG_ID"}}],
-        },
-    )
-
-    result = fetch_organisation_uuid("XYZ999")
-    assert result is None
-
-
-@pytest.mark.parametrize(
-    "ods_code,should_pass",
-    [
-        ("ABC12", True),
-        ("ABC123", True),
-        ("ABC123456789", True),
-        ("12345", True),
-        ("", False),  # Empty string
-        ("ABC1234567890", False),  # Too long
-        ("AB-123", False),  # Invalid characters
-        (123456, False),  # Not a string
-    ],
-)
-def test_validate_ods_code(ods_code: str, should_pass: bool) -> None:
-    """Test ODS code validation with various inputs."""
-    if should_pass:
-        validate_ods_code(ods_code)  # Should not raise
-    else:
-        with pytest.raises(ValueError) as excinfo:
-            validate_ods_code(ods_code)
-        assert "must match" in str(excinfo.value)
 
 
 def test__extract_organizations_from_bundle_with_missing_resource() -> None:
@@ -365,7 +211,7 @@ def test_get_page_limit(
     else:
         mocker.patch.dict("os.environ", {"ODS_API_PAGE_LIMIT": env_value})
 
-    mock_logger = mocker.patch("common.extract.ods_extractor_logger.log")
+    mock_logger = mocker.patch("extractor.extract.ods_extractor_logger.log")
 
     result = _get_page_limit()
 
@@ -378,6 +224,7 @@ def test_get_page_limit(
 
 
 def test_extract_next_page_url_success() -> None:
+    """Test _extract_next_page_url extracts next page URL."""
     bundle = {
         "resourceType": "Bundle",
         "link": [
@@ -392,6 +239,7 @@ def test_extract_next_page_url_success() -> None:
 
 
 def test_extract_next_page_url_no_next_link() -> None:
+    """Test _extract_next_page_url returns None when no next link."""
     bundle = {
         "resourceType": "Bundle",
         "link": [
@@ -405,6 +253,7 @@ def test_extract_next_page_url_no_next_link() -> None:
 
 
 def test_extract_next_page_url_non_bundle() -> None:
+    """Test _extract_next_page_url returns None for non-Bundle."""
     non_bundle = {"resourceType": "Organization", "id": "123"}
 
     result = _extract_next_page_url(non_bundle)
@@ -413,6 +262,7 @@ def test_extract_next_page_url_non_bundle() -> None:
 
 
 def test_extract_next_page_url_no_links() -> None:
+    """Test _extract_next_page_url returns None when no links."""
     bundle = {"resourceType": "Bundle"}
 
     result = _extract_next_page_url(bundle)
