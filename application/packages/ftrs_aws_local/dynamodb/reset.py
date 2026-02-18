@@ -4,8 +4,13 @@ from typing import Annotated, List
 import boto3
 from ftrs_common.logger import Logger
 from ftrs_data_layer.client import get_dynamodb_client
-from ftrs_data_layer.domain import HealthcareService, Location, Organisation
+from ftrs_data_layer.domain import (
+    HealthcareService,
+    Location,
+    Organisation,
+)
 from ftrs_data_layer.domain.triage_code import TriageCode
+from ftrs_data_layer.domain.version_history import VersionHistory
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from ftrs_data_layer.repository.dynamodb import (
     AttributeLevelRepository,
@@ -25,6 +30,7 @@ class ClearableEntityTypes(StrEnum):
     location = "location"
     triage_code = "triage-code"
     state = "data-migration-state"
+    version_history = "version-history"
 
 
 class RepositoryTypes(StrEnum):
@@ -38,6 +44,7 @@ DEFAULT_CLEARABLE_ENTITY_TYPES = [
     ClearableEntityTypes.location,
     ClearableEntityTypes.triage_code,
     ClearableEntityTypes.state,
+    ClearableEntityTypes.version_history,
 ]
 
 
@@ -54,6 +61,8 @@ def get_entity_cls(entity_type: ClearableEntityTypes) -> ModelType:
             return Location
         case ClearableEntityTypes.triage_code:
             return TriageCode
+        case ClearableEntityTypes.version_history:
+            return VersionHistory
         # case ClearableEntityTypes.state:
         # return DataMigrationState
         case _:
@@ -156,28 +165,81 @@ def reset(
         abort=True,
     )
 
+    client = get_dynamodb_client(endpoint_url)
+
     for entity_name in entity_type:
-        entity_cls = get_entity_cls(entity_name)
         table_name = get_table_name(entity_name, env.value, workspace)
+        entity_config = get_entity_config(entity_name)
 
-        repository = AttributeLevelRepository(
-            table_name=table_name,
-            model_cls=entity_cls,
-            endpoint_url=endpoint_url,
-        )
-
-        count = 0
-        for item in track(
-            repository.iter_records(max_results=None),
-            description=f"Deleting items from {entity_name}",
-            transient=True,
+        # For tables with composite keys or without model classes,
+        # use direct DynamoDB client operations
+        if entity_name in (
+            ClearableEntityTypes.state,
+            ClearableEntityTypes.version_history,
         ):
-            repository.delete(item.id)
-            count += 1
+            count = clear_table_without_model(
+                client, table_name, entity_config, entity_name
+            )
+        else:
+            entity_cls = get_entity_cls(entity_name)
+            repository = AttributeLevelRepository(
+                table_name=table_name,
+                model_cls=entity_cls,
+                endpoint_url=endpoint_url,
+            )
+
+            count = 0
+            for item in track(
+                repository.iter_records(max_results=None),
+                description=f"Deleting items from {entity_name}",
+                transient=True,
+            ):
+                repository.delete(item.id)
+                count += 1
 
         reset_logger.log(
             DataMigrationLogBase.ETL_RESET_006, count=count, table_name=table_name
         )
+
+
+def clear_table_without_model(
+    client: boto3.client,
+    table_name: str,
+    entity_config: dict,
+    entity_name: ClearableEntityTypes,
+) -> int:
+    """Clear tables that don't have model classes using direct DynamoDB operations."""
+    # Extract key attribute names from key schema
+    hash_key = None
+    range_key = None
+    for key in entity_config["key_schema"]:
+        if key["KeyType"] == "HASH":
+            hash_key = key["AttributeName"]
+        elif key["KeyType"] == "RANGE":
+            range_key = key["AttributeName"]
+
+    # Scan table and delete items
+    paginator = client.get_paginator("scan")
+    count = 0
+    items_to_delete = []
+
+    # First, collect all items
+    for page in paginator.paginate(TableName=table_name):
+        items_to_delete.extend(page.get("Items", []))
+
+    # Then delete them with progress tracking
+    for item in track(
+        items_to_delete,
+        description=f"Deleting items from {entity_name}",
+        transient=True,
+    ):
+        key = {hash_key: item[hash_key]}
+        if range_key:
+            key[range_key] = item[range_key]
+        client.delete_item(TableName=table_name, Key=key)
+        count += 1
+
+    return count
 
 
 def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
@@ -299,6 +361,17 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
             ],
             "attribute_definitions": [
                 {"AttributeName": "source_record_id", "AttributeType": "S"}
+            ],
+            "global_secondary_indexes": None,
+        },
+        "version-history": {
+            "key_schema": [
+                {"AttributeName": "entity_id", "KeyType": "HASH"},
+                {"AttributeName": "timestamp", "KeyType": "RANGE"},
+            ],
+            "attribute_definitions": [
+                {"AttributeName": "entity_id", "AttributeType": "S"},
+                {"AttributeName": "timestamp", "AttributeType": "S"},
             ],
             "global_secondary_indexes": None,
         },
