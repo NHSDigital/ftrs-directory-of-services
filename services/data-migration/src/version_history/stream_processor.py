@@ -36,6 +36,7 @@ def process_stream_record(
     """
     dynamodb_data = record.get("dynamodb", {})
     event_source_arn = record.get("eventSourceARN", "")
+    event_name = record.get("eventName", "MODIFY")
 
     # Extract full table name from ARN and then extract entity name
     full_table_name = extract_table_name_from_arn(event_source_arn)
@@ -67,23 +68,37 @@ def process_stream_record(
     old_value = old_image.get("value") if old_image else None
     new_value = new_image.get("value") if new_image else None
 
-    # Skip if values are identical (no-op update)
-    if old_value == new_value:
-        LOGGER.debug(
-            "No change detected, skipping version history",
-            extra={
-                "entity_name": entity_name,
-                "record_id": record_id,
-                "field_name": field_name,
-            },
-        )
-        return
+    # Map DynamoDB event types to change types
+    change_type_map = {
+        "INSERT": "CREATE",
+        "MODIFY": "UPDATE",
+        "REMOVE": "DELETE",
+    }
+    change_type = change_type_map.get(event_name, "UPDATE")
 
-    # Build changed fields dict
-    changed_fields = {field_name: {"old": old_value, "new": new_value}}
+    # Handle different event types
+    if event_name == "INSERT":
+        # CREATE: only new_image exists
+        changed_fields = {field_name: {"old": None, "new": new_value}}
+    elif event_name == "REMOVE":
+        # DELETE: only old_image exists
+        changed_fields = {field_name: {"old": old_value, "new": None}}
+    else:
+        # UPDATE: both images exist, skip if no change
+        if old_value == new_value:
+            LOGGER.debug(
+                "No change detected, skipping version history",
+                extra={
+                    "entity_name": entity_name,
+                    "record_id": record_id,
+                    "field_name": field_name,
+                },
+            )
+            return
+        changed_fields = {field_name: {"old": old_value, "new": new_value}}
 
-    # Extract ChangedBy from NewImage
-    changed_by = extract_changed_by(new_image)
+    # Extract ChangedBy from NewImage (for DELETE, use OldImage)
+    changed_by = extract_changed_by(new_image or old_image)
 
     # Build entity_id: {entity_name}|{record_id}|{field_name}
     entity_id = f"{entity_name}|{record_id}|{field_name}"
@@ -95,7 +110,7 @@ def process_stream_record(
     version_item = {
         "entity_id": entity_id,
         "timestamp": timestamp,
-        "change_type": "UPDATE",
+        "change_type": change_type,
         "changed_fields": changed_fields,
         "changed_by": changed_by,
     }
@@ -105,5 +120,9 @@ def process_stream_record(
 
     LOGGER.info(
         "Version history recorded",
-        extra={"entity_id": entity_id, "changed_fields": list(changed_fields.keys())},
+        extra={
+            "entity_id": entity_id,
+            "change_type": change_type,
+            "changed_fields": list(changed_fields.keys()),
+        },
     )

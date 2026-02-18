@@ -195,3 +195,87 @@ class TestProcessStreamRecord:
         assert item["changed_fields"] == expected_changed_fields
         assert item["changed_by"]["type"] == "app"
         assert item["changed_by"]["value"] == "INTERNAL001"
+
+    def test_process_record_handles_insert_event(
+        self, mock_version_history_table: MagicMock
+    ) -> None:
+        """Test processing INSERT event (new record creation)."""
+        record = {
+            "eventName": "INSERT",
+            "eventSourceARN": (
+                "arn:aws:dynamodb:eu-west-2:123456789012:table/"
+                "ftrs-dos-local-database-organisation-test/stream/"
+                "2025-01-01T00:00:00.000"
+            ),
+            "dynamodb": {
+                "Keys": {
+                    "id": {"S": "550e8400-e29b-41d4-a716-446655440000"},
+                    "field": {"S": "name"},
+                },
+                "NewImage": {
+                    "id": {"S": "550e8400-e29b-41d4-a716-446655440000"},
+                    "field": {"S": "name"},
+                    "value": {"S": "New Organisation"},
+                    "lastUpdatedBy": {
+                        "M": {
+                            "type": {"S": "app"},
+                            "value": {"S": "INTERNAL001"},
+                            "display": {"S": "Data Migration"},
+                        }
+                    },
+                },
+            },
+        }
+
+        process_stream_record(record, mock_version_history_table)
+
+        mock_version_history_table.put_item.assert_called_once()
+        call_args = mock_version_history_table.put_item.call_args
+        item = call_args.kwargs["Item"]
+
+        assert item["change_type"] == "CREATE"
+        expected_changed_fields = {"name": {"old": None, "new": "New Organisation"}}
+        assert item["changed_fields"] == expected_changed_fields
+
+    def test_process_record_handles_remove_event(
+        self, mock_version_history_table: MagicMock
+    ) -> None:
+        """Test processing REMOVE event (record deletion)."""
+        record = {
+            "eventName": "REMOVE",
+            "eventSourceARN": (
+                "arn:aws:dynamodb:eu-west-2:123456789012:table/"
+                "ftrs-dos-local-database-location-test/stream/"
+                "2025-01-01T00:00:00.000"
+            ),
+            "dynamodb": {
+                "Keys": {
+                    "id": {"S": "660e8400-e29b-41d4-a716-446655440000"},
+                    "field": {"S": "status"},
+                },
+                "OldImage": {
+                    "id": {"S": "660e8400-e29b-41d4-a716-446655440000"},
+                    "field": {"S": "status"},
+                    "value": {"S": "active"},
+                    "lastUpdatedBy": {
+                        "M": {
+                            "type": {"S": "user"},
+                            "value": {"S": "user-123"},
+                            "display": {"S": "John Doe"},
+                        }
+                    },
+                },
+            },
+        }
+
+        process_stream_record(record, mock_version_history_table)
+
+        mock_version_history_table.put_item.assert_called_once()
+        call_args = mock_version_history_table.put_item.call_args
+        item = call_args.kwargs["Item"]
+
+        assert item["change_type"] == "DELETE"
+        expected_changed_fields = {"status": {"old": "active", "new": None}}
+        assert item["changed_fields"] == expected_changed_fields
+        assert item["changed_by"]["type"] == "user"
+        assert item["changed_by"]["value"] == "user-123"
