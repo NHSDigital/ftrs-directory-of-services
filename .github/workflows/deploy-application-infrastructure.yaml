@@ -14,7 +14,7 @@ on:
         default: "default"
         type: string
       project:
-        description: "The project - eg dos or cm."
+        description: "The project"
         required: false
         default: "dos"
         type: string
