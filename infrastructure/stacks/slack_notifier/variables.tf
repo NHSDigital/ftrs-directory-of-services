@@ -44,3 +44,21 @@ variable "enable_xray_tracing" {
   type        = bool
   default     = true
 }
+
+variable "enable_vpc_endpoints" {
+  description = "Enable VPC endpoints for AWS services (CloudWatch Logs)"
+  type        = bool
+  default     = true
+}
+
+variable "https_port" {
+  description = "HTTPS port for security group rules"
+  type        = number
+  default     = 443
+}
+
+variable "slack_egress_cidr" {
+  description = "CIDR block for Slack webhook egress traffic"
+  type        = string
+  default     = "0.0.0.0/0"
+}

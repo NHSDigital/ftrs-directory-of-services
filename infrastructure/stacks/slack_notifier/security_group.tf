@@ -10,12 +10,43 @@ resource "aws_security_group" "slack_notifier_lambda_sg" {
   }
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr
-resource "aws_vpc_security_group_egress_rule" "slack_notifier_lambda_egress" {
-  # checkov:skip=CKV_AWS_382: Lambda needs outbound access to Slack webhook and AWS services
+resource "aws_vpc_security_group_egress_rule" "to_vpc_endpoints" {
+  count                        = local.vpc_endpoints_enabled
+  security_group_id            = aws_security_group.slack_notifier_lambda_sg[0].id
+  description                  = "Allow outbound to VPC endpoints"
+  referenced_security_group_id = aws_security_group.vpce_sg[0].id
+  ip_protocol                  = "tcp"
+  from_port                    = var.https_port
+  to_port                      = var.https_port
+}
+
+resource "aws_vpc_security_group_egress_rule" "to_slack" {
   count             = local.stack_enabled
   security_group_id = aws_security_group.slack_notifier_lambda_sg[0].id
-  description       = "Allow all outbound traffic for Slack webhook and AWS services"
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
+  description       = "Allow outbound HTTPS for Slack webhooks"
+  cidr_ipv4         = var.slack_egress_cidr
+  ip_protocol       = "tcp"
+  from_port         = var.https_port
+  to_port           = var.https_port
+}
+
+resource "aws_security_group" "vpce_sg" {
+  count       = local.vpc_endpoints_enabled
+  name        = "${local.resource_prefix}-vpce-sg"
+  description = "Security group for VPC endpoints"
+  vpc_id      = data.aws_vpc.vpc[0].id
+
+  tags = {
+    Name = "${local.resource_prefix}-vpce-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "vpce_from_lambda" {
+  count                        = local.vpc_endpoints_enabled
+  security_group_id            = aws_security_group.vpce_sg[0].id
+  description                  = "Allow inbound from Lambda"
+  referenced_security_group_id = aws_security_group.slack_notifier_lambda_sg[0].id
+  ip_protocol                  = "tcp"
+  from_port                    = var.https_port
+  to_port                      = var.https_port
 }
