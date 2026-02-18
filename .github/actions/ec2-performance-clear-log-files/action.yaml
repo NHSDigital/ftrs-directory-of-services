@@ -19,7 +19,7 @@ runs:
         COMMANDS=$(cat <<EOF
         [
           "cd /home/ssm-user",
-          "sudo rm -f performance_run.log"
+          "rm -f performance_run.log"
         ]
         EOF
         )

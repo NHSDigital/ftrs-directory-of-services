@@ -136,7 +136,7 @@ configure-and-start-cloudwatch-agent: ## [ENVIRONMENT=environment to configure t
 	sed -i "s|ENVIRONMENT|$${ENVIRONMENT}|" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 	echo "Starting CloudWatch Agent"
-	sudo systemctl start amazon-cloudwatch-agent
+	systemctl start amazon-cloudwatch-agent
 
 _install-dependency: # Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
