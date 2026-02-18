@@ -54,7 +54,6 @@ CODING_MAP = {
 MANDATORY_REQUEST_HEADERS: dict[str, str] = {
     "X-Request-Id": "req_id",
     "version": "1",
-    "Authorization": "valid auth token",
 }
 
 # Load feature file
