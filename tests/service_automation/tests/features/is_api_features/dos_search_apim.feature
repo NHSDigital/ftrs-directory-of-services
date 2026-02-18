@@ -65,7 +65,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid\|M00081046&_revinclude=Endpoint:organization | https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
 
 
-  Scenario Outline: I search for GP Endpoint via APIM with 1 missing parameter
+  Scenario Outline: I search for GP Endpoint via APIM with missing parameters
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
