@@ -939,20 +939,16 @@ def test_update_organisation_empty_identifier_object() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    body = response.json()
-    print(body)
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+        "at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -977,19 +973,16 @@ def test_update_organisation_identifier_missing_value() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, ODS identifier must have a non-empty value"
+        "ODS identifier must have a non-empty value"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1014,19 +1007,16 @@ def test_update_organisation_identifier_empty_value() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, ODS identifier must have a non-empty value"
+        "ODS identifier must have a non-empty value"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1051,19 +1041,16 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
+    
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, invalid ODS code format: 'ABC!@TOOLONG123' must follow format ^[A-Za-z0-9]{1,12}$"
+        "invalid ODS code format: 'ABC!@TOOLONG123' must follow format ^[A-Za-z0-9]{1,12}$"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 

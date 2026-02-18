@@ -160,24 +160,36 @@ class OrganisationUpdatePayload(BaseModel):
             identifier
             for identifier in v
             if isinstance(identifier, dict)
-            and identifier.get("system")
-            == "https://fhir.nhs.uk/Id/ods-organization-code"
+            and identifier.get("system") == ODS_SYSTEM_URL
         ]
 
         if not ods_identifiers:
-            raise ValueError(ERROR_IDENTIFIER_NO_ODS_SYSTEM)
+            outcome = OperationOutcomeHandler.build(
+                diagnostics=ERROR_IDENTIFIER_NO_ODS_SYSTEM,
+                code="invalid",
+                severity="error",
+            )
+            raise OperationOutcomeException(outcome)
 
         for identifier in ods_identifiers:
             if not identifier.get("value") or not identifier.get("value").strip():
-                raise ValueError(ERROR_IDENTIFIER_EMPTY_VALUE)
+                outcome = OperationOutcomeHandler.build(
+                    diagnostics=ERROR_IDENTIFIER_EMPTY_VALUE,
+                    code="invalid",
+                    severity="error",
+                )
+                raise OperationOutcomeException(outcome)
 
             ods_code = identifier.get("value", "").strip()
             if not re.match(ODS_REGEX, ods_code):
-                raise ValueError(
-                    ERROR_IDENTIFIER_INVALID_FORMAT.format(
+                outcome = OperationOutcomeHandler.build(
+                    diagnostics=ERROR_IDENTIFIER_INVALID_FORMAT.format(
                         ods_code=ods_code, ODS_REGEX=ODS_REGEX
-                    )
+                    ),
+                    code="invalid",
+                    severity="error",
                 )
+                raise OperationOutcomeException(outcome)
 
         return v
 
