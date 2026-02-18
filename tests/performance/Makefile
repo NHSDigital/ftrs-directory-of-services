@@ -125,7 +125,22 @@ jmeter-setup-jwt-certs:
 		--query 'SecretString' \
 		--output text > ./parameter_files/jwt-credentials.json;
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# Data migration
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
 
+data-prep:
+	echo "Clearing out 'dos' paramerter files"
+	rm -f ./parameter_files/dos/*.csv
+
+	echo "Clearing out stale ids in test_data_exports"
+	rm -f ./scripts/data_generation/database_updates/test_data_exports/*.csv
+
+	echo "Generating data"
+	cd ./scripts/ && sh extract_ids_from_source_db.sh
+	cd ./scripts/data_generation/ \
+		&& poetry install \
+		&& poetry run generate_database_update_data
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
 # EC2 Make Targets
