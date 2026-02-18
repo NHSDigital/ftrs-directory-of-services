@@ -53,14 +53,14 @@ class ServiceValidator(Validator[Service]):
 class GPPracticeValidator(ServiceValidator):
     # More restrictive pattern - only allow & when surrounded by spaces
     SAFE_NAME_PATTERN = re.compile(
-        r"^[a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&]+$"
+        r"^[a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]+$"
         # Start of string
         # Character class start
         # ASCII letters and digits
         # Unicode characters (accented letters, curly quotes, etc.)
         # Whitespace (space, tab, newline)
         # Safe punctuation: hyphen, forward slash, at symbol, plus sign, colon,
-        #   apostrophe, period, comma, left parenthesis, right parenthesis, ampersand
+        #   apostrophe, period, comma, left parenthesis, right parenthesis, ampersand, semicolon
         # One or more of the above characters
         # End of string
     )
@@ -323,7 +323,7 @@ class GPPracticeValidator(ServiceValidator):
         checks = {
             "angle_brackets": "<>",
             "brackets": "[]{}",
-            "special_punctuation": ";:",
+            "special_punctuation": ":",
             "control_characters": "|\\/$",
             "special_symbols": "@#%*+=~`^_",
             "quotes": '"',
