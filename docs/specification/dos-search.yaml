@@ -195,7 +195,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^https:\/\/fhir.nhs.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
+            pattern: '^https:\/\/fhir\.nhs\.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
             example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
         - in: query
           name: _revinclude
