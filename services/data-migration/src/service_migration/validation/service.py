@@ -51,7 +51,6 @@ class ServiceValidator(Validator[Service]):
 
 
 class GPPracticeValidator(ServiceValidator):
-    # More restrictive pattern - only allow & when surrounded by spaces
     SAFE_NAME_PATTERN = re.compile(
         r"^[a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]+$"
         # Start of string
@@ -339,7 +338,7 @@ class GPPracticeValidator(ServiceValidator):
             categories.append("control_characters")
 
         # Catch-all for characters not in SAFE_NAME_PATTERN
-        if not categories and re.search(r"[^a-zA-Z0-9\s\-&.,()]", text):
+        if not categories and re.search(r"[^a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]", text):
             categories.append("disallowed_characters")
 
         return ", ".join(categories) if categories else "unknown"
