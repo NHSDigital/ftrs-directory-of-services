@@ -48,6 +48,8 @@ on:
         options:
           - dev
           - test
+          - int
+          - ref
       workspace:
         description: "Workspace identifier"
         required: true
@@ -90,6 +92,35 @@ jobs:
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
+      - name: "Print out Inputs"
+        shell: bash
+        env:
+          DOWNLOAD_PERFORMANCE_CONFIG: ${{ inputs.download_performance_config }}
+          GENERATE_CERTIFICATES_AND_KEYS: ${{ inputs.generate_certificates_and_keys }}
+          ENDPOINT_TYPE: ${{ inputs.endpoint_type }}
+          TEST_TYPE: ${{ inputs.test_type }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          WORKSPACE: ${{ inputs.workspace }}
+          NUM_THREADS: ${{ inputs.num_threads }}
+          RAMP_TIME: ${{ inputs.ramp_time }}
+          STARTUP_DELAY: ${{ inputs.startup_delay }}
+          DURATION: ${{ inputs.duration }}
+          THROUGHPUT: ${{ inputs.throughput }}
+          THROUGHPUT_PERIOD: ${{ inputs.throughput_period }}
+        run: |
+          echo "Download Performance Config: $DOWNLOAD_PERFORMANCE_CONFIG"
+          echo "Generate Certificates and Keys: $GENERATE_CERTIFICATES_AND_KEYS"
+          echo "Endpoint Type: $ENDPOINT_TYPE"
+          echo "Test Type: $TEST_TYPE"
+          echo "Environment: $ENVIRONMENT"
+          echo "Workspace: $WORKSPACE"
+          echo "Num Threads: $NUM_THREADS"
+          echo "Ramp Time: $RAMP_TIME"
+          echo "Startup Delay: $STARTUP_DELAY"
+          echo "Duration: $DURATION"
+          echo "Throughput/Throughput Step: $THROUGHPUT"
+          echo "Throughput Period/Step Duration: $THROUGHPUT_PERIOD"
+
       - name: "Validate Inputs"
         shell: bash
         env:
@@ -182,6 +213,7 @@ jobs:
             APIM_ENVS["dev"]="internal-dev"
             APIM_ENVS["test"]="internal-qa"
             APIM_ENVS["int"]="int"
+            APIM_ENVS["ref"]="ref"
 
             APIM_ENV=${APIM_ENVS[$ENVIRONMENT]}
 
@@ -250,6 +282,7 @@ jobs:
       - name: "Start CloudWatch agent"
         uses: ./.github/actions/ec2-performance-start-cloudwatch-agent
         with:
+          environment: ${{ inputs.environment }}
           ec2-instance-id: ${{ steps.lookup-ec2-instance-id.outputs.ec2-instance-id }}
 
       - name: "Run performance test"

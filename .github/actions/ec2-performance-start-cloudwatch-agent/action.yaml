@@ -5,6 +5,9 @@ inputs:
   ec2-instance-id:
     description: "The EC2 instance ID to start the AWS CloudWatch Agent on"
     required: true
+  environment:
+    description: "The environment to configure the agent logging on"
+    required: true
 
 runs:
   using: "composite"
@@ -15,11 +18,12 @@ runs:
       id: run_command
       env:
         EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+        ENVIRONMENT: ${{ inputs.environment }}
       run: |
         COMMANDS=$(cat <<EOF
         [
           "cd /home/ssm-user",
-          "make configure-and-start-cloudwatch-agent"
+          "make configure-and-start-cloudwatch-agent ENVIRONMENT=$ENVIRONMENT"
         ]
         EOF
         )

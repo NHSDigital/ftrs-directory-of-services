@@ -64,27 +64,27 @@ run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test
 
 performance-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds]
 	echo "running mtls performance tests against ${ENDPOINT}..."
-	sudo touch performance_run.lock
+	touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="load" \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD};
-	sudo rm -f performance_run.lock
+	rm -f performance_run.lock
 
 performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment for APIM proxy] [ENVIRONMENT=AWS environment] [SECRET_NAME=Name of the AWS secret] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [WORKSPACE=workspace; default for main]
 	echo "running proxy performance tests against ${APIM_ENV}..."
-	sudo touch performance_run.lock
+	touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=/ftrs-dos/$(ENVIRONMENT)/dos-search/jwt-credentials -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
-	sudo rm -f performance_run.lock
+	rm -f performance_run.lock
 
 performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
 	echo "running mtls performance stress tests against ${ENDPOINT}..."
-	sudo touch performance_run.lock
+	touch performance_run.lock
 	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="stress" \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J throughput_step=${THROUGHPUT_STEP} -J step_duration=${STEP_DURATION};
-	sudo rm -f performance_run.lock
+	rm -f performance_run.lock
 
 performance-test-dashboard: ##[TEST_DATA=name of performance test data jtl file]
 	echo "generating performance dashboard for ${TEST_DATA}..."
@@ -103,7 +103,7 @@ upload-performance-folder: ##[AWS_REGION=aws region] [WORKSPACE=workspace name] 
 	echo "Uploading performance test files from ${LOCAL_DIR} to s3://${MAIN_FILES_BUCKET}/${WORKSPACE}"
 	aws s3 cp --region $(AWS_REGION) ${LOCAL_DIR} s3://${MAIN_FILES_BUCKET}/${WORKSPACE}${LOCAL_DIR} --recursive
 
-upload-performance-test-result:
+upload-performance-test-result: ##[PERFORMANCE_RESULTS_BUCKET=name of the performance result bucket] [ENVIRONMENT=the name of the environment that the test has been run on]
 	TEST_RUN_DATE=`date +%Y%m%d_%H%M%S`
 	echo "Uploading performance test results to s3://${PERFORMANCE_RESULTS_BUCKET}/test-results/${ENVIRONMENT}/$$TEST_RUN_DATE/"
 
@@ -122,17 +122,18 @@ check-performance-test-lock-file:
 		exit 1; \
 	fi
 
-configure-and-start-cloudwatch-agent:
+configure-and-start-cloudwatch-agent: ## [ENVIRONMENT=environment to configure the agent on]
 	echo "Configuring and starting CloudWatch Agent..."
 
 	echo "Stopping CloudWatch Agent if running"
-	sudo systemctl stop amazon-cloudwatch-agent
+	systemctl stop amazon-cloudwatch-agent
 
 	echo "Copying and Configuring CloudWatch Agent configuration"
-	sudo rm -f /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-	sudo cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	rm -f /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	cp ./amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 	TS=$$(date -u +"%Y%m%dT%H%M%SZ");
-	sudo sed -i "s|LOG_STREAM_NAME|performance-test-run-$${TS}|" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	sed -i "s|LOG_STREAM_NAME|performance-test-run-$${TS}|" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+	sed -i "s|ENVIRONMENT|$${ENVIRONMENT}|" /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 	echo "Starting CloudWatch Agent"
 	sudo systemctl start amazon-cloudwatch-agent
