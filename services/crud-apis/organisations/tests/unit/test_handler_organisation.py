@@ -11,6 +11,9 @@ from ftrs_common.api_middleware.fhir_type_middleware import (
 from ftrs_common.api_middleware.response_logging_middleware import (
     ResponseLoggingMiddleware,
 )
+from ftrs_common.api_middleware.security_headers_middleware import (
+    SecurityHeadersMiddleware,
+)
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 
 # Mock FeatureFlagsClient before importing handler to prevent AppConfig initialization
@@ -126,3 +129,4 @@ def test_middlewares_present() -> None:
     assert FHIRContentTypeMiddleware in middleware_classes
     assert FHIRAcceptHeaderMiddleware in middleware_classes
     assert ResponseLoggingMiddleware in middleware_classes
+    assert SecurityHeadersMiddleware in middleware_classes
