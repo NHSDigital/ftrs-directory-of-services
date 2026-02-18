@@ -1,6 +1,8 @@
 module "artefacts_bucket" {
-  source      = "../../modules/s3"
-  bucket_name = local.artefacts_bucket
+  source        = "../../modules/s3"
+  bucket_name   = local.artefacts_bucket
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.artefacts_bucket_policy.json
 
   # Lifecycle rules work with tag-based retention strategy:
   # - Objects tagged "retention=ephemeral" expire per rules below
@@ -49,12 +51,6 @@ module "artefacts_bucket" {
   ]
 }
 
-resource "aws_s3_bucket_policy" "artefacts_bucket_policy" {
-  depends_on = [module.artefacts_bucket]
-  bucket     = local.artefacts_bucket
-  policy     = data.aws_iam_policy_document.artefacts_bucket_policy.json
-}
-
 data "aws_iam_policy_document" "artefacts_bucket_policy" {
   statement {
     principals {
@@ -74,7 +70,7 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
       "s3:ListBucket",
     ]
     resources = [
-      "${module.artefacts_bucket.s3_bucket_arn}"
+      "_S3_BUCKET_ARN_"
     ]
   }
 
@@ -102,7 +98,7 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
 
     ]
     resources = [
-      "${module.artefacts_bucket.s3_bucket_arn}/*",
+      "_S3_BUCKET_ARN_/*",
     ]
   }
 }
