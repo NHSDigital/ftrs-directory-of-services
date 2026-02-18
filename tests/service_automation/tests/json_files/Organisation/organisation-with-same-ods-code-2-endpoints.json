@@ -5,7 +5,7 @@
     "value": "INGRESS_API_ID",
     "display": "FtRS Ingress API"
   },
-  "createdTime": "2025-06-27T12:46:36.111296Z",
+  "created": "2025-06-27T12:46:36.111296Z",
   "lastUpdatedBy": {
     "type": "user",
     "value": "INGRESS_API_ID",
@@ -25,7 +25,7 @@
         "value": "INGRESS_API_ID",
         "display": "FtRS Ingress API"
       },
-      "createdTime": "2025-06-27T12:46:36.111296Z",
+      "created": "2025-06-27T12:46:36.111296Z",
       "lastUpdatedBy": {
         "type": "user",
         "value": "INGRESS_API_ID",
@@ -52,7 +52,7 @@
         "value": "INGRESS_API_ID",
         "display": "FtRS Ingress API"
       },
-      "createdTime": "2025-06-27T12:46:36.111296Z",
+      "created": "2025-06-27T12:46:36.111296Z",
       "lastUpdatedBy": {
         "type": "user",
         "value": "INGRESS_API_ID",

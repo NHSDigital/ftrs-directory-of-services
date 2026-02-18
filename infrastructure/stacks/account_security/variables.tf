@@ -1,7 +1,7 @@
 variable "enable_iam_analyzer" {
   description = "Enable IAM Access Analyzer for the account"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "analyzer_findings_log_group_retention_days" {

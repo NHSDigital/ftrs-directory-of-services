@@ -16,6 +16,10 @@ views {
       and their relationships to other systems
     '
     include *
+    include apim
+    include apim.dosSearchProxy
+    include apim.dosIngestProxy
+    include odsTerminologyApi
     autoLayout LeftRight 70 77
   }
 
