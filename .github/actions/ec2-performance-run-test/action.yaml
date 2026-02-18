@@ -76,8 +76,10 @@ runs:
         THROUGHPUT_PERIOD: ${{ inputs.throughput-period }}
         PERFORMANCE_RESULTS_BUCKET: ${{ inputs.performance-results-bucket }}
       run: |
-          if [ "$WORKSPACE" ==  "default" ]; then
-              "$WORKSPACE"=""
+          if [ ${WORKSPACE} ==  "default" ]; then
+              ${WORKSPACE}=""
+          else 
+              ${WORKSPACE}=${WORKSPACE}
           fi
           COMMANDS=$(cat <<EOF
           [
