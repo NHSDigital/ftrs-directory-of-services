@@ -14,6 +14,15 @@ class InvalidVersionError(ValueError):
         )
 
 
+class InvalidRequestIdError(ValueError):
+    """Raised when the NHSD Request Id header is invalid"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "Invalid request-id value found in supplied headers: X-Request-ID must be set and be a UUID v4"
+        )
+
+
 class OrganizationHeaders(BaseModel):
     authorization: str = Field(alias="authorization")
     version: str = Field(alias="version")
@@ -55,6 +64,13 @@ class OrganizationHeaders(BaseModel):
         if v != VERSION_VALUE:
             raise InvalidVersionError
         return v
+
+    @field_validator("nhsd_request_id")
+    @classmethod
+    def validate_request_id(cls, req_id: str) -> str:
+        if req_id == "":
+            raise InvalidRequestIdError
+        return req_id
 
     @classmethod
     def get_allowed_headers(cls) -> list[str]:

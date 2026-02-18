@@ -24,7 +24,7 @@ if __name__ == "__main__":
             "Accept": "application/fhir+json",
             "Content-Type": "application/json",
             "Authorization": "Bearer test-token",
-            "Version": "2",
+            "Version": "1",
             "NHSD-Request-ID": "test-request-id",
             "NHSD-Correlation-ID": "test-correlation-id",
             "X-Correlation-ID": "test-x-correlation-id",
