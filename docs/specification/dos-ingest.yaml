@@ -301,8 +301,8 @@ paths:
                           coding:
                             - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: BAD_REQUEST
-                              display: Parameter content is invalid
-                          text: Identifier format is invalid
+                              display: The Server was unable to process the request.
+                          text: "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
                         diagnostics: "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
                 invalid-identifier-system:
                   summary: Invalid identifier system
@@ -315,9 +315,9 @@ paths:
                           coding:
                             - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: BAD_REQUEST
-                              display: Parameter content is invalid
-                          text: Identifier system is invalid
-                        diagnostics: "Invalid identifier system 'wrongSystem' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
+                              display: The Server was unable to process the request.
+                          text: Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'
+                        diagnostics: Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'
                 invalid-identifier-format:
                   summary: Invalid ODS code format
                   value:
@@ -329,9 +329,9 @@ paths:
                           coding:
                             - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: BAD_REQUEST
-                              display: Parameter content is invalid
-                          text: ODS code format is invalid
-                        diagnostics: "Invalid identifier value: ODS code 'ABC!!!' must follow format ^[A-Za-z0-9]{1,12}$"
+                              display: The Server was unable to process the request.
+                          text: "Invalid identifier value: ODS code '<invalid ods code from request parameters>' must follow format ^[A-Za-z0-9]{1,12}$"
+                        diagnostics: "Invalid identifier value: ODS code '<invalid ods code from request parameters>' must follow format ^[A-Za-z0-9]{1,12}$"
                 unexpected-query-param:
                   summary: Unexpected query parameter
                   value:
@@ -375,8 +375,8 @@ paths:
                         - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: NOT_FOUND
                           display: The Server was unable to find the specified resource.
-                      text: The requested organisation was not found
-                    diagnostics: "Organisation with ODS code 'DEF456' not found"
+                      text: "Organisation with ODS code '<ODS code from request params>' not found"
+                    diagnostics: "Organisation with ODS code '<ODS code from request params>' not found"
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           headers:
@@ -437,8 +437,8 @@ paths:
                         - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                           code: SERVER_ERROR
                           display: The Server has encountered an error processing the request.
-                      text: An unexpected error occurred
-                    diagnostics: "Unhandled exception occurred"
+                      text: Unhandled exception occurred
+                    diagnostics: Unhandled exception occurred
   '/Organization/{id}':
     put:
       security:
