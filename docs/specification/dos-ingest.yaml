@@ -593,7 +593,7 @@ paths:
             "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
             "extension": [
               {
-                "url": "roleCode", 
+                "url": "roleCode",
                 "valueCodeableConcept": {
                   "coding": [
                     {
@@ -1347,7 +1347,7 @@ x-nhsd-apim:
     url: https://crud.dev.ftrs.cloud.nhs.uk
     security:
       type: mtls
-      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+      # checkov:skip=CKV_SECRET_6: Acceptable as this isn't a secret leak, it's a reference to a secret not the value.
       secret: dos-ingest-mtls-secret
   access:
     - title: Application-restricted with Private Key JWT

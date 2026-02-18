@@ -1,3 +1,18 @@
+data "aws_iam_policy_document" "ddb_export_policy" {
+  statement {
+    sid    = "DynamoDBExportAccess"
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectAcl"
+    ]
+    resources = ["_S3_BUCKET_ARN_/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["dynamodb.amazonaws.com"]
+    }
+  }
+}
 module "s3" {
   count             = local.stack_enabled
   source            = "../../modules/s3"
@@ -5,58 +20,31 @@ module "s3" {
   versioning        = var.s3_versioning
   force_destroy     = true
   s3_logging_bucket = local.s3_logging_bucket
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.ddb_export_policy.json
 }
 
-resource "aws_s3_bucket_policy" "ddb_export_policy" {
-  count  = local.stack_enabled
-  bucket = module.s3[0].s3_bucket_id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "DynamoDBExportAccess"
-        Effect = "Allow"
-        Principal = {
-          Service = "dynamodb.amazonaws.com"
-        }
-        Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl"
-        ]
-        Resource = "${module.s3[0].s3_bucket_arn}/*"
-      }
+data "aws_iam_policy_document" "s3_opensearch_pipeline_dlq_bucket_policy" {
+  statement {
+    sid    = "PipelineAccess"
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectAcl"
     ]
-  })
+    resources = ["_S3_BUCKET_ARN_/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["osis-pipelines.amazonaws.com"]
+    }
+  }
 }
-
 module "s3_opensearch_pipeline_dlq_bucket" {
   count         = local.stack_enabled
   source        = "../../modules/s3"
   bucket_name   = "${local.resource_prefix}-${var.opensearch_pipeline_s3_dlq_bucket_name}"
   versioning    = var.s3_versioning
   force_destroy = true
-}
-
-resource "aws_s3_bucket_policy" "s3_opensearch_pipeline_dlq_bucket_policy" {
-  count  = local.stack_enabled
-  bucket = module.s3_opensearch_pipeline_dlq_bucket[0].s3_bucket_id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "PipelineAccess"
-        Effect = "Allow"
-        Principal = {
-          Service = "osis-pipelines.amazonaws.com"
-        }
-        Action = [
-          "s3:PutObject",
-          "s3:PutObjectAcl"
-        ]
-        Resource = "${module.s3_opensearch_pipeline_dlq_bucket[0].s3_bucket_arn}/*"
-      }
-    ]
-  })
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.s3_opensearch_pipeline_dlq_bucket_policy.json
 }
