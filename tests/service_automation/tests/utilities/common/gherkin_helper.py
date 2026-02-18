@@ -32,3 +32,20 @@ def parse_gherkin_table(datatable: List[List[str]]) -> Dict[str, Any]:
             attributes[key] = value
 
     return attributes
+
+
+def unescape_pipe_in_value(value: str) -> str:
+    """
+    Unescape pipe characters from Gherkin table values.
+
+    When reading expected values from feature files that contain pipes,
+    they appear as \\| and need to be unescaped for comparison with
+    actual values from the database.
+
+    Args:
+        value: String with escaped pipes (\\|)
+
+    Returns:
+        String with actual pipe characters
+    """
+    return value.replace("\\|", "|")
