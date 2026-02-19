@@ -94,7 +94,7 @@ stack_toggles:
     stack_path: infrastructure/stacks/slack_notifier
     owner: "Infrastructure Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: true
