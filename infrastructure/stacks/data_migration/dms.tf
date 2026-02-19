@@ -1,3 +1,15 @@
+# DMS Certificate for SSL verification
+resource "aws_dms_certificate" "rds_ca_certificate" {
+  count = local.is_primary_environment ? 1 : 0
+
+  certificate_id  = "${local.resource_prefix}-rds-ca-cert"
+  certificate_pem = data.http.rds_ca_certificate.response_body
+
+  tags = {
+    Name = "${local.resource_prefix}-rds-ca-certificate"
+  }
+}
+
 resource "aws_dms_replication_subnet_group" "dms_replication_subnet_group" {
   count = local.is_primary_environment && length(try(data.aws_subnet.private_subnets_details)) >= 2 ? 1 : 0
 
@@ -24,11 +36,12 @@ resource "aws_dms_endpoint" "dms_source_endpoint" {
   # checkov:skip=CKV_AWS_296: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
-  endpoint_id   = "${local.resource_prefix}-etl-source"
-  endpoint_type = "source"
-  engine_name   = var.dms_engine
-  ssl_mode      = "require"
-  database_name = var.source_rds_database
+  endpoint_id     = "${local.resource_prefix}-etl-source"
+  endpoint_type   = "source"
+  engine_name     = var.dms_engine
+  ssl_mode        = "verify-full"
+  certificate_arn = aws_dms_certificate.rds_ca_certificate[0].certificate_arn
+  database_name   = var.source_rds_database
 
   secrets_manager_arn             = aws_secretsmanager_secret.source_rds_credentials[0].arn
   secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
@@ -39,10 +52,12 @@ resource "aws_dms_endpoint" "dms_target_endpoint" {
   # checkov:skip=CKV_AWS_296: Needs CMK
   count = local.is_primary_environment ? 1 : 0
 
-  endpoint_id   = "${local.resource_prefix}-etl-target"
-  endpoint_type = "target"
-  engine_name   = var.dms_engine
-  database_name = var.target_rds_database
+  endpoint_id     = "${local.resource_prefix}-etl-target"
+  endpoint_type   = "target"
+  engine_name     = var.dms_engine
+  ssl_mode        = "verify-full"
+  certificate_arn = aws_dms_certificate.rds_ca_certificate[0].certificate_arn
+  database_name   = var.target_rds_database
 
   secrets_manager_arn             = aws_secretsmanager_secret.target_rds_credentials[0].arn
   secrets_manager_access_role_arn = aws_iam_role.dms_secrets_access[0].arn
