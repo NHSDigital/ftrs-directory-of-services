@@ -1,5 +1,6 @@
 import ast
 import json
+from typing import Any
 from uuid import uuid4
 
 from _pytest.fixtures import FixtureLookupError
@@ -10,6 +11,7 @@ from step_definitions.common_steps.data_steps import *  # noqa: F403
 from step_definitions.common_steps.setup_steps import *  # noqa: F403
 from utilities.common.constants import ENDPOINTS
 from utilities.common.json_helper import read_json_file
+from utilities.common.oas_validator import OASValidator, get_validator
 from utilities.infra.api_util import get_url
 
 # Load feature file
@@ -1456,3 +1458,88 @@ def step_set_role_extensions(
     logger.debug(f"Response body: {response.text()}")
 
     return response
+
+
+# =============================================================================
+# OAS Schema Validation Step Definitions
+# =============================================================================
+
+
+@then("the response conforms to the Organization OAS schema")
+def step_validate_organization_schema(fresponse: Any) -> None:
+    """Validate that the response conforms to the Organization OAS schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name="Organization")
+
+
+@then("the response conforms to the Bundle OAS schema")
+def step_validate_bundle_schema(fresponse: Any) -> None:
+    """Validate that the response conforms to the Bundle OAS schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name="Bundle")
+
+
+@then("the response conforms to the OperationOutcome OAS schema")
+def step_validate_operation_outcome_schema(fresponse: Any) -> None:
+    """Validate that the response conforms to the OperationOutcome OAS schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name="OperationOutcome")
+
+
+@then("the response conforms to the OrganizationAffiliation OAS schema")
+def step_validate_organization_affiliation_schema(fresponse: Any) -> None:
+    """Validate that the response conforms to the OrganizationAffiliation OAS schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name="OrganizationAffiliation")
+
+
+@then(parsers.parse('the response conforms to the "{schema_name}" OAS schema'))
+def step_validate_named_schema(fresponse: Any, schema_name: str) -> None:
+    """Validate that the response conforms to a named OAS schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name=schema_name)
+
+
+@then(parsers.parse('the response for "{method}" "{path}" conforms to the OAS spec'))
+def step_validate_response_against_spec(
+    fresponse: Any,
+    method: str,
+    path: str,
+) -> None:
+    """Validate the response against the OAS spec for the given endpoint."""
+    validator = get_validator()
+    validator.assert_response_valid(fresponse, path, method)
+
+
+@then("the error response conforms to the OperationOutcome OAS schema")
+def step_validate_error_response_schema(fresponse: Any) -> None:
+    """Validate that an error response conforms to the OperationOutcome schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+    validator.assert_valid(response_data, schema_name="OperationOutcome")
+
+
+@then(parsers.parse('the Bundle entries conform to the "{resource_type}" OAS schema'))
+def step_validate_bundle_entries(
+    fresponse: Any,
+    resource_type: str,
+) -> None:
+    """Validate that Bundle entries conform to a specified resource schema."""
+    validator = get_validator()
+    response_data = fresponse.json()
+
+    entries = response_data.get("entry", [])
+    for idx, entry in enumerate(entries):
+        resource = entry.get("resource", {})
+        if resource.get("resourceType") == resource_type:
+            errors = validator.validate(resource, schema_name=resource_type)
+            if errors:
+                error_details = "\n  - ".join(errors)
+                raise AssertionError(
+                    f"Bundle entry {idx} ({resource_type}) validation failed:\n  - {error_details}"
+                )

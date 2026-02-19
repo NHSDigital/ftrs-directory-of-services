@@ -4,6 +4,7 @@ Feature: Organization API Endpoint
   Scenario: Retrieve Organization
     When I request data from the "crud" endpoint "Organization"
     Then I receive a status code "200" in response
+    And the response conforms to the Bundle OAS schema
     And the response body contains a bundle
     And the bundle contains "10" "Organization" resources
 
@@ -13,6 +14,7 @@ Feature: Organization API Endpoint
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization details for ODS Code
     Then I receive a status code "200" in response
+    And the response conforms to the OperationOutcome OAS schema
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "information"
@@ -159,6 +161,7 @@ Feature: Organization API Endpoint
   Scenario: Update Organization with non-existent ID
     When I update the organization with a non-existent ID
     Then I receive a status code "404" in response
+    And the error response conforms to the OperationOutcome OAS schema
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
