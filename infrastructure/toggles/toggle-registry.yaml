@@ -95,7 +95,7 @@ stack_toggles:
     owner: "Infrastructure Team"
     environments:
       workspace: true
-      dev: true
+      dev: false
       test: true
       int: true
       ref: true
