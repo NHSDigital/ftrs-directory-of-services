@@ -403,7 +403,7 @@ jobs:
     uses: ./.github/workflows/generate-prerelease.yaml
 
   stage-prerelease-artefacts:
-    name: "Stage ${{ matrix.name }} artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
+    name: "Stage artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
     needs:
       - metadata
       - generate-prerelease

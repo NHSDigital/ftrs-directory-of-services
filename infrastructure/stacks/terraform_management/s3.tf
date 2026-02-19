@@ -6,9 +6,11 @@ module "terraform_state_bucket" {
 }
 
 module "logging_bucket" {
-  source      = "../../modules/s3"
-  bucket_name = local.s3_logging_bucket
-  versioning  = var.s3_logging_bucket_versioning
+  source        = "../../modules/s3"
+  bucket_name   = local.s3_logging_bucket
+  versioning    = var.s3_logging_bucket_versioning
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.logging_bucket_policy_document.json
 
   lifecycle_rule_inputs = [
     {
@@ -24,11 +26,6 @@ module "logging_bucket" {
   ]
 }
 
-resource "aws_s3_bucket_policy" "logging_bucket_policy" {
-  bucket = module.logging_bucket.s3_bucket_id
-  policy = data.aws_iam_policy_document.logging_bucket_policy_document.json
-}
-
 data "aws_iam_policy_document" "logging_bucket_policy_document" {
   statement {
     principals {
@@ -40,6 +37,6 @@ data "aws_iam_policy_document" "logging_bucket_policy_document" {
       "s3:PutObject",
     ]
 
-    resources = ["${module.logging_bucket.s3_bucket_arn}/*"]
+    resources = ["_S3_BUCKET_ARN_/*"]
   }
 }
