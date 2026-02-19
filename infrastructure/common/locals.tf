@@ -63,7 +63,7 @@ locals {
     firehose        = "alias/${local.project_prefix}-firehose-kms"
     backup_sns      = "alias/${local.project_prefix}-backup-sns-kms"
     backup          = "alias/${local.project_prefix}-backup-kms"
-    scheduler       = "alias/${local.project_prefix}-scheduler"
+    scheduler       = "alias/${local.project_prefix}-scheduler-kms"
   }
 
   # Will be used by dos-search stack
