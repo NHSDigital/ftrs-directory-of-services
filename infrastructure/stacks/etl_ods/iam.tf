@@ -11,6 +11,15 @@ resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
           Service = "scheduler.amazonaws.com"
         }
         Action = "sts:AssumeRole"
+      },
+      {
+        "Sid" : "AllowEventBridgeSchedulerToUseCMK",
+        "Effect" : "Allow",
+        "Action" : [
+          "kms:Decrypt",
+          "kms:Encrypt"
+        ],
+        "Resource" : data.aws_kms_key.scheduler_kms_key.arn
       }
     ]
   })
