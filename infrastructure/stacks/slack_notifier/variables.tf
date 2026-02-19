@@ -45,14 +45,8 @@ variable "enable_xray_tracing" {
   default     = true
 }
 
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services (CloudWatch Logs)"
-  type        = bool
-  default     = true
-}
-
-variable "slack_egress_cidr" {
-  description = "CIDR block for Slack webhook egress traffic"
+variable "allow_slack_webhook_egress" {
+  description = "Allows HTTPS egress to the internet for Slack webhooks"
   type        = string
   default     = "0.0.0.0/0"
 }

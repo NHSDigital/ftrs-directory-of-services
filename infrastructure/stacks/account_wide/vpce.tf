@@ -47,3 +47,17 @@ resource "aws_vpc_endpoint" "interface_vpce" {
     Name = "${local.resource_prefix}-${each.key}-vpc-endpoint"
   }
 }
+
+resource "aws_vpc_endpoint" "slack_notifier_logs" {
+  count               = var.slack_notifier_stack_enabled ? 1 : 0
+  vpc_id              = module.vpc.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [module.vpc.private_subnets[0], module.vpc.private_subnets[1], module.vpc.private_subnets[2]]
+  security_group_ids  = [aws_security_group.vpce_interface_security_group.id]
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${local.resource_prefix}-slack-notifier-logs-vpce"
+  }
+}

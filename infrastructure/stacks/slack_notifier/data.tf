@@ -24,6 +24,14 @@ data "aws_subnets" "private" {
   }
 }
 
+data "aws_security_group" "vpce_interface_sg" {
+  count = local.stack_enabled
+  filter {
+    name   = "tag:Name"
+    values = ["${local.resource_prefix}-vpce-interface-sg"]
+  }
+}
+
 data "aws_s3_object" "slack_notifier_lambda" {
   count  = local.stack_enabled
   bucket = local.artefacts_bucket
