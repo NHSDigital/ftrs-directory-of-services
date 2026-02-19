@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from functions.organization_headers import (
     VERSION_VALUE,
-    InvalidRequestIdError,
     InvalidVersionError,
     OrganizationHeaders,
 )
@@ -116,12 +115,12 @@ class TestOrganizationHeaders:
             exc_info.value.errors()[0]["ctx"]["error"].__class__ == InvalidVersionError
         )
 
-    def test_invalid_req_id_validation(self):
+    def test_empty_nhsd_request_id_treated_as_missing(self):
         # Arrange
         headers = {
             "authorization": "Bearer token123",
             "version": "1",
-            "nhsd-request-id": "",
+            "NHSD-Request-ID": "",
         }
 
         # Act & Assert
@@ -129,10 +128,8 @@ class TestOrganizationHeaders:
             OrganizationHeaders(**headers)
 
         assert len(exc_info.value.errors()) == 1
-        assert (
-            exc_info.value.errors()[0]["ctx"]["error"].__class__
-            == InvalidRequestIdError
-        )
+        assert exc_info.value.errors()[0]["type"] == "missing"
+        assert exc_info.value.errors()[0]["loc"] == ("nhsd-request-id",)
 
     def test_extra_fields_forbidden(self):
         # Arrange

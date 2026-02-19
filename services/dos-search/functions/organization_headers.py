@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+NHSD_REQUEST_ID = "nhsd-request-id"
+
 VERSION_VALUE = "1"
 
 
@@ -14,21 +16,11 @@ class InvalidVersionError(ValueError):
         )
 
 
-class InvalidRequestIdError(ValueError):
-    """Raised when the NHSD Request Id header is invalid"""
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Invalid request-id value found in supplied headers: X-Request-ID must be set and be a UUID v4"
-        )
-
-
 class OrganizationHeaders(BaseModel):
-    authorization: str | None = Field(default=None, alias="authorization")
-
     version: str = Field(alias="version")
-    nhsd_request_id: str = Field(alias="nhsd-request-id")
+    nhsd_request_id: str = Field(alias=NHSD_REQUEST_ID)
 
+    authorization: str | None = Field(default=None, alias="authorization")
     content_type: str | None = Field(default=None, alias="content-type")
     nhsd_correlation_id: str | None = Field(default=None, alias="nhsd-correlation-id")
     x_correlation_id: str | None = Field(default=None, alias="x-correlation-id")
@@ -54,9 +46,10 @@ class OrganizationHeaders(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def normalize_fields(cls, data: Any) -> Any:  # noqa: ANN401
+    def transform_input(cls, data: Any) -> Any:  # noqa: ANN401
         if isinstance(data, dict):
-            return {k.lower(): v for k, v in data.items()}
+            data = cls._normalize_fields(data)
+            data = cls._remove_empty_nhsd_request_id(data)
         return data
 
     @field_validator("version")
@@ -66,13 +59,6 @@ class OrganizationHeaders(BaseModel):
             raise InvalidVersionError
         return v
 
-    @field_validator("nhsd_request_id")
-    @classmethod
-    def validate_request_id(cls, req_id: str) -> str:
-        if req_id == "":
-            raise InvalidRequestIdError
-        return req_id
-
     @classmethod
     def get_allowed_headers(cls) -> list[str]:
         """Get allowed headers from OrganizationHeaders model."""
@@ -81,3 +67,14 @@ class OrganizationHeaders(BaseModel):
             for field_info in cls.model_fields.values()
             if field_info.alias
         )
+
+    @classmethod
+    def _normalize_fields(cls, data: dict) -> dict:
+        return {k.lower(): v for k, v in data.items()}
+
+    @classmethod
+    def _remove_empty_nhsd_request_id(cls, data: dict) -> dict:
+        if data.get(NHSD_REQUEST_ID) == "":
+            data = data.copy()
+            data.pop(NHSD_REQUEST_ID)
+        return data
