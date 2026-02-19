@@ -1,9 +1,3 @@
-variable "slack_notifier_stack_enabled" {
-  description = "Enable or disable the slack_notifier stack"
-  type        = bool
-  default     = true
-}
-
 variable "slack_webhook_alarms_url" {
   description = "Slack webhook URL for alarm notifications"
   type        = string
