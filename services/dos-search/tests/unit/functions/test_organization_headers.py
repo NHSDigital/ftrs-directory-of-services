@@ -79,8 +79,8 @@ class TestOrganizationHeaders:
 
     @pytest.mark.parametrize(
         "missing_field",
-        ["authorization", "version", "nhsd-request-id"],
-        ids=["missing authorization", "missing version", "missing nhsd-request-id"],
+        ["version", "nhsd-request-id"],
+        ids=["missing version", "missing nhsd-request-id"],
     )
     def test_missing_required_fields(self, missing_field):
         # Arrange

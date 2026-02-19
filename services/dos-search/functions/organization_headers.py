@@ -24,7 +24,8 @@ class InvalidRequestIdError(ValueError):
 
 
 class OrganizationHeaders(BaseModel):
-    authorization: str = Field(alias="authorization")
+    authorization: str | None = Field(default=None, alias="authorization")
+
     version: str = Field(alias="version")
     nhsd_request_id: str = Field(alias="nhsd-request-id")
 
