@@ -13,7 +13,7 @@ Feature: API DoS Service validates headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with code "required"
     And the OperationOutcome contains an issue with diagnostics "Missing the following mandatory header(s): <missing_headers>"
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
     Examples:
@@ -28,7 +28,7 @@ Feature: API DoS Service validates headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with code "required"
     And the OperationOutcome contains an issue with diagnostics "Invalid version found in supplied headers: version must be '1'"
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
 
@@ -38,6 +38,6 @@ Feature: API DoS Service validates headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "value"
+    And the OperationOutcome contains an issue with code "required"
     And the OperationOutcome contains an issue with diagnostics "Unexpected header(s): evil-header."
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
