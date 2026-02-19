@@ -1,8 +1,10 @@
 """Utility functions for version history tracking."""
 
+import json
 from typing import Any, Dict
 
 from boto3.dynamodb.types import TypeDeserializer
+from deepdiff import DeepDiff
 
 DESERIALIZER = TypeDeserializer()
 
@@ -60,3 +62,42 @@ def extract_changed_by(new_image: Dict[str, Any]) -> Dict[str, str]:
         "value": last_updated_by.get("value", "INTERNAL001"),
         "display": last_updated_by.get("display", "Data Migration"),
     }
+
+
+def compute_field_delta(old_value: Any, new_value: Any) -> Dict[str, Any]:  # noqa: ANN401
+    """
+    Compute a structured delta between old and new field values.
+
+    For simple values (str, int, bool, None), returns {"old": old_value, "new": new_value}.
+    For complex values (dict, list), uses DeepDiff to compute a detailed delta.
+
+    Args:
+        old_value: Previous field value
+        new_value: New field value
+
+    Returns:
+        Dictionary with delta information:
+        - For simple values: {"old": <value>, "new": <value>}
+        - For complex values: {"old": <value>, "new": <value>, "diff": <deepdiff_json>}
+    """
+    # Simple types: return old/new
+    if not isinstance(old_value, (dict, list)) and not isinstance(
+        new_value, (dict, list)
+    ):
+        return {"old": old_value, "new": new_value}
+
+    # Type mismatch: return old/new
+    if type(old_value) is not type(new_value):
+        return {"old": old_value, "new": new_value}
+
+    # Complex types: compute detailed diff
+    diff = DeepDiff(
+        old_value,
+        new_value,
+        view="tree",
+        threshold_to_diff_deeper=0,
+        ignore_order=True,
+    )
+
+    diff_json = json.loads(diff.to_json())
+    return {"old": old_value, "new": new_value, "diff": diff_json}

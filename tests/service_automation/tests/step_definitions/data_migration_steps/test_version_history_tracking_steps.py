@@ -261,7 +261,6 @@ def verify_no_version_history_record(
 def verify_version_history_timestamp_step(
     migration_context: Dict[str, Any],
 ) -> None:
-    """Verify the version history record has a valid ISO8601 timestamp."""
     version_record = migration_context.get("version_record")
     assert version_record, "No version history record in context"
 

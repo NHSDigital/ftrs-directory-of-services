@@ -36,7 +36,7 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
     # Use ENDPOINT_URL from environment if set (for local testing)
     endpoint_url = os.getenv("ENDPOINT_URL")
     dynamodb = get_dynamodb_resource(endpoint_url=endpoint_url)
-    # Get DynamoDB resource and version history table
+
     version_history_table_name = get_table_name("version-history")
     version_history_table = dynamodb.Table(version_history_table_name)
 
@@ -46,7 +46,6 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
         try:
             process_stream_record(record, version_history_table)
         except Exception as e:
-            # Log error and add to batch failures
             sequence_number = record.dynamodb.sequence_number
             LOGGER.log(
                 VersionHistoryLogBase.VH_HANDLER_002,
