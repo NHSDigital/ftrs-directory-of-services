@@ -266,65 +266,63 @@ class DataMigrationLogBase(LogBase):
         level=INFO, message="Data Migration Queue Populator completed"
     )
 
+
 class VersionHistoryLogBase(LogBase):
     """
     LogBase for Version History operations
     """
 
     VH_HANDLER_001 = LogReference(
-        level=INFO,
-        message="Processing {record_count} stream records"
+        level=INFO, message="Processing {record_count} stream records"
     )
     VH_HANDLER_002 = LogReference(
         level=ERROR,
-        message="Failed to process record with sequence number {sequence_number}: {error}"
+        message="Failed to process record with sequence number {sequence_number}: {error}",
     )
     VH_HANDLER_003 = LogReference(
         level=INFO,
-        message="Completed processing: {successful_count}/{total_count} successful, {failed_count} failed"
+        message="Completed processing: {successful_count}/{total_count} successful, {failed_count} failed",
     )
 
     VH_PROCESSOR_001 = LogReference(
         level=DEBUG,
-        message="No change detected for {entity_name}/{record_id}/{field_name}, skipping version history"
+        message="No change detected for {entity_name}/{record_id}/{field_name}, skipping version history",
     )
     VH_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Version history recorded for {entity_id}: {change_type} on fields {changed_fields}"
+        message="Version history recorded for {entity_id}: {change_type} on fields {changed_fields}",
     )
     VH_PROCESSOR_003 = LogReference(
         level=DEBUG,
-        message="Processing stream record: entity={entity_name}, record_id={record_id}, field={field_name}, event_type={event_type}"
+        message="Processing stream record: entity={entity_name}, record_id={record_id}, field={field_name}, event_type={event_type}",
     )
     VH_PROCESSOR_004 = LogReference(
         level=DEBUG,
-        message="Change detected: old_value={old_value}, new_value={new_value}"
+        message="Change detected: old_value={old_value}, new_value={new_value}",
     )
     VH_PROCESSOR_005 = LogReference(
-        level=DEBUG,
-        message="Writing version history item to table: {version_item}"
+        level=DEBUG, message="Writing version history item to table: {version_item}"
     )
     VH_PROCESSOR_006 = LogReference(
         level=DEBUG,
-        message="Extracted stream record data: entity_name={entity_name}, record_id={record_id}, field_name={field_name}, has_old_image={has_old_image}, has_new_image={has_new_image}, keys={keys}"
+        message="Extracted stream record data: entity_name={entity_name}, record_id={record_id}, field_name={field_name}, has_old_image={has_old_image}, has_new_image={has_new_image}, keys={keys}",
     )
     VH_PROCESSOR_007 = LogReference(
         level=DEBUG,
-        message="Resolved event configuration: event_name={event_name}, change_type={change_type}, old_val_present={old_val_present}, new_val_present={new_val_present}"
+        message="Resolved event configuration: event_name={event_name}, change_type={change_type}, old_val_present={old_val_present}, new_val_present={new_val_present}",
     )
     VH_PROCESSOR_008 = LogReference(
         level=DEBUG,
-        message="Computed field delta: field_name={field_name}, delta_keys={delta_keys}, has_diff={has_diff}"
+        message="Computed field delta: field_name={field_name}, delta_keys={delta_keys}, has_diff={has_diff}",
     )
     VH_PROCESSOR_009 = LogReference(
         level=DEBUG,
-        message="Extracted change metadata: changed_by_type={changed_by_type}, changed_by_value={changed_by_value}, changed_by_display={changed_by_display}"
+        message="Extracted change metadata: changed_by_type={changed_by_type}, changed_by_value={changed_by_value}, changed_by_display={changed_by_display}",
     )
     VH_PROCESSOR_010 = LogReference(
         level=DEBUG,
-        message="Prepared version history identifiers: entity_id={entity_id}, timestamp={timestamp}"
+        message="Prepared version history identifiers: entity_id={entity_id}, timestamp={timestamp}",
     )
-
 
 
 class UtilsLogBase(LogBase):
