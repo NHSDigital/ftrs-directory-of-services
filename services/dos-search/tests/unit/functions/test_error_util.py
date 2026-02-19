@@ -294,10 +294,7 @@ class TestErrorUtil:
         assert issue.severity == "error"
         assert issue.code == "required"
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
-        assert (
-            issue.diagnostics
-            == "Missing required header(s): 'version'"
-        )
+        assert issue.diagnostics == "Missing required header(s): 'version'"
 
     def test_create_missing_mandatory_header_operation_outcome_empty_list(self):
         headers = {}
