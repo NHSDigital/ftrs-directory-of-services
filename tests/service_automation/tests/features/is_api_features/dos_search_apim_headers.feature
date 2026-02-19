@@ -15,7 +15,7 @@ Feature: API DoS Service validates headers
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Missing the following mandatory header(s): <missing_headers>"
-    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST_CODING coding
+    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
     Examples:
       | headers                    | missing_headers          |
       | {"X-Request-Id": "req_id"} | version                  |
@@ -30,7 +30,7 @@ Feature: API DoS Service validates headers
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Invalid version found in supplied headers: version must be '1'"
-    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST_CODING coding
+    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
 
   Scenario: I cannot search APIM for GP Endpoint with an unexpected header
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "{"X-Request-Id": "req_id", "version": "1", "evil-header": "DROP TABLES"}"
@@ -40,4 +40,4 @@ Feature: API DoS Service validates headers
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Unexpected header(s): evil-header."
-    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST_CODING coding
+    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding

@@ -65,14 +65,14 @@ Feature: API DoS Service Search Backend
       | identifier=odsOrganisationCode\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCode |
 
 
-  Scenario Outline: I search for GP Endpoint with 1 missing parameter
+  Scenario Outline: I search for GP Endpoint with missing parameters
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter(s): '<missing_param>'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required query parameter(s): '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
       | params                                                             | missing_param           |

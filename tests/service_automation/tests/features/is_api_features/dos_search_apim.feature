@@ -72,7 +72,7 @@ Feature: API DoS Service Search APIM
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter(s): '<missing_param>'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required query parameter(s): '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
     | params                                                             | missing_param           |
