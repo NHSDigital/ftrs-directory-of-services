@@ -332,7 +332,7 @@ class TestErrorUtil:
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert (
             issue.diagnostics
-            == "Missing required header(s): 'version', 'nhsd-request-id'"
+            == "Missing required header(s): 'version', 'x-request-id'"
         )
 
     def test_multiple_validation_errors(self):

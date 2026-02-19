@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from typing import Any, Type
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
-from organization_headers import X_REQUEST_ID
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
 from functions.organization_headers import (
     NHSD_REQUEST_ID,
+    X_REQUEST_ID,
     InvalidVersionError,
     OrganizationHeaders,
 )
