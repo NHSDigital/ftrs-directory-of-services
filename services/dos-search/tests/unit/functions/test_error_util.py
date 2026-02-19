@@ -296,6 +296,25 @@ class TestErrorUtil:
         assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
         assert issue.diagnostics == "Missing required header(s): 'version'"
 
+    def test_create_missing_mandatory_header_has_mapped_request_id_operation_outcome(
+        self,
+    ):
+        headers = {"version": "1"}
+
+        validation_error = _get_validation_error(
+            lambda: OrganizationHeaders.model_validate(headers)
+        )
+
+        result = create_validation_error_operation_outcome(validation_error)
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        issue = result.issue[0]
+        assert issue.severity == "error"
+        assert issue.code == "required"
+        assert issue.details.model_dump() == REC_BAD_REQUEST_CODING
+        assert issue.diagnostics == "Missing required header(s): 'x-request-id'"
+
     def test_create_missing_mandatory_header_operation_outcome_empty_list(self):
         headers = {}
 

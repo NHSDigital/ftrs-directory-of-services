@@ -3,6 +3,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 NHSD_REQUEST_ID = "nhsd-request-id"
+X_REQUEST_ID = "x-request-id"
 
 VERSION_VALUE = "1"
 
@@ -24,7 +25,7 @@ class OrganizationHeaders(BaseModel):
     content_type: str | None = Field(default=None, alias="content-type")
     nhsd_correlation_id: str | None = Field(default=None, alias="nhsd-correlation-id")
     x_correlation_id: str | None = Field(default=None, alias="x-correlation-id")
-    x_request_id: str | None = Field(default=None, alias="x-request-id")
+    x_request_id: str | None = Field(default=None, alias=X_REQUEST_ID)
     end_user_role: str | None = Field(default=None, alias="end-user-role")
     application_id: str | None = Field(default=None, alias="application-id")
     application_name: str | None = Field(default=None, alias="application-name")

@@ -3,9 +3,15 @@ from dataclasses import dataclass
 from typing import Any, Type
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
+from organization_headers import X_REQUEST_ID
 from pydantic import ValidationError
+from pydantic_core import ErrorDetails
 
-from functions.organization_headers import InvalidVersionError, OrganizationHeaders
+from functions.organization_headers import (
+    NHSD_REQUEST_ID,
+    InvalidVersionError,
+    OrganizationHeaders,
+)
 from functions.organization_query_params import (
     InvalidIdentifierSystem,
     InvalidRevincludeError,
@@ -63,6 +69,10 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
 FRIENDLY_MODEL_NAME_MAP: dict[str, str] = {
     OrganizationQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
     OrganizationHeaders.__name__: FRIENDLY_NAME_HEADERS,
+}
+
+PROXY_HEADER_BY_INTERNAL_HEADER_MAP: dict[str, str] = {
+    NHSD_REQUEST_ID: X_REQUEST_ID,
 }
 
 
@@ -186,9 +196,11 @@ def _extract_validation_error_error_details_by_type(
 
     for error in exception.errors():
         error_type = error.get("type", "unknown")
+        field_name = _extract_field_name(error, friendly_name)
+
         error_details_by_type[error_type].append(
             ErrorDetail(
-                field=error.get("loc", ("unknown",))[0],
+                field=field_name,
                 value=error.get("input"),
                 custom_error=error.get("ctx", {}).get("error"),
             )
@@ -200,6 +212,15 @@ def _extract_validation_error_error_details_by_type(
         )
         for error_type, errors in error_details_by_type.items()
     ]
+
+
+def _extract_field_name(error: ErrorDetails, friendly_name: str) -> int | str:
+    field_name = error.get("loc", ("unknown",))[0]
+
+    if friendly_name == FRIENDLY_NAME_HEADERS:
+        field_name = PROXY_HEADER_BY_INTERNAL_HEADER_MAP.get(field_name, field_name)
+
+    return field_name
 
 
 def _get_details(error_group: ErrorGroup) -> dict[str, list]:
