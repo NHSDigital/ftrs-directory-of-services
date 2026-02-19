@@ -54,7 +54,7 @@ runs:
           )
 
           echo "command_id (Generate Certificates and Keys)=$COMMAND_ID"
-          echo "command_id=$COMMAND_ID" >> $GITHUB_OUTPUT
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
 
     - name: Wait for Certificate Generation
       shell: bash

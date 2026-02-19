@@ -192,7 +192,7 @@ jobs:
             echo "duration=$DURATION"
             echo "throughput=$THROUGHPUT"
             echo "throughput_period=$THROUGHPUT_PERIOD"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: "Derive Endpoint URL"
         id: derive-endpoint
@@ -215,7 +215,7 @@ jobs:
             APIM_ENVS["int"]="int"
             APIM_ENVS["ref"]="ref"
 
-            APIM_ENV=${APIM_ENVS[$ENVIRONMENT]}
+            APIM_ENV="${APIM_ENVS[$ENVIRONMENT]}"
 
             if [ "$WORKSPACE" ==  "default" ]; then
               ENDPOINT="${APIM_ENV}.api.service.nhs.uk/dos-search/FHIR/R4"
@@ -227,7 +227,7 @@ jobs:
           {
             echo "endpoint=$ENDPOINT"
             echo "apim_env=$APIM_ENV"
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: "Configure AWS credentials"
         uses: ./.github/actions/configure-credentials

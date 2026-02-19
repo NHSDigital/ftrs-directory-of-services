@@ -25,4 +25,4 @@ runs:
           --query "Reservations[0].Instances[0].InstanceId" \
           --output text)
 
-        echo "ec2_instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+        echo "ec2_instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
