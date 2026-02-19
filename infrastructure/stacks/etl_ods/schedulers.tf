@@ -3,11 +3,12 @@ resource "aws_scheduler_schedule_group" "etl_schedule_group" {
 }
 
 resource "aws_scheduler_schedule" "ods_etl_schedule" {
-  # checkov:skip=CKV_AWS_297: TODO Determine if we need a KMS key for Scheduler
+
   name        = "${local.resource_prefix}-ods-etl-schedule${local.workspace_suffix}"
   group_name  = aws_scheduler_schedule_group.etl_schedule_group.name
   description = "Schedule to trigger the ODS ETL extractor lambda"
   state       = local.is_primary_environment ? "ENABLED" : "DISABLED"
+  kms_key_arn = data.aws_kms_key.scheduler_kms_key.arn
 
   flexible_time_window {
     mode = "OFF"
