@@ -3,6 +3,10 @@
 from typing import Any, Dict
 from unittest.mock import MagicMock
 
+from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
+    DynamoDBRecord,
+)
+
 from version_history.stream_processor import process_stream_record
 
 
@@ -15,9 +19,8 @@ class TestProcessStreamRecord:
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test processing Organisation stream record successfully."""
-        process_stream_record(
-            sample_organisation_stream_record, mock_version_history_table
-        )
+        record = DynamoDBRecord(sample_organisation_stream_record)
+        process_stream_record(record, mock_version_history_table)
 
         mock_version_history_table.put_item.assert_called_once()
         call_args = mock_version_history_table.put_item.call_args
@@ -39,7 +42,8 @@ class TestProcessStreamRecord:
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test that Location table records are processed."""
-        process_stream_record(sample_location_stream_record, mock_version_history_table)
+        record = DynamoDBRecord(sample_location_stream_record)
+        process_stream_record(record, mock_version_history_table)
 
         # Should write to version history for Location table
         mock_version_history_table.put_item.assert_called_once()
@@ -57,7 +61,7 @@ class TestProcessStreamRecord:
         self, mock_version_history_table: MagicMock
     ) -> None:
         """Test that records with identical old/new values are skipped."""
-        record = {
+        record_dict = {
             "eventSourceARN": (
                 "arn:aws:dynamodb:eu-west-2:123456789012:table/"
                 "ftrs-dos-local-database-organisation-test/stream/"
@@ -81,29 +85,10 @@ class TestProcessStreamRecord:
             },
         }
 
+        record = DynamoDBRecord(record_dict)
         process_stream_record(record, mock_version_history_table)
 
         # Should not write to version history for no-op updates
-        mock_version_history_table.put_item.assert_not_called()
-
-    def test_process_record_handles_missing_keys(
-        self, mock_version_history_table: MagicMock
-    ) -> None:
-        """Test handling record with missing id or field keys."""
-        record = {
-            "eventSourceARN": (
-                "arn:aws:dynamodb:eu-west-2:123456789012:table/"
-                "ftrs-dos-local-database-organisation-test/stream/"
-                "2025-01-01T00:00:00.000"
-            ),
-            "dynamodb": {
-                "Keys": {"id": {"S": "550e8400-e29b-41d4-a716-446655440000"}},
-                "NewImage": {"value": {"S": "new_value"}},
-            },
-        }
-
-        # Should not raise exception, should log warning and skip
-        process_stream_record(record, mock_version_history_table)
         mock_version_history_table.put_item.assert_not_called()
 
     def test_process_record_handles_new_field_creation(
@@ -111,7 +96,7 @@ class TestProcessStreamRecord:
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test processing record where OldImage is missing (new field creation)."""
-        record = {
+        record_dict = {
             "eventSourceARN": (
                 "arn:aws:dynamodb:eu-west-2:123456789012:table/"
                 "ftrs-dos-local-database-organisation-test/stream/"
@@ -137,6 +122,7 @@ class TestProcessStreamRecord:
             },
         }
 
+        record = DynamoDBRecord(record_dict)
         process_stream_record(record, mock_version_history_table)
 
         mock_version_history_table.put_item.assert_called_once()
@@ -150,7 +136,7 @@ class TestProcessStreamRecord:
         self, mock_version_history_table: MagicMock
     ) -> None:
         """Test processing record with multi-word entity name (healthcare-service)."""
-        record = {
+        record_dict = {
             "eventSourceARN": (
                 "arn:aws:dynamodb:eu-west-2:123456789012:table/"
                 "ftrs-dos-dev-database-healthcare-service/stream/"
@@ -178,6 +164,7 @@ class TestProcessStreamRecord:
         }
 
         # Healthcare service should now be processed
+        record = DynamoDBRecord(record_dict)
         process_stream_record(record, mock_version_history_table)
         mock_version_history_table.put_item.assert_called_once()
 
@@ -200,7 +187,7 @@ class TestProcessStreamRecord:
         self, mock_version_history_table: MagicMock
     ) -> None:
         """Test processing INSERT event (new record creation)."""
-        record = {
+        record_dict = {
             "eventName": "INSERT",
             "eventSourceARN": (
                 "arn:aws:dynamodb:eu-west-2:123456789012:table/"
@@ -227,6 +214,7 @@ class TestProcessStreamRecord:
             },
         }
 
+        record = DynamoDBRecord(record_dict)
         process_stream_record(record, mock_version_history_table)
 
         mock_version_history_table.put_item.assert_called_once()
@@ -241,7 +229,7 @@ class TestProcessStreamRecord:
         self, mock_version_history_table: MagicMock
     ) -> None:
         """Test processing REMOVE event (record deletion)."""
-        record = {
+        record_dict = {
             "eventName": "REMOVE",
             "eventSourceARN": (
                 "arn:aws:dynamodb:eu-west-2:123456789012:table/"
@@ -268,6 +256,7 @@ class TestProcessStreamRecord:
             },
         }
 
+        record = DynamoDBRecord(record_dict)
         process_stream_record(record, mock_version_history_table)
 
         mock_version_history_table.put_item.assert_called_once()

@@ -1,5 +1,3 @@
-"""Version history model for tracking changes to FHIR resources."""
-
 from typing import Any, Dict
 
 from ftrs_data_layer.domain.auditevent import AuditEvent

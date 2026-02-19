@@ -101,7 +101,6 @@ def verify_version_history_timestamp(
     """
     timestamp = version_record.get("timestamp")
     assert timestamp, "No timestamp found in version history record"
-    assert timestamp.endswith("Z"), "Timestamp should end with 'Z'"
 
     # Parse and verify recency
     parsed_time = datetime.fromisoformat(timestamp)

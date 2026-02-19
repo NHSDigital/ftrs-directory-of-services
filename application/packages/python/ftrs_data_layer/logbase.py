@@ -266,6 +266,34 @@ class DataMigrationLogBase(LogBase):
         level=INFO, message="Data Migration Queue Populator completed"
     )
 
+class VersionHistoryLogBase(LogBase):
+    """
+    LogBase for Version History operations
+    """
+
+    VH_HANDLER_001 = LogReference(
+        level=INFO,
+        message="Processing {record_count} stream records"
+    )
+    VH_HANDLER_002 = LogReference(
+        level=ERROR,
+        message="Failed to process record with sequence number {sequence_number}: {error}"
+    )
+    VH_HANDLER_003 = LogReference(
+        level=INFO,
+        message="Completed processing: {successful_count}/{total_count} successful, {failed_count} failed"
+    )
+
+    VH_PROCESSOR_001 = LogReference(
+        level=DEBUG,
+        message="No change detected for {entity_name}/{record_id}/{field_name}, skipping version history"
+    )
+    VH_PROCESSOR_002 = LogReference(
+        level=INFO,
+        message="Version history recorded for {entity_id}: {change_type} on fields {changed_fields}"
+    )
+
+
 
 class UtilsLogBase(LogBase):
     """

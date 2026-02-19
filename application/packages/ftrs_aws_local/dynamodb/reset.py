@@ -227,17 +227,28 @@ def clear_table_without_model(
     for page in paginator.paginate(TableName=table_name):
         items_to_delete.extend(page.get("Items", []))
 
-    # Then delete them with progress tracking
-    for item in track(
-        items_to_delete,
+    # Then delete them in batches with progress tracking (up to 25 items per batch)
+    batch_size = 25
+    for i in track(
+        range(0, len(items_to_delete), batch_size),
         description=f"Deleting items from {entity_name}",
         transient=True,
     ):
-        key = {hash_key: item[hash_key]}
-        if range_key:
-            key[range_key] = item[range_key]
-        client.delete_item(TableName=table_name, Key=key)
-        count += 1
+        batch = items_to_delete[i : i + batch_size]
+        delete_requests = [
+            {
+                "DeleteRequest": {
+                    "Key": {
+                        hash_key: item[hash_key],
+                        **({range_key: item[range_key]} if range_key else {}),
+                    }
+                }
+            }
+            for item in batch
+        ]
+
+        client.batch_write_item(RequestItems={table_name: delete_requests})
+        count += len(batch)
 
     return count
 
