@@ -18,17 +18,17 @@ Feature: API DoS Service validates headers
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
     Examples:
       | headers                    | missing_headers          |
-      | {"X-Request-Id": "req_id"} | version                  |
-      | {"version": "1"}           | nhsd-request-id          |
-      | {}                         | version, nhsd-request-id |
+      | {'X-Request-Id': 'req_id'} | 'version'                  |
+      | {'version': '1'}           | 'x-request-id'          |
+      | {}                         | 'version', 'x-request-id' |
 
   Scenario: I cannot search APIM for GP Endpoint with an invalid version
-    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "{"X-Request-Id": "req_id", "version": "2"}"
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "{'X-Request-Id': 'req_id', 'version': '2'}"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "required"
+    And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Invalid version found in supplied headers: version must be '1'"
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
 
@@ -38,6 +38,6 @@ Feature: API DoS Service validates headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
-    And the OperationOutcome contains an issue with code "required"
+    And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Unexpected header(s): evil-header."
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
