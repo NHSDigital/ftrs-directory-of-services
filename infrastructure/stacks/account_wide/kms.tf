@@ -174,3 +174,11 @@ module "firehose_encryption_key" {
   aws_service_name = "firehose.amazonaws.com"
   description      = "Encryption key for Firehose in ${var.environment} environment"
 }
+
+module "scheduler_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.scheduler
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "scheduler.amazonaws.com"
+  description      = "Encryption key for EventBridge scheduler in ${var.environment} environment"
+}
