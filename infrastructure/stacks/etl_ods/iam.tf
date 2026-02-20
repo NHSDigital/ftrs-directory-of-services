@@ -23,7 +23,7 @@ resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
           "kms:CreateGrant",
           "kms:ReEncrypt"
         ]
-        resources = [data.aws_kms_key.scheduler_kms_key.arn]
+        Resource = [data.aws_kms_key.scheduler_kms_key.arn]
       }
     ]
   })
