@@ -15,6 +15,8 @@ on:
         options:
           - dev
           - test
+          - int
+          - ref
       stop-ec2-instance:
         description: "Whether to stop the EC2 instance running the performance test"
         required: false
