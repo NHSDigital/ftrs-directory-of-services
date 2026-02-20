@@ -456,7 +456,7 @@ def test_build_healthcare_service(
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
         location="6ef3317e-c6dc-5e27-b36d-577c375eb060",
-        name="Test Service",
+        name="Public Test Service",
         telecom=HealthcareServiceTelecom(
             phone_public="01234 567890",
             phone_private="09876 543210",
