@@ -78,13 +78,11 @@ This directory contains example event payloads for testing Lambda functions loca
 
 ---
 
-## Version History Stream Events
+## Version History Stream Event
 
-### Version History DynamoDB Stream Event
+**File**: `version-history-stream-event-document.json`
 
-**File**: `version-history-stream-event.json`
-
-**Purpose**: Simulates a DynamoDB stream event for testing the version history Lambda handler.
+**Purpose**: Simulates a DynamoDB stream event for document-level storage where the entire entity is stored at the top level with `field: "document"`.
 
 **Event Structure**:
 
@@ -92,18 +90,28 @@ This directory contains example event payloads for testing Lambda functions loca
 {
   "Records": [
     {
-      "eventID": "test-event-id",
+      "eventID": "test-event-doc-1",
       "eventName": "MODIFY",
       "dynamodb": {
         "Keys": {
-          "id": {"S": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
-          "field": {"S": "name"}
+          "id": {"S": "d0d6af8a-1138-5a2f-a4e2-5f489fb44653"},
+          "field": {"S": "document"}
         },
         "OldImage": {
-          "value": {"S": "Old Organisation Name"}
+          "id": {"S": "..."},
+          "field": {"S": "document"},
+          "name": {"S": "Old Practice Name"},
+          "active": {"BOOL": true},
+          "created": {"S": "2026-02-17T14:28:01.640710Z"},
+          "lastUpdated": {"S": "2026-02-17T14:28:01.640710Z"}
         },
         "NewImage": {
-          "value": {"S": "New Organisation Name"}
+          "id": {"S": "..."},
+          "field": {"S": "document"},
+          "name": {"S": "New Practice Name"},
+          "active": {"BOOL": true},
+          "created": {"S": "2026-02-17T14:28:01.640710Z"},
+          "lastUpdated": {"S": "2026-02-20T14:45:00.000000Z"}
         }
       }
     }
@@ -111,7 +119,15 @@ This directory contains example event payloads for testing Lambda functions loca
 }
 ```
 
-**Fields**:
+**Use Case**: Testing full document changes (e.g., Organisation, Location, HealthcareService entities)
+
+**Storage Pattern Notes**:
+
+- System fields (`id`, `field`, `created`, `lastUpdated`, `createdBy`, `lastUpdatedBy`) are automatically excluded from version history comparisons
+- The Lambda uses DeepDiff to compute detailed change deltas for document fields
+- Only meaningful changes are recorded; updates to metadata fields alone won't create version history entries
+
+**Common Fields**:
 
 - `eventID`: Unique event identifier
 - `eventName`: DynamoDB event type (`INSERT`, `MODIFY`, `REMOVE`)
@@ -153,11 +169,18 @@ poetry run pytest tests/unit/version_history/ -v
 
 #### Run with Python Directly
 
+**Important**: Set environment variables FIRST before running any commands:
+
 ```bash
 cd services/data-migration
 eval $(poetry env activate)
 
-# Ensure environment variables are exported first
+# MUST export these environment variables before running Lambda
+export ENDPOINT_URL=http://localhost:8000
+export ENVIRONMENT=local
+export AWS_REGION=eu-west-2
+
+# Test document-level storage pattern
 python -c "
 import json
 import sys
@@ -165,7 +188,7 @@ sys.path.insert(0, 'src')
 from version_history.lambda_handler import lambda_handler
 from unittest.mock import Mock
 
-with open('events/version-history-stream-event.json') as f:
+with open('events/version-history-stream-event-document.json') as f:
     event = json.load(f)
 
 context = Mock()
@@ -187,7 +210,19 @@ aws dynamodb scan \
     --table-name ftrs-dos-local-database-version-history \
     --endpoint-url http://localhost:8000 \
     --region eu-west-2
+
+# Query specific entity version history
+aws dynamodb query \
+    --table-name ftrs-dos-local-database-version-history \
+    --key-condition-expression "entity_id = :entity_id" \
+    --expression-attribute-values '{":entity_id": {"S": "organisation|d0d6af8a-1138-5a2f-a4e2-5f489fb44653|document"}}' \
+    --endpoint-url http://localhost:8000 \
+    --region eu-west-2
 ```
+
+**Expected Output**:
+
+- Version history entry with `change_type: "UPDATE"`, document field, and detailed DeepDiff changes
 
 #### Troubleshooting
 

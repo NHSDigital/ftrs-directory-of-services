@@ -63,10 +63,47 @@ def _determine_change_type(
     event_name: str,
     old_image: Optional[Dict[str, Any]],
     new_image: Optional[Dict[str, Any]],
+    field_name: str,
 ) -> tuple[str, Any, Any]:
     """Map DynamoDB event to change type and extract values."""
-    old_value = old_image.get("value") if old_image else None
-    new_value = new_image.get("value") if new_image else None
+    # System/metadata fields to exclude when extracting document values
+    SYSTEM_FIELDS = {
+        "id",
+        "field",
+        "created",
+        "lastUpdated",
+        "createdBy",
+        "lastUpdatedBy",
+    }
+
+    # For "document" field, the entire item (minus system fields) is the value
+    # For other fields, look for a "value" key
+    if field_name == "document":
+        old_value = (
+            {k: v for k, v in old_image.items() if k not in SYSTEM_FIELDS}
+            if old_image
+            else None
+        )
+        new_value = (
+            {k: v for k, v in new_image.items() if k not in SYSTEM_FIELDS}
+            if new_image
+            else None
+        )
+        LOGGER.log(
+            VersionHistoryLogBase.VH_PROCESSOR_017,
+            field_name=field_name,
+            is_document_field=True,
+            system_fields_count=len(SYSTEM_FIELDS),
+        )
+    else:
+        old_value = old_image.get("value") if old_image else None
+        new_value = new_image.get("value") if new_image else None
+        LOGGER.log(
+            VersionHistoryLogBase.VH_PROCESSOR_017,
+            field_name=field_name,
+            is_document_field=False,
+            system_fields_count=0,
+        )
 
     event_config = {
         "INSERT": ("CREATE", None, new_value),
@@ -187,7 +224,7 @@ def process_stream_record(
     )
 
     change_type, old_val, new_val = _determine_change_type(
-        event_name, old_image, new_image
+        event_name, old_image, new_image, field_name
     )
 
     field_delta = compute_field_delta(old_val, new_val)

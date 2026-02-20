@@ -365,6 +365,14 @@ class VersionHistoryLogBase(LogBase):
         level=DEBUG,
         message="Proceeding with UPDATE - complex values have diff: {diff}",
     )
+    VH_PROCESSOR_017 = LogReference(
+        level=DEBUG,
+        message=(
+            "Extracting values: field_name={field_name}, "
+            "is_document_field={is_document_field}, "
+            "system_fields_excluded={system_fields_count}"
+        ),
+    )
 
 
 class UtilsLogBase(LogBase):

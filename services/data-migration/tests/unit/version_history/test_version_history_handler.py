@@ -35,13 +35,13 @@ class TestLambdaHandler:
 
     def test_lambda_handler_processes_single_record(
         self,
-        sample_organisation_stream_record: Dict[str, Any],
+        sample_organisation_document_stream_record: Dict[str, Any],
         mock_lambda_context: LambdaContext,
         mock_dynamodb_resource: None,
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test lambda handler processes single record successfully."""
-        event = {"Records": [sample_organisation_stream_record]}
+        event = {"Records": [sample_organisation_document_stream_record]}
 
         result = lambda_handler(event, mock_lambda_context)
 
@@ -50,22 +50,40 @@ class TestLambdaHandler:
 
     def test_lambda_handler_processes_multiple_records(
         self,
-        sample_event_with_multiple_records: Dict[str, Any],
+        sample_organisation_document_stream_record: Dict[str, Any],
         mock_lambda_context: LambdaContext,
         mock_dynamodb_resource: None,
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test lambda handler processes multiple records."""
-        result = lambda_handler(sample_event_with_multiple_records, mock_lambda_context)
+        # Create a second document record with different data
+        second_record = copy.deepcopy(sample_organisation_document_stream_record)
+        second_record["dynamodb"]["SequenceNumber"] = "987654321"
+        second_record["dynamodb"]["Keys"]["id"]["S"] = (
+            "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1"
+        )
+        second_record["dynamodb"]["OldImage"]["id"]["S"] = (
+            "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1"
+        )
+        second_record["dynamodb"]["OldImage"]["name"]["S"] = "Different Practice Name"
+        second_record["dynamodb"]["NewImage"]["id"]["S"] = (
+            "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1"
+        )
+        second_record["dynamodb"]["NewImage"]["name"]["S"] = (
+            "Different Practice Name Updated"
+        )
+
+        event = {"Records": [sample_organisation_document_stream_record, second_record]}
+        result = lambda_handler(event, mock_lambda_context)
 
         assert result == {"batchItemFailures": []}
-        # Both Organisation and Location records should be processed
+        # Both records should be processed
         expected_record_count = 2
         assert mock_version_history_table.put_item.call_count == expected_record_count
 
     def test_lambda_handler_handles_partial_failures(
         self,
-        sample_organisation_stream_record: Dict[str, Any],
+        sample_organisation_document_stream_record: Dict[str, Any],
         mock_lambda_context: LambdaContext,
         mock_dynamodb_resource: None,
         mock_version_history_table: MagicMock,
@@ -74,11 +92,11 @@ class TestLambdaHandler:
         # Make put_item raise an exception
         mock_version_history_table.put_item.side_effect = Exception("DynamoDB error")
 
-        event = {"Records": [sample_organisation_stream_record]}
+        event = {"Records": [sample_organisation_document_stream_record]}
         result = lambda_handler(event, mock_lambda_context)
 
         assert len(result["batchItemFailures"]) == 1
-        assert result["batchItemFailures"][0]["itemIdentifier"] == "123456789"
+        assert result["batchItemFailures"][0]["itemIdentifier"] == "123456791"
 
     def test_lambda_handler_handles_empty_records(
         self,
@@ -96,20 +114,28 @@ class TestLambdaHandler:
 
     def test_lambda_handler_continues_after_single_failure(
         self,
-        sample_organisation_stream_record: Dict[str, Any],
+        sample_organisation_document_stream_record: Dict[str, Any],
         mock_lambda_context: LambdaContext,
         mock_dynamodb_resource: None,
         mock_version_history_table: MagicMock,
     ) -> None:
         """Test lambda handler continues processing after a single record fails."""
         # Create second successful record using deepcopy to avoid shared references
-        second_record = copy.deepcopy(sample_organisation_stream_record)
+        second_record = copy.deepcopy(sample_organisation_document_stream_record)
         second_record["dynamodb"]["SequenceNumber"] = "987654321"
-        second_record["dynamodb"]["Keys"]["field"]["S"] = "status"
-        second_record["dynamodb"]["OldImage"]["field"]["S"] = "status"
-        second_record["dynamodb"]["OldImage"]["value"]["S"] = "pending"
-        second_record["dynamodb"]["NewImage"]["field"]["S"] = "status"
-        second_record["dynamodb"]["NewImage"]["value"]["S"] = "active"
+        second_record["dynamodb"]["Keys"]["id"]["S"] = (
+            "f2f2f2f2-f2f2-f2f2-f2f2-f2f2f2f2f2f2"
+        )
+        second_record["dynamodb"]["OldImage"]["id"]["S"] = (
+            "f2f2f2f2-f2f2-f2f2-f2f2-f2f2f2f2f2f2"
+        )
+        second_record["dynamodb"]["OldImage"]["name"]["S"] = "Second Practice Name"
+        second_record["dynamodb"]["NewImage"]["id"]["S"] = (
+            "f2f2f2f2-f2f2-f2f2-f2f2-f2f2f2f2f2f2"
+        )
+        second_record["dynamodb"]["NewImage"]["name"]["S"] = (
+            "Second Practice Name Updated"
+        )
 
         # Make first call fail, second succeed
         mock_version_history_table.put_item.side_effect = [
@@ -117,12 +143,12 @@ class TestLambdaHandler:
             None,
         ]
 
-        event = {"Records": [sample_organisation_stream_record, second_record]}
+        event = {"Records": [sample_organisation_document_stream_record, second_record]}
         result = lambda_handler(event, mock_lambda_context)
 
         # Should have one failure but continue processing
         assert len(result["batchItemFailures"]) == 1
-        assert result["batchItemFailures"][0]["itemIdentifier"] == "123456789"
+        assert result["batchItemFailures"][0]["itemIdentifier"] == "123456791"
         # Both records attempted (one failed, one succeeded)
         expected_call_count = 2
         assert mock_version_history_table.put_item.call_count == expected_call_count
