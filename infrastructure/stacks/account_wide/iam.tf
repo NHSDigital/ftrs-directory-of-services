@@ -85,4 +85,3 @@ resource "aws_iam_role_policy" "cw_to_firehose_policy" {
     }]
   })
 }
-
