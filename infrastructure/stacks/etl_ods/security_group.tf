@@ -10,7 +10,7 @@ resource "aws_security_group" "etl_ods_lambda_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-# trivy:ignore:aws-vpc-no-public-egress-sgr : TODO https://nhsd-jira.digital.nhs.uk/browse/FTRS-386
+
 resource "aws_vpc_security_group_egress_rule" "etl_ods_allow_443" {
   count = local.is_primary_environment ? 1 : 0
 
