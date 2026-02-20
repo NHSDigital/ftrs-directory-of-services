@@ -232,7 +232,7 @@ class ServiceTransformer(ABC):
             type=type,
             providedBy=organisation_id,
             location=location_id,
-            name=service.publicname,
+            name=service.name,
             telecom=HealthcareServiceTelecom(
                 phone_public=service.publicphone,
                 phone_private=service.nonpublicphone,
