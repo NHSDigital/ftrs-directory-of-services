@@ -85,7 +85,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     trigger_eval_periods = alarm_data.get("Trigger_EvaluationPeriods", 1)
     timestamp_val = alarm_data.get("StateChangeTime")
     lambda_name = alarm_data.get("Trigger_Dimensions_0_value", "Unknown Lambda")
-    region_display = alarm_data.get("Region", "EU (London)")
+    region_display = alarm_data.get("Region", "Unknown Region")
     aws_region = extract_region_code(alarm_arn)
 
     logger.info(

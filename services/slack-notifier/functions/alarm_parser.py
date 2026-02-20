@@ -1,10 +1,11 @@
 """Parse and extract data from CloudWatch alarm messages."""
 
 import json
-import logging
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from ftrs_common.logger import Logger
+
+logger = Logger.get("slack-notifier")
 
 
 def flatten_dict(data: dict[str, Any], parent_key: str = "", sep: str = "_") -> dict[str, Any]:

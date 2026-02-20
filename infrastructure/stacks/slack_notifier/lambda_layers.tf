@@ -1,4 +1,3 @@
-# Lambda layers for Slack notifier
 resource "aws_lambda_layer_version" "python_dependency_layer" {
   count               = local.stack_enabled
   layer_name          = "${local.resource_prefix}-python-dependency-layer"
@@ -9,12 +8,4 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   description         = "Python dependencies for Slack notifier Lambda"
 }
 
-resource "aws_lambda_layer_version" "common_packages_layer" {
-  count               = local.stack_enabled
-  layer_name          = "${local.resource_prefix}-common-packages-layer"
-  s3_bucket           = local.artefacts_bucket
-  s3_key              = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
-  s3_object_version   = data.aws_s3_object.common_packages_layer[0].version_id
-  compatible_runtimes = [var.lambda_runtime]
-  description         = "Common Python packages layer"
-}
+

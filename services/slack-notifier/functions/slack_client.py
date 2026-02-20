@@ -1,13 +1,13 @@
 """Slack webhook client for sending messages."""
 
 import json
-import logging
 import os
 from typing import Any
 
 import urllib3
+from ftrs_common.logger import Logger
 
-logger = logging.getLogger(__name__)
+logger = Logger.get("slack-notifier")
 
 http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=5.0, read=10.0))
 

@@ -1,48 +1,66 @@
-[tool.poetry]
+[project]
 name = "slack-notifier"
-version = "1.0.0"
+version = "0.1.0"
 description = "Slack notification service for AWS CloudWatch alarms"
-authors = ["NHS England"]
+authors = [
+    {name = "NHS England"}
+]
 readme = "README.md"
-packages = [{include = "functions"}, {include = "slack_alarm_handler.py"}]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "boto3 (>=1.37.24,<2.0.0)",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-requests = "^2.31.0"
-boto3 = "^1.34.0"
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+  { include = "functions" }
+]
+
+[tool.poetry.group.shared.dependencies]
+ftrs-python-packages = {path = "../../application/packages/python", develop = true}
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
-pytest-cov = "^4.0.0"
-pytest-mock = "^3.12.0"
-ruff = "^0.1.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^8.0.0"
-pytest-cov = "^4.0.0"
-pytest-mock = "^3.12.0"
+ruff = "^0.14.2"
+pytest = "^8.3.5"
+pytest-mock = "^3.14.0"
+pytest-cov = "^6.1.1"
 
 [tool.poetry.scripts]
-slack-notifier = "slack_alarm_handler:lambda_handler"
+slack-notifier = "functions.slack_alarm_handler:lambda_handler"
 
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.ruff]
-line-length = 120
+line-length = 88
+indent-width = 4
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "T20"]
-ignore = ["S101"]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "--cov=. --cov-report=xml --cov-report=term-missing"
+python_files = "test_*.py"
+testpaths = "tests"
+addopts = [
+    "-v",
+    "--cov=functions",
+    "--cov-report=term-missing",
+    "--cov-fail-under=80",
+    "--cov-branch",
+    "--cov-context=test"
+]

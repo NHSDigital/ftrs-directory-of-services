@@ -4,15 +4,14 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 """
 
 import json
-import logging
 from typing import Any
 
 from functions.alarm_parser import flatten_dict, parse_cloudwatch_alarm
 from functions.slack_client import get_slack_webhook_url, send_to_slack
 from functions.slack_formatter import build_slack_message
+from ftrs_common.logger import Logger
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = Logger.get("slack-notifier")
 
 
 class AlarmProcessingError(Exception):
