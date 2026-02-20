@@ -7,7 +7,6 @@ import pytest
 
 from version_history.utils import (
     compute_field_delta,
-    deserialize_dynamodb_item,
     extract_changed_by,
     extract_table_name_from_arn,
 )
@@ -62,73 +61,6 @@ class TestExtractTableNameFromArn:
         """Test extracting table names from various realistic ARNs."""
         result = extract_table_name_from_arn(arn)
         assert result == expected
-
-
-class TestDeserializeDynamoDBItem:
-    """Tests for deserialize_dynamodb_item function."""
-
-    def test_deserialize_string_values(self) -> None:
-        """Test deserializing string values."""
-        item = {
-            "name": {"S": "City Medical Centre"},
-            "identifier_ODS_ODSCode": {"S": "A12345"},
-        }
-        result = deserialize_dynamodb_item(item)
-        assert result == {
-            "name": "City Medical Centre",
-            "identifier_ODS_ODSCode": "A12345",
-        }
-
-    def test_deserialize_map_values(self) -> None:
-        """Test deserializing map (dict) values."""
-        item = {
-            "telecom": {
-                "M": {
-                    "phone_public": {"S": "0300 123 4567"},
-                    "email": {"S": "contact@practice.nhs.uk"},
-                    "web": {"S": "https://practice.nhs.uk"},
-                }
-            }
-        }
-        result = deserialize_dynamodb_item(item)
-        assert result == {
-            "telecom": {
-                "phone_public": "0300 123 4567",
-                "email": "contact@practice.nhs.uk",
-                "web": "https://practice.nhs.uk",
-            }
-        }
-
-    def test_deserialize_empty_item(self) -> None:
-        """Test deserializing empty item."""
-        item: Dict[str, Any] = {}
-        result = deserialize_dynamodb_item(item)
-        assert result == {}
-
-    def test_deserialize_number_values(self) -> None:
-        """Test deserializing number values."""
-        item = {
-            "positionReferenceNumber_UPRN": {"N": "12345678"},
-            "latitude": {"N": "51.5074"},
-        }
-        result = deserialize_dynamodb_item(item)
-        assert result == {
-            "positionReferenceNumber_UPRN": Decimal(12345678),
-            "latitude": Decimal("51.5074"),
-        }
-
-    def test_deserialize_boolean_values(self) -> None:
-        """Test deserializing boolean values."""
-        item = {"active": {"BOOL": True}, "primaryAddress": {"BOOL": False}}
-        result = deserialize_dynamodb_item(item)
-        assert result == {"active": True, "primaryAddress": False}
-
-    def test_deserialize_list_values(self) -> None:
-        """Test deserializing list values."""
-        item = {"dispositions": {"L": [{"S": "Dx01"}, {"S": "Dx02"}]}}
-        result = deserialize_dynamodb_item(item)
-        assert result == {"dispositions": ["Dx01", "Dx02"]}
-
 
 class TestExtractChangedBy:
     """Tests for extract_changed_by function."""

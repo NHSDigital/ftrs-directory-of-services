@@ -24,19 +24,6 @@ def extract_table_name_from_arn(event_source_arn: str) -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
-def deserialize_dynamodb_item(item: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Deserialize DynamoDB format to Python objects.
-
-    Args:
-        item: DynamoDB item with type descriptors (e.g., {"field": {"S": "value"}})
-
-    Returns:
-        Deserialized Python dict
-    """
-    return {k: DESERIALIZER.deserialize(v) for k, v in item.items()}
-
-
 def extract_changed_by(new_image: Dict[str, Any]) -> Dict[str, str]:
     """
     Extract ChangedBy information from NewImage's lastUpdatedBy field.
