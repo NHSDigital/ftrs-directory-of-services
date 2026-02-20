@@ -1,6 +1,5 @@
 """Unit tests for version history utility functions."""
 
-from decimal import Decimal
 from typing import Any, Dict
 
 import pytest
