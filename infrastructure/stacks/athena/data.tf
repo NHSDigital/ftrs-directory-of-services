@@ -55,8 +55,3 @@ data "aws_kms_key" "dynamodb_kms_key" {
   count  = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
   key_id = local.kms_aliases.dynamodb
 }
-
-data "aws_kms_key" "dynamodb_kms_key" {
-  count  = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
-  key_id = local.kms_aliases.dynamodb
-}
