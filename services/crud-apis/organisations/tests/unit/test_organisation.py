@@ -442,7 +442,7 @@ def test_update_organisation_no_updates(
     }
     response = client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["issue"][0]["code"] == "information"
+    assert response.json()["issue"][0]["code"] == "not-updated"
     assert response.json()["issue"][0]["severity"] == "information"
     assert (
         response.json()["issue"][0]["diagnostics"]
