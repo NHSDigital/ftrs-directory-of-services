@@ -1,7 +1,13 @@
 // SSM Automation runbook wiring for mTLS secret promotion (AWSPENDING -> AWSCURRENT).
 // Triggered by EventBridge on a fixed interval: rate(${var.mtls_secret_rotation_days} days).
 // Rotates: /${var.repo_name}/${var.environment}/api-ca-cert and /${var.repo_name}/${var.environment}/api-ca-pk.
-// Created only in the primary environment (default workspace).
+// Rotation fails if no AWSPENDING version exists at execution time.
+//
+// TODO: Add EventBridge -> SNS -> Lambda -> Slack notifications (multi-channel) to warn
+//       90/60/30 days before the 365-day rotation window if no pending version exists,
+//       so a pending version can be added in time. Use the existing SSM runbook for checks.
+// TODO: Add EventBridge -> SNS -> Lambda -> Slack notifications (multi-channel) for
+//       rotation success/failure.
 
 resource "aws_ssm_document" "mtls_secret_rotation_runbook" {
   count         = local.is_primary_environment ? 1 : 0
