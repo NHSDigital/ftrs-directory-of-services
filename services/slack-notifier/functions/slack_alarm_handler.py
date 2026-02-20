@@ -6,18 +6,26 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 import json
 from typing import Any
 
+from ftrs_common.logger import Logger
+
 from functions.alarm_parser import flatten_dict, parse_cloudwatch_alarm
 from functions.slack_client import get_slack_webhook_url, send_to_slack
 from functions.slack_formatter import build_slack_message
-from ftrs_common.logger import Logger
 
 logger = Logger.get("slack-notifier")
+
+
+def _raise_processing_error(failed: int) -> None:
+    """Raise AlarmProcessingError for failed records."""
+    raise AlarmProcessingError(failed)
 
 
 class AlarmProcessingError(Exception):
     """Raised when alarm processing fails."""
 
-    pass
+    def __init__(self, failed: int) -> None:
+        self.failed = failed
+        super().__init__(f"Failed to process {failed} record(s)")
 
 
 def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
@@ -68,8 +76,10 @@ def lambda_handler(event: dict[str, Any], context: object) -> dict[str, Any]:
                 logger.error("Error processing record: %s", str(e), exc_info=True)
 
         if failed > 0:
-            logger.error(f"Failed to process {failed} of {processed + failed} record(s)")
-            raise AlarmProcessingError(f"Failed to process {failed} record(s)")
+            logger.error(
+                f"Failed to process {failed} of {processed + failed} record(s)"
+            )
+            _raise_processing_error(failed)
 
         return {
             "statusCode": 200,

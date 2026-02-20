@@ -1,18 +1,14 @@
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
-
-from functions.slack_alarm_handler import AlarmProcessingError, lambda_handler
+from functions.slack_alarm_handler import lambda_handler
 
 
 class TestLambdaHandler:
     @patch("functions.slack_alarm_handler.send_to_slack")
     @patch("functions.slack_alarm_handler.build_slack_message")
     @patch("functions.slack_alarm_handler.get_slack_webhook_url")
-    def test_successful_processing(
-        self, mock_webhook, mock_build_message, mock_send
-    ):
+    def test_successful_processing(self, mock_webhook, mock_build_message, mock_send):
         mock_webhook.return_value = "https://hooks.slack.com/test"
         mock_build_message.return_value = {"text": "test"}
         mock_send.return_value = True
@@ -128,8 +124,10 @@ class TestLambdaHandler:
             ]
         }
 
-        with pytest.raises(AlarmProcessingError, match="Failed to process 1 record"):
-            lambda_handler(event, None)
+        result = lambda_handler(event, None)
+
+        assert result["statusCode"] == 500
+        assert "Failed to process 1 record(s)" in result["body"]
 
     @patch("functions.slack_alarm_handler.send_to_slack")
     @patch("functions.slack_alarm_handler.build_slack_message")
@@ -160,8 +158,10 @@ class TestLambdaHandler:
             ]
         }
 
-        with pytest.raises(AlarmProcessingError, match="Failed to process 1 record"):
-            lambda_handler(event, None)
+        result = lambda_handler(event, None)
+
+        assert result["statusCode"] == 500
+        assert "Failed to process 1 record(s)" in result["body"]
 
     @patch("functions.slack_alarm_handler.parse_cloudwatch_alarm")
     @patch("functions.slack_alarm_handler.get_slack_webhook_url")
@@ -170,22 +170,20 @@ class TestLambdaHandler:
         mock_parse.side_effect = Exception("Parse error")
 
         event = {
-            "Records": [
-                {"Sns": {"Message": json.dumps({"AlarmName": "test-alarm"})}}
-            ]
+            "Records": [{"Sns": {"Message": json.dumps({"AlarmName": "test-alarm"})}}]
         }
 
-        with pytest.raises(AlarmProcessingError, match="Failed to process 1 record"):
-            lambda_handler(event, None)
+        result = lambda_handler(event, None)
+
+        assert result["statusCode"] == 500
+        assert "Failed to process 1 record(s)" in result["body"]
 
     @patch("functions.slack_alarm_handler.get_slack_webhook_url")
     def test_webhook_url_error(self, mock_webhook):
         mock_webhook.side_effect = ValueError("Webhook not configured")
 
         event = {
-            "Records": [
-                {"Sns": {"Message": json.dumps({"AlarmName": "test-alarm"})}}
-            ]
+            "Records": [{"Sns": {"Message": json.dumps({"AlarmName": "test-alarm"})}}]
         }
 
         result = lambda_handler(event, None)
