@@ -170,11 +170,11 @@ paths:
           description: >
             The major version increment of this API to query.
 
-            Must be an non-negative integer representing a valid major version increment of this API.
+            Must be a valid non-negative integer representing a supported major version increment of this API.
 
             This is a mandatory header.
 
-            If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending this value as type Integer.
+            If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending a valid entry for this value.
           schema:
             type: integer
             enum: 
