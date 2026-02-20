@@ -46,12 +46,10 @@ organisation_mapper = OrganizationMapper()
 
 def _get_organization_query_params(
     identifier: str = Query(
-        None,
+        ...,
         description="Organization identifier in format 'odsOrganisationCode|{code}'",
     ),
 ) -> OrganizationQueryParams | None:
-    if identifier is None:
-        return None
     return OrganizationQueryParams(identifier=identifier)
 
 
@@ -64,7 +62,7 @@ def get_status() -> Response:
 
 @router.get(
     "/Organization",
-    summary="Get organisation uuid by ods_code or read all organisations",
+    summary="Get organisation by ods_code",
     response_class=JSONResponse,
 )
 async def get_handle_organisation_requests(
@@ -78,11 +76,9 @@ async def get_handle_organisation_requests(
     """
     try:
         organisation_service.check_organisation_params(request.query_params)
-        if organization_query_params and organization_query_params.identifier:
-            ods_code = organization_query_params.ods_code
-            result = organisation_service.get_by_ods_code(ods_code)
-        else:
-            result = organisation_service.get_all_organisations()
+
+        ods_code = organization_query_params.ods_code
+        result = organisation_service.get_by_ods_code(ods_code)
         bundle = organisation_mapper.to_fhir_bundle(result)
         return JSONResponse(
             content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
