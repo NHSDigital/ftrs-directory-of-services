@@ -23,7 +23,7 @@ if ! command -v proxygen >/dev/null 2>&1; then
     read -p "Do you want to install proxygen-cli? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Installation cancelled. Please install proxygen-cli manually."
+        echo "Installation cancelled. Please install proxygen-cli manually." >&2
         exit 1
     fi
 
@@ -31,7 +31,7 @@ if ! command -v proxygen >/dev/null 2>&1; then
 
     # Check if asdf is installed
     if ! command -v asdf >/dev/null 2>&1; then
-        echo "Error: asdf is not installed. Please install asdf first."
+        echo "Error: asdf is not installed. Please install asdf first." >&2
         exit 1
     fi
 
@@ -47,10 +47,10 @@ if ! command -v proxygen >/dev/null 2>&1; then
     if command -v proxygen >/dev/null 2>&1; then
         echo "proxygen-cli installed successfully"
     else
-        echo "Error: proxygen-cli installation failed"
-        echo "Have you added the asdf shims directory to your path?"
-        echo "For ZSH, add the following to ~/.zshrc:"
-        echo "  export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\""
+        echo "Error: proxygen-cli installation failed" >&2
+        echo "Have you added the asdf shims directory to your path?" >&2
+        echo "For ZSH, add the following to ~/.zshrc:" >&2
+        echo "  export PATH=\"\${ASDF_DATA_DIR:-\$HOME/.asdf}/shims:\$PATH\"" >&2
         exit 1
     fi
 fi
@@ -58,31 +58,31 @@ fi
 
 # Check if yq is installed
 if ! command -v yq >/dev/null 2>&1; then
-    echo "Error: yq is not installed. Please install yq first."
+    echo "Error: yq is not installed. Please install yq first." >&2
     exit 1
 fi
 
 # Check if AWS is logged in
 if ! aws sts get-caller-identity >/dev/null 2>&1; then
-    echo "Error: AWS credentials not configured or expired. Please log in to AWS first."
+    echo "Error: AWS credentials not configured or expired. Please log in to AWS first." >&2
     exit 1
 fi
 
 # Check if required environment variables are set
 if [ -z "$API_NAME" ]; then
-    echo "Error: API_NAME environment variable is not set."
+    echo "Error: API_NAME environment variable is not set." >&2
     exit 1
 fi
 
 if [ -z "$ENVIRONMENT" ]; then
-    echo "Error: ENVIRONMENT environment variable is not set."
+    echo "Error: ENVIRONMENT environment variable is not set." >&2
     exit 1
 fi
 
 # Check if ENVIRONMENT is dev or test only
 if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "test" ]]; then
-    echo "Error: ENVIRONMENT must be either 'dev' or 'test'. Current value: $ENVIRONMENT"
-    echo "For other environments, interact with proxygen only via GitHub workflows."
+    echo "Error: ENVIRONMENT must be either 'dev' or 'test'. Current value: $ENVIRONMENT" >&2
+    echo "For other environments, interact with proxygen only via GitHub workflows." >&2
     exit 1
 fi
 
