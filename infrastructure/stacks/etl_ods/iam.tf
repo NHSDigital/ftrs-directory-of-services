@@ -11,6 +11,19 @@ resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
           Service = "scheduler.amazonaws.com"
         }
         Action = "sts:AssumeRole"
+      },
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        },
+        Actions = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:CreateGrant",
+          "kms:ReEncrypt"
+        ]
+        resources = [data.aws_kms_key.scheduler_kms_key.arn]
       }
     ]
   })
