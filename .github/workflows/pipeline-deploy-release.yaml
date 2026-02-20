@@ -115,7 +115,7 @@ jobs:
       workspace: default
       release_tag: ${{ inputs.release_tag }}
       ref: ${{ inputs.release_tag }}
-      workflow_timeout: 30
+      workflow_timeout: 60
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
