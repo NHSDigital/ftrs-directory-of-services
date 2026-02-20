@@ -1,0 +1,20 @@
+{
+  "resourceType": "OperationOutcome",
+  "issue": [
+    {
+      "severity": "error",
+      "code": "exception",
+      "details": {
+        "coding": [
+          {
+            "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+            "version": "1.0.0",
+            "code": "FATAL_EXCEPTION",
+            "display": "Fatal exception"
+          }
+        ]
+      },
+      "diagnostics": "Internal server error occurred: $context.error.message"
+    }
+  ]
+}
