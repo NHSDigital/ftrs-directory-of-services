@@ -64,7 +64,7 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
-      run: |
+      run: | #TODO: Refactor to use env variables instead of export statements (Sonar Cloud issue) - FTRS-3194
         export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
         export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
         export ACTION=${{ inputs.action }}
