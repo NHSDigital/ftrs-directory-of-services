@@ -62,6 +62,7 @@ class TestExtractTableNameFromArn:
         result = extract_table_name_from_arn(arn)
         assert result == expected
 
+
 class TestExtractChangedBy:
     """Tests for extract_changed_by function."""
 

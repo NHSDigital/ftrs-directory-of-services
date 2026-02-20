@@ -78,7 +78,132 @@ This directory contains example event payloads for testing Lambda functions loca
 
 ---
 
+## Version History Stream Events
+
+### Version History DynamoDB Stream Event
+
+**File**: `version-history-stream-event.json`
+
+**Purpose**: Simulates a DynamoDB stream event for testing the version history Lambda handler.
+
+**Event Structure**:
+
+```json
+{
+  "Records": [
+    {
+      "eventID": "test-event-id",
+      "eventName": "MODIFY",
+      "dynamodb": {
+        "Keys": {
+          "id": {"S": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
+          "field": {"S": "name"}
+        },
+        "OldImage": {
+          "value": {"S": "Old Organisation Name"}
+        },
+        "NewImage": {
+          "value": {"S": "New Organisation Name"}
+        }
+      }
+    }
+  ]
+}
+```
+
+**Fields**:
+
+- `eventID`: Unique event identifier
+- `eventName`: DynamoDB event type (`INSERT`, `MODIFY`, `REMOVE`)
+- `dynamodb.Keys`: Primary key of the record (id and field)
+- `dynamodb.OldImage`: Previous state of the record
+- `dynamodb.NewImage`: New state of the record
+
+---
+
 ## Running Lambda Functions Locally
+
+### Running Version History Lambda
+
+**Purpose**: Processes DynamoDB stream events to track version history for Organisation and Location records.
+
+#### Prerequisites
+
+```bash
+# Start local DynamoDB
+cd services/data-migration
+docker compose up -d
+
+# Create tables (from ftrs_aws_local directory)
+cd ../../application/packages/ftrs_aws_local
+ftrs-aws-local reset --init --env local --endpoint-url http://localhost:8000
+
+# Set environment variables (required)
+export ENDPOINT_URL=http://localhost:8000
+export ENVIRONMENT=local
+export AWS_REGION=eu-west-2
+```
+
+#### Run Unit Tests
+
+```bash
+cd services/data-migration
+poetry run pytest tests/unit/version_history/ -v
+```
+
+#### Run with Python Directly
+
+```bash
+cd services/data-migration
+eval $(poetry env activate)
+
+# Ensure environment variables are exported first
+python -c "
+import json
+import sys
+sys.path.insert(0, 'src')
+from version_history.lambda_handler import lambda_handler
+from unittest.mock import Mock
+
+with open('events/version-history-stream-event.json') as f:
+    event = json.load(f)
+
+context = Mock()
+context.function_name = 'test-version-history'
+context.invoked_function_arn = 'arn:aws:lambda:eu-west-2:123456789:function:test'
+
+result = lambda_handler(event, context)
+print(f'Result: {result}')
+"
+```
+
+**Success Output**: `Result: {'batchItemFailures': []}`
+
+#### Verify Results
+
+```bash
+# Scan version history table
+aws dynamodb scan \
+    --table-name ftrs-dos-local-database-version-history \
+    --endpoint-url http://localhost:8000 \
+    --region eu-west-2
+```
+
+#### Troubleshooting
+
+**ResourceNotFoundException error?**
+
+1. Export environment variables before running Python (must be set first)
+2. Verify table exists: `aws dynamodb list-tables --endpoint-url http://localhost:8000 --region eu-west-2`
+3. Create tables if missing: `ftrs-aws-local reset --init --env local --endpoint-url http://localhost:8000`
+
+#### Environment Variables
+
+- `ENDPOINT_URL` - DynamoDB endpoint URL (required for local testing)
+- `ENVIRONMENT` - Environment name (`local`, `dev`)
+- `AWS_REGION` - AWS region (default: `eu-west-2`)
+
+---
 
 ### Running Reference Data Load Lambda
 
@@ -178,31 +303,5 @@ If you prefer to run the Lambda handler directly without the script:
    with open('events/queue-populator-single-service.json') as f:
        event = json.load(f)
    lambda_handler(event, LambdaContext())
-   "
-```
-
-## Running Lambda Functions Locally (reference_data_load.lambda_handler)
-
-### Run with Python Directly
-
-This method runs the Lambda handler function directly in Python without AWS tooling.
-
-```bash
-   # Activate Python virtual environment
-   eval $(poetry env activate)
-
-   # Set required environment variables
-   export ENVIRONMENT=local
-   export WORKSPACE=test_workspace
-   export ENDPOINT_URL=http://localhost:8000
-
-   # Run the Lambda handler with an example event
-   python -c "
-   from reference_data_load.lambda_handler import lambda_handler
-   from aws_lambda_powertools.utilities.typing import LambdaContext
-
-   event = {'type': 'triagecode'}
-   context = LambdaContext()
-   lambda_handler(event, context)
    "
 ```

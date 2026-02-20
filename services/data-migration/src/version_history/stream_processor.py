@@ -22,30 +22,21 @@ from version_history.utils import (
 LOGGER = Logger.get(service="version-history")
 
 
-def process_stream_record(
+def _extract_record_metadata(
     record: DynamoDBRecord,
-    version_history_table: "Table",
-) -> None:
-    """
-    Process a single DynamoDB stream record and write to version history.
-
-    Args:
-        record: DynamoDB stream record (DynamoDBRecord from Powertools)
-        version_history_table: DynamoDB table resource for version-history
-
-    Raises:
-        Exception: If processing fails
-    """
+) -> tuple[str, str, Optional[Dict[str, Any]], Optional[Dict[str, Any]], str, str]:
+    """Extract metadata from stream record."""
     event_source_arn = record.event_source_arn or ""
     full_table_name = extract_table_name_from_arn(event_source_arn)
     entity_name = extract_entity_name_from_table_name(full_table_name)
 
     keys = record.dynamodb.keys or {}
-    old_image: Optional[Dict[str, Any]] = record.dynamodb.old_image
-    new_image: Optional[Dict[str, Any]] = record.dynamodb.new_image
+    old_image = record.dynamodb.old_image
+    new_image = record.dynamodb.new_image
 
     record_id = keys.get("id")
     field_name = keys.get("field")
+    event_name = record.get("eventName", "MODIFY")
 
     LOGGER.log(
         VersionHistoryLogBase.VH_PROCESSOR_006,
@@ -57,14 +48,6 @@ def process_stream_record(
         keys=keys,
     )
 
-    # Extract old and new values
-    old_value = old_image.get("value") if old_image else None
-    new_value = new_image.get("value") if new_image else None
-
-    # Get event name - access directly from the record dictionary
-    event_name = record.get("eventName", "MODIFY")
-
-    # Log start of processing with key details
     LOGGER.log(
         VersionHistoryLogBase.VH_PROCESSOR_003,
         entity_name=entity_name,
@@ -73,14 +56,24 @@ def process_stream_record(
         event_type=event_name,
     )
 
-    # Map event types to change types and delta parameters
+    return entity_name, event_name, old_image, new_image, record_id, field_name
+
+
+def _determine_change_type(
+    event_name: str,
+    old_image: Optional[Dict[str, Any]],
+    new_image: Optional[Dict[str, Any]],
+) -> tuple[str, Any, Any]:
+    """Map DynamoDB event to change type and extract values."""
+    old_value = old_image.get("value") if old_image else None
+    new_value = new_image.get("value") if new_image else None
+
     event_config = {
         "INSERT": ("CREATE", None, new_value),
         "REMOVE": ("DELETE", old_value, None),
         "MODIFY": ("UPDATE", old_value, new_value),
     }
 
-    # Get configuration for this event type, default to UPDATE
     change_type, old_val, new_val = event_config.get(
         event_name, ("UPDATE", old_value, new_value)
     )
@@ -91,37 +84,72 @@ def process_stream_record(
         change_type=change_type,
         old_val_present=old_val is not None,
         new_val_present=new_val is not None,
+        old_val=old_val,
+        new_val=new_val,
+        old_type=type(old_val).__name__,
+        new_type=type(new_val).__name__,
     )
 
-    # Skip if UPDATE with no actual change
-    if change_type == "UPDATE" and old_val == new_val:
+    return change_type, old_val, new_val
+
+
+def _should_skip_update(
+    change_type: str,
+    field_delta: Dict[str, Any],
+    entity_name: str,
+    record_id: str,
+    field_name: str,
+) -> bool:
+    """Check if UPDATE should be skipped due to no meaningful changes."""
+    if change_type != "UPDATE":
+        return False
+
+    # Simple values: check direct equality
+    if "diff" not in field_delta:
+        if field_delta.get("old") == field_delta.get("new"):
+            LOGGER.log(
+                VersionHistoryLogBase.VH_PROCESSOR_013,
+                entity_name=entity_name,
+                record_id=record_id,
+                field_name=field_name,
+                old_val=field_delta.get("old"),
+                new_val=field_delta.get("new"),
+            )
+            return True
+        else:
+            LOGGER.log(
+                VersionHistoryLogBase.VH_PROCESSOR_014,
+                old_val=field_delta.get("old"),
+                new_val=field_delta.get("new"),
+            )
+    # Complex values: check for empty diff
+    elif not field_delta.get("diff"):
         LOGGER.log(
-            VersionHistoryLogBase.VH_PROCESSOR_001,
+            VersionHistoryLogBase.VH_PROCESSOR_015,
             entity_name=entity_name,
             record_id=record_id,
             field_name=field_name,
         )
-        return
+        return True
+    else:
+        LOGGER.log(
+            VersionHistoryLogBase.VH_PROCESSOR_016,
+            diff=field_delta.get("diff"),
+        )
 
-    # Compute field delta and create changed_fields
-    field_delta = compute_field_delta(old_val, new_val)
-    changed_fields = {field_name: field_delta}
+    return False
 
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_008,
-        field_name=field_name,
-        delta_keys=list(field_delta.keys()),
-        has_diff="diff" in field_delta,
-    )
 
-    # Log the detected change
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_004,
-        old_value=old_value,
-        new_value=new_value,
-    )
-
-    # Extract ChangedBy from NewImage (for DELETE, use OldImage)
+def _create_version_item(
+    entity_name: str,
+    record_id: str,
+    field_name: str,
+    change_type: str,
+    changed_fields: Dict[str, Any],
+    new_image: Optional[Dict[str, Any]],
+    old_image: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Build version history item for DynamoDB."""
     changed_by = extract_changed_by(new_image or old_image or {})
 
     LOGGER.log(
@@ -131,10 +159,7 @@ def process_stream_record(
         changed_by_display=changed_by.get("display"),
     )
 
-    # Build entity_id: {entity_name}|{record_id}|{field_name}
     entity_id = f"{entity_name}|{record_id}|{field_name}"
-
-    # Generate timestamp
     timestamp = datetime.now(UTC)
 
     LOGGER.log(
@@ -143,8 +168,7 @@ def process_stream_record(
         timestamp=timestamp.isoformat(),
     )
 
-    # Create version history item
-    version_item = {
+    return {
         "entity_id": entity_id,
         "timestamp": timestamp.isoformat(),
         "change_type": change_type,
@@ -152,18 +176,64 @@ def process_stream_record(
         "changed_by": changed_by,
     }
 
-    # Log before writing to table
+
+def process_stream_record(
+    record: DynamoDBRecord,
+    version_history_table: "Table",
+) -> None:
+    """Process DynamoDB stream record and write to version history."""
+    entity_name, event_name, old_image, new_image, record_id, field_name = (
+        _extract_record_metadata(record)
+    )
+
+    change_type, old_val, new_val = _determine_change_type(
+        event_name, old_image, new_image
+    )
+
+    field_delta = compute_field_delta(old_val, new_val)
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_008,
+        field_name=field_name,
+        delta_keys=list(field_delta.keys()),
+        has_diff="diff" in field_delta,
+        delta=field_delta,
+        values_equal=field_delta.get("old") == field_delta.get("new"),
+    )
+
+    if _should_skip_update(
+        change_type, field_delta, entity_name, record_id, field_name
+    ):
+        return
+
+    changed_fields = {field_name: field_delta}
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_004,
+        old_value=old_val,
+        new_value=new_val,
+    )
+
+    version_item = _create_version_item(
+        entity_name,
+        record_id,
+        field_name,
+        change_type,
+        changed_fields,
+        new_image,
+        old_image,
+    )
+
     LOGGER.log(
         VersionHistoryLogBase.VH_PROCESSOR_005,
         version_item=version_item,
     )
 
-    # Write to version history table
     version_history_table.put_item(Item=version_item)
 
     LOGGER.log(
         VersionHistoryLogBase.VH_PROCESSOR_002,
-        entity_id=entity_id,
+        entity_id=version_item["entity_id"],
         change_type=change_type,
         changed_fields=list(changed_fields.keys()),
     )

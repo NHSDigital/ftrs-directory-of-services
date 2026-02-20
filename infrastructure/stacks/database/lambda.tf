@@ -75,7 +75,7 @@ resource "aws_lambda_event_source_mapping" "version_history_streams" {
   filter_criteria {
     filter {
       pattern = jsonencode({
-        eventName = ["MODIFY"]
+        eventName = ["INSERT", "MODIFY", "REMOVE"]
       })
     }
   }

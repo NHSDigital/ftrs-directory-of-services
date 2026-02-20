@@ -305,23 +305,65 @@ class VersionHistoryLogBase(LogBase):
     )
     VH_PROCESSOR_006 = LogReference(
         level=DEBUG,
-        message="Extracted stream record data: entity_name={entity_name}, record_id={record_id}, field_name={field_name}, has_old_image={has_old_image}, has_new_image={has_new_image}, keys={keys}",
+        message=(
+            "Extracted stream record data: entity_name={entity_name}, "
+            "record_id={record_id}, field_name={field_name}, "
+            "has_old_image={has_old_image}, has_new_image={has_new_image}, keys={keys}"
+        ),
     )
     VH_PROCESSOR_007 = LogReference(
         level=DEBUG,
-        message="Resolved event configuration: event_name={event_name}, change_type={change_type}, old_val_present={old_val_present}, new_val_present={new_val_present}",
+        message=(
+            "Resolved event configuration: event_name={event_name}, "
+            "change_type={change_type}, old_val_present={old_val_present}, "
+            "new_val_present={new_val_present}, old_val={old_val}, "
+            "new_val={new_val}, old_type={old_type}, new_type={new_type}"
+        ),
     )
     VH_PROCESSOR_008 = LogReference(
         level=DEBUG,
-        message="Computed field delta: field_name={field_name}, delta_keys={delta_keys}, has_diff={has_diff}",
+        message=(
+            "Computed field delta: field_name={field_name}, "
+            "delta_keys={delta_keys}, has_diff={has_diff}, "
+            "delta={delta}, values_equal={values_equal}"
+        ),
     )
     VH_PROCESSOR_009 = LogReference(
         level=DEBUG,
-        message="Extracted change metadata: changed_by_type={changed_by_type}, changed_by_value={changed_by_value}, changed_by_display={changed_by_display}",
+        message=(
+            "Extracted change metadata: changed_by_type={changed_by_type}, "
+            "changed_by_value={changed_by_value}, changed_by_display={changed_by_display}"
+        ),
     )
     VH_PROCESSOR_010 = LogReference(
         level=DEBUG,
         message="Prepared version history identifiers: entity_id={entity_id}, timestamp={timestamp}",
+    )
+    VH_PROCESSOR_013 = LogReference(
+        level=DEBUG,
+        message=(
+            "Skipping UPDATE - simple values are equal: "
+            "entity={entity_name}/{record_id}/{field_name}, "
+            "old={old_val}, new={new_val}"
+        ),
+    )
+    VH_PROCESSOR_014 = LogReference(
+        level=DEBUG,
+        message=(
+            "Proceeding with UPDATE - simple values differ: "
+            "old={old_val}, new={new_val}"
+        ),
+    )
+    VH_PROCESSOR_015 = LogReference(
+        level=DEBUG,
+        message=(
+            "Skipping UPDATE - complex values have empty diff: "
+            "entity={entity_name}/{record_id}/{field_name}"
+        ),
+    )
+    VH_PROCESSOR_016 = LogReference(
+        level=DEBUG,
+        message="Proceeding with UPDATE - complex values have diff: {diff}",
     )
 
 
