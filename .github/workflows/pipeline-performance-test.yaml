@@ -296,10 +296,10 @@ jobs:
           test-type: ${{ inputs.test_type }}
           endpoint: ${{ steps.derive-endpoint.outputs.endpoint }}
           workspace: ${{ inputs.workspace }}
-          num-threads: ${{ inputs.num_threads }}
-          ramp-time: ${{ inputs.ramp_time }}
-          startup-delay: ${{ inputs.startup_delay }}
-          duration: ${{ inputs.duration }}
-          throughput: ${{ inputs.throughput }}
-          throughput-period: ${{ inputs.throughput_period }}
+          num-threads: ${{ steps.derive-params.outputs.num_threads }}
+          ramp-time: ${{ steps.derive-params.outputs.ramp_time }}
+          startup-delay: ${{ steps.derive-params.outputs.startup_delay }}
+          duration: ${{ steps.derive-params.outputs.duration }}
+          throughput: ${{ steps.derive-params.outputs.throughput }}
+          throughput-period: ${{ steps.derive-params.outputs.throughput_period }}
           performance-results-bucket: ftrs-dos-${{ inputs.environment }}-account-wide-is-performance-files-bucket
