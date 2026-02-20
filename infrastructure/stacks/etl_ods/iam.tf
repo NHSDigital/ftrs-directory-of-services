@@ -17,7 +17,7 @@ resource "aws_iam_role" "ods_etl_scheduler_invoke_role" {
         Principal = {
           Service = "s3.amazonaws.com"
         },
-        Actions = [
+        Action = [
           "kms:Decrypt",
           "kms:DescribeKey",
           "kms:CreateGrant",
