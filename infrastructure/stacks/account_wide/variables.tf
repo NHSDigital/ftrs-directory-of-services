@@ -327,3 +327,9 @@ variable "performance_ec2_log_group_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "mtls_secret_rotation_days" {
+  description = "Rotation interval in days for mTLS cert/key secrets (defaults to 12 months)."
+  type        = number
+  default     = 365
+}

@@ -85,3 +85,40 @@ resource "aws_iam_role_policy" "cw_to_firehose_policy" {
     }]
   })
 }
+
+resource "aws_iam_role" "mtls_rotation_automation" {
+  count = local.is_primary_environment ? 1 : 0
+  name  = "${local.account_prefix}-mtls-rotation-automation"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ssm.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "mtls_rotation_automation" {
+  count = local.is_primary_environment ? 1 : 0
+  role  = aws_iam_role.mtls_rotation_automation[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:ListSecretVersionIds",
+          "secretsmanager:UpdateSecretVersionStage"
+        ]
+        Resource = [
+          aws_secretsmanager_secret.api_ca_cert_secret[0].arn,
+          aws_secretsmanager_secret.api_ca_pk_secret[0].arn
+        ]
+      }
+    ]
+  })
+}
