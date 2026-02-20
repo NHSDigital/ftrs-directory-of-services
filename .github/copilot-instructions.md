@@ -167,7 +167,7 @@ When generating or updating test functions, follow these guidelines:
    - **I** - Imports must be sorted (standard library, third-party, local) with blank lines between groups
    - **E4, E7, E9** - Follow pycodestyle conventions
    - **F** - No unused imports or variables
-   - **PL** - Follow pylint conventions
+   - **PL** - Follow Pylint conventions
    - **TRY** - Proper exception handling patterns
    - **FURB** - Use modern Python patterns
 
