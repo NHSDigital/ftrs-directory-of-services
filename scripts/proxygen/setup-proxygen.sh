@@ -79,6 +79,13 @@ if [ -z "$ENVIRONMENT" ]; then
     exit 1
 fi
 
+# Check if ENVIRONMENT is dev or test only
+if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "test" ]]; then
+    echo "Error: ENVIRONMENT must be either 'dev' or 'test'. Current value: $ENVIRONMENT"
+    echo "For other environments, interact with proxygen only via GitHub workflows."
+    exit 1
+fi
+
 # Configuration
 SECRET_ID="/ftrs-dos/${ENVIRONMENT}/${API_NAME}-proxygen-jwt-credentials"
 PROXYGEN_DIR="$HOME/.proxygen"
