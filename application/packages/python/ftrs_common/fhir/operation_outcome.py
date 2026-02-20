@@ -18,6 +18,7 @@ FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str]] = {
     "duplicate": ("CONFLICT", "The Server identified a conflict."),
     "informational": ("MSG_UPDATED", "Existing resource updated"),
     "success": ("MSG_UPDATED", "Existing resource updated"),
+    "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation"),
 }
 
 

@@ -193,6 +193,7 @@ def test_fhir_operation_outcome_codes_mapping() -> None:
         "duplicate": ("CONFLICT", "The Server identified a conflict."),
         "informational": ("MSG_UPDATED", "Existing resource updated"),
         "success": ("MSG_UPDATED", "Existing resource updated"),
+        "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation"),
     }
     for code, expected in expected_mappings.items():
         assert FHIR_OPERATION_OUTCOME_CODES[code] == expected

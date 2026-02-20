@@ -168,7 +168,7 @@ def update_organisation(
             )
             outcome = OperationOutcomeHandler.build(
                 diagnostics="No changes made to the organisation",
-                code="information",
+                code="not-updated",
                 severity="information",
             )
             return JSONResponse(
