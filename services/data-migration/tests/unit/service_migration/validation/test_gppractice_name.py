@@ -193,6 +193,8 @@ def test_reject_special_symbols(
         ("Smith& Jones", "Smith& Jones"),
         ("Smith &Jones", "Smith &Jones"),
         ("Smith&Jones", "Smith&Jones"),
+        # Semicolon
+        ("Health Centre; Main Branch", "Health Centre; Main Branch"),
         # Multiple special characters combined
         (
             "Dr. Smith's Practice: Health+Plus (Main)",
@@ -203,7 +205,7 @@ def test_reject_special_symbols(
 def test_allow_special_characters(
     validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) &"""
+    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) & ;"""
     assert_valid_name(validator, input_name, expected)
 
 

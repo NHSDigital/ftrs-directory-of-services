@@ -410,6 +410,7 @@ jobs:
 
   stage-prerelease-artefacts:
     name: "Stage artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
+    if: always() && needs.generate-prerelease.result == 'success'
     needs:
       - metadata
       - generate-prerelease
