@@ -17,9 +17,9 @@ Feature: API DoS Service validates headers
     And the OperationOutcome contains an issue with diagnostics "Missing required header(s): <missing_headers>"
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
     Examples:
-      | headers                    | missing_headers          |
-      | {"X-Request-Id": "req_id"} | 'version'                  |
-      | {"version": "1"}           | 'x-request-id'          |
+      | headers                    | missing_headers           |
+      | {"X-Request-Id": "req_id"} | 'version'                 |
+      | {"version": "1"}           | 'x-request-id'            |
       | {}                         | 'version', 'x-request-id' |
 
   Scenario: I cannot search APIM for GP Endpoint with an invalid version
