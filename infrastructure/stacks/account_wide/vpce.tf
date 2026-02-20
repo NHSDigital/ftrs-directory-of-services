@@ -47,5 +47,3 @@ resource "aws_vpc_endpoint" "interface_vpce" {
     Name = "${local.resource_prefix}-${each.key}-vpc-endpoint"
   }
 }
-
-

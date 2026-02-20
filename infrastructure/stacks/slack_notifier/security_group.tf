@@ -30,5 +30,3 @@ resource "aws_vpc_security_group_egress_rule" "to_slack" {
   from_port         = var.https_port
   to_port           = var.https_port
 }
-
-

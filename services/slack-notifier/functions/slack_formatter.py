@@ -111,6 +111,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
     lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
 
+    #TODO: Will be updated as part of FTRS-765
     api_path = "/Organization"  # Needs to be fetched from relevant data source
     api_service = "DoS Search"  # Needs to be fetched from relevant data source
 
