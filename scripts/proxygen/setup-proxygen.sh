@@ -100,11 +100,11 @@ echo "Fetching JWT credentials from AWS Secrets Manager..."
 # Get the secret and parse values
 SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" --query SecretString --output text)
 
-CLIENT_ID=$(echo "$SECRET_JSON" | yq -r '.client_id')
-KID=$(echo "$SECRET_JSON" | yq -r '.kid')
-PRIVATE_KEY=$(echo "$SECRET_JSON" | yq -r '.private_key')
-TOKEN_URL=$(echo "$SECRET_JSON" | yq -r '.token_url')
-PROXYGEN_URL=$(echo "$SECRET_JSON" | yq -r '.proxygen_url')
+CLIENT_ID=$(echo "$SECRET_JSON" | yq -p=json -r '.client_id')
+KID=$(echo "$SECRET_JSON" | yq -p=json -r '.kid')
+PRIVATE_KEY=$(echo "$SECRET_JSON" | yq -p=json -r '.private_key')
+TOKEN_URL=$(echo "$SECRET_JSON" | yq -p=json -r '.token_url')
+PROXYGEN_URL=$(echo "$SECRET_JSON" | yq -p=json -r '.proxygen_url')
 
 # Extract PROXYGEN_API_NAME from CLIENT_ID
 PROXYGEN_API_NAME=${CLIENT_ID%-client}
