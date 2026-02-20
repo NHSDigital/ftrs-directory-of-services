@@ -56,6 +56,7 @@ locals {
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
     athena          = "alias/${local.project_prefix}-athena-kms"
     firehose        = "alias/${local.project_prefix}-firehose-kms"
+    scheduler       = "alias/${local.project_prefix}-scheduler"
   }
 
   # Will be used by dos-search stack

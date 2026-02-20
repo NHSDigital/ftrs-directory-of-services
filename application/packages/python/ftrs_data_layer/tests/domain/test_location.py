@@ -46,7 +46,7 @@ def test_location() -> None:
         "active",
         "address",
         "createdBy",
-        "createdTime",
+        "created",
         "managingOrganisation",
         "lastUpdatedBy",
         "lastUpdated",

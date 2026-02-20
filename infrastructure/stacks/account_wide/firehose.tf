@@ -29,5 +29,27 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
       buffering_size     = 5
       compression_format = "GZIP"
     }
+
+    processing_configuration {
+      enabled = true
+      # decompression of gzipped logs
+      processors {
+        type = "Decompression"
+
+        parameters {
+          parameter_name  = "CompressionFormat"
+          parameter_value = "GZIP"
+        }
+      }
+      processors {
+        type = "CloudWatchLogProcessing"
+
+        parameters {
+          parameter_name  = "DataMessageExtraction"
+          parameter_value = "true"
+        }
+      }
+    }
+
   }
 }
