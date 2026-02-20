@@ -20,8 +20,8 @@ resource "aws_vpc_security_group_egress_rule" "to_vpc_endpoints" {
   to_port                      = var.https_port
 }
 
+# trivy:ignore:AVD-AWS-0104 Slack webhooks do not provide fixed IP ranges
 resource "aws_vpc_security_group_egress_rule" "to_slack" {
-  # trivy:ignore:AVD-AWS-0104 Slack webhooks do not provide fixed IP ranges
   count             = local.stack_enabled
   security_group_id = aws_security_group.slack_notifier_lambda_sg[0].id
   description       = "Allow outbound HTTPS for Slack webhooks"
