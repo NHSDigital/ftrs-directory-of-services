@@ -154,7 +154,7 @@ jobs:
       workspace: "rc"
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
       ref: ${{ needs.tag-release.outputs.release_tag }}
-      workflow_timeout: 30
+      workflow_timeout: 60
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
