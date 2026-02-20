@@ -20,16 +20,18 @@ data "aws_subnets" "private" {
 
   filter {
     name   = "tag:Name"
-    values = ["*private*"]
+    values = ["${local.account_prefix}-vpc-private-*"]
   }
+}
+
+data "aws_subnet" "private_subnets_details" {
+  for_each = local.stack_enabled == 1 ? toset(data.aws_subnets.private[0].ids) : []
+  id       = each.value
 }
 
 data "aws_security_group" "vpce_interface_sg" {
   count = local.stack_enabled
-  filter {
-    name   = "tag:Name"
-    values = ["${local.resource_prefix}-vpce-interface-sg"]
-  }
+  name  = "${local.account_prefix}-vpce-interface-sg"
 }
 
 data "aws_s3_object" "slack_notifier_lambda" {
