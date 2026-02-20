@@ -255,6 +255,7 @@ jobs:
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       test_tag: ${{ matrix.tag }}
       test_type: ${{ matrix.type }}
+      api_name: ${{ matrix.api_name || '' }}
       type: app
       deployment_type: "release-candidate"
     secrets:
