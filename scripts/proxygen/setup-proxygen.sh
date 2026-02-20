@@ -69,12 +69,12 @@ if ! aws sts get-caller-identity >/dev/null 2>&1; then
 fi
 
 # Check if required environment variables are set
-if [ -z "$API_NAME" ]; then
+if [[ -z "$API_NAME" ]]; then
     echo "Error: API_NAME environment variable is not set." >&2
     exit 1
 fi
 
-if [ -z "$ENVIRONMENT" ]; then
+if [[ -z "$ENVIRONMENT" ]]; then
     echo "Error: ENVIRONMENT environment variable is not set." >&2
     exit 1
 fi
