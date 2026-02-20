@@ -1,6 +1,6 @@
 output "sns_topic_arn" {
   description = "ARN of the SNS topic for CloudWatch alarms"
-  value       = local.stack_enabled == 1 ? module.sns_topic[0].topic_arn : ""
+  value       = local.stack_enabled == 1 ? aws_sns_topic.slack_notifications[0].arn : ""
 }
 
 output "lambda_function_arn" {

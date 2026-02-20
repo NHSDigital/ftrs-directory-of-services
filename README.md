@@ -198,20 +198,14 @@ Commit messages must:
 
 Integration and performance tests are located in `tests/` with individual READMEs for each test suite.
 
-**Run tests for a specific service**:
+**Run tests for a specific service** (from within the service directory):
 
 ```shell
 cd services/{service-name}
-make test
-```
-
-**Common test commands**:
-
-```shell
-make test          # Run all tests
-make test-unit     # Run unit tests only
-make test-coverage # Generate coverage report
-make lint          # Run linting
+make test       # Run unit tests
+make unit-test  # Run unit tests with coverage
+make coverage   # Generate coverage report
+make lint       # Run linting
 ```
 
 ## License
