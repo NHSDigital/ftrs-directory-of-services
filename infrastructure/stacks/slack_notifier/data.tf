@@ -25,7 +25,7 @@ data "aws_subnets" "private" {
 }
 
 data "aws_subnet" "private_subnets_details" {
-  for_each = local.stack_enabled == 1 ? toset(data.aws_subnets.private[0].ids) : []
+  for_each = local.stack_enabled == 1 ? toset(data.aws_subnets.private[0].ids) : toset([])
   id       = each.value
 }
 
