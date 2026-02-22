@@ -142,6 +142,43 @@ data-prep:
 		&& poetry install \
 		&& poetry run generate_database_update_data
 
+
+data-migration-typical-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=16 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=500 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
+
+
+data-migration-good-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=83 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=1000 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
+
+
+data-migration-hot-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=166 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=2000 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
+
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
 # EC2 Make Targets
 # ---------------------------------------------------------------------------------------------------------------------------------------------------

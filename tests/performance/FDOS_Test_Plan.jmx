@@ -5,6 +5,8 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
@@ -38,7 +40,7 @@
         </JDBCDataSource>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update feed">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update feed - simulating manual updates on services" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(feed_num_threads,3)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(feed_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
@@ -69,8 +71,9 @@
           <stringProp name="throughput">${__P(feed_updates_per_minute, 10)}</stringProp>
         </ConstantThroughputTimer>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Different field updated based on scenario" enabled="true">
           <stringProp name="SwitchController.value">${scenario}</stringProp>
+          <stringProp name="TestPlan.comments">Proportions types of field updates vs the service type used to pre-generate dataset used</stringProp>
         </SwitchController>
         <hashTree>
           <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmspublicname" enabled="true">
@@ -257,7 +260,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk - simulating bulk update dos feature" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(bulk_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(bulk_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
@@ -283,8 +286,9 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           <stringProp name="shareMode">shareMode.group</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Switch based on scenario" enabled="true">
+        <SwitchController guiclass="SwitchControllerGui" testclass="SwitchController" testname="Different field updated based on scenario" enabled="true">
           <stringProp name="SwitchController.value">${scenario}</stringProp>
+          <stringProp name="TestPlan.comments">Proportions types of field updates vs the service type used to pre-generate dataset used - for bulk update feature it&apos;s amost completly sgsd updates</stringProp>
         </SwitchController>
         <hashTree>
           <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid" enabled="true"/>
