@@ -191,7 +191,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
-      workflow_timeout: 30
+      workflow_timeout: 60
       stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
@@ -404,6 +404,7 @@ jobs:
 
   stage-prerelease-artefacts:
     name: "Stage artefacts for prerelease ${{ needs.generate-prerelease.outputs.prerelease_tag }}"
+    if: always() && needs.generate-prerelease.result == 'success'
     needs:
       - metadata
       - generate-prerelease

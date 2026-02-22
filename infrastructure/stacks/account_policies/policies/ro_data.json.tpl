@@ -113,6 +113,20 @@
             ],
             "Effect": "Allow",
             "Resource": "*"
+        },
+        {
+            "Sid": "KMSDecryptForDynamoDB",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt",
+                "kms:DescribeKey"
+            ],
+            "Resource": "arn:aws:kms:${aws_region}:${account_id}:key/*",
+            "Condition": {
+                "StringEquals": {
+                    "kms:ViaService": "dynamodb.${aws_region}.amazonaws.com"
+                }
+            }
         }
     ]
 }

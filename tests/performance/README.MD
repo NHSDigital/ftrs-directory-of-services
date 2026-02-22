@@ -220,7 +220,8 @@ make performance-test-jwt \
   DURATION=300 \
   STARTUP_DELAY=0 \
   THROUGHPUT=100 \
-  THROUGHPUT_PERIOD=60
+  THROUGHPUT_PERIOD=60 \
+  WORKSPACE=default
 ```
 
 #### Stress Testing (Ramped Throughput with mTLS)
@@ -270,7 +271,8 @@ jmeter -n -t IS_Test_Plan.jmx \
   -J duration=300 \
   -J startup_delay=0 \
   -J timer_throughput=100 \
-  -J timer_throughput_period=60
+  -J timer_throughput_period=60 \
+  -J workspace=default
 ```
 
 #### Stress Mode (Ramped Throughput)
