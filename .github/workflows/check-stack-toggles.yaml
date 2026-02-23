@@ -25,6 +25,9 @@ on:
       open_search_enabled:
         description: "Whether OpenSearch stack is enabled"
         value: ${{ jobs.check-toggles.outputs.open_search_enabled }}
+      slack_notifier_enabled:
+        description: "Whether Slack Notifier stack is enabled"
+        value: ${{ jobs.check-toggles.outputs.slack_notifier_enabled }}
 
 permissions:
   contents: read
@@ -37,6 +40,7 @@ jobs:
       ui_enabled: ${{ steps.get_toggles.outputs.ui_enabled }}
       read_only_viewer_enabled: ${{ steps.get_toggles.outputs.read_only_viewer_enabled }}
       open_search_enabled: ${{ steps.get_toggles.outputs.open_search_enabled }}
+      slack_notifier_enabled: ${{ steps.get_toggles.outputs.slack_notifier_enabled }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
