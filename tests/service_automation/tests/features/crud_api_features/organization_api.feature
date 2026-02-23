@@ -7,6 +7,7 @@ Feature: Organization API Endpoint
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization details for ODS Code
     Then I receive a status code "200" in response
+    And the response includes security headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "information"

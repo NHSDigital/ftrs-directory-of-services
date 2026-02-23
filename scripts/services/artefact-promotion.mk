@@ -6,7 +6,9 @@ ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
 RETAIN_VERSIONS ?= 5
 
-BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+# Determine branch: prefer GITHUB_REF_NAME (in CI), fallback to git command (local)
+# In GitHub Actions detached HEAD state, git rev-parse returns "HEAD" not "main"
+BRANCH ?= $(if $(GITHUB_REF_NAME),$(GITHUB_REF_NAME),$(shell git rev-parse --abbrev-ref HEAD))
 
 ifeq ($(BRANCH),main)
 ARTEFACT_DEVELOPMENT_PATH := $(ARTEFACT_BUCKET)/development/latest
