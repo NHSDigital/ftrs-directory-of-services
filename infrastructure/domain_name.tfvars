@@ -1,9 +1,3 @@
-aws_accounts = [
-  "dev",
-  "test",
-  "prod"
-]
-
 #Shield Configurations
 isShieldProactiveEngagementEnabled = false
 isShieldSRTAccessEnabled           = false

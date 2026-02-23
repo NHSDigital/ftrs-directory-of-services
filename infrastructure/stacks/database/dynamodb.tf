@@ -12,4 +12,6 @@ module "dynamodb_tables" {
   kms_key_arn                    = data.aws_kms_key.dynamodb_kms_key.arn
 
   global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
+
+  tags = local.backup_tags
 }
