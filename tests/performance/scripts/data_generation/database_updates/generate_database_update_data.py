@@ -196,7 +196,7 @@ def find_stats(file_alias, file_path):
             )
 
 def generate_feed_file(faker: Faker, file_handles, reference_data):
-    feed_file_path =  "../../parameter_files/dos/feed_data.csv"
+    feed_file_path =  "../../parameter_files/feed_data.csv"
     output_csv_file = open(feed_file_path, "w")
     output_writer = csv.writer(output_csv_file)
     output_writer.writerow(['service_type_id', 'scenario', 'row_id', 'data'])
@@ -226,7 +226,7 @@ def generate_feed_file(faker: Faker, file_handles, reference_data):
 
 
 def generate_bulk_file(faker: Faker, file_handles, reference_data):
-    bulk_file_path = "../../parameter_files/dos/bulk_data.csv"
+    bulk_file_path = "../../parameter_files/bulk_data.csv"
     output_csv_file = open(bulk_file_path, "w")
     output_writer = csv.writer(output_csv_file)
     output_writer.writerow(['service_type_id', 'scenario', 'row_id', 'data'])

@@ -54,8 +54,8 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config" enabled="true">
-          <stringProp name="filename">parameter_files/dos/feed_data.csv</stringProp>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
+          <stringProp name="filename">parameter_files/feed_data.csv</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">service_type_id,scenario,row_id,data</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
@@ -260,7 +260,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           </hashTree>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk - simulating bulk update dos feature" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Update on bulk - simulating bulk update dos feature">
         <stringProp name="ThreadGroup.num_threads">${__P(bulk_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(bulk_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,3600)}</stringProp>
@@ -274,8 +274,8 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config" enabled="true">
-          <stringProp name="filename">parameter_files/dos/bulk_data.csv</stringProp>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV Data Set Config">
+          <stringProp name="filename">parameter_files/bulk_data.csv</stringProp>
           <stringProp name="fileEncoding"></stringProp>
           <stringProp name="variableNames">service_type_id,scenario,row_id,data</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
@@ -291,7 +291,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
           <stringProp name="TestPlan.comments">Proportions types of field updates vs the service type used to pre-generate dataset used - for bulk update feature it&apos;s amost completly sgsd updates</stringProp>
         </SwitchController>
         <hashTree>
-          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid" enabled="true"/>
+          <GenericController guiclass="LogicControllerGui" testclass="GenericController" testname="cmssgsdid"/>
           <hashTree>
             <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="cmssgsdid in bulk" enabled="true">
               <stringProp name="dataSource">db_connection_pool</stringProp>
@@ -385,7 +385,7 @@ vars.put(&quot;sdid&quot;, sgid_sdid[1]);</stringProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report">
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
