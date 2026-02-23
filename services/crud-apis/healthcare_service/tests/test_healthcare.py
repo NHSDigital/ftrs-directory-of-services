@@ -355,10 +355,10 @@ def test_create_healthcare_service_invalid_data() -> None:
             {
                 "type": "enum",
                 "loc": ["body", "type"],
-                "msg": "Input should be 'GP Consultation Service' or 'Primary Care Network Enhanced Access Service'",
+                "msg": "Input should be 'GP Consultation Service', 'Primary Care Network Enhanced Access Service' or 'Essential Services'",
                 "input": "General Practice",
                 "ctx": {
-                    "expected": "'GP Consultation Service' or 'Primary Care Network Enhanced Access Service'"
+                    "expected": "'GP Consultation Service', 'Primary Care Network Enhanced Access Service' or 'Essential Services'"
                 },
             },
             {

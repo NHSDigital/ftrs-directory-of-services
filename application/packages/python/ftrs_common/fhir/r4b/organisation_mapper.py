@@ -334,6 +334,7 @@ class OrganizationMapper(FhirMapper):
         Extract primary and non-primary organization role codes from role codes.
 
         Primary roles are:
+        - RO182 (Pharmacy)
         - RO177 (Prescribing Cost Centre)
 
         Args:
