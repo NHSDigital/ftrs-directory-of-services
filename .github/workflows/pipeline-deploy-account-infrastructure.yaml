@@ -17,6 +17,7 @@ on:
       - "infrastructure/stacks/account_security/**"
       - "infrastructure/stacks/aws_backup_destination/**"
       - "infrastructure/stacks/aws_backup_source/**"
+      - "infrastructure/stacks/slack_notifier/**"
       - "infrastructure/modules/dynamodb/**"
       - "infrastructure/modules/aws-backup-destination/**"
       - "infrastructure/modules/aws-backup-source/**"
@@ -105,7 +106,7 @@ jobs:
       ref: ${{ inputs.ref }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','aws_backup_source','aws_backup_destination']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
@@ -137,7 +138,7 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','aws_backup_source']"
+            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
@@ -188,7 +189,7 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','aws_backup_source']"
+            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
