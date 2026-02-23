@@ -66,7 +66,7 @@ on:
       toggle_stacks:
         description: "A list of the infrastructure stacks that consume feature toggle outputs"
         required: false
-        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config', 'data_migration', 'athena', 'database', 'aws_backup_source']"
+        default: "['read_only_viewer', 'opensearch', 'ui', 'app_config', 'data_migration', 'athena', 'database', 'slack_notifier', 'aws_backup_source']"
         type: string
     secrets:
       ACCOUNT_ID:
@@ -75,6 +75,8 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for alarm notifications"
       SPLUNK_COLLECTOR_URL:
         description: "The base url for splunk collector"
         required: false
@@ -143,6 +145,7 @@ jobs:
           project: ${{ inputs.project }}
           release_tag: ${{ inputs.release_tag }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
+          slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
           splunk_collector_url: ${{ secrets.SPLUNK_COLLECTOR_URL }}
           splunk_hec_endpoint: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
           splunk_hec_token: ${{ secrets.SPLUNK_HEC_TOKEN }}

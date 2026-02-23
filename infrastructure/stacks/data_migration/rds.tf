@@ -95,6 +95,9 @@ module "rds_replication_target_db" {
   create_cloudwatch_log_group            = true
   cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_logs_retention
 
+  storage_encrypted = true
+  kms_key_id        = data.aws_kms_key.rds_kms_alias.arn
+
   deletion_protection = true
 }
 

@@ -5,6 +5,7 @@ module "state_table" {
   hash_key                       = "source_record_id"
   billing_mode                   = "PAY_PER_REQUEST"
   point_in_time_recovery_enabled = true
+  kms_key_arn                    = data.aws_kms_key.dynamodb_kms_key.arn
 
   attributes = [
     {

@@ -9,6 +9,7 @@ module "dynamodb_tables" {
   attributes                     = each.value.attributes
   point_in_time_recovery_enabled = true
   stream_enabled                 = lookup(each.value, "stream_enabled", true)
+  kms_key_arn                    = data.aws_kms_key.dynamodb_kms_key.arn
 
   global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
 
