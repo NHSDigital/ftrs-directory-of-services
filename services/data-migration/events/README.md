@@ -160,13 +160,6 @@ export ENVIRONMENT=local
 export AWS_REGION=eu-west-2
 ```
 
-#### Run Unit Tests
-
-```bash
-cd services/data-migration
-poetry run pytest tests/unit/version_history/ -v
-```
-
 #### Run with Python Directly
 
 **Important**: Set environment variables FIRST before running any commands:
@@ -215,7 +208,7 @@ aws dynamodb scan \
 aws dynamodb query \
     --table-name ftrs-dos-local-database-version-history \
     --key-condition-expression "entity_id = :entity_id" \
-    --expression-attribute-values '{":entity_id": {"S": "organisation|d0d6af8a-1138-5a2f-a4e2-5f489fb44653|document"}}' \
+    --expression-attribute-values '{":entity_id": {"S": "organisation|d0d6af8a-1138-5a2f-a4e2-5f489fb44653|details"}}' \
     --endpoint-url http://localhost:8000 \
     --region eu-west-2
 ```

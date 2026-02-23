@@ -169,7 +169,7 @@ def _create_version_item(
         changed_by_display=changed_by.get("display"),
     )
 
-    entity_id = f"{entity_name}|{record_id}|document"
+    entity_id = f"{entity_name}|{record_id}|details"
     timestamp = datetime.now(UTC)
 
     LOGGER.log(
@@ -182,7 +182,7 @@ def _create_version_item(
         "entity_id": entity_id,
         "timestamp": timestamp.isoformat(),
         "change_type": change_type,
-        "changed_fields": {"document": field_delta},
+        "changed_fields": {"details": field_delta},
         "changed_by": changed_by,
     }
 
@@ -238,5 +238,5 @@ def process_stream_record(
         VersionHistoryLogBase.VH_PROCESSOR_002,
         entity_id=version_item["entity_id"],
         change_type=change_type,
-        changed_fields=["document"],
+        changed_fields=["details"],
     )

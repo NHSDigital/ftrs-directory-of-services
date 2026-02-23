@@ -19,10 +19,10 @@ Feature: Version History Tracking
       | name        | Updated Organisation Name            |
     Then a version history record should exist with
       | attribute      | value                                                 |
-      | entity_id      | organisation\|aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\|document |
+      | entity_id      | organisation\|aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa\|details |
       | change_type    | UPDATE                                                |
-    And the version history "changed_fields.document.diff.values_changed.root['name'].new_value" should be "Updated Organisation Name"
-    And the version history "changed_fields.document.diff.values_changed.root['name'].old_value" should be "Original Organisation Name"
+    And the version history "changed_fields.details.diff.values_changed.root['name'].new_value" should be "Updated Organisation Name"
+    And the version history "changed_fields.details.diff.values_changed.root['name'].old_value" should be "Original Organisation Name"
     And the version history "changed_by.type" should be "app"
     And the version history record should have a valid timestamp
 
@@ -35,4 +35,4 @@ Feature: Version History Tracking
     When the Organisation document is updated with changes
       | field       | value                                |
       | status      | active                               |
-    Then no version history record should be created for entity "organisation|dddddddd-dddd-dddd-dddd-dddddddddddd|document"
+    Then no version history record should be created for entity "organisation|dddddddd-dddd-dddd-dddd-dddddddddddd|details"
