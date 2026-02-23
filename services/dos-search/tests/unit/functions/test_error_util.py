@@ -29,7 +29,6 @@ def _get_validation_error(
 
 
 REQUIRED_HEADERS = {
-    "Authorization": "Bearer abcdefg",
     "NHSD-Request-ID": "123456789",
     "Version": "1",
 }
