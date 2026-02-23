@@ -133,8 +133,6 @@ jobs:
             enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
           - name: "read-only-viewer"
             enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
-          - name: "slack-notifier"
-            enabled: ${{ needs.check-stack-toggles.outputs.slack_notifier_enabled }}
     needs:
       - check-stack-toggles
       - deploy-application-infrastructure
