@@ -10,8 +10,8 @@ module "aws_backup_source" {
   backup_copy_vault_arn        = local.destination_vault_arn
   backup_copy_vault_account_id = var.mgmt_account_id
 
-  bootstrap_kms_key_arn = module.backup_destination_kms_key.arn
-  reports_bucket        = module.backup_reports_bucket.s3_bucket_id
+  bootstrap_kms_key_arn = module.backup_sns_kms_key[0].arn
+  reports_bucket        = module.backup_reports_bucket[0].s3_bucket_id
   terraform_role_arn    = local.terraform_role_arn
 
   backup_plan_config          = local.backup_plan_config
