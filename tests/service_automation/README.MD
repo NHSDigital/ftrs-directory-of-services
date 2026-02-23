@@ -215,6 +215,7 @@ make test MARKERS="location-exists"
 make test MARKERS="healthcare-service-exists"
 
 # Run all version history tests
+# which test Lambda handler logic directly, without testing DynamoDB Streams → Lambda integration.
 make test MARKERS="version-history"
 
 ### Running ETL-ODS tests

@@ -1,9 +1,7 @@
 """
 Step definitions for version history tracking tests.
-Tests DynamoDB stream processing and version history record creation.
 
-These tests work with LocalStack by calling the Lambda handler code directly,
-simulating what would happen in real AWS when streams trigger Lambda.
+NOTE: Tests Lambda handler logic directly, NOT AWS Streams → Lambda integration.
 """
 
 from datetime import datetime
@@ -14,10 +12,8 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps.data_migration_steps import *  # noqa: F403
 from utilities.common.dynamodb_helper import (
-    create_entity_record_from_table,
     get_dynamodb_table,
     get_nested_value,
-    update_entity_field,
 )
 from utilities.common.dynamoDB_tables import get_table_name
 from utilities.common.gherkin_helper import parse_gherkin_table, unescape_pipe_in_value
@@ -43,123 +39,143 @@ def verify_version_history_table_exists(dynamodb: Dict[str, Any]) -> None:
         pytest.fail(f"Version history table does not exist: {e}")
 
 
-@given("an Organisation record exists in DynamoDB with")
-def create_organisation_record(
+@given("an Organisation document exists in DynamoDB with")
+def create_organisation_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
     datatable,
 ) -> None:
-    """Create an Organisation record in DynamoDB."""
-    _create_entity_record(dynamodb, "organisation", datatable, migration_context)
+    """Create an Organisation document in DynamoDB."""
+    _create_entity_document(dynamodb, "organisation", datatable, migration_context)
 
 
-@given("a Location record exists in DynamoDB with")
-def create_location_record(
+@given("a Location document exists in DynamoDB with")
+def create_location_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
     datatable,
 ) -> None:
-    """Create a Location record in DynamoDB."""
-    _create_entity_record(dynamodb, "location", datatable, migration_context)
+    """Create a Location document in DynamoDB."""
+    _create_entity_document(dynamodb, "location", datatable, migration_context)
 
 
-@given("a HealthcareService record exists in DynamoDB with")
-def create_healthcare_service_record(
+@given("a HealthcareService document exists in DynamoDB with")
+def create_healthcare_service_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
     datatable,
 ) -> None:
-    """Create a HealthcareService record in DynamoDB."""
-    _create_entity_record(dynamodb, "healthcare-service", datatable, migration_context)
+    """Create a HealthcareService document in DynamoDB."""
+    _create_entity_document(
+        dynamodb, "healthcare-service", datatable, migration_context
+    )
 
 
-def _create_entity_record(
+def _create_entity_document(
     dynamodb: Dict[str, Any],
     entity_type: str,
     table_data: list,  # List of lists from pytest-bdd
     migration_context: Dict[str, Any],
 ) -> None:
-    """Helper to create entity record from table data."""
+    """Helper to create entity document from table data."""
     # Parse Gherkin table into dictionary using reusable utility
     data = parse_gherkin_table(table_data)
 
-    # Create record and store context
-    record_info = create_entity_record_from_table(dynamodb, entity_type, data)
-    migration_context.update(record_info)
+    # Extract id and create document with all other fields
+    entity_id = data.pop("id", None)
+    if not entity_id:
+        raise ValueError("Entity id is required")
+
+    # Store entity_id and document data in context
+    migration_context["entity_id"] = entity_id
+    migration_context["entity_type"] = entity_type
+    migration_context["document_data"] = data.copy()
+
+    # Create the document record in DynamoDB
+    table = get_dynamodb_table(dynamodb, entity_type)
+
+    item = {
+        "id": entity_id,
+        "field": "document",
+        **data,
+    }
+    table.put_item(Item=item)
 
 
-@when(
-    parsers.parse('the Organisation field "{field_name}" is updated to "{new_value}"')
-)
-def update_organisation_field(
+@when("the Organisation document is updated with changes")
+def update_organisation_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
-    field_name: str,
-    new_value: str,
+    datatable,
 ) -> None:
-    """Update an Organisation field."""
-    _update_entity_field_with_history(
-        dynamodb, "organisation", field_name, new_value, migration_context
+    """Update an Organisation document."""
+    _update_entity_document_with_history(
+        dynamodb, "organisation", datatable, migration_context
     )
 
 
-@when(parsers.parse('the Location field "{field_name}" is updated to "{new_value}"'))
-def update_location_field(
+@when("the Location document is updated with changes")
+def update_location_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
-    field_name: str,
-    new_value: str,
+    datatable,
 ) -> None:
-    """Update a Location field."""
-    _update_entity_field_with_history(
-        dynamodb, "location", field_name, new_value, migration_context
+    """Update a Location document."""
+    _update_entity_document_with_history(
+        dynamodb, "location", datatable, migration_context
     )
 
 
-@when(
-    parsers.parse(
-        'the HealthcareService field "{field_name}" is updated to "{new_value}"'
-    )
-)
-def update_healthcare_service_field(
+@when("the HealthcareService document is updated with changes")
+def update_healthcare_service_document(
     dynamodb: Dict[str, Any],
     migration_context: Dict[str, Any],
-    field_name: str,
-    new_value: str,
+    datatable,
 ) -> None:
-    """Update a HealthcareService field."""
-    _update_entity_field_with_history(
-        dynamodb, "healthcare-service", field_name, new_value, migration_context
+    """Update a HealthcareService document."""
+    _update_entity_document_with_history(
+        dynamodb, "healthcare-service", datatable, migration_context
     )
 
 
-def _update_entity_field_with_history(
+def _update_entity_document_with_history(
     dynamodb: Dict[str, Any],
     entity_type: str,
-    field_name: str,
-    new_value: str,
+    table_data: list,
     migration_context: Dict[str, Any],
 ) -> None:
-    """Helper to update entity field and trigger version history processing."""
+    """Helper to update entity document and trigger version history processing."""
     entity_id = migration_context["entity_id"]
-    old_value = migration_context.get("old_value")
+    old_document = migration_context.get("document_data", {}).copy()
+
+    # Parse the changes from the table
+    changes = parse_gherkin_table(table_data)
+
+    # Apply changes to create new document
+    new_document = old_document.copy()
+    new_document.update(changes)
 
     # Update the record in DynamoDB
-    update_entity_field(dynamodb, entity_type, entity_id, field_name, new_value)
+    table = get_dynamodb_table(dynamodb, entity_type)
+    table.update_item(
+        Key={"id": entity_id, "field": "document"},
+        UpdateExpression="SET " + ", ".join([f"#{k} = :{k}" for k in changes.keys()]),
+        ExpressionAttributeNames={f"#{k}": k for k in changes.keys()},
+        ExpressionAttributeValues={f":{k}": v for k, v in changes.items()},
+    )
 
-    # SIMULATE what Lambda would do: process the stream event directly
+    # Manually invoke handler (not testing Streams → Lambda integration)
     version_history_helper = VersionHistoryHelper(
         dynamodb_endpoint=dynamodb.get("endpoint_url")
     )
 
     table_name = get_table_name(entity_type)
 
-    version_history_helper.process_update_as_stream_event(
+    version_history_helper.process_document_update_as_stream_event(
         table_name=table_name,
         entity_id=entity_id,
-        field_name=field_name,
-        old_value=old_value,
-        new_value=new_value,
+        old_document=old_document,
+        new_document=new_document,
         last_updated_by={
             "type": "app",
             "value": "INTERNAL001",
@@ -167,8 +183,8 @@ def _update_entity_field_with_history(
         },
     )
 
-    # Update context with new value for subsequent updates
-    migration_context["old_value"] = new_value
+    # Update context with new document for subsequent updates
+    migration_context["document_data"] = new_document
 
 
 @then("a version history record should exist with")

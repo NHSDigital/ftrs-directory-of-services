@@ -12,11 +12,9 @@ from version_history.lambda_handler import lambda_handler
 
 class VersionHistoryHelper:
     """
-    Helper to simulate Lambda stream processing in LocalStack tests.
+    Test helper - directly invokes Lambda handler function.
 
-    Since LocalStack doesn't automatically trigger Lambda functions from
-    DynamoDB streams, this helper manually invokes the Lambda handler code
-    to process changes, just like how MigrationHelper runs migration code directly.
+    NOTE: Not testing AWS Streams → Lambda integration.
     """
 
     def __init__(self, dynamodb_endpoint: str | None = None):
@@ -98,6 +96,68 @@ class VersionHistoryHelper:
             elif "ENDPOINT_URL" in os.environ:
                 del os.environ["ENDPOINT_URL"]
 
+    def process_document_update_as_stream_event(
+        self,
+        table_name: str,
+        entity_id: str,
+        old_document: Dict[str, Any],
+        new_document: Dict[str, Any],
+        last_updated_by: Dict[str, str] | None = None,
+    ) -> None:
+        """
+        Simulate a DynamoDB stream event for document field updates.
+
+        This simulates the document storage pattern where the entire entity
+        document is stored in a single record with field='document'.
+
+        Args:
+            table_name: Full DynamoDB table name
+            entity_id: Record ID
+            old_document: Previous document state (without system fields)
+            new_document: New document state (without system fields)
+            last_updated_by: Optional audit info
+        """
+        if last_updated_by is None:
+            last_updated_by = {
+                "type": "app",
+                "value": "INTERNAL001",
+                "display": "Data Migration",
+            }
+
+        # Build a mock DynamoDB stream event for document updates
+        stream_event = self._build_document_stream_event(
+            table_name=table_name,
+            entity_id=entity_id,
+            old_document=old_document,
+            new_document=new_document,
+            last_updated_by=last_updated_by,
+        )
+
+        # Create Lambda event with stream record
+        lambda_event = {"Records": [stream_event]}
+
+        # Create mock Lambda context
+        mock_context = self._create_mock_lambda_context()
+
+        # Inject endpoint URL for LocalStack
+        original_endpoint = os.environ.get("ENDPOINT_URL")
+        try:
+            if self.dynamodb_endpoint:
+                os.environ["ENDPOINT_URL"] = self.dynamodb_endpoint
+
+            # Call Lambda handler directly
+            logger.debug(
+                f"Processing document stream event for {table_name} id={entity_id}"
+            )
+            lambda_handler(lambda_event, mock_context)
+
+        finally:
+            # Restore original endpoint
+            if original_endpoint:
+                os.environ["ENDPOINT_URL"] = original_endpoint
+            elif "ENDPOINT_URL" in os.environ:
+                del os.environ["ENDPOINT_URL"]
+
     def _build_stream_event(
         self,
         table_name: str,
@@ -152,6 +212,76 @@ class VersionHistoryHelper:
                         }
                     },
                 },
+                "SequenceNumber": f"{int(time.time() * 1000)}",
+                "SizeBytes": 123,
+                "StreamViewType": "NEW_AND_OLD_IMAGES",
+            },
+        }
+
+    def _build_document_stream_event(
+        self,
+        table_name: str,
+        entity_id: str,
+        old_document: Dict[str, Any],
+        new_document: Dict[str, Any],
+        last_updated_by: Dict[str, str],
+    ) -> Dict[str, Any]:
+        """
+        Build a mock DynamoDB stream event for document field updates.
+
+        The document storage pattern stores the entire entity document
+        with field='document' and all document fields at the root level.
+        """
+        # Build OldImage with document fields at root level
+        old_image = {
+            "id": {"S": entity_id},
+            "field": {"S": "document"},
+            "lastUpdatedBy": {
+                "M": {
+                    "type": {"S": last_updated_by.get("type", "system")},
+                    "value": {"S": last_updated_by.get("value", "unknown")},
+                    "display": {"S": last_updated_by.get("display", "System")},
+                }
+            },
+        }
+        # Add all document fields
+        for key, value in old_document.items():
+            old_image[key] = self._serialize_value(value)
+
+        # Build NewImage with document fields at root level
+        new_image = {
+            "id": {"S": entity_id},
+            "field": {"S": "document"},
+            "lastUpdatedBy": {
+                "M": {
+                    "type": {"S": last_updated_by.get("type", "system")},
+                    "value": {"S": last_updated_by.get("value", "unknown")},
+                    "display": {"S": last_updated_by.get("display", "System")},
+                }
+            },
+        }
+        # Add all document fields
+        for key, value in new_document.items():
+            new_image[key] = self._serialize_value(value)
+
+        return {
+            "eventID": f"test-event-{entity_id}-document",
+            "eventName": "MODIFY",
+            "eventVersion": "1.1",
+            "eventSource": "aws:dynamodb",
+            "awsRegion": "eu-west-2",
+            "eventSourceARN": (
+                f"arn:aws:dynamodb:eu-west-2:123456789012:table/"
+                f"{table_name}/stream/2025-01-01T00:00:00.000"
+            ),
+            "dynamodb": {
+                "ApproximateCreationDateTime": int(time.time()),
+                "Keys": {
+                    "id": {"S": entity_id},
+                    "field": {"S": "document"},
+                },
+                "OldImage": old_image,
+                "NewImage": new_image,
                 "SequenceNumber": f"{int(time.time() * 1000)}",
                 "SizeBytes": 123,
                 "StreamViewType": "NEW_AND_OLD_IMAGES",
