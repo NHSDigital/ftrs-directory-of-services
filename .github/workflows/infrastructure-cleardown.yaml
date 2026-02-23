@@ -78,7 +78,7 @@ jobs:
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
   destroy-toggle-infrastructure:
-    needs: 
+    needs:
       - prepare-toggles-artifacts
       - destroy-application-infrastructure
     uses: ./.github/workflows/deploy-infrastructure.yaml

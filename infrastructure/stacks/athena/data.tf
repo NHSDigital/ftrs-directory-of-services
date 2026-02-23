@@ -51,7 +51,7 @@ data "aws_kms_key" "s3_kms_key" {
   key_id = local.kms_aliases.s3
 }
 
-data "aws_kms_key" "athena_kms_key" {
+data "aws_kms_key" "dynamodb_kms_key" {
   count  = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
-  key_id = local.kms_aliases.athena
+  key_id = local.kms_aliases.dynamodb
 }

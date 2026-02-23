@@ -57,4 +57,13 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
       "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.project_prefix}-database-${var.organisation_table_name}*"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
+  }
 }

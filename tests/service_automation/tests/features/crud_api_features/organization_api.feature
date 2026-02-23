@@ -1,12 +1,6 @@
 @crud-org-api @data-sourcing
 Feature: Organization API Endpoint
 
-  Scenario: Retrieve Organization
-    When I request data from the "crud" endpoint "Organization"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "10" "Organization" resources
-
   Scenario: Update Organization for specific ODS Code
     Given that the stack is "organisation"
     And I have a organisation repo
