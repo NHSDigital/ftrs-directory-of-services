@@ -51,6 +51,14 @@ resource "aws_iam_role_policy" "osis_pipelines_policy" {
       {
         Effect = "Allow"
         Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Resource = data.aws_kms_key.dynamodb_kms_key[0].arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "s3:PutObject",
           "s3:GetObject",
           "s3:ListBucket",

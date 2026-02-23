@@ -133,7 +133,7 @@ resource "aws_iam_role_policy" "athena_dynamodb_policy" {
         ],
         Resource = [
           data.aws_kms_key.s3_kms_key[0].arn,
-          data.aws_kms_key.athena_kms_key[0].arn
+          data.aws_kms_key.dynamodb_kms_key[0].arn
         ]
       }
     ]
