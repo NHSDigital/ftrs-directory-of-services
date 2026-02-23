@@ -35,7 +35,7 @@ module "version_history_lambda" {
   timeout                 = var.version_history_lambda_timeout
   memory_size             = var.version_history_lambda_memory_size
 
-  subnet_ids         = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
+  subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.version_history_lambda_security_group[0].id, data.aws_security_group.version_history_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "2"
