@@ -1,6 +1,7 @@
 # =============================================================================
 # ETL ODS Performance Monitoring (PERF-001, SEC-011)
 # Dashboard for: ods-daily-sync, ods-batch-transform, ods-sqs-batch-send
+# Includes: ETL Lambdas + downstream CRUD API (org-update) via APIM
 # Reference: requirements/nfrs/performance/nfrs.yaml (perf-etl-ods-latency control)
 # Note: Alarms will be configured separately via Splunk/ITOC
 # =============================================================================
@@ -10,7 +11,21 @@ locals {
   transformer_function_name = "${local.resource_prefix}-${var.transformer_name}${local.workspace_suffix}"
   consumer_function_name    = "${local.resource_prefix}-${var.consumer_name}${local.workspace_suffix}"
 
+  # CRUD API resources (downstream of ETL-ODS Consumer via APIM)
+  crud_api_lambda_name  = "${local.resource_prefix}-organisations-lambda${local.workspace_suffix}"
+  crud_api_gateway_name = "${local.resource_prefix}-api-gateway${local.workspace_suffix}"
+
   # PERF-001 thresholds from requirements/nfrs/performance/nfrs.yaml
+  # CRUD API thresholds for org-update (called by Consumer)
+  crud_api_thresholds = {
+    org_update = {
+      p50_ms = 70
+      p95_ms = 150
+      max_ms = 400
+    }
+  }
+
+  # ETL-ODS Lambda thresholds
   perf_thresholds = {
     ods_daily_sync = {
       p50_ms = 500
@@ -225,6 +240,127 @@ resource "aws_cloudwatch_dashboard" "etl_ods_performance" {
             ["AWS/Lambda", "Throttles", "FunctionName", local.extractor_function_name, { label = "Extractor", color = "#d62728" }],
             ["...", local.transformer_function_name, { label = "Transformer", color = "#ff7f0e" }],
             ["...", local.consumer_function_name, { label = "Consumer", color = "#9467bd" }]
+          ]
+          period = 60
+        }
+      },
+      # ==========================================================================
+      # Row 5: Consumer TPS & CRUD API Integration Metrics
+      # ==========================================================================
+      {
+        type   = "metric"
+        x      = 0
+        y      = 24
+        width  = 8
+        height = 6
+        properties = {
+          title   = "Consumer -> CRUD API TPS"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            [{ expression = "m1/PERIOD(m1)", label = "Consumer Invocations/sec", id = "tps" }],
+            ["AWS/Lambda", "Invocations", "FunctionName", local.consumer_function_name, { id = "m1", visible = false }]
+          ]
+          period = 60
+        }
+      },
+      {
+        type   = "metric"
+        x      = 8
+        y      = 24
+        width  = 8
+        height = 6
+        properties = {
+          title   = "CRUD API Lambda Duration (org-update)"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            ["AWS/Lambda", "Duration", "FunctionName", local.crud_api_lambda_name, { stat = "p50", label = "p50" }],
+            ["...", { stat = "p95", label = "p95" }],
+            ["...", { stat = "Maximum", label = "max" }]
+          ]
+          annotations = {
+            horizontal = [
+              { value = local.crud_api_thresholds.org_update.p95_ms, label = "p95 threshold (${local.crud_api_thresholds.org_update.p95_ms}ms)", color = "#ff7f0e" },
+              { value = local.crud_api_thresholds.org_update.max_ms, label = "max threshold (${local.crud_api_thresholds.org_update.max_ms}ms)", color = "#d62728" }
+            ]
+          }
+          period = 300
+        }
+      },
+      {
+        type   = "metric"
+        x      = 16
+        y      = 24
+        width  = 8
+        height = 6
+        properties = {
+          title   = "CRUD API Lambda Errors & Throttles"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            ["AWS/Lambda", "Errors", "FunctionName", local.crud_api_lambda_name, { label = "Errors", color = "#d62728" }],
+            ["AWS/Lambda", "Throttles", "FunctionName", local.crud_api_lambda_name, { label = "Throttles", color = "#ff7f0e" }]
+          ]
+          period = 60
+        }
+      },
+      # ==========================================================================
+      # Row 6: API Gateway Metrics (CRUD API backend)
+      # ==========================================================================
+      {
+        type   = "metric"
+        x      = 0
+        y      = 30
+        width  = 8
+        height = 6
+        properties = {
+          title   = "CRUD API Gateway - Request Count"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            ["AWS/ApiGateway", "Count", "ApiName", local.crud_api_gateway_name, { stat = "Sum", label = "Requests" }]
+          ]
+          period = 60
+        }
+      },
+      {
+        type   = "metric"
+        x      = 8
+        y      = 30
+        width  = 8
+        height = 6
+        properties = {
+          title   = "CRUD API Gateway - Latency"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            ["AWS/ApiGateway", "Latency", "ApiName", local.crud_api_gateway_name, { stat = "p50", label = "p50" }],
+            ["...", { stat = "p95", label = "p95" }],
+            ["...", { stat = "Maximum", label = "max" }]
+          ]
+          period = 300
+        }
+      },
+      {
+        type   = "metric"
+        x      = 16
+        y      = 30
+        width  = 8
+        height = 6
+        properties = {
+          title   = "CRUD API Gateway - Errors (4XX/5XX)"
+          region  = var.aws_region
+          view    = "timeSeries"
+          stacked = false
+          metrics = [
+            ["AWS/ApiGateway", "4XXError", "ApiName", local.crud_api_gateway_name, { stat = "Sum", label = "4XX", color = "#ff7f0e" }],
+            ["AWS/ApiGateway", "5XXError", "ApiName", local.crud_api_gateway_name, { stat = "Sum", label = "5XX", color = "#d62728" }]
           ]
           period = 60
         }
