@@ -92,3 +92,9 @@ variable "ttl_attribute_name" {
   type        = string
   default     = ""
 }
+
+variable "kms_key_arn" {
+  description = "The ARN of the CMK to use for encryption at rest. If not specified, uses AWS managed key."
+  type        = string
+  default     = null
+}
