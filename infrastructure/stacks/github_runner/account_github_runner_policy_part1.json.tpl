@@ -11,6 +11,14 @@
             "Resource": "*"
         },
         {
+            "Sid": "LambdaFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:*"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "DataFullAccess",
             "Effect": "Allow",
             "Action": [
