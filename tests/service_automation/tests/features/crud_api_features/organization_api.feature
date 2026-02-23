@@ -31,7 +31,7 @@ Feature: Organization API Endpoint
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "information"
-    And the OperationOutcome contains an issue with code "information"
+    And the OperationOutcome contains an issue with code "not-updated"
     And the OperationOutcome contains an issue with diagnostics "No changes made to the organisation"
     And the database matches the inserted payload with the same modifiedBy timestamp
 
