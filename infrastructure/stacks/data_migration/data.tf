@@ -36,11 +36,6 @@ data "aws_subnets" "private_subnets" {
     name   = "tag:Name"
     values = ["${local.account_prefix}-vpc-private-*"]
   }
-
-  filter {
-    name   = "tag:CidrRange"
-    values = [var.vpc_private_subnet_cidr_range]
-  }
 }
 
 data "aws_s3_object" "python_dependency_layer" {
