@@ -121,7 +121,7 @@ When working with FHIR resources:
 
 1. **FHIR Version** - This API conforms to FHIR UK Core STU3 v0.0.6, based on FHIR R4 v4.0.1
 
-2. **Resources** - Primary resources: `Organization`, `Endpoint`, `Bundle`, `OperationOutcome`
+2. **Resources** - Primary resources: `Organization`, `Endpoint`, `Bundle`, `OperationOutcome`, `HealthcareService`
 
 3. **Extensions** - Custom NHS England extensions are in [docs/fhir/structuredefinitions/](../docs/fhir/structuredefinitions/)
 
