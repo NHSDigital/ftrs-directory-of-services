@@ -11,14 +11,10 @@
             "Resource": "*"
         },
         {
-            "Sid": "LambdaLayerAccess",
+            "Sid": "LambdaFullAccess",
             "Effect": "Allow",
             "Action": [
-                "lambda:GetLayerVersion",
-                "lambda:PublishLayerVersion",
-                "lambda:DeleteLayerVersion",
-                "lambda:ListLayerVersions",
-                "lambda:ListLayers"
+                "lambda:*"
             ],
             "Resource": "*"
         },
