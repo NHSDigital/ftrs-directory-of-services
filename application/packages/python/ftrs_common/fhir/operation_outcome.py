@@ -10,18 +10,34 @@ FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str, str]] = {
     "invalid": (
         "UNPROCESSABLE_ENTITY",
         "Message was not malformed but deemed unprocessable by the server.",
-        HTTP_ERROR
+        HTTP_ERROR,
     ),
-    "not-found": ("NOT_FOUND", "The Server was unable to find the specified resource.", HTTP_ERROR),
+    "not-found": (
+        "NOT_FOUND",
+        "The Server was unable to find the specified resource.",
+        HTTP_ERROR,
+    ),
     "exception": ("SERVER_ERROR", ERROR_PROCESSING_REQUEST, HTTP_ERROR),
-    "structure": ("BAD_REQUEST", "The Server was unable to process the request.", HTTP_ERROR),
+    "structure": (
+        "BAD_REQUEST",
+        "The Server was unable to process the request.",
+        HTTP_ERROR,
+    ),
     "required": ("MSG_RESOURCE_REQUIRED", "A resource is required", HTTP_ERROR),
     "value": ("MSG_PARAM_INVALID", "Parameter content is invalid", HTTP_ERROR),
     "processing": ("MSG_ERROR_PARSING", ERROR_PROCESSING_REQUEST, HTTP_ERROR),
     "duplicate": ("CONFLICT", "The Server identified a conflict.", HTTP_ERROR),
-    "informational": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
+    "informational": (
+        "MSG_UPDATED",
+        "Existing resource updated",
+        OPERATION_OUTCOME_SYSTEM,
+    ),
     "success": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
-    "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation", OPERATION_OUTCOME_SYSTEM),
+    "not-updated": (
+        "MSG_NOT_UPDATED",
+        "No changes made to the organisation",
+        OPERATION_OUTCOME_SYSTEM,
+    ),
 }
 
 

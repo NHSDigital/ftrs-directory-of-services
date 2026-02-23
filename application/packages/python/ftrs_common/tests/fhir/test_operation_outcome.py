@@ -1,13 +1,13 @@
+import pytest
 from ftrs_common.fhir.operation_outcome import (
     FHIR_OPERATION_OUTCOME_CODES,
-    OPERATION_OUTCOME_SYSTEM,
     HTTP_ERROR,
-
+    OPERATION_OUTCOME_SYSTEM,
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
 from pydantic import ValidationError
-import pytest
+
 
 @pytest.mark.parametrize(
     "code,diagnostics,severity,expected_value",
@@ -31,7 +31,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "not-found",
@@ -52,7 +52,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "exception",
@@ -73,7 +73,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "structure",
@@ -94,7 +94,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "required",
@@ -115,7 +115,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "value",
@@ -136,7 +136,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "processing",
@@ -157,7 +157,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "duplicate",
@@ -178,7 +178,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "informational",
@@ -199,7 +199,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "success",
@@ -220,7 +220,7 @@ import pytest
                         }
                     }
                 ]
-            }
+            },
         ),
         (
             "not-updated",
@@ -241,11 +241,13 @@ import pytest
                         }
                     }
                 ]
-            }
-        )
-    ]
+            },
+        ),
+    ],
 )
-def test_operation_outcome_build_parametrized(code, diagnostics, severity, expected_value) -> None:
+def test_operation_outcome_build_parametrized(
+    code: str, diagnostics: str, severity: str, expected_value: dict
+) -> None:
     outcome = OperationOutcomeHandler.build(
         diagnostics=diagnostics,
         code=code,
@@ -258,12 +260,19 @@ def test_operation_outcome_build_parametrized(code, diagnostics, severity, expec
         outcome["issue"][0]["details"]["coding"][0]["system"]
         == expected_value["issue"][0]["details"]["coding"][0]["system"]
     )
-    assert outcome["issue"][0]["details"]["coding"][0]["code"] == expected_value["issue"][0]["details"]["coding"][0]["code"]
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["code"]
+        == expected_value["issue"][0]["details"]["coding"][0]["code"]
+    )
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
         == expected_value["issue"][0]["details"]["coding"][0]["display"]
     )
-    assert outcome["issue"][0]["details"]["text"] == expected_value["issue"][0]["details"]["text"]
+    assert (
+        outcome["issue"][0]["details"]["text"]
+        == expected_value["issue"][0]["details"]["text"]
+    )
+
 
 def test_operation_outcome_exception_message() -> None:
     outcome = {"issue": [{"diagnostics": "Something went wrong"}]}
@@ -287,10 +296,7 @@ def test_operation_outcome_handler_build_basic() -> None:
     assert outcome["issue"][0]["severity"] == "error"
     assert "details" in outcome["issue"][0]
     assert "coding" in outcome["issue"][0]["details"]
-    assert (
-        outcome["issue"][0]["details"]["coding"][0]["system"]
-        == HTTP_ERROR
-    )
+    assert outcome["issue"][0]["details"]["coding"][0]["system"] == HTTP_ERROR
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "UNPROCESSABLE_ENTITY"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
@@ -384,10 +390,7 @@ def test_operation_outcome_handler_from_exception() -> None:
     assert outcome["issue"][0]["diagnostics"] == "Boom!"
     assert outcome["issue"][0]["code"] == "exception"
     assert outcome["issue"][0]["severity"] == "fatal"
-    assert (
-        outcome["issue"][0]["details"]["coding"][0]["system"]
-        == HTTP_ERROR
-    )
+    assert outcome["issue"][0]["details"]["coding"][0]["system"] == HTTP_ERROR
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "SERVER_ERROR"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
@@ -415,10 +418,7 @@ def test_operation_outcome_handler_from_validation_error() -> None:
     assert outcome["issue"][0]["diagnostics"] == "Validation failed for resource."
     assert outcome["issue"][0]["code"] == "invalid"
     assert outcome["issue"][0]["severity"] == "error"
-    assert (
-        outcome["issue"][0]["details"]["coding"][0]["system"]
-        == HTTP_ERROR
-    )
+    assert outcome["issue"][0]["details"]["coding"][0]["system"] == HTTP_ERROR
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "UNPROCESSABLE_ENTITY"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["display"]
@@ -432,33 +432,46 @@ def test_fhir_operation_outcome_codes_mapping() -> None:
         "invalid": (
             "UNPROCESSABLE_ENTITY",
             "Message was not malformed but deemed unprocessable by the server.",
-            HTTP_ERROR
+            HTTP_ERROR,
         ),
         "not-found": (
             "NOT_FOUND",
             "The Server was unable to find the specified resource.",
-            HTTP_ERROR
-
+            HTTP_ERROR,
         ),
         "exception": (
             "SERVER_ERROR",
             "The Server has encountered an error processing the request.",
-            HTTP_ERROR
-
+            HTTP_ERROR,
         ),
-        "structure": ("BAD_REQUEST", "The Server was unable to process the request.", HTTP_ERROR
-),
+        "structure": (
+            "BAD_REQUEST",
+            "The Server was unable to process the request.",
+            HTTP_ERROR,
+        ),
         "required": ("MSG_RESOURCE_REQUIRED", "A resource is required", HTTP_ERROR),
         "value": ("MSG_PARAM_INVALID", "Parameter content is invalid", HTTP_ERROR),
         "processing": (
             "MSG_ERROR_PARSING",
             "The Server has encountered an error processing the request.",
-            HTTP_ERROR
+            HTTP_ERROR,
         ),
         "duplicate": ("CONFLICT", "The Server identified a conflict.", HTTP_ERROR),
-        "informational": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
-        "success": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
-        "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation", OPERATION_OUTCOME_SYSTEM),
+        "informational": (
+            "MSG_UPDATED",
+            "Existing resource updated",
+            OPERATION_OUTCOME_SYSTEM,
+        ),
+        "success": (
+            "MSG_UPDATED",
+            "Existing resource updated",
+            OPERATION_OUTCOME_SYSTEM,
+        ),
+        "not-updated": (
+            "MSG_NOT_UPDATED",
+            "No changes made to the organisation",
+            OPERATION_OUTCOME_SYSTEM,
+        ),
     }
     for code, expected in expected_mappings.items():
         assert FHIR_OPERATION_OUTCOME_CODES[code] == expected
