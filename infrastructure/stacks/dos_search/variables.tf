@@ -298,13 +298,3 @@ variable "enable_warning_alarms" {
   type        = bool
   default     = false
 }
-
-################################################################################
-# Slack Notification Configuration
-################################################################################
-
-variable "slack_notifier_stack_enabled" {
-  description = "Whether the slack_notifier stack is enabled (from toggle)"
-  type        = bool
-  default     = false
-}
