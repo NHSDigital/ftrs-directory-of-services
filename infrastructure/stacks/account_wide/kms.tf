@@ -254,4 +254,3 @@ module "scheduler_encryption_key" {
   aws_service_name = "scheduler.amazonaws.com"
   description      = "Encryption key for EventBridge scheduler in ${var.environment} environment"
 }
-

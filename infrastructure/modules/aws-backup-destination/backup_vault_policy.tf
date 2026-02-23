@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "vault_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.source_account_id}:root"]
+      identifiers = [for account_id in var.source_account_ids : "arn:aws:iam::${account_id}:root"]
     }
 
     actions = [
@@ -62,7 +62,8 @@ data "aws_iam_policy_document" "vault_policy" {
         test     = "StringNotEquals"
         variable = "backup:CopyTargets"
         values = [
-          "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:${var.region}-${var.source_account_id}-backup-vault"
+          for account_id in var.source_account_ids :
+          "arn:aws:backup:${var.region}:${account_id}:backup-vault:${var.region}-${account_id}-backup-vault"
         ]
       }
     }

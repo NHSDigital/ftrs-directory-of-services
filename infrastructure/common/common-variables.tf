@@ -58,6 +58,11 @@ variable "artefacts_bucket_name" {
   type        = string
 }
 
+variable "aws_accounts" {
+  description = "List of AWS account environments that can assume the cross account roles"
+  type        = list(string)
+}
+
 variable "account_github_runner_role_name" {
   description = "GitHub runner IAM role name for account"
   type        = string
