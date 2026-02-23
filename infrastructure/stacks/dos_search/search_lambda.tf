@@ -40,7 +40,7 @@ module "lambda" {
     aws_lambda_layer_version.common_packages_layer.arn,
   ]
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
   security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {

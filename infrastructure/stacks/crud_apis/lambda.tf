@@ -32,7 +32,7 @@ module "organisation_api_lambda" {
   timeout                 = var.organisation_api_lambda_timeout
   memory_size             = var.organisation_api_lambda_memory_size
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
@@ -87,7 +87,7 @@ module "healthcare_service_api_lambda" {
   timeout                 = var.healthcare_service_api_lambda_timeout
   memory_size             = var.healthcare_service_api_lambda_memory_size
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
@@ -142,7 +142,7 @@ module "location_api_lambda" {
   timeout                 = var.location_api_lambda_timeout
   memory_size             = var.location_api_lambda_memory_size
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
   security_group_ids = [try(aws_security_group.crud_apis_lambda_security_group[0].id, data.aws_security_group.crud_apis_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
