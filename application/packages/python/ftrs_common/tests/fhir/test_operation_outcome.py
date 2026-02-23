@@ -1,11 +1,269 @@
 from ftrs_common.fhir.operation_outcome import (
     FHIR_OPERATION_OUTCOME_CODES,
     OPERATION_OUTCOME_SYSTEM,
+    HTTP_ERROR,
+
     OperationOutcomeException,
     OperationOutcomeHandler,
 )
 from pydantic import ValidationError
+import pytest
 
+@pytest.mark.parametrize(
+    "code,diagnostics,severity,expected_value",
+    [
+        (
+            "invalid",
+            "The provided resource is invalid.",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "UNPROCESSABLE_ENTITY",
+                                    "display": "Message was not malformed but deemed unprocessable by the server.",
+                                }
+                            ],
+                            "text": "The provided resource is invalid.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "not-found",
+            "The Server was unable to find the specified resource.",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "NOT_FOUND",
+                                    "display": "The Server was unable to find the specified resource.",
+                                }
+                            ],
+                            "text": "The Server was unable to find the specified resource.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "exception",
+            "The Server has encountered an error processing the request.",
+            "fatal",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "SERVER_ERROR",
+                                    "display": "The Server has encountered an error processing the request.",
+                                }
+                            ],
+                            "text": "The Server has encountered an error processing the request.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "structure",
+            "The Server was unable to process the request.",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "BAD_REQUEST",
+                                    "display": "The Server was unable to process the request.",
+                                }
+                            ],
+                            "text": "The Server was unable to process the request.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "required",
+            "A resource is required",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "MSG_RESOURCE_REQUIRED",
+                                    "display": "A resource is required",
+                                }
+                            ],
+                            "text": "A resource is required",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "value",
+            "Parameter content is invalid",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "MSG_PARAM_INVALID",
+                                    "display": "Parameter content is invalid",
+                                }
+                            ],
+                            "text": "Parameter content is invalid",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "processing",
+            "The Server has encountered an error processing the request.",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "MSG_ERROR_PARSING",
+                                    "display": "The Server has encountered an error processing the request.",
+                                }
+                            ],
+                            "text": "The Server has encountered an error processing the request.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "duplicate",
+            "The Server identified a conflict.",
+            "error",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": HTTP_ERROR,
+                                    "code": "CONFLICT",
+                                    "display": "The Server identified a conflict.",
+                                }
+                            ],
+                            "text": "The Server identified a conflict.",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "informational",
+            "Existing resource updated",
+            "information",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": OPERATION_OUTCOME_SYSTEM,
+                                    "code": "MSG_UPDATED",
+                                    "display": "Existing resource updated",
+                                }
+                            ],
+                            "text": "Existing resource updated",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "success",
+            "Existing resource updated",
+            "information",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": OPERATION_OUTCOME_SYSTEM,
+                                    "code": "MSG_UPDATED",
+                                    "display": "Existing resource updated",
+                                }
+                            ],
+                            "text": "Existing resource updated",
+                        }
+                    }
+                ]
+            }
+        ),
+        (
+            "not-updated",
+            "no changes made to org",
+            "information",
+            {
+                "issue": [
+                    {
+                        "details": {
+                            "coding": [
+                                {
+                                    "system": OPERATION_OUTCOME_SYSTEM,
+                                    "code": "MSG_NOT_UPDATED",
+                                    "display": "No changes made to the organisation",
+                                }
+                            ],
+                            "text": "no changes made to org",
+                        }
+                    }
+                ]
+            }
+        )
+    ]
+)
+def test_operation_outcome_build_parametrized(code, diagnostics, severity, expected_value) -> None:
+    outcome = OperationOutcomeHandler.build(
+        diagnostics=diagnostics,
+        code=code,
+        severity=severity,
+    )
+    assert outcome["issue"][0]["diagnostics"] == diagnostics
+    assert outcome["issue"][0]["code"] == code
+    assert outcome["issue"][0]["severity"] == severity
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["system"]
+        == expected_value["issue"][0]["details"]["coding"][0]["system"]
+    )
+    assert outcome["issue"][0]["details"]["coding"][0]["code"] == expected_value["issue"][0]["details"]["coding"][0]["code"]
+    assert (
+        outcome["issue"][0]["details"]["coding"][0]["display"]
+        == expected_value["issue"][0]["details"]["coding"][0]["display"]
+    )
+    assert outcome["issue"][0]["details"]["text"] == expected_value["issue"][0]["details"]["text"]
 
 def test_operation_outcome_exception_message() -> None:
     outcome = {"issue": [{"diagnostics": "Something went wrong"}]}
@@ -31,7 +289,7 @@ def test_operation_outcome_handler_build_basic() -> None:
     assert "coding" in outcome["issue"][0]["details"]
     assert (
         outcome["issue"][0]["details"]["coding"][0]["system"]
-        == OPERATION_OUTCOME_SYSTEM
+        == HTTP_ERROR
     )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "UNPROCESSABLE_ENTITY"
     assert (
@@ -128,7 +386,7 @@ def test_operation_outcome_handler_from_exception() -> None:
     assert outcome["issue"][0]["severity"] == "fatal"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["system"]
-        == OPERATION_OUTCOME_SYSTEM
+        == HTTP_ERROR
     )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "SERVER_ERROR"
     assert (
@@ -159,7 +417,7 @@ def test_operation_outcome_handler_from_validation_error() -> None:
     assert outcome["issue"][0]["severity"] == "error"
     assert (
         outcome["issue"][0]["details"]["coding"][0]["system"]
-        == OPERATION_OUTCOME_SYSTEM
+        == HTTP_ERROR
     )
     assert outcome["issue"][0]["details"]["coding"][0]["code"] == "UNPROCESSABLE_ENTITY"
     assert (
@@ -174,26 +432,33 @@ def test_fhir_operation_outcome_codes_mapping() -> None:
         "invalid": (
             "UNPROCESSABLE_ENTITY",
             "Message was not malformed but deemed unprocessable by the server.",
+            HTTP_ERROR
         ),
         "not-found": (
             "NOT_FOUND",
             "The Server was unable to find the specified resource.",
+            HTTP_ERROR
+
         ),
         "exception": (
             "SERVER_ERROR",
             "The Server has encountered an error processing the request.",
+            HTTP_ERROR
+
         ),
-        "structure": ("BAD_REQUEST", "The Server was unable to process the request."),
-        "required": ("MSG_RESOURCE_REQUIRED", "A resource is required"),
-        "value": ("MSG_PARAM_INVALID", "Parameter content is invalid"),
+        "structure": ("BAD_REQUEST", "The Server was unable to process the request.", HTTP_ERROR
+),
+        "required": ("MSG_RESOURCE_REQUIRED", "A resource is required", HTTP_ERROR),
+        "value": ("MSG_PARAM_INVALID", "Parameter content is invalid", HTTP_ERROR),
         "processing": (
             "MSG_ERROR_PARSING",
             "The Server has encountered an error processing the request.",
+            HTTP_ERROR
         ),
-        "duplicate": ("CONFLICT", "The Server identified a conflict."),
-        "informational": ("MSG_UPDATED", "Existing resource updated"),
-        "success": ("MSG_UPDATED", "Existing resource updated"),
-        "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation"),
+        "duplicate": ("CONFLICT", "The Server identified a conflict.", HTTP_ERROR),
+        "informational": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
+        "success": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
+        "not-updated": ("MSG_NOT_UPDATED", "No changes made to the organisation", OPERATION_OUTCOME_SYSTEM),
     }
     for code, expected in expected_mappings.items():
         assert FHIR_OPERATION_OUTCOME_CODES[code] == expected
@@ -202,7 +467,7 @@ def test_fhir_operation_outcome_codes_mapping() -> None:
 def test_build_details_helper() -> None:
     """Test the _build_details helper method."""
     details = OperationOutcomeHandler._build_details("invalid", "Test text")
-    assert details["coding"][0]["system"] == OPERATION_OUTCOME_SYSTEM
+    assert details["coding"][0]["system"] == HTTP_ERROR
     assert details["coding"][0]["code"] == "UNPROCESSABLE_ENTITY"
     assert (
         details["coding"][0]["display"]
