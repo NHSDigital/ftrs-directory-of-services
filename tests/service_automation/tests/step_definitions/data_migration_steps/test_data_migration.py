@@ -45,6 +45,8 @@ IGNORED_PATHS = [
 scenarios(
     "../features/data_migration_features/gp_practice_migration_happy_path.feature",
     "../features/data_migration_features/gp_enhanced_access_happy_path.feature",
+    "../features/data_migration_features/community_pharmacy_migration_happy_path.feature",
+    "../features/data_migration_features/distance_selling_pharmacy_migration_happy_path.feature",
     "../features/data_migration_features/age_range_transformation.feature",
     "../features/data_migration_features/sgsd_transformation.feature",
     "../features/data_migration_features/position_gcs_transformation.feature",
@@ -68,6 +70,8 @@ scenarios(
     "../features/data_migration_features/triage_code_migration_feature_flag_disabled.feature",
     "../features/data_migration_features/gp_practice_migration_feature_flag_disabled.feature",
     "../features/data_migration_features/gp_enhanced_access_feature_flag_disabled.feature",
+    "../features/data_migration_features/community_pharmacy_migration_feature_flag_disabled.feature",
+    "../features/data_migration_features/distance_selling_pharmacy_migration_feature_flag_disabled.feature",
 )
 
 

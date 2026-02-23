@@ -1,0 +1,186 @@
+from unittest.mock import MagicMock
+
+import pytest
+from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.domain import (
+    HealthcareServiceCategory,
+    HealthcareServiceType,
+)
+from ftrs_data_layer.domain.legacy import Service
+from pytest_mock import MockerFixture
+
+from common.cache import DoSMetadataCache
+from service_migration.transformer.distance_selling_pharmacy import (
+    DistanceSellingPharmacyTransformer,
+)
+
+
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags to prevent AppConfig initialization."""
+    return mocker.patch(
+        "service_migration.transformer.distance_selling_pharmacy.is_enabled",
+        return_value=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "service_type_id, ods_code, expected_result, expected_message",
+    [
+        (134, "FXX99", True, None),  # Valid Distance Selling Pharmacy with F-prefix
+        (
+            134,
+            "A1B2C",
+            True,
+            None,
+        ),  # Valid Distance Selling Pharmacy with alternating pattern
+        (134, "F1234", True, None),  # Valid with F and numbers
+        (134, "FABCD", True, None),  # Valid with F and letters
+        (
+            100,
+            "FXX99",
+            False,
+            "Service type is not Pharmacy Distance Selling (134)",
+        ),  # Wrong service type
+        (134, None, False, "Service does not have an ODS code"),  # No ODS code
+        (134, "FXXX", False, "ODS code is not 5 characters"),  # Too short
+        (134, "FXXXXX", False, "ODS code is not 5 characters"),  # Too long
+        (
+            134,
+            "XXXXX",
+            False,
+            "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
+        ),  # Wrong format
+        (
+            134,
+            "12345",
+            False,
+            "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
+        ),  # Numbers only
+        (
+            134,
+            "A12BC",
+            False,
+            "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
+        ),  # Wrong alternating pattern
+    ],
+)
+def test_is_service_supported(
+    mock_legacy_service: Service,
+    service_type_id: int,
+    ods_code: str | None,
+    expected_result: bool,
+    expected_message: str | None,
+) -> None:
+    """Test that is_service_supported correctly validates Distance Selling Pharmacy services."""
+    mock_legacy_service.typeid = service_type_id
+    mock_legacy_service.odscode = ods_code
+
+    is_supported, message = DistanceSellingPharmacyTransformer.is_service_supported(
+        mock_legacy_service
+    )
+
+    assert is_supported == expected_result
+    assert message == expected_message
+
+
+def test_is_service_not_supported_when_feature_flag_disabled(
+    mocker: MockerFixture,
+    mock_legacy_service: Service,
+) -> None:
+    """Test that service is not supported when feature flag is disabled."""
+    mocker.patch(
+        "service_migration.transformer.distance_selling_pharmacy.is_enabled",
+        return_value=False,
+    )
+
+    mock_legacy_service.typeid = 134  # Distance Selling Pharmacy type ID
+    mock_legacy_service.odscode = "FXX99"  # Valid ODS code
+
+    is_supported, message = DistanceSellingPharmacyTransformer.is_service_supported(
+        mock_legacy_service
+    )
+
+    assert is_supported is False
+    assert (
+        message
+        == "Distance Selling Pharmacy service selection is disabled by feature flag"
+    )
+
+
+@pytest.mark.parametrize(
+    "status_id, expected_result, expected_message",
+    [
+        (1, True, None),  # Active service
+        (2, False, "Service is not active"),
+        (3, False, "Service is not active"),
+    ],
+)
+def test_should_include_service(
+    mock_legacy_service: Service,
+    status_id: int,
+    expected_result: bool,
+    expected_message: str | None,
+) -> None:
+    """Test that should_include_service validates active status."""
+    mock_legacy_service.typeid = 134  # Distance Selling Pharmacy type ID
+    mock_legacy_service.odscode = "FXX99"  # Valid ODS code
+    mock_legacy_service.statusid = status_id
+
+    should_include, message = DistanceSellingPharmacyTransformer.should_include_service(
+        mock_legacy_service
+    )
+
+    assert should_include == expected_result
+    assert message == expected_message
+
+
+def test_transform_creates_all_entities(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that transform creates organisation, location, and healthcare_service."""
+    mock_legacy_service.typeid = 134  # Distance Selling Pharmacy type ID
+    mock_legacy_service.odscode = "FXX99"  # Valid ODS code
+    mock_legacy_service.statusid = 1  # Active status
+
+    transformer = DistanceSellingPharmacyTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    # All resources should be created
+    assert len(result.organisation) == 1
+    assert len(result.location) == 1
+    assert len(result.healthcare_service) == 1
+
+    # Verify organisation details
+    assert result.organisation[0].identifier_ODS_ODSCode == "FXX99"
+    assert result.organisation[0].name == "Public Test Service"
+    assert (
+        result.organisation[0].type == "Pharmacy Distance Selling"
+    )  # From service_type metadata
+
+    # Verify healthcare service details
+    assert (
+        result.healthcare_service[0].category
+        == HealthcareServiceCategory.PHARMACY_SERVICES
+    )
+    assert result.healthcare_service[0].type == HealthcareServiceType.ESSENTIAL_SERVICES
+
+
+def test_transform_no_endpoints_on_organisation(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that organisation has no endpoints when source data has no endpoints."""
+    mock_legacy_service.typeid = 134  # Distance Selling Pharmacy type ID
+    mock_legacy_service.odscode = "FXX99"  # Valid ODS code
+    mock_legacy_service.statusid = 1  # Active status
+    # Clear endpoints from mock service to simulate pharmacy data
+    mock_legacy_service.endpoints = []
+
+    transformer = DistanceSellingPharmacyTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    # Verify organisation has no endpoints (source data has no endpoints)
+    assert len(result.organisation) == 1
+    assert result.organisation[0].endpoints == []
