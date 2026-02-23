@@ -1,4 +1,5 @@
 module "aws_backup_source" {
+  count  = local.stack_enabled == 1 ? 1 : 0
   source = "../../modules/aws-backup-source"
 
   project_name     = var.project

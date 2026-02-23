@@ -1,4 +1,6 @@
 locals {
+  stack_enabled = var.aws_backup_source_stack_enabled ? 1 : 0
+
   # Construct destination vault ARN directly to avoid cross-account provider dependency
   destination_vault_arn = "arn:aws:backup:${var.aws_region}:${var.mgmt_account_id}:backup-vault:${var.project}-shared-backup-vault"
   terraform_role_name   = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}"
@@ -98,6 +100,7 @@ locals {
 
 module "aws_backup_source" {
   #checkov:skip=CKV_AWS_26: Revisit
+  count = local.stack_enabled == 1 ? 1 : 0
 
   source = "../../modules/aws-backup-source"
 

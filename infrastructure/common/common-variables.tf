@@ -220,6 +220,12 @@ variable "athena_stack_enabled" {
   default     = true
 }
 
+variable "aws_backup_source_stack_enabled" {
+  description = "Enable or disable the AWS Backup source stack"
+  type        = bool
+  default     = true
+}
+
 variable "version_history_enabled" {
   description = "Enable version history tracking for Organisation, Location, and HealthcareService table changes"
   type        = bool
