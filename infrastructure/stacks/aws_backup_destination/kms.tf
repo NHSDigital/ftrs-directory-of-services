@@ -4,7 +4,7 @@ module "backup_destination_kms_key" {
   alias_name       = local.kms_aliases.backup
   account_id       = var.mgmt_account_id
   aws_service_name = "backup.amazonaws.com"
-  description      = "Encryption key for AWS Backup destination vault in mgmt account"
+  description      = "Encryption key for AWS Backup destination vault in ${var.environment} environment"
 
   additional_policy_statements = [
     {
