@@ -62,8 +62,6 @@ else
   echo "Workspace: $WORKSPACE"
 fi
 
-# TODO remove test code
-WORKSPACE="default"
 echo -e "\nFinal Results:"
 echo "  Branch name: $BRANCH_NAME"
 echo "  Workspace: $WORKSPACE"
