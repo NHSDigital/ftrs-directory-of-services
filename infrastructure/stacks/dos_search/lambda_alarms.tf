@@ -5,7 +5,7 @@ module "lambda_monitoring" {
 
   sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
   sns_display_name = "DoS Search Lambda Alarms"
-  kms_key_id       = null
+  kms_key_id       = data.aws_kms_key.sqs_kms_key.arn
 
   alarm_config_path = "lambda/config"
 
