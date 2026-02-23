@@ -30,6 +30,8 @@ OPEN_SEARCH_ENABLED=$(awk -F'= *' '/^opensearch_stack_enabled[[:space:]]*=/ {pri
 OPEN_SEARCH_ENABLED=${OPEN_SEARCH_ENABLED:-true}
 ATHENA_ENABLED=$(awk -F'= *' '/^athena_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
 ATHENA_ENABLED=${ATHENA_ENABLED:-true}
+AWS_BACKUP_SOURCE_ENABLED=$(awk -F'= *' '/^aws_backup_source_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
+AWS_BACKUP_SOURCE_ENABLED=${AWS_BACKUP_SOURCE_ENABLED:-true}
 SLACK_NOTIFIER_ENABLED=$(awk -F'= *' '/^slack_notifier_stack_enabled[[:space:]]*=/ {print $2}' "$TFVARS_FILE" | awk '{print $1}' | tr -d '"' | tr '[:upper:]' '[:lower:]')
 SLACK_NOTIFIER_ENABLED=${SLACK_NOTIFIER_ENABLED:-true}
 
@@ -39,9 +41,11 @@ echo "read_only_viewer_enabled=$READ_ONLY_VIEWER_ENABLED" >> "$GITHUB_OUTPUT"
 echo "open_search_enabled=$OPEN_SEARCH_ENABLED" >> "$GITHUB_OUTPUT"
 echo "athena_enabled=$ATHENA_ENABLED" >> "$GITHUB_OUTPUT"
 echo "slack_notifier_enabled=$SLACK_NOTIFIER_ENABLED" >> "$GITHUB_OUTPUT"
+echo "aws_backup_source_enabled=$AWS_BACKUP_SOURCE_ENABLED" >> "$GITHUB_OUTPUT"
 
 echo "UI Stack Enabled: $UI_ENABLED"
 echo "Read Only Viewer Stack Enabled: $READ_ONLY_VIEWER_ENABLED"
 echo "Open Search Stack Enabled: $OPEN_SEARCH_ENABLED"
 echo "Athena Stack Enabled: $ATHENA_ENABLED"
+echo "AWS Backup Source Stack Enabled: $AWS_BACKUP_SOURCE_ENABLED"
 echo "Slack Notifier Stack Enabled: $SLACK_NOTIFIER_ENABLED"
