@@ -32,7 +32,7 @@ module "extractor_lambda" {
   timeout                 = var.extractor_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = var.environment == "dev" || var.environment == "test" ? "6" : "5"
@@ -91,7 +91,7 @@ module "transformer_lambda" {
   reserved_concurrent_executions = 5
 
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
@@ -159,7 +159,7 @@ module "consumer_lambda" {
   timeout                 = var.consumer_lambda_connection_timeout
   memory_size             = var.lambda_memory_size
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
