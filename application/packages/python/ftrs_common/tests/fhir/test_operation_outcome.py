@@ -234,7 +234,7 @@ from pydantic import ValidationError
                                 {
                                     "system": OPERATION_OUTCOME_SYSTEM,
                                     "code": "MSG_NOT_UPDATED",
-                                    "display": "No changes made to the organisation",
+                                    "display": "Existing resource not updated",
                                 }
                             ],
                             "text": "no changes made to org",
@@ -469,7 +469,7 @@ def test_fhir_operation_outcome_codes_mapping() -> None:
         ),
         "not-updated": (
             "MSG_NOT_UPDATED",
-            "No changes made to the organisation",
+            "Existing resource not updated",
             OPERATION_OUTCOME_SYSTEM,
         ),
     }

@@ -35,7 +35,7 @@ FHIR_OPERATION_OUTCOME_CODES: dict[str, tuple[str, str, str]] = {
     "success": ("MSG_UPDATED", "Existing resource updated", OPERATION_OUTCOME_SYSTEM),
     "not-updated": (
         "MSG_NOT_UPDATED",
-        "No changes made to the organisation",
+        "Existing resource not updated",
         OPERATION_OUTCOME_SYSTEM,
     ),
 }
