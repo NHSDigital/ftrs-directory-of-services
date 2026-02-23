@@ -1,3 +1,4 @@
+import html
 import re
 
 from ftrs_data_layer.domain.legacy.service import Service
@@ -51,36 +52,19 @@ class ServiceValidator(Validator[Service]):
 
 
 class GPPracticeValidator(ServiceValidator):
-    SAFE_NAME_PATTERN = re.compile(
-        r"^[a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]+$"
-        # Start of string
-        # Character class start
-        # ASCII letters and digits
-        # Unicode characters (accented letters, curly quotes, etc.)
-        # Whitespace (space, tab, newline)
-        # Safe punctuation: hyphen, forward slash, at symbol, plus sign, colon,
-        #   apostrophe, period, comma, left parenthesis, right parenthesis, ampersand, semicolon
-        # One or more of the above characters
-        # End of string
-    )
-
     # Maximum allowed length for practice names
     MAX_NAME_LENGTH = 100
 
-    # More comprehensive dangerous patterns
+    # Dangerous patterns for injection attacks (checked before decoding for defense in depth)
+    # Catches: script injection, event handlers, protocol handlers, HTML tags, comments
     DANGEROUS_PATTERNS = re.compile(
-        r"javascript:|data:|on\w+\s*=|&amp;[#a-zA-Z0-9]+;",
+        r"javascript:|data:|vbscript:|file:|about:"
+        r"|on\w+\s*="
+        r"|<\s*script|</\s*script|<\s*iframe|<\s*object|<\s*embed"
+        r"|<!--|-->"
+        r"|<!\[CDATA\[",
         re.IGNORECASE,
     )
-
-    # Allowed HTML entities that can be decoded
-    ALLOWED_ENTITIES = {
-        "&#39;": "'",  # Numeric apostrophe
-        "&apos;": "'",  # Named apostrophe
-        "&#x27;": "'",  # Hex apostrophe
-        "&amp;": "&",  # Ampersand
-        "&#38;": "&",  # Numeric ampersand
-    }
 
     def validate(self, data: Service) -> ValidationResult[Service]:
         result = super().validate(data)
@@ -103,12 +87,10 @@ class GPPracticeValidator(ServiceValidator):
         Security measures:
         - Length validation to prevent DoS
         - Applies hyphen-splitting business rule before validation
-        - Validates BEFORE decoding to catch encoding attacks
-        - Rejects ANY nested encoding (not just double encoding)
-        - Only allows specific safe HTML entities
+        - Validates BEFORE decoding to catch injection attacks (dangerous patterns)
+        - Decodes all HTML entities using Python's html.unescape()
+        - Rejects ANY nested encoding after decoding
         - Rejects (error) instead of warning for suspicious content
-        - Sanitizes error messages to prevent log injection
-        - Restricts ampersand usage to require surrounding spaces
 
         Args:
             name: The practice name to validate
@@ -123,49 +105,25 @@ class GPPracticeValidator(ServiceValidator):
         if error := self._validate_basic_checks(name):
             return error
 
-        # Remove GP prefix variations from the start of the name
-        gp_prefixes = ["GP - ", "GP -", "GP- ", "GP-"]
-        for prefix in gp_prefixes:
-            if name.startswith(prefix):
-                name = name[len(prefix) :].strip()
-                break
+        # Remove GP prefix variations
+        name = self._remove_gp_prefix(name)
 
-        # Apply hyphen-splitting business rule BEFORE validation
-        # This ensures we only validate the part we'll actually use
-        name = name.split(" - ", maxsplit=1)[0].strip()
-
-        # Log when suffix is discarded for monitoring/security purposes
-        if " - " in full_original:
-            self.logger.log(
-                UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_001,
-                original_length=len(full_original),
-                sanitized_length=len(name),
-            )
-
-        # Check if empty after splitting
+        # Apply hyphen-splitting business rule with logging
+        name = self._apply_hyphen_splitting(name, full_original)
         if not name:
             return self._error(
                 "publicname_empty_after_sanitization",
                 "Name is empty after removing suffix",
             )
 
-        # Decode and validate characters
+        # Decode HTML entities
         try:
-            decoded_name = self._decode_allowed_entities(name)
+            decoded_name = self._decode_html_entities(name)
         except ValueError:
             self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_002)
             return self._error(
                 "publicname_suspicious_encoding",
                 "Name contains disallowed HTML entities",
-            )
-
-        # Check for suspicious characters AFTER safe decoding
-        if not self.SAFE_NAME_PATTERN.match(decoded_name):
-            char_types = self._categorize_characters(decoded_name)
-            self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_003)
-            return self._error(
-                "publicname_suspicious_characters",
-                f"Name contains unexpected character types: {char_types}",
             )
 
         # Sanitize whitespace only (hyphen-splitting already done)
@@ -181,6 +139,48 @@ class GPPracticeValidator(ServiceValidator):
             sanitised=cleaned_name,
             issues=[],
         )
+
+    def _remove_gp_prefix(self, name: str) -> str:
+        """
+        Remove GP prefix variations from the start of the name.
+
+        Args:
+            name: The practice name
+
+        Returns:
+            Name with GP prefix removed if present
+        """
+        gp_prefixes = ["GP - ", "GP -", "GP- ", "GP-"]
+        for prefix in gp_prefixes:
+            if name.startswith(prefix):
+                return name[len(prefix) :].strip()
+        return name
+
+    def _apply_hyphen_splitting(self, name: str, full_original: str) -> str:
+        """
+        Apply hyphen-splitting business rule.
+
+        Splits on ' - ' and keeps only the first part.
+        Logs when suffix is discarded for monitoring/security purposes.
+
+        Args:
+            name: The name to split
+            full_original: The original name before any processing (for logging)
+
+        Returns:
+            First part of the name after splitting
+        """
+        split_name = name.split(" - ", maxsplit=1)[0].strip()
+
+        # Log when suffix is discarded for monitoring/security purposes
+        if " - " in full_original:
+            self.logger.log(
+                UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_001,
+                original_length=len(full_original),
+                sanitized_length=len(split_name),
+            )
+
+        return split_name
 
     def _validate_basic_checks(
         self, name: str | None
@@ -207,12 +207,12 @@ class GPPracticeValidator(ServiceValidator):
                 f"Name exceeds maximum length of {self.MAX_NAME_LENGTH} characters",
             )
 
-        # Check for dangerous patterns BEFORE decoding (catch encoding attacks)
+        # Check for dangerous patterns BEFORE decoding (catch injection attacks)
         if self.DANGEROUS_PATTERNS.search(name):
             self.logger.log(UtilsLogBase.UTILS_GP_PRACTICE_VALIDATOR_005)
             return self._error(
-                "publicname_suspicious_encoding",
-                "Name contains suspicious or disallowed HTML entities",
+                "publicname_dangerous_pattern",
+                "Name contains dangerous patterns that could lead to injection attacks",
             )
 
         return None
@@ -277,25 +277,32 @@ class GPPracticeValidator(ServiceValidator):
         result.sanitised = formatted_address
         return result
 
-    def _decode_allowed_entities(self, name: str) -> str:
+    def _decode_html_entities(self, name: str) -> str:
         """
-        Decode only explicitly allowed HTML entities.
-        This prevents decoding of potentially malicious content.
+        Decode all HTML entities using Python's html.unescape().
+
+        Security measures:
+        - Decodes all standard HTML entities (named and numeric)
+        - Detects nested encoding after decoding
+
+        Args:
+            name: String potentially containing HTML entities
+
+        Returns:
+            String with all HTML entities decoded
 
         Raises:
-            ValueError: If disallowed entities are found
+            ValueError: If nested encoding is detected after decoding
         """
-        # Check for disallowed entities first
-        entity_pattern = re.compile(r"&[#a-zA-Z0-9]+;")
-        found_entities = entity_pattern.findall(name)
+        # Decode all HTML entities using Python's built-in decoder
+        decoded = html.unescape(name)
 
-        if disallowed := [e for e in found_entities if e not in self.ALLOWED_ENTITIES]:
-            raise ValueError(f"Disallowed entities: {disallowed}")
+        # Check for nested encoding by looking for entity patterns in decoded output
+        # This catches cases like &amp;#39; which would decode to &#39;
+        entity_pattern = re.compile(r"&(?:[a-zA-Z]+|#[0-9]+|#x[0-9a-fA-F]+);")
+        if entity_pattern.search(decoded):
+            raise ValueError("Nested HTML entity encoding detected")
 
-        # Decode allowed entities
-        decoded = name
-        for entity, replacement in self.ALLOWED_ENTITIES.items():
-            decoded = decoded.replace(entity, replacement)
         return decoded
 
     def _sanitize(self, name: str) -> str:
@@ -313,34 +320,3 @@ class GPPracticeValidator(ServiceValidator):
         # Collapse multiple spaces to single space
         name = re.sub(r"\s+", " ", name)
         return name.strip()
-
-    def _categorize_characters(self, text: str) -> str:
-        """
-        Categorize unexpected characters without exposing actual content.
-        Safe for use in error messages to prevent log injection.
-        """
-        checks = {
-            "angle_brackets": "<>",
-            "brackets": "[]{}",
-            "special_punctuation": ":",
-            "control_characters": "|\\/$",
-            "special_symbols": "@#%*+=~`^_",
-            "quotes": '"',
-        }
-
-        categories = [
-            name for name, chars in checks.items() if any(c in text for c in chars)
-        ]
-
-        if re.search(
-            r"[\x00-\x1F\x7F-\x9F]", text
-        ):  # Only flag actual control characters tab new line etc.
-            categories.append("control_characters")
-
-        # Catch-all for characters not in SAFE_NAME_PATTERN
-        if not categories and re.search(
-            r"[^a-zA-Z0-9\u0080-\uFFFF\s\-/@+:'.,()&;]", text
-        ):
-            categories.append("disallowed_characters")
-
-        return ", ".join(categories) if categories else "unknown"
