@@ -33,6 +33,8 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
         "User-Agent, Host, X-Amzn-Trace-Id, X-Forwarded-For, X-Forwarded-Port, "
         "X-Forwarded-Proto"
     ),
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
 }
 
 ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
