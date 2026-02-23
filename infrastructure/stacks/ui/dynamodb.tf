@@ -27,4 +27,6 @@ module "ui_session_store" {
       projection_type = "KEYS_ONLY"
     }
   ]
+
+  tags = local.backup_tags
 }

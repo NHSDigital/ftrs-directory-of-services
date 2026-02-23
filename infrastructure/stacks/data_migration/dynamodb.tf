@@ -14,4 +14,6 @@ module "state_table" {
   ]
 
   global_secondary_indexes = []
+
+  tags = local.backup_tags
 }

@@ -11,4 +11,6 @@ module "dynamodb_tables" {
   stream_enabled                 = lookup(each.value, "stream_enabled", true)
 
   global_secondary_indexes = lookup(each.value, "global_secondary_indexes", [])
+
+  tags = local.backup_tags
 }
