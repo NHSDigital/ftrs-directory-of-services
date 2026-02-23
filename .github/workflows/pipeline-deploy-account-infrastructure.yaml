@@ -18,6 +18,7 @@ on:
       - "infrastructure/modules/s3/**"
       - "infrastructure/stacks/account_security/**"
       - "infrastructure/modules/shield/**"
+      - "infrastructure/stacks/slack_notifier/**"
   workflow_run:
     workflows: ["Pipeline Deploy Policies Infrastructure"]
     types:
@@ -121,6 +122,28 @@ jobs:
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
       SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
+  prepare-toggle-artifacts:
+    name: "Prepare Toggle artifacts"
+    needs:
+      - metadata
+      - quality-checks
+    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      ref: ${{ inputs.ref }}
+
+  check-stack-toggles:
+    name: "Check stack toggles for ${{ needs.metadata.outputs.environment }}"
+    needs:
+      - metadata
+      - prepare-toggle-artifacts
+    uses: ./.github/workflows/check-stack-toggles.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "default"
+      ref: ${{ inputs.ref }}
+
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
     concurrency:
@@ -129,6 +152,7 @@ jobs:
     needs:
       - metadata
       - quality-checks
+      - check-stack-toggles
     strategy:
       fail-fast: false
       matrix:
@@ -138,7 +162,7 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name']"
+            stacks: "['terraform_management','account_wide','domain_name', 'slack_notifier']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name']"
@@ -189,10 +213,10 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name']"
+            stacks: "['terraform_management','account_wide','domain_name', 'slack_notifier']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name', ]"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}

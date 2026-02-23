@@ -91,39 +91,46 @@ def test_allowed_special_characters(
 
 # Security Tests - Dangerous Patterns
 @pytest.mark.parametrize(
-    "malicious_input",
+    "malicious_input,expected_code",
     [
-        "&quot;The Surgery&quot;",
-        "Surgery &lt;script&gt;alert('xss')&lt;/script&gt;",
-        "Surgery &lt;Name&gt;",
-        "Surgery&#10;Fake Line",
-        "javascript:alert('xss')",
-        "data:text/html,<script>alert('xss')</script>",
-        "Surgery onclick=alert(1)",
+        # Dangerous patterns caught before decoding (fail at DANGEROUS_PATTERNS check)
+        ("javascript:alert('xss')", "publicname_dangerous_pattern"),
+        (
+            "data:text/html,<script>alert('xss')</script>",
+            "publicname_dangerous_pattern",
+        ),
+        ("Surgery onclick=alert(1)", "publicname_dangerous_pattern"),
+        ("vbscript:msgbox(1)", "publicname_dangerous_pattern"),
+        ("<script>alert(1)</script>", "publicname_dangerous_pattern"),
+        ("Surgery <iframe src='evil'>", "publicname_dangerous_pattern"),
+        ("<!-- comment -->", "publicname_dangerous_pattern"),
     ],
 )
 def test_reject_dangerous_patterns(
-    validator: GPPracticeValidator, malicious_input: str
+    validator: GPPracticeValidator, malicious_input: str, expected_code: str
 ) -> None:
     """Test that dangerous patterns are rejected."""
-    assert_invalid_name(validator, malicious_input, "publicname_suspicious_encoding")
+    assert_invalid_name(validator, malicious_input, expected_code)
 
 
-# Security Tests - Disallowed Entities
+# HTML Entity Decoding Tests - Entities Now Decode Successfully
 @pytest.mark.parametrize(
-    "input_name",
+    "input_name,expected_result",
     [
-        "Test &lt;Surgery&gt;",
-        "Practice &nbsp; Name",
-        "Surgery &copy; 2024",
-        "Test &#60;script&#62;",
+        # All entities decode successfully
+        ("Surgery &copy; 2024", "Surgery © 2024"),
+        ("Practice &nbsp; Name", "Practice Name"),  # Non-breaking space gets normalized
+        ("Café &eacute; Medical", "Café é Medical"),
+        ("Test &lt;Surgery&gt;", "Test <Surgery>"),  # Angle brackets now allowed
+        ("&quot;The Surgery&quot;", '"The Surgery"'),  # Quotes now allowed
+        ("Surgery&#10;Fake Line", "Surgery Fake Line"),  # Newline normalizes to space
     ],
 )
-def test_reject_disallowed_entities(
-    validator: GPPracticeValidator, input_name: str
+def test_html_entity_decoding(
+    validator: GPPracticeValidator, input_name: str, expected_result: str
 ) -> None:
-    """Test that disallowed HTML entities are rejected."""
-    assert_invalid_name(validator, input_name, "publicname_suspicious_encoding")
+    """Test that HTML entities are decoded successfully."""
+    assert_valid_name(validator, input_name, expected_result)
 
 
 # Security Tests - Nested Encoding
@@ -147,23 +154,22 @@ def test_reject_nested_encoding(
     assert_invalid_name(validator, nested_encoding, "publicname_suspicious_encoding")
 
 
-# Security Tests - Special Symbols (characters NOT in the allowed pattern)
+# Special Characters Now Allowed
 @pytest.mark.parametrize(
-    "input_name",
+    "input_name,expected",
     [
-        "Practice #1",
-        "Surgery 100%",
-        "Clinic*Star",
-        'The "Best" Surgery',
-        "Valid Name<script>",
-        "O&#39;Brien&#39; OR 1=1",
+        ("Practice #1", "Practice #1"),
+        ("Surgery 100%", "Surgery 100%"),
+        ("Clinic*Star", "Clinic*Star"),
+        ('The "Best" Surgery', 'The "Best" Surgery'),
+        ("O&#39;Brien&#39; OR 1=1", "O'Brien' OR 1=1"),
     ],
 )
-def test_reject_special_symbols(
-    validator: GPPracticeValidator, input_name: str
+def test_allow_special_symbols(
+    validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that disallowed special symbols are rejected."""
-    assert_invalid_name(validator, input_name, "publicname_suspicious_characters")
+    """Test that special symbols are now allowed."""
+    assert_valid_name(validator, input_name, expected)
 
 
 # Allowed Special Characters Tests (characters in the allowed pattern)
@@ -193,6 +199,8 @@ def test_reject_special_symbols(
         ("Smith& Jones", "Smith& Jones"),
         ("Smith &Jones", "Smith &Jones"),
         ("Smith&Jones", "Smith&Jones"),
+        # Semicolon
+        ("Health Centre; Main Branch", "Health Centre; Main Branch"),
         # Multiple special characters combined
         (
             "Dr. Smith's Practice: Health+Plus (Main)",
@@ -203,7 +211,7 @@ def test_reject_special_symbols(
 def test_allow_special_characters(
     validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) &"""
+    """Test that all special characters allowed by SAFE_NAME_PATTERN are accepted: - / @ + : ' . , ( ) & ;"""
     assert_valid_name(validator, input_name, expected)
 
 
@@ -295,28 +303,39 @@ def test_hyphen_splitting_business_rule(
 @pytest.mark.parametrize(
     "input_name,expected",
     [
-        # SQL injection in suffix (should be discarded)
+        # SQL injection in suffix (should be discarded by hyphen splitting)
         ("Valid Practice - '; DROP TABLE--", "Valid Practice"),
-        # XSS in suffix (should be discarded)
-        ("Valid Practice - <script>alert(1)</script>", "Valid Practice"),
-        # Malicious entity in suffix (should be discarded)
+        # Malicious entity in suffix (decoded then discarded by hyphen splitting)
         ("Valid Practice - &lt;script&gt;", "Valid Practice"),
         # Multiple hyphens (only first split)
         ("Practice - Bad - Worse", "Practice"),
-        # Empty after split (should error)
-        (" - <script>alert(1)</script>", ""),
     ],
 )
 def test_hyphen_splitting_security(
     validator: GPPracticeValidator, input_name: str, expected: str
 ) -> None:
-    """Test that malicious content in suffixes is safely discarded."""
-    if expected == "":
-        assert_invalid_name(
-            validator, input_name, "publicname_empty_after_sanitization"
-        )
-    else:
-        assert_valid_name(validator, input_name, expected)
+    """Test that malicious content in suffixes is safely discarded by hyphen splitting."""
+    assert_valid_name(validator, input_name, expected)
+
+
+def test_hyphen_splitting_catches_dangerous_patterns_before_split(
+    validator: GPPracticeValidator,
+) -> None:
+    """Test that dangerous patterns are caught before hyphen splitting occurs.
+
+    These cases would previously have passed by discarding the malicious suffix,
+    but now fail at the dangerous pattern check (which runs before splitting).
+    """
+    # XSS with script tags
+    assert_invalid_name(
+        validator,
+        "Valid Practice - <script>alert(1)</script>",
+        "publicname_dangerous_pattern",
+    )
+    # Edge case: only suffix is malicious
+    assert_invalid_name(
+        validator, " - <script>alert(1)</script>", "publicname_dangerous_pattern"
+    )
 
 
 # Original Value Preservation Test
@@ -327,15 +346,3 @@ def test_preserve_original_value(validator: GPPracticeValidator) -> None:
     assert result.original == original
     assert result.sanitised != original
     assert result.sanitised == "O'Brien Surgery"
-
-
-# Character Categorization Test
-def test_categorize_multiple_character_types(validator: GPPracticeValidator) -> None:
-    """Test that multiple suspicious character types are categorized."""
-    result: FieldValidationResult[str] = validator.validate_name("Surgery <script>@#%")
-    assert result.sanitised is None
-    assert len(result.issues) == 1
-    assert result.issues[0].code == "publicname_suspicious_characters"
-    diagnostics: str = result.issues[0].diagnostics
-    assert "angle_brackets" in diagnostics
-    assert "special_symbols" in diagnostics

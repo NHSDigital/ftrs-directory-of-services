@@ -15,7 +15,6 @@ module "slack_lambda" {
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer[0].arn,
-    aws_lambda_layer_version.common_packages_layer[0].arn,
   ]
 
   subnet_ids         = data.aws_subnets.private[0].ids
@@ -31,7 +30,7 @@ module "slack_lambda" {
   allowed_triggers = {
     AllowExecutionFromSNS = {
       service    = "sns"
-      source_arn = module.sns_topic[0].topic_arn
+      source_arn = aws_sns_topic.slack_notifications[0].arn
     }
   }
 
@@ -47,7 +46,7 @@ module "slack_lambda" {
 
 resource "aws_sns_topic_subscription" "slack_notification" {
   count     = local.stack_enabled
-  topic_arn = module.sns_topic[0].topic_arn
+  topic_arn = aws_sns_topic.slack_notifications[0].arn
   protocol  = "lambda"
   endpoint  = module.slack_lambda[0].lambda_function_arn
 }

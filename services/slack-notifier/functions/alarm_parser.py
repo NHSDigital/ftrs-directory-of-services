@@ -1,13 +1,16 @@
 """Parse and extract data from CloudWatch alarm messages."""
 
 import json
-import logging
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from ftrs_common.logger import Logger
+
+logger = Logger.get("slack-notifier")
 
 
-def flatten_dict(data: dict[str, Any], parent_key: str = "", sep: str = "_") -> dict[str, Any]:
+def flatten_dict(
+    data: dict[str, Any], parent_key: str = "", sep: str = "_"
+) -> dict[str, Any]:
     """
     Flatten nested dictionary to single level.
 
@@ -29,7 +32,9 @@ def flatten_dict(data: dict[str, Any], parent_key: str = "", sep: str = "_") -> 
         elif isinstance(v, list):
             for i, item in enumerate(v):
                 if isinstance(item, dict):
-                    items.extend(flatten_dict(item, f"{new_key}{sep}{i}", sep=sep).items())
+                    items.extend(
+                        flatten_dict(item, f"{new_key}{sep}{i}", sep=sep).items()
+                    )
                 else:
                     items.append((f"{new_key}{sep}{i}", item))
         else:

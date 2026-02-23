@@ -1,9 +1,3 @@
-variable "slack_notifier_stack_enabled" {
-  description = "Enable or disable the slack_notifier stack"
-  type        = bool
-  default     = true
-}
-
 variable "slack_webhook_alarms_url" {
   description = "Slack webhook URL for alarm notifications"
   type        = string
@@ -45,14 +39,8 @@ variable "enable_xray_tracing" {
   default     = true
 }
 
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services (CloudWatch Logs)"
-  type        = bool
-  default     = true
-}
-
-variable "slack_egress_cidr" {
-  description = "CIDR block for Slack webhook egress traffic"
+variable "allow_slack_webhook_egress" {
+  description = "Allows HTTPS egress to the internet for Slack webhooks"
   type        = string
   default     = "0.0.0.0/0"
 }

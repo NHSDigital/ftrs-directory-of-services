@@ -15,7 +15,7 @@ if [[ "$TRIGGER" == "tag" ]] ; then
   echo -e "\nTag detected - using default workspace"
   echo "Workspace: $WORKSPACE"
   export WORKSPACE
-  exit 0
+  return 0
 fi
 
 # Determine branch name based on trigger

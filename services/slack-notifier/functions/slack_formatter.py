@@ -85,7 +85,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     trigger_eval_periods = alarm_data.get("Trigger_EvaluationPeriods", 1)
     timestamp_val = alarm_data.get("StateChangeTime")
     lambda_name = alarm_data.get("Trigger_Dimensions_0_value", "Unknown Lambda")
-    region_display = alarm_data.get("Region", "EU (London)")
+    region_display = alarm_data.get("Region", "Unknown Region")
     aws_region = extract_region_code(alarm_arn)
 
     logger.info(
@@ -101,16 +101,21 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
         severity = get_severity_from_alarm_name(alarm_name)
         emoji = SEVERITY_EMOJI_MAP.get(severity, "🚨")
         display_state = severity.upper() if severity != "unknown" else state_value
-        logger.info(f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}")
+        logger.info(
+            f"Alarm detected - severity: {severity}, emoji: {emoji}, display_state: {display_state}"
+        )
     else:
         emoji = "📊"
         display_state = state_value
-        logger.info(f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}")
+        logger.info(
+            f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}"
+        )
 
     cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
     lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
 
+    # TODO: Will be updated as part of FTRS-765
     api_path = "/Organization"  # Needs to be fetched from relevant data source
     api_service = "DoS Search"  # Needs to be fetched from relevant data source
 

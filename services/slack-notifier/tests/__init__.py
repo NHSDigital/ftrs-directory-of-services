@@ -1,1 +1,1 @@
-# Tests for slack notifier service  # noqa: N999
+# Tests for slack notifier service

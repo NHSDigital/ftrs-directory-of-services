@@ -154,7 +154,7 @@ jobs:
       workspace: "rc"
       release_tag: ${{ needs.tag-release.outputs.release_tag }}
       ref: ${{ needs.tag-release.outputs.release_tag }}
-      workflow_timeout: 30
+      workflow_timeout: 60
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
@@ -257,6 +257,7 @@ jobs:
       commit_hash: ${{ needs.metadata.outputs.commit_hash }}
       test_tag: ${{ matrix.tag }}
       test_type: ${{ matrix.type }}
+      api_name: ${{ matrix.api_name || '' }}
       type: app
       deployment_type: "release-candidate"
     secrets:
