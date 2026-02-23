@@ -11,6 +11,18 @@
             "Resource": "*"
         },
         {
+            "Sid": "LambdaLayerAccess",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:GetLayerVersion",
+                "lambda:PublishLayerVersion",
+                "lambda:DeleteLayerVersion",
+                "lambda:ListLayerVersions",
+                "lambda:ListLayers"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "DataFullAccess",
             "Effect": "Allow",
             "Action": [
