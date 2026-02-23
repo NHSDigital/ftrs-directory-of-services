@@ -137,7 +137,7 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','aws_backup_backup']"
+            stacks: "['terraform_management','account_wide','domain_name','aws_backup_source']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
@@ -188,7 +188,7 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','aws_backup_backup']"
+            stacks: "['terraform_management','account_wide','domain_name','aws_backup_source']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
