@@ -31,7 +31,7 @@ module "processor_lambda" {
   timeout                 = var.processor_lambda_timeout
   memory_size             = var.processor_lambda_memory_size
 
-  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
+  subnet_ids         = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
   security_group_ids = [try(aws_security_group.processor_lambda_security_group[0].id, data.aws_security_group.processor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "5"
@@ -110,7 +110,7 @@ module "queue_populator_lambda" {
   timeout                 = var.queue_populator_lambda_timeout
   memory_size             = var.queue_populator_lambda_memory_size
 
-  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
+  subnet_ids         = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
   security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
@@ -159,7 +159,7 @@ module "rds_event_listener_lambda" {
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.checksum_sha256
-  subnet_ids              = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
+  subnet_ids              = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
   security_group_ids      = [aws_security_group.rds_event_listener_lambda_security_group[0].id]
 
   number_of_policy_jsons = "3"
@@ -203,7 +203,7 @@ module "dms_db_lambda" {
   s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
   s3_key_version_id       = data.aws_s3_object.data_migration_lambda_package.checksum_sha256
-  subnet_ids              = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
+  subnet_ids              = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
   security_group_ids      = [aws_security_group.dms_db_setup_lambda_security_group[0].id]
 
   number_of_policy_jsons = "3"
@@ -249,7 +249,7 @@ module "reference_data_lambda" {
   timeout                 = var.reference_data_lambda_timeout
   memory_size             = var.reference_data_lambda_memory_size
 
-  subnet_ids         = [for i, subnet in data.aws_subnet.private_subnets_details : subnet.id if i < 3]
+  subnet_ids         = [for subnet in slice(values(data.aws_subnet.private_subnets_details), 0, 3) : subnet.id]
   security_group_ids = [try(aws_security_group.rds_accessor_lambda_security_group[0].id, data.aws_security_group.rds_accessor_lambda_security_group[0].id)]
 
   number_of_policy_jsons = "3"
