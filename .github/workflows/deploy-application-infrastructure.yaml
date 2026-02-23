@@ -62,6 +62,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for alarm notifications"
+        required: false
     outputs:
       plan_result:
         description: "The Terraform plan output"
@@ -94,6 +97,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   manual-approval-application-infra:
     name: "Manual approval for deployment of application infrastructure to the ${{ inputs.environment }} environment"
@@ -140,6 +144,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   deploy_summary:
     name: "Summarise deployment of application infrastructure to ${{ inputs.environment }} environment"
