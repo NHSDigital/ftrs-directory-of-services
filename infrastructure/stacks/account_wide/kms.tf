@@ -282,24 +282,42 @@ module "scheduler_encryption_key" {
   description      = "Encryption key for EventBridge scheduler in ${var.environment} environment"
   additional_policy_statements = [
     {
-      "Sid" : "AllowEventBridgeSchedulerToUseKMS",
-      "Effect" : "Allow",
-      "Principal" : {
-        "Service" : "scheduler.amazonaws.com"
-      },
-      "Action" : [
+      Sid    = "AllowEventBridgeSchedulerToUseKMS"
+      Effect = "Allow"
+      Principal = {
+        Service = ["scheduler.amazonaws.com"]
+      }
+      Action = [
         "kms:CreateGrant",
         "kms:RetireGrant",
         "kms:Decrypt",
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
-      ],
-      "Resource" : "*",
-      "Condition" : {
-        "StringEquals" : {
-          "aws:SourceAccount" : data.aws_caller_identity.current.account_id
+      ]
+      Resource = "*"
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
         }
       }
+    },
+    {
+      Sid    = "AllowGitHubRunnerAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.account_github_runner_role_name}"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource  = "*"
+      Condition = {}
     }
   ]
 }

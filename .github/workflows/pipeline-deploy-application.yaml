@@ -97,9 +97,6 @@ jobs:
           - name: "python"
             build_type: "package"
             build_enabled: true
-          - name: "slack-notifier"
-            build_type: "service"
-            build_enabled: ${{ needs.check-stack-toggles.outputs.slack_notifier_enabled == 'true' }}
           - name: "crud-apis"
             build_type: "service"
             build_enabled: true
@@ -197,7 +194,7 @@ jobs:
       workspace: ${{ needs.metadata.outputs.workspace }}
       ref: ${{ inputs.ref }}
       workflow_timeout: 30
-      stacks: "['slack_notifier', 'database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
