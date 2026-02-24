@@ -76,6 +76,12 @@ def api_check_operation_outcome_any_issue_by_key_value(fresponse, key, value):
     assert any(issue.get(key) == value for issue in response["issue"])
 
 
+@then("the response includes security headers")
+def api_security_headers(fresponse):
+    assert fresponse.headers.get("strict-transport-security") == "max-age=31536000; includeSubDomains"
+    assert fresponse.headers.get("x-content-type-options") == "nosniff"
+
+
 def count_resources(lambda_response, resource_type):
     return sum(
         entry.get("resource", {}).get("resourceType") == resource_type
