@@ -85,7 +85,8 @@
                     "iam:PassedToService": [
                         "apigateway.amazonaws.com",
                         "ec2.amazonaws.com",
-                        "drt.shield.amazonaws.com"
+                        "drt.shield.amazonaws.com",
+                        "lambda.amazonaws.com"
                     ]
                 }
             }
