@@ -87,7 +87,7 @@ stack_toggles:
       ref: true
       prod: false
 
-  - id: aws_backup_source_stack_enabled
+  - id: stack_aws_backup_source_enabled
     name: "AWS Backup Source Stack Enabled"
     description: "Enable/disable AWS Backup Source stack deployment"
     terraform_variable: aws_backup_source_stack_enabled
@@ -98,6 +98,8 @@ stack_toggles:
       dev: false
       test: true
       int: false
+      ref: true
+      prod: true
 
   - id: stack_slack_notifier_enabled
     name: "Slack Notifier Stack Enabled"
