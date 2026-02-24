@@ -24,6 +24,9 @@ on:
       - "infrastructure/modules/s3/**"
       - "infrastructure/modules/shield/**"
       - "infrastructure/stacks/slack_notifier/**"
+  merge_group:
+    branches:
+      - main
   workflow_run:
     workflows: ["Pipeline Deploy Policies Infrastructure"]
     types:
