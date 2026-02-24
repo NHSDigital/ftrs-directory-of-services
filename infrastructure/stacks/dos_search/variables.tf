@@ -116,9 +116,11 @@ variable "fhir_content_type_header" {
   description = "API Gateway response header mappings for FHIR responses"
   type        = map(string)
   default = {
+    "gatewayresponse.header.Cache-Control"             = "'no-store'"
     "gatewayresponse.header.Content-Type"              = "'application/fhir+json'"
     "gatewayresponse.header.Strict-Transport-Security" = "'max-age=31536000; includeSubDomains'"
     "gatewayresponse.header.X-Content-Type-Options"    = "'nosniff'"
+    "gatewayresponse.header.X-Frame-Options"           = "'DENY'"
   }
 }
 
