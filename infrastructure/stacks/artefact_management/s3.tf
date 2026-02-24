@@ -10,6 +10,20 @@ module "artefacts_bucket" {
   # - Objects tagged "retention=permanent" are kept indefinitely (releases)
   lifecycle_rule_inputs = [
     {
+      id     = "development-latest-retain-5-versions"
+      status = "Enabled"
+      filter = {
+        prefix = "development/latest/"
+        tags = {
+          retention = "retain"
+        }
+      }
+      noncurrent_version_expiration = {
+        days                      = 1
+        newer_noncurrent_versions = 5
+      }
+    },
+    {
       id     = "development-expire-30-days"
       status = "Enabled"
       filter = {
