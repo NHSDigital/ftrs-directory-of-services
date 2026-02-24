@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID
 
 from ftrs_data_layer.domain.auditevent import AuditEvent
@@ -7,6 +7,35 @@ from ftrs_data_layer.domain.enums import (
     HealthcareServiceType,
 )
 from pydantic import BaseModel, EmailStr, Field
+from pydantic.functional_validators import BeforeValidator
+
+
+class InvalidHealthcareServiceTypeError(ValueError):
+    """Invalid healthcare service type provided."""
+
+    def __init__(self) -> None:
+        super().__init__("Invalid healthcare service type")
+
+
+def validate_healthcare_service_type(v: str) -> str:
+    """
+    Validate healthcare service type with generic error message.
+    
+    Uses BeforeValidator to intercept Pydantic's enum validation and provide
+    a generic error message instead of listing all enum values.
+    """
+    if isinstance(v, HealthcareServiceType):
+        return v
+    try:
+        return HealthcareServiceType(v)
+    except ValueError:
+        raise InvalidHealthcareServiceTypeError from None
+
+
+# Custom type annotation for enum field with generic validation error
+HealthcareServiceTypeField = Annotated[
+    HealthcareServiceType, BeforeValidator(validate_healthcare_service_type)
+]
 
 
 class TelecomDict(BaseModel):
@@ -40,7 +69,7 @@ class HealthCareService(BaseModel):
             "phone_public": "0208 883 5555",
         },
     )
-    type: HealthcareServiceType = Field(
+    type: HealthcareServiceTypeField = Field(
         examples=["Primary Care Network Enhanced Access Service"]
     )
     category: HealthcareServiceCategory = Field(examples=["GP Services"])

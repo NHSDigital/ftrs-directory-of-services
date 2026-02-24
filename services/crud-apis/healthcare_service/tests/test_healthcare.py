@@ -353,13 +353,11 @@ def test_create_healthcare_service_invalid_data() -> None:
                 },
             },
             {
-                "type": "enum",
+                "type": "value_error",
                 "loc": ["body", "type"],
-                "msg": "Input should be 'GP Consultation Service', 'Primary Care Network Enhanced Access Service' or 'Essential Services'",
+                "msg": "Value error, Invalid healthcare service type",
                 "input": "General Practice",
-                "ctx": {
-                    "expected": "'GP Consultation Service', 'Primary Care Network Enhanced Access Service' or 'Essential Services'"
-                },
+                "ctx": {"error": {}},
             },
             {
                 "type": "missing",
