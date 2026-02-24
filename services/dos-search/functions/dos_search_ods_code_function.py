@@ -35,6 +35,8 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     ),
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
     "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Cache-Control": "no-store",
 }
 
 ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
