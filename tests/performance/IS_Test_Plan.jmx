@@ -18,13 +18,13 @@
         <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
       </ConfigTestElement>
       <hashTree/>
-      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="Plan HTTP Cache Manager">
+      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="Plan HTTP Cache Manager" enabled="true">
         <boolProp name="clearEachIteration">true</boolProp>
         <boolProp name="useExpires">true</boolProp>
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -35,7 +35,7 @@
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables">
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables" enabled="true">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -56,7 +56,7 @@ evaluate(scriptText)
 log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TEST PARAMS&quot; + (props.get(&quot;Apim_Env&quot;) + props.get(&quot;Apim_Domain&quot;) + props.get(&quot;Apim_Workspace&quot;)): props.get(&quot;ServiceEndpoint&quot;)) </stringProp>
         </JSR223Sampler>
         <hashTree/>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
           <collectionProp name="Arguments.arguments">
             <elementProp name="Apim_Domain" elementType="Argument">
               <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -70,7 +70,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TES
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
-        <stringProp name="ThreadGroup.duration">${__P(duration+10,30)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__groovy(props.get(&apos;duration&apos;) != null ? props.get(&apos;duration&apos;).toInteger() + 10 : 30)}</stringProp>
         <stringProp name="ThreadGroup.delay">${__P(token_startup_delay,0)}</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
@@ -232,7 +232,7 @@ public static String readFileContent(Path filePath) throws IOException {
               <stringProp name="scriptLanguage">groovy</stringProp>
             </JSR223PreProcessor>
             <hashTree/>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Bearer Token" enabled="true">
               <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
               <stringProp name="HTTPSampler.method">POST</stringProp>
               <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
@@ -265,7 +265,7 @@ public static String readFileContent(Path filePath) throws IOException {
               </elementProp>
             </HTTPSamplerProxy>
             <hashTree>
-              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
                 <collectionProp name="HeaderManager.headers">
                   <elementProp name="" elementType="Header">
                     <stringProp name="Header.name">content-type</stringProp>
@@ -274,14 +274,14 @@ public static String readFileContent(Path filePath) throws IOException {
                 </collectionProp>
               </HeaderManager>
               <hashTree/>
-              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Bearer Token">
+              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract Bearer Token" enabled="true">
                 <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
                 <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
                 <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
                 <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
               </JSONPostProcessor>
               <hashTree/>
-              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Set Bearer Token as Property" enabled="true">
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Set Bearer Token as Property">
                 <stringProp name="cacheKey">true</stringProp>
                 <stringProp name="filename"></stringProp>
                 <stringProp name="parameters"></stringProp>
@@ -301,8 +301,8 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
               <hashTree/>
             </hashTree>
           </hashTree>
-          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 5 Minutes (Skip First Iteration)" enabled="true">
-            <stringProp name="cacheKey">true</stringProp>
+          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 4 Minutes (Skip First Iteration)">
+            <stringProp name="cacheKey">false</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="script">// Only wait on iterations after the first one
@@ -310,7 +310,7 @@ def iteration = vars.getIteration()
 if (iteration == 1) {
     return 0  // No delay on first iteration
 } else {
-    return 290000  // 5 minutes (300000 ms) on subsequent iterations
+    return 240000  // 4 minutes (240000 ms) on subsequent iterations
 }
 </stringProp>
             <stringProp name="scriptLanguage">groovy</stringProp>
@@ -419,18 +419,18 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller">
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Organization Search Transaction Controller" enabled="true">
             <boolProp name="TransactionController.parent">true</boolProp>
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
               <stringProp name="HTTPSampler.path">/${__P(Apim_Workspace)}/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
