@@ -34,7 +34,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
 
     assert result_bundle == "BUNDLE_ORG_ID"
     make_request_mock.assert_called_once_with(
-        "http://apim-proxy/Organization?identifier=odsOrganisationCode|XYZ999",
+        "http://apim-proxy/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|XYZ999",
         method="GET",
     )
 
