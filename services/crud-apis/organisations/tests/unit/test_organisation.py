@@ -293,7 +293,9 @@ def test_get_handle_organisation_requests_unhandled_exception(
 ) -> None:
     mock_organisation_service.get_by_ods_code.side_effect = Exception("fail")
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
