@@ -300,6 +300,24 @@ module "scheduler_encryption_key" {
           "aws:SourceAccount" : data.aws_caller_identity.current.account_id
         }
       }
+    },
+    {
+      Sid    = "AllowGitHubRunnerAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.account_github_runner_role_name}"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource  = "*"
+      Condition = {}
     }
   ]
 }
