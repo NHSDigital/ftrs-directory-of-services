@@ -176,7 +176,7 @@ def test_get_organisation_by_id_returns_500_on_unexpected_error(
 
 
 def test__get_organization_query_params_with_identifier() -> None:
-    identifier = "odsOrganisationCode|ABC123"
+    identifier = "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
     result = _get_organization_query_params(identifier)
     assert result is not None
     assert hasattr(result, "identifier")
@@ -204,7 +204,9 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
         "organisations.app.router.organisation.org_repository.get_by_ods_code",
         return_value=mock_org,
     )
-    response = client.get("/Organization?identifier=odsOrganisationCode|ODS54321")
+    response = client.get(
+        "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS54321"
+    )
     assert response.status_code == HTTPStatus.OK
     bundle = response.json()
     assert bundle["resourceType"] == "Bundle"
@@ -219,9 +221,11 @@ def test_get_handle_organisation_requests_by_identifier_success_with_different_c
 
 def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=odsOrganisationCode|abc!@")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|abc!@"
+        )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
         "Invalid identifier value: ODS code 'ABC!@' must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]
@@ -248,7 +252,9 @@ def test_get_handle_organisation_requests_with_invalid_params(
         ),
     )
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=odsOrganisationCode|ODS12345&abc=extra")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345&abc=extra"
+        )
     outcome = exc_info.value.outcome
     assert outcome["resourceType"] == "OperationOutcome"
     assert outcome["issue"][0]["code"] == "invalid"
@@ -274,7 +280,9 @@ def test_get_handle_organisation_requests_by_identifier_not_found(
         }
     )
     with pytest.raises(OperationOutcomeException) as exc_info:
-        client.get("/Organization?identifier=odsOrganisationCode|ODS12345")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "not-found"
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()
@@ -285,7 +293,9 @@ def test_get_handle_organisation_requests_unhandled_exception(
 ) -> None:
     mock_organisation_service.get_by_ods_code.side_effect = Exception("fail")
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization?identifier=odsOrganisationCode|ABC123")
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
@@ -423,7 +433,7 @@ def test_update_organisation_no_updates(
     }
     response = client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert response.status_code == HTTPStatus.OK
-    assert response.json()["issue"][0]["code"] == "information"
+    assert response.json()["issue"][0]["code"] == "not-updated"
     assert response.json()["issue"][0]["severity"] == "information"
     assert (
         response.json()["issue"][0]["diagnostics"]
@@ -883,8 +893,10 @@ def test_delete_organisation_not_found(mock_repository: MockerFixture) -> None:
 
 
 def test_organization_query_params_success() -> None:
-    query = OrganizationQueryParams(identifier="odsOrganisationCode|ABC123")
-    assert query.identifier == "odsOrganisationCode|ABC123"
+    query = OrganizationQueryParams(
+        identifier="https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+    )
+    assert query.identifier == "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
     assert query.ods_code == "ABC123"
 
 
@@ -892,15 +904,17 @@ def test_organization_query_params_invalid_system() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
         OrganizationQueryParams(identifier="wrongSystem|ABC123")
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert "Invalid identifier system" in outcome["issue"][0]["diagnostics"]
 
 
 def test_organization_query_params_invalid_ods_code() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="odsOrganisationCode|abc!@invalid")
+        OrganizationQueryParams(
+            identifier="https://fhir.nhs.uk/Id/ods-organization-code|abc!@invalid"
+        )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
         "Invalid identifier value: ODS code 'ABC!@INVALID' must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]
@@ -909,17 +923,21 @@ def test_organization_query_params_invalid_ods_code() -> None:
 
 def test_organization_query_params_missing_separator() -> None:
     with pytest.raises(OperationOutcomeException) as exc_info:
-        OrganizationQueryParams(identifier="odsOrganisationCodeABC123")
+        OrganizationQueryParams(
+            identifier="https://fhir.nhs.uk/Id/ods-organization-codeABC123"
+        )
     outcome = exc_info.value.outcome
-    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["code"] == "structure"
     assert (
-        "Invalid identifier value: missing separator '|'. Must be in format 'odsOrganisationCode|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
+        "Invalid identifier value: missing separator '|'. Must be in format 'https://fhir.nhs.uk/Id/ods-organization-code|<code>' and code must follow format ^[A-Za-z0-9]{1,12}$"
         in outcome["issue"][0]["diagnostics"]
     )
 
 
 def test_organization_query_params_lowercase_ods_code() -> None:
-    query = OrganizationQueryParams(identifier="odsOrganisationCode|abcde")
+    query = OrganizationQueryParams(
+        identifier="https://fhir.nhs.uk/Id/ods-organization-code|abcde"
+    )
     assert query.ods_code == "ABCDE"
 
 
