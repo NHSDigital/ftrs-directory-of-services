@@ -47,7 +47,7 @@ organisation_mapper = OrganizationMapper()
 def _get_organization_query_params(
     identifier: str = Query(
         ...,
-        description="Organization identifier in format 'odsOrganisationCode|{code}'",
+        description="Organization identifier in format 'https://fhir.nhs.uk/Id/ods-organization-code|{code}'",
     ),
 ) -> OrganizationQueryParams | None:
     return OrganizationQueryParams(identifier=identifier)
@@ -164,7 +164,7 @@ def update_organisation(
             )
             outcome = OperationOutcomeHandler.build(
                 diagnostics="No changes made to the organisation",
-                code="information",
+                code="not-updated",
                 severity="information",
             )
             return JSONResponse(
