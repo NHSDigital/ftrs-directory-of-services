@@ -235,6 +235,11 @@ paths:
       responses:
         '200':
           description: Successful response
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -314,6 +319,11 @@ paths:
 
         '400':
           description: Bad request
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -420,6 +430,11 @@ paths:
 
         '401':
           description: Unauthorized - Invalid or missing authentication token
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -438,6 +453,11 @@ paths:
                           display: "Unauthorized"
         '403':
           description: Forbidden - Insufficient permissions
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -456,6 +476,11 @@ paths:
                           display: "Forbidden"
         '429':
           description: Too many requests – Rate limit exceeded
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -474,6 +499,11 @@ paths:
                     diagnostics: "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
         '500':
           description: Internal server error
+          headers:
+            Strict-Transport-Security:
+              $ref: '#/components/headers/Strict-Transport-Security'
+            X-Content-Type-Options:
+              $ref: '#/components/headers/X-Content-Type-Options'
           content:
             application/fhir+json:
               schema:
@@ -486,6 +516,17 @@ paths:
                     diagnostics: "Internal server error"
 
 components:
+  headers:
+    Strict-Transport-Security:
+      description: Enforces HTTPS connections for the specified duration
+      schema:
+        type: string
+        example: max-age=31536000; includeSubDomains
+    X-Content-Type-Options:
+      description: Prevents MIME type sniffing by declaring a fixed content type
+      schema:
+        type: string
+        example: nosniff
   securitySchemes:
     app-level3:
       $ref: https://proxygen.prod.api.platform.nhs.uk/components/securitySchemes/app-level3
