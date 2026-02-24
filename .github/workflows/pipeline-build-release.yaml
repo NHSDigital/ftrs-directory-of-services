@@ -159,6 +159,31 @@ jobs:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
+  deploy-proxy-to-apim:
+    name: "Deploy ${{ matrix.api_name }} API to Proxygen"
+    needs:
+      - metadata
+      - tag-release
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        api_name:
+          - dos-search
+          - dos-ingest
+          # Add more API names here as needed
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      workspace: "rc"
+      api_name: ${{ matrix.api_name }}
+      apim_env: ${{ needs.metadata.outputs.environment == 'dev' && 'internal-dev' || needs.metadata.outputs.environment == 'test' && 'internal-qa' || needs.metadata.outputs.environment }}
+      ref: ${{ needs.tag-release.outputs.release_tag }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+
   restore-dynamodb-from-s3:
     name: "Restore S3 data to DynamoDB tables for release candidate in the ${{ needs.metadata.outputs.environment }} environment"
     if: ${{ needs.metadata.outputs.environment && needs.metadata.outputs.environment != 'prod' }}
@@ -247,6 +272,7 @@ jobs:
       - metadata
       - tag-release
       - deploy-data-migration-service
+      - deploy-proxy-to-apim
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
