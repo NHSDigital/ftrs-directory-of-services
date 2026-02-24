@@ -37,6 +37,7 @@ install-jmeter-dependencies: ## Installs jmeter dependencies
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-core/1.12.529/aws-java-sdk-core-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-secretsmanager/1.12.529/aws-java-sdk-secretsmanager-1.12.529.jar
 	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/joda-time/joda-time/2.10.13/joda-time-2.10.13.jar
+	curl --output-dir  $$(asdf where jmeter)/lib -O https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.9/postgresql-42.7.9.jar
 
 run-performance-test: ## [TEST_TYPE=smoke|load|stress] [ENDPOINT_TYPE=gateway|proxy] [ENDPOINT=endpoint of APIs] [PFX_PATH=path to pfk file] [APIM_ENV=environment for APIM proxy] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT=throughput value] [THROUGHPUT_PERIOD=throughput period in seconds] [PERFORMANCE_RESULTS_BUCKET=S3 bucket for performance results] [JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx]
 
@@ -185,6 +186,59 @@ jmeter-setup-jwt-certs:
 		--query 'SecretString' \
 		--output text > ./parameter_files/jwt-credentials.json;
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# Data migration
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+data-prep:
+	echo "Clearing out 'dos' paramerter files"
+	rm -f ./parameter_files/bulk_data.csv
+	rm -f ./parameter_files/feed_data.csv
+
+	echo "Clearing out stale ids in test_data_exports"
+	rm -f ./scripts/data_generation/database_updates/test_data_exports/*.csv
+
+	echo "Generating data"
+	cd ./scripts/ && sh extract_ids_from_source_db.sh
+	cd ./scripts/data_generation \
+		&& poetry install \
+		&& poetry run generate_database_update_data
+
+
+data-migration-typical-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=16 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=500 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
+
+
+data-migration-good-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=83 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=1000 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
+
+
+data-migration-hot-day-hot-hour-ui:
+	jmeter -t FDOS_Test_Plan.jmx \
+		-J dos_db_url="${DB_URL}" \
+		-J dos_db_password="${PGPASSWORD}" \
+		-J dos_db_user="${PGUSER}" \
+		-J feed_updates_per_minute=166 \
+		-J bulk_num_threads=1 \
+		-J bulk_size=2000 \
+		-J bulk_startup_delay=1200 \
+		-J duration=3600
 
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
