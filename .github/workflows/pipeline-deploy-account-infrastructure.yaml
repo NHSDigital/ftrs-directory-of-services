@@ -166,7 +166,7 @@ jobs:
             stacks: "['account_security']"
             download_appconfig_artifact: false
           - name: "env"
-            environment: test
+            environment: ${{ needs.metadata.outputs.environment }}
             stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
             download_appconfig_artifact: true
           - name: "mgmt"
