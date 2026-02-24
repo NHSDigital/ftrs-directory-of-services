@@ -58,6 +58,11 @@ variable "artefacts_bucket_name" {
   type        = string
 }
 
+variable "aws_accounts" {
+  description = "List of AWS account environments that can assume the cross account roles"
+  type        = list(string)
+}
+
 variable "account_github_runner_role_name" {
   description = "GitHub runner IAM role name for account"
   type        = string
@@ -211,6 +216,18 @@ variable "read_only_viewer_stack_enabled" {
 
 variable "athena_stack_enabled" {
   description = "Enable or disable the Amazon athena stack"
+  type        = bool
+  default     = true
+}
+
+variable "aws_backup_source_stack_enabled" {
+  description = "Enable or disable the AWS Backup source stack"
+  type        = bool
+  default     = true
+}
+
+variable "slack_notifier_stack_enabled" {
+  description = "Enable or disable the slack notifier stack"
   type        = bool
   default     = true
 }

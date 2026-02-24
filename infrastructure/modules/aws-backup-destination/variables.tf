@@ -5,11 +5,11 @@ variable "source_account_name" {
   type        = string
 }
 
-variable "source_account_id" {
-  # The source account ID is used in the policy to allow permit root in the source account
+variable "source_account_ids" {
+  # Source account IDs are used in the policy to allow roots in source accounts
   # to copy backups into the vault.
-  description = "The id of the account that backups will come from"
-  type        = string
+  description = "The ids of the accounts that backups will come from"
+  type        = list(string)
 }
 
 variable "account_id" {

@@ -15,11 +15,6 @@ data "aws_subnets" "private_subnets" {
     name   = "tag:Name"
     values = ["${local.account_prefix}-vpc-private-*"]
   }
-
-  filter {
-    name   = "tag:CidrRange"
-    values = [var.vpc_private_subnet_cidr_range]
-  }
 }
 
 data "aws_subnet" "private_subnets_details" {
@@ -61,6 +56,10 @@ data "aws_iam_policy_document" "s3_access_policy" {
   }
 }
 
+data "aws_kms_key" "dynamodb_kms_key" {
+  key_id = local.kms_aliases.dynamodb
+}
+
 data "aws_iam_policy_document" "dynamodb_access_policy" {
   statement {
     effect = "Allow"
@@ -79,6 +78,16 @@ data "aws_iam_policy_document" "dynamodb_access_policy" {
         "${table.arn}/index/*"
       ]
     ])
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
   }
 }
 

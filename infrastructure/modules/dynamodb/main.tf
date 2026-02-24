@@ -14,7 +14,8 @@ module "dynamodb_table" {
   ttl_enabled                    = var.ttl_enabled
   ttl_attribute_name             = var.ttl_attribute_name
 
-  server_side_encryption_enabled = true
+  server_side_encryption_enabled     = true
+  server_side_encryption_kms_key_arn = var.kms_key_arn
 
   global_secondary_indexes = var.global_secondary_indexes
 

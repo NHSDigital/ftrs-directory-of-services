@@ -140,14 +140,12 @@ paths:
         Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
 
         ## Request requirements
-        - if the `identifier` query parameter is provided, it must be in the format `https://fhir.nhs.uk/Id/ods-organization-code|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
-        - if the `identifier` parameter is omitted, all organizations will be returned.
+        - The `identifier` query parameter must be in the format `https://fhir.nhs.uk/Id/ods-organization-code|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
 
         The search is performed using the FHIR-compliant identifier parameter:
         - identifier={system}|{CODE}
 
         Example: /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
-        Example (all): /Organization
 
       operationId: searchOrganizations
       parameters:
@@ -182,10 +180,8 @@ paths:
           example: 7b2f8d3a-9e5c-4f1b-8a6d-2c4e9f1a3b5d
       - in: query
         name: identifier
-        description: >
-          ODS code in the format "{system}|{CODE}" (FHIR identifier search).
-          If omitted, all organizations will be returned.
-          required: false
+        description: ODS code in the format "{system}|{CODE}" (FHIR identifier search).
+        required: true
         schema:
             type: string
             pattern: '^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)\|[A-Za-z0-9]{1,12}$'

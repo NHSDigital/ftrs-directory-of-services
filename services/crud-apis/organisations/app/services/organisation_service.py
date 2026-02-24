@@ -235,20 +235,6 @@ class OrganisationService:
             )
             raise OperationOutcomeException(outcome)
 
-    def get_all_organisations(self, limit: int = 10) -> list[Organisation]:
-        """
-        Returns all Organisation objects from the repository.
-        """
-        self.logger.log(
-            CrudApisLogBase.ORGANISATION_004,
-        )
-        organisations = list(self.org_repository.iter_records(max_results=limit))
-        organisations = [
-            org if isinstance(org, Organisation) else Organisation(**org)
-            for org in organisations
-        ]
-        return organisations
-
     def _get_outdated_fields(
         self, organisation: Organisation, payload: Organisation
     ) -> dict:

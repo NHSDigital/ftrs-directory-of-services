@@ -1,8 +1,3 @@
-variable "aws_accounts" {
-  description = "List of AWS account environments"
-  type        = list(string)
-}
-
 variable "alarm_notification_email" {
   description = "List of email addresses to receive SNS notifications for Shield DDoS alarms"
   type        = list(string)

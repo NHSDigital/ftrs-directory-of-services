@@ -8,6 +8,7 @@ module "ui_session_store" {
   billing_mode       = "PAY_PER_REQUEST"
   ttl_attribute_name = "expiresAt"
   ttl_enabled        = true
+  kms_key_arn        = data.aws_kms_key.dynamodb_kms_key[0].arn
 
   attributes = [
     {
@@ -27,4 +28,6 @@ module "ui_session_store" {
       projection_type = "KEYS_ONLY"
     }
   ]
+
+  tags = local.backup_tags
 }

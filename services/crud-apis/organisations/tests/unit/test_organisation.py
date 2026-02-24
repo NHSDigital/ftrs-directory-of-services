@@ -133,9 +133,6 @@ def mock_organisation_service(mocker: MockerFixture) -> MockerFixture:
     service_mock.create_organisation.return_value = Organisation(**get_organisation())
     service_mock.process_organisation_update.return_value = True
     service_mock.get_by_ods_code.return_value = [Organisation(**get_organisation())]
-    service_mock.get_all_organisations.return_value = [
-        Organisation(**get_organisation())
-    ]
     return service_mock
 
 
@@ -186,13 +183,16 @@ def test__get_organization_query_params_with_identifier() -> None:
     assert result.identifier == identifier
 
 
-def test_get_handle_organisation_requests_all_success(mocker: MockerFixture) -> None:
+def test_get_handle_organisation_requests_missing_identifier(
+    mocker: MockerFixture,
+) -> None:
     response = client.get("/Organization")
-    assert response.status_code == HTTPStatus.OK
-    bundle = response.json()
-    assert bundle["resourceType"] == "Bundle"
-    assert str(len(bundle["entry"])) == "1"
-    assert bundle["entry"][0]["resource"]["id"] == str(get_organisation()["id"])
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = response.json()
+    assert "detail" in data
+    assert data["detail"][0]["type"] == "missing"
+    assert data["detail"][0]["loc"] == ["query", "identifier"]
 
 
 # Additional test to cover identifier with different valid ODS code (lines 79-85)
@@ -288,23 +288,12 @@ def test_get_handle_organisation_requests_by_identifier_not_found(
     assert "not found" in outcome["issue"][0]["diagnostics"].lower()
 
 
-def test_get_handle_organisation_requests_all_empty(
-    mock_organisation_service: MockerFixture,
-) -> None:
-    mock_organisation_service.get_all_organisations.return_value = []
-    response = client.get("/Organization")
-    assert response.status_code == HTTPStatus.OK
-    bundle = response.json()
-    assert bundle["resourceType"] == "Bundle"
-    assert bundle.get("entry", []) == []
-
-
 def test_get_handle_organisation_requests_unhandled_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    mock_organisation_service.get_all_organisations.side_effect = Exception("fail")
+    mock_organisation_service.get_by_ods_code.side_effect = Exception("fail")
     with pytest.raises(Exception) as exc_info:
-        client.get("/Organization")
+        client.get("/Organization?identifier=odsOrganisationCode|ABC123")
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
@@ -966,20 +955,16 @@ def test_update_organisation_empty_identifier_object() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    body = response.json()
-    print(body)
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+        "at least one identifier must have system 'https://fhir.nhs.uk/Id/ods-organization-code'"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1004,19 +989,16 @@ def test_update_organisation_identifier_missing_value() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, ODS identifier must have a non-empty value"
+        "ODS identifier must have a non-empty value"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1041,19 +1023,16 @@ def test_update_organisation_identifier_empty_value() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, ODS identifier must have a non-empty value"
+        "ODS identifier must have a non-empty value"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1078,19 +1057,16 @@ def test_update_organisation_identifier_invalid_ods_format() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, invalid ODS code format: 'ABC!@TOOLONG123' must follow format ^[A-Za-z0-9]{1,12}$"
+        "invalid ODS code format: 'ABC!@TOOLONG123' must follow format ^[A-Za-z0-9]{1,12}$"
+        in outcome["issue"][0]["diagnostics"]
     )
 
 
@@ -1110,19 +1086,15 @@ def test_update_organisation_identifier_empty_list() -> None:
         "telecom": [],
     }
 
-    response = client.put(f"/Organization/{test_org_id}", json=fhir_payload)
-    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.put(f"/Organization/{test_org_id}", json=fhir_payload)
 
-    body = response.json()
-    assert "detail" in body
-    identifier_errors = [
-        error for error in body["detail"] if error.get("loc") == ["body", "identifier"]
-    ]
-    assert len(identifier_errors) > 0
-    assert identifier_errors[0]["type"] == "value_error"
+    outcome = exc_info.value.outcome
+    assert outcome["resourceType"] == "OperationOutcome"
+    assert outcome["issue"][0]["code"] == "invalid"
+    assert outcome["issue"][0]["severity"] == "error"
     assert (
-        identifier_errors[0]["msg"]
-        == "Value error, at least one identifier must be provided"
+        "at least one identifier must be provided" in outcome["issue"][0]["diagnostics"]
     )
 
 

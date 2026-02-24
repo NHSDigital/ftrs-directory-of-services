@@ -100,10 +100,14 @@ def test_update_payload_validator_missing_meta() -> None:
             resourceType="Organization",
             name="NHS Digital",
             modified_by="test_user",
-            type="NHS",
             active=True,
-            telecom="123456789",
-            identifier={"value": "ABC123"},
+            telecom=[{"system": "phone", "value": "123456789"}],
+            identifier=[
+                {
+                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                    "value": "ABC123",
+                }
+            ],
         )
 
 

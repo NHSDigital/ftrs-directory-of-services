@@ -1,18 +1,13 @@
 @crud-org-api @data-sourcing
 Feature: Organization API Endpoint
 
-  Scenario: Retrieve Organization
-    When I request data from the "crud" endpoint "Organization"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "10" "Organization" resources
-
   Scenario: Update Organization for specific ODS Code
     Given that the stack is "organisation"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json" with specific id
     When I update the organization details for ODS Code
     Then I receive a status code "200" in response
+    And the response includes security headers
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "information"
