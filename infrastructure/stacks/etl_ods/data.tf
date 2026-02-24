@@ -156,6 +156,21 @@ data "aws_iam_policy_document" "ods_etl_scheduler_invoke_policy" {
       module.extractor_lambda.lambda_function_arn
     ]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:CreateGrant",
+      "kms:GenerateDataKey"
+    ]
+
+    resources = [
+      data.aws_kms_key.scheduler_kms_key.arn
+    ]
+  }
 }
 
 data "aws_kms_key" "sqs_kms_alias" {
