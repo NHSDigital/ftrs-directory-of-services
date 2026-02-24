@@ -10,7 +10,6 @@ from src.router.routes import router as api_router
 
 app = FastAPI()
 
-
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
