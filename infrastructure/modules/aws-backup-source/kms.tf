@@ -6,7 +6,7 @@ resource "aws_kms_key" "aws_backup_key" {
 }
 
 resource "aws_kms_alias" "backup_key" {
-  name          = "alias/${var.environment_name}/backup-key"
+  name          = "alias/${var.resource_prefix}-kms"
   target_key_id = aws_kms_key.aws_backup_key.key_id
 }
 
@@ -31,5 +31,27 @@ data "aws_iam_policy_document" "backup_key_policy" {
     }
     actions   = ["kms:*"]
     resources = ["*"]
+  }
+
+  # Allow destination account to decrypt for cross-account backup copy
+  dynamic "statement" {
+    for_each = var.backup_copy_vault_account_id != "" ? [1] : []
+    content {
+      sid = "AllowDestinationAccountDecrypt"
+      principals {
+        type        = "AWS"
+        identifiers = ["arn:aws:iam::${var.backup_copy_vault_account_id}:root"]
+      }
+      actions = [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ]
+      resources = ["*"]
+      condition {
+        test     = "StringEquals"
+        variable = "kms:ViaService"
+        values   = ["backup.${var.aws_region}.amazonaws.com"]
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@ module "slack_lambda" {
 
   function_name         = local.resource_prefix
   description           = "Lambda to send CloudWatch alarms to Slack"
-  handler               = "slack_alarm_handler.lambda_handler"
+  handler               = "functions.slack_alarm_handler.lambda_handler"
   runtime               = var.lambda_runtime
   s3_bucket_name        = local.artefacts_bucket
   s3_key                = local.lambda_s3_key

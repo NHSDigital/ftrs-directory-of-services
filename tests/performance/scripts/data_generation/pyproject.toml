@@ -1,0 +1,22 @@
+[project]
+name = "perf-data-generation"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "NHS England"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0.0"
+dependencies = [
+    "faker==40.4.0",
+    "pandas==3.0.0"
+]
+
+[tool.poetry.scripts]
+generate_database_update_data = "database_updates.generate_database_update_data:main"
+
+
+[tool.poetry]
+packages = [
+    { include = "database_updates" }
+]

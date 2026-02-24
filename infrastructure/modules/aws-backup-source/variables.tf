@@ -8,6 +8,16 @@ variable "environment_name" {
   type        = string
 }
 
+variable "aws_region" {
+  description = "AWS region for naming and resource configuration."
+  type        = string
+}
+
+variable "resource_prefix" {
+  description = "The resource prefix used for naming backup resources."
+  type        = string
+}
+
 variable "notifications_target_email_address" {
   description = "The email address to which backup notifications will be sent via SNS."
   type        = string
@@ -63,6 +73,18 @@ variable "restore_testing_plan_selection_window_days" {
   description = "Selection window days"
   type        = number
   default     = 7
+}
+
+variable "restore_testing_enabled" {
+  description = "Enable AWS Backup restore testing plan and selection resources."
+  type        = bool
+  default     = false
+}
+
+variable "restore_testing_protected_resource_arns" {
+  description = "Explicit ARNs for restore testing selection (overrides tag-based selection when set)."
+  type        = list(string)
+  default     = []
 }
 
 variable "backup_copy_vault_arn" {

@@ -155,3 +155,24 @@ resource "aws_iam_role_policy_attachment" "account_runner_domain_name_cross_acco
   role       = aws_iam_role.account_github_runner_role.name
   policy_arn = aws_iam_policy.account_runner_domain_name_cross_account_policy.arn
 }
+
+data "aws_iam_policy_document" "account_runner_backup_cross_account_doc" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    resources = [
+      "arn:aws:iam::${var.mgmt_account_id}:role/${local.backup_cross_account_role}"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "account_runner_backup_cross_account_policy" {
+  name        = "${local.backup_cross_account_role}${var.environment != "mgmt" ? "-${var.environment}" : ""}-account-policy"
+  description = "Allow cross-account AssumeRole into mgmt AWS Backup role"
+  policy      = data.aws_iam_policy_document.account_runner_backup_cross_account_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "account_runner_backup_cross_account_policy_attachment" {
+  role       = aws_iam_role.account_github_runner_role.name
+  policy_arn = aws_iam_policy.account_runner_backup_cross_account_policy.arn
+}

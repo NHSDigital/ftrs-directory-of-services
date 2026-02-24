@@ -4,6 +4,9 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from fastapi import FastAPI
 from ftrs_common.api_middleware.correlation_id_middleware import CorrelationIdMiddleware
 from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
+from ftrs_common.api_middleware.security_headers_middleware import (
+    SecurityHeadersMiddleware,
+)
 from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from ftrs_common.logger import Logger
 from ftrs_common.utils.request_id import fetch_or_set_request_id
@@ -17,6 +20,7 @@ crud_healthcare_logger = Logger.get(service="crud_healthcare_logger")
 app = FastAPI(title="Healthcare Services API", root_path="/healthcare-service")
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.include_router(healthcare.router)
 # Initialize outside handler - reused across invocations
 FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
