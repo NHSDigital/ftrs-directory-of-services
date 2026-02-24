@@ -20,7 +20,7 @@ class InvalidHealthcareServiceTypeError(ValueError):
 def validate_healthcare_service_type(v: str) -> str:
     """
     Validate healthcare service type with generic error message.
-    
+
     Uses BeforeValidator to intercept Pydantic's enum validation and provide
     a generic error message instead of listing all enum values.
     """
