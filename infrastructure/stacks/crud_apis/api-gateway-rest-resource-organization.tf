@@ -16,7 +16,7 @@ resource "aws_api_gateway_method" "organization_get" {
   request_validator_id = aws_api_gateway_request_validator.validator.id
 
   request_parameters = {
-    "method.request.queystring.idenitifier" = true
+    "method.request.querystring.idenitifier" = true
   }
 
 }
@@ -30,7 +30,7 @@ resource "aws_api_gateway_integration" "organization_get" {
   uri                     = module.organisation_api_lambda.lambda_function_invoke_arn
 
   request_parameters = {
-    "integration.request.querystring.idenitifier" = "method.request.queystring.idenitifier"
+    "integration.request.querystring.idenitifier" = "method.request.querystring.idenitifier"
   }
 }
 
