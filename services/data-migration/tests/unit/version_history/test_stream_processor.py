@@ -26,13 +26,15 @@ class TestProcessStreamRecord:
         call_args = mock_version_history_table.put_item.call_args
         item = call_args.kwargs["Item"]
 
-        expected_entity_id = "organisation|d0d6af8a-1138-5a2f-a4e2-5f489fb44653|details"
+        expected_entity_id = (
+            "organisation#d0d6af8a-1138-5a2f-a4e2-5f489fb44653#document"
+        )
         assert item["entity_id"] == expected_entity_id
         assert item["change_type"] == "UPDATE"
-        assert "details" in item["changed_fields"]
+        assert "document" in item["changed_fields"]
 
-        # Verify that the details field contains a diff of the changes
-        document_delta = item["changed_fields"]["details"]
+        # Verify that the document field contains a diff of the changes
+        document_delta = item["changed_fields"]["document"]
         assert "diff" in document_delta
         assert "old" in document_delta
         assert "new" in document_delta
@@ -172,7 +174,7 @@ class TestProcessStreamRecord:
 
         assert item["change_type"] == "CREATE"
         expected_changed_fields = {
-            "details": {
+            "document": {
                 "old": None,
                 "new": {
                     "name": "New Practice Name",
@@ -237,7 +239,7 @@ class TestProcessStreamRecord:
 
         assert item["change_type"] == "DELETE"
         expected_changed_fields = {
-            "details": {
+            "document": {
                 "old": {
                     "name": "Old Location Name",
                     "status": "active",
