@@ -49,3 +49,9 @@ data "aws_s3_object" "data_layer" {
 data "aws_kms_key" "dynamodb_kms_key" {
   key_id = local.kms_aliases.dynamodb
 }
+
+data "aws_security_group" "version_history_lambda_security_group" {
+  count = local.is_primary_environment ? 0 : 1
+
+  name = "${local.resource_prefix}-version-history-lambda-sg"
+}
