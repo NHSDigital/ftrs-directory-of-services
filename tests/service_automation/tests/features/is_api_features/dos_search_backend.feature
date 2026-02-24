@@ -14,6 +14,7 @@ Feature: API DoS Service Search Backend
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
+    And the response includes security headers
 
 
   Scenario Outline: I search for GP Endpoint with invalid ODS code
@@ -25,6 +26,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Invalid identifier value: ODS code '<ods_code>' must follow format ^[A-Za-z0-9]{5,12}$"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
     Examples:
       | params                                                                                                   | ods_code      |
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|&_revinclude=Endpoint:organization              |               |
@@ -42,6 +44,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
     Examples:
       | params                                                                                               |
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=                      |
@@ -58,6 +61,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "code-invalid"
     And the OperationOutcome contains an issue with diagnostics "Invalid identifier system '<identifier_system>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
     Examples:
       | params                                                                      | identifier_system   |
       | identifier=\|M00081046&_revinclude=Endpoint:organization                    |                     |
@@ -74,6 +78,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "required"
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
     Examples:
       | params                                                             | missing_param |
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | _revinclude   |
@@ -90,12 +95,14 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
     And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
 
 
   # New health check scenario for GET /_status
   Scenario: I request a healthcheck of the GP Endpoint and receive a 200 response
     When I request data from the "dos-search" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
+    And the response includes security headers
 
 
   # New error mapping scenarios at the gateway level
@@ -108,6 +115,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "not-supported"
     And the OperationOutcome contains an issue with diagnostics "Unsupported service: /DoesNotExist"
     And the OperationOutcome contains an issue with details for UNSUPPORTED_SERVICE coding
+    And the response includes security headers
 
 
   Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
@@ -119,6 +127,7 @@ Feature: API DoS Service Search Backend
     And the OperationOutcome contains an issue with code "value"
     And the OperationOutcome contains an issue with diagnostics "Unexpected query parameter(s): <unexpected_param>. Only 'identifier' and '_revinclude' are allowed."
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    And the response includes security headers
     Examples:
       | unexpected_param | unexpected_value |
       | foo              | bar              |
