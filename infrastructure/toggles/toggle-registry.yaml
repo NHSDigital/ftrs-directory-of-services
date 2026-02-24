@@ -24,7 +24,7 @@ appconfig_flags:
     environments:
       workspace: true
       dev: true
-      test: false
+      test: true
       int: false
       ref: false
       prod: false
