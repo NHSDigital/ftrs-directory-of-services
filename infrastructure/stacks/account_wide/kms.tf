@@ -285,7 +285,7 @@ module "scheduler_encryption_key" {
       Sid    = "AllowEventBridgeSchedulerToUseKMS"
       Effect = "Allow"
       Principal = {
-        Service = "scheduler.amazonaws.com"
+        Service = ["scheduler.amazonaws.com"]
       }
       Action = [
         "kms:CreateGrant",
