@@ -1,8 +1,6 @@
 name: Code Quality Checks Workflow
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 on:
   workflow_call:
     inputs:
@@ -81,6 +79,8 @@ jobs:
     name: "Scan secrets"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -94,6 +94,8 @@ jobs:
     name: "Check file format"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -107,6 +109,8 @@ jobs:
     name: "Check Markdown format"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -120,6 +124,8 @@ jobs:
     name: "Check English usage"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -132,7 +138,9 @@ jobs:
   count-lines-of-code:
     name: "Count lines of code"
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 2
     steps:
       - name: "Checkout code"
@@ -153,6 +161,9 @@ jobs:
     name: "Scan dependencies"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -174,6 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
     environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       matrix:
         stack: ${{ fromJson(inputs.stacks) }}
@@ -208,6 +222,8 @@ jobs:
     name: "Check Terraform format"
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.workflow_timeout }}
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
@@ -250,6 +266,8 @@ jobs:
     name: "Lint service automation tests"
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
