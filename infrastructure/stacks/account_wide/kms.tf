@@ -282,22 +282,22 @@ module "scheduler_encryption_key" {
   description      = "Encryption key for EventBridge scheduler in ${var.environment} environment"
   additional_policy_statements = [
     {
-      "Sid" : "AllowEventBridgeSchedulerToUseKMS",
-      "Effect" : "Allow",
-      "Principal" : {
-        "Service" : "scheduler.amazonaws.com"
-      },
-      "Action" : [
+      Sid    = "AllowEventBridgeSchedulerToUseKMS"
+      Effect = "Allow"
+      Principal = {
+        Service = "scheduler.amazonaws.com"
+      }
+      Action = [
         "kms:CreateGrant",
         "kms:RetireGrant",
         "kms:Decrypt",
         "kms:GenerateDataKey*",
         "kms:DescribeKey"
-      ],
-      "Resource" : "*",
-      "Condition" : {
-        "StringEquals" : {
-          "aws:SourceAccount" : data.aws_caller_identity.current.account_id
+      ]
+      Resource = "*"
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
         }
       }
     },
