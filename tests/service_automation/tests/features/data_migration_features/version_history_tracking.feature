@@ -21,8 +21,8 @@ Feature: Version History Tracking
       | attribute      | value                                                 |
       | entity_id      | organisation#aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa#document |
       | change_type    | UPDATE                                                |
-    And the version history "changed_fields.document.diff.values_changed.root['name'].new_value" should be "Updated Organisation Name"
-    And the version history "changed_fields.document.diff.values_changed.root['name'].old_value" should be "Original Organisation Name"
+    And the version history "changed_fields.document.values_changed.root['name'].new_value" should be "Updated Organisation Name"
+    And the version history "changed_fields.document.values_changed.root['name'].old_value" should be "Original Organisation Name"
     And the version history "changed_by.type" should be "app"
     And the version history record should have a valid timestamp
 

@@ -53,31 +53,22 @@ def extract_changed_by(new_image: Dict[str, Any]) -> Dict[str, str]:
 
 def compute_field_delta(old_value: Any, new_value: Any) -> Dict[str, Any]:  # noqa: ANN401
     """
-    Compute a structured delta between old and new field values.
+    Compute a structured delta between old and new field values using DeepDiff.
 
-    For simple values (str, int, bool, None), returns {"old": old_value, "new": new_value}.
-    For complex values (dict, list), uses DeepDiff to compute a detailed delta.
+    Returns DeepDiff's native structure which provides detailed change information:
+    - values_changed: {"root['field']": {"old_value": ..., "new_value": ...}}
+    - dictionary_item_added: {"root['field']": value}
+    - dictionary_item_removed: {"root['field']": value}
+    - iterable_item_added: {"root[index]": value}
+    - iterable_item_removed: {"root[index]": value}
 
     Args:
         old_value: Previous field value
         new_value: New field value
 
     Returns:
-        Dictionary with delta information:
-        - For simple values: {"old": <value>, "new": <value>}
-        - For complex values: {"old": <value>, "new": <value>, "diff": <deepdiff_json>}
+        Dictionary with DeepDiff structure. Empty dict if values are identical.
     """
-    # Simple types: return old/new
-    if not isinstance(old_value, (dict, list)) and not isinstance(
-        new_value, (dict, list)
-    ):
-        return {"old": old_value, "new": new_value}
-
-    # Type mismatch: return old/new
-    if type(old_value) is not type(new_value):
-        return {"old": old_value, "new": new_value}
-
-    # Complex types: compute detailed diff
     diff = DeepDiff(
         old_value,
         new_value,
@@ -86,5 +77,4 @@ def compute_field_delta(old_value: Any, new_value: Any) -> Dict[str, Any]:  # no
         ignore_order=True,
     )
 
-    diff_json = json.loads(diff.to_json())
-    return {"old": old_value, "new": new_value, "diff": diff_json}
+    return json.loads(diff.to_json())

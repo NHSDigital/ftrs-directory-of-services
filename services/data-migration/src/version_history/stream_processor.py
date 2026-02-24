@@ -53,7 +53,7 @@ def _extract_record_metadata(
     new_image = record.dynamodb.new_image
 
     record_id = keys.get("id")
-    # Field name for composite key: "document" for gp org entities, may differ for pharmacy
+    # Field name for composite key: defaults to "document" for gp org entities, may differ for pharmacy service types
     field_name = keys.get("field", "document")
     event_name = record.get("eventName", "MODIFY")
 
@@ -95,13 +95,6 @@ def _extract_field_values(
         old_value = old_image.get(field_name) if old_image else None
         new_value = new_image.get(field_name) if new_image else None
 
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_017,
-        field_name=field_name,
-        is_document_field=(field_name == "document"),
-        system_fields_count=len(SYSTEM_FIELDS),
-    )
-
     return old_value, new_value
 
 
@@ -125,10 +118,6 @@ def _determine_change_type(
         change_type=change_type,
         old_val_present=old_value is not None,
         new_val_present=new_value is not None,
-        old_val=old_value,
-        new_val=new_value,
-        old_type=type(old_value).__name__,
-        new_type=type(new_value).__name__,
     )
 
     return change_type
@@ -145,8 +134,8 @@ def _should_skip_update(
     if change_type != "UPDATE":
         return False
 
-    # Check for empty diff in complex values
-    if not field_delta.get("diff"):
+    # Check for empty diff (no changes detected by DeepDiff)
+    if not field_delta:
         LOGGER.log(
             VersionHistoryLogBase.VH_PROCESSOR_015,
             entity_name=entity_name,
@@ -154,11 +143,6 @@ def _should_skip_update(
             field_name=field_name,
         )
         return True
-    else:
-        LOGGER.log(
-            VersionHistoryLogBase.VH_PROCESSOR_016,
-            diff=field_delta.get("diff"),
-        )
 
     return False
 
@@ -216,7 +200,6 @@ def process_stream_record(
         field_name=field_name,
         has_old_image=old_image is not None,
         has_new_image=new_image is not None,
-        keys=keys,
     )
 
     LOGGER.log(
@@ -234,22 +217,14 @@ def process_stream_record(
     LOGGER.log(
         VersionHistoryLogBase.VH_PROCESSOR_008,
         field_name=field_name,
-        delta_keys=list(field_delta.keys()),
-        has_diff="diff" in field_delta,
-        delta=field_delta,
-        values_equal=field_delta.get("old") == field_delta.get("new"),
+        delta_keys=list(field_delta.keys()) if field_delta else [],
+        has_changes=bool(field_delta),
     )
 
     if _should_skip_update(
         change_type, field_delta, entity_name, record_id, field_name
     ):
         return
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_004,
-        old_value=old_value,
-        new_value=new_value,
-    )
 
     version_item = _create_version_item(
         entity_name,
@@ -259,11 +234,6 @@ def process_stream_record(
         new_image,
         old_image,
         field_name,
-    )
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_005,
-        version_item=version_item,
     )
 
     version_history_table.put_item(Item=version_item)

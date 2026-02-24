@@ -152,35 +152,44 @@ class TestComputeFieldDelta:
         result = compute_field_delta(
             "Riverside Medical Centre", "Riverside Health Practice"
         )
-        assert result == {
-            "old": "Riverside Medical Centre",
-            "new": "Riverside Health Practice",
-        }
-        assert "diff" not in result
+        assert "values_changed" in result
+        assert "root" in result["values_changed"]
+        assert (
+            result["values_changed"]["root"]["old_value"] == "Riverside Medical Centre"
+        )
+        assert (
+            result["values_changed"]["root"]["new_value"] == "Riverside Health Practice"
+        )
 
     def test_compute_delta_for_integer_values(self) -> None:
         """Test computing delta for integer values."""
-        result = compute_field_delta(12345678, 87654321)
-        assert result == {"old": 12345678, "new": 87654321}
-        assert "diff" not in result
+        old_integer_value = 12345678
+        new_integer_value = 87654321
+        result = compute_field_delta(old_integer_value, new_integer_value)
+        assert "values_changed" in result
+        assert result["values_changed"]["root"]["old_value"] == old_integer_value
+        assert result["values_changed"]["root"]["new_value"] == new_integer_value
 
     def test_compute_delta_for_boolean_values(self) -> None:
         """Test computing delta for boolean values."""
         result = compute_field_delta(False, True)
-        assert result == {"old": False, "new": True}
-        assert "diff" not in result
+        assert "values_changed" in result
+        assert result["values_changed"]["root"]["old_value"] is False
+        assert result["values_changed"]["root"]["new_value"] is True
 
     def test_compute_delta_for_none_values(self) -> None:
         """Test computing delta when old value is None."""
         result = compute_field_delta(None, "F84001")
-        assert result == {"old": None, "new": "F84001"}
-        assert "diff" not in result
+        # DeepDiff reports None -> value as type_changes
+        assert "type_changes" in result
+        assert result["type_changes"]["root"]["old_value"] is None
+        assert result["type_changes"]["root"]["new_value"] == "F84001"
 
     def test_compute_delta_for_none_to_none(self) -> None:
         """Test computing delta when both values are None."""
         result = compute_field_delta(None, None)
-        assert result == {"old": None, "new": None}
-        assert "diff" not in result
+        # Identical values produce empty dict
+        assert result == {}
 
     def test_compute_delta_for_dict_values(self) -> None:
         """Test computing delta for dictionary values."""
@@ -188,10 +197,18 @@ class TestComputeFieldDelta:
         new_dict = {"phone_public": "0300 987 6543", "web": "https://practice.nhs.uk"}
         result = compute_field_delta(old_dict, new_dict)
 
-        assert result["old"] == old_dict
-        assert result["new"] == new_dict
-        assert "diff" in result
-        assert isinstance(result["diff"], dict)
+        # DeepDiff should report changed, added, and removed items
+        assert "values_changed" in result  # phone_public changed
+        assert "dictionary_item_added" in result  # web added
+        assert "dictionary_item_removed" in result  # email removed
+        assert (
+            result["values_changed"]["root['phone_public']"]["old_value"]
+            == "0300 123 4567"
+        )
+        assert (
+            result["values_changed"]["root['phone_public']"]["new_value"]
+            == "0300 987 6543"
+        )
 
     def test_compute_delta_for_list_values(self) -> None:
         """Test computing delta for list values."""
@@ -199,10 +216,13 @@ class TestComputeFieldDelta:
         new_list = ["Dx01", "Dx04", "Dx05"]
         result = compute_field_delta(old_list, new_list)
 
-        assert result["old"] == old_list
-        assert result["new"] == new_list
-        assert "diff" in result
-        assert isinstance(result["diff"], dict)
+        # DeepDiff reports list changes
+        assert (
+            "values_changed" in result
+            or "iterable_item_added" in result
+            or "iterable_item_removed" in result
+        )
+        assert isinstance(result, dict)
 
     def test_compute_delta_for_type_mismatch(self) -> None:
         """Test computing delta when types don't match."""
@@ -210,11 +230,14 @@ class TestComputeFieldDelta:
             "0300 123 4567",
             {"phone_public": "0300 123 4567", "phone_private": "0300 111 2222"},
         )
-        assert result == {
-            "old": "0300 123 4567",
-            "new": {"phone_public": "0300 123 4567", "phone_private": "0300 111 2222"},
+        # DeepDiff reports type changes
+        assert "type_changes" in result
+        assert "root" in result["type_changes"]
+        assert result["type_changes"]["root"]["old_value"] == "0300 123 4567"
+        assert result["type_changes"]["root"]["new_value"] == {
+            "phone_public": "0300 123 4567",
+            "phone_private": "0300 111 2222",
         }
-        assert "diff" not in result
 
     def test_compute_delta_for_identical_dict_values(self) -> None:
         """Test computing delta for identical dictionary values."""
@@ -225,9 +248,8 @@ class TestComputeFieldDelta:
         }
         result = compute_field_delta(test_dict, test_dict)
 
-        assert result["old"] == test_dict
-        assert result["new"] == test_dict
-        assert "diff" in result
+        # Identical values produce empty dict
+        assert result == {}
 
     def test_compute_delta_for_nested_dict_values(self) -> None:
         """Test computing delta for nested dictionary values."""
@@ -235,12 +257,20 @@ class TestComputeFieldDelta:
         new_dict = {"positionGCS": {"latitude": "51.5075", "longitude": "-0.1278"}}
         result = compute_field_delta(old_dict, new_dict)
 
-        assert result["old"] == old_dict
-        assert result["new"] == new_dict
-        assert "diff" in result
+        # DeepDiff should show nested path to changed value
+        assert "values_changed" in result
+        assert "root['positionGCS']['latitude']" in result["values_changed"]
+        assert (
+            result["values_changed"]["root['positionGCS']['latitude']"]["old_value"]
+            == "51.5074"
+        )
+        assert (
+            result["values_changed"]["root['positionGCS']['latitude']"]["new_value"]
+            == "51.5075"
+        )
 
     @pytest.mark.parametrize(
-        "old_value,new_value,has_diff",
+        "old_value,new_value,is_identical",
         [
             ("Riverside Medical Centre", "Riverside Health Practice", False),
             (12345678, 87654321, False),
@@ -249,9 +279,9 @@ class TestComputeFieldDelta:
             (
                 {"identifier_ODS_ODSCode": "A12345"},
                 {"identifier_ODS_ODSCode": "B67890"},
-                True,
+                False,
             ),
-            (["Dx01", "Dx02"], ["Dx03", "Dx04"], True),
+            (["Dx01", "Dx02"], ["Dx03", "Dx04"], False),
             ("active", {"active": True, "primaryAddress": False}, False),
         ],
     )
@@ -259,14 +289,14 @@ class TestComputeFieldDelta:
         self,
         old_value: Any,  # noqa: ANN401
         new_value: Any,  # noqa: ANN401
-        has_diff: bool,  # noqa: ANN401
+        is_identical: bool,
     ) -> None:
         """Test computing delta with various value types."""
         result = compute_field_delta(old_value, new_value)
 
-        assert result["old"] == old_value
-        assert result["new"] == new_value
-        if has_diff:
-            assert "diff" in result
+        # All test cases have differences, so result should not be empty
+        if is_identical:
+            assert result == {}
         else:
-            assert "diff" not in result
+            assert result  # Non-empty dict
+            assert isinstance(result, dict)

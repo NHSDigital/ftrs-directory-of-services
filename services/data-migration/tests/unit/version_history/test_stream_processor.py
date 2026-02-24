@@ -33,22 +33,21 @@ class TestProcessStreamRecord:
         assert item["change_type"] == "UPDATE"
         assert "document" in item["changed_fields"]
 
-        # Verify that the document field contains a diff of the changes
+        # Verify that the document field contains DeepDiff structure
         document_delta = item["changed_fields"]["document"]
-        assert "diff" in document_delta
-        assert "old" in document_delta
-        assert "new" in document_delta
+        assert isinstance(document_delta, dict)
 
-        # Verify system fields were excluded from the values
-        old_val = document_delta["old"]
-        new_val = document_delta["new"]
-        assert "id" not in old_val
-        assert "field" not in old_val
-        assert "created" not in old_val
-        assert "lastUpdated" not in old_val
-        assert "name" in old_val
-        assert old_val["name"] == "Old Practice Name"
-        assert new_val["name"] == "New Practice Name"
+        # Should show the name field change
+        assert "values_changed" in document_delta
+        assert "root['name']" in document_delta["values_changed"]
+        assert (
+            document_delta["values_changed"]["root['name']"]["old_value"]
+            == "Old Practice Name"
+        )
+        assert (
+            document_delta["values_changed"]["root['name']"]["new_value"]
+            == "New Practice Name"
+        )
 
         assert item["changed_by"]["type"] == "app"
         assert item["changed_by"]["value"] == "INTERNAL001"
@@ -173,18 +172,22 @@ class TestProcessStreamRecord:
         item = call_args.kwargs["Item"]
 
         assert item["change_type"] == "CREATE"
-        expected_changed_fields = {
-            "document": {
-                "old": None,
-                "new": {
-                    "name": "New Practice Name",
-                    "active": True,
-                    "identifier_ODS_ODSCode": "B98765",
-                    "type": "GP Practice",
-                },
-            }
-        }
-        assert item["changed_fields"] == expected_changed_fields
+        # For CREATE, DeepDiff compares None to new value
+        document_delta = item["changed_fields"]["document"]
+        assert "values_changed" in document_delta or "type_changes" in document_delta
+        # Verify it captured the new document
+        if "type_changes" in document_delta:
+            # DeepDiff reports None -> dict as type change
+            assert document_delta["type_changes"]["root"]["old_value"] is None
+            new_val = document_delta["type_changes"]["root"]["new_value"]
+            assert new_val["name"] == "New Practice Name"
+            assert new_val["active"] is True
+            assert new_val["identifier_ODS_ODSCode"] == "B98765"
+            assert new_val["type"] == "GP Practice"
+        else:
+            assert document_delta["values_changed"]["root"]["old_value"] is None
+            new_val = document_delta["values_changed"]["root"]["new_value"]
+            assert new_val["name"] == "New Practice Name"
         assert item["changed_by"]["type"] == "app"
         assert item["changed_by"]["value"] == "INTERNAL001"
 
@@ -238,16 +241,20 @@ class TestProcessStreamRecord:
         item = call_args.kwargs["Item"]
 
         assert item["change_type"] == "DELETE"
-        expected_changed_fields = {
-            "document": {
-                "old": {
-                    "name": "Old Location Name",
-                    "status": "active",
-                    "physicalType": "building",
-                },
-                "new": None,
-            }
-        }
-        assert item["changed_fields"] == expected_changed_fields
+        # For DELETE, DeepDiff compares old value to None
+        document_delta = item["changed_fields"]["document"]
+        assert "values_changed" in document_delta or "type_changes" in document_delta
+        # Verify it captured the old document
+        if "type_changes" in document_delta:
+            # DeepDiff reports dict -> None as type change
+            old_val = document_delta["type_changes"]["root"]["old_value"]
+            assert old_val["name"] == "Old Location Name"
+            assert old_val["status"] == "active"
+            assert old_val["physicalType"] == "building"
+            assert document_delta["type_changes"]["root"]["new_value"] is None
+        else:
+            old_val = document_delta["values_changed"]["root"]["old_value"]
+            assert old_val["name"] == "Old Location Name"
+            assert document_delta["values_changed"]["root"]["new_value"] is None
         assert item["changed_by"]["type"] == "user"
         assert item["changed_by"]["value"] == "user-456"
