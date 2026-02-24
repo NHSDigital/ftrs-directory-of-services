@@ -181,15 +181,18 @@ def _check_by_id_and_sort_key(
         )
     )
     expected = json.loads(docstring)
-    actual = (
-        {k: v for k, v in retrieved_item.items() if k == filtered_by_field}
-        if filtered_by_field
-        else retrieved_item
-    )
+
+    if filtered_by_field:
+        actual = {k: v for k, v in retrieved_item.items() if k == filtered_by_field}
+    else:
+        # For minimal validation: only validate fields that are explicitly expected
+        # This allows the actual data to have additional fields without failing
+        actual = {k: v for k, v in retrieved_item.items() if k in expected}
+
     validate_diff(expected, actual)
 
     if not filtered_by_field:
-        validate_dynamic_fields(actual)
+        validate_dynamic_fields(retrieved_item)
 
 
 def validate_diff(expected, retrieved_item):

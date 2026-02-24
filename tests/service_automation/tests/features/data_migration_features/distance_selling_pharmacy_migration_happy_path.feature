@@ -52,25 +52,16 @@ Feature: Data Migration - Distance Selling Pharmacy
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then the state table contains a record for key 'services#10012348' with version 1
 
+    # Validate key properties to verify integration (detailed transformation logic is covered by unit tests)
     Then the 'organisation' for service ID '10012348' has content:
       """
       {
         "id": "79da7fc6-9cd7-5405-baed-81cfa1717ad3",
         "identifier_oldDoS_uid": "999996",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
         "identifier_ODS_ODSCode": "FXX96",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
         "name": "Test Distance Selling Pharmacy",
-        "telecom": [],
         "type": "Pharmacy Distance Selling",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "active": true
       }
       """
 
@@ -79,27 +70,12 @@ Feature: Data Migration - Distance Selling Pharmacy
       {
         "id": "43707340-6d35-5a96-812e-570e5bbf88e1",
         "identifier_oldDoS_uid": "999996",
-        "field": "document",
-        "active": true,
-        "ageEligibilityCriteria": null,
-        "category": "Pharmacy Services",
-        "type": "Essential Services",
         "providedBy": "79da7fc6-9cd7-5405-baed-81cfa1717ad3",
         "location": "ab0241ba-6e3b-5d93-9e53-9260e9466307",
         "name": "Test Distance Selling Pharmacy",
-        "openingTime": [],
-        "dispositions": [],
-        "symptomGroupSymptomDiscriminators": [],
-        "telecom": {
-          "phone_public": "01234567891",
-          "phone_private": "09876543211",
-          "email": "distance.pharmacy@nhs.net",
-          "web": "www.distancepharmacy.com"
-        },
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "category": "Pharmacy Services",
+        "type": "Essential Services",
+        "active": true
       }
       """
 
@@ -108,29 +84,8 @@ Feature: Data Migration - Distance Selling Pharmacy
       {
         "id": "ab0241ba-6e3b-5d93-9e53-9260e9466307",
         "identifier_oldDoS_uid": "999996",
-        "field": "document",
-        "active": true,
         "managingOrganisation": "79da7fc6-9cd7-5405-baed-81cfa1717ad3",
-        "address": {
-          "county": null,
-          "line1": "123 Distance Pharmacy Street",
-          "line2": "Test Area",
-          "postcode": "TE3 3ST",
-          "town": "TESTTOWN"
-        },
-        "name": null,
-        "partOf": null,
-        "positionGCS": {
-          "latitude": "52.0910543000",
-          "longitude": "-1.9510030000"
-        },
-        "positionReferenceNumber_UBRN": null,
-        "positionReferenceNumber_UPRN": null,
-        "primaryAddress": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "active": true
       }
       """
 
@@ -181,26 +136,16 @@ Feature: Data Migration - Distance Selling Pharmacy
     And there is 1 organisation, 1 location and 1 healthcare services created
     And the state table contains a record for key 'services#10012349' with version 1
 
-    # Verify initial content
+    # Verify initial key properties
     Then the 'organisation' for service ID '10012349' has content:
       """
       {
         "id": "269d561d-4de8-51b6-a9d8-7f69b9d9cf4a",
         "identifier_oldDoS_uid": "999995",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
         "identifier_ODS_ODSCode": "FXX95",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
         "name": "Initial Distance Pharmacy Public Name",
-        "telecom": [],
         "type": "Pharmacy Distance Selling",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "active": true
       }
       """
 
@@ -216,55 +161,19 @@ Feature: Data Migration - Distance Selling Pharmacy
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#10012349' with version 2
 
-    # Verify updated content - organisation name should be updated
+    # Verify updated fields - focus on changed properties only
     Then the 'organisation' for service ID '10012349' has content:
       """
       {
         "id": "269d561d-4de8-51b6-a9d8-7f69b9d9cf4a",
-        "identifier_oldDoS_uid": "999995",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
-        "identifier_ODS_ODSCode": "FXX95",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
-        "name": "Updated Distance Pharmacy Name",
-        "telecom": [],
-        "type": "Pharmacy Distance Selling",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "name": "Updated Distance Pharmacy Name"
       }
       """
 
-    # Verify updated content - healthcare-service name and telecom should be updated
     Then the 'healthcare-service' for service ID '10012349' has content:
       """
       {
         "id": "8662d853-70f5-5e06-bb9b-fd9ed963c0ae",
-        "identifier_oldDoS_uid": "999995",
-        "field": "document",
-        "active": true,
-        "ageEligibilityCriteria": null,
-        "category": "Pharmacy Services",
-        "type": "Essential Services",
-        "providedBy": "269d561d-4de8-51b6-a9d8-7f69b9d9cf4a",
-        "location": "97aefb7c-070e-5d84-a6f3-56da2c917a3f",
-        "name": "Updated Distance Service Name",
-        "openingTime": [],
-        "dispositions": [],
-        "symptomGroupSymptomDiscriminators": [],
-        "telecom": {
-          "phone_public": "03333333334",
-          "phone_private": "02222222223",
-          "email": "initialdistance@nhs.net",
-          "web": "www.initialdistance.com"
-        },
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "name": "Updated Distance Service Name"
       }
       """

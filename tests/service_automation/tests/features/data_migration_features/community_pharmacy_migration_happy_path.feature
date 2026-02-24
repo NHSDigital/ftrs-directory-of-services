@@ -52,25 +52,16 @@ Feature: Data Migration - Community Pharmacy
     Then there is 1 organisation, 1 location and 1 healthcare services created
     Then the state table contains a record for key 'services#10012345' with version 1
 
+    # Validate key properties to verify integration (detailed transformation logic is covered by unit tests)
     Then the 'organisation' for service ID '10012345' has content:
       """
       {
         "id": "6ba04c7d-9b6a-5be1-b545-0e77a19e6cf3",
         "identifier_oldDoS_uid": "999999",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
         "identifier_ODS_ODSCode": "FXX99",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
         "name": "Test Community Pharmacy",
-        "telecom": [],
         "type": "Pharmacy",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "active": true
       }
       """
 
@@ -79,27 +70,12 @@ Feature: Data Migration - Community Pharmacy
       {
         "id": "49d69102-7da8-5716-aa08-d53badeabbc3",
         "identifier_oldDoS_uid": "999999",
-        "field": "document",
-        "active": true,
-        "ageEligibilityCriteria": null,
-        "category": "Pharmacy Services",
-        "type": "Essential Services",
         "providedBy": "6ba04c7d-9b6a-5be1-b545-0e77a19e6cf3",
         "location": "62662791-8c06-5f50-980a-eba412cab65d",
         "name": "Test Community Pharmacy",
-        "openingTime": [],
-        "dispositions": [],
-        "symptomGroupSymptomDiscriminators": [],
-        "telecom": {
-          "phone_public": "01234567890",
-          "phone_private": "09876543210",
-          "email": "test.pharmacy@nhs.net",
-          "web": "www.testpharmacy.com"
-        },
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "category": "Pharmacy Services",
+        "type": "Essential Services",
+        "active": true
       }
       """
 
@@ -108,29 +84,8 @@ Feature: Data Migration - Community Pharmacy
       {
         "id": "62662791-8c06-5f50-980a-eba412cab65d",
         "identifier_oldDoS_uid": "999999",
-        "field": "document",
-        "active": true,
         "managingOrganisation": "6ba04c7d-9b6a-5be1-b545-0e77a19e6cf3",
-        "address": {
-          "county": null,
-          "line1": "123 Pharmacy Street",
-          "line2": "Test Area",
-          "postcode": "TE1 1ST",
-          "town": "TESTTOWN"
-        },
-        "name": null,
-        "partOf": null,
-        "positionGCS": {
-          "latitude": "52.0910543000",
-          "longitude": "-1.9510030000"
-        },
-        "positionReferenceNumber_UBRN": null,
-        "positionReferenceNumber_UPRN": null,
-        "primaryAddress": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "active": true
       }
       """
 
@@ -181,26 +136,16 @@ Feature: Data Migration - Community Pharmacy
     And there is 1 organisation, 1 location and 1 healthcare services created
     And the state table contains a record for key 'services#10012346' with version 1
 
-    # Verify initial content
+    # Verify initial key properties
     Then the 'organisation' for service ID '10012346' has content:
       """
       {
         "id": "bc85d805-4456-5311-9b9c-48316e0cce75",
         "identifier_oldDoS_uid": "999998",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
         "identifier_ODS_ODSCode": "FXX98",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
         "name": "Initial Pharmacy Public Name",
-        "telecom": [],
         "type": "Pharmacy",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "active": true
       }
       """
 
@@ -216,55 +161,19 @@ Feature: Data Migration - Community Pharmacy
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#10012346' with version 2
 
-    # Verify updated content - organisation name should be updated
+    # Verify updated fields - focus on changed properties only
     Then the 'organisation' for service ID '10012346' has content:
       """
       {
         "id": "bc85d805-4456-5311-9b9c-48316e0cce75",
-        "identifier_oldDoS_uid": "999998",
-        "field": "document",
-        "active": true,
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "endpoints": [],
-        "identifier_ODS_ODSCode": "FXX98",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP",
-        "name": "Updated Pharmacy Name",
-        "telecom": [],
-        "type": "Pharmacy",
-        "legalDates": null,
-        "primary_role_code": null,
-        "non_primary_role_codes": []
+        "name": "Updated Pharmacy Name"
       }
       """
 
-    # Verify updated content - healthcare-service name and telecom should be updated
     Then the 'healthcare-service' for service ID '10012346' has content:
       """
       {
         "id": "2a04177f-d83f-5eb6-9711-71eccbe35e49",
-        "identifier_oldDoS_uid": "999998",
-        "field": "document",
-        "active": true,
-        "ageEligibilityCriteria": null,
-        "category": "Pharmacy Services",
-        "type": "Essential Services",
-        "providedBy": "bc85d805-4456-5311-9b9c-48316e0cce75",
-        "location": "c9068da8-131d-58a1-9e60-ba24c7cfcb06",
-        "name": "Updated Service Name",
-        "openingTime": [],
-        "dispositions": [],
-        "symptomGroupSymptomDiscriminators": [],
-        "telecom": {
-          "phone_public": "03333333333",
-          "phone_private": "02222222222",
-          "email": "initial@nhs.net",
-          "web": "www.initial.com"
-        },
-        "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "created": "TIMESTAMP",
-        "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        "lastUpdated": "TIMESTAMP"
+        "name": "Updated Service Name"
       }
       """
