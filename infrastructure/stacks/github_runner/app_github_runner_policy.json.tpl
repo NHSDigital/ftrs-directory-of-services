@@ -176,7 +176,9 @@
                         "alias/${project}-*-ssm-kms",
                         "alias/${project}-*-s3-kms",
                         "alias/${project}-*-sqs-kms",
-                        "alias/${project}-*-dms-kms"
+                        "alias/${project}-*-dms-kms",
+                        "alias/${project}-*-rds-kms",
+                        "alias/${project}-*-dynamodb-kms"
                     ]
                 }
             }

@@ -141,6 +141,11 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
+data "aws_kms_key" "dynamodb_kms_key" {
+  count  = local.stack_enabled
+  key_id = local.kms_aliases.dynamodb
+}
+
 data "aws_iam_policy_document" "dynamodb_session_store_policy" {
   count = local.stack_enabled
   statement {
@@ -156,6 +161,16 @@ data "aws_iam_policy_document" "dynamodb_session_store_policy" {
       module.ui_session_store[0].dynamodb_table_arn,
       "${module.ui_session_store[0].dynamodb_table_arn}/index/*"
     ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key[0].arn]
   }
 }
 

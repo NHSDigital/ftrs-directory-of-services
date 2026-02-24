@@ -78,6 +78,8 @@ module "rds_replication_target_db" {
   master_password             = random_password.rds_password[0].result
   database_name               = var.target_rds_database
 
+  tags = local.backup_tags
+
   iam_database_authentication_enabled = true
 
   create_db_subnet_group          = false
@@ -92,6 +94,9 @@ module "rds_replication_target_db" {
   enabled_cloudwatch_logs_exports        = ["postgresql"]
   create_cloudwatch_log_group            = true
   cloudwatch_log_group_retention_in_days = var.rds_cloudwatch_logs_retention
+
+  storage_encrypted = true
+  kms_key_id        = data.aws_kms_key.rds_kms_alias.arn
 
   deletion_protection = true
 }

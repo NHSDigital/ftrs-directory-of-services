@@ -1,5 +1,15 @@
 locals {
-  account_github_runner_policy = jsondecode(templatefile("${path.module}/account_github_runner_policy.json.tpl", {
+  account_github_runner_policy_part1 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part1.json.tpl", {
+    project   = var.project
+    repo_name = var.repo_name
+  }))
+
+  account_github_runner_policy_part2 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part2.json.tpl", {
+    project   = var.project
+    repo_name = var.repo_name
+  }))
+
+  account_github_runner_policy_part3 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part3.json.tpl", {
     project   = var.project
     repo_name = var.repo_name
   }))
@@ -60,10 +70,22 @@ resource "aws_iam_role" "app_github_runner_role" {
 EOF
 }
 
-resource "aws_iam_policy" "account_github_runner_policy" {
-  name        = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}"
-  description = "IAM policy for Account GitHub Actions runner"
-  policy      = jsonencode(local.account_github_runner_policy)
+resource "aws_iam_policy" "account_github_runner_policy_part1" {
+  name        = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}-part1"
+  description = "IAM policy for Account GitHub Actions runner - Part 1"
+  policy      = jsonencode(local.account_github_runner_policy_part1)
+}
+
+resource "aws_iam_policy" "account_github_runner_policy_part2" {
+  name        = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}-part2"
+  description = "IAM policy for Account GitHub Actions runner - Part 2"
+  policy      = jsonencode(local.account_github_runner_policy_part2)
+}
+
+resource "aws_iam_policy" "account_github_runner_policy_part3" {
+  name        = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}-part3"
+  description = "IAM policy for Account GitHub Actions runner - Part 3"
+  policy      = jsonencode(local.account_github_runner_policy_part3)
 }
 
 resource "aws_iam_policy" "app_github_runner_policy" {
@@ -72,9 +94,19 @@ resource "aws_iam_policy" "app_github_runner_policy" {
   policy      = jsonencode(local.app_github_runner_policy)
 }
 
-resource "aws_iam_role_policy_attachment" "account_github_runner_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "account_github_runner_policy_part1_attachment" {
   role       = aws_iam_role.account_github_runner_role.name
-  policy_arn = aws_iam_policy.account_github_runner_policy.arn
+  policy_arn = aws_iam_policy.account_github_runner_policy_part1.arn
+}
+
+resource "aws_iam_role_policy_attachment" "account_github_runner_policy_part2_attachment" {
+  role       = aws_iam_role.account_github_runner_role.name
+  policy_arn = aws_iam_policy.account_github_runner_policy_part2.arn
+}
+
+resource "aws_iam_role_policy_attachment" "account_github_runner_policy_part3_attachment" {
+  role       = aws_iam_role.account_github_runner_role.name
+  policy_arn = aws_iam_policy.account_github_runner_policy_part3.arn
 }
 
 resource "aws_iam_role_policy_attachment" "app_github_runner_policy_attachment" {
@@ -122,4 +154,25 @@ resource "aws_iam_policy" "account_runner_domain_name_cross_account_policy" {
 resource "aws_iam_role_policy_attachment" "account_runner_domain_name_cross_account_policy_attachment" {
   role       = aws_iam_role.account_github_runner_role.name
   policy_arn = aws_iam_policy.account_runner_domain_name_cross_account_policy.arn
+}
+
+data "aws_iam_policy_document" "account_runner_backup_cross_account_doc" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+    resources = [
+      "arn:aws:iam::${var.mgmt_account_id}:role/${local.backup_cross_account_role}"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "account_runner_backup_cross_account_policy" {
+  name        = "${local.backup_cross_account_role}${var.environment != "mgmt" ? "-${var.environment}" : ""}-account-policy"
+  description = "Allow cross-account AssumeRole into mgmt AWS Backup role"
+  policy      = data.aws_iam_policy_document.account_runner_backup_cross_account_doc.json
+}
+
+resource "aws_iam_role_policy_attachment" "account_runner_backup_cross_account_policy_attachment" {
+  role       = aws_iam_role.account_github_runner_role.name
+  policy_arn = aws_iam_policy.account_runner_backup_cross_account_policy.arn
 }

@@ -6,6 +6,11 @@ data "aws_vpc" "vpc" {
   }
 }
 
+data "aws_kms_key" "dynamodb_kms_key" {
+  count  = local.stack_enabled
+  key_id = local.kms_aliases.dynamodb
+}
+
 data "aws_subnets" "private_subnets" {
   count = local.stack_enabled
   filter {

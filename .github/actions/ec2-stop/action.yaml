@@ -1,0 +1,34 @@
+name: "Stop EC2 action"
+description: "Stop an EC2 instance"
+
+inputs:
+  ec2-instance-id:
+    description: "The instance ID of the EC2 instance to stop"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: Stop EC2 instance
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+        aws ec2 stop-instances --instance-ids $EC2_INSTANCE_ID
+
+    - name: Wait for instance to be stopped
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+        aws ec2 wait instance-stopped --instance-ids $EC2_INSTANCE_ID
+
+    - name: Show instance state
+      shell: bash
+      env:
+        EC2_INSTANCE_ID: ${{ inputs.ec2-instance-id }}
+      run: |
+        aws ec2 describe-instances \
+          --instance-ids $EC2_INSTANCE_ID \
+          --query "Reservations[0].Instances[0].State.Name"

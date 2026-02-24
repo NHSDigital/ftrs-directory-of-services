@@ -20,7 +20,7 @@ module "health_check_lambda" {
     aws_lambda_layer_version.common_packages_layer.arn,
   ]
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {
@@ -56,5 +56,14 @@ data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
     resources = [
       "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.project_prefix}-database-${var.organisation_table_name}*"
     ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
   }
 }

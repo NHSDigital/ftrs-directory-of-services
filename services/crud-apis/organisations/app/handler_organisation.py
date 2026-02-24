@@ -11,6 +11,9 @@ from ftrs_common.api_middleware.request_id_middleware import RequestIdMiddleware
 from ftrs_common.api_middleware.response_logging_middleware import (
     ResponseLoggingMiddleware,
 )
+from ftrs_common.api_middleware.security_headers_middleware import (
+    SecurityHeadersMiddleware,
+)
 from ftrs_common.fhir.operation_outcome import (
     OperationOutcomeException,
     OperationOutcomeHandler,
@@ -29,6 +32,7 @@ app.add_middleware(FHIRAcceptHeaderMiddleware)
 app.add_middleware(ResponseLoggingMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(organisation.router)
 

@@ -10,6 +10,20 @@ module "artefacts_bucket" {
   # - Objects tagged "retention=permanent" are kept indefinitely (releases)
   lifecycle_rule_inputs = [
     {
+      id     = "development-latest-retain-5-versions"
+      status = "Enabled"
+      filter = {
+        prefix = "development/latest/"
+        tags = {
+          retention = "retain"
+        }
+      }
+      noncurrent_version_expiration = {
+        days                      = 1
+        newer_noncurrent_versions = 5
+      }
+    },
+    {
       id     = "development-expire-30-days"
       status = "Enabled"
       filter = {
@@ -59,11 +73,17 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
         "${data.aws_iam_role.app_github_runner_iam_role.arn}",
+        "${data.aws_iam_role.account_github_runner_iam_role.arn}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_prod.value}:role/${var.repo_name}-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_prod.value}:role/${var.repo_name}-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-ref-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-ref-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-int-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-int-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-test-${var.app_github_runner_role_name}",
-        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.app_github_runner_role_name}"
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-test-${var.account_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.account_github_runner_role_name}"
       ]
     }
     actions = [
@@ -81,11 +101,17 @@ data "aws_iam_policy_document" "artefacts_bucket_policy" {
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Developer_b0ffd523c3b8ddb9",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/aws-reserved/sso.amazonaws.com/${var.aws_region}/AWSReservedSSO_DOS-FtRS-RW-Infrastructure_e5f5de072b3e7cf8",
         "${data.aws_iam_role.app_github_runner_iam_role.arn}",
+        "${data.aws_iam_role.account_github_runner_iam_role.arn}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_prod.value}:role/${var.repo_name}-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_prod.value}:role/${var.repo_name}-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-ref-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-ref-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-int-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-int-${var.account_github_runner_role_name}",
         "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-test-${var.app_github_runner_role_name}",
-        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.app_github_runner_role_name}"
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_test.value}:role/${var.repo_name}-test-${var.account_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.app_github_runner_role_name}",
+        "arn:aws:iam::${data.aws_ssm_parameter.aws_account_id_dev.value}:role/${var.repo_name}-dev-${var.account_github_runner_role_name}"
       ]
     }
     actions = [
