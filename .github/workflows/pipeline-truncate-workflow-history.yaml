@@ -1,9 +1,6 @@
 name: Truncate Workflow History Pipeline
 
-permissions:
-  actions: write
-  id-token: write
-  contents: read
+permissions: {}
 on:
   # Run daily, at 01:00.
   schedule:
@@ -14,6 +11,8 @@ jobs:
     name: "Truncate github workflow run history"
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
       - name: "Delete workflow runs"
         uses: Mattraks/delete-workflow-runs@v2

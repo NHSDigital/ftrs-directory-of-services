@@ -62,3 +62,7 @@ data "aws_iam_policy_document" "regional_waf_log_group_policy_document" {
     }
   }
 }
+
+data "aws_prefix_list" "s3" {
+  name = "com.amazonaws.${var.aws_region}.s3"
+}
