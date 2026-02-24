@@ -21,9 +21,9 @@ async def health_check():
 
 @router.get("/Organization")
 async def search_organizations(
-    identifier: str = Query(..., description="ODS code in the format 'odsOrganisationCode|{CODE}'")
+    identifier: str = Query(..., description="ODS code in the format 'https://fhir.nhs.uk/Id/ods-organization-code|{CODE}'")
 ):
-    if not identifier.startswith("odsOrganisationCode|"):
+    if not identifier.startswith("https://fhir.nhs.uk/Id/ods-organization-code|"):
         return JSONResponse(
             status_code=422,
             content=responses.INVALID_IDENTIFIER_SYSTEM_RESPONSE

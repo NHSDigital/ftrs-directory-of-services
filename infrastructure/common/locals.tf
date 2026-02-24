@@ -63,14 +63,14 @@ locals {
     firehose        = "alias/${local.project_prefix}-firehose-kms"
     backup_sns      = "alias/${local.project_prefix}-backup-sns-kms"
     backup          = "alias/${local.project_prefix}-backup-kms"
-    scheduler       = "alias/${local.project_prefix}-scheduler"
+    scheduler       = "alias/${local.project_prefix}-scheduler-kms"
   }
 
   # Will be used by dos-search stack
   opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
 
   appconfig_lambda_extension_aws_account_id = "282860088358" # gitleaks:allow
-  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:207"
+  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:217"
 
   # Common provider tags with conditional release_tag
   default_provider_tags = merge(
