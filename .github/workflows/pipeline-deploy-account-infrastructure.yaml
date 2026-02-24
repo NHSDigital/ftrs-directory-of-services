@@ -185,12 +185,15 @@ jobs:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
             stacks: "['account_security']"
+            download_appconfig_artifact: false
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
             stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
+            download_appconfig_artifact: true
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
             stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
+            download_appconfig_artifact: false
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -199,6 +202,7 @@ jobs:
       stacks: ${{ matrix.stacks }}
       action: plan
       type: account
+      download_appconfig_artifact: ${{ matrix.download_appconfig_artifact }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
