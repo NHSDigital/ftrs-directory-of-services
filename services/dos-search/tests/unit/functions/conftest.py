@@ -39,14 +39,26 @@ def ods_code():
 def event(ods_code):
     return {
         "headers": {
-            # Mandatory log field headers
-            "NHSD-Correlation-ID": "request_id.correlation_id.message_id",
+            "Accept": "application/fhir+json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer test-token",
+            "Version": "1",
             "NHSD-Request-ID": "request_id",
-            # One-time log field headers
-            "version": 1,
-            "end-user-role": "Clinician",
-            "application-id": "application_id",
-            "application-name": "dos_unit_tests",
+            "NHSD-Correlation-ID": "request_id.correlation_id.message_id",
+            "X-Correlation-ID": "test-x-correlation-id",
+            "X-Request-ID": "request_id",
+            "End-User-Role": "Clinician",
+            "Application-ID": "application_id",
+            "Application-Name": "dos_unit_tests",
+            "Request-Start-Time": "2023-01-01T00:00:00Z",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "en-US",
+            "User-Agent": "test-user-agent",
+            "Host": "test-host",
+            "X-Amzn-Trace-Id": "test-trace-id",
+            "X-Forwarded-For": "127.0.0.1",
+            "X-Forwarded-Port": "443",
+            "X-Forwarded-Proto": "https",
         },
         "path": "/Organization",
         "httpMethod": "GET",
@@ -77,7 +89,7 @@ def log_data():
 def details(event):
     return {
         "dos_environment": "Development",
-        "dos_search_api_version": 1,
+        "dos_search_api_version": "1",
         "lambda_version": "0.0.1",
         "connecting_party_end_user_role": "Clinician",
         "connecting_party_application_id": "application_id",

@@ -131,3 +131,10 @@ class TestOrganizationQueryParams:
 
         # Assert
         assert params.ods_code == "ABC123"
+
+    def test_get_required_query_params(self):
+        # Act
+        required_params = OrganizationQueryParams.get_required_query_params()
+
+        # Assert
+        assert required_params == ["identifier", "_revinclude"]
