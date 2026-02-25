@@ -14,7 +14,7 @@ resource "aws_scheduler_schedule" "ods_etl_schedule" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(10 1 * * ? *)" # At 01:10 AM every day
+  schedule_expression          = "cron(10 2 * * ? *)" # At 02:10 AM every day
   schedule_expression_timezone = "Europe/London"
 
   target {
