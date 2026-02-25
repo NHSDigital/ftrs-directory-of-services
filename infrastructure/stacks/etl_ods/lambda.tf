@@ -35,16 +35,14 @@ module "extractor_lambda" {
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = var.environment == "dev" || var.environment == "test" ? "6" : "5"
+  number_of_policy_jsons = var.environment == "dev" || var.environment == "test" ? "5" : "4"
   policy_jsons = var.environment == "dev" || var.environment == "test" ? [
-    data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
     data.aws_iam_policy_document.lambda_kms_access.json,
     data.aws_iam_policy_document.ods_mock_api_access_policy[0].json
     ] : [
-    data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
@@ -94,9 +92,8 @@ module "transformer_lambda" {
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
   policy_jsons = [
-    data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,
@@ -162,9 +159,8 @@ module "consumer_lambda" {
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.etl_ods_lambda_security_group[0].id, data.aws_security_group.etl_ods_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "5"
+  number_of_policy_jsons = "4"
   policy_jsons = [
-    data.aws_iam_policy_document.s3_access_policy.json,
     data.aws_iam_policy_document.sqs_access_policy.json,
     data.aws_iam_policy_document.ssm_access_policy.json,
     data.aws_iam_policy_document.secretsmanager_jwt_credentials_access_policy.json,

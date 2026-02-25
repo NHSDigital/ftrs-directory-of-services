@@ -59,20 +59,6 @@ data "aws_s3_object" "consumer_lambda_package" {
   key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.consumer_name}.zip"
 }
 
-data "aws_iam_policy_document" "s3_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject"
-    ]
-    resources = [
-      "${module.etl_ods_store_bucket.s3_bucket_arn}/",
-      "${module.etl_ods_store_bucket.s3_bucket_arn}/*",
-    ]
-  }
-}
-
 data "aws_iam_policy_document" "sqs_access_policy" {
   statement {
     actions = [
