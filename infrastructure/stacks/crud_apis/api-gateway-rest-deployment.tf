@@ -1,5 +1,12 @@
 resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
+    aws_api_gateway_method.organization_get,
+    aws_api_gateway_method.organization_post,
+    aws_api_gateway_method.organization_put,
+    aws_api_gateway_method.organization_proxy,
+    aws_api_gateway_method.status,
+    aws_api_gateway_method.healthcare_service_proxy,
+    aws_api_gateway_method.location_proxy,
     aws_api_gateway_integration.organization_get,
     aws_api_gateway_integration.organization_post,
     aws_api_gateway_integration.organization_put,
