@@ -17,6 +17,7 @@ from utilities.common.constants import ENV_ENVIRONMENT, ENV_WORKSPACE
 from utilities.common.dynamoDB_tables import get_dynamodb_tables
 from utilities.data_migration.dos_db_utils import get_test_data_script
 from utilities.data_migration.migration_helper import MigrationHelper
+from utilities.data_migration.version_history_helper import VersionHistoryHelper
 
 
 @pytest.fixture(scope="session")
@@ -320,3 +321,21 @@ def migration_context(dos_db: Session) -> Dict[str, Any]:
         "migration_state": None,
         "db_session": dos_db,
     }
+
+
+@pytest.fixture
+def version_history_helper(dynamodb: Dict[str, Any]) -> VersionHistoryHelper:
+    """
+    Version history helper for simulating Lambda stream processing in tests.
+
+    This allows version history tests to work with LocalStack by calling
+    Lambda handler code directly, just like MigrationHelper runs migration
+    code directly.
+
+    Args:
+        dynamodb: DynamoDB fixture with endpoint_url
+
+    Returns:
+        VersionHistoryHelper configured for LocalStack
+    """
+    return VersionHistoryHelper(dynamodb_endpoint=dynamodb.get("endpoint_url"))

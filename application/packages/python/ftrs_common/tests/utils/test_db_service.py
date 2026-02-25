@@ -1,5 +1,7 @@
+import pytest
 from ftrs_common.utils.db_service import (
     env_variable_settings,
+    extract_entity_name_from_table_name,
     get_service_repository,
     get_table_arn,
     get_table_name,
@@ -91,3 +93,43 @@ def test_get_table_arn(mocker: MockerFixture) -> None:
 
     assert result == "arn:aws:dynamodb:region:account-id:table/test_table"
     mock_ddb_client.describe_table.assert_called_once_with(TableName="test_table")
+
+
+@pytest.mark.parametrize(
+    "table_name,expected",
+    [
+        # Single-word entities without workspace
+        ("ftrs-dos-dev-database-organisation", "organisation"),
+        ("ftrs-dos-local-database-location", "location"),
+        ("ftrs-dos-prod-database-triage", "triage"),
+        # Single-word entities with workspace
+        ("ftrs-dos-dev-database-organisation-fdos-000", "organisation"),
+        ("ftrs-dos-local-database-location-test", "location"),
+        # Multi-word entities without workspace
+        ("ftrs-dos-dev-database-healthcare-service", "healthcare-service"),
+        ("ftrs-dos-prod-database-version-history", "version-history"),
+        # Multi-word entities with workspace
+        ("ftrs-dos-local-database-healthcare-service-test", "healthcare-service"),
+        ("ftrs-dos-dev-database-version-history-fdos-001", "version-history"),
+        # Data migration entities
+        ("ftrs-dos-dev-data-migration-state", "data-migration-state"),
+        ("ftrs-dos-local-data-migration-state-test", "data-migration-state"),
+        # Fallback for simple table names (no prefix)
+        ("organisation", "organisation"),
+        ("location", "location"),
+        ("healthcare-service", "healthcare-service"),
+    ],
+)
+def test_extract_entity_name_from_various_table_names(
+    table_name: str, expected: str
+) -> None:
+    """Test extracting entity names from various table name patterns."""
+    result = extract_entity_name_from_table_name(table_name)
+    assert result == expected
+
+
+def test_extract_entity_name_handles_unknown_pattern() -> None:
+    """Test that unknown patterns are returned as-is."""
+    unknown_table = "some-unknown-table-format"
+    result = extract_entity_name_from_table_name(unknown_table)
+    assert result == unknown_table
