@@ -165,10 +165,29 @@ paths:
             format: '^Bearer\ [[:ascii:]]+$'
             example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
         - in: header
+          name: version
+          required: true
+          description: >
+            The major version increment of this API to query.
+
+            Must be a valid non-negative integer representing a supported major version increment of this API.
+
+            This is a mandatory header.
+
+            If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending a valid entry for this value.
+          schema:
+            type: integer
+            enum: 
+              - 1
+            one: 
+              example: 1
+              summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)
+        - in: header
           name: X-Request-ID
           required: true
           description: >
             A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+            This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
             Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -300,6 +319,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
               examples:
+                missing-headers:
+                  summary: Missing required headers
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "required"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "REC_BAD_REQUEST"
+                              display: "400: The Receiver was unable to process the request."
+                        diagnostics: "Missing required header(s): 'version', 'x-request-id'"
+                missing-query-parameters:
+                  summary: Missing required query parameter
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "required"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "INVALID_SEARCH_DATA"
+                              display: "Invalid search data"
+                        diagnostics: "Missing required query parameter(s): 'identifier', '_revinclude'"
+                invalid-version-header:
+                  summary: Invalid Version header
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "REC_BAD_REQUEST"
+                              display: "400: The Receiver was unable to process the request."
+                        diagnostics: "Invalid version found in supplied headers: version must be '1'"
                 invalid-identifier-value:
                   summary: Invalid ODS code format
                   value:
@@ -314,20 +375,6 @@ paths:
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
                         diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
-                missing-revinclude:
-                  summary: Missing required _revinclude parameter
-                  value:
-                    resourceType: "OperationOutcome"
-                    issue:
-                      - severity: "error"
-                        code: "value"
-                        details:
-                          coding:
-                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                              version: "1.0.0"
-                              code: "INVALID_SEARCH_DATA"
-                              display: "Invalid search data"
-                        diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
                 invalid-identifier-system:
                   summary: Invalid identifier system
                   value:
@@ -342,6 +389,20 @@ paths:
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
                         diagnostics: "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
+                unexpected-header:
+                  summary: Unexpected header
+                  value:
+                    resourceType: "OperationOutcome"
+                    issue:
+                      - severity: "error"
+                        code: "value"
+                        details:
+                          coding:
+                            - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                              version: "1.0.0"
+                              code: "REC_BAD_REQUEST"
+                              display: "400: The Receiver was unable to process the request."
+                        diagnostics: "Unexpected header(s): foo."
                 unexpected-query-param:
                   summary: Unexpected query parameter
                   value:

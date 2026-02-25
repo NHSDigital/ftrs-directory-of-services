@@ -97,7 +97,7 @@ variable "backup_destination_changeable_for_days" {
 variable "restore_testing_enabled" {
   description = "Enable AWS Backup restore testing resources."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "backup_report_bucket_retention_days" {

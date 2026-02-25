@@ -13,9 +13,7 @@ on:
 
   workflow_call:
 
-permissions:
-  contents: read
-  pages: write
+permissions: {}
 
 concurrency:
   group: "docs-pages"
@@ -24,6 +22,8 @@ concurrency:
 jobs:
   check-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v6
