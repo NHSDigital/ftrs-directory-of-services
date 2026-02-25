@@ -16,7 +16,7 @@ resource "aws_api_gateway_method" "organization_get" {
   request_validator_id = aws_api_gateway_request_validator.validator.id
 
   request_parameters = {
-    "method.request.querystring.identifier" = false
+    "method.request.querystring.identifier" = true
   }
 
 }
