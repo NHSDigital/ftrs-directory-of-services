@@ -32,6 +32,68 @@ SYSTEM_FIELDS = {
 }
 
 
+def process_stream_record(
+    record: DynamoDBRecord,
+    version_history_table: "Table",
+) -> None:
+    """Process DynamoDB stream record and write to version history."""
+    entity_name, event_name, old_image, new_image, record_id, field_name = (
+        _extract_record_metadata(record)
+    )
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_006,
+        entity_name=entity_name,
+        record_id=record_id,
+        field_name=field_name,
+        has_old_image=old_image is not None,
+        has_new_image=new_image is not None,
+    )
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_003,
+        entity_name=entity_name,
+        record_id=record_id,
+        field_name=field_name,
+        event_type=event_name,
+    )
+
+    old_value, new_value = _extract_field_values(old_image, new_image, field_name)
+    change_type = _determine_change_type(event_name, old_value, new_value)
+    field_delta = compute_field_delta(old_value, new_value)
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_008,
+        field_name=field_name,
+        delta_keys=list(field_delta.keys()) if field_delta else [],
+        has_changes=bool(field_delta),
+    )
+
+    if _should_skip_update(
+        change_type, field_delta, entity_name, record_id, field_name
+    ):
+        return
+
+    version_item = _create_version_item(
+        entity_name,
+        record_id,
+        change_type,
+        field_delta,
+        new_image,
+        old_image,
+        field_name,
+    )
+
+    version_history_table.put_item(Item=version_item)
+
+    LOGGER.log(
+        VersionHistoryLogBase.VH_PROCESSOR_002,
+        entity_id=version_item["entity_id"],
+        change_type=change_type,
+        changed_fields=[field_name],
+    )
+
+
 def _extract_record_metadata(
     record: DynamoDBRecord,
 ) -> tuple[
@@ -181,65 +243,3 @@ def _create_version_item(
         "changed_fields": {field_name: field_delta},
         "changed_by": changed_by,
     }
-
-
-def process_stream_record(
-    record: DynamoDBRecord,
-    version_history_table: "Table",
-) -> None:
-    """Process DynamoDB stream record and write to version history."""
-    entity_name, event_name, old_image, new_image, record_id, field_name = (
-        _extract_record_metadata(record)
-    )
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_006,
-        entity_name=entity_name,
-        record_id=record_id,
-        field_name=field_name,
-        has_old_image=old_image is not None,
-        has_new_image=new_image is not None,
-    )
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_003,
-        entity_name=entity_name,
-        record_id=record_id,
-        field_name=field_name,
-        event_type=event_name,
-    )
-
-    old_value, new_value = _extract_field_values(old_image, new_image, field_name)
-    change_type = _determine_change_type(event_name, old_value, new_value)
-    field_delta = compute_field_delta(old_value, new_value)
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_008,
-        field_name=field_name,
-        delta_keys=list(field_delta.keys()) if field_delta else [],
-        has_changes=bool(field_delta),
-    )
-
-    if _should_skip_update(
-        change_type, field_delta, entity_name, record_id, field_name
-    ):
-        return
-
-    version_item = _create_version_item(
-        entity_name,
-        record_id,
-        change_type,
-        field_delta,
-        new_image,
-        old_image,
-        field_name,
-    )
-
-    version_history_table.put_item(Item=version_item)
-
-    LOGGER.log(
-        VersionHistoryLogBase.VH_PROCESSOR_002,
-        entity_id=version_item["entity_id"],
-        change_type=change_type,
-        changed_fields=[field_name],
-    )

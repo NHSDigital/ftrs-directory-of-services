@@ -76,35 +76,3 @@ EXPECTED_DYNAMODB_RESOURCES: list[tuple[str, str]] = [
     ("database", "healthcare-service"),
     ("data-migration", "state"),
 ]
-
-# Version History Configuration
-VERSION_HISTORY_TRACKED_ENTITIES = frozenset(
-    {
-        "organisation",
-        "location",
-        "healthcare-service",
-    }
-)
-
-VERSION_HISTORY_CHANGE_TYPES = frozenset(
-    {
-        "UPDATE",
-        "CREATE",
-        "DELETE",
-    }
-)
-
-VERSION_HISTORY_CHANGED_BY_TYPES = frozenset(
-    {
-        "app",
-        "user",
-        "system",
-    }
-)
-
-# Default stream processing wait time (seconds)
-STREAM_PROCESSING_WAIT_TIME = 3
-STREAM_INITIAL_SETTLE_TIME = 2
-
-# Maximum age in seconds for version history timestamp validation
-VERSION_HISTORY_MAX_AGE_SECONDS = 10

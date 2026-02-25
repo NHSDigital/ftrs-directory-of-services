@@ -286,56 +286,39 @@ class VersionHistoryLogBase(LogBase):
 
     VH_PROCESSOR_001 = LogReference(
         level=DEBUG,
-        message="No change detected for {entity_name}/{record_id}/{field_name}, skipping version history",
+        message="No change detected, skipping version history",
     )
     VH_PROCESSOR_002 = LogReference(
         level=INFO,
-        message="Version history recorded for {entity_id}: {change_type} on fields {changed_fields}",
+        message="Version history recorded",
     )
     VH_PROCESSOR_003 = LogReference(
         level=DEBUG,
-        message="Processing stream record: entity={entity_name}, record_id={record_id}, field={field_name}, event_type={event_type}",
+        message="Processing stream record",
     )
     VH_PROCESSOR_006 = LogReference(
         level=DEBUG,
-        message=(
-            "Extracted stream record data: entity_name={entity_name}, "
-            "record_id={record_id}, field_name={field_name}, "
-            "has_old_image={has_old_image}, has_new_image={has_new_image}"
-        ),
+        message="Extracted stream record data",
     )
     VH_PROCESSOR_007 = LogReference(
         level=DEBUG,
-        message=(
-            "Resolved event configuration: event_name={event_name}, "
-            "change_type={change_type}, old_val_present={old_val_present}, "
-            "new_val_present={new_val_present}"
-        ),
+        message="Resolved event configuration",
     )
     VH_PROCESSOR_008 = LogReference(
         level=DEBUG,
-        message=(
-            "Computed field delta: field_name={field_name}, "
-            "delta_keys={delta_keys}, has_changes={has_changes}"
-        ),
+        message="Computed field delta",
     )
     VH_PROCESSOR_009 = LogReference(
         level=DEBUG,
-        message=(
-            "Extracted change metadata: changed_by_type={changed_by_type}, "
-            "changed_by_value={changed_by_value}, changed_by_display={changed_by_display}"
-        ),
+        message="Extracted change metadata",
     )
     VH_PROCESSOR_010 = LogReference(
         level=DEBUG,
-        message="Prepared version history identifiers: entity_id={entity_id}, timestamp={timestamp}",
+        message="Prepared version history identifiers",
     )
     VH_PROCESSOR_015 = LogReference(
         level=INFO,
-        message=(
-            "Skipping UPDATE - no changes detected: "
-            "entity={entity_name}/{record_id}/{field_name}"
-        ),
+        message="Skipping UPDATE - no changes detected",
     )
 
 

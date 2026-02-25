@@ -24,7 +24,7 @@ class VersionHistory(BaseModel):
     )
     changed_fields: Dict[str, Dict[str, Any]] = Field(
         default_factory=dict,
-        description="Dictionary mapping field names to {old: ..., new: ...} values",
+        description="Dictionary mapping field names to DeepDiff JSON structure (values_changed, dictionary_item_added/removed, etc.)",
     )
     changed_by: AuditEvent = Field(
         ...,
