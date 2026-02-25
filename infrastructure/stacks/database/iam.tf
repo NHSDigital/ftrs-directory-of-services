@@ -30,3 +30,17 @@ data "aws_iam_policy_document" "dynamodb_stream_access_policy" {
     ]
   }
 }
+
+data "aws_iam_policy_document" "version_history_kms_access_policy" {
+  count = local.version_history_enabled
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
+  }
+}

@@ -40,6 +40,12 @@ data "aws_s3_object" "slack_notifier_lambda" {
   key    = "${local.artefact_base_path}/${var.project}-slack-notifier-lambda.zip"
 }
 
+data "aws_s3_object" "common_packages_layer" {
+  count  = local.stack_enabled
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-python-packages-layer.zip"
+}
+
 data "aws_s3_object" "python_dependency_layer" {
   count  = local.stack_enabled
   bucket = local.artefacts_bucket

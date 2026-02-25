@@ -49,7 +49,7 @@ jobs:
     with:
       environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
-      release_tag: ${{ github.event.client_payload.environment || '' }}
+      release_tag: ${{ github.event.client_payload.release_tag || '' }}
       workflow_timeout: 30
       type: app
       ref: ${{ inputs.ref }}

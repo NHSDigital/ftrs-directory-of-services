@@ -6,7 +6,7 @@ inputs:
     description: 'Name of the API to deploy'
     required: true
   workspace:
-    description: 'Workspace identifier (e.g., FTRS-000). If specified, a workspaced proxy will be deployed into the APIM environment'
+    description: 'Workspace identifier (e.g., ftrs-000, rc). If specified, a workspaced proxy will be deployed into the APIM environment'
     required: false
   environment:
     description: ' The environment our target backend is deployed to. (e.g., dev, test, prod)'
@@ -47,11 +47,11 @@ runs:
         ENVIRONMENT: ${{ inputs.environment }}
       run: |
         set -euo pipefail
-        # Skip validation if workspace is not provided or is 'default' (e.g., for int environment)
-        if [ -z "${WORKSPACE:-}" ] || [ "$WORKSPACE" == "default" ]; then
-          printf 'No workspace provided or default workspace - skipping validation (environment: %s)\n' "${ENVIRONMENT:-}"
+        # Skip validation if workspace is not provided or is a supported non-workspace value
+        if [ -z "${WORKSPACE:-}" ] || [ "$WORKSPACE" == "default" ] || [ "$WORKSPACE" == "rc" ]; then
+          printf 'No workspace provided or special workspace value (default/rc) - skipping validation (environment: %s)\n' "${ENVIRONMENT:-}"
         elif [[ ! "$WORKSPACE" =~ ^ftrs-[0-9]+$ ]]; then
-          echo "Error: Workspace must be in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)" >&2
+          echo "Error: Workspace must be 'default', 'rc', or in format ftrs-#### (e.g., ftrs-1234, ftrs-001, ftrs-99999)" >&2
           exit 1
         else
           printf 'Workspace format validated: %s\n' "$WORKSPACE"

@@ -47,6 +47,10 @@ class DosLogger:
         return cls(service=service)
 
     # --- helper utilities -------------------------------------------------
+    def set_headers(self, headers: dict[str, Any]) -> None:
+        """Set headers with keys converted to lowercase."""
+        self.headers = {k.lower(): v for k, v in headers.items()}
+
     def _get_header(self, *names: str) -> Optional[str]:
         # Loops over a list of header keys, returning the first non-empty value found
         for n in names:
@@ -79,7 +83,7 @@ class DosLogger:
         All mandatory fields are present; missing values use the configured placeholder.
         """
 
-        self.headers = event.get("headers") or {}
+        self.set_headers(event.get("headers") or {})
 
         mandatory: dict[str, Any] = {
             "logger": "dos_logger"  # Identifier for when logs are created using our logger
@@ -91,7 +95,7 @@ class DosLogger:
         # <Request-ID>.<Correlation-ID>.<Message-ID>
         # We will therefore extract Correlation ID & Message ID both from the header NHSD-Correlation-ID (Request ID still comes through independently so we will use the separate header for that)
         corr_header = self._get_header(
-            "NHSD-Correlation-ID",
+            "nhsd-correlation-id",
         )
 
         reqid_corr_msgid = corr_header.split(".") if corr_header else []
@@ -112,7 +116,7 @@ class DosLogger:
 
         # NHSD request id
         mandatory["dos_nhsd_request_id"] = (
-            self._get_header("NHSD-Request-ID") or PLACEHOLDER
+            self._get_header("nhsd-request-id") or PLACEHOLDER
         )
 
         # Default category to LOGGING, can be overridden later
@@ -125,7 +129,7 @@ class DosLogger:
 
         One-time logging fields are contained within the 'details' block.
         """
-        self.headers = event.get("headers") or {}
+        self.set_headers(event.get("headers") or {})
 
         # One-time fields added to "details" to separate
         details = {}
