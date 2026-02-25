@@ -1,6 +1,6 @@
 # CloudTrail trail logging S3 object-level data events
+# trivy:ignore:AVD-AWS-0014
 resource "aws_cloudtrail" "s3_data_events" {
-  # checkov:skip=CKV_AWS_252: Justification: No CMK required by design; default SSE-S3 encryption is sufficient.
   # checkov:skip=CKV2_AWS_10: Justification: CloudWatch Logs integration is not required for this S3 data events trail.
   # checkov:skip=CKV_AWS_67: We are only enabling S3 object-level data events and don't need all regions to be enabled.
   name = "${local.resource_prefix}-${var.cloudtrail_trail_name}"
