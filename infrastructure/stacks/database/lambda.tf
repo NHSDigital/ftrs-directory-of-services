@@ -38,10 +38,11 @@ module "version_history_lambda" {
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
   security_group_ids = [try(aws_security_group.version_history_lambda_security_group[0].id, data.aws_security_group.version_history_lambda_security_group[0].id)]
 
-  number_of_policy_jsons = "2"
+  number_of_policy_jsons = "3"
   policy_jsons = [
     data.aws_iam_policy_document.version_history_dynamodb_access_policy[0].json,
-    data.aws_iam_policy_document.dynamodb_stream_access_policy[0].json
+    data.aws_iam_policy_document.dynamodb_stream_access_policy[0].json,
+    data.aws_iam_policy_document.version_history_kms_access_policy[0].json
   ]
 
   layers = [
@@ -75,7 +76,7 @@ resource "aws_lambda_event_source_mapping" "version_history_streams" {
   filter_criteria {
     filter {
       pattern = jsonencode({
-        eventName = ["MODIFY"]
+        eventName = ["INSERT", "MODIFY", "REMOVE"]
       })
     }
   }
