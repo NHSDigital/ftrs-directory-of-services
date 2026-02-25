@@ -311,7 +311,7 @@ class LikeC4Parser:
             title = title_match.group(1) if title_match else view_name
 
             # Extract description (may be multi-line)
-            desc_match = re.search(r'description\s+"([^"]+(?:\n[^"]+)*)"', view_content, re.DOTALL)
+            desc_match = re.search(r'description\s+"([^"]*)"', view_content, re.DOTALL)
             desc = desc_match.group(1) if desc_match else ""
 
             # Extract includes

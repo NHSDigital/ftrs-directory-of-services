@@ -170,13 +170,3 @@ resource "aws_flow_log" "database_subnet_flow_log_s3" {
   }
   subnet_id = module.vpc.database_subnets[count.index]
 }
-
-# Add a CIDR Range tag to the private subnets for filtering
-resource "aws_ec2_tag" "private_subnet_tags" {
-  count = length(module.vpc.private_subnets)
-
-  resource_id = data.aws_subnet.vpc_private_subnets_by_count[count.index].id
-  key         = "CidrRange"
-  value       = split("/", data.aws_subnet.vpc_private_subnets_by_count[count.index].cidr_block)[1]
-}
-
