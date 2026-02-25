@@ -72,9 +72,8 @@ def compute_field_delta(old_value: Any, new_value: Any) -> Dict[str, Any]:  # no
     diff = DeepDiff(
         old_value,
         new_value,
-        view="tree",
-        threshold_to_diff_deeper=0,
-        ignore_order=True,
+        ignore_order=False,
+        report_repetition=False,
     )
 
     return json.loads(diff.to_json())

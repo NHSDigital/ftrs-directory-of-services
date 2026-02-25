@@ -41,7 +41,6 @@ def _extract_record_metadata(
     Optional[Dict[str, Any]],
     str,
     str,
-    Dict[str, Any],
 ]:
     """Extract metadata from stream record."""
     event_source_arn = record.event_source_arn or ""
@@ -57,7 +56,7 @@ def _extract_record_metadata(
     field_name = keys.get("field", "document")
     event_name = record.get("eventName", "MODIFY")
 
-    return entity_name, event_name, old_image, new_image, record_id, field_name, keys
+    return entity_name, event_name, old_image, new_image, record_id, field_name
 
 
 def _extract_field_values(
@@ -189,7 +188,7 @@ def process_stream_record(
     version_history_table: "Table",
 ) -> None:
     """Process DynamoDB stream record and write to version history."""
-    entity_name, event_name, old_image, new_image, record_id, field_name, keys = (
+    entity_name, event_name, old_image, new_image, record_id, field_name = (
         _extract_record_metadata(record)
     )
 
