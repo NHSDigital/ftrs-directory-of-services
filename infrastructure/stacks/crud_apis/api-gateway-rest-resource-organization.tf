@@ -16,7 +16,7 @@ resource "aws_api_gateway_method" "organization_get" {
   request_validator_id = aws_api_gateway_request_validator.validator.id
 
   request_parameters = {
-    "method.request.querystring.identifier" = true
+    "method.request.querystring.identifier" = false
   }
 
 }
@@ -25,13 +25,9 @@ resource "aws_api_gateway_integration" "organization_get" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_resource.organization.id
   http_method             = aws_api_gateway_method.organization_get.http_method
-  integration_http_method = "GET"
+  integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = module.organisation_api_lambda.lambda_function_invoke_arn
-
-  request_parameters = {
-    "integration.request.querystring.identifier" = "method.request.querystring.identifier"
-  }
 }
 
 # POST /Organization
