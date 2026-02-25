@@ -10,16 +10,14 @@ from ftrs_data_layer.domain.legacy import Service
 from pytest_mock import MockerFixture
 
 from common.cache import DoSMetadataCache
-from service_migration.transformer.community_pharmacy import (
-    CommunityPharmacyTransformer,
-)
+from service_migration.transformer.base_pharmacy import BasePharmacyTransformer
 
 
 @pytest.fixture(autouse=True)
 def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     """Mock the feature flags to prevent AppConfig initialization."""
     return mocker.patch(
-        "service_migration.transformer.community_pharmacy.is_enabled",
+        "service_migration.transformer.base_pharmacy.is_enabled",
         return_value=True,
     )
 
@@ -31,11 +29,30 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
         (13, "A1B2C", True, None),  # Valid Community Pharmacy with alternating pattern
         (13, "F1234", True, None),  # Valid Community Pharmacy with F and numbers
         (13, "FABCD", True, None),  # Valid Community Pharmacy with F and letters
+        (134, "FXX99", True, None),  # Valid Distance Selling Pharmacy with F-prefix
+        (
+            134,
+            "A1B2C",
+            True,
+            None,
+        ),  # Valid Distance Selling Pharmacy with alternating pattern
+        (
+            134,
+            "F1234",
+            True,
+            None,
+        ),  # Valid Distance Selling Pharmacy with F and numbers
+        (
+            134,
+            "FABCD",
+            True,
+            None,
+        ),  # Valid Distance Selling Pharmacy with F and letters
         (
             100,
             "FXX99",
             False,
-            "Service type is not Pharmacy (13)",
+            "Service type is not a Pharmacy type (13, 134)",
         ),  # Wrong service type
         (13, None, False, "Service does not have an ODS code"),  # No ODS code
         (13, "FXXX", False, "ODS code is not 5 characters"),  # Too short
@@ -67,11 +84,11 @@ def test_is_service_supported(
     expected_result: bool,
     expected_message: str | None,
 ) -> None:
-    """Test that is_service_supported correctly validates Community Pharmacy services."""
+    """Test that is_service_supported correctly validates Pharmacy services."""
     mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = ods_code
 
-    is_supported, message = CommunityPharmacyTransformer.is_service_supported(
+    is_supported, message = BasePharmacyTransformer.is_service_supported(
         mock_legacy_service
     )
 
@@ -85,19 +102,19 @@ def test_is_service_not_supported_when_feature_flag_disabled(
 ) -> None:
     """Test that service is not supported when feature flag is disabled."""
     mocker.patch(
-        "service_migration.transformer.community_pharmacy.is_enabled",
+        "service_migration.transformer.base_pharmacy.is_enabled",
         return_value=False,
     )
 
     mock_legacy_service.typeid = 13  # Community Pharmacy type ID
     mock_legacy_service.odscode = "FXX99"  # Valid ODS code
 
-    is_supported, message = CommunityPharmacyTransformer.is_service_supported(
+    is_supported, message = BasePharmacyTransformer.is_service_supported(
         mock_legacy_service
     )
 
     assert is_supported is False
-    assert message == "Community Pharmacy service selection is disabled by feature flag"
+    assert message == "Pharmacy service selection is disabled by feature flag"
 
 
 @pytest.mark.parametrize(
@@ -119,7 +136,7 @@ def test_should_include_service(
     mock_legacy_service.odscode = "FXX99"  # Valid ODS code
     mock_legacy_service.statusid = status_id
 
-    should_include, message = CommunityPharmacyTransformer.should_include_service(
+    should_include, message = BasePharmacyTransformer.should_include_service(
         mock_legacy_service
     )
 
@@ -127,16 +144,25 @@ def test_should_include_service(
     assert message == expected_message
 
 
+@pytest.mark.parametrize(
+    "service_type_id, organisation_type",
+    [
+        (13, "Pharmacy"),  # Community Pharmacy
+        (134, "Pharmacy Distance Selling"),  # Distance Selling Pharmacy
+    ],
+)
 def test_transform_creates_all_entities(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
+    service_type_id: int,
+    organisation_type: str,
 ) -> None:
     """Test that transform creates organisation, location, and healthcare_service."""
-    mock_legacy_service.typeid = 13  # Community Pharmacy type ID
+    mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = "FXX99"  # Valid ODS code
     mock_legacy_service.statusid = 1  # Active status
 
-    transformer = CommunityPharmacyTransformer(MockLogger(), mock_metadata_cache)
+    transformer = BasePharmacyTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
     # All resources should be created
@@ -147,7 +173,9 @@ def test_transform_creates_all_entities(
     # Verify organisation details
     assert result.organisation[0].identifier_ODS_ODSCode == "FXX99"
     assert result.organisation[0].name == "Public Test Service"
-    assert result.organisation[0].type == "Pharmacy"  # From service_type metadata
+    assert (
+        result.organisation[0].type == organisation_type
+    )  # From service_type metadata
 
     # Verify healthcare service details
     assert (
@@ -157,18 +185,23 @@ def test_transform_creates_all_entities(
     assert result.healthcare_service[0].type == HealthcareServiceType.ESSENTIAL_SERVICES
 
 
+@pytest.mark.parametrize(
+    "service_type_id",
+    [13, 134],
+)
 def test_transform_no_endpoints_on_organisation(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
+    service_type_id: int,
 ) -> None:
     """Test that organisation has no endpoints when source data has no endpoints."""
-    mock_legacy_service.typeid = 13  # Community Pharmacy type ID
+    mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = "FXX99"  # Valid ODS code
     mock_legacy_service.statusid = 1  # Active status
     # Clear endpoints from mock service to simulate pharmacy data
     mock_legacy_service.endpoints = []
 
-    transformer = CommunityPharmacyTransformer(MockLogger(), mock_metadata_cache)
+    transformer = BasePharmacyTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
     # Verify organisation has no endpoints (source data has no endpoints)

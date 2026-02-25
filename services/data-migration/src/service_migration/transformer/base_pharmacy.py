@@ -13,17 +13,17 @@ from service_migration.transformer.base import (
 )
 
 
-class DistanceSellingPharmacyTransformer(ServiceTransformer):
+class BasePharmacyTransformer(ServiceTransformer):
     STATUS_ACTIVE = 1
-    DISTANCE_SELLING_PHARMACY_TYPE_ID = 134
+    PHARMACY_TYPE_IDS = frozenset({13, 134})
     PHARMACY_ODS_CODE_REGEX_F_PREFIX = re.compile(r"^F[A-Z0-9]{4}$")
     PHARMACY_ODS_CODE_REGEX_ALTERNATING = re.compile(r"^[A-Z][0-9][A-Z][0-9][A-Z]$")
 
     """
-    Transformer for Distance Selling Pharmacy services.
+    Transformer for Pharmacy services (Community Pharmacy and Distance Selling Pharmacy).
 
     Selection criteria:
-    - The service type must be 'Pharmacy Distance Selling' (134)
+    - The service type must be 'Pharmacy' (13) or 'Pharmacy Distance Selling' (134)
     - The service must have an ODS code
     - The ODS code should be 5 characters
     - The ODS code format should either:
@@ -63,14 +63,18 @@ class DistanceSellingPharmacyTransformer(ServiceTransformer):
         cls, service: legacy_model.Service
     ) -> tuple[bool, str | None]:
         ods_code_length = 5
+
         if not is_enabled(FeatureFlag.DATA_MIGRATION_PHARMACY_ENABLED):
             return (
                 False,
-                "Distance Selling Pharmacy service selection is disabled by feature flag",
+                "Pharmacy service selection is disabled by feature flag",
             )
 
-        if service.typeid != cls.DISTANCE_SELLING_PHARMACY_TYPE_ID:
-            return False, "Service type is not Pharmacy Distance Selling (134)"
+        if service.typeid not in cls.PHARMACY_TYPE_IDS:
+            return (
+                False,
+                f"Service type is not a Pharmacy type ({', '.join(map(str, sorted(cls.PHARMACY_TYPE_IDS)))})",
+            )
 
         if not service.odscode:
             return False, "Service does not have an ODS code"
