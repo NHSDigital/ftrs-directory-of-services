@@ -43,7 +43,9 @@ def handler(event: dict, context: LambdaContext) -> dict:
         header_id=event.get("headers", {}).get("X-Request-ID"),
     )
 
-    mangum_handler = Mangum(app, lifespan="off")
+    mangum_handler = Mangum(
+        app, lifespan="off", text_mime_types=["application/fhir+json"]
+    )
     return mangum_handler(event, context)
 
 
