@@ -15,6 +15,7 @@ module "slack_lambda" {
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer[0].arn,
+    aws_lambda_layer_version.common_packages_layer[0].arn,
   ]
 
   subnet_ids         = data.aws_subnets.private[0].ids
