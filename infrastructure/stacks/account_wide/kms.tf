@@ -321,3 +321,31 @@ module "scheduler_encryption_key" {
     }
   ]
 }
+
+module "cloudtrail_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.cloudtrail
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "cloudtrail.amazonaws.com"
+  description      = "Encryption key for CloudTrail in ${var.environment} environment"
+  additional_policy_statements = [
+    {
+      Sid    = "AllowGitHubRunnerAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.account_github_runner_role_name}"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource  = "*"
+      Condition = {}
+    }
+  ]
+}

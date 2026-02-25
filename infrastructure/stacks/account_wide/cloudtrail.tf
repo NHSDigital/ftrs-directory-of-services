@@ -2,6 +2,7 @@
 resource "aws_cloudtrail" "s3_data_events" {
   # checkov:skip=CKV_AWS_252: Justification: No CMK required by design; default SSE-S3 encryption is sufficient.
   # checkov:skip=CKV2_AWS_10: Justification: CloudWatch Logs integration is not required for this S3 data events trail.
+  # checkov:skip=CKV_AWS_67: We are only enabling S3 object-level data events and don't need all regions to be enabled.
   name = "${local.resource_prefix}-${var.cloudtrail_trail_name}"
 
   s3_bucket_name = module.cloudtrail_s3_bucket.s3_bucket_id
@@ -12,6 +13,9 @@ resource "aws_cloudtrail" "s3_data_events" {
 
   # Requirement: log file validation
   enable_log_file_validation = true
+
+  # Enable KMS encryption
+  kms_key_id = module.cloudtrail_encryption_key.key_id
 
   # S3 object-level write events — satisfies [S3.22]
   advanced_event_selector {
