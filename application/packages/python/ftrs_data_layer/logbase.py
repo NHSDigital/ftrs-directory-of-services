@@ -267,6 +267,61 @@ class DataMigrationLogBase(LogBase):
     )
 
 
+class VersionHistoryLogBase(LogBase):
+    """
+    LogBase for Version History operations
+    """
+
+    VH_HANDLER_001 = LogReference(
+        level=INFO, message="Processing {record_count} stream records"
+    )
+    VH_HANDLER_002 = LogReference(
+        level=ERROR,
+        message="Failed to process record with sequence number {sequence_number}: {error}",
+    )
+    VH_HANDLER_003 = LogReference(
+        level=INFO,
+        message="Completed processing: {successful_count}/{total_count} successful, {failed_count} failed",
+    )
+
+    VH_PROCESSOR_001 = LogReference(
+        level=DEBUG,
+        message="No change detected, skipping version history",
+    )
+    VH_PROCESSOR_002 = LogReference(
+        level=INFO,
+        message="Version history recorded",
+    )
+    VH_PROCESSOR_003 = LogReference(
+        level=DEBUG,
+        message="Processing stream record",
+    )
+    VH_PROCESSOR_006 = LogReference(
+        level=DEBUG,
+        message="Extracted stream record data",
+    )
+    VH_PROCESSOR_007 = LogReference(
+        level=DEBUG,
+        message="Resolved event configuration",
+    )
+    VH_PROCESSOR_008 = LogReference(
+        level=DEBUG,
+        message="Computed field delta",
+    )
+    VH_PROCESSOR_009 = LogReference(
+        level=DEBUG,
+        message="Extracted change metadata",
+    )
+    VH_PROCESSOR_010 = LogReference(
+        level=DEBUG,
+        message="Prepared version history identifiers",
+    )
+    VH_PROCESSOR_015 = LogReference(
+        level=INFO,
+        message="Skipping UPDATE - no changes detected",
+    )
+
+
 class UtilsLogBase(LogBase):
     """
     LogBase for utils operations
