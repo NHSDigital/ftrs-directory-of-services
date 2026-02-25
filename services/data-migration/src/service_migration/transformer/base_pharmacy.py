@@ -4,6 +4,7 @@ from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_data_layer.domain import (
     HealthcareServiceCategory,
     HealthcareServiceType,
+    Organisation,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
 
@@ -37,9 +38,14 @@ class BasePharmacyTransformer(ServiceTransformer):
     - When data_migration_pharmacy_enabled is disabled:
       Service is not supported (no records created)
     - When enabled: All resources (organisation, location, healthcare_service) are created
-
-    Note: Pharmacies do NOT have endpoints in the source data, so endpoints array will be empty.
     """
+
+    def build_organisation(self, service: legacy_model.Service) -> Organisation:
+        """
+        Override to explicitly exclude endpoints from pharmacy organisations.
+        """
+        organisation = super().build_organisation(service)
+        return organisation.model_copy(update={"endpoints": []})
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         organisation = self.build_organisation(service)

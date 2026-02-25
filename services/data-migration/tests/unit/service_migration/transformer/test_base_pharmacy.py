@@ -189,21 +189,23 @@ def test_transform_creates_all_entities(
     "service_type_id",
     [13, 134],
 )
-def test_transform_no_endpoints_on_organisation(
+def test_transform_endpoints_excluded_from_organisation(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
     service_type_id: int,
 ) -> None:
-    """Test that organisation has no endpoints when source data has no endpoints."""
+    """Test that organisation endpoints are explicitly excluded even when source data contains endpoints."""
     mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = "FXX99"  # Valid ODS code
     mock_legacy_service.statusid = 1  # Active status
-    # Clear endpoints from mock service to simulate pharmacy data
-    mock_legacy_service.endpoints = []
+    # Ensure source data has endpoints to confirm the override strips them
+    assert len(mock_legacy_service.endpoints) > 0, (
+        "Fixture must have endpoints for this test to be meaningful"
+    )
 
     transformer = BasePharmacyTransformer(MockLogger(), mock_metadata_cache)
     result = transformer.transform(mock_legacy_service)
 
-    # Verify organisation has no endpoints (source data has no endpoints)
+    # Verify organisation has no endpoints regardless of source data
     assert len(result.organisation) == 1
     assert result.organisation[0].endpoints == []
