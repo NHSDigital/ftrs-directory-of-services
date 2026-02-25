@@ -67,8 +67,9 @@ module "subnet_flow_logs_s3_bucket" {
       }
     }
   ]
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.subnet_flow_logs_s3_bucket_policy_doc.json
+  s3_logging_bucket = local.s3_logging_bucket
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.subnet_flow_logs_s3_bucket_policy_doc.json
 }
 
 data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
@@ -129,8 +130,9 @@ data "aws_iam_policy_document" "trust_store_bucket_policy" {
 
 # IS Performance S3 Bucket
 module "performance_s3" {
-  source      = "../../modules/s3"
-  bucket_name = "${local.resource_prefix}-${var.performance_files_bucket_name}"
+  source            = "../../modules/s3"
+  bucket_name       = "${local.resource_prefix}-${var.performance_files_bucket_name}"
+  s3_logging_bucket = local.s3_logging_bucket
 }
 
 module "firehose_backup_s3" {
@@ -138,5 +140,5 @@ module "firehose_backup_s3" {
   bucket_name           = "${local.resource_prefix}-${var.firehose_name}-backup"
   s3_encryption_key_arn = module.firehose_encryption_key.arn
   enable_kms_encryption = var.enable_firehose_s3_kms_encryption
+  s3_logging_bucket     = local.s3_logging_bucket
 }
-

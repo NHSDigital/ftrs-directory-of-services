@@ -1,8 +1,9 @@
 module "athena_spill_bucket" {
   count = local.stack_enabled == 1 && local.is_primary_environment ? 1 : 0
 
-  source      = "../../modules/s3"
-  bucket_name = "${local.resource_prefix}-spill"
+  source            = "../../modules/s3"
+  bucket_name       = "${local.resource_prefix}-spill"
+  s3_logging_bucket = local.s3_logging_bucket
 
   lifecycle_rule_inputs = [
     {
@@ -25,6 +26,7 @@ module "athena_output_bucket" {
   bucket_name           = "${local.resource_prefix}-output"
   enable_kms_encryption = true
   s3_encryption_key_arn = data.aws_kms_key.s3_kms_key[0].arn
+  s3_logging_bucket     = local.s3_logging_bucket
 
   lifecycle_rule_inputs = [
     {
