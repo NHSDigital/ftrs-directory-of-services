@@ -75,7 +75,10 @@ class OrganizationMapper(FhirMapper):
         # Add primary role extension with legal dates
         if organisation.primary_role_code:
             primary_ext = self._build_organisation_role_extension(
-                organisation.primary_role_code, legal_start_str, legal_end_str
+                organisation.primary_role_code,
+                legal_start_str,
+                legal_end_str,
+                active=organisation.active,
             )
             if primary_ext:
                 extensions.append(primary_ext)
@@ -94,6 +97,7 @@ class OrganizationMapper(FhirMapper):
         role_code: str | None,
         legal_start_date: str | None = None,
         legal_end_date: str | None = None,
+        active: bool | None = False,
     ) -> Extension | None:
         """
         Build FHIR OrganisationRole extension with role code and optional legal dates.
@@ -123,6 +127,9 @@ class OrganizationMapper(FhirMapper):
         )
         if typed_period_ext:
             extension_list.append(typed_period_ext.model_dump())
+
+        if legal_start_date and legal_end_date:
+            extension_list.append({"url": "active", "valueBoolean": active})
 
         return Extension.model_validate(
             {
@@ -198,7 +205,6 @@ class OrganizationMapper(FhirMapper):
             fhir_resource
         )
         legal_dates = self._build_legal_dates_from_fhir(fhir_resource)
-
         return Organisation(
             identifier_ODS_ODSCode=fhir_resource.identifier[0].value,
             id=str(fhir_resource.id),

@@ -14,11 +14,15 @@ on:
       - "infrastructure/stacks/terraform_management/**"
       - "infrastructure/stacks/artefact_management/**"
       - "infrastructure/stacks/domain_name/**"
-      - "infrastructure/modules/dynamodb/**"
-      - "infrastructure/modules/s3/**"
       - "infrastructure/stacks/account_security/**"
-      - "infrastructure/modules/shield/**"
+      - "infrastructure/stacks/aws_backup_destination/**"
+      - "infrastructure/stacks/aws_backup_source/**"
       - "infrastructure/stacks/slack_notifier/**"
+      - "infrastructure/modules/dynamodb/**"
+      - "infrastructure/modules/aws-backup-destination/**"
+      - "infrastructure/modules/aws-backup-source/**"
+      - "infrastructure/modules/s3/**"
+      - "infrastructure/modules/shield/**"
   workflow_run:
     workflows: ["Pipeline Deploy Policies Infrastructure"]
     types:
@@ -38,7 +42,6 @@ on:
         options:
           - dev
           - test
-          - sandpit
           - int
           - ref
           - prod
@@ -106,7 +109,7 @@ jobs:
       ref: ${{ inputs.ref }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
@@ -144,6 +147,27 @@ jobs:
       workspace: "default"
       ref: ${{ inputs.ref }}
 
+  build-services:
+    name: "Build slack-notifier"
+    needs:
+      - metadata
+      - quality-checks
+      - check-stack-toggles
+    uses: ./.github/workflows/build-project.yaml
+    with:
+      name: "slack-notifier"
+      build_type: "service"
+      python_version: ${{ needs.metadata.outputs.python_version }}
+      commit_hash: ${{ needs.metadata.outputs.commit_hash }}
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      repo_name: ${{ needs.metadata.outputs.reponame }}
+      workspace: "default"
+      type: account
+      ref: ${{ inputs.ref }}
+      build_enabled: ${{ needs.check-stack-toggles.outputs.slack_notifier_enabled == 'true' }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+
   plan-infrastructure:
     name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
     concurrency:
@@ -153,6 +177,7 @@ jobs:
       - metadata
       - quality-checks
       - check-stack-toggles
+      - build-services
     strategy:
       fail-fast: false
       matrix:
@@ -160,12 +185,15 @@ jobs:
           - name: "account"
             environment: ${{ needs.metadata.outputs.account_type }}
             stacks: "['account_security']"
+            download_appconfig_artifact: false
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name', 'slack_notifier']"
+            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
+            download_appconfig_artifact: true
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name']"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
+            download_appconfig_artifact: false
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}
@@ -174,6 +202,7 @@ jobs:
       stacks: ${{ matrix.stacks }}
       action: plan
       type: account
+      download_appconfig_artifact: ${{ matrix.download_appconfig_artifact }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
@@ -213,10 +242,10 @@ jobs:
             stacks: "['account_security']"
           - name: "env"
             environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name', 'slack_notifier']"
+            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
           - name: "mgmt"
             environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name', ]"
+            stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
       environment: ${{ matrix.environment }}

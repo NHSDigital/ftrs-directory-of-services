@@ -1,6 +1,6 @@
 resource "aws_backup_framework" "main" {
   # must be underscores instead of dashes
-  name        = replace("${local.resource_name_prefix}-framework", "-", "_")
+  name        = replace("${var.resource_prefix}-framework", "-", "_")
   description = "${var.project_name} Backup Framework"
 
   # Evaluates if recovery points are encrypted.
@@ -79,7 +79,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = var.environment_name
       }
     }
   }
@@ -101,7 +101,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = var.environment_name
       }
     }
   }
@@ -110,7 +110,7 @@ resource "aws_backup_framework" "main" {
 resource "aws_backup_framework" "dynamodb" {
   count = var.backup_plan_config_dynamodb.enable ? 1 : 0
   # must be underscores instead of dashes
-  name        = replace("${local.resource_name_prefix}-dynamodb-framework", "-", "_")
+  name        = replace("${var.resource_prefix}-dynamodb-framework", "-", "_")
   description = "${var.project_name} DynamoDB Backup Framework"
 
   # Evaluates if resources are protected by a backup plan.
@@ -120,7 +120,7 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = var.environment_name
       }
     }
   }
@@ -142,7 +142,7 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = var.environment_name
       }
     }
   }

@@ -11,6 +11,12 @@ team_owner       = "ftrs"
 artefacts_bucket_name  = "artefacts-bucket"
 s3_logging_bucket_name = "s3-access-logs"
 
+aws_accounts = [
+  "dev",
+  "test",
+  "prod"
+]
+
 dynamodb_table_names = [
   "healthcare-service",
   "location",

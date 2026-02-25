@@ -10,8 +10,10 @@ This is a Performance Testing Framework using JMeter to load test services withi
 ├── performance/
     ├── parameter_files/          # Test data files (CSV, certificates, etc.)
     ├── IS_Test_Plan.jmx          # Main unified test plan (supports all modes)
+    ├── FDOS_Test_Plan.jmx          # Test plan for just data migration (to be included in the main one in the future)
     ├── scripts/
     │   ├── LoadParams.groovy     # Parameter loading script
+    |   ├── data_generation/      # Scripts for generating csv's as deterministic input for jmeter scripts
     ├── Makefile
     └── README.MD
 ```
@@ -109,6 +111,35 @@ All test modes support these parameters:
 Total Duration = 12 steps × step_duration
 ```
 For a 5-minute (300 second) test, set `step_duration=25` (12 × 25 = 300 seconds).
+
+## Test Plan Overview: FDOS_Test_Plan.jmx
+
+Parameters relevant for FDOS test plan:
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `dos_db_url` | Soruce database url | (required) |
+| `dos_db_user` | Soruce database user  |(required) |
+| `dos_db_password` | Soruce database password | (required) |
+| `feed_updates_per_minute` | Throughput for database update feed | 10 |
+| `duration` | Test duration in seconds | 3600 |
+| `bulk_num_threads` | Expect 0 or 1, 1 - user journey would be enabled | 1 |
+| `bulk_size` | The amount of changes done in a row | 10 |
+| `bulk_startup_delay` | Bulk update batch to start after a delay in seconds. The user journey performs a single batch of some size and stops | 30 |
+
+Running with UI:
+
+```sh
+jmeter -t FDOS_Test_Plan.jmx \
+  -J dos_db_url="jdbc:postgresql://$DB_HOST:5432/dos" \
+  -J dos_db_password="${PGPASSWORD}" \
+  -J dos_db_user="${PGUSER}" \
+  -J feed_updates_per_minute=10 \
+  -J bulk_num_threads=1 \
+  -J bulk_size=10 \
+  -J bulk_startup_delay=30 \
+  -J duration=3600
+```
 
 ## Test Configuration
 
@@ -410,3 +441,5 @@ make jmeter-ssm-shell JMETER_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
 3. **Calculate stress test duration correctly**: `total_duration = 12 × step_duration`
 4. **Monitor thread count**: Ensure `num_threads` is sufficient for target throughput. threads ≥ (target_TPS × avg_response_time_seconds)
 5. **Use infinite loops with duration**: Set `loop_count=-1` and specify `duration` for time-based tests
+6. **Ensure user journeys in sctipts follow a deterministic input** allowing to validate all paths in a script predictibly
+7. **Offload random data generation from the injector infrastructure** - as easily it is to generate random data with built in jmeter functionality or e.g. importing fake data generation libraries, for large scale testing this approach will increase the memory pressure on the injector infrastructure - preferably pre-generate payloads/inputs, avoid generating in runtime

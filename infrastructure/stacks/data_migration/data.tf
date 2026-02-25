@@ -36,11 +36,6 @@ data "aws_subnets" "private_subnets" {
     name   = "tag:Name"
     values = ["${local.account_prefix}-vpc-private-*"]
   }
-
-  filter {
-    name   = "tag:CidrRange"
-    values = [var.vpc_private_subnet_cidr_range]
-  }
 }
 
 data "aws_s3_object" "python_dependency_layer" {
@@ -321,4 +316,11 @@ data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
 
 data "aws_iam_role" "firehose_role" {
   name = "${local.account_prefix}-${var.firehose_name}-cw-role"
+}
+
+# Download RDS CA certificate bundle (global bundle - works for all regions)
+# We are using AWS default cert for region
+# So this bundle can be used for both source and target endpoints
+data "http" "rds_ca_certificate" {
+  url = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
 }

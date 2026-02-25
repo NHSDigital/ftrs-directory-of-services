@@ -8,6 +8,11 @@ locals {
   root_domain_name  = "${var.environment}.${var.root_domain_name}"
   s3_logging_bucket = "${local.account_prefix}-${var.s3_logging_bucket_name}"
 
+  # Environment-specific backup tag to ensure isolation in multi-tenant accounts
+  backup_tags = {
+    "NHSE-Enable-Backup" = var.environment
+  }
+
   is_release_candidate = var.release_tag != "" && can(regex("^v\\d+\\.\\d+\\.\\d+-rc\\.\\d+$", var.release_tag))
   is_release           = var.release_tag != "" && !local.is_release_candidate
 
@@ -34,6 +39,7 @@ locals {
   organisation_table_arn = "arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${local.project_prefix}-database-${var.organisation_table_name}"
 
   domain_cross_account_role = "${var.repo_name}-mgmt-domain-name-cross-account-access"
+  backup_cross_account_role = "${var.repo_name}-mgmt-backup-cross-account-access"
 
   env_domain_name = "${var.environment}.${var.root_domain_name}"
 
@@ -55,12 +61,34 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
     firehose        = "alias/${local.project_prefix}-firehose-kms"
-    scheduler       = "alias/${local.project_prefix}-scheduler"
+    backup_sns      = "alias/${local.project_prefix}-backup-sns-kms"
+    backup          = "alias/${local.project_prefix}-backup-kms"
+    scheduler       = "alias/${local.project_prefix}-scheduler-kms"
   }
 
   # Will be used by dos-search stack
   opensearch_index_name = "${var.index_base}${local.workspace_suffix}"
 
   appconfig_lambda_extension_aws_account_id = "282860088358" # gitleaks:allow
-  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:207"
+  appconfig_lambda_extension_layer_arn      = "arn:aws:lambda:${var.aws_region}:${local.appconfig_lambda_extension_aws_account_id}:layer:AWS-AppConfig-Extension:217"
+
+  # Common provider tags with conditional release_tag
+  default_provider_tags = merge(
+    {
+      Owner              = var.project_owner
+      TeamOwner          = var.team_owner
+      Project            = var.project
+      Environment        = "${var.environment}${local.workspace_suffix}"
+      Workspace          = terraform.workspace
+      TerraformPath      = replace(path.cwd, "/^.*?(${var.repo_name}\\/)/", "$1")
+      Service            = var.service
+      CostCentre         = var.cost_centre
+      DataClassification = var.data_classification
+      DataType           = var.data_type
+      ProjectType        = var.project_type
+      PublicFacing       = var.public_facing
+      ServiceCategory    = var.service_category
+    },
+    var.release_tag != "" ? { ReleaseTag = var.release_tag } : {}
+  )
 }

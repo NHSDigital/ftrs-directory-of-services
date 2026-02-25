@@ -65,13 +65,26 @@ build-layer:
 	rm -rf $(BUILD_DIR)/layer/
 	@echo "Layer built: $(PACKAGES_LAYER_NAME).zip"
 
+LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
+
 lint:
-	poetry run ruff check
-	poetry run ruff format --check
+	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
+
+lint-staged:
+	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
+	if [ -z "$$files" ]; then \
+		echo "No files staged"; \
+	else \
+		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+	fi
 
 lint-fix:
 	poetry run ruff check --fix
 	poetry run ruff format
+
+pre-commit: lint-staged
 
 unit-test:
 	poetry run pytest --cov-report xml:coverage-$(PACKAGE).xml
