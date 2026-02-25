@@ -17,6 +17,5 @@ module "aws_backup_source" {
   backup_plan_config          = local.backup_plan_config
   backup_plan_config_dynamodb = local.backup_plan_config_dynamodb
 
-  restore_testing_protected_resource_arns = local.dynamodb_restore_testing_arns
-  restore_testing_enabled                 = var.restore_testing_enabled
+  restore_testing_enabled = var.restore_testing_enabled
 }

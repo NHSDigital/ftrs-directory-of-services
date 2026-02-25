@@ -34,7 +34,7 @@ Internal platform components (ingestion workflows, administrative tooling, migra
 
 | Method | Path                            | Query                           | Purpose           | Response                                   |
 | ------ | ------------------------------- | ------------------------------- | ----------------- | ------------------------------------------ | ------------------------------------- |
-| GET    | /Organization                   | `identifier=odsOrganisationCode | {ODS}` (optional) | Read one (by ODS) or all                   | FHIR Bundle (`application/fhir+json`) |
+| GET    | /Organization                   | `identifier=https://fhir.nhs.uk/Id/ods-organization-code | {ODS}` (optional) | Read one (by ODS) or all                   | FHIR Bundle (`application/fhir+json`) |
 | GET    | /Organization/{organisation_id} | —                               | Read by UUID      | Organisation JSON (domain model)           |
 | POST   | /Organization                   | —                               | Create            | 201 + Organisation JSON + message          |
 | PUT    | /Organization/{organisation_id} | —                               | Update            | 200 `OperationOutcome` success/information |
@@ -64,7 +64,7 @@ Internal platform components (ingestion workflows, administrative tooling, migra
 
 | Aspect              | Implementation Notes                                                                                                                    | Referenced NFR Codes                  |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------- |
-| Standards & Interop | FHIR JSON media type & OperationOutcome for Organisation; identifier parsing (`identifier=odsOrganisationCode                           | {code}`)                              | INT-001, INT-004, INT-005, INT-006, INT-007, INT-017 |
+| Standards & Interop | FHIR JSON media type & OperationOutcome for Organisation; identifier parsing (`identifier=https://fhir.nhs.uk/Id/ods-organization-code                           | {code}`)                              | INT-001, INT-004, INT-005, INT-006, INT-007, INT-017 |
 | Validation          | Pydantic validators for create/update enforce field presence & structure                                                                | INT-017                               |
 | Error Handling      | Unified translation to OperationOutcome (organisation) + structured HTTP status semantics                                               | INT-005, REL-016                      |
 | Logging             | `CrudApisLogBase` codes emit structured events per operation; includes identifiers for chain reconstruction                             | OBS-014, OBS-019                      |
@@ -75,7 +75,7 @@ Internal platform components (ingestion workflows, administrative tooling, migra
 
 ## 6. Data Validation & Identifier Normalisation
 
-Organisation query parameter `identifier` is normalised to extract ODS code. STORY-208 drives tests ensuring uppercase/trim and format `odsOrganisationCode|{code}`. Invalid patterns will raise `OperationOutcome` with `code=structure`.
+Organisation query parameter `identifier` is normalised to extract ODS code. STORY-208 drives tests ensuring uppercase/trim and format `https://fhir.nhs.uk/Id/ods-organization-code|{code}`. Invalid patterns will raise `OperationOutcome` with `code=structure`.
 
 ## 7. OperationOutcome Codes Catalogue (Initial)
 

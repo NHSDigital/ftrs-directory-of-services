@@ -126,8 +126,10 @@ def extract_indexes_from_sql_file(sql_file_path: Path = SCHEMA_FILE) -> List[str
 
     # Regex to match CREATE INDEX and CREATE UNIQUE INDEX statements
     # Matches multi-line statements ending with semicolon
+    # Bounded quantifier {1,4000} prevents quadratic backtracking on malformed input
+    # 4000 chars accommodates even extremely complex index definitions
     index_pattern = re.compile(
-        r"CREATE\s+(?:UNIQUE\s+)?INDEX\s+[^;]+;",
+        r"CREATE\s+(?:UNIQUE\s+)?INDEX\s+[^;]{1,4000};",
         re.IGNORECASE | re.MULTILINE | re.DOTALL,
     )
 
