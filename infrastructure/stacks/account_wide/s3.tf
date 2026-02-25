@@ -142,3 +142,28 @@ module "firehose_backup_s3" {
   enable_kms_encryption = var.enable_firehose_s3_kms_encryption
   s3_logging_bucket     = local.s3_logging_bucket
 }
+
+# S3 bucket to receive CloudTrail log deliveries
+module "cloudtrail_s3_bucket" {
+  source        = "../../modules/s3"
+  bucket_name   = "${local.resource_prefix}-${var.cloudtrail_bucket_name}"
+  force_destroy = var.cloudtrail_bucket_force_destroy
+
+  s3_logging_bucket = local.s3_logging_bucket
+
+  attach_policy = true
+  policy        = data.aws_iam_policy_document.cloudtrail_s3_bucket_policy.json
+
+  lifecycle_rule_inputs = [
+    {
+      id      = "delete_logs_older_than_${var.cloudtrail_log_retention_days}_days"
+      enabled = true
+      filter = {
+        prefix = ""
+      }
+      expiration = {
+        days = var.cloudtrail_log_retention_days
+      }
+    }
+  ]
+}
