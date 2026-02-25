@@ -104,8 +104,6 @@ make config
 
 Before you make any commits, make sure you have enabled **GPG** key signing by default:
 
-
-
 ```shell
 git config --global commit.gpgsign true
 ```
