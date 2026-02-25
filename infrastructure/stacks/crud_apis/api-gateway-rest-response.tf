@@ -58,7 +58,12 @@ resource "aws_api_gateway_gateway_response" "default_gateway_response" {
   response_type = each.value.response_type
   status_code   = each.value.status_code
 
-  response_parameters = var.fhir_content_type_header
+  response_parameters = merge(var.fhir_content_type_header, {
+    "gatewayresponse.header.Strict-Transport-Security" = "'max-age=31536000; includeSubDomains'"
+    "gatewayresponse.header.X-Content-Type-Options"    = "'nosniff'"
+    "gatewayresponse.header.X-Frame-Options"           = "'DENY'"
+    "gatewayresponse.header.Cache-Control"             = "'no-store'"
+  })
 
   response_templates = {
     "application/fhir+json" = each.value.template
