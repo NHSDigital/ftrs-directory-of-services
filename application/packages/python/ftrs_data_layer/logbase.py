@@ -235,6 +235,10 @@ class DataMigrationLogBase(LogBase):
         level=INFO,
         message="Skipping state record item as no changes were required during migration",
     )
+    DM_ETL_038 = LogReference(
+        level=WARNING,
+        message="No parent pharmacy record found for service ID {record_id} with base ODS code {ods_code}",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
