@@ -151,8 +151,9 @@ module "cloudtrail_s3_bucket" {
 
   s3_logging_bucket = local.s3_logging_bucket
 
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.cloudtrail_s3_bucket_policy.json
+  attach_policy                         = true
+  policy                                = data.aws_iam_policy_document.cloudtrail_s3_bucket_policy.json
+  attach_cloudtrail_log_delivery_policy = true
 
   lifecycle_rule_inputs = [
     {
