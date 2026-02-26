@@ -16,7 +16,7 @@ resource "aws_cloudtrail" "s3_data_events" {
   enable_log_file_validation = true
 
   # Enable KMS encryption
-  kms_key_id = module.cloudtrail_encryption_key.key_id
+  kms_key_id = module.cloudtrail_encryption_key.arn
 
   # S3 object-level write events — satisfies [S3.22]
   advanced_event_selector {
