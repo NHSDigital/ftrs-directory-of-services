@@ -68,3 +68,12 @@ class HealthcareServiceQueryParams(BaseModel):
             raise HsODSCodeInvalidFormatError(identifier_value)
 
         return v
+
+    @classmethod
+    def get_required_query_params(cls) -> list[str]:
+        """Get required query parameters from HealthcareServiceQueryParams model."""
+        return [
+            field_info.alias
+            for field_info in cls.model_fields.values()
+            if field_info.alias and field_info.is_required()
+        ]
