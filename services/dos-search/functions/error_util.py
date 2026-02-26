@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
 from functions.healthcare_service_query_params import (
+    HealthcareServiceQueryParams,
     HsInvalidIdentifierSystem,
     HsODSCodeInvalidFormatError,
 )
@@ -76,6 +77,7 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
 FRIENDLY_MODEL_NAME_MAP: dict[str, str] = {
     OrganizationQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
     OrganizationHeaders.__name__: FRIENDLY_NAME_HEADERS,
+    HealthcareServiceQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
 }
 
 PROXY_HEADER_BY_INTERNAL_HEADER_MAP: dict[str, str] = {
