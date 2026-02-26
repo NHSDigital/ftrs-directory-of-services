@@ -327,3 +327,27 @@ variable "performance_ec2_log_group_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "cloudtrail_trail_name" {
+  description = "The name suffix for the S3 data events CloudTrail trail"
+  type        = string
+  default     = "s3-data-events"
+}
+
+variable "cloudtrail_bucket_name" {
+  description = "The name suffix for the S3 bucket used to store CloudTrail logs"
+  type        = string
+  default     = "cloudtrail-logs"
+}
+
+variable "cloudtrail_log_retention_days" {
+  description = "Number of days to retain CloudTrail logs in S3 before expiry"
+  type        = number
+  default     = 365
+}
+
+variable "cloudtrail_bucket_force_destroy" {
+  description = "Whether to allow force-destroying the CloudTrail S3 bucket on stack deletion"
+  type        = bool
+  default     = false
+}

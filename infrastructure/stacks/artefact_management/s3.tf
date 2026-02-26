@@ -1,8 +1,9 @@
 module "artefacts_bucket" {
-  source        = "../../modules/s3"
-  bucket_name   = local.artefacts_bucket
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.artefacts_bucket_policy.json
+  source            = "../../modules/s3"
+  bucket_name       = local.artefacts_bucket
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.artefacts_bucket_policy.json
+  s3_logging_bucket = local.s3_logging_bucket
 
   # Lifecycle rules work with tag-based retention strategy:
   # - Objects tagged "retention=ephemeral" expire per rules below

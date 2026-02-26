@@ -66,3 +66,76 @@ data "aws_iam_policy_document" "regional_waf_log_group_policy_document" {
 data "aws_prefix_list" "s3" {
   name = "com.amazonaws.${var.aws_region}.s3"
 }
+
+data "aws_iam_policy_document" "trust_store_bucket_policy" {
+  statement {
+    sid = "AllowAPIGatewayAccess"
+    principals {
+      type        = "Service"
+      identifiers = ["apigateway.amazonaws.com"]
+    }
+    actions = [
+      "s3:GetObject",
+      "s3:GetObjectVersion"
+    ]
+    resources = [
+      "_S3_BUCKET_ARN_/*"
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
+  statement {
+    sid = "AWSLogDeliveryWrite"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["s3:PutObject"]
+
+    resources = ["_S3_BUCKET_ARN_/*"]
+  }
+
+  statement {
+    sid = "AWSLogDeliveryAclCheck"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["s3:GetBucketAcl"]
+
+    resources = ["_S3_BUCKET_ARN_"]
+  }
+}
+
+data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
+  statement {
+    sid = "AWSLogDeliveryWrite"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["s3:PutObject"]
+
+    resources = ["_S3_BUCKET_ARN_/*"]
+  }
+
+  statement {
+    sid = "AWSLogDeliveryAclCheck"
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+
+    actions = ["s3:GetBucketAcl"]
+
+    resources = ["_S3_BUCKET_ARN_"]
+  }
+}
