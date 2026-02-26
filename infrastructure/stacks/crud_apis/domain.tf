@@ -8,14 +8,15 @@ data "aws_acm_certificate" "domain_cert" {
   most_recent = true
 }
 
-# trivy:ignore:AVD-AWS-0005 false positive – using API Gateway V2 with TLS_1_2
-resource "aws_apigatewayv2_domain_name" "crud_api_domain" {
+# trivy:ignore:AVD-AWS-0005 false positive – using API Gateway with TLS_1_2
+resource "aws_api_gateway_domain_name" "crud_api_domain" {
   domain_name = "crud${local.workspace_suffix}.${local.env_domain_name}"
 
-  domain_name_configuration {
-    certificate_arn = data.aws_acm_certificate.domain_cert.arn
-    endpoint_type   = "REGIONAL"
-    security_policy = "TLS_1_2"
+  security_policy          = var.api_gateway_tls_security_policy
+  regional_certificate_arn = data.aws_acm_certificate.domain_cert.arn
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
   }
 
   mutual_tls_authentication {
@@ -28,19 +29,20 @@ resource "aws_apigatewayv2_domain_name" "crud_api_domain" {
   }
 }
 
-resource "aws_apigatewayv2_api_mapping" "api_mapping" {
-  api_id      = module.api_gateway.api_id
-  domain_name = aws_apigatewayv2_domain_name.crud_api_domain.id
-  stage       = module.api_gateway.stage_id
+resource "aws_api_gateway_base_path_mapping" "domain_mapping" {
+  api_id      = aws_api_gateway_rest_api.api_gateway.id
+  domain_name = aws_api_gateway_domain_name.crud_api_domain.domain_name
+  stage_name  = aws_api_gateway_stage.default.stage_name
 }
 
 resource "aws_route53_record" "api_record" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = "crud${local.workspace_suffix}.${local.env_domain_name}"
+  name    = aws_api_gateway_domain_name.crud_api_domain.domain_name
   type    = "A"
+  zone_id = data.aws_route53_zone.main.zone_id
+
   alias {
-    name                   = aws_apigatewayv2_domain_name.crud_api_domain.domain_name_configuration[0].target_domain_name
-    zone_id                = aws_apigatewayv2_domain_name.crud_api_domain.domain_name_configuration[0].hosted_zone_id
-    evaluate_target_health = false
+    evaluate_target_health = true
+    name                   = aws_api_gateway_domain_name.crud_api_domain.regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.crud_api_domain.regional_zone_id
   }
 }

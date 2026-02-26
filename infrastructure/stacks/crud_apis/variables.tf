@@ -76,21 +76,6 @@ variable "s3_versioning" {
   type        = bool
 }
 
-variable "api_gateway_authorization_type" {
-  description = "The authorization type for the API Gateway"
-  type        = string
-}
-
-variable "api_gateway_payload_format_version" {
-  description = "The payload format version for the API Gateway"
-  type        = string
-}
-
-variable "api_gateway_integration_timeout" {
-  description = "The integration timeout for the API Gateway"
-  type        = number
-}
-
 variable "api_gateway_access_logs_retention_days" {
   description = "The number of days to retain API Gateway access logs"
   type        = number
@@ -106,8 +91,72 @@ variable "api_gateway_throttling_rate_limit" {
   type        = number
 }
 
+variable "api_gateway_tls_security_policy" {
+  description = "The TLS security policy for the API Gateway domain"
+  type        = string
+  default     = "TLS_1_2"
+}
+
+variable "api_gateway_method_cache_enabled" {
+  description = "Configure caching at the method level"
+  type        = bool
+  default     = true
+}
+
+variable "api_gateway_method_metrics_enabled" {
+  description = "Configure gathering metrics at end point level"
+  type        = bool
+  default     = true
+}
+
+variable "api_gateway_logging_level" {
+  description = "The level of logging"
+  type        = string
+  default     = "INFO"
+}
+
+variable "fhir_content_type_header" {
+  description = "API Gateway response header mappings for FHIR responses"
+  type        = map(string)
+  default = {
+    "gatewayresponse.header.Content-Type"              = "'application/fhir+json'"
+    "gatewayresponse.header.Strict-Transport-Security" = "'max-age=31536000; includeSubDomains'"
+    "gatewayresponse.header.X-Content-Type-Options"    = "'nosniff'"
+    "gatewayresponse.header.X-Frame-Options"           = "'DENY'"
+    "gatewayresponse.header.Cache-Control"             = "'no-store'"
+  }
+}
+
+variable "gateway_responses" {
+  description = "Map of API Gateway gateway_responses with response_type, status_code, and FHIR template"
+  type = map(object({
+    response_type = string
+    status_code   = string
+    template      = string
+  }))
+  default = null
+}
+
 variable "crud_api_lambda_logs_retention" {
   description = "The number of days to retain CloudWatch logs for CRUD apis"
   type        = number
   default     = 14
+}
+
+variable "vpc_private_subnet_cidr_range" {
+  description = "The CIDR range for the VPC private subnets"
+  type        = string
+  default     = "24"
+}
+
+variable "account_wide_stack_name" {
+  description = "Stack name used for account-wide resources (used to derive the regional WAF name)"
+  type        = string
+  default     = "account-wide"
+}
+
+variable "regional_waf_name" {
+  description = "Base name of the account-wide regional WAF (without prefix)"
+  type        = string
+  default     = "regional-waf-web-acl"
 }
