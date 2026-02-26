@@ -1,11 +1,9 @@
 """Fetch CloudWatch alarm tags."""
 
-import logging
-
 import boto3
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger(__name__)
+from functions.logger import logger
 
 
 def get_alarm_tags(alarm_arn: str) -> dict[str, str]:
@@ -18,7 +16,6 @@ def get_alarm_tags(alarm_arn: str) -> dict[str, str]:
         dict: Tags with api_path and service, defaults to N/A and Unknown if not found
     """
     if not alarm_arn:
-        logger.warning("No alarm ARN provided")
         return {"api_path": "N/A", "service": "Unknown"}
 
     try:

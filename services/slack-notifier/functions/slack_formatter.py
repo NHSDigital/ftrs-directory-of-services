@@ -1,6 +1,5 @@
 """Format CloudWatch alarm data into Slack message blocks."""
 
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -11,8 +10,7 @@ from functions.aws_url_builder import (
     build_lambda_metrics_url,
     extract_region_code,
 )
-
-logger = logging.getLogger(__name__)
+from functions.logger import logger
 
 SEVERITY_EMOJI_MAP = {"warning": "⚠️", "critical": "🚨"}
 
