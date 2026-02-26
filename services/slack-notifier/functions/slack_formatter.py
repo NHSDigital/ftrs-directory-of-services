@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
+from functions.alarm_tags import get_alarm_tags
 from functions.aws_url_builder import (
     build_cloudwatch_url,
     build_lambda_logs_url,
@@ -115,9 +116,10 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
     lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
 
-    # TODO: Will be updated as part of FTRS-765
-    api_path = "/Organization"  # Needs to be fetched from relevant data source
-    api_service = "DoS Search"  # Needs to be fetched from relevant data source
+    # Fetch alarm tags for api_path and service
+    alarm_tags = get_alarm_tags(alarm_arn)
+    api_path = alarm_tags["api_path"]
+    api_service = alarm_tags["service"]
 
     return {
         "text": f"{emoji} CloudWatch Alarm: {display_state}",
