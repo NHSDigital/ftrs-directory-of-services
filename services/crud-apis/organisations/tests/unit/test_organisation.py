@@ -112,11 +112,11 @@ def mock_repository(mocker: MockerFixture) -> MockerFixture:
     repository_mock = mocker.patch(
         "organisations.app.router.organisation.org_repository"
     )
-    repository_mock.get.return_value = get_organisation()
+    repository_mock.get.return_value = Organisation(**get_organisation())
     repository_mock.get_by_ods_code.return_value = [
         Organisation.model_construct(id="12345")
     ]
-    repository_mock.iter_records.return_value = [get_organisation()]
+    repository_mock.iter_records.return_value = [Organisation(**get_organisation())]
     repository_mock.update.return_value = JSONResponse(
         {"message": "Data processed successfully"}, status_code=HTTPStatus.OK
     )

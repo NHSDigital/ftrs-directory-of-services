@@ -66,6 +66,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   prepare-toggle-artifacts:
     name: "Prepare Toggle artifacts"
@@ -120,6 +121,29 @@ jobs:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
 
+  deploy-proxy-to-apim:
+    name: "Deploy ${{ matrix.api_name }} API to Proxygen"
+    needs:
+      - deploy-application-infrastructure
+    uses: ./.github/workflows/authenticate-and-deploy-to-apim.yaml
+    strategy:
+      fail-fast: false
+      matrix:
+        api_name:
+          - dos-search
+          - dos-ingest
+          # Add more API names here as needed
+    with:
+      environment: ${{ inputs.environment }}
+      workspace: default
+      api_name: ${{ matrix.api_name }}
+      apim_env: ${{ inputs.environment == 'dev' && 'internal-dev' || inputs.environment == 'test' && 'internal-qa' || inputs.environment }}
+      ref: ${{ inputs.release_tag }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      PROXYGEN_URL: ${{ secrets.PROXYGEN_URL }}
+
   deploy-frontend-services:
     name: "Deploy ${{ matrix.name }} to ${{ inputs.environment }}"
     concurrency:
@@ -165,6 +189,7 @@ jobs:
             type: "bdd"
     needs:
       - deploy-application-infrastructure
+      - deploy-proxy-to-apim
     uses: ./.github/workflows/service-automation-test.yaml
     with:
       environment: ${{ inputs.environment }}

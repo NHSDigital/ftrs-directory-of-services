@@ -86,7 +86,9 @@
                         "apigateway.amazonaws.com",
                         "ec2.amazonaws.com",
                         "drt.shield.amazonaws.com",
-                        "lambda.amazonaws.com"
+                        "lambda.amazonaws.com",
+                        "backup.amazonaws.com",
+                        "restore-testing.backup.amazonaws.com"
                     ]
                 }
             }

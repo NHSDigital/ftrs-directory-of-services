@@ -5,9 +5,6 @@ locals {
   destination_vault_arn = "arn:aws:backup:${var.aws_region}:${var.mgmt_account_id}:backup-vault:${var.project}-shared-backup-vault"
   terraform_role_name   = "${var.repo_name}${var.environment != "mgmt" ? "-${var.environment}" : ""}-${var.account_github_runner_role_name}"
   terraform_role_arn    = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.terraform_role_name}"
-  dynamodb_restore_testing_arns = [
-    for table in values(local.dynamodb_tables) : table.arn
-  ]
 
   backup_plan_config = {
     compliance_resource_types = ["RDS"]

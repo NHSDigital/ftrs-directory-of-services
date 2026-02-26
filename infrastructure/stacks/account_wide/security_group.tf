@@ -96,6 +96,16 @@ resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_egress
   to_port                      = var.https_port
 }
 
+resource "aws_vpc_security_group_egress_rule" "athena_rds_connector_allow_s3_access" {
+  count             = var.athena_stack_enabled ? 1 : 0
+  security_group_id = aws_security_group.athena_rds_connector_sg[0].id
+  description       = "Athena Connector egress rule to allow S3 traffic"
+  prefix_list_id    = data.aws_prefix_list.s3.id
+  ip_protocol       = "tcp"
+  from_port         = var.https_port
+  to_port           = var.https_port
+}
+
 # Security group for interface VPC endpoints
 resource "aws_security_group" "vpce_interface_security_group" {
   name        = "${local.account_prefix}-vpce-interface-sg"

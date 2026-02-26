@@ -87,4 +87,17 @@ def get_dynamodb_tables() -> list[dict[str, Any]]:
         "BillingMode": "PAY_PER_REQUEST",
     }
 
-    return [*tables, triage_code_table, state_table]
+    version_history_table = {
+        "TableName": get_table_name("version-history"),
+        "KeySchema": [
+            {"AttributeName": "entity_id", "KeyType": "HASH"},
+            {"AttributeName": "timestamp", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "entity_id", "AttributeType": "S"},
+            {"AttributeName": "timestamp", "AttributeType": "S"},
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+    }
+
+    return [*tables, triage_code_table, state_table, version_history_table]

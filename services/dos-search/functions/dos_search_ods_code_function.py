@@ -12,12 +12,8 @@ from functions.constants import (
 )
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logger.dos_logger import DosLogger
+from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
-
-
-class InvalidRequestHeadersError(ValueError):
-    """Raised when disallowed HTTP headers are supplied in the request."""
-
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
@@ -25,37 +21,14 @@ logger = dos_logger.logger
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
+
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
     "Access-Control-Allow-Methods": "GET",
-    "Access-Control-Allow-Headers": (
-        "Authorization, Content-Type, NHSD-Correlation-ID, NHSD-Request-ID, X-Correlation-ID, X-Request-ID, "
-        "Version, End-User-Role, Application-ID, Application-Name, "
-        "Request-Start-Time, "
-        "Accept, Accept-Encoding, Accept-Language, "
-        "User-Agent, Host, X-Amzn-Trace-Id, X-Forwarded-For, X-Forwarded-Port, "
-        "X-Forwarded-Proto"
+    "Access-Control-Allow-Headers": ", ".join(
+        sorted(OrganizationHeaders.get_allowed_headers())
     ),
 }
-
-ALLOWED_REQUEST_HEADERS: frozenset[str] = frozenset(
-    header.strip().lower()
-    for header in DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"].split(",")
-    if header.strip()
-)
-
-
-def _validate_headers(headers: dict[str, str] | None) -> None:
-    if not headers:
-        return
-
-    invalid_headers = [
-        header_name
-        for header_name in headers
-        if header_name and header_name.lower() not in ALLOWED_REQUEST_HEADERS
-    ]
-    if invalid_headers:
-        raise InvalidRequestHeadersError(invalid_headers)
 
 
 @app.get("/Organization")
@@ -65,38 +38,16 @@ def get_organization() -> Response:
     dos_logger.init(app.current_event)
     try:
         try:
-            _validate_headers(app.current_event.headers)
-        except InvalidRequestHeadersError as exception:
-            invalid_headers: list[str] = exception.args[0] if exception.args else []
-            dos_logger.warning(
-                "Invalid request headers supplied",
-                invalid_headers=invalid_headers,
-            )
-            fhir_resource = error_util.create_invalid_header_operation_outcome(
-                invalid_headers
-            )
-            return create_response(400, fhir_resource)
-
-        query_params = app.current_event.query_string_parameters or {}
+            OrganizationHeaders.model_validate(app.current_event.headers)
+        except ValidationError as exception:
+            return handle_event_validation_error(exception, start)
 
         try:
-            validated_params = OrganizationQueryParams.model_validate(query_params)
+            validated_params = OrganizationQueryParams.model_validate(
+                app.current_event.query_string_parameters
+            )
         except ValidationError as exception:
-            # Log warning with structured fields
-            fhir_resource = error_util.create_validation_error_operation_outcome(
-                exception, GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
-            )
-
-            response_size, duration_ms = dos_logger.get_response_size_and_duration(
-                fhir_resource, start
-            )
-            dos_logger.warning(
-                "Validation error occurred: Logging response time & size",
-                validation_errors=exception.errors(),
-                dos_response_time=f"{duration_ms}ms",
-                dos_response_size=response_size,
-            )
-            return create_response(400, fhir_resource)
+            return handle_event_validation_error(exception, start)
 
         ods_code = validated_params.ods_code
         # Structured request log
@@ -110,19 +61,7 @@ def get_organization() -> Response:
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
     except Exception:
-        # Log exception with structured fields
-        fhir_resource = error_util.create_resource_internal_server_error()
-
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
-        )
-        dos_logger.exception(
-            "Internal server error occurred: Logging response time & size",
-            dos_response_time=f"{duration_ms}ms",
-            dos_response_size=response_size,
-        )
-
-        return create_response(500, fhir_resource)
+        return handle_general_exception(start)
     else:
         # success path: measure and log response metrics
         response_size, duration_ms = dos_logger.get_response_size_and_duration(
@@ -136,6 +75,37 @@ def get_organization() -> Response:
             dos_message_category="METRICS",
         )
         return create_response(200, fhir_resource)
+
+
+def handle_event_validation_error(exception: ValidationError, start: float) -> Response:
+    fhir_resource = error_util.create_validation_error_operation_outcome(exception)
+
+    response_size, duration_ms = dos_logger.get_response_size_and_duration(
+        fhir_resource, start
+    )
+    dos_logger.warning(
+        "Validation error occurred: Logging response time & size",
+        validation_errors=exception.errors(),
+        dos_response_time=f"{duration_ms}ms",
+        dos_response_size=response_size,
+    )
+    return create_response(400, fhir_resource)
+
+
+def handle_general_exception(start: float) -> Response:
+    # Log exception with structured fields
+    fhir_resource = error_util.create_resource_internal_server_error()
+
+    response_size, duration_ms = dos_logger.get_response_size_and_duration(
+        fhir_resource, start
+    )
+    dos_logger.exception(
+        "Internal server error occurred: Logging response time & size",
+        dos_response_time=f"{duration_ms}ms",
+        dos_response_size=response_size,
+    )
+
+    return create_response(500, fhir_resource)
 
 
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:

@@ -16,6 +16,19 @@ appconfig_flags:
       ref: false
       prod: false
 
+  - id: data_migration_pharmacy_enabled
+    name: "Data Migration - Pharmacy Enabled"
+    description: "Enable the migration of Pharmacy services from the current DoS"
+    service: data-migration
+    owner: "Data Migration Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
 stack_toggles:
   - id: data_migration_version_history_enabled
     name: "Data Migration - Version History Enabled"

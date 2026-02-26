@@ -76,6 +76,39 @@ def format_table_name(entity_name: str, env: str, workspace: str | None = None) 
     return table_name
 
 
+def extract_entity_name_from_table_name(full_table_name: str) -> str:
+    """
+    Extract entity type from a DynamoDB table name.
+
+    Args:
+        full_table_name: Full DynamoDB table name
+
+    Returns:
+        Entity type (e.g., 'organisation', 'healthcare-service')
+    """
+    # Data migration pattern: ftrs-dos-{env}-data-migration-{type}[-{workspace}]
+    if "-data-migration-" in full_table_name:
+        after_prefix = full_table_name.split("-data-migration-", 1)[1]
+        entity_suffix = after_prefix.split("-")[0]
+        return f"data-migration-{entity_suffix}"
+
+    # Regular pattern: ftrs-dos-{env}-database-{entity}[-{workspace}]
+    if "-database-" in full_table_name:
+        after_database = full_table_name.split("-database-", 1)[1]
+
+        # Check multi-word entities first
+        MULTI_WORD_ENTITIES = ["healthcare-service", "version-history"]
+        for entity in MULTI_WORD_ENTITIES:
+            if after_database.startswith(entity):
+                return entity
+
+        # Single-word entities
+        return after_database.split("-")[0]
+
+    # Fallback: return as-is if pattern doesn't match
+    return full_table_name
+
+
 def get_table_arn(table_name: str) -> str:
     """
     Get the ARN of a DynamoDB table

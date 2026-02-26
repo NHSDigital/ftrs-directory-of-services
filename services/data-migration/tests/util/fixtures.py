@@ -439,6 +439,22 @@ def mock_metadata_cache(mock_config: DataMigrationConfig) -> DoSMetadataCache:
             capacitymodel=None,
             capacityreset=None,
         ),
+        13: ServiceType(
+            id=13,
+            name="Pharmacy",
+            nationalranking=None,
+            searchcapacitystatus=None,
+            capacitymodel=None,
+            capacityreset=None,
+        ),
+        134: ServiceType(
+            id=134,
+            name="Pharmacy Distance Selling",
+            nationalranking=None,
+            searchcapacitystatus=None,
+            capacitymodel=None,
+            capacityreset=None,
+        ),
     }
 
     with patch("common.cache.DoSMetadataCache") as mock_cache:
