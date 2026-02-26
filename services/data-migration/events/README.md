@@ -78,7 +78,160 @@ This directory contains example event payloads for testing Lambda functions loca
 
 ---
 
+## Version History Stream Event
+
+**File**: `version-history-stream-event-document.json`
+
+**Purpose**: Simulates a DynamoDB stream event for document-level storage where the entire entity is stored at the top level with `field: "document"`.
+
+**Event Structure**:
+
+```json
+{
+  "Records": [
+    {
+      "eventID": "test-event-doc-1",
+      "eventName": "MODIFY",
+      "dynamodb": {
+        "Keys": {
+          "id": {"S": "d0d6af8a-1138-5a2f-a4e2-5f489fb44653"},
+          "field": {"S": "document"}
+        },
+        "OldImage": {
+          "id": {"S": "..."},
+          "field": {"S": "document"},
+          "name": {"S": "Old Practice Name"},
+          "active": {"BOOL": true},
+          "created": {"S": "2026-02-17T14:28:01.640710Z"},
+          "lastUpdated": {"S": "2026-02-17T14:28:01.640710Z"}
+        },
+        "NewImage": {
+          "id": {"S": "..."},
+          "field": {"S": "document"},
+          "name": {"S": "New Practice Name"},
+          "active": {"BOOL": true},
+          "created": {"S": "2026-02-17T14:28:01.640710Z"},
+          "lastUpdated": {"S": "2026-02-20T14:45:00.000000Z"}
+        }
+      }
+    }
+  ]
+}
+```
+
+**Use Case**: Testing full document changes (e.g., Organisation, Location, HealthcareService entities)
+
+**Storage Pattern Notes**:
+
+- System fields (`id`, `field`, `created`, `lastUpdated`, `createdBy`, `lastUpdatedBy`) are automatically excluded from version history comparisons
+- The Lambda uses DeepDiff to compute detailed change deltas for document fields
+- Only meaningful changes are recorded; updates to metadata fields alone won't create version history entries
+
+**Common Fields**:
+
+- `eventID`: Unique event identifier
+- `eventName`: DynamoDB event type (`INSERT`, `MODIFY`, `REMOVE`)
+- `dynamodb.Keys`: Primary key of the record (id and field)
+- `dynamodb.OldImage`: Previous state of the record
+- `dynamodb.NewImage`: New state of the record
+
+---
+
 ## Running Lambda Functions Locally
+
+### Running Version History Lambda
+
+**Purpose**: Processes DynamoDB stream events to track version history for Organisation and Location records.
+
+#### Prerequisites
+
+```bash
+# Start local DynamoDB
+cd services/data-migration
+docker compose up -d
+
+# Create tables (from ftrs_aws_local directory)
+cd ../../application/packages/ftrs_aws_local
+ftrs-aws-local reset --init --env local --endpoint-url http://localhost:8000
+
+# Set environment variables (required)
+export ENDPOINT_URL=http://localhost:8000
+export ENVIRONMENT=local
+export AWS_REGION=eu-west-2
+```
+
+#### Run with Python Directly
+
+**Important**: Set environment variables FIRST before running any commands:
+
+```bash
+cd services/data-migration
+eval $(poetry env activate)
+
+# MUST export these environment variables before running Lambda
+export ENDPOINT_URL=http://localhost:8000
+export ENVIRONMENT=local
+export AWS_REGION=eu-west-2
+
+# Test document-level storage pattern
+python -c "
+import json
+import sys
+sys.path.insert(0, 'src')
+from version_history.lambda_handler import lambda_handler
+from unittest.mock import Mock
+
+with open('events/version-history-stream-event-document.json') as f:
+    event = json.load(f)
+
+context = Mock()
+context.function_name = 'test-version-history'
+context.invoked_function_arn = 'arn:aws:lambda:eu-west-2:123456789:function:test'
+
+result = lambda_handler(event, context)
+print(f'Result: {result}')
+"
+```
+
+**Success Output**: `Result: {'batchItemFailures': []}`
+
+#### Verify Results
+
+```bash
+# Scan version history table
+aws dynamodb scan \
+    --table-name ftrs-dos-local-database-version-history \
+    --endpoint-url http://localhost:8000 \
+    --region eu-west-2
+
+# Query specific entity version history
+aws dynamodb query \
+    --table-name ftrs-dos-local-database-version-history \
+    --key-condition-expression "entity_id = :entity_id" \
+    --expression-attribute-values '{":entity_id": {"S": "organisation|d0d6af8a-1138-5a2f-a4e2-5f489fb44653|details"}}' \
+    --endpoint-url http://localhost:8000 \
+    --region eu-west-2
+```
+
+**Expected Output**:
+
+- Version history entry with `change_type: "UPDATE"`, document field, and detailed DeepDiff changes
+
+#### Troubleshooting
+
+**ResourceNotFoundException error?**
+
+1. Export environment variables before running Python (must be set first)
+2. Verify table exists: `aws dynamodb list-tables --endpoint-url http://localhost:8000 --region eu-west-2`
+3. Create tables if missing: `ftrs-aws-local reset --init --env local --endpoint-url http://localhost:8000`
+
+#### Environment Variables
+
+- `ENDPOINT_URL` - DynamoDB endpoint URL (required for local testing)
+- `ENVIRONMENT` - Environment name (`local`, `dev`)
+- `AWS_REGION` - AWS region (default: `eu-west-2`)
+
+---
 
 ### Running Reference Data Load Lambda
 
@@ -178,31 +331,5 @@ If you prefer to run the Lambda handler directly without the script:
    with open('events/queue-populator-single-service.json') as f:
        event = json.load(f)
    lambda_handler(event, LambdaContext())
-   "
-```
-
-## Running Lambda Functions Locally (reference_data_load.lambda_handler)
-
-### Run with Python Directly
-
-This method runs the Lambda handler function directly in Python without AWS tooling.
-
-```bash
-   # Activate Python virtual environment
-   eval $(poetry env activate)
-
-   # Set required environment variables
-   export ENVIRONMENT=local
-   export WORKSPACE=test_workspace
-   export ENDPOINT_URL=http://localhost:8000
-
-   # Run the Lambda handler with an example event
-   python -c "
-   from reference_data_load.lambda_handler import lambda_handler
-   from aws_lambda_powertools.utilities.typing import LambdaContext
-
-   event = {'type': 'triagecode'}
-   context = LambdaContext()
-   lambda_handler(event, context)
    "
 ```

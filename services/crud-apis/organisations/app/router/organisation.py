@@ -126,8 +126,10 @@ def get_organisation_by_id(
             organisation_id=organisation_id,
         )
         raise HTTPException(status_code=404, detail=ERROR_MESSAGE_404)
-
-    return organisation
+    fhir_org = organisation_mapper.to_fhir(organisation)
+    return JSONResponse(
+        content=fhir_org.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
+    )
 
 
 @router.put(

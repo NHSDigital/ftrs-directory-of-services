@@ -121,6 +121,16 @@ Note that if the branch has not been pushed with the dev pipeline successfully d
 ### Running APIM tests
 
 Ensure your `.env` file is populated for `API_NAME`, `APIM_ENV` and optionally `WORKSPACE`.
+An example of a `.env` file for running APIM tests locally against the branched workspace for FTRS-99999 is: 
+
+```.env
+  PROJECT_NAME=ftrs-dos
+  ENV=dev
+  WORKSPACE=ftrs-99999 # For `main`, leave this blank
+  COMMIT_HASH=abc123
+  API_NAME=dos-search
+  APIM_ENV=internal-dev
+``` 
 
 Then fetch an APIGEE_ACCESS_TOKEN for the API via Proxygen:
 
@@ -213,7 +223,10 @@ make test MARKERS="conflict-detection"
 make test MARKERS="organisation-exists"
 make test MARKERS="location-exists"
 make test MARKERS="healthcare-service-exists"
-```
+
+# Run all version history tests
+# which test Lambda handler logic directly, without testing DynamoDB Streams → Lambda integration.
+make test MARKERS="version-history"
 
 ### Running ETL-ODS tests
 

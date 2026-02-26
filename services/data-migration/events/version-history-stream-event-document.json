@@ -1,0 +1,142 @@
+{
+  "Records": [
+    {
+      "eventID": "test-event-doc-1",
+      "eventName": "MODIFY",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "eu-west-2",
+      "eventSourceARN": "arn:aws:dynamodb:eu-west-2:123456789012:table/ftrs-dos-dev-database-organisation/stream/2026-02-20T00:00:00.000",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1640995200,
+        "Keys": {
+          "id": {
+            "S": "d0d6af8a-1138-5a2f-a4e2-5f489fb44653"
+          },
+          "field": {
+            "S": "document"
+          }
+        },
+        "OldImage": {
+          "id": {
+            "S": "d0d6af8a-1138-5a2f-a4e2-5f489fb44653"
+          },
+          "field": {
+            "S": "document"
+          },
+          "created": {
+            "S": "2026-02-17T14:28:01.640710Z"
+          },
+          "lastUpdated": {
+            "S": "2026-02-17T14:28:01.640710Z"
+          },
+          "createdBy": {
+            "M": {
+              "type": {
+                "S": "app"
+              },
+              "value": {
+                "S": "INTERNAL001"
+              },
+              "display": {
+                "S": "Data Migration"
+              }
+            }
+          },
+          "lastUpdatedBy": {
+            "M": {
+              "type": {
+                "S": "app"
+              },
+              "value": {
+                "S": "INTERNAL001"
+              },
+              "display": {
+                "S": "Data Migration"
+              }
+            }
+          },
+          "name": {
+            "S": "Test Practice Name"
+          },
+          "active": {
+            "BOOL": true
+          },
+          "identifier_ODS_ODSCode": {
+            "S": "A12345"
+          },
+          "type": {
+            "S": "GP Practice"
+          },
+          "telecom": {
+            "L": []
+          },
+          "endpoints": {
+            "L": []
+          }
+        },
+        "NewImage": {
+          "id": {
+            "S": "d0d6af8a-1138-5a2f-a4e2-5f489fb44653"
+          },
+          "field": {
+            "S": "document"
+          },
+          "created": {
+            "S": "2026-02-17T14:28:01.640710Z"
+          },
+          "lastUpdated": {
+            "S": "2026-02-20T14:45:00.000000Z"
+          },
+          "createdBy": {
+            "M": {
+              "type": {
+                "S": "app"
+              },
+              "value": {
+                "S": "INTERNAL001"
+              },
+              "display": {
+                "S": "Data Migration"
+              }
+            }
+          },
+          "lastUpdatedBy": {
+            "M": {
+              "type": {
+                "S": "app"
+              },
+              "value": {
+                "S": "INTERNAL001"
+              },
+              "display": {
+                "S": "Data Migration"
+              }
+            }
+          },
+          "name": {
+            "S": "Test Practice Name - Updated"
+          },
+          "active": {
+            "BOOL": true
+          },
+          "identifier_ODS_ODSCode": {
+            "S": "A12345"
+          },
+          "type": {
+            "S": "GP Practice"
+          },
+          "telecom": {
+            "L": []
+          },
+          "endpoints": {
+            "L": []
+          }
+        },
+        "SequenceNumber": "123456791",
+        "SizeBytes": 456,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      }
+    }
+  ]
+}

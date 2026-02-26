@@ -104,10 +104,10 @@ class TestDosLogger:
 
         modified_event = deepcopy(event)
 
-        modified_event["headers"].pop("version")
-        modified_event["headers"].pop("end-user-role")
-        modified_event["headers"].pop("application-id")
-        modified_event["headers"].pop("application-name")
+        modified_event["headers"].pop("Version")
+        modified_event["headers"].pop("End-User-Role")
+        modified_event["headers"].pop("Application-ID")
+        modified_event["headers"].pop("Application-Name")
         modified_event["queryStringParameters"] = {}
         modified_event["pathParameters"] = None
         modified_event["requestContext"] = {}

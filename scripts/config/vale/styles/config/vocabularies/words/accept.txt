@@ -2,6 +2,7 @@
 (?i)Github
 (?i)hotfix
 (?i)Jira
+(?i)Populator
 (?i)Pydantic
 (?i)vpc
 (?i)vpn

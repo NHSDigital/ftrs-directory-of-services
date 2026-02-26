@@ -8,7 +8,7 @@ Feature: API DoS Service Search APIM
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-  Scenario: I search for GP Endpoint by ODS Code via APIM with valid query parameters
+  Scenario: I search for dos-search Endpoint by ODS Code via APIM with valid query parameters
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -16,7 +16,7 @@ Feature: API DoS Service Search APIM
     And the bundle contains "4" "Endpoint" resources
 
 
-  Scenario Outline: I search for GP Endpoint via APIM with invalid ODS code
+  Scenario Outline: I search for dos-search Endpoint via APIM with invalid ODS code
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -33,7 +33,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
-  Scenario Outline: I search for GP Endpoint with via APIM invalid _revinclude value
+  Scenario Outline: I search for dos-search Endpoint with via APIM invalid _revinclude value
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -49,7 +49,7 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
-  Scenario Outline: I search for GP Endpoint with via APIM invalid identifier system
+  Scenario Outline: I search for dos-search Endpoint with via APIM invalid identifier system
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -65,28 +65,17 @@ Feature: API DoS Service Search APIM
       | identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid\|M00081046&_revinclude=Endpoint:organization | https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
 
 
-  Scenario Outline: I search for GP Endpoint via APIM with 1 missing parameter
+  Scenario Outline: I search for dos-search Endpoint via APIM with missing parameters
     When I request data from the APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '<missing_param>'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required query parameter(s): <missing_param>"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     Examples:
-      | params                                    | missing_param |
-      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | _revinclude   |
-      | _revinclude=Endpoint:organization         | identifier    |
-
-
-  Scenario: I search for GP Endpoint via APIM with 2 missing parameters
-    When I request data from the APIM endpoint "Organization" with query params ""
-    Then I receive a status code "400" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "2" issues
-    And the OperationOutcome has issues all with severity "error"
-    And the OperationOutcome has issues all with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'identifier'"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter '_revinclude'"
-    And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
+    | params                                                             | missing_param               |
+    | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | '_revinclude'               |
+    | _revinclude=Endpoint:organization                                  | 'identifier'                |
+    |                                                                    | 'identifier', '_revinclude' |
