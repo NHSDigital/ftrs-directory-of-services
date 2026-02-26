@@ -6,6 +6,11 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
+from functions.healthcare_service_query_params import (
+    HealthcareServiceQueryParams,
+    HsInvalidIdentifierSystem,
+    HsODSCodeInvalidFormatError,
+)
 from functions.organization_headers import (
     NHSD_REQUEST_ID,
     X_REQUEST_ID,
@@ -63,12 +68,16 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
+    # HealthcareService query params error types
+    HsInvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
+    HsODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidVersionError: {"code": "value", "severity": "error"},
 }
 
 FRIENDLY_MODEL_NAME_MAP: dict[str, str] = {
     OrganizationQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
     OrganizationHeaders.__name__: FRIENDLY_NAME_HEADERS,
+    HealthcareServiceQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
 }
 
 PROXY_HEADER_BY_INTERNAL_HEADER_MAP: dict[str, str] = {

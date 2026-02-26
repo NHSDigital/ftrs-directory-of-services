@@ -105,3 +105,12 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         )
 
         return list(records)
+
+    def get_records_by_provided_by(self, organisation_id: str) -> list[ModelType]:
+        """Get all records where providedBy matches the given organisation ID."""
+        records: list[ModelType] = self._query(
+            key="providedBy",
+            value=organisation_id,
+            IndexName="ProvidedByIndex",
+        )
+        return list(records)
