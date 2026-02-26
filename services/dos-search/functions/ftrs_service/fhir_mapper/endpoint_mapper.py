@@ -1,9 +1,8 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
-from ftrs_data_layer.domain import Endpoint, Organisation
-
 from ftrs_common.logger import Logger
+from ftrs_data_layer.domain import Endpoint, Organisation
 
 from functions.logbase import DosSearchLogBase
 

@@ -4,9 +4,8 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
-from pydantic import ValidationError
-
 from ftrs_common.logger import Logger
+from pydantic import ValidationError
 
 from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
