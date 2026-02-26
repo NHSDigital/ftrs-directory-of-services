@@ -457,4 +457,5 @@ jobs:
     # TODO revert change back to ${{ needs.metadata.outputs.environment }}
       env: prod
     secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
+    # TODO revert to ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
