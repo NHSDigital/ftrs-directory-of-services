@@ -144,7 +144,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And the bundle contains "1" "Organization" resources
     And the bundle contains "4" "Endpoint" resources
 
-@test
+
   Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and invalid headers
     When I request data from the "dos-search" endpoint "Organization" with valid query params and additional headers "<headers>"
     Then I receive a status code "400" in response
@@ -152,9 +152,9 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And the OperationOutcome contains "1" issues
     And the OperationOutcome has issues all with severity "error"
     And the OperationOutcome has issues all with code "value"
-    And the OperationOutcome contains an issue with diagnostics "Invalid request headers supplied: <header_name>"
+    And the OperationOutcome contains an issue with diagnostics "Unexpected header(s): <header_name>."
     And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
     Examples:
-      |params                        |header_name           |
+      |headers                              |header_name           |
       |{"My-Request-ID": "req-987654321"}   |my-request-id         |
       |{"Correlation-ID": "corr-123456789"} |correlation-id        |

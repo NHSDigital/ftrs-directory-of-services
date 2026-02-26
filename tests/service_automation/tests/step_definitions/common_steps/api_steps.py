@@ -7,7 +7,7 @@ from pytest_bdd import parsers, then
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
-    # logger.info(f"Received status code: {fresponse.json()}")
+    #  logger.info(f"Received status code: {fresponse.json()}")
     assert fresponse.status == status_code
 
 
@@ -91,6 +91,8 @@ def api_check_operation_outcome_issue_count(fresponse, number):
 @then(parsers.parse('the OperationOutcome contains an issue with {key} "{value}"'))
 def api_check_operation_outcome_any_issue_by_key_value(fresponse, key, value):
     response = fresponse.json()
+    logger.info(f"OperationOutcome issues: {response['issue']}")
+    logger.info(f"Checking for issue with {key}='{value}'")
     assert any(issue.get(key) == value for issue in response["issue"])
 
 

@@ -353,22 +353,41 @@ def check_connection_reset_error(connection_error):
 
 @when(
     parsers.re(
-        r'I request data from the APIM endpoint "(?P<resource_name>[^"]+)" with query params "(?P<params>[^"]+)" with malformed auth header "(?P<auth_value>[^"]*)"'
+        r'I request data from the APIM endpoint "(?P<resource_name>[^"]+)" with query params "(?P<params>[^"]+)" with malformed auth header'
     ),
     target_fixture="fresponse",
 )
 def send_to_apim_with_malformed_auth(
-    api_request_context,
+    apim_request_context,
+    status_endpoint_auth_headers,
     nhsd_apim_proxy_url,
-    params: str,
-    resource_name: str,
-    auth_value: str,
+    params,
+    resource_name,
 ):
     """Send request to APIM with a malformed Authorization header."""
     url = nhsd_apim_proxy_url + "/" + resource_name
-    headers = {"Authorization": auth_value}
-    logger.info(f"Requesting APIM URL: {url} with malformed auth: '{auth_value}'")
-    return _send_api_request(api_request_context, url, params, headers)
+    headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": "MalformedHeader"}
+    logger.info(f"Requesting URL: {url} with params: {params} with headers: {headers}")
+    return _send_api_request(apim_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>[^"]+)" with query params "(?P<params>[^"]+)" with empty auth header'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_with_empty_auth(
+    apim_request_context,
+    status_endpoint_auth_headers,
+    nhsd_apim_proxy_url,
+    params,
+    resource_name,
+):
+    """Send request to APIM with an empty Authorization header."""
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": ""}
+    return _send_api_request(apim_request_context, url, params, headers)
 
 
 @when(
@@ -387,5 +406,23 @@ def send_to_apim_with_ods_code_malformed_auth(
     url = dos_search_service_url + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": "MalformedHeader"}
-    logger.info(f"Requesting APIM URL: {url} with malformed auth: 'MalformedHeader'")
+    return _send_api_request(api_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>[^"]+)" with an odscode from dynamo organisation table but with empty auth header'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_with_ods_code_empty_auth(
+    api_request_context,
+    dos_search_service_url,
+    resource_name: str,
+    ods_code: str,
+):
+    """Send request to APIM with an empty Authorization header."""
+    url = dos_search_service_url + "/" + resource_name
+    params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
+    headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": ""}
     return _send_api_request(api_request_context, url, params, headers)

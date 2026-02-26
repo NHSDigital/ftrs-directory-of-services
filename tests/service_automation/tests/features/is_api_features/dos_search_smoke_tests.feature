@@ -24,13 +24,6 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     Then I receive a status code "200" in response
 
 
-#DOn't think that the starus endpoint is accessible by a enduser
-  Scenario: I can access APIM for the dos-search 'status' Endpoint and access is required
-    When I request data from the APIM endpoint "_status" with an odscode from dynamo organisation table and with status token
-    Then I receive a status code "200" in response
-
-
-
 
   Scenario: I cannot send a request to the dos-search api-gateway organisation endpoint without mtls credentials
     When I attempt to request data from the "dos-search" endpoint "Organization" with an odscode from dynamo organisation table but without authentication
@@ -79,7 +72,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
   Scenario: I cannot search APIM for the dos-search organization endpoint with empty Authorization header
-    When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with malformed auth header ""
+    When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with empty auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
