@@ -48,8 +48,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      # TODO revert test change to force failure - athen -> athena
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athen']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
@@ -454,8 +453,6 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-    # TODO revert change back to ${{ needs.metadata.outputs.environment }}
-      env: test
+      env: ${{ needs.metadata.outputs.environment }}
     secrets:
-    # TODO revert to ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
