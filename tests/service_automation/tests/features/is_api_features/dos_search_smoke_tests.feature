@@ -9,7 +9,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I send a request to the dos-search organization endpoint by ODS Code via APIM with an existing ODS code from the Organisation dynamo table
+  Scenario: I search for Organization endpoint data by ODS Code via APIM with an existing ODS code from the Organisation dynamo table
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -25,14 +25,14 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I cannot send a request to the dos-search api-gateway organisation endpoint without mtls credentials
+  Scenario: I cannot search for Organization endpoint data by ODS Code without mtls credentials
     When I attempt to request data from the "dos-search" endpoint "Organization" with an odscode from dynamo organisation table but without authentication
     Then I receive a connection reset error
 
 
 
 
-  Scenario: I cannot search APIM for the dos-search organization endpoint with invalid access token
+  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with invalid access token
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with invalid token
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -45,7 +45,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I cannot search APIM for the dos-search organization endpoint without authentication
+  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM without authentication
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but without authentication
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -58,7 +58,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I cannot search APIM for the dos-search organization endpoint with malformed Authorization header format
+  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with malformed Authorization header format
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with malformed auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -71,7 +71,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I cannot search APIM for the dos-search organization endpoint with empty Authorization header
+  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with empty Authorization header
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with empty auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource

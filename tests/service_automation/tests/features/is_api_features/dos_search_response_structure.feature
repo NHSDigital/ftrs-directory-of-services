@@ -8,7 +8,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-  Scenario: I verify all response values match the expected test data for organisation M00081046
+  Scenario: I search for Organization endpoint data by ODS Code and verify all response values match the expected test data for organisation M00081046
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response headers contain "Content-Type" with value "application/fhir+json"
@@ -30,7 +30,6 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And the "Organization" resource has "identifier" array containing "value" with value "M00081046"
     And the "Organization" resource has "name" field with value "Abbottswood Medical Practice, Pershore, Worcestershire"
     And the "Organization" resource has "active" field with boolean true
-    And the "Organization" resource has name field
     And the "Organization" resource identifier value matches ODS code pattern
 
     # All Endpoints structure validation
@@ -50,7 +49,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     # Schema validation
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
-  Scenario:I verify the Bundle structure of a successful response conforms to the specification
+  Scenario: I search for Organization endpoint data by ODS Code and verify the Bundle structure of a successful response conforms to the specification
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -65,7 +64,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
 
 
 
-  Scenario: I verify individual endpoint data values for organisation M00081046
+  Scenario: I search for Organization endpoint data by ODS Code and verify individual endpoint data values for organisation M00081046
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -108,53 +107,3 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And Endpoint 3 has extension "EndpointBusinessScenario" with valueCode "primary-recipient"
 
 
-
- Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and valid headers, including mandatory headers and additional optional headers in various combinations
-    When I request data from the "dos-search" endpoint "Organization" with valid query params and additional headers "<headers>"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "1" "Organization" resources
-    And the bundle contains "4" "Endpoint" resources
-    Examples:
-      |headers                        |
-      |{"NHSD-Request-ID": "req-987654321"} |
-      |{"Content-Type": "application/fhir+json"} |
-      |{"NHSD-Correlation-ID": "corr-123456789"} |
-      |{"NHSD-Request-ID": "req-987654321"} |
-      # |{"NHSD-Message-Id": "msg-1122334455"} |
-      # |{"NHSD-Api-Version": "1.0"} |
-      # |{"NHSD-End-User-Role": "GPPracticeAdmin"} |
-      # |{"NHSD-Client-Id": "client-abc123"} |
-      # |{"NHSD-Connecting-Party-App-Name": "dos-search-service"} |
-      |{"Accept": "application/fhir+json"} |
-      |{"Accept-Encoding": "gzip, deflate"} |
-      |{"Accept-Language": "en-GB"} |
-      |{"User-Agent": "curl/8.0"} |
-      # |{"Host": "dos-search-ftrs-735.dev.ftrs.cloud.nhs.uk"} |
-      |{"X-Forwarded-For": "192.168.1.10"} |
-      |{"X-Forwarded-Port": "443"} |
-      |{"X-Forwarded-Proto": "https"} |
-      |{"NHSD-Request-ID": "req-987654321", "NHSD-Correlation-ID": "corr-123456789"} |
-
-
-  Scenario:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and no headers
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle contains "1" "Organization" resources
-    And the bundle contains "4" "Endpoint" resources
-
-
-  Scenario Outline:I send a request to the dos-search organization endpoint by ODS Code with valid query parameters and invalid headers
-    When I request data from the "dos-search" endpoint "Organization" with valid query params and additional headers "<headers>"
-    Then I receive a status code "400" in response
-    And the response body contains an "OperationOutcome" resource
-    And the OperationOutcome contains "1" issues
-    And the OperationOutcome has issues all with severity "error"
-    And the OperationOutcome has issues all with code "value"
-    And the OperationOutcome contains an issue with diagnostics "Unexpected header(s): <header_name>."
-    And the OperationOutcome contains an issue with details for REC_BAD_REQUEST coding
-    Examples:
-      |headers                              |header_name           |
-      |{"My-Request-ID": "req-987654321"}   |my-request-id         |
-      |{"Correlation-ID": "corr-123456789"} |correlation-id        |
