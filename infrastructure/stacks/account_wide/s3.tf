@@ -21,34 +21,6 @@ module "vpc_flow_logs_s3_bucket" {
   policy            = data.aws_iam_policy_document.vpc_flow_logs_s3_bucket_policy_doc.json
 }
 
-data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
-  statement {
-    sid = "AWSLogDeliveryWrite"
-
-    principals {
-      type        = "Service"
-      identifiers = ["delivery.logs.amazonaws.com"]
-    }
-
-    actions = ["s3:PutObject"]
-
-    resources = ["_S3_BUCKET_ARN_/*"]
-  }
-
-  statement {
-    sid = "AWSLogDeliveryAclCheck"
-
-    principals {
-      type        = "Service"
-      identifiers = ["delivery.logs.amazonaws.com"]
-    }
-
-    actions = ["s3:GetBucketAcl"]
-
-    resources = ["_S3_BUCKET_ARN_"]
-  }
-}
-
 # Subnet Flow Logs S3 Bucket and Resource Policy
 module "subnet_flow_logs_s3_bucket" {
   source        = "../../modules/s3"
@@ -72,34 +44,6 @@ module "subnet_flow_logs_s3_bucket" {
   policy            = data.aws_iam_policy_document.subnet_flow_logs_s3_bucket_policy_doc.json
 }
 
-data "aws_iam_policy_document" "subnet_flow_logs_s3_bucket_policy_doc" {
-  statement {
-    sid = "AWSLogDeliveryWrite"
-
-    principals {
-      type        = "Service"
-      identifiers = ["delivery.logs.amazonaws.com"]
-    }
-
-    actions = ["s3:PutObject"]
-
-    resources = ["_S3_BUCKET_ARN_/*"]
-  }
-
-  statement {
-    sid = "AWSLogDeliveryAclCheck"
-
-    principals {
-      type        = "Service"
-      identifiers = ["delivery.logs.amazonaws.com"]
-    }
-
-    actions = ["s3:GetBucketAcl"]
-
-    resources = ["_S3_BUCKET_ARN_"]
-  }
-}
-
 module "trust_store_s3_bucket" {
   # This module creates an S3 bucket for the trust store used for MTLS Certificates.
   source                = "../../modules/s3"
@@ -109,23 +53,6 @@ module "trust_store_s3_bucket" {
   enable_kms_encryption = var.enable_s3_kms_encryption
   attach_policy         = true
   policy                = data.aws_iam_policy_document.trust_store_bucket_policy.json
-}
-
-data "aws_iam_policy_document" "trust_store_bucket_policy" {
-  statement {
-    sid = "AllowAPIGatewayAccess"
-    principals {
-      type        = "Service"
-      identifiers = ["apigateway.amazonaws.com"]
-    }
-    actions = [
-      "s3:GetObject",
-      "s3:GetObjectVersion"
-    ]
-    resources = [
-      "_S3_BUCKET_ARN_/*"
-    ]
-  }
 }
 
 # IS Performance S3 Bucket
@@ -151,8 +78,6 @@ module "cloudtrail_s3_bucket" {
 
   s3_logging_bucket = local.s3_logging_bucket
 
-  attach_policy                         = true
-  policy                                = data.aws_iam_policy_document.cloudtrail_s3_bucket_policy.json
   attach_cloudtrail_log_delivery_policy = true
 
   lifecycle_rule_inputs = [
