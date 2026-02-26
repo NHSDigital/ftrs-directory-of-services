@@ -72,6 +72,7 @@ scenarios(
     "./is_api_features/dos_search_backend.feature",
     "./is_api_features/dos_search_apim.feature",
     "./is_api_features/dos_search_apim_security.feature",
+    "./is_api_features/dos_search_backend_healthcare_service.feature",
     "./is_api_features/dos_search_apim_headers.feature",
 )
 

@@ -1,0 +1,31 @@
+{
+  "id": "48865e3d-b8f0-508b-8520-29b3113da1e3",
+  "createdBy": {
+    "type": "user",
+    "value": "INGRESS_API_ID",
+    "display": "FtRS Ingress API"
+  },
+  "createdTime": "2025-06-27T12:46:36.111296Z",
+  "lastUpdatedBy": {
+    "type": "user",
+    "value": "INGRESS_API_ID",
+    "display": "FtRS Ingress API"
+  },
+  "lastUpdated": "2025-06-27T12:46:36.111296Z",
+  "identifier_oldDoS_uid": "10005752",
+  "active": true,
+  "category": "GP Services",
+  "type": "GP Consultation Service",
+  "providedBy": "36fce427-0f31-4a4e-903f-74dcf9e63cfd",
+  "location": "6ef3317e-c6dc-5e27-b36d-577c375eb060",
+  "name": "Abbottswood Medical Practice GP Service",
+  "telecom": {
+    "phone_public": "0300 311 22 33",
+    "phone_private": null,
+    "email": "test134@nhs.net",
+    "web": "https://example123.com"
+  },
+  "openingTime": [],
+  "symptomGroupSymptomDiscriminators": [],
+  "dispositions": []
+}
