@@ -52,3 +52,15 @@ data "aws_s3_object" "python_dependency_layer" {
   key    = "${local.artefact_base_path}/${var.project}-slack-notifier-python-dependency-layer.zip"
 }
 
+data "aws_iam_policy_document" "sns_topic_policy" {
+  count = local.stack_enabled
+
+  statement {
+    actions = ["SNS:Publish"]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudwatch.amazonaws.com"]
+    }
+    resources = [aws_sns_topic.slack_notifications[0].arn]
+  }
+}

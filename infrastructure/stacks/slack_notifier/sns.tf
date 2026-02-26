@@ -15,15 +15,9 @@ resource "aws_sns_topic_policy" "slack_notifications" {
   policy = data.aws_iam_policy_document.sns_topic_policy[0].json
 }
 
-data "aws_iam_policy_document" "sns_topic_policy" {
-  count = local.stack_enabled
-
-  statement {
-    actions = ["SNS:Publish"]
-    principals {
-      type        = "Service"
-      identifiers = ["cloudwatch.amazonaws.com"]
-    }
-    resources = [aws_sns_topic.slack_notifications[0].arn]
-  }
+resource "aws_sns_topic_subscription" "slack_notification" {
+  count     = local.stack_enabled
+  topic_arn = aws_sns_topic.slack_notifications[0].arn
+  protocol  = "lambda"
+  endpoint  = module.slack_lambda[0].lambda_function_arn
 }

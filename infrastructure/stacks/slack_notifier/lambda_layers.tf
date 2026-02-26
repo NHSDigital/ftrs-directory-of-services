@@ -17,5 +17,3 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   compatible_runtimes = [var.lambda_runtime]
   description         = "Python dependencies for Slack notifier Lambda"
 }
-
-
