@@ -368,11 +368,73 @@ paths:
                     code: not-found
                     details:
                       coding:
-                        - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
-                          code: NOT_FOUND
-                          display: The Server was unable to find the specified resource.
-                      text: "Organisation with ODS code '<ODS code from request params>' not found"
-                    diagnostics: "Organisation with ODS code '<ODS code from request params>' not found"
+                        - system: http://terminology.hl7.org/CodeSystem/operation-outcome
+                          code: MSG_NO_EXIST
+                          display: Resource does not exist
+                      text: The requested organisation was not found
+                    diagnostics: "Organisation with ODS code 'DEF456' not found"
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "security"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "UNAUTHORIZED"
+                          display: "Unauthorized"
+                    diagnostics: "Invalid or missing authentication token"
+        '403':
+          description: Forbidden - Insufficient permissions
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "forbidden"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
+                          version: "1"
+                          code: "FORBIDDEN"
+                          display: "Forbidden"
+                    diagnostics: "Insufficient permissions to access this resource"
         '422':
           description: Unprocessable Entity (e.g., ODS code validation failed)
           headers:
@@ -404,6 +466,37 @@ paths:
                           display: Message was not malformed but deemed unprocessable by the server.
                       text: Validation failed for resource
                     diagnostics: "Validation failed for resource."
+        '429':
+          description: Too many requests - Rate limit exceeded
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
+              description: The X-Correlation-ID from the request header, if supplied, mirrored
+                back.
+            X-Request-ID:
+              schema:
+                type: string
+                example: 11c46f5f-cdef-4865-94b2-0ee0edcc26da
+              description: The X-Request-ID from the request header, either generated or supplied, mirrored
+                back.
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "throttled"
+                    details:
+                      coding:
+                        - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                          version: "1.0.0"
+                          code: "SEND_TOO_MANY_REQUESTS"
+                          display: "Send too many requests"
+                    diagnostics: "Rate limit exceeded. Please retry after some time."
         '500':
           description: Internal server error
           headers:
