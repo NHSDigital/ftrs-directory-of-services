@@ -12,6 +12,7 @@ from functions.dos_search_ods_code_function import (
     DEFAULT_RESPONSE_HEADERS,
     lambda_handler,
 )
+from functions.logbase import DosSearchLogBase
 
 
 @pytest.fixture
@@ -104,12 +105,11 @@ class TestLambdaHandler:
         self,
         lambda_context,
         mock_ftrs_service,
+        mock_dos_logger,
         mock_logger,
         ods_code,
         event,
         bundle,
-        log_data,
-        details,
     ):
         # Arrange
         mock_ftrs_service.endpoints_by_ods.return_value = bundle
@@ -119,23 +119,27 @@ class TestLambdaHandler:
 
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
+
+        mock_dos_logger.init.assert_called_once_with(ANY)
+        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
+            bundle, ANY
+        )
+
         mock_logger.assert_has_calls(
             [
-                call.init(ANY),
-                call.info(
-                    "Received request for odsCode",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_002,
                     ods_code=ods_code,
                     dos_message_category="REQUEST",
                 ),
-                call.get_response_size_and_duration(bundle, ANY),
-                call.info(
-                    "Successfully processed: Logging response time & size",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_003,
                     dos_response_time=ANY,
                     dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
                     dos_message_category="METRICS",
                 ),
-                call.info(
-                    "Creating response",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_004,
                     status_code=200,
                     body=ANY,
                     dos_message_category="RESPONSE",
@@ -158,10 +162,9 @@ class TestLambdaHandler:
         self,
         lambda_context,
         mock_error_util,
+        mock_dos_logger,
         mock_logger,
         event,
-        log_data,
-        details,
         model_to_throw_validation_error,
     ):
         # Arrange
@@ -171,7 +174,7 @@ class TestLambdaHandler:
                 "utf-8"
             )
         )
-        mock_logger.get_response_size_and_duration.return_value = (response_size, 1)
+        mock_dos_logger.get_response_size_and_duration.return_value = (response_size, 1)
 
         # Act
         with patch(
@@ -185,21 +188,22 @@ class TestLambdaHandler:
             validation_error
         )
 
+        mock_dos_logger.init.assert_called_once_with(ANY)
+        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
+            mock_error_util.create_validation_error_operation_outcome.return_value,
+            ANY,
+        )
+
         mock_logger.assert_has_calls(
             [
-                call.init(ANY),
-                call.get_response_size_and_duration(
-                    mock_error_util.create_validation_error_operation_outcome.return_value,
-                    ANY,
-                ),
-                call.warning(
-                    "Validation error occurred: Logging response time & size",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_005,
                     validation_errors=validation_error.errors(),
                     dos_response_time="1ms",
                     dos_response_size=response_size,
                 ),
-                call.info(
-                    "Creating response",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_004,
                     status_code=400,
                     body=ANY,
                     dos_message_category="RESPONSE",
@@ -228,6 +232,7 @@ class TestLambdaHandler:
         event,
         ods_code,
         mock_error_util,
+        mock_dos_logger,
         mock_logger,
         bundle,
         exception,
@@ -241,25 +246,27 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
+
+        mock_dos_logger.init.assert_called_once_with(ANY)
+        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
+            mock_error_util.create_resource_internal_server_error.return_value,
+            ANY,
+        )
+
         mock_logger.assert_has_calls(
             [
-                call.init(ANY),
-                call.info(
-                    "Received request for odsCode",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_002,
                     ods_code=ods_code,
                     dos_message_category="REQUEST",
                 ),
-                call.get_response_size_and_duration(
-                    mock_error_util.create_resource_internal_server_error.return_value,
-                    ANY,
-                ),
-                call.exception(
-                    "Internal server error occurred: Logging response time & size",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_006,
                     dos_response_time="1ms",
                     dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
                 ),
-                call.info(
-                    "Creating response",
+                call.log(
+                    DosSearchLogBase.DOS_SEARCH_004,
                     status_code=500,
                     body=ANY,
                     dos_message_category="RESPONSE",

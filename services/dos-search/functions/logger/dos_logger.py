@@ -3,26 +3,31 @@ import time
 from functools import cache
 from typing import Any, Literal, Optional
 
-from aws_lambda_powertools.logging import Logger as PowertoolsLogger
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_common.logger import Logger
+from ftrs_common.utils.correlation_id import fetch_or_set_correlation_id
+from ftrs_common.utils.request_id import fetch_or_set_request_id
+
+from functions.logbase import DosSearchLogBase
 
 PLACEHOLDER = "Value not found. Please check if this value was provided in the request."
 
 
 class DosLogger:
-    """Service-local wrapper that adds DOS structured fields to powertools logs while mirroring the underlying Logger implementation and behaviour.
+    """Service-local utility class that handles DOS-specific header extraction,
+    request/correlation ID setup, and response metrics calculation.
+
+    Logging is performed via the FTRS common Logger directly at call sites.
 
     Usage:
-        f = DosLogger.get(service='dos-search')
-        f.info('message', extra_fields=my_extra_fields)
-
-    Behavior:
-    - Takes in a log message alongside any other extra fields
-    - Calls powertools Logger with `extra=...` so powertools merges it into its JSON output
+        dos_logger = DosLogger.get(service='dos-search')
+        logger = Logger.get(service='dos-search')
+        dos_logger.init(event)
+        logger.log(DosSearchLogBase.DOS_SEARCH_002, ods_code=ods_code)
     """
 
     def __init__(self, service: str = "dos") -> None:
-        self.logger = PowertoolsLogger(service=service)
+        self.logger = Logger.get(service=service)
         self.headers = {}
 
     # Initialise method handles processing of event details - this should be called at the start of Lambda execution
@@ -32,11 +37,15 @@ class DosLogger:
         # Extract of one-time fields for logging below
         details = self.extract_one_time(event)
 
-        # Appends common fields to all subsequent logs
+        # Set request and correlation IDs for the common logger
+        fetch_or_set_request_id(header_id=self._get_header("nhsd-request-id"))
+        fetch_or_set_correlation_id(existing=self._get_header("nhsd-correlation-id"))
+
+        # Appends common DOS fields to all subsequent logs
         self.logger.append_keys(**log_data)
-        # Log one-time fields from event
-        self.info(
-            "Logging one-time fields from Request",
+        # Log one-time fields from event via the common logger
+        self.logger.log(
+            DosSearchLogBase.DOS_SEARCH_001,
             **details,
             dos_message_category="REQUEST",
         )
@@ -69,8 +78,8 @@ class DosLogger:
             response_size = len(body.encode("utf-8"))
         except Exception:
             response_size = 0
-            self.exception(
-                "Failed to calculate response size",
+            self.logger.log(
+                DosSearchLogBase.DOS_SEARCH_010,
                 dos_response_time=f"{duration_ms}ms",
                 dos_response_size=response_size,
             )
@@ -182,54 +191,3 @@ class DosLogger:
     # Manual method to clear ALL appended keys. Not used as setting `clear_state=True` in the Lambda handler should suffice for current logging behaviour
     def clear_state(self) -> None:
         self.logger.clear_state()
-
-    # --- logging methods -----------------------------------------------
-    def _log_with_level(
-        self,
-        level: str,
-        message: str,
-        **detail: object,
-    ) -> None:
-        # Handles deliberately passed None values
-        log_data = {}
-        # convert detail (kwargs) to dict for manipulation
-        detail_map = dict(detail) if detail else {}
-
-        # Allow certain dos_* fields to be provided as top-level overrides
-        override_keys = {
-            "dos_message_category",
-        }
-        if detail_map:
-            for k in list(detail_map.keys()):
-                if k in override_keys:
-                    log_data[k] = detail_map.pop(k)
-            log_data["detail"] = detail_map
-
-        # call powertools
-        if level == "debug":
-            self.logger.debug(message, extra=log_data)
-        elif level == "info":
-            self.logger.info(message, extra=log_data)
-        elif level == "warning":
-            self.logger.warning(message, extra=log_data)
-        elif level == "error":
-            self.logger.error(message, extra=log_data)
-        elif level == "exception":
-            self.logger.exception(message, extra=log_data)
-        else:
-            self.logger.info(message, extra=log_data)
-
-    def debug(self, message: str, **detail: object) -> None:
-        self._log_with_level("debug", message, **detail)
-
-    def info(self, message: str, **detail: object) -> None:
-        self._log_with_level("info", message, **detail)
-
-    def warning(self, message: str, **detail: object) -> None:
-        self._log_with_level("warning", message, **detail)
-
-    def error(self, message: str, **detail: object) -> None:
-        self._log_with_level("error", message, **detail)
-
-    def exception(self, message: str, **detail: object) -> None:
-        self._log_with_level("exception", message, **detail)

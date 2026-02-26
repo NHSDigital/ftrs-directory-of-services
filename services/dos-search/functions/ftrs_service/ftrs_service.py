@@ -1,11 +1,12 @@
 from fhir.resources.R4B.bundle import Bundle
+from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
 from functions.ftrs_service.fhir_mapper.bundle_mapper import BundleMapper
-from functions.logger.dos_logger import DosLogger
+from functions.logbase import DosSearchLogBase
 
-dos_logger = DosLogger.get(service="dos-search")
+logger = Logger.get(service="dos-search")
 
 
 class FtrsService:
@@ -15,19 +16,19 @@ class FtrsService:
 
     def endpoints_by_ods(self, ods_code: str) -> Bundle:
         try:
-            dos_logger.info("Retrieving organisation by ods_code")
+            logger.log(DosSearchLogBase.DOS_SEARCH_007)
 
             organisation = self.repository.get_first_record_by_ods_code(ods_code)
 
-            dos_logger.info(
-                "Mapping organisation to fhir_bundle",
+            logger.log(
+                DosSearchLogBase.DOS_SEARCH_008,
                 organization_id=organisation.id if organisation else "None",
             )
 
             fhir_bundle = self.mapper.map_to_fhir(organisation, ods_code)
 
         except Exception:
-            dos_logger.exception("Error occurred while processing")
+            logger.log(DosSearchLogBase.DOS_SEARCH_009)
             raise
 
         else:

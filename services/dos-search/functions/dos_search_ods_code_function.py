@@ -6,15 +6,18 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
+from ftrs_common.logger import Logger
+
 from functions import error_util
 from functions.ftrs_service.ftrs_service import FtrsService
+from functions.logbase import DosSearchLogBase
 from functions.logger.dos_logger import DosLogger
 from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
 
 service = "dos-search"
 dos_logger = DosLogger.get(service=service)
-logger = dos_logger.logger
+logger = Logger.get(service=service)
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
@@ -52,8 +55,8 @@ def get_organization() -> Response:
 
         ods_code = validated_params.ods_code
         # Structured request log
-        dos_logger.info(
-            "Received request for odsCode",
+        logger.log(
+            DosSearchLogBase.DOS_SEARCH_002,
             ods_code=ods_code,
             dos_message_category="REQUEST",
         )
@@ -69,8 +72,8 @@ def get_organization() -> Response:
             fhir_resource, start
         )
 
-        dos_logger.info(
-            "Successfully processed: Logging response time & size",
+        logger.log(
+            DosSearchLogBase.DOS_SEARCH_003,
             dos_response_time=f"{duration_ms}ms",
             dos_response_size=response_size,
             dos_message_category="METRICS",
@@ -84,8 +87,8 @@ def handle_event_validation_error(exception: ValidationError, start: float) -> R
     response_size, duration_ms = dos_logger.get_response_size_and_duration(
         fhir_resource, start
     )
-    dos_logger.warning(
-        "Validation error occurred: Logging response time & size",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_005,
         validation_errors=exception.errors(),
         dos_response_time=f"{duration_ms}ms",
         dos_response_size=response_size,
@@ -100,8 +103,8 @@ def handle_general_exception(start: float) -> Response:
     response_size, duration_ms = dos_logger.get_response_size_and_duration(
         fhir_resource, start
     )
-    dos_logger.exception(
-        "Internal server error occurred: Logging response time & size",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_006,
         dos_response_time=f"{duration_ms}ms",
         dos_response_size=response_size,
     )
@@ -113,8 +116,8 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
     body = fhir_resource.model_dump_json()
-    dos_logger.info(
-        "Creating response",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_004,
         status_code=status_code,
         body=body,
         dos_message_category="RESPONSE",

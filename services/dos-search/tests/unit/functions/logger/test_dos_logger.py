@@ -3,11 +3,12 @@ import os
 import time
 from copy import deepcopy
 from dataclasses import dataclass
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 import pytest
 from aws_lambda_powertools.event_handler import Response
 
+from functions.logbase import DosSearchLogBase
 from functions.logger.dos_logger import PLACEHOLDER, DosLogger
 from tests.unit.functions.logger.setup_dummy_lambda import lambda_handler
 
@@ -173,174 +174,24 @@ class TestDosLogger:
             )
 
         # Act
-        lambda_handler(event, lambda_context, call_init)
+        with (
+            patch("functions.logger.dos_logger.fetch_or_set_request_id") as mock_req,
+            patch(
+                "functions.logger.dos_logger.fetch_or_set_correlation_id"
+            ) as mock_corr,
+        ):
+            lambda_handler(event, lambda_context, call_init)
 
-        # Assert
+            # Assert fetch_or_set called with values from event headers
+            mock_req.assert_called_once_with(header_id="request_id")
+            mock_corr.assert_called_once_with(
+                existing="request_id.correlation_id.message_id"
+            )
+
+        # Assert append_keys called with mandatory dos fields
         mock_base_powertools_logger.assert_has_calls(
             [
                 call.append_keys(**log_data),
-                call.info(
-                    "Logging one-time fields from Request",
-                    extra={"detail": details, "dos_message_category": "REQUEST"},
-                ),
-            ]
-        )
-
-    def test_debug_call(
-        self,
-        caplog,
-        event,
-        dos_logger,
-        lambda_context,
-        assert_mandatory_fields_present,
-    ):
-        caplog.set_level(10)  # DEBUG
-        dos_logger.logger.setLevel(10)  # DEBUG
-        # Arrange
-        debug_message = "test_debug_call: testing debug call"
-
-        def call_debug() -> Response:
-            dos_logger.debug(debug_message)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
-        # Act
-        lambda_handler(event, lambda_context, call_debug)
-        capture = dos_logger.get_keys()
-
-        # Assert
-        assert_mandatory_fields_present(capture)
-        assert "test_debug_call: testing debug call" in caplog.messages
-
-    def test_info_call(
-        self,
-        caplog,
-        event,
-        dos_logger,
-        lambda_context,
-        assert_mandatory_fields_present,
-    ):
-        # Arrange
-        info_message = "test_info_call: testing info call"
-
-        def call_info() -> Response:
-            dos_logger.info(info_message)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
-        # Act
-        lambda_handler(event, lambda_context, call_info)
-        capture = dos_logger.get_keys()
-
-        # Assert
-        assert_mandatory_fields_present(capture)
-        assert "test_info_call: testing info call" in caplog.messages
-
-    def test_warning_call(
-        self,
-        caplog,
-        event,
-        dos_logger,
-        lambda_context,
-        assert_mandatory_fields_present,
-    ):
-        # Arrange
-        warning_message = "test_warning_call: testing warning call"
-
-        def call_warning() -> Response:
-            dos_logger.warning(warning_message)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
-        # Act
-        lambda_handler(event, lambda_context, call_warning)
-        capture = dos_logger.get_keys()
-
-        # Assert
-        assert_mandatory_fields_present(capture)
-        assert "test_warning_call: testing warning call" in caplog.messages
-
-    def test_error_call(
-        self,
-        caplog,
-        event,
-        dos_logger,
-        lambda_context,
-        assert_mandatory_fields_present,
-    ):
-        # Arrange
-        error_message = "test_error_call: testing error call"
-
-        def call_error() -> Response:
-            dos_logger.error(error_message)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
-        # Act
-        lambda_handler(event, lambda_context, call_error)
-        capture = dos_logger.get_keys()
-
-        # Assert
-        assert_mandatory_fields_present(capture)
-        assert "test_error_call: testing error call" in caplog.messages
-
-    def test_exception_call(
-        self,
-        caplog,
-        event,
-        dos_logger,
-        lambda_context,
-        assert_mandatory_fields_present,
-    ):
-        # Arrange
-        exception_message = "test_exception_call: testing exception call"
-
-        def call_exception() -> Response:
-            dos_logger.exception(exception_message)
-            return Response(
-                status_code=123,
-                content_type="application/fhir+json",
-                body=json.dumps(dict()),
-            )
-
-        # Act
-        lambda_handler(event, lambda_context, call_exception)
-        capture = dos_logger.get_keys()
-
-        # Assert
-        assert_mandatory_fields_present(capture)
-        assert "test_exception_call: testing exception call" in caplog.messages
-
-    def test_powertools_log_calls(self, dos_logger, mock_base_powertools_logger):
-        # Act
-        dos_logger.debug("debug message")
-        dos_logger.info("info message")
-        dos_logger.warning("warning message")
-        dos_logger.error("error message")
-        dos_logger.exception("exception message")
-        dos_logger._log_with_level("bogus", "bogus level message")
-
-        # Assert
-        mock_base_powertools_logger.assert_has_calls(
-            [
-                call.debug("debug message", extra={}),
-                call.info("info message", extra={}),
-                call.warning("warning message", extra={}),
-                call.error("error message", extra={}),
-                call.exception("exception message", extra={}),
-                call.info("bogus level message", extra={}),  # default to info
             ]
         )
 
@@ -407,13 +258,9 @@ class TestDosLogger:
         # Function still returns
         assert response_size == 0
         assert duration_ms >= 0
-        # Error logged out to mark failure
-        mock_base_powertools_logger.exception.assert_called_with(
-            "Failed to calculate response size",
-            extra={
-                "detail": {
-                    "dos_response_time": f"{duration_ms}ms",
-                    "dos_response_size": 0,
-                }
-            },
+        # Error logged out to mark failure via common logger (DOS_SEARCH_010 is ERROR level)
+        mock_base_powertools_logger.log.assert_called_once_with(
+            DosSearchLogBase.DOS_SEARCH_010,
+            dos_response_time=ANY,
+            dos_response_size=0,
         )

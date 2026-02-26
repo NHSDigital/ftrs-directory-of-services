@@ -1,0 +1,50 @@
+from logging import ERROR, INFO, WARNING
+
+from ftrs_common.logger import LogBase, LogReference
+
+
+class DosSearchLogBase(LogBase):
+    """
+    LogBase for DoS Search service operations.
+    """
+
+    DOS_SEARCH_001 = LogReference(
+        level=INFO,
+        message="Logging one-time fields from Request",
+    )
+    DOS_SEARCH_002 = LogReference(
+        level=INFO,
+        message="Received request for odsCode",
+    )
+    DOS_SEARCH_003 = LogReference(
+        level=INFO,
+        message="Successfully processed request: Logging response time & size",
+    )
+    DOS_SEARCH_004 = LogReference(
+        level=INFO,
+        message="Creating response",
+    )
+    DOS_SEARCH_005 = LogReference(
+        level=WARNING,
+        message="Validation error occurred: Logging response time & size",
+    )
+    DOS_SEARCH_006 = LogReference(
+        level=ERROR,
+        message="Internal server error occurred: Logging response time & size",
+    )
+    DOS_SEARCH_007 = LogReference(
+        level=INFO,
+        message="Retrieving organisation by ods_code",
+    )
+    DOS_SEARCH_008 = LogReference(
+        level=INFO,
+        message="Mapping organisation to fhir_bundle",
+    )
+    DOS_SEARCH_009 = LogReference(
+        level=ERROR,
+        message="Error occurred while processing",
+    )
+    DOS_SEARCH_010 = LogReference(
+        level=ERROR,
+        message="Failed to calculate response size",
+    )
