@@ -2,6 +2,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 from ftrs_common.feature_flags import FeatureFlag, is_enabled
+from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
     HealthcareServiceCategory,
     HealthcareServiceType,
@@ -12,15 +13,16 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
+from common.cache import DoSMetadataCache
 from service_migration.exceptions import ParentPharmacyNotFoundError
 from service_migration.models import ServiceMigrationState
 from service_migration.transformer.base import (
-    ServiceTransformer,
+    LinkedPharmacyTransformer,
     ServiceTransformOutput,
 )
 
 
-class ContraceptionPharmacyTransformer(ServiceTransformer):
+class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
     STATUS_ACTIVE = 1
     CONTRACEPTION_TYPE_ID = 149
     CON_ODS_SUFFIX = "CON"
@@ -53,8 +55,8 @@ class ContraceptionPharmacyTransformer(ServiceTransformer):
       is created and linked to the parent pharmacy organisation and location
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
+        super().__init__(logger=logger, metadata=metadata)
         self.parent_organisation_id: UUID | None = None
         self.parent_location_id: UUID | None = None
 

@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
@@ -9,8 +11,13 @@ from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
+from service_migration.exceptions import ParentPharmacyNotFoundError
+from service_migration.models import ServiceMigrationState
 from service_migration.processor import DataMigrationProcessor, ServiceMigrationMetrics
 from service_migration.transformer.base import ServiceTransformOutput
+from service_migration.transformer.contraception_pharmacy import (
+    ContraceptionPharmacyTransformer,
+)
 from service_migration.validation.types import ValidationIssue, ValidationResult
 
 
@@ -952,10 +959,6 @@ def test_migrate_parent_pharmacy_success(
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     """Test that _migrate_parent_pharmacy executes a transaction and returns org/loc IDs."""
-    from uuid import uuid4
-
-    from service_migration.models import ServiceMigrationState
-
     processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
     processor.metadata = mock_metadata_cache
 
@@ -1101,12 +1104,6 @@ def test_process_service_contraception_parent_already_migrated(
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     """Test that _process_service uses existing org/loc IDs when parent is already in state."""
-    from uuid import uuid4
-
-    from service_migration.transformer.contraception_pharmacy import (
-        ContraceptionPharmacyTransformer,
-    )
-
     mock_legacy_service.typeid = 149
     mock_legacy_service.odscode = "FXX99CON"
     mock_legacy_service.name = "Contraception: Test Service"
@@ -1191,12 +1188,6 @@ def test_process_service_contraception_parent_needs_migration(
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     """Test that _process_service runs _migrate_parent_pharmacy when parent has no state record."""
-    from uuid import uuid4
-
-    from service_migration.transformer.contraception_pharmacy import (
-        ContraceptionPharmacyTransformer,
-    )
-
     mock_legacy_service.typeid = 149
     mock_legacy_service.odscode = "FXX99CON"
     mock_legacy_service.name = "Contraception: Test Service"
@@ -1284,11 +1275,6 @@ def test_process_service_contraception_parent_not_found(
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
     """Test that _process_service increments errors and stops when parent pharmacy is not found."""
-    from service_migration.exceptions import ParentPharmacyNotFoundError
-    from service_migration.transformer.contraception_pharmacy import (
-        ContraceptionPharmacyTransformer,
-    )
-
     mock_legacy_service.typeid = 149
     mock_legacy_service.odscode = "FXX99CON"
     mock_legacy_service.name = "Contraception: Test Service"

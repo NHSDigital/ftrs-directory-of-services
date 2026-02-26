@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from ftrs_common.mocks.mock_logger import MockLogger
@@ -307,7 +307,7 @@ def test_resolve_parent_raises_when_no_parent_found_in_dos(
             mock_legacy_service, MagicMock(), mock_get_state_record
         )
 
-    assert exc_info.value.record_id == 42
+    assert exc_info.value.record_id == mock_legacy_service.id
     assert exc_info.value.ods_code == "FXX99"
     assert exc_info.value.requeue is False
     mock_get_state_record.assert_not_called()

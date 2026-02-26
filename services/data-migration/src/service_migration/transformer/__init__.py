@@ -1,4 +1,5 @@
 from service_migration.transformer.base import (
+    LinkedPharmacyTransformer,
     ServiceTransformer,
     ServiceTransformOutput,
 )
@@ -17,6 +18,7 @@ SUPPORTED_TRANSFORMERS: list[ServiceTransformer] = [
 ]
 
 __all__ = [
+    "LinkedPharmacyTransformer",
     "ServiceTransformer",
     "ServiceTransformOutput",
     "GPPracticeTransformer",

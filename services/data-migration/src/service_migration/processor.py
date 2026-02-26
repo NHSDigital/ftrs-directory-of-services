@@ -20,10 +20,8 @@ from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
 )
+from service_migration.transformer.base import LinkedPharmacyTransformer
 from service_migration.transformer.base_pharmacy import BasePharmacyTransformer
-from service_migration.transformer.contraception_pharmacy import (
-    ContraceptionPharmacyTransformer,
-)
 
 
 class DataMigrationProcessor:
@@ -99,20 +97,9 @@ class DataMigrationProcessor:
 
             self.metrics.supported += 1
 
-            if isinstance(transformer, ContraceptionPharmacyTransformer):
-                try:
-                    parent_service, org_id, loc_id = transformer.resolve_parent(
-                        service, self.engine, self.get_state_record
-                    )
-                except ParentPharmacyNotFoundError:
-                    self.metrics.errors += 1
+            if isinstance(transformer, LinkedPharmacyTransformer):
+                if not self._setup_linked_transformer(transformer, service):
                     return
-
-                if parent_service is not None:
-                    org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
-
-                transformer.parent_organisation_id = org_id
-                transformer.parent_location_id = loc_id
 
             should_include, reason = transformer.should_include_service(service)
             if not should_include:
@@ -289,6 +276,29 @@ class DataMigrationProcessor:
         return create_engine(connection_string, echo=False).execution_options(
             postgresql_readonly=True
         )
+
+    def _setup_linked_transformer(
+        self, transformer: LinkedPharmacyTransformer, service: legacy.Service
+    ) -> bool:
+        """
+        Resolve the parent for a linked-pharmacy transformer, migrate it if needed,
+        and set the org/location IDs on the transformer.
+        Returns False if processing should stop (parent not found).
+        """
+        try:
+            parent_service, org_id, loc_id = transformer.resolve_parent(
+                service, self.engine, self.get_state_record
+            )
+        except ParentPharmacyNotFoundError:
+            self.metrics.errors += 1
+            return False
+
+        if parent_service is not None:
+            org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
+
+        transformer.parent_organisation_id = org_id
+        transformer.parent_location_id = loc_id
+        return True
 
     def _migrate_parent_pharmacy(
         self, parent_service: legacy.Service
