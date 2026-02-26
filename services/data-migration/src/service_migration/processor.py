@@ -204,7 +204,11 @@ class DataMigrationProcessor:
                 DataMigrationLogBase.DM_ETL_003,
                 transformer_name=TransformerClass.__name__,
             )
-            return TransformerClass(logger=self.logger, metadata=self.metadata)
+            return TransformerClass(
+                logger=self.logger,
+                metadata=self.metadata,
+                dynamodb_endpoint=self.config.dynamodb_endpoint,
+            )
 
     def _iter_records(self, batch_size: int = 1000) -> Iterable[legacy.Service]:
         """

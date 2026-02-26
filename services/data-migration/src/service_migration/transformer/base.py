@@ -63,10 +63,16 @@ class ServiceTransformer(ABC):
     )
     VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
-    def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
+    def __init__(
+        self,
+        logger: Logger,
+        metadata: DoSMetadataCache,
+        dynamodb_endpoint: str | None = None,
+    ) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
+        self.dynamodb_endpoint = dynamodb_endpoint
         self.validator = self.VALIDATOR_CLS(logger)
 
     @abstractmethod

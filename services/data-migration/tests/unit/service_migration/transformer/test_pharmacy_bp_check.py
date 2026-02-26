@@ -1,0 +1,231 @@
+from unittest.mock import MagicMock
+from uuid import uuid4
+
+import pytest
+from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
+from ftrs_data_layer.domain.legacy import Service
+from pytest_mock import MockerFixture
+
+from common.cache import DoSMetadataCache
+from service_migration.exceptions import ServiceMigrationException
+from service_migration.models import ServiceMigrationState
+from service_migration.transformer.pharmacy_blood_pressure_check import (
+    PharmacyBPCheckTransformer,
+    PharmacyDSPBPCheckTransformer,
+)
+
+
+@pytest.fixture(autouse=True)
+def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
+    """Mock the feature flags to prevent AppConfig initialization."""
+    return mocker.patch(
+        "service_migration.transformer.pharmacy_blood_pressure_check.is_enabled",
+        return_value=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "transformer_cls, service_type_id, ods_code, expected_result, expected_message",
+    [
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            "FXX99BPS",
+            True,
+            None,
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            "A1B2CBPS",
+            True,
+            None,
+        ),
+        (
+            PharmacyDSPBPCheckTransformer,
+            134,
+            "FXX99DSPBPS",
+            True,
+            None,
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            134,
+            "FXX99BPS",
+            False,
+            "Service type is not a Pharmacy type (13)",
+        ),
+        (
+            PharmacyDSPBPCheckTransformer,
+            13,
+            "FXX99DSPBPS",
+            False,
+            "Service type is not a Pharmacy type (134)",
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            None,
+            False,
+            "Service does not have an ODS code",
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            "FXX99",
+            False,
+            "ODS code is not 8 characters",
+        ),
+        (
+            PharmacyDSPBPCheckTransformer,
+            134,
+            "FXX99DSP",
+            False,
+            "ODS code is not 11 characters",
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            "FXX99XYZ",
+            False,
+            "ODS code does not end with BPS",
+        ),
+        (
+            PharmacyBPCheckTransformer,
+            13,
+            "12345BPS",
+            False,
+            "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
+        ),
+    ],
+)
+def test_is_service_supported(
+    mock_legacy_service: Service,
+    transformer_cls: type,
+    service_type_id: int,
+    ods_code: str | None,
+    expected_result: bool,
+    expected_message: str | None,
+) -> None:
+    mock_legacy_service.typeid = service_type_id
+    mock_legacy_service.odscode = ods_code
+
+    is_supported, message = transformer_cls.is_service_supported(mock_legacy_service)
+
+    assert is_supported == expected_result
+    assert message == expected_message
+
+
+@pytest.mark.parametrize(
+    "service_name, expected_result, expected_message",
+    [
+        ("BP Check: Test Service", True, None),
+        ("BP: Test Service", True, None),
+        (
+            "bp check: Test Service",
+            False,
+            "Service name does not start with required prefix (BP Check: or BP:)",
+        ),
+        (
+            "Test Service",
+            False,
+            "Service name does not start with required prefix (BP Check: or BP:)",
+        ),
+        (None, False, "Service name is missing"),
+    ],
+)
+def test_should_include_service(
+    mock_legacy_service: Service,
+    service_name: str | None,
+    expected_result: bool,
+    expected_message: str | None,
+) -> None:
+    mock_legacy_service.statusid = 1
+    mock_legacy_service.name = service_name
+
+    should_include, message = PharmacyBPCheckTransformer.should_include_service(
+        mock_legacy_service
+    )
+
+    assert should_include == expected_result
+    assert message == expected_message
+
+
+def test_transform_uses_parent_state_ids(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mocker: MockerFixture,
+) -> None:
+    parent_org_id = uuid4()
+    parent_location_id = uuid4()
+
+    parent_service = Service(
+        **mock_legacy_service.model_dump(mode="python", warnings=False)
+    )
+    parent_service.typeid = 13
+    parent_service.odscode = "FXX99"
+
+    state = ServiceMigrationState.init(service_id=parent_service.id)
+    state.organisation_id = parent_org_id
+    state.location_id = parent_location_id
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    mocker.patch.object(transformer, "_get_parent_service", return_value=parent_service)
+    mocker.patch.object(transformer, "_get_state_record", return_value=state)
+
+    mock_legacy_service.typeid = 13
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP: Test Service"
+
+    result = transformer.transform(mock_legacy_service)
+
+    assert len(result.organisation) == 0
+    assert len(result.location) == 0
+    assert len(result.healthcare_service) == 1
+    assert result.healthcare_service[0].providedBy == parent_org_id
+    assert result.healthcare_service[0].location == parent_location_id
+    assert (
+        result.healthcare_service[0].category
+        == HealthcareServiceCategory.PHARMACY_SERVICES
+    )
+    assert result.healthcare_service[0].type == HealthcareServiceType.ESSENTIAL_SERVICES
+
+
+def test_transform_creates_parent_records_when_state_missing(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mocker: MockerFixture,
+) -> None:
+    parent_service = Service(
+        **mock_legacy_service.model_dump(mode="python", warnings=False)
+    )
+    parent_service.typeid = 13
+    parent_service.odscode = "FXX99"
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    mocker.patch.object(transformer, "_get_parent_service", return_value=parent_service)
+    mocker.patch.object(transformer, "_get_state_record", return_value=None)
+
+    mock_legacy_service.typeid = 13
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP Check: Test Service"
+
+    with pytest.raises(ServiceMigrationException):
+        transformer.transform(mock_legacy_service)
+
+
+def test_transform_raises_when_parent_missing(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mocker: MockerFixture,
+) -> None:
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    mocker.patch.object(transformer, "_get_parent_service", return_value=None)
+
+    mock_legacy_service.typeid = 13
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP: Test Service"
+
+    with pytest.raises(ServiceMigrationException):
+        transformer.transform(mock_legacy_service)
