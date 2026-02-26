@@ -454,6 +454,7 @@ jobs:
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:
-      env: ${{ needs.metadata.outputs.environment }}
+    # TODO revert change back to ${{ needs.metadata.outputs.environment }}
+      env: test
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
