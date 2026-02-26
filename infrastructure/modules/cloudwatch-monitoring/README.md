@@ -153,7 +153,7 @@ To add alarms to an existing template, edit the JSON file in `templates/`:
 Then add corresponding thresholds, evaluation periods, and periods in your module call.
 
 > [!NOTE]
-> Use variables for threshold, evaluation period, and period values instead of hardcoding them. This allows for environment-specific configuration and easier maintenance.
+> Use variables for threshold, evaluation period, and period values instead of hard-coding them. This allows for environment-specific configuration and easier maintenance.
 
 ## Module Inputs
 
