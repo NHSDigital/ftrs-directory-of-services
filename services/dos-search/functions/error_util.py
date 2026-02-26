@@ -94,7 +94,7 @@ def create_resource_internal_server_error() -> OperationOutcome:
 
 
 def create_validation_error_operation_outcome(
-    exception: ValidationError, qualifiers: str
+    exception: ValidationError,
 ) -> OperationOutcome:
     error_groups = _extract_validation_error_error_details_by_type(exception)
 

@@ -2,9 +2,3 @@
 
 ODS_ORG_CODE_IDENTIFIER_SYSTEM = "https://fhir.nhs.uk/Id/ods-organization-code"
 REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION = "Endpoint:organization"
-GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE = (
-    "Only 'identifier' and '_revinclude' are allowed."
-)
-GET_HEALTHCARE_SERVICES_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE = (
-    "Only 'organization.identifier' is allowed."
-)

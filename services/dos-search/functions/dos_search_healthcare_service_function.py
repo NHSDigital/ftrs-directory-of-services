@@ -7,9 +7,6 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.constants import (
-    GET_HEALTHCARE_SERVICES_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE,
-)
 from functions.ftrs_service.healthcare_services_by_ods import (
     HealthcareServicesByOdsService,
 )
@@ -52,9 +49,7 @@ def get_healthcare_service() -> Response:
         fhir_resource = ftrs_service.healthcare_services_by_ods(ods_code)
 
     except ValidationError as exception:
-        fhir_resource = error_util.create_validation_error_operation_outcome(
-            exception, GET_HEALTHCARE_SERVICES_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE
-        )
+        fhir_resource = error_util.create_validation_error_operation_outcome(exception)
         response_size, duration_ms = dos_logger.get_response_size_and_duration(
             fhir_resource, start
         )

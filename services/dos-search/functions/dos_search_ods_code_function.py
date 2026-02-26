@@ -7,9 +7,6 @@ from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.constants import (
-    GET_ORGANISATION_BY_ODS_CODE_VALIDATION_ERROR_MESSAGE,
-)
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logger.dos_logger import DosLogger
 from functions.organization_headers import OrganizationHeaders
