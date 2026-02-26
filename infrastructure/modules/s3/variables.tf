@@ -54,3 +54,9 @@ variable "enable_kms_encryption" {
   type        = bool
   default     = false
 }
+
+variable "attach_cloudtrail_log_delivery_policy" {
+  description = "Whether to attach CloudTrail log delivery to the bucket policy"
+  type        = bool
+  default     = false
+}
