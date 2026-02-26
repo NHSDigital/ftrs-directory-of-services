@@ -8,6 +8,7 @@ ALARM_TYPE="${1:-}"
 LAMBDA_TYPE="${2:-search}"
 ITERATIONS="${3:-5}"
 ENVIRONMENT="${ENVIRONMENT:-}"
+WORKSPACE="${WORKSPACE:-}"
 
 # Build AWS CLI profile argument if AWS_PROFILE is set
 PROFILE_ARG=""
@@ -17,6 +18,10 @@ fi
 
 if [ -z "$ALARM_TYPE" ]; then
   echo "Usage: $0 <alarm-type> <lambda-type> [iterations]"
+  echo ""
+  echo "Environment variables:"
+  echo "  WORKSPACE    - Workspace identifier (e.g., 'ftrs-765')"
+  echo "  ENVIRONMENT  - Environment name (e.g., 'dev', 'prod')"
   echo ""
   echo "Alarm types:"
   echo "  errors              - Trigger error alarm by invoking with invalid payload"
@@ -31,17 +36,25 @@ if [ -z "$ALARM_TYPE" ]; then
   echo "  health-check    - Health Check Lambda"
   echo ""
   echo "Examples:"
-  echo "  $0 errors search 2"
-  echo "  $0 duration-p95 search 5"
-  echo "  $0 concurrent search 85"
+  echo "  WORKSPACE=ftrs-765 ENVIRONMENT=dev $0 errors search 2"
+  echo "  WORKSPACE=ftrs-765 ENVIRONMENT=dev $0 duration-p95 search 5"
+  echo "  WORKSPACE=ftrs-765 ENVIRONMENT=dev $0 concurrent search 85"
   exit 1
 fi
 
-# Determine Lambda function name
+# Determine Lambda function name with workspace suffix if provided
 if [ "$LAMBDA_TYPE" = "search" ]; then
-  LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+  if [ -n "$WORKSPACE" ]; then
+    LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda-${WORKSPACE}"
+  else
+    LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-ods-code-lambda"
+  fi
 elif [ "$LAMBDA_TYPE" = "health-check" ]; then
-  LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-health-check-lambda"
+  if [ -n "$WORKSPACE" ]; then
+    LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-health-check-lambda-${WORKSPACE}"
+  else
+    LAMBDA_NAME="ftrs-dos-${ENVIRONMENT}-dos-search-health-check-lambda"
+  fi
 else
   echo "Error: Invalid lambda type. Use 'search' or 'health-check'"
   exit 1
