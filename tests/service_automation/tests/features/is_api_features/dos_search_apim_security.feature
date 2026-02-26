@@ -47,3 +47,23 @@ Feature: API DoS Service Search Is Secured
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
 
 
+Scenario: I cannot search APIM for the dos-search organization endpoint with malformed Authorization header format
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with malformed auth header "Basic dGVzdDp0ZXN0"
+    Then I receive a status code "401" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "security"
+    And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
+    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
+
+
+  Scenario: I cannot search APIM for the dos-search organization endpoint with empty Authorization header
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with malformed auth header ""
+    Then I receive a status code "401" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "security"
+    And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
+    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding

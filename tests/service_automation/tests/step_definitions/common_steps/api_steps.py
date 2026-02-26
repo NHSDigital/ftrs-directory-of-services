@@ -1,14 +1,20 @@
+import json
+import re
+
+from loguru import logger
 from pytest_bdd import parsers, then
 
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse, status_code):
+    # logger.info(f"Received status code: {fresponse.json()}")
     assert fresponse.status == status_code
 
 
 @then(parsers.parse('the response body contains an "{resource_type}" resource'))
 def api_check_resource_type(fresponse, resource_type):
     response = fresponse.json()
+    logger.info(f"response: {response}")
     assert response["resourceType"] == resource_type
 
 
@@ -40,6 +46,18 @@ def api_check_bundle(fresponse):
 def api_number_resources(fresponse, number, resource_type):
     response = fresponse.json()
     assert count_resources(response, resource_type) == number
+
+
+@then("the bundle contains a self link")
+def api_check_bundle_self_link(fresponse):
+    response = fresponse.json()
+    assert any(link.get("relation") == "self" for link in response.get("link", []))
+
+
+@then(parsers.parse('the bundle type is "{bundle_type}"'))
+def api_check_bundle_type_searchset(fresponse, bundle_type):
+    response = fresponse.json()
+    assert response["type"] == (bundle_type)
 
 
 @then(
@@ -74,6 +92,156 @@ def api_check_operation_outcome_issue_count(fresponse, number):
 def api_check_operation_outcome_any_issue_by_key_value(fresponse, key, value):
     response = fresponse.json()
     assert any(issue.get(key) == value for issue in response["issue"])
+
+
+@then(
+    parsers.parse(
+        'the response headers contain "{header_name}" with value "{header_value}"'
+    )
+)
+def api_check_response_header(fresponse, header_name: str, header_value: str):
+    """Verify that a specific header is present in the response with the expected value."""
+    response_headers = fresponse.headers
+    # Check if header exists (case-insensitive)
+    header_found = False
+    actual_value = None
+    for key, value in response_headers.items():
+        if key.lower() == header_name.lower():
+            header_found = True
+            actual_value = value
+            break
+
+    assert header_found, (
+        f"Header '{header_name}' not found in response headers. Available headers: {list(response_headers.keys())}"
+    )
+    assert actual_value == header_value, (
+        f"Header '{header_name}' has value '{actual_value}' but expected '{header_value}'"
+    )
+
+
+@then(
+    parsers.parse(
+        'the response headers contain the following headers and values "{headers_json}"'
+    )
+)
+def api_check_multiple_response_headers(fresponse, headers_json: str):
+    expected_headers: dict = json.loads(headers_json)
+    response_headers = fresponse.headers
+
+    # Build a case-insensitive lookup of actual headers
+    actual_headers_lower = {k.lower(): (k, v) for k, v in response_headers.items()}
+
+    failures = []
+    for expected_name, expected_value in expected_headers.items():
+        match = actual_headers_lower.get(expected_name.lower())
+        if match is None:
+            failures.append(
+                f"Header '{expected_name}' not found in response headers. "
+                f"Available headers: {list(response_headers.keys())}"
+            )
+        elif match[1] != expected_value:
+            failures.append(
+                f"Header '{expected_name}' has value '{match[1]}' but expected '{expected_value}'"
+            )
+
+    assert not failures, "Response header assertion(s) failed:\n" + "\n".join(failures)
+
+
+@then(
+    parsers.parse(
+        'the {resource} resource has "{field_name}" with value "{expected_value}"'
+    )
+)
+def api_check_resource_field_value(
+    fresponse, resource: str, field_name: str, expected_value: str
+):
+    """Verify resource field has expected value."""
+    response = fresponse.json()
+    resource_entries = [
+        e
+        for e in response.get("entry", [])
+        if e.get("resource", {}).get("resourceType") == resource
+    ]
+    assert len(resource_entries) > 0, f"No {resource} resource found"
+    res = resource_entries[0]["resource"]
+    actual_value = res.get(field_name)
+    assert actual_value == expected_value, (
+        f"{resource}.{field_name} expected '{expected_value}' but got '{actual_value}'"
+    )
+
+
+@then(
+    parsers.parse(
+        'the {resource} resource has "{field_name}" with boolean {expected_value}'
+    )
+)
+def api_check_resource_field_boolean(
+    fresponse, resource: str, field_name: str, expected_value: str
+):
+    """Verify resource boolean field has expected value."""
+    response = fresponse.json()
+    resource_entries = [
+        e
+        for e in response.get("entry", [])
+        if e.get("resource", {}).get("resourceType") == resource
+    ]
+    assert len(resource_entries) > 0, f"No {resource} resource found"
+    res = resource_entries[0]["resource"]
+    actual_value = res.get(field_name)
+    expected_bool = expected_value.lower() == "true"
+    assert actual_value == expected_bool, (
+        f"Organization.{field_name} expected {expected_bool} but got {actual_value}"
+    )
+
+
+@then(
+    parsers.parse(
+        'the {resource} resource identifier has "{field_name}" with value "{expected_value}"'
+    )
+)
+def api_check_resource_identifier_field(
+    fresponse, resource: str, field_name: str, expected_value: str
+):
+    """Verify resource.identifier[0] field has expected value."""
+    response = fresponse.json()
+    resource_entries = [
+        e
+        for e in response.get("entry", [])
+        if e.get("resource", {}).get("resourceType") == resource
+    ]
+    assert len(resource_entries) > 0, f"No {resource} resource found"
+    res = resource_entries[0]["resource"]
+    identifier = res.get("identifier", [{}])[0]
+    actual_value = identifier.get(field_name)
+    assert actual_value == expected_value, (
+        f"{resource}.identifier[0].{field_name} expected '{expected_value}' but got '{actual_value}'"
+    )
+
+
+@then(parsers.parse("the {resource} resource has id matching UUID pattern"))
+def api_check_resource_id_uuid_pattern(fresponse, resource: str):
+    """Verify resource.id matches UUID pattern."""
+    response = fresponse.json()
+    resource_entries = [
+        e
+        for e in response.get("entry", [])
+        if e.get("resource", {}).get("resourceType") == resource
+    ]
+    assert len(resource_entries) > 0, f"No {resource} resource found"
+    res = resource_entries[0]["resource"]
+    res_id = res.get("id")
+    assert res_id is not None, f"{resource}.id is missing"
+    uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    assert re.match(uuid_pattern, res_id, re.IGNORECASE), (
+        f"{resource}.id '{res_id}' does not match UUID pattern"
+    )
+
+
+def count_resources(lambda_response, resource_type):
+    return sum(
+        entry.get("resource", {}).get("resourceType") == resource_type
+        for entry in lambda_response.get("entry", [])
+    )
 
 
 @then("the response includes security headers")
