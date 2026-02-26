@@ -455,7 +455,7 @@ jobs:
     uses: ./.github/workflows/slack-notifications.yaml
     with:
     # TODO revert change back to ${{ needs.metadata.outputs.environment }}
-      env: ref
+      env: int
     secrets:
     # TODO revert to ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
