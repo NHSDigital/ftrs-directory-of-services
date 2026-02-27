@@ -131,6 +131,7 @@ class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
             select(legacy_model.Service)
             .where(legacy_model.Service.odscode == base_ods_code)
             .where(legacy_model.Service.typeid.in_(self.PARENT_PHARMACY_TYPE_IDS))
+            .where(legacy_model.Service.statusid == self.STATUS_ACTIVE)
             .options(
                 selectinload(legacy_model.Service.endpoints),
                 selectinload(legacy_model.Service.scheduled_opening_times).selectinload(
