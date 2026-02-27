@@ -20,19 +20,19 @@ from service_migration.transformer.base import (
 from service_migration.transformer.base_pharmacy import BasePharmacyTransformer
 
 
-class BasePharmacyBPCheckTransformer(LinkedPharmacyTransformer):
+class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
     STATUS_ACTIVE = 1
     ODS_BASE_LENGTH = 5
     NAME_PREFIXES = ("BP Check:", "BP:")
-    SERVICE_TYPE_ID: int
-    ODS_SUFFIX: str
+    SERVICE_TYPE_ID = 148
+    ODS_SUFFIX = "BPS"
 
     """
-    Base transformer for Pharmacy Blood Pressure Check services linked to parent pharmacies.
+    Transformer for Pharmacy Blood Pressure Check services linked to parent pharmacies.
 
     Selection criteria:
-    - The service type must match the BP Check pharmacy type for the subclass
-    - The service must have an ODS code ending with the subclass suffix
+    - The service type must be "Pharmacy Blood Pressure Check" (148)
+    - The service must have an ODS code ending with "BPS"
     - The service name must be prefixed with "BP Check:" or "BP:"
 
     Filter criteria:
@@ -225,31 +225,3 @@ class BasePharmacyBPCheckTransformer(LinkedPharmacyTransformer):
             )
 
         return True, None
-
-
-class PharmacyBPCheckTransformer(BasePharmacyBPCheckTransformer):
-    """
-    Transformer for Pharmacy Blood Pressure Check services.
-
-    Selection criteria:
-    - The service type must be "Pharmacy Blood Pressure Check" (148)
-    - The service must have an ODS code ending with "BPS"
-    - The service name must be prefixed with "BP Check:" or "BP:"
-    """
-
-    SERVICE_TYPE_ID = 148
-    ODS_SUFFIX = "BPS"
-
-
-class PharmacyDSPBPCheckTransformer(BasePharmacyBPCheckTransformer):
-    """
-    Transformer for Pharmacy Blood Pressure Check services with DSP suffix.
-
-    Selection criteria:
-    - The service type must be "Pharmacy DSP Blood Pressure Check" (134)
-    - The service must have an ODS code ending with "DSPBPS"
-    - The service name must be prefixed with "BP Check:" or "BP:"
-    """
-
-    SERVICE_TYPE_ID = 134
-    ODS_SUFFIX = "DSPBPS"

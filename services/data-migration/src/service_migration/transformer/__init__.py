@@ -8,14 +8,12 @@ from service_migration.transformer.gp_enhanced_access import GPEnhancedAccessTra
 from service_migration.transformer.gp_practice import GPPracticeTransformer
 from service_migration.transformer.pharmacy_blood_pressure_check import (
     PharmacyBPCheckTransformer,
-    PharmacyDSPBPCheckTransformer,
 )
 
 SUPPORTED_TRANSFORMERS: list[ServiceTransformer] = [
     GPPracticeTransformer,
     GPEnhancedAccessTransformer,
     PharmacyBPCheckTransformer,
-    PharmacyDSPBPCheckTransformer,
     BasePharmacyTransformer,
 ]
 
@@ -27,6 +25,5 @@ __all__ = [
     "GPEnhancedAccessTransformer",
     "BasePharmacyTransformer",
     "PharmacyBPCheckTransformer",
-    "PharmacyDSPBPCheckTransformer",
     "SUPPORTED_TRANSFORMERS",
 ]

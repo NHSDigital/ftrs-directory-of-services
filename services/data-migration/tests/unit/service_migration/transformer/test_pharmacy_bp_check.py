@@ -12,7 +12,6 @@ from service_migration.exceptions import ParentPharmacyNotFoundError
 from service_migration.models import ServiceMigrationState
 from service_migration.transformer.pharmacy_blood_pressure_check import (
     PharmacyBPCheckTransformer,
-    PharmacyDSPBPCheckTransformer,
 )
 
 
@@ -26,73 +25,45 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
 
 
 @pytest.mark.parametrize(
-    "transformer_cls, service_type_id, ods_code, expected_result, expected_message",
+    "service_type_id, ods_code, expected_result, expected_message",
     [
         (
-            PharmacyBPCheckTransformer,
             148,
             "FXX99BPS",
             True,
             None,
         ),
         (
-            PharmacyBPCheckTransformer,
             148,
             "A1B2CBPS",
             True,
             None,
         ),
         (
-            PharmacyDSPBPCheckTransformer,
-            134,
-            "FXX99DSPBPS",
-            True,
-            None,
-        ),
-        (
-            PharmacyBPCheckTransformer,
             134,
             "FXX99BPS",
             False,
             "Service type is not a Pharmacy type (148)",
         ),
         (
-            PharmacyDSPBPCheckTransformer,
-            148,
-            "FXX99DSPBPS",
-            False,
-            "Service type is not a Pharmacy type (134)",
-        ),
-        (
-            PharmacyBPCheckTransformer,
             148,
             None,
             False,
             "Service does not have an ODS code",
         ),
         (
-            PharmacyBPCheckTransformer,
             148,
             "FXX99",
             False,
             "ODS code is not 8 characters",
         ),
         (
-            PharmacyDSPBPCheckTransformer,
-            134,
-            "FXX99DSP",
-            False,
-            "ODS code is not 11 characters",
-        ),
-        (
-            PharmacyBPCheckTransformer,
             148,
             "FXX99XYZ",
             False,
             "ODS code does not end with BPS",
         ),
         (
-            PharmacyBPCheckTransformer,
             148,
             "12345BPS",
             False,
@@ -102,7 +73,6 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
 )
 def test_is_service_supported(
     mock_legacy_service: Service,
-    transformer_cls: type,
     service_type_id: int,
     ods_code: str | None,
     expected_result: bool,
@@ -111,7 +81,9 @@ def test_is_service_supported(
     mock_legacy_service.typeid = service_type_id
     mock_legacy_service.odscode = ods_code
 
-    is_supported, message = transformer_cls.is_service_supported(mock_legacy_service)
+    is_supported, message = PharmacyBPCheckTransformer.is_service_supported(
+        mock_legacy_service
+    )
 
     assert is_supported == expected_result
     assert message == expected_message
