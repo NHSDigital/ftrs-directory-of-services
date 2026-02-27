@@ -10,7 +10,7 @@ from functions.constants import (
 class HsInvalidIdentifierSystem(ValueError):
     def __init__(self, identifier: str) -> None:
         super().__init__(
-            f"Invalid identifier system '{identifier}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'"
+            f"Invalid identifier system '{identifier}' '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'"
         )
 
 
@@ -68,7 +68,6 @@ class HealthcareServiceQueryParams(BaseModel):
             raise HsODSCodeInvalidFormatError(identifier_value)
 
         return v
-
 
     @classmethod
     def get_required_query_params(cls) -> list[str]:
