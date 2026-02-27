@@ -151,50 +151,62 @@ class BasePharmacyBPCheckTransformer(LinkedPharmacyTransformer):
             return session.scalars(stmt).first()
 
     @classmethod
-    def is_service_supported(  # noqa: PLR0911
+    def is_service_supported(
         cls, service: legacy_model.Service
     ) -> tuple[bool, str | None]:
-        if not is_enabled(FeatureFlag.DATA_MIGRATION_PHARMACY_ENABLED):
-            return (
-                False,
+        checks = [
+            (
+                is_enabled(FeatureFlag.DATA_MIGRATION_PHARMACY_ENABLED),
                 "Pharmacy service selection is disabled by feature flag",
-            )
-
-        if service.typeid != cls.SERVICE_TYPE_ID:
-            return (
-                False,
+            ),
+            (
+                service.typeid == cls.SERVICE_TYPE_ID,
                 f"Service type is not a Pharmacy type ({cls.SERVICE_TYPE_ID})",
-            )
+            ),
+            (
+                bool(service.odscode),
+                "Service does not have an ODS code",
+            ),
+        ]
 
-        if not service.odscode:
-            return False, "Service does not have an ODS code"
+        for condition, error_message in checks:
+            if not condition:
+                return False, error_message
 
+        return cls._validate_ods_code_format(service.odscode)
+
+    @classmethod
+    def _validate_ods_code_format(cls, ods_code: str) -> tuple[bool, str | None]:
+        """Validate ODS code length, suffix, and format."""
         expected_length = cls.ODS_BASE_LENGTH + len(cls.ODS_SUFFIX)
-        if len(service.odscode) != expected_length:
+
+        if len(ods_code) != expected_length:
             return False, f"ODS code is not {expected_length} characters"
 
-        if not service.odscode.endswith(cls.ODS_SUFFIX):
+        if not ods_code.endswith(cls.ODS_SUFFIX):
             return False, f"ODS code does not end with {cls.ODS_SUFFIX}"
 
-        base_ods_code = service.odscode[: cls.ODS_BASE_LENGTH]
-        matches_f_prefix = (
-            BasePharmacyTransformer.PHARMACY_ODS_CODE_REGEX_F_PREFIX.match(
-                base_ods_code
-            )
-        )
-        matches_alternating = (
-            BasePharmacyTransformer.PHARMACY_ODS_CODE_REGEX_ALTERNATING.match(
-                base_ods_code
-            )
-        )
+        base_ods_code = ods_code[: cls.ODS_BASE_LENGTH]
 
-        if not (matches_f_prefix or matches_alternating):
+        if not cls._is_valid_pharmacy_ods_format(base_ods_code):
             return (
                 False,
                 "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
             )
 
         return True, None
+
+    @classmethod
+    def _is_valid_pharmacy_ods_format(cls, base_ods_code: str) -> bool:
+        """Check if base ODS code matches pharmacy format patterns."""
+        return (
+            BasePharmacyTransformer.PHARMACY_ODS_CODE_REGEX_F_PREFIX.match(
+                base_ods_code
+            )
+            or BasePharmacyTransformer.PHARMACY_ODS_CODE_REGEX_ALTERNATING.match(
+                base_ods_code
+            )
+        ) is not None
 
     @classmethod
     def should_include_service(

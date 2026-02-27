@@ -270,13 +270,14 @@ def test_resolve_parent_raises_when_parent_not_found(
     transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
     mocker.patch.object(transformer, "_find_parent_service", return_value=None)
 
-    mock_legacy_service.id = 99999
+    test_service_id = 99999
+    mock_legacy_service.id = test_service_id
     mock_legacy_service.typeid = 148
     mock_legacy_service.odscode = "FXX99BPS"
 
     with pytest.raises(ParentPharmacyNotFoundError) as exc_info:
         transformer.resolve_parent(mock_legacy_service, mock_engine, mock_get_state)
 
-    assert exc_info.value.record_id == 99999
+    assert exc_info.value.record_id == test_service_id
     assert exc_info.value.ods_code == "FXX99"
     assert exc_info.value.requeue is False
