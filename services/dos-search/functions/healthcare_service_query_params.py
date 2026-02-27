@@ -68,3 +68,4 @@ class HealthcareServiceQueryParams(BaseModel):
             raise HsODSCodeInvalidFormatError(identifier_value)
 
         return v
+
