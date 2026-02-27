@@ -64,6 +64,7 @@ locals {
     backup_sns      = "alias/${local.project_prefix}-backup-sns-kms"
     backup          = "alias/${local.project_prefix}-backup-kms"
     scheduler       = "alias/${local.project_prefix}-scheduler-kms"
+    cloudtrail      = "alias/${local.project_prefix}-cloudtrail-kms"
   }
 
   # Will be used by dos-search stack
