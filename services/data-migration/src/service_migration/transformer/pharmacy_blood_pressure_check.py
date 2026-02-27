@@ -127,7 +127,12 @@ class BasePharmacyBPCheckTransformer(LinkedPharmacyTransformer):
         stmt = (
             select(legacy_model.Service)
             .where(legacy_model.Service.odscode == base_ods_code)
-            .where(legacy_model.Service.typeid == self.SERVICE_TYPE_ID)
+            .where(
+                legacy_model.Service.typeid.in_(
+                    BasePharmacyTransformer.PHARMACY_TYPE_IDS
+                )
+            )
+            .where(legacy_model.Service.statusid == self.STATUS_ACTIVE)
             .options(
                 selectinload(legacy_model.Service.endpoints),
                 selectinload(legacy_model.Service.scheduled_opening_times).selectinload(
