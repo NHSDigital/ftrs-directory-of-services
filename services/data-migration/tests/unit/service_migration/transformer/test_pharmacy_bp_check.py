@@ -8,7 +8,7 @@ from ftrs_data_layer.domain.legacy import Service
 from pytest_mock import MockerFixture
 
 from common.cache import DoSMetadataCache
-from service_migration.exceptions import ServiceMigrationException
+from service_migration.exceptions import ParentPharmacyNotFoundError
 from service_migration.models import ServiceMigrationState
 from service_migration.transformer.pharmacy_blood_pressure_check import (
     PharmacyBPCheckTransformer,
@@ -30,14 +30,14 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     [
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             "FXX99BPS",
             True,
             None,
         ),
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             "A1B2CBPS",
             True,
             None,
@@ -54,25 +54,25 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
             134,
             "FXX99BPS",
             False,
-            "Service type is not a Pharmacy type (13)",
+            "Service type is not a Pharmacy type (148)",
         ),
         (
             PharmacyDSPBPCheckTransformer,
-            13,
+            148,
             "FXX99DSPBPS",
             False,
             "Service type is not a Pharmacy type (134)",
         ),
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             None,
             False,
             "Service does not have an ODS code",
         ),
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             "FXX99",
             False,
             "ODS code is not 8 characters",
@@ -86,14 +86,14 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
         ),
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             "FXX99XYZ",
             False,
             "ODS code does not end with BPS",
         ),
         (
             PharmacyBPCheckTransformer,
-            13,
+            148,
             "12345BPS",
             False,
             "ODS code does not match required format (F + 4 alphanumeric OR alternating letter-number)",
@@ -152,29 +152,20 @@ def test_should_include_service(
     assert message == expected_message
 
 
-def test_transform_uses_parent_state_ids(
+def test_transform_uses_parent_ids_from_transformer_instance(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
-    mocker: MockerFixture,
 ) -> None:
+    """Test that transform() uses parent IDs set on the transformer instance."""
     parent_org_id = uuid4()
     parent_location_id = uuid4()
 
-    parent_service = Service(
-        **mock_legacy_service.model_dump(mode="python", warnings=False)
-    )
-    parent_service.typeid = 13
-    parent_service.odscode = "FXX99"
-
-    state = ServiceMigrationState.init(service_id=parent_service.id)
-    state.organisation_id = parent_org_id
-    state.location_id = parent_location_id
-
     transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
-    mocker.patch.object(transformer, "_get_parent_service", return_value=parent_service)
-    mocker.patch.object(transformer, "_get_state_record", return_value=state)
+    # Processor sets these before calling transform()
+    transformer.parent_organisation_id = parent_org_id
+    transformer.parent_location_id = parent_location_id
 
-    mock_legacy_service.typeid = 13
+    mock_legacy_service.typeid = 148
     mock_legacy_service.odscode = "FXX99BPS"
     mock_legacy_service.name = "BP: Test Service"
 
@@ -192,40 +183,100 @@ def test_transform_uses_parent_state_ids(
     assert result.healthcare_service[0].type == HealthcareServiceType.ESSENTIAL_SERVICES
 
 
-def test_transform_creates_parent_records_when_state_missing(
+def test_resolve_parent_returns_existing_state_ids(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
     mocker: MockerFixture,
 ) -> None:
+    """Test resolve_parent returns IDs when parent state exists."""
+    parent_org_id = uuid4()
+    parent_location_id = uuid4()
+
     parent_service = Service(
         **mock_legacy_service.model_dump(mode="python", warnings=False)
     )
-    parent_service.typeid = 13
+    parent_service.id = 12345
+    parent_service.typeid = 148
     parent_service.odscode = "FXX99"
 
+    state = ServiceMigrationState.init(service_id=parent_service.id)
+    state.organisation_id = parent_org_id
+    state.location_id = parent_location_id
+
+    mock_engine = MagicMock()
+    mock_get_state = MagicMock(return_value=state)
+
     transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
-    mocker.patch.object(transformer, "_get_parent_service", return_value=parent_service)
-    mocker.patch.object(transformer, "_get_state_record", return_value=None)
+    mocker.patch.object(
+        transformer, "_find_parent_service", return_value=parent_service
+    )
 
-    mock_legacy_service.typeid = 13
+    mock_legacy_service.typeid = 148
     mock_legacy_service.odscode = "FXX99BPS"
-    mock_legacy_service.name = "BP Check: Test Service"
 
-    with pytest.raises(ServiceMigrationException):
-        transformer.transform(mock_legacy_service)
+    parent_svc, org_id, loc_id = transformer.resolve_parent(
+        mock_legacy_service, mock_engine, mock_get_state
+    )
+
+    assert parent_svc is None  # Parent already migrated
+    assert org_id == parent_org_id
+    assert loc_id == parent_location_id
+    mock_get_state.assert_called_once_with(parent_service.id)
 
 
-def test_transform_raises_when_parent_missing(
+def test_resolve_parent_returns_service_when_state_missing(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
     mocker: MockerFixture,
 ) -> None:
+    """Test resolve_parent returns parent service when state doesn't exist."""
+    parent_service = Service(
+        **mock_legacy_service.model_dump(mode="python", warnings=False)
+    )
+    parent_service.id = 12345
+    parent_service.typeid = 148
+    parent_service.odscode = "FXX99"
+
+    mock_engine = MagicMock()
+    mock_get_state = MagicMock(return_value=None)
+
     transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
-    mocker.patch.object(transformer, "_get_parent_service", return_value=None)
+    mocker.patch.object(
+        transformer, "_find_parent_service", return_value=parent_service
+    )
 
-    mock_legacy_service.typeid = 13
+    mock_legacy_service.typeid = 148
     mock_legacy_service.odscode = "FXX99BPS"
-    mock_legacy_service.name = "BP: Test Service"
 
-    with pytest.raises(ServiceMigrationException):
-        transformer.transform(mock_legacy_service)
+    parent_svc, org_id, loc_id = transformer.resolve_parent(
+        mock_legacy_service, mock_engine, mock_get_state
+    )
+
+    assert parent_svc == parent_service  # Parent needs migrating
+    assert org_id is None
+    assert loc_id is None
+    mock_get_state.assert_called_once_with(parent_service.id)
+
+
+def test_resolve_parent_raises_when_parent_not_found(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mocker: MockerFixture,
+) -> None:
+    """Test resolve_parent raises ParentPharmacyNotFoundError when parent doesn't exist."""
+    mock_engine = MagicMock()
+    mock_get_state = MagicMock()
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    mocker.patch.object(transformer, "_find_parent_service", return_value=None)
+
+    mock_legacy_service.id = 99999
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+
+    with pytest.raises(ParentPharmacyNotFoundError) as exc_info:
+        transformer.resolve_parent(mock_legacy_service, mock_engine, mock_get_state)
+
+    assert exc_info.value.record_id == 99999
+    assert exc_info.value.ods_code == "FXX99"
+    assert exc_info.value.requeue is False

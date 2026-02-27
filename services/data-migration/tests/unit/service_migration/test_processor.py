@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
@@ -9,8 +11,12 @@ from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
+from service_migration.exceptions import ParentPharmacyNotFoundError
 from service_migration.processor import DataMigrationProcessor, ServiceMigrationMetrics
 from service_migration.transformer.base import ServiceTransformOutput
+from service_migration.transformer.pharmacy_blood_pressure_check import (
+    PharmacyBPCheckTransformer,
+)
 from service_migration.validation.types import ValidationIssue, ValidationResult
 
 
@@ -630,6 +636,218 @@ def test_process_service_error(
             "reference": "DM_ETL_008",
         }
     ]
+
+
+def test_process_service_bp_check_parent_already_migrated(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that linked BP check uses existing org/loc IDs when parent is already in state."""
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP Check: Test Service"
+
+    parent_org_id = uuid4()
+    parent_loc_id = uuid4()
+
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "is_service_supported",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "should_include_service",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "resolve_parent",
+        return_value=(None, parent_org_id, parent_loc_id),
+    )
+
+    validation_result = ValidationResult(
+        origin_record_id=mock_legacy_service.id,
+        issues=[],
+        sanitised=mock_legacy_service,
+    )
+    mock_validator_cls = mocker.MagicMock()
+    mock_validator_cls.return_value.validate.return_value = validation_result
+    mocker.patch.object(PharmacyBPCheckTransformer, "VALIDATOR_CLS", mock_validator_cls)
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "transform",
+        return_value=ServiceTransformOutput(
+            organisation=[],
+            healthcare_service=[],
+            location=[],
+        ),
+    )
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS",
+        [PharmacyBPCheckTransformer],
+    )
+
+    mock_builder = mocker.MagicMock()
+    mock_builder.add_organisation.return_value = mock_builder
+    mock_builder.add_location.return_value = mock_builder
+    mock_builder.add_healthcare_service.return_value = mock_builder
+    mock_builder.build.return_value = [{}]
+    mocker.patch(
+        "service_migration.processor.ServiceTransactionBuilder",
+        return_value=mock_builder,
+    )
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor._migrate_parent_pharmacy = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
+
+    processor._process_service(mock_legacy_service)
+
+    processor._migrate_parent_pharmacy.assert_not_called()
+
+    assert processor.metrics.supported == 1
+    assert processor.metrics.transformed == 1
+    assert processor.metrics.errors == 0
+
+
+def test_process_service_bp_check_parent_needs_migration(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that linked BP check runs parent migration when parent has no state record."""
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP Check: Test Service"
+
+    parent_service = mocker.MagicMock(spec=Service)
+    parent_org_id = uuid4()
+    parent_loc_id = uuid4()
+
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "is_service_supported",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "should_include_service",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "resolve_parent",
+        return_value=(parent_service, None, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "transform",
+        return_value=ServiceTransformOutput(
+            organisation=[],
+            healthcare_service=[],
+            location=[],
+        ),
+    )
+
+    validation_result = ValidationResult(
+        origin_record_id=mock_legacy_service.id,
+        issues=[],
+        sanitised=mock_legacy_service,
+    )
+    mock_validator_cls = mocker.MagicMock()
+    mock_validator_cls.return_value.validate.return_value = validation_result
+    mocker.patch.object(PharmacyBPCheckTransformer, "VALIDATOR_CLS", mock_validator_cls)
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS",
+        [PharmacyBPCheckTransformer],
+    )
+
+    mock_builder = mocker.MagicMock()
+    mock_builder.add_organisation.return_value = mock_builder
+    mock_builder.add_location.return_value = mock_builder
+    mock_builder.add_healthcare_service.return_value = mock_builder
+    mock_builder.build.return_value = [{}]
+    mocker.patch(
+        "service_migration.processor.ServiceTransactionBuilder",
+        return_value=mock_builder,
+    )
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor._migrate_parent_pharmacy = mocker.MagicMock(
+        return_value=(parent_org_id, parent_loc_id)
+    )
+    processor.get_state_record = mocker.MagicMock(return_value=None)
+
+    processor._process_service(mock_legacy_service)
+
+    processor._migrate_parent_pharmacy.assert_called_once_with(parent_service)
+
+    assert processor.metrics.supported == 1
+    assert processor.metrics.transformed == 1
+    assert processor.metrics.errors == 0
+
+
+def test_process_service_bp_check_parent_not_found(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that linked BP check increments errors and stops when parent pharmacy is not found."""
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP Check: Test Service"
+
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "is_service_supported",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "should_include_service",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        PharmacyBPCheckTransformer,
+        "resolve_parent",
+        side_effect=ParentPharmacyNotFoundError(
+            record_id=mock_legacy_service.id, ods_code="FXX99"
+        ),
+    )
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS",
+        [PharmacyBPCheckTransformer],
+    )
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics.supported == 1
+    assert processor.metrics.errors == 1
+    assert processor.metrics.transformed == 0
 
 
 def test_get_transformer(

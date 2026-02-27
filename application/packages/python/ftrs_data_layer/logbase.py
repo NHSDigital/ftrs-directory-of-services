@@ -237,7 +237,15 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_038 = LogReference(
         level=WARNING,
-        message="Parent pharmacy record not found for Service ID {service_id} and base ODS code {base_ods_code}",
+        message="Parent pharmacy record not found for service ID {service_id} and base ODS code {base_ods_code}",
+    )
+    DM_ETL_039 = LogReference(
+        level=ERROR,
+        message="Failed to migrate parent pharmacy service {parent_record_id} for linked service {record_id}",
+    )
+    DM_ETL_040 = LogReference(
+        level=ERROR,
+        message="Parent pharmacy migration for service {record_id} did not produce valid organisation or location IDs",
     )
 
     DM_ETL_999 = LogReference(
