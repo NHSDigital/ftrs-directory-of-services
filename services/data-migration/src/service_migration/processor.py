@@ -283,7 +283,7 @@ class DataMigrationProcessor:
         """
         Resolve the parent for a linked-pharmacy transformer, migrate it if needed,
         and set the org/location IDs on the transformer.
-        Returns False if processing should stop (parent not found).
+        Returns False if processing should stop (parent not found or parent migration failed).
         """
         try:
             parent_service, org_id, loc_id = transformer.resolve_parent(
@@ -294,7 +294,25 @@ class DataMigrationProcessor:
             return False
 
         if parent_service is not None:
-            org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
+            try:
+                org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
+            except Exception as e:
+                self.metrics.errors += 1
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_039,
+                    parent_record_id=parent_service.id,
+                    record_id=service.id,
+                    error=str(e),
+                )
+                return False
+
+        if org_id is None or loc_id is None:
+            self.metrics.errors += 1
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_040,
+                record_id=service.id,
+            )
+            return False
 
         transformer.parent_organisation_id = org_id
         transformer.parent_location_id = loc_id

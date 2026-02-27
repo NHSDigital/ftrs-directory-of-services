@@ -1162,18 +1162,21 @@ def test_process_service_contraception_parent_already_migrated(
         return_value=mock_builder,
     )
 
+    mock_base_pharmacy_cls = mocker.patch(
+        "service_migration.processor.BasePharmacyTransformer"
+    )
+
     processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
     processor.metadata = mock_metadata_cache
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
     processor._execute_transaction = mocker.MagicMock()
-    processor._migrate_parent_pharmacy = mocker.MagicMock()
     processor.get_state_record = mocker.MagicMock(return_value=None)
 
     processor._process_service(mock_legacy_service)
 
     # Parent was already migrated — no need to run BasePharmacyTransformer
-    processor._migrate_parent_pharmacy.assert_not_called()
+    mock_base_pharmacy_cls.assert_not_called()
 
     assert processor.metrics.supported == 1
     assert processor.metrics.transformed == 1
@@ -1193,6 +1196,7 @@ def test_process_service_contraception_parent_needs_migration(
     mock_legacy_service.name = "Contraception: Test Service"
 
     parent_service = mocker.MagicMock(spec=Service)
+    parent_service.id = 2
     parent_org_id = uuid4()
     parent_loc_id = uuid4()
 
@@ -1237,6 +1241,29 @@ def test_process_service_contraception_parent_needs_migration(
         [ContraceptionPharmacyTransformer],
     )
 
+    # Set up BasePharmacyTransformer mock for parent migration
+    parent_state_after = ServiceMigrationState.init(
+        service_id=parent_service.id
+    ).model_copy(
+        update={"organisation_id": parent_org_id, "location_id": parent_loc_id}
+    )
+    mock_parent_transformer = mocker.MagicMock()
+    parent_validation_result = ValidationResult(
+        origin_record_id=parent_service.id,
+        issues=[],
+        sanitised=parent_service,
+    )
+    mock_parent_transformer.validator.validate.return_value = parent_validation_result
+    mock_parent_transformer.transform.return_value = ServiceTransformOutput(
+        organisation=[],
+        healthcare_service=[],
+        location=[],
+    )
+    mocker.patch(
+        "service_migration.processor.BasePharmacyTransformer",
+        return_value=mock_parent_transformer,
+    )
+
     mock_builder = mocker.MagicMock()
     mock_builder.add_organisation.return_value = mock_builder
     mock_builder.add_location.return_value = mock_builder
@@ -1252,15 +1279,18 @@ def test_process_service_contraception_parent_needs_migration(
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
     processor._execute_transaction = mocker.MagicMock()
-    processor._migrate_parent_pharmacy = mocker.MagicMock(
-        return_value=(parent_org_id, parent_loc_id)
+    # get_state_record is called 3 times:
+    # 1. Parent before migration (None → needs migration)
+    # 2. Parent after migration (state with org/loc IDs)
+    # 3. Contraception service itself (None → new insert)
+    processor.get_state_record = mocker.MagicMock(
+        side_effect=[None, parent_state_after, None]
     )
-    processor.get_state_record = mocker.MagicMock(return_value=None)
 
     processor._process_service(mock_legacy_service)
 
-    # Parent was not yet migrated — _migrate_parent_pharmacy must have been called
-    processor._migrate_parent_pharmacy.assert_called_once_with(parent_service)
+    # Parent was not yet migrated — BasePharmacyTransformer must have been used
+    mock_parent_transformer.transform.assert_called_once()
 
     assert processor.metrics.supported == 1
     assert processor.metrics.transformed == 1
@@ -1307,6 +1337,123 @@ def test_process_service_contraception_parent_not_found(
     assert processor.metrics.supported == 1
     assert processor.metrics.errors == 1
     assert processor.metrics.transformed == 0
+
+
+def test_setup_linked_transformer_parent_migration_exception(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that DM_ETL_039 is logged and processing stops when parent migration raises."""
+    mock_legacy_service.typeid = 149
+    mock_legacy_service.odscode = "FXX99CON"
+    mock_legacy_service.name = "Contraception: Test Service"
+
+    parent_service = mocker.MagicMock(spec=Service)
+    parent_service.id = 2
+
+    mocker.patch.object(
+        ContraceptionPharmacyTransformer,
+        "is_service_supported",
+        return_value=(True, None),
+    )
+    mocker.patch.object(
+        ContraceptionPharmacyTransformer,
+        "resolve_parent",
+        return_value=(parent_service, None, None),
+    )
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS",
+        [ContraceptionPharmacyTransformer],
+    )
+
+    # Make BasePharmacyTransformer validation fail so _migrate_parent_pharmacy raises ValueError
+    fatal_issue = ValidationIssue(
+        severity="fatal",
+        code="INVALID",
+        diagnostics="Parent pharmacy failed validation",
+    )
+    parent_validation_result = ValidationResult(
+        origin_record_id=parent_service.id,
+        issues=[fatal_issue],
+        sanitised=parent_service,
+    )
+    mock_parent_transformer = mocker.MagicMock()
+    mock_parent_transformer.validator.validate.return_value = parent_validation_result
+    mocker.patch(
+        "service_migration.processor.BasePharmacyTransformer",
+        return_value=mock_parent_transformer,
+    )
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics.total == 1
+    assert processor.metrics.supported == 1
+    assert processor.metrics.errors == 1
+    assert processor.metrics.transformed == 0
+
+    logs = mock_logger.get_log("DM_ETL_039")
+    assert len(logs) == 1
+    assert logs[0]["detail"]["parent_record_id"] == parent_service.id
+    assert logs[0]["detail"]["record_id"] == mock_legacy_service.id
+
+
+def test_setup_linked_transformer_org_loc_id_none(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that DM_ETL_040 is logged and processing stops when org/loc IDs are None after resolve."""
+    mock_legacy_service.typeid = 149
+    mock_legacy_service.odscode = "FXX99CON"
+    mock_legacy_service.name = "Contraception: Test Service"
+
+    mocker.patch.object(
+        ContraceptionPharmacyTransformer,
+        "is_service_supported",
+        return_value=(True, None),
+    )
+    # resolve_parent returns no parent service and no IDs — an unexpected incomplete state
+    mocker.patch.object(
+        ContraceptionPharmacyTransformer,
+        "resolve_parent",
+        return_value=(None, None, None),
+    )
+
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS",
+        [ContraceptionPharmacyTransformer],
+    )
+
+    processor = DataMigrationProcessor(config=mock_config, logger=mock_logger)
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
+
+    processor._process_service(mock_legacy_service)
+
+    assert processor.metrics.total == 1
+    assert processor.metrics.supported == 1
+    assert processor.metrics.errors == 1
+    assert processor.metrics.transformed == 0
+
+    logs = mock_logger.get_log("DM_ETL_040")
+    assert len(logs) == 1
+    assert logs[0]["detail"]["record_id"] == mock_legacy_service.id
 
 
 def test_execute_transaction_logs_success_on_successful_write(
