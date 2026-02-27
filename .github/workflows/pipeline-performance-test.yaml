@@ -38,6 +38,7 @@ on:
         type: choice
         options:
           - smoke
+          - rampload
           - load
           - stress
       environment:
@@ -72,11 +73,11 @@ on:
         required: false
         type: string
       throughput:
-        description: "Throughput (or Throughput Step) of the performance test (overrides defaults for test type)"
+        description: "Throughput (or Throughput Step for stress and rampload tests) of the performance test (overrides defaults for test type)"
         required: false
         type: string
       throughput_period:
-        description: "Throughput Period (or Step Duration) of the performance test (overrides defaults for test type)"
+        description: "Throughput Period (or Step Duration for stress tests) of the performance test (overrides defaults for test type)"
         required: false
         type: string
 

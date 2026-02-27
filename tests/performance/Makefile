@@ -58,7 +58,9 @@ run-performance-test-gateway: ## [TEST_TYPE=smoke|load|stress] PLAN_NAME=IS_Test
 	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
 
 	if [ "${TEST_TYPE}" = "stress" ]; then
-		make performance-stress-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT_STEP=${THROUGHPUT} STEP_DURATION=${THROUGHPUT_PERIOD}
+		make performance-stress-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT_STEP=${THROUGHPUT} STEP_DURATION=${STEP_DURATION}
+	elif [ "${TEST_TYPE}" = "rampload" ]; then
+		make performance-ramp-load-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT_STEP=${THROUGHPUT}
 	else
 		make performance-test-mtls PLAN_NAME=${PLAN_NAME} PFX_PATH=${PFX_PATH} PFX_PASSWORD=$$STRIPPED_PFX_PASSWORD ENDPOINT=${ENDPOINT} NUM_THREADS=${NUM_THREADS} RAMP_TIME=${RAMP_TIME} STARTUP_DELAY=${STARTUP_DELAY} DURATION=${DURATION} THROUGHPUT=${THROUGHPUT} THROUGHPUT_PERIOD=${THROUGHPUT_PERIOD}
 	fi
@@ -77,6 +79,14 @@ performance-test-jwt: ##[PLAN_NAME=name of jmeter plan] [APIM_ENV=environment fo
 	jmeter -n -t ${PLAN_NAME}.jmx -J apim_env=${APIM_ENV} -J env=${ENVIRONMENT} -J AWS_SECRET_NAME=/ftrs-dos/$(ENVIRONMENT)/dos-search/jwt-credentials -f -l result.jtl -e -o "report" -Jtest_mode="proxy"  \
 	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
 	-J timer_throughput=${THROUGHPUT} -J timer_throughput_period=${THROUGHPUT_PERIOD} -J workspace=${WORKSPACE};
+	rm -f performance_run.lock
+
+performance-ramp-load-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]
+	echo "running mtls performance load tests with a 300s second rampup against ${ENDPOINT}..."
+	touch performance_run.lock
+	jmeter -n -t ${PLAN_NAME}.jmx -J serviceendpoint=${ENDPOINT} -f -l result.jtl -e -o "report" -D javax.net.ssl.keyStore="${PFX_PATH}" -D javax.net.ssl.keyStorePassword="${PFX_PASSWORD}" -Jtest_mode="rampload" \
+	-J num_threads=${NUM_THREADS} -J ramp_time=${RAMP_TIME} -J duration=${DURATION} -J startup_delay=${STARTUP_DELAY} \
+	-J throughput_step=${THROUGHPUT_STEP};
 	rm -f performance_run.lock
 
 performance-stress-test-mtls: ##[PLAN_NAME=name of jmeter plan] [PFX_PATH=path to pfk file][PFX_PASSWORD=password for pfx file] [ENDPOINT=endpoint of APIs] [NUM_THREADS=number of threads] [RAMP_TIME=ramp up time in seconds] [DURATION=duration of test in seconds] [STARTUP_DELAY=startup delay in seconds] [THROUGHPUT_STEP=throughput step value] [STEP_DURATION=step duration in seconds]

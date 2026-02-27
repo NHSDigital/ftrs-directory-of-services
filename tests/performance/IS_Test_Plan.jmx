@@ -24,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -35,7 +35,7 @@
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables" enabled="true">
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -45,9 +45,10 @@ log.info(&quot;Setting test mode variables&quot;)
 def testMode = props.get(&quot;test_mode&quot;)
 props.put(&quot;isProxyMode&quot;, (testMode == &quot;proxy&quot;).toString())
 props.put(&quot;isLoadMode&quot;, (testMode == &quot;load&quot;).toString())
+props.put(&quot;isRampLoadMode&quot;, (testMode == &quot;rampload&quot;).toString())
 props.put(&quot;isStressMode&quot;, (testMode == &quot;stress&quot;).toString())
 
-log.info(&quot;Test mode: ${testMode}, isProxyMode: ${props.get(&apos;isProxyMode&apos;)}, isLoadMode: ${props.get(&apos;isLoadMode&apos;)}, isStressMode: ${props.get(&apos;isStressMode&apos;)}&quot;)
+log.info(&quot;Test mode: ${testMode}, isProxyMode: ${props.get(&apos;isProxyMode&apos;)}, isLoadMode: ${props.get(&apos;isLoadMode&apos;)}, isStressMode: ${props.get(&apos;isStressMode&apos;)}, isRampMode: ${props.get(&apos;isRampLoadMode&apos;)},  &quot;)
 
 def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
 def scriptText = scriptFile.text
@@ -56,7 +57,7 @@ evaluate(scriptText)
 log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TEST PARAMS&quot; + (props.get(&quot;Apim_Env&quot;) + props.get(&quot;Apim_Domain&quot;) + props.get(&quot;Apim_Workspace&quot;)): props.get(&quot;ServiceEndpoint&quot;)) </stringProp>
         </JSR223Sampler>
         <hashTree/>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
           <collectionProp name="Arguments.arguments">
             <elementProp name="Apim_Domain" elementType="Argument">
               <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -383,11 +384,24 @@ if (iteration == 1) {
               <intProp name="batchSize">1</intProp>
               <intProp name="batchThreadDelay">0</intProp>
               <stringProp name="duration">${__P(duration,3660)}</stringProp>
-              <intProp name="exactLimit">10000</intProp>
+              <stringProp name="exactLimit">${__P(exact_limit,549000)}</stringProp>
               <longProp name="randomSeed">1</longProp>
               <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
               <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
             </PreciseThroughputTimer>
+            <hashTree/>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">NHSD-Request-Id</stringProp>
+                  <stringProp name="Header.value">Performance_load_test_req_id</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Version</stringProp>
+                  <stringProp name="Header.value">1</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
             <hashTree/>
           </hashTree>
         </hashTree>
@@ -471,7 +485,7 @@ if (iteration == 1) {
                 <intProp name="batchSize">1</intProp>
                 <intProp name="batchThreadDelay">0</intProp>
                 <stringProp name="duration">${__P(duration,3660)}</stringProp>
-                <intProp name="exactLimit">10000</intProp>
+                <stringProp name="exactLimit">${__P(exact_limit,549000)}</stringProp>
                 <longProp name="randomSeed">1</longProp>
                 <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
                 <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
@@ -531,7 +545,7 @@ if (iteration == 1) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -551,7 +565,7 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
+          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
             <collectionProp name="load_profile">
               <collectionProp name="656718665">
                 <stringProp name="start">0</stringProp>
@@ -639,6 +653,19 @@ if (iteration == 1) {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">NHSD-Request-Id</stringProp>
+                  <stringProp name="Header.value">Performance_stress_test_req_id</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Version</stringProp>
+                  <stringProp name="Header.value">1</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
           </hashTree>
         </hashTree>
         <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Stress Mode" enabled="true">
@@ -648,6 +675,93 @@ if (iteration == 1) {
         </IfController>
         <hashTree>
           <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Ramp up and then steady - Throughput Shaping Timer">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isRampLoadMode&apos;))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
+            <collectionProp name="load_profile">
+              <collectionProp name="1234462727">
+                <stringProp name="start">0</stringProp>
+                <stringProp name="1695819087">${__P(throughput_step,148)}</stringProp>
+                <stringProp name="48687">120</stringProp>
+              </collectionProp>
+              <collectionProp name="742611363">
+                <stringProp name="1695819087">${__P(throughput_step,148)}</stringProp>
+                <stringProp name="1695819087">${__P(throughput_step,148)}</stringProp>
+                <stringProp name="1976868062">${__P(duration,300)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+          </kg.apc.jmeter.timers.VariableThroughputTimer>
+          <hashTree/>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+            <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
+              <stringProp name="delimiter">,</stringProp>
+              <stringProp name="fileEncoding"></stringProp>
+              <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
+              <boolProp name="ignoreFirstLine">true</boolProp>
+              <boolProp name="quotedData">false</boolProp>
+              <boolProp name="recycle">true</boolProp>
+              <stringProp name="shareMode">shareMode.group</stringProp>
+              <boolProp name="stopThread">false</boolProp>
+              <stringProp name="variableNames">ep_odscode</stringProp>
+            </CSVDataSet>
+            <hashTree/>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">NHSD-Request-Id</stringProp>
+                  <stringProp name="Header.value">Performance_stress_test_req_id</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Version</stringProp>
+                  <stringProp name="Header.value">1</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Ramp Mode">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isRampLoadMode&apos;) || props.get(&apos;isRampLoadMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread">
             <intProp name="ActionProcessor.action">2</intProp>
             <intProp name="ActionProcessor.target">0</intProp>
             <stringProp name="ActionProcessor.duration">0</stringProp>
