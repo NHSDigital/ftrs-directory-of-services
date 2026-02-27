@@ -59,7 +59,7 @@ Feature: API DoS Healthcare Service Search Backend
     And the OperationOutcome contains "1" issues
     And the OperationOutcome contains an issue with severity "error"
     And the OperationOutcome contains an issue with code "required"
-    And the OperationOutcome contains an issue with diagnostics "Missing required search parameter 'organization.identifier'"
+    And the OperationOutcome contains an issue with diagnostics "Missing required query parameter 'organization.identifier'"
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
 
   Scenario Outline: I search for HealthcareService with unexpected query parameter
