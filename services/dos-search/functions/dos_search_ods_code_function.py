@@ -8,14 +8,13 @@ from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.event_context import get_response_size_and_duration, setup_request
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logbase import DosSearchLogBase
-from functions.logger.dos_logger import DosLogger
 from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
 
 service = "dos-search"
-dos_logger = DosLogger.get(service=service)
 logger = Logger.get(service=service)
 tracer = Tracer()
 app = APIGatewayRestResolver()
@@ -38,7 +37,7 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    dos_logger.init(app.current_event)
+    setup_request(app.current_event, logger)
     try:
         try:
             OrganizationHeaders.model_validate(app.current_event.headers)
@@ -67,8 +66,8 @@ def get_organization() -> Response:
         return handle_general_exception(start)
     else:
         # success path: measure and log response metrics
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
 
         logger.log(
@@ -83,8 +82,8 @@ def get_organization() -> Response:
 def handle_event_validation_error(exception: ValidationError, start: float) -> Response:
     fhir_resource = error_util.create_validation_error_operation_outcome(exception)
 
-    response_size, duration_ms = dos_logger.get_response_size_and_duration(
-        fhir_resource, start
+    response_size, duration_ms = get_response_size_and_duration(
+        fhir_resource, start, logger
     )
     logger.log(
         DosSearchLogBase.DOS_SEARCH_005,
@@ -99,8 +98,8 @@ def handle_general_exception(start: float) -> Response:
     # Log exception with structured fields
     fhir_resource = error_util.create_resource_internal_server_error()
 
-    response_size, duration_ms = dos_logger.get_response_size_and_duration(
-        fhir_resource, start
+    response_size, duration_ms = get_response_size_and_duration(
+        fhir_resource, start, logger
     )
     logger.log(
         DosSearchLogBase.DOS_SEARCH_006,

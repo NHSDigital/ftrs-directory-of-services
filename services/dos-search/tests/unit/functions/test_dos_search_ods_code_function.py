@@ -105,7 +105,8 @@ class TestLambdaHandler:
         self,
         lambda_context,
         mock_ftrs_service,
-        mock_dos_logger,
+        mock_setup_request,
+        mock_get_response_size_and_duration,
         mock_logger,
         ods_code,
         event,
@@ -120,10 +121,8 @@ class TestLambdaHandler:
         # Assert
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
 
-        mock_dos_logger.init.assert_called_once_with(ANY)
-        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
-            bundle, ANY
-        )
+        mock_setup_request.assert_called_once_with(ANY, ANY)
+        mock_get_response_size_and_duration.assert_called_once_with(bundle, ANY, ANY)
 
         mock_logger.assert_has_calls(
             [
@@ -162,7 +161,8 @@ class TestLambdaHandler:
         self,
         lambda_context,
         mock_error_util,
-        mock_dos_logger,
+        mock_setup_request,
+        mock_get_response_size_and_duration,
         mock_logger,
         event,
         model_to_throw_validation_error,
@@ -174,7 +174,7 @@ class TestLambdaHandler:
                 "utf-8"
             )
         )
-        mock_dos_logger.get_response_size_and_duration.return_value = (response_size, 1)
+        mock_get_response_size_and_duration.return_value = (response_size, 1)
 
         # Act
         with patch(
@@ -188,9 +188,10 @@ class TestLambdaHandler:
             validation_error
         )
 
-        mock_dos_logger.init.assert_called_once_with(ANY)
-        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
+        mock_setup_request.assert_called_once_with(ANY, ANY)
+        mock_get_response_size_and_duration.assert_called_once_with(
             mock_error_util.create_validation_error_operation_outcome.return_value,
+            ANY,
             ANY,
         )
 
@@ -232,7 +233,8 @@ class TestLambdaHandler:
         event,
         ods_code,
         mock_error_util,
-        mock_dos_logger,
+        mock_setup_request,
+        mock_get_response_size_and_duration,
         mock_logger,
         bundle,
         exception,
@@ -247,9 +249,10 @@ class TestLambdaHandler:
         mock_ftrs_service.endpoints_by_ods.assert_called_once_with(ods_code)
         mock_error_util.create_resource_internal_server_error.assert_called_once()
 
-        mock_dos_logger.init.assert_called_once_with(ANY)
-        mock_dos_logger.get_response_size_and_duration.assert_called_once_with(
+        mock_setup_request.assert_called_once_with(ANY, ANY)
+        mock_get_response_size_and_duration.assert_called_once_with(
             mock_error_util.create_resource_internal_server_error.return_value,
+            ANY,
             ANY,
         )
 

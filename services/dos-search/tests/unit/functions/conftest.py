@@ -15,11 +15,20 @@ def bundle():
 
 
 @pytest.fixture
-def mock_dos_logger(bundle):
-    """Mock for DosLogger utility methods (init, get_response_size_and_duration)."""
-    with patch("functions.dos_search_ods_code_function.dos_logger") as mock:
+def mock_setup_request():
+    """Mock for the setup_request utility function."""
+    with patch("functions.dos_search_ods_code_function.setup_request") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_response_size_and_duration(bundle):
+    """Mock for the get_response_size_and_duration utility function."""
+    with patch(
+        "functions.dos_search_ods_code_function.get_response_size_and_duration"
+    ) as mock:
         response_size = len(bundle.model_dump_json().encode("utf-8"))
-        mock.get_response_size_and_duration.return_value = (response_size, 1)
+        mock.return_value = (response_size, 1)
         yield mock
 
 
