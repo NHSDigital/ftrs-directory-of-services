@@ -24,7 +24,7 @@
         <boolProp name="CacheManager.controlledByThread">false</boolProp>
       </CacheManager>
       <hashTree/>
-      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group">
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp Thread Group" enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">1</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
@@ -35,7 +35,7 @@
         </elementProp>
       </SetupThreadGroup>
       <hashTree>
-        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables">
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Set Test Mode Variables" enabled="true">
           <stringProp name="scriptLanguage">groovy</stringProp>
           <stringProp name="parameters"></stringProp>
           <stringProp name="filename"></stringProp>
@@ -57,7 +57,7 @@ evaluate(scriptText)
 log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TEST PARAMS&quot; + (props.get(&quot;Apim_Env&quot;) + props.get(&quot;Apim_Domain&quot;) + props.get(&quot;Apim_Workspace&quot;)): props.get(&quot;ServiceEndpoint&quot;)) </stringProp>
         </JSR223Sampler>
         <hashTree/>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
           <collectionProp name="Arguments.arguments">
             <elementProp name="Apim_Domain" elementType="Argument">
               <stringProp name="Argument.name">Apim_Domain</stringProp>
@@ -68,7 +68,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TES
         </Arguments>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__groovy(props.get(&apos;duration&apos;) != null ? props.get(&apos;duration&apos;).toInteger() + 10 : 30)}</stringProp>
@@ -82,7 +82,7 @@ log.info(props.get(&quot;test_mode&quot;) == &quot;proxy&quot; ? &quot;PROXY TES
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
@@ -282,7 +282,7 @@ public static String readFileContent(Path filePath) throws IOException {
                 <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
               </JSONPostProcessor>
               <hashTree/>
-              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Set Bearer Token as Property">
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Set Bearer Token as Property" enabled="true">
                 <stringProp name="cacheKey">true</stringProp>
                 <stringProp name="filename"></stringProp>
                 <stringProp name="parameters"></stringProp>
@@ -302,7 +302,7 @@ if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
               <hashTree/>
             </hashTree>
           </hashTree>
-          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 4 Minutes (Skip First Iteration)">
+          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer" testname="Wait 4 Minutes (Skip First Iteration)" enabled="true">
             <stringProp name="cacheKey">false</stringProp>
             <stringProp name="filename"></stringProp>
             <stringProp name="parameters"></stringProp>
@@ -352,7 +352,7 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
             <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -390,7 +390,7 @@ if (iteration == 1) {
               <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
             </PreciseThroughputTimer>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">NHSD-Request-Id</stringProp>
@@ -444,7 +444,7 @@ if (iteration == 1) {
             <boolProp name="TransactionController.includeTimers">false</boolProp>
           </TransactionController>
           <hashTree>
-            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
               <stringProp name="HTTPSampler.path">/${__P(Apim_Workspace)}/FHIR/R4/Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
               <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
               <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -467,11 +467,15 @@ if (iteration == 1) {
                 <stringProp name="variableNames">ep_odscode</stringProp>
               </CSVDataSet>
               <hashTree/>
-              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
                 <collectionProp name="HeaderManager.headers">
                   <elementProp name="" elementType="Header">
                     <stringProp name="Header.name">Authorization</stringProp>
                     <stringProp name="Header.value">Bearer ${__P(varBearer,${varBearer})}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Request-Id</stringProp>
+                    <stringProp name="Header.value">Performance_proxy_test_req_id</stringProp>
                   </elementProp>
                 </collectionProp>
               </HeaderManager>
@@ -545,7 +549,7 @@ if (iteration == 1) {
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Throughput Shaping Timer" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -565,7 +569,7 @@ if (iteration == 1) {
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
+          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
             <collectionProp name="load_profile">
               <collectionProp name="656718665">
                 <stringProp name="start">0</stringProp>
@@ -653,7 +657,7 @@ if (iteration == 1) {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">NHSD-Request-Id</stringProp>
@@ -682,7 +686,7 @@ if (iteration == 1) {
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Ramp up and then steady - Throughput Shaping Timer">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Organization Requests Backend - Ramp up and then steady - Throughput Shaping Timer" enabled="true">
         <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
         <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
@@ -696,13 +700,13 @@ if (iteration == 1) {
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller" enabled="true">
           <stringProp name="IfController.condition">${__groovy(props.get(&apos;isRampLoadMode&apos;))}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer">
+          <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="jp@gc - Throughput Shaping Timer" enabled="true">
             <collectionProp name="load_profile">
               <collectionProp name="1234462727">
                 <stringProp name="start">0</stringProp>
@@ -717,7 +721,7 @@ if (iteration == 1) {
             </collectionProp>
           </kg.apc.jmeter.timers.VariableThroughputTimer>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Organization Request" enabled="true">
             <stringProp name="HTTPSampler.path">Organization?_revinclude=Endpoint%3Aorganization&amp;identifier=https%3A%2F%2Ffhir.nhs.uk%2FId%2Fods-organization-code%7C${ep_odscode}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -728,7 +732,7 @@ if (iteration == 1) {
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters">
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="ODSCode Parameters" enabled="true">
               <stringProp name="delimiter">,</stringProp>
               <stringProp name="fileEncoding"></stringProp>
               <stringProp name="filename">parameter_files/dos_search_odscodes.csv</stringProp>
@@ -740,11 +744,11 @@ if (iteration == 1) {
               <stringProp name="variableNames">ep_odscode</stringProp>
             </CSVDataSet>
             <hashTree/>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">NHSD-Request-Id</stringProp>
-                  <stringProp name="Header.value">Performance_stress_test_req_id</stringProp>
+                  <stringProp name="Header.value">Performance_rampload_test_req_id</stringProp>
                 </elementProp>
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">Version</stringProp>
@@ -755,13 +759,13 @@ if (iteration == 1) {
             <hashTree/>
           </hashTree>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Ramp Mode">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="Stop Thread if NOT Ramp Mode" enabled="true">
           <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isRampLoadMode&apos;) || props.get(&apos;isRampLoadMode&apos;) == &apos;false&apos;)}</stringProp>
           <boolProp name="IfController.evaluateAll">false</boolProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread">
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action - Stop Thread" enabled="true">
             <intProp name="ActionProcessor.action">2</intProp>
             <intProp name="ActionProcessor.target">0</intProp>
             <stringProp name="ActionProcessor.duration">0</stringProp>
