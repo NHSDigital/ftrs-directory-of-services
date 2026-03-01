@@ -165,6 +165,14 @@ jobs:
               THROUGHPUT="${THROUGHPUT:-9000}"
               THROUGHPUT_PERIOD="${THROUGHPUT_PERIOD:-60}"
               ;;
+             "rampload")
+              NUM_THREADS="${NUM_THREADS:-100}"
+              RAMP_TIME="${RAMP_TIME:-10}"
+              STARTUP_DELAY="${STARTUP_DELAY:-10}"
+              DURATION="${DURATION:-3660}"
+              THROUGHPUT="${THROUGHPUT:-148}"
+              THROUGHPUT_PERIOD="${THROUGHPUT_PERIOD:-0}"
+              ;;
             "stress")
               NUM_THREADS="${NUM_THREADS:-10}"
               RAMP_TIME="${RAMP_TIME:-1}"
