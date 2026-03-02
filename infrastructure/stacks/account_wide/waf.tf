@@ -305,7 +305,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
         vendor_name = "AWS"
 
         dynamic "scope_down_statement" {
-          for_each = length(distinct(compact(var.apim_apigee_cidrs))) > 0 ? [1] : []
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
           content {
             not_statement {
               statement {
@@ -400,11 +400,11 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
 }
 
 resource "aws_wafv2_ip_set" "apim_apigee_whitelist_regional" {
-  count              = length(distinct(compact(var.apim_apigee_cidrs))) > 0 ? 1 : 0
+  count = length(local.apim_apigee_cidrs_normalized) > 0 ? 1 : 0
   name               = "${local.resource_prefix}-apim-apigee-whitelist-regional"
   description        = "IP set for APIM/Apigee allowlist (regional scope)"
   scope              = "REGIONAL"
   ip_address_version = "IPV4"
 
-  addresses = distinct(compact(var.apim_apigee_cidrs))
+  addresses = local.apim_apigee_cidrs_normalized
 }
