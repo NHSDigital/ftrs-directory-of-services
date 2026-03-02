@@ -348,7 +348,7 @@ variable "cloudtrail_bucket_force_destroy" {
 }
 
 variable "apim_apigee_cidrs" {
-  description = "Optional list of CIDRs to whitelist for APIM/Apigee traffic in the regional WAF."
+  description = "Optional list of CIDRs used to scope down the regional BotControl managed rule group."
   type        = list(string)
   default     = []
 }
