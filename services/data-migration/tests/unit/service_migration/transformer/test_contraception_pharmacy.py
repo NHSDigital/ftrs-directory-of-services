@@ -27,11 +27,6 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     )
 
 
-# ---------------------------------------------------------------------------
-# is_service_supported
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     "service_type_id, ods_code, name, expected_result, expected_message",
     [
@@ -139,11 +134,6 @@ def test_is_service_not_supported_when_pharmacy_feature_flag_disabled(
     )
 
 
-# ---------------------------------------------------------------------------
-# should_include_service
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     "status_id, expected_result, expected_message",
     [
@@ -170,11 +160,6 @@ def test_should_include_service(
 
     assert should_include == expected_result
     assert message == expected_message
-
-
-# ---------------------------------------------------------------------------
-# transform
-# ---------------------------------------------------------------------------
 
 
 def test_transform_creates_only_healthcare_service(
@@ -216,11 +201,6 @@ def test_transform_parent_ids_are_none_by_default(
 
     assert transformer.parent_organisation_id is None
     assert transformer.parent_location_id is None
-
-
-# ---------------------------------------------------------------------------
-# resolve_parent
-# ---------------------------------------------------------------------------
 
 
 def test_resolve_parent_uses_existing_state_record(
