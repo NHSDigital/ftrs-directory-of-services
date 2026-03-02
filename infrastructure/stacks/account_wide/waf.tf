@@ -202,9 +202,14 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
   provider                = aws.us-east-1
 }
 
-# Regional Web ACL
+# Regional Web ACL summary:
+# - Default action allows; managed rules count in dev and block in non-dev.
+# - Dev count mode is a common industry pattern to avoid blocking automated test traffic (e.g., GitHub runners).
+# - APIM/Apigee and EC2/NAT allowlist rules are count-only for visibility.
+# - Managed rule groups exclude the combined allowlist via scope-down.
+# - Allowlist rules/IP sets only exist when their CIDR lists are non-empty.
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
-  # checkov:skip=CKV_AWS_192: False positive; managed rule group is present but uses dynamic blocks and scope-down logic.
+  # checkov:skip=CKV_AWS_192: False positive due to dynamic blocks and scope-down logic in this Web ACL.
   name        = "${local.resource_prefix}-${var.regional_waf_name}"
   description = "Regional WAF Web ACL"
   scope       = var.regional_waf_scope
