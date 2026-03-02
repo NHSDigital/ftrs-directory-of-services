@@ -11,7 +11,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
   Scenario: I search for Organization endpoint data by ODS Code and verify all response values match the expected test data for organisation M00081046
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
-    And the response headers contain "Content-Type" with value "application/fhir+json"
+    And the response headers contain "content-type" with value "application/fhir+json"
 
     # Bundle structure validation
     And the response body contains a bundle
@@ -59,7 +59,7 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     And the bundle contains "4" "Endpoint" resources
     And all "Organization" entries have search mode "match"
     And all "Endpoint" entries have search mode "include"
-    And the response headers contain "Content-Type" with value "application/fhir+json"
+    And the response headers contain "content-type" with value "application/fhir+json"
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
 

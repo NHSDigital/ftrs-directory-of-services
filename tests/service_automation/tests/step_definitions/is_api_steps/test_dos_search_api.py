@@ -2,6 +2,7 @@ import json
 
 from loguru import logger
 from playwright._impl._errors import Error as PlaywrightError
+from playwright.sync_api import APIRequestContext, APIResponse
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps import api_steps
 from step_definitions.common_steps.api_steps import *  # noqa: F403
@@ -80,19 +81,9 @@ scenarios(
 
 
 @given(parsers.re(r'the dns for "(?P<api_name>.*?)" is resolvable'))
-def dns_resolvable(api_name, env, workspace):
+def dns_resolvable(api_name: str, env: str, workspace: str) -> None:
     r53 = get_r53(workspace, api_name, env)
     assert wait_for_dns(r53)
-
-
-def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
-    # headers can be manipulated in individual tests if needed
-    headers = {**MANDATORY_APIG_REQUEST_HEADERS}
-    url = get_url(api_name) + "/" + resource_name
-    logger.info(
-        f"Requesting URL: {url} HERE with params: {params} with headers: {headers}"
-    )
-    return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
 @when(
@@ -102,8 +93,11 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     target_fixture="fresponse",
 )
 def send_get_with_params_with_headers(
-    api_request_context_mtls, api_name, resource_name, headers
-):
+    api_request_context_mtls: APIRequestContext,
+    api_name: str,
+    resource_name: str,
+    headers: str,
+) -> APIResponse:
     # headers can be manipulated in individual tests if needed
     params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     headers = {**MANDATORY_APIG_REQUEST_HEADERS, **json.loads(headers)}
@@ -120,7 +114,12 @@ def send_get_with_params_with_headers(
     ),
     target_fixture="fresponse",
 )
-def send_get_with_params(api_request_context_mtls, api_name, params, resource_name):
+def send_get_with_params(
+    api_request_context_mtls: APIRequestContext,
+    api_name: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     # headers can be manipulated in individual tests if needed
     headers = {**MANDATORY_APIG_REQUEST_HEADERS}
     url = get_url(api_name) + "/" + resource_name
@@ -135,8 +134,11 @@ def send_get_with_params(api_request_context_mtls, api_name, params, resource_na
     target_fixture="fresponse",
 )
 def send_to_apim_get_with_params(
-    apim_request_context, nhsd_apim_proxy_url, params, resource_name
-):
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     headers = {**MANDATORY_APIM_REQUEST_HEADERS}
     url = nhsd_apim_proxy_url + "/" + resource_name
 
@@ -150,8 +152,12 @@ def send_to_apim_get_with_params(
     target_fixture="fresponse",
 )
 def send_to_apim_get_with_params_with_headers(
-    apim_request_context, nhsd_apim_proxy_url, params, resource_name, headers
-):
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+    headers: str,
+) -> APIResponse:
     headers = {**json.loads(headers)}
     url = nhsd_apim_proxy_url + "/" + resource_name
 
@@ -165,8 +171,11 @@ def send_to_apim_get_with_params_with_headers(
     target_fixture="fresponse",
 )
 def send_to_apim_no_auth(
-    api_request_context, nhsd_apim_proxy_url, params, resource_name
-):
+    api_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     headers = {**MANDATORY_APIM_REQUEST_HEADERS}
     url = nhsd_apim_proxy_url + "/" + resource_name
     return _send_api_request(api_request_context, url, params, headers)
@@ -179,8 +188,11 @@ def send_to_apim_no_auth(
     target_fixture="fresponse",
 )
 def send_to_apim_invalid_token(
-    apim_request_context, nhsd_apim_proxy_url, params, resource_name
-):
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     # Using mandatory headers as base and adding Authorization header with invalid token for this test case
     headers = {
         **MANDATORY_APIM_REQUEST_HEADERS,
@@ -197,19 +209,24 @@ def send_to_apim_invalid_token(
     target_fixture="fresponse",
 )
 def send_to_apim_status_token(
-    apim_request_context,
-    status_endpoint_auth_headers,
-    nhsd_apim_proxy_url,
-    params,
-    resource_name,
-):
+    apim_request_context: APIRequestContext,
+    status_endpoint_auth_headers: dict[str, str],
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     url = nhsd_apim_proxy_url + "/" + resource_name
     return _send_api_request(
         apim_request_context, url, params, status_endpoint_auth_headers
     )
 
 
-def _send_api_request(request_context, url, params: str = None, headers=None):
+def _send_api_request(
+    request_context: APIRequestContext,
+    url: str,
+    params: str | None = None,
+    headers: dict[str, str] | None = None,
+) -> APIResponse:
     param_dict = _convert_params_str_to_dict(params)
 
     response = request_context.get(
@@ -235,7 +252,9 @@ def _convert_params_str_to_dict(params: str | None) -> dict[str, str]:
         r"the OperationOutcome contains an issue with details for (?P<coding_type>\w+) coding"
     )
 )
-def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type):
+def api_check_operation_outcome_any_issue_details_coding(
+    fresponse: APIResponse, coding_type: str
+) -> None:
     api_steps.api_check_operation_outcome_any_issue_by_key_value(
         fresponse,
         key="details",
@@ -250,8 +269,11 @@ def api_check_operation_outcome_any_issue_details_coding(fresponse, coding_type)
     target_fixture="fresponse",
 )
 def send_to_apim_no_auth_with_ods_code(
-    api_request_context, dos_search_service_url, resource_name, ods_code
-):
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    ods_code: str,
+) -> APIResponse:
     headers = {**MANDATORY_APIM_REQUEST_HEADERS}
     url = dos_search_service_url + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
@@ -265,8 +287,11 @@ def send_to_apim_no_auth_with_ods_code(
     target_fixture="fresponse",
 )
 def send_to_apim_invalid_token_with_ods_code(
-    api_request_context, dos_search_service_url, resource_name, ods_code
-):
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    ods_code: str,
+) -> APIResponse:
     logger.info(
         f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: {ods_code}"
     )
@@ -287,8 +312,12 @@ def send_to_apim_invalid_token_with_ods_code(
     target_fixture="fresponse",
 )
 def send_to_apim_get_with_ods_code_from_dynamo(
-    api_request_context, dos_search_service_url, resource_name, ods_code, apim_token
-):
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    ods_code: str,
+    apim_token: str,
+) -> APIResponse:
     logger.info(
         f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: {ods_code}"
     )
@@ -309,8 +338,11 @@ def send_to_apim_get_with_ods_code_from_dynamo(
     target_fixture="connection_error",
 )
 def send_get_with_params_no_auth_expecting_error(
-    api_request_context, api_name, params, resource_name
-):
+    api_request_context: APIRequestContext,
+    api_name: str,
+    params: str,
+    resource_name: str,
+) -> dict[str, str | None]:
     url = get_url(api_name) + "/" + resource_name
     error_details = {"error_type": None, "error_message": None}
     try:
@@ -329,8 +361,11 @@ def send_get_with_params_no_auth_expecting_error(
     target_fixture="connection_error",
 )
 def send_get_with_ods_code_no_auth_expecting_error(
-    api_request_context, api_name, resource_name, ods_code
-):
+    api_request_context: APIRequestContext,
+    api_name: str,
+    resource_name: str,
+    ods_code: str,
+) -> dict[str, str | None]:
     url = get_url(api_name) + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
     error_details = {"error_type": None, "error_message": None}
@@ -344,7 +379,7 @@ def send_get_with_ods_code_no_auth_expecting_error(
 
 
 @then(parsers.re("I receive a connection reset error"))
-def check_connection_reset_error(connection_error):
+def check_connection_reset_error(connection_error: dict[str, str | None]) -> None:
     assert connection_error["error_message"] is not None, (
         "Expected a connection error but none was raised"
     )
@@ -358,12 +393,11 @@ def check_connection_reset_error(connection_error):
     target_fixture="fresponse",
 )
 def send_to_apim_with_malformed_auth(
-    apim_request_context,
-    status_endpoint_auth_headers,
-    nhsd_apim_proxy_url,
-    params,
-    resource_name,
-):
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     """Send request to APIM with a malformed Authorization header."""
     url = nhsd_apim_proxy_url + "/" + resource_name
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": "MalformedHeader"}
@@ -378,12 +412,11 @@ def send_to_apim_with_malformed_auth(
     target_fixture="fresponse",
 )
 def send_to_apim_with_empty_auth(
-    apim_request_context,
-    status_endpoint_auth_headers,
-    nhsd_apim_proxy_url,
-    params,
-    resource_name,
-):
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
+    params: str,
+    resource_name: str,
+) -> APIResponse:
     """Send request to APIM with an empty Authorization header."""
     url = nhsd_apim_proxy_url + "/" + resource_name
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": ""}
@@ -397,11 +430,11 @@ def send_to_apim_with_empty_auth(
     target_fixture="fresponse",
 )
 def send_to_apim_with_ods_code_malformed_auth(
-    api_request_context,
-    dos_search_service_url,
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
     resource_name: str,
     ods_code: str,
-):
+) -> APIResponse:
     """Send request to APIM with a malformed Authorization header."""
     url = dos_search_service_url + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
@@ -416,11 +449,11 @@ def send_to_apim_with_ods_code_malformed_auth(
     target_fixture="fresponse",
 )
 def send_to_apim_with_ods_code_empty_auth(
-    api_request_context,
-    dos_search_service_url,
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
     resource_name: str,
     ods_code: str,
-):
+) -> APIResponse:
     """Send request to APIM with an empty Authorization header."""
     url = dos_search_service_url + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"

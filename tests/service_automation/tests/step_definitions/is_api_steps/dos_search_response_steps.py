@@ -2,11 +2,14 @@ import json
 import re
 
 from loguru import logger
+from playwright.sync_api import APIResponse
 from pytest_bdd import parsers, then
 
 
 @then(parsers.parse('all "{resource_type}" entries have search mode "{mode}"'))
-def api_check_entries_search_mode(fresponse, resource_type: str, mode: str):
+def api_check_entries_search_mode(
+    fresponse: APIResponse, resource_type: str, mode: str
+) -> None:
     """Verify all entries of a specific resource type have the expected search mode."""
     response = fresponse.json()
     matching_entries = [
@@ -30,8 +33,12 @@ def api_check_entries_search_mode(fresponse, resource_type: str, mode: str):
     )
 )
 def api_check_resource_type_str_use(
-    fresponse, resource_type: str, array_name: str, array_item: str, expected_value: str
-):
+    fresponse: APIResponse,
+    resource_type: str,
+    array_name: str,
+    array_item: str,
+    expected_value: str,
+) -> None:
     """Verify identifier[0].use field."""
     response = fresponse.json()
     resource_entries = [
@@ -54,8 +61,8 @@ def api_check_resource_type_str_use(
     )
 )
 def api_check_resource_type_field_value(
-    fresponse, resource_type: str, field_name: str, expected_value: str
-):
+    fresponse: APIResponse, resource_type: str, field_name: str, expected_value: str
+) -> None:
     """Verify {resource_type}.{field_name} has the expected value."""
     response = fresponse.json()
     resource_entries = [
@@ -79,8 +86,8 @@ def api_check_resource_type_field_value(
     )
 )
 def api_check_resource_type_boolean_value(
-    fresponse, resource_type: str, field_name: str, expected_value: str
-):
+    fresponse: APIResponse, resource_type: str, field_name: str, expected_value: str
+) -> None:
     """Verify {resource_type}.{field_name} has the expected boolean value.
     Accepts 'true' or 'false' (case-insensitive).
     """
@@ -102,7 +109,7 @@ def api_check_resource_type_boolean_value(
 
 
 @then(parsers.parse('the "{resource_type}" resource has name field'))
-def api_check_resource_type_name(fresponse, resource_type: str):
+def api_check_resource_type_name(fresponse: APIResponse, resource_type: str) -> None:
     """Verify {resource_type}.name exists and is a string."""
     response = fresponse.json()
     org_entries = [
@@ -124,7 +131,9 @@ def api_check_resource_type_name(fresponse, resource_type: str):
         'the "{resource_type}" resource identifier value matches ODS code pattern'
     )
 )
-def api_check_resource_type_identifier_value_pattern(fresponse, resource_type: str):
+def api_check_resource_type_identifier_value_pattern(
+    fresponse: APIResponse, resource_type: str
+) -> None:
     """Verify {resource_type}.identifier[0].value matches ODS code pattern."""
 
     response = fresponse.json()
@@ -145,7 +154,9 @@ def api_check_resource_type_identifier_value_pattern(fresponse, resource_type: s
 
 
 @then(parsers.parse("all Endpoint resources have status in {expected_values}"))
-def api_check_all_endpoints_status(fresponse, expected_values: str):
+def api_check_all_endpoints_status(
+    fresponse: APIResponse, expected_values: str
+) -> None:
     """Verify all Endpoint.status values are in the expected set."""
     response = fresponse.json()
     endpoint_entries = [
@@ -164,7 +175,7 @@ def api_check_all_endpoints_status(fresponse, expected_values: str):
 
 
 @then("all Endpoint resources have connectionType with system and code")
-def api_check_all_endpoints_connection_type(fresponse):
+def api_check_all_endpoints_connection_type(fresponse: APIResponse) -> None:
     """Verify all Endpoint.connectionType has system and code."""
     response = fresponse.json()
     endpoint_entries = [
@@ -181,7 +192,7 @@ def api_check_all_endpoints_connection_type(fresponse):
 
 
 @then("all Endpoint resources have managingOrganization reference")
-def api_check_all_endpoints_managing_org(fresponse):
+def api_check_all_endpoints_managing_org(fresponse: APIResponse) -> None:
     """Verify all Endpoint.managingOrganization.reference exists."""
     response = fresponse.json()
     endpoint_entries = [
@@ -198,7 +209,7 @@ def api_check_all_endpoints_managing_org(fresponse):
 
 
 @then("all Endpoint resources have payloadType array")
-def api_check_all_endpoints_payload_type(fresponse):
+def api_check_all_endpoints_payload_type(fresponse: APIResponse) -> None:
     """Verify all Endpoint.payloadType is a non-empty array."""
     response = fresponse.json()
     endpoint_entries = [
@@ -215,7 +226,7 @@ def api_check_all_endpoints_payload_type(fresponse):
 
 
 @then("all Endpoint resources have payloadMimeType array")
-def api_check_all_endpoints_payload_mime_type(fresponse):
+def api_check_all_endpoints_payload_mime_type(fresponse: APIResponse) -> None:
     """Verify all Endpoint.payloadMimeType is a non-empty array."""
     response = fresponse.json()
     endpoint_entries = [
@@ -234,7 +245,7 @@ def api_check_all_endpoints_payload_mime_type(fresponse):
 
 
 @then("all Endpoint resources have address field")
-def api_check_all_endpoints_address(fresponse):
+def api_check_all_endpoints_address(fresponse: APIResponse) -> None:
     """Verify all Endpoint.address exists."""
     response = fresponse.json()
     endpoint_entries = [
@@ -250,7 +261,7 @@ def api_check_all_endpoints_address(fresponse):
 
 
 @then("all Endpoint managingOrganization references point to the parent Organization")
-def api_check_endpoints_managing_org_reference(fresponse):
+def api_check_endpoints_managing_org_reference(fresponse: APIResponse) -> None:
     """Verify Endpoint.managingOrganization.reference matches parent Organization."""
     response = fresponse.json()
     org_entries = [
@@ -277,7 +288,9 @@ def api_check_endpoints_managing_org_reference(fresponse):
 @then(
     parsers.parse("all Endpoint resources have extension {extension_name} as integer")
 )
-def api_check_endpoints_extension_integer(fresponse, extension_name: str):
+def api_check_endpoints_extension_integer(
+    fresponse: APIResponse, extension_name: str
+) -> None:
     """Verify all Endpoints have the specified extension with integer value."""
     response = fresponse.json()
     endpoint_entries = [
@@ -305,7 +318,9 @@ def api_check_endpoints_extension_integer(fresponse, extension_name: str):
 @then(
     parsers.parse("all Endpoint resources have extension {extension_name} as boolean")
 )
-def api_check_endpoints_extension_boolean(fresponse, extension_name: str):
+def api_check_endpoints_extension_boolean(
+    fresponse: APIResponse, extension_name: str
+) -> None:
     """Verify all Endpoints have the specified extension with boolean value."""
     response = fresponse.json()
     endpoint_entries = [
@@ -335,7 +350,9 @@ def api_check_endpoints_extension_boolean(fresponse, extension_name: str):
         "all Endpoint resources have extension {extension_name} with valid values"
     )
 )
-def api_check_endpoints_extension_valid_values(fresponse, extension_name: str):
+def api_check_endpoints_extension_valid_values(
+    fresponse: APIResponse, extension_name: str
+) -> None:
     """Verify all Endpoints have the specified extension with valid enum values."""
     response = fresponse.json()
     endpoint_entries = [
@@ -365,8 +382,8 @@ def api_check_endpoints_extension_valid_values(fresponse, extension_name: str):
     parsers.parse('Endpoint {index:d} has "{field_name}" with value "{expected_value}"')
 )
 def api_check_endpoint_by_index_field_value(
-    fresponse, index: int, field_name: str, expected_value: str
-):
+    fresponse: APIResponse, index: int, field_name: str, expected_value: str
+) -> None:
     """Verify a specific Endpoint field value by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [
@@ -390,8 +407,12 @@ def api_check_endpoint_by_index_field_value(
     )
 )
 def api_check_endpoint_by_index_nested_field_value(
-    fresponse, index: int, parent_field: str, child_field: str, expected_value: str
-):
+    fresponse: APIResponse,
+    index: int,
+    parent_field: str,
+    child_field: str,
+    expected_value: str,
+) -> None:
     """Verify a nested field value in a specific Endpoint by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [
@@ -416,8 +437,8 @@ def api_check_endpoint_by_index_nested_field_value(
     )
 )
 def api_check_endpoint_by_index_extension_integer(
-    fresponse, index: int, extension_name: str, expected_value: int
-):
+    fresponse: APIResponse, index: int, extension_name: str, expected_value: int
+) -> None:
     """Verify a specific Endpoint extension integer value by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [
@@ -446,8 +467,8 @@ def api_check_endpoint_by_index_extension_integer(
     )
 )
 def api_check_endpoint_by_index_extension_boolean(
-    fresponse, index: int, extension_name: str, expected_value: str
-):
+    fresponse: APIResponse, index: int, extension_name: str, expected_value: str
+) -> None:
     """Verify a specific Endpoint extension boolean value by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [
@@ -477,8 +498,8 @@ def api_check_endpoint_by_index_extension_boolean(
     )
 )
 def api_check_endpoint_by_index_extension_code(
-    fresponse, index: int, extension_name: str, expected_value: str
-):
+    fresponse: APIResponse, index: int, extension_name: str, expected_value: str
+) -> None:
     """Verify a specific Endpoint extension code value by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [
@@ -507,8 +528,8 @@ def api_check_endpoint_by_index_extension_code(
     )
 )
 def api_check_endpoint_by_index_array_contains(
-    fresponse, index: int, array_field: str, expected_value: str
-):
+    fresponse: APIResponse, index: int, array_field: str, expected_value: str
+) -> None:
     """Verify a specific Endpoint array field contains a value by index (0-based)."""
     response = fresponse.json()
     endpoint_entries = [

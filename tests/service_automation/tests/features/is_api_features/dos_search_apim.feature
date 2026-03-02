@@ -97,9 +97,9 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-      | unexpected_param | unexpected_value |
-      | foo              | bar              |
-      | _sort            | name             |
+    | unexpected_param | unexpected_value |
+    | foo              | bar              |
+    | _sort            | name             |
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with ODS code at valid boundary length
