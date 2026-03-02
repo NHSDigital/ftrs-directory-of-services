@@ -50,3 +50,8 @@ retry_duration                    = 300
 s3_backup_mode                    = "FailedEventsOnly"
 
 cloudtrail_log_retention_days = 30
+
+apim_apigee_cidrs = [
+  "35.197.254.55/32",
+  "35.246.55.143/32",
+]
