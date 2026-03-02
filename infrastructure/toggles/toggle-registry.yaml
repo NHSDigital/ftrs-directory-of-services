@@ -158,7 +158,7 @@ api_gateway_toggles:
       message: "Healthcare Service search endpoint is currently disabled"
     owner: "DoS Search Team"
     environments:
-      workspace: true
+      workspace: false
       dev: true
       test: true
       int: false
