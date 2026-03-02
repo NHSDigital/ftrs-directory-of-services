@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-from botocore.exceptions import ClientError
-
 from functions.alarm_tags import get_alarm_tags
 
 
@@ -64,10 +62,7 @@ class TestGetAlarmTags:
     ) -> None:
         mock_cloudwatch = MagicMock()
         mock_boto_client.return_value = mock_cloudwatch
-        mock_cloudwatch.list_tags_for_resource.side_effect = ClientError(
-            {"Error": {"Code": "AccessDenied", "Message": "Access denied"}},
-            "ListTagsForResource",
-        )
+        mock_cloudwatch.list_tags_for_resource.side_effect = Exception("Access denied")
 
         result = get_alarm_tags("arn:aws:cloudwatch:eu-west-2:123456789012:alarm:test")
 
