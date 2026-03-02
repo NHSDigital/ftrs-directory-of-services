@@ -15,12 +15,8 @@ module "artefacts_bucket" {
       status = "Enabled"
       filter = {
         prefix = "development/latest/"
-        tags = {
-          retention = "retain"
-        }
       }
       noncurrent_version_expiration = {
-        days                      = 1
         newer_noncurrent_versions = 5
       }
     },
