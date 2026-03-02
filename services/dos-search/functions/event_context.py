@@ -56,25 +56,23 @@ def _get_header(headers: dict[str, Any], *names: str) -> Optional[str]:
 
 
 def _extract_mandatory(headers: dict[str, Any]) -> dict[str, Any]:
-    mandatory: dict[str, Any] = {"logger": "dos_logger"}
-
     corr_header = _get_header(headers, "nhsd-correlation-id")
     parts = corr_header.split(".") if corr_header else []
 
-    mandatory["dos_nhsd_correlation_id"] = (
-        next(iter(parts[_CORRELATION_ID_INDEX : _CORRELATION_ID_INDEX + 1]), None)
-        or PLACEHOLDER
-    )
-    mandatory["dos_message_id"] = (
-        next(iter(parts[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None)
-        or PLACEHOLDER
-    )
-    mandatory["dos_nhsd_request_id"] = (
-        _get_header(headers, "nhsd-request-id") or PLACEHOLDER
-    )
-    mandatory["dos_message_category"] = "LOGGING"
-
-    return mandatory
+    return {
+        "dos_nhsd_correlation_id": (
+            next(iter(parts[_CORRELATION_ID_INDEX : _CORRELATION_ID_INDEX + 1]), None)
+            or PLACEHOLDER
+        ),
+        "dos_message_id": (
+            next(iter(parts[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None)
+            or PLACEHOLDER
+        ),
+        "dos_nhsd_request_id": (
+            _get_header(headers, "nhsd-request-id") or PLACEHOLDER
+        ),
+        "dos_message_category": "LOGGING",
+    }
 
 
 def _extract_one_time(event: dict[str, Any], headers: dict[str, Any]) -> dict[str, Any]:

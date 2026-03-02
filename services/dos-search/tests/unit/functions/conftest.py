@@ -86,7 +86,6 @@ def event(ods_code):
 @pytest.fixture
 def log_data():
     return {
-        "logger": "dos_logger",
         "dos_nhsd_correlation_id": "correlation_id",
         "dos_nhsd_request_id": "request_id",
         "dos_message_id": "message_id",

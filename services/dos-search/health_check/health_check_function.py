@@ -1,11 +1,13 @@
-from aws_lambda_powertools import Logger
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 
+from health_check.logbase import DosSearchHealthLogBase
+
 app = APIGatewayRestResolver()
-logger = Logger(service="dos-search-health")
+logger = Logger.get(service="dos-search-health")
 
 SECURITY_HEADERS: dict[str, str] = {
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
@@ -28,8 +30,8 @@ def _is_table_active() -> bool:
         table = repository.table
         table_status: str = table.table_status
     except Exception as exc:
-        logger.warning(
-            "Health check failed",
+        logger.log(
+            DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001,
             exception_type=exc.__class__.__name__,
             exception=str(exc),
         )
