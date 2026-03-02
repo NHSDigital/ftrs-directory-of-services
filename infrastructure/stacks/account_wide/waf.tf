@@ -203,8 +203,8 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL
-# checkov:skip=CKV_AWS_192: False positive; managed rule group is present but uses dynamic blocks and scope-down logic.
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
+  # checkov:skip=CKV_AWS_192: False positive; managed rule group is present but uses dynamic blocks and scope-down logic.
   name        = "${local.resource_prefix}-${var.regional_waf_name}"
   description = "Regional WAF Web ACL"
   scope       = var.regional_waf_scope
