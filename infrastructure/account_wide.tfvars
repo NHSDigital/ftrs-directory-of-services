@@ -48,3 +48,5 @@ hec_acknowledgment_timeout        = 300
 hec_endpoint_type                 = "Raw"
 retry_duration                    = 300
 s3_backup_mode                    = "FailedEventsOnly"
+
+cloudtrail_log_retention_days = 30

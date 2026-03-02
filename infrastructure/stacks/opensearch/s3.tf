@@ -40,11 +40,12 @@ data "aws_iam_policy_document" "s3_opensearch_pipeline_dlq_bucket_policy" {
   }
 }
 module "s3_opensearch_pipeline_dlq_bucket" {
-  count         = local.stack_enabled
-  source        = "../../modules/s3"
-  bucket_name   = "${local.resource_prefix}-${var.opensearch_pipeline_s3_dlq_bucket_name}"
-  versioning    = var.s3_versioning
-  force_destroy = true
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.s3_opensearch_pipeline_dlq_bucket_policy.json
+  count             = local.stack_enabled
+  source            = "../../modules/s3"
+  bucket_name       = "${local.resource_prefix}-${var.opensearch_pipeline_s3_dlq_bucket_name}"
+  versioning        = var.s3_versioning
+  force_destroy     = true
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.s3_opensearch_pipeline_dlq_bucket_policy.json
+  s3_logging_bucket = local.s3_logging_bucket
 }
