@@ -227,4 +227,4 @@ jobs:
     with:
       env: ${{ matrix.environment }}
     secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
+      SLACK_WEBHOOK_PIPELINE_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
