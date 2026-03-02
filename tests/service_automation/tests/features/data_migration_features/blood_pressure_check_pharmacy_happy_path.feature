@@ -103,7 +103,7 @@ Feature: Data Migration - Blood Pressure Check Pharmacy
         "location": "6e3e03a6-a694-52af-b156-939066cd29d8",
         "name": "BP Check: Kent - Boots - Maidstone",
         "category": "Pharmacy Services",
-        "type": "Essential Services",
+        "type": "Blood Pressure Check",
         "active": true
       }
       """
@@ -209,7 +209,7 @@ Feature: Data Migration - Blood Pressure Check Pharmacy
         "location": "8e29f663-a2af-5657-9834-234efbc7bd89",
         "name": "BP Check: Kent - Boots - Canterbury",
         "category": "Pharmacy Services",
-        "type": "Essential Services",
+        "type": "Blood Pressure Check",
         "active": true
       }
       """

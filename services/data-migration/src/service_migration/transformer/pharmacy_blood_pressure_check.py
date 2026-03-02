@@ -28,7 +28,7 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
     ODS_SUFFIX = "BPS"
 
     """
-    Transformer for Pharmacy Blood Pressure Check services linked to parent pharmacies.
+    Transformer for Pharmacy Blood Pressure Check services.
 
     Selection criteria:
     - The service type must be "Pharmacy Blood Pressure Check" (148)
@@ -39,8 +39,9 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
     - The service must be active
 
     Parent pharmacy resolution:
-    - The BP suffix is removed to derive the base 5-character ODS code
-    - The parent pharmacy is looked up by base ODS code and matching pharmacy type
+    - The ODS suffix "BPS" is removed to derive the base 5-character ODS code
+    - The parent pharmacy (supported pharmacy type IDs) is looked up by base ODS code
+        in the legacy DB
     - If a parent state record already exists, its organisation/location IDs are reused
     - If no state record exists, the parent pharmacy is migrated first (transaction 1)
         and the resulting org/location IDs are used for the BP check service (transaction 2)
@@ -49,7 +50,7 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
     Feature flag behavior:
     - When data_migration_pharmacy_enabled is disabled:
         Service is not supported (no records created)
-    - When enabled: A HealthcareService of type Essential Services is created and linked
+    - When enabled: A HealthcareService of type Blood Pressure Check is created and linked
         to the parent pharmacy organisation and location
     """
 
@@ -64,7 +65,7 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
             self.parent_organisation_id,
             self.parent_location_id,
             category=HealthcareServiceCategory.PHARMACY_SERVICES,
-            type=HealthcareServiceType.ESSENTIAL_SERVICES,
+            type=HealthcareServiceType.BLOOD_PRESSURE_CHECK,
         )
 
         return ServiceTransformOutput(
@@ -80,16 +81,17 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
         get_state_record: Callable[[int], ServiceMigrationState | None],
     ) -> tuple[legacy_model.Service | None, UUID | None, UUID | None]:
         """
-        Resolve the parent pharmacy organisation and location for a BP check service.
+        Resolve the parent pharmacy organisation and location for a BPS service.
 
-        Derives the base ODS code by stripping the BP suffix, then:
+        Derives the base ODS code by stripping the "BPS" suffix, then:
         1. Queries the legacy DB for a parent pharmacy service with that base ODS code
         2. If found, checks the state table for an already-migrated state record
         3. If a state record exists, returns (None, org_id, loc_id) — no migration needed
-        4. If no state record, returns (parent_service, None, None) — processor migrates parent first
+        4. If no state record, returns (parent_service, None, None) — processor migrates
+           parent first
         5. If no parent pharmacy exists in DoS at all, raises ParentPharmacyNotFoundError
 
-        :param service: The BP check legacy service being processed
+        :param service: The BPS legacy service being processed
         :param engine: SQLAlchemy engine for querying the legacy DoS database
         :param get_state_record: Callable to fetch migration state by legacy service ID
         :return: Tuple of (parent_legacy_service_or_None, org_id_or_None, loc_id_or_None)
@@ -120,9 +122,12 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
         self, engine: Engine, base_ods_code: str
     ) -> legacy_model.Service | None:
         """
-        Query the legacy DoS database for a pharmacy service matching the base ODS code.
-        All relationships (including nested ones) are eagerly loaded via selectinload so
-        the returned object is fully usable after the session closes.
+        Query the legacy DoS database for an active parent pharmacy service matching
+        the derived base ODS code.
+
+        All required relationships (including nested opening-time relationships) are
+        eagerly loaded via selectinload so the returned object is fully usable after
+        the session closes.
         """
         stmt = (
             select(legacy_model.Service)

@@ -152,7 +152,9 @@ def test_transform_uses_parent_ids_from_transformer_instance(
         result.healthcare_service[0].category
         == HealthcareServiceCategory.PHARMACY_SERVICES
     )
-    assert result.healthcare_service[0].type == HealthcareServiceType.ESSENTIAL_SERVICES
+    assert (
+        result.healthcare_service[0].type == HealthcareServiceType.BLOOD_PRESSURE_CHECK
+    )
 
 
 def test_resolve_parent_returns_existing_state_ids(
