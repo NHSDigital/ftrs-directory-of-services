@@ -68,9 +68,7 @@ def _extract_mandatory(headers: dict[str, Any]) -> dict[str, Any]:
             next(iter(parts[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None)
             or PLACEHOLDER
         ),
-        "dos_nhsd_request_id": (
-            _get_header(headers, "nhsd-request-id") or PLACEHOLDER
-        ),
+        "dos_nhsd_request_id": (_get_header(headers, "nhsd-request-id") or PLACEHOLDER),
         "dos_message_category": "LOGGING",
     }
 
