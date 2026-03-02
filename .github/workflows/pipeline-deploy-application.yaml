@@ -48,7 +48,7 @@ jobs:
     with:
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: ${{ needs.metadata.outputs.workspace }}
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athen']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
       type: app
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
