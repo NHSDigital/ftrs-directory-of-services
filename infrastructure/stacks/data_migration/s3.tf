@@ -1,10 +1,11 @@
 module "migration_store_bucket" {
-  source        = "../../modules/s3"
-  count         = local.is_primary_environment ? 1 : 0
-  bucket_name   = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
-  versioning    = var.s3_versioning
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.migration_store_bucket_policy_document[0].json
+  source            = "../../modules/s3"
+  count             = local.is_primary_environment ? 1 : 0
+  bucket_name       = "${local.resource_prefix}-${var.migration_pipeline_store_bucket_name}"
+  versioning        = var.s3_versioning
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.migration_store_bucket_policy_document[0].json
+  s3_logging_bucket = local.s3_logging_bucket
 
   lifecycle_rule_inputs = [
     {

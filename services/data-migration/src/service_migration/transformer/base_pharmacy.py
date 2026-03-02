@@ -7,11 +7,17 @@ from ftrs_data_layer.domain import (
     Organisation,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
+from ftrs_data_layer.domain.enums import OrganisationType
 
 from service_migration.transformer.base import (
     ServiceTransformer,
     ServiceTransformOutput,
 )
+
+PHARMACY_TYPE_TO_ORGANISATION_TYPE: dict[int, OrganisationType] = {
+    13: OrganisationType.COMMUNITY_PHARMACY,
+    134: OrganisationType.DISTANCE_SELLING_PHARMACY,
+}
 
 
 class BasePharmacyTransformer(ServiceTransformer):
@@ -42,10 +48,17 @@ class BasePharmacyTransformer(ServiceTransformer):
 
     def build_organisation(self, service: legacy_model.Service) -> Organisation:
         """
-        Override to explicitly exclude endpoints from pharmacy organisations.
+        Override to map to new service types
+        and explicitly exclude endpoints from pharmacy organisations.
         """
         organisation = super().build_organisation(service)
-        return organisation.model_copy(update={"endpoints": []})
+        organisation_type = PHARMACY_TYPE_TO_ORGANISATION_TYPE.get(service.typeid)
+        return organisation.model_copy(
+            update={
+                "endpoints": [],
+                "type": organisation_type,
+            }
+        )
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         organisation = self.build_organisation(service)

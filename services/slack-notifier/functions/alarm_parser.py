@@ -3,9 +3,7 @@
 import json
 from typing import Any
 
-from ftrs_common.logger import Logger
-
-logger = Logger.get("slack-notifier")
+from functions.logger import logger
 
 
 def flatten_dict(

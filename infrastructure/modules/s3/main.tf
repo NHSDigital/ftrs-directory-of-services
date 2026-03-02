@@ -8,11 +8,12 @@ module "s3" {
   attach_deny_insecure_transport_policy = true
   lifecycle_rule                        = var.lifecycle_rule_inputs
 
-  force_destroy           = var.force_destroy
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  force_destroy                         = var.force_destroy
+  block_public_acls                     = true
+  block_public_policy                   = true
+  ignore_public_acls                    = true
+  restrict_public_buckets               = true
+  attach_cloudtrail_log_delivery_policy = var.attach_cloudtrail_log_delivery_policy
 
   server_side_encryption_configuration = var.enable_kms_encryption ? {
     rule = {
