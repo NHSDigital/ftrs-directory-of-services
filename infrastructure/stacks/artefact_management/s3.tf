@@ -17,6 +17,7 @@ module "artefacts_bucket" {
         prefix = "development/latest/"
       }
       noncurrent_version_expiration = {
+        days                      = 1
         newer_noncurrent_versions = 5
       }
     },
