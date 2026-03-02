@@ -175,11 +175,6 @@ variable "regional_waf_log_group_retention_days" {
   type        = number
   default     = 365
 }
-variable "regional_waf_allowed_country_codes" {
-  description = "Allowed country codes for the regional WAF access"
-  type        = list(string)
-  default     = ["GB", "JE", "IM"]
-}
 variable "regional_waf_hostile_country_codes" {
   description = "Country codes to explicitly block for the regional WAF"
   type        = list(string)
@@ -350,12 +345,6 @@ variable "cloudtrail_bucket_force_destroy" {
   description = "Whether to allow force-destroying the CloudTrail S3 bucket on stack deletion"
   type        = bool
   default     = false
-}
-
-variable "ec2_whitelist_cidrs" {
-  description = "Optional list of CIDRs to whitelist in the regional WAF for EC2 addresses."
-  type        = list(string)
-  default     = []
 }
 
 variable "apim_apigee_cidrs" {

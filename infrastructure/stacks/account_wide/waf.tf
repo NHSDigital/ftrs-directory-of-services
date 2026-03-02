@@ -203,13 +203,12 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL summary:
-# - Default action allows; managed rules count in dev and block in non-dev.
-# - Dev count mode is a common industry pattern to avoid blocking automated test traffic (e.g., GitHub runners).
-# - APIM/Apigee and EC2/NAT allowlist rules are count-only for visibility.
-# - Managed rule groups exclude the combined allowlist via scope-down.
-# - Allowlist rules/IP sets only exist when their CIDR lists are non-empty.
+# - Default action allows; hostile countries are blocked when configured.
+# - Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - BotControl excludes APIM/Apigee allowlist via scope-down when CIDRs are provided.
+
+# Regional Web ACL
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
-  # checkov:skip=CKV_AWS_192: False positive due to dynamic blocks and scope-down logic in this Web ACL.
   name        = "${local.resource_prefix}-${var.regional_waf_name}"
   description = "Regional WAF Web ACL"
   scope       = var.regional_waf_scope
@@ -218,84 +217,100 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     allow {}
   }
 
+  # Optional hostile country block
   dynamic "rule" {
-    for_each = local.apim_apigee_allowlist_enabled ? [1] : []
+    for_each = length(var.regional_waf_hostile_country_codes) > 0 ? [1] : []
     content {
-      name     = "allow-apim-apigee-cidrs"
-      priority = 5
+      name     = "regional-waf-block-hostile-countries"
+      priority = 0
 
       action {
-        count {}
+        block {}
       }
 
       statement {
-        ip_set_reference_statement {
-          arn = aws_wafv2_ip_set.apim_apigee_whitelist_regional[0].arn
+        geo_match_statement {
+          country_codes = var.regional_waf_hostile_country_codes
+          forwarded_ip_config {
+            header_name       = "X-Forwarded-For"
+            fallback_behavior = "MATCH"
+          }
         }
       }
 
       visibility_config {
         cloudwatch_metrics_enabled = false
-        metric_name                = "${local.resource_prefix}-regional-allow-apim-apigee"
-        sampled_requests_enabled   = false
+        metric_name                = "${local.resource_prefix}-regional-waf-block-hostile-countries"
+        sampled_requests_enabled   = true
       }
     }
   }
 
-  dynamic "rule" {
-    for_each = local.ec2_allowlist_enabled ? [1] : []
-    content {
-      name     = "allow-ec2-whitelist-regional"
-      priority = 6
+  # Managed rule groups
+  rule {
+    name     = "AWSManagedRulesAmazonIpReputationList"
+    priority = 10
 
-      action {
-        count {}
-      }
+    override_action {
+      none {}
+    }
 
-      statement {
-        ip_set_reference_statement {
-          arn = aws_wafv2_ip_set.ec2_whitelist_regional[0].arn
-        }
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesAmazonIpReputationList"
+        vendor_name = "AWS"
       }
+    }
 
-      visibility_config {
-        cloudwatch_metrics_enabled = false
-        metric_name                = "${local.resource_prefix}-regional-allow-ec2"
-        sampled_requests_enabled   = false
-      }
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-ip-reputation-list"
+      sampled_requests_enabled   = true
     }
   }
 
   rule {
     name     = "AWSManagedRulesKnownBadInputsRuleSet"
-    priority = 10
+    priority = 20
 
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [1] : []
-      content {
-        count {}
-      }
-    }
-
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [] : [1]
-      content {
-        none {}
-      }
+    override_action {
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesKnownBadInputsRuleSet"
         vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-known-bad-inputs"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 30
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
 
         dynamic "scope_down_statement" {
-          for_each = local.regional_allowlist_enabled ? [1] : []
+          for_each = length(distinct(compact(var.apim_apigee_cidrs))) > 0 ? [1] : []
           content {
             not_statement {
               statement {
                 ip_set_reference_statement {
-                  arn = aws_wafv2_ip_set.regional_allowlist[0].arn
+                  arn = aws_wafv2_ip_set.apim_apigee_whitelist_regional[0].arn
                 }
               }
             }
@@ -305,180 +320,91 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-known-bad-inputs"
-      sampled_requests_enabled   = false
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
+      sampled_requests_enabled   = true
     }
   }
 
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
-    priority = 20
+    priority = 40
 
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [1] : []
-      content {
-        count {}
-      }
-    }
-
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [] : [1]
-      content {
-        none {}
-      }
+    override_action {
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
-
-        dynamic "scope_down_statement" {
-          for_each = local.regional_allowlist_enabled ? [1] : []
-          content {
-            not_statement {
-              statement {
-                ip_set_reference_statement {
-                  arn = aws_wafv2_ip_set.regional_allowlist[0].arn
-                }
-              }
-            }
-          }
-        }
       }
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true
+      cloudwatch_metrics_enabled = false
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-common-rules"
-      sampled_requests_enabled   = false
+      sampled_requests_enabled   = true
     }
   }
 
   rule {
     name     = "AWSManagedRulesLinuxRuleSet"
-    priority = 30
+    priority = 50
 
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [1] : []
-      content {
-        count {}
-      }
-    }
-
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [] : [1]
-      content {
-        none {}
-      }
+    override_action {
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesLinuxRuleSet"
         vendor_name = "AWS"
-
-        dynamic "scope_down_statement" {
-          for_each = local.regional_allowlist_enabled ? [1] : []
-          content {
-            not_statement {
-              statement {
-                ip_set_reference_statement {
-                  arn = aws_wafv2_ip_set.regional_allowlist[0].arn
-                }
-              }
-            }
-          }
-        }
       }
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true
+      cloudwatch_metrics_enabled = false
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-linux-rules"
-      sampled_requests_enabled   = false
+      sampled_requests_enabled   = true
     }
   }
 
   rule {
     name     = "AWSManagedRulesUnixRuleSet"
-    priority = 40
+    priority = 60
 
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [1] : []
-      content {
-        count {}
-      }
-    }
-
-    dynamic "override_action" {
-      for_each = var.environment == "dev" ? [] : [1]
-      content {
-        none {}
-      }
+    override_action {
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesUnixRuleSet"
         vendor_name = "AWS"
-
-        dynamic "scope_down_statement" {
-          for_each = local.regional_allowlist_enabled ? [1] : []
-          content {
-            not_statement {
-              statement {
-                ip_set_reference_statement {
-                  arn = aws_wafv2_ip_set.regional_allowlist[0].arn
-                }
-              }
-            }
-          }
-        }
       }
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = true
+      cloudwatch_metrics_enabled = false
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-unix-rules"
-      sampled_requests_enabled   = false
+      sampled_requests_enabled   = true
     }
   }
 
   visibility_config {
-    cloudwatch_metrics_enabled = true
+    cloudwatch_metrics_enabled = false
     metric_name                = "${local.resource_prefix}-regional-waf"
-    sampled_requests_enabled   = false
+    sampled_requests_enabled   = true
   }
 }
 
-resource "aws_wafv2_ip_set" "ec2_whitelist_regional" {
-  count              = local.ec2_allowlist_enabled ? 1 : 0
-  name               = "${local.resource_prefix}-ec2-whitelist-regional"
-  description        = "IP set for EC2 egress via NAT gateway public EIPs (regional scope)"
-  scope              = "REGIONAL"
-  ip_address_version = "IPV4"
-
-  addresses = local.ec2_allowlist_cidrs
-}
-
 resource "aws_wafv2_ip_set" "apim_apigee_whitelist_regional" {
-  count              = local.apim_apigee_allowlist_enabled ? 1 : 0
+  count              = length(distinct(compact(var.apim_apigee_cidrs))) > 0 ? 1 : 0
   name               = "${local.resource_prefix}-apim-apigee-whitelist-regional"
   description        = "IP set for APIM/Apigee allowlist (regional scope)"
   scope              = "REGIONAL"
   ip_address_version = "IPV4"
 
-  addresses = local.apim_apigee_allowlist_cidrs
-}
-
-resource "aws_wafv2_ip_set" "regional_allowlist" {
-  count              = local.regional_allowlist_enabled ? 1 : 0
-  name               = "${local.resource_prefix}-regional-allowlist"
-  description        = "Combined allowlist for APIM/Apigee and EC2/NAT (regional scope)"
-  scope              = "REGIONAL"
-  ip_address_version = "IPV4"
-
-  addresses = local.regional_allowlist_cidrs
+  addresses = distinct(compact(var.apim_apigee_cidrs))
 }
