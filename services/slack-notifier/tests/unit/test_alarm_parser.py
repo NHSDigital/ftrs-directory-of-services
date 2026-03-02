@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from functions.alarm_parser import flatten_dict, parse_cloudwatch_alarm
 
@@ -45,16 +46,21 @@ class TestFlattenDict:
 
 
 class TestParseCloudwatchAlarm:
-    def test_parse_valid_json(self):
+    @patch("functions.alarm_parser.logger")
+    def test_parse_valid_json(self, mock_logger):
         message = json.dumps({"AlarmName": "test-alarm", "NewStateValue": "ALARM"})
         result = parse_cloudwatch_alarm(message)
         assert result == {"AlarmName": "test-alarm", "NewStateValue": "ALARM"}
 
-    def test_parse_invalid_json(self):
+    @patch("functions.alarm_parser.logger")
+    def test_parse_invalid_json(self, mock_logger):
         message = "not valid json"
         result = parse_cloudwatch_alarm(message)
         assert result == {"raw_message": "not valid json"}
+        mock_logger.exception.assert_called_once_with("Failed to parse alarm message")
 
-    def test_parse_empty_string(self):
+    @patch("functions.alarm_parser.logger")
+    def test_parse_empty_string(self, mock_logger):
         result = parse_cloudwatch_alarm("")
         assert result == {"raw_message": ""}
+        mock_logger.exception.assert_called_once_with("Failed to parse alarm message")

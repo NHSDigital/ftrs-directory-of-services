@@ -1,11 +1,13 @@
 module "read_only_viewer_bucket" {
-  count         = local.stack_enabled
-  source        = "../../modules/s3"
-  bucket_name   = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
-  versioning    = var.s3_versioning
-  force_destroy = var.force_destroy
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.read_only_viewer_bucket_policy[0].json
+  count             = local.stack_enabled
+  source            = "../../modules/s3"
+  bucket_name       = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
+  versioning        = var.s3_versioning
+  force_destroy     = var.force_destroy
+  attach_policy     = true
+  policy            = data.aws_iam_policy_document.read_only_viewer_bucket_policy[0].json
+  s3_logging_bucket = local.s3_logging_bucket
+
   lifecycle_rule_inputs = [
     {
       id                                     = "delete_old_release_versions"

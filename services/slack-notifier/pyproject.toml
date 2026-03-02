@@ -29,6 +29,7 @@ ruff = "^0.14.2"
 pytest = "^8.3.5"
 pytest-mock = "^3.14.0"
 pytest-cov = "^6.1.1"
+boto3 = "^1.35.0"
 
 [tool.poetry.scripts]
 slack-notifier = "functions.slack_alarm_handler:lambda_handler"
