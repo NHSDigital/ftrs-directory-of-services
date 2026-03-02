@@ -24,6 +24,8 @@ locals {
           namespace           = lookup(alarm, "namespace", "AWS/Lambda")
           dimensions          = lookup(alarm, "dimensions", {})
           dimension_name      = lookup(alarm, "dimension_name", "FunctionName")
+          api_path            = lookup(lookup(var.resource_metadata, resource_key, {}), "api_path", "N/A")
+          service             = lookup(lookup(var.resource_metadata, resource_key, {}), "service", "Unknown")
         }
         if lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null) != null
       }

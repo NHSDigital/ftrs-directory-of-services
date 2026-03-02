@@ -19,4 +19,12 @@ module "metric_alarm" {
   dimensions = {
     (each.value.dimension_name) = each.value.resource_identifier
   }
+
+  tags = merge(
+    var.tags,
+    {
+      api_path = lookup(each.value, "api_path", "N/A")
+      service  = lookup(each.value, "service", "Unknown")
+    }
+  )
 }

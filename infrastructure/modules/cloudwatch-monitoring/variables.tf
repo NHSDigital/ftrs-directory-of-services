@@ -56,3 +56,11 @@ variable "enable_warning_alarms" {
   default     = true
 }
 
+variable "resource_metadata" {
+  description = "Map of resource keys to their metadata (api_path, service)"
+  type = map(object({
+    api_path = string
+    service  = string
+  }))
+  default = {}
+}

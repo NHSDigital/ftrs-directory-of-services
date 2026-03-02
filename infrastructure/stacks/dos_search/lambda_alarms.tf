@@ -14,6 +14,17 @@ module "lambda_monitoring" {
     health_check_lambda = module.health_check_lambda.lambda_function_name
   }
 
+  resource_metadata = {
+    search_lambda = {
+      api_path = "/Organization"
+      service  = "DoS Search"
+    }
+    health_check_lambda = {
+      api_path = "/_status"
+      service  = "DoS Search"
+    }
+  }
+
   alarm_thresholds = {
     search_lambda = {
       "duration-p95-warning"           = var.search_lambda_duration_p95_warning_ms
