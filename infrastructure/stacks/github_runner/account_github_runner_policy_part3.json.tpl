@@ -86,6 +86,27 @@
             "backup-storage:*"
           ],
           "Resource": "*"
+        },
+        {
+          "Sid": "CloudTrailAccess",
+          "Effect": "Allow",
+          "Action": [
+            "cloudtrail:CreateTrail",
+            "cloudtrail:UpdateTrail",
+            "cloudtrail:DeleteTrail",
+            "cloudtrail:DescribeTrails",
+            "cloudtrail:GetTrail",
+            "cloudtrail:GetTrailStatus",
+            "cloudtrail:ListTrails",
+            "cloudtrail:StartLogging",
+            "cloudtrail:StopLogging",
+            "cloudtrail:GetEventSelectors",
+            "cloudtrail:PutEventSelectors",
+            "cloudtrail:AddTags",
+            "cloudtrail:RemoveTags",
+            "cloudtrail:ListTags"
+          ],
+          "Resource": "*"
         }
     ]
 }

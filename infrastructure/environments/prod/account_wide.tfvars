@@ -25,3 +25,4 @@ single_nat_gateway     = false
 one_nat_gateway_per_az = true
 
 regional_waf_log_group_retention_days = 90
+cloudtrail_log_retention_days         = 365
