@@ -1,7 +1,6 @@
 """Fetch CloudWatch alarm tags."""
 
 import boto3
-from botocore.exceptions import ClientError
 
 from functions.logger import logger
 
@@ -29,6 +28,6 @@ def get_alarm_tags(alarm_arn: str) -> dict[str, str]:
             "service": tags.get("service", "Unknown"),
         }
 
-    except ClientError:
+    except Exception:
         logger.exception("Failed to fetch alarm tags")
         return {"api_path": "N/A", "service": "Unknown"}
