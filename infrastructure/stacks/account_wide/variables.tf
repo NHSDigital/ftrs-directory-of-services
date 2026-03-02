@@ -351,3 +351,15 @@ variable "cloudtrail_bucket_force_destroy" {
   type        = bool
   default     = false
 }
+
+variable "ec2_whitelist_cidrs" {
+  description = "Optional list of CIDRs to whitelist in the regional WAF for EC2 addresses."
+  type        = list(string)
+  default     = []
+}
+
+variable "apim_apigee_cidrs" {
+  description = "Optional list of CIDRs to whitelist for APIM/Apigee traffic in the regional WAF."
+  type        = list(string)
+  default     = []
+}
