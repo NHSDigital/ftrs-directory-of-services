@@ -68,15 +68,6 @@ if (workspace == "default") {
 
 props.put("Apim_Workspace", "dos-search" + (props.get("Workspace") ?: ""))
 
-// Calculate exact_limit (Total Executions) for PreciseThroughputTimer
-// = (throughput / throughputPeriod) * duration
-def timerThroughput = (props.get("timer_throughput") ?: "9000").toDouble()
-def timerPeriod = (props.get("timer_throughput_period") ?: "60").toDouble()
-def testDuration = (props.get("duration") ?: "3660").toDouble()
-def exactLimit = ((timerThroughput / timerPeriod) * testDuration) as int
-props.put("exact_limit", exactLimit.toString())
-log.info("Calculated exact_limit=${exactLimit} (throughput=${timerThroughput}/period=${timerPeriod} * duration=${testDuration})")
-
 
 log.info("Loaded APIM Params: Apim_Env=${props.get("Apim_Env")},Apim_Workspace=${props.get("Apim_workspace")},  Env=${props.get("Env")}, AWS_SECRET_NAME=${props.get("AWS_SECRET_NAME")}")
 log.info("Loaded Backend Params: ServiceEndpoint=${props.get("ServiceEndpoint")}, Workspace=${props.get("Workspace")}")
