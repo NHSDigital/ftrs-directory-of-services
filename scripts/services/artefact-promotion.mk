@@ -1,6 +1,6 @@
 # Shared Makefile for artefact promotion of services
 
-.PHONY: set-prerelease-version stage release-candidate release
+.PHONY: stage release-candidate release
 
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
@@ -47,26 +47,7 @@ define update-build-info
 	rm -rf $$tmp_dir
 endef
 
-set-prerelease-version:
-ifeq ($(strip $(PRERELEASE_TAG)),)
-	$(call log_start,Finding latest prerelease version)
-	$(eval PRERELEASE_TAG := $(shell \
-		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
-		| awk '{print $$2}' \
-		| sed 's/\/$$//' \
-		| sort -V \
-		| tail -1 \
-	))
-	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-        echo "$(COLOR_RED)✗ ERROR: No prerelease versions found in staging$(COLOR_RESET)"; \
-		exit 1; \
-	fi
-	$(call log_success,Using prerelease version: $(PRERELEASE_TAG))
-else
-	$(call log_success,Using provided prerelease version: $(PRERELEASE_TAG))
-endif
-
-stage: set-prerelease-version
+stage:
 	$(call log_start,Staging release $(PRERELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
@@ -87,7 +68,7 @@ stage: set-prerelease-version
 	done
 	$(call log_success,Release staged successfully)
 
-release-candidate: set-prerelease-version
+release-candidate:
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))

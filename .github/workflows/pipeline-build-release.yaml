@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       prerelease_tag:
-        description: "The prerelease tag to build the release artefacts from (if not provided, the latest will be used)"
-        required: false
+        description: "The prerelease tag to build the release artefacts from (e.g. v1.0.1-pre.3)"
+        required: true
         type: string
 
 permissions:

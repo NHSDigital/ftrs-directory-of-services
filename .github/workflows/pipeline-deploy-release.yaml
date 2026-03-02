@@ -71,30 +71,10 @@ jobs:
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
       SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
-  prepare-toggle-artifacts:
-    name: "Prepare Toggle artifacts"
-    needs:
-      - deploy-account-wide-infrastructure
-    uses: ./.github/workflows/prepare-toggle-artifacts.yaml
-    with:
-      environment: ${{ inputs.environment }}
-      workspace: default
-      ref: ${{ inputs.release_tag }}
-
-  check-stack-toggles:
-    name: "Check stack toggles for ${{ inputs.environment }}"
-    needs:
-      - prepare-toggle-artifacts
-    uses: ./.github/workflows/check-stack-toggles.yaml
-    with:
-      environment:  ${{ inputs.environment }}
-      workspace: default
-      ref: ${{ inputs.release_tag }}
-
   deploy-toggle-infrastructure:
     name: "Deploy toggle infrastructure to the ${{ inputs.environment }}environment"
     needs:
-      - check-stack-toggles
+      - deploy-account-wide-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
       environment:  ${{ inputs.environment }}
@@ -115,7 +95,7 @@ jobs:
       - deploy-toggle-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
     with:
-      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'app_config', 'athena']"
+      stacks: "['database', 'crud_apis', 'data_migration', 'read_only_viewer', 'opensearch', 'etl_ods', 'dos_search', 'is_performance', 'ui', 'athena']"
       environment: ${{ inputs.environment }}
       workspace: default
       release_tag: ${{ inputs.release_tag }}
@@ -163,7 +143,6 @@ jobs:
           - name: "read-only-viewer"
             enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
     needs:
-      - check-stack-toggles
       - deploy-application-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
@@ -214,8 +193,6 @@ jobs:
     name: "Check Pipeline Status"
     needs:
       - validate-release-tag
-      - prepare-toggle-artifacts
-      - check-stack-toggles
       - deploy-toggle-infrastructure
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
@@ -229,13 +206,10 @@ jobs:
     name: "Send Notification to Slack"
     needs:
       - validate-release-tag
-      - prepare-toggle-artifacts
-      - check-stack-toggles
       - deploy-toggle-infrastructure
       - deploy-account-wide-policies
       - deploy-account-wide-infrastructure
       - deploy-application-infrastructure
-      - check-stack-toggles
       - deploy-frontend-services
       - service-automation-tests
       - check-pipeline-status
