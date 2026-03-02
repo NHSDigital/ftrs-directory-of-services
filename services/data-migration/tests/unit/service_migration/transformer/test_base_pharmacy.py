@@ -147,8 +147,8 @@ def test_should_include_service(
 @pytest.mark.parametrize(
     "service_type_id, organisation_type",
     [
-        (13, "Pharmacy"),  # Community Pharmacy
-        (134, "Pharmacy Distance Selling"),  # Distance Selling Pharmacy
+        (13, "Community Pharmacy"),  # Community Pharmacy
+        (134, "Distance Selling Pharmacy"),  # Distance Selling Pharmacy
     ],
 )
 def test_transform_creates_all_entities(
