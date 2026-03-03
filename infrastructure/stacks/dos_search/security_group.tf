@@ -25,7 +25,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_vpc_endpoints_access_from_d
   description                  = "Allow egress to VPC endpoints (Secrets Manager, SQS, KMS, AppConfig)"
   security_group_id            = aws_security_group.dos_search_lambda_security_group[0].id
   referenced_security_group_id = data.aws_security_group.vpce_interface_security_group.id
-  from_port                    = var.https_port
   ip_protocol                  = "tcp"
+  from_port                    = var.https_port
   to_port                      = var.https_port
 }
