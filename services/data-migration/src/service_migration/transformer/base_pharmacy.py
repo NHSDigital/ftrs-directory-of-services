@@ -43,7 +43,7 @@ class BasePharmacyTransformer(ServiceTransformer):
     def build_organisation(self, service: legacy_model.Service) -> Organisation:
         """
         Override to explicitly exclude endpoints from pharmacy organisations.
-        Type is resolved from PHARMACY_TYPE_TO_ORGANISATION_TYPE in the base transformer.
+        Type is resolved from SERVICE_TYPE_TO_ORGANISATION_TYPE in the base transformer.
         """
         organisation = super().build_organisation(service)
         return organisation.model_copy(update={"endpoints": []})
