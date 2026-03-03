@@ -3,9 +3,9 @@ module "lambda_monitoring" {
 
   resource_prefix = local.resource_prefix # Used for naming SNS topic and alarms
 
-  sns_topic_name   = "${local.resource_prefix}-lambda-alarms"
-  sns_display_name = "DoS Search Lambda Alarms"
-  kms_key_id       = data.aws_kms_key.sqs_kms_key.arn
+  sns_topic_name   = local.alarms_topic_name
+  sns_display_name = "DoS Search Alarms"
+  kms_key_id       = data.aws_kms_key.sns_kms_key.arn
 
   alarm_config_path = "lambda/config"
 
@@ -79,6 +79,6 @@ module "lambda_monitoring" {
   enable_warning_alarms = var.enable_warning_alarms
 
   tags = {
-    Name = "${local.resource_prefix}-lambda-alarms"
+    Name = local.alarms_topic_name
   }
 }

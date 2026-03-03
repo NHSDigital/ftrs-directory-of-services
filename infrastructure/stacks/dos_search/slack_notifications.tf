@@ -12,7 +12,7 @@ resource "aws_lambda_permission" "allow_sns_invoke" {
   source_arn    = module.lambda_monitoring.sns_topic_arn
 }
 
-resource "aws_sns_topic_subscription" "lambda_alarms_to_slack" {
+resource "aws_sns_topic_subscription" "alarms_to_slack" {
   count     = var.slack_notifier_stack_enabled ? 1 : 0
   topic_arn = module.lambda_monitoring.sns_topic_arn
   protocol  = "lambda"

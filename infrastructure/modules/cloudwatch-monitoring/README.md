@@ -5,10 +5,11 @@ Creates CloudWatch alarms and SNS notifications for AWS resources using predefin
 ## How It Works
 
 1. Choose a template (`lambda/config`, `api-gateway/config`, or `waf/config`)
-2. Specify which resources to monitor
-3. Set threshold values for each alarm
-4. Module creates alarms and SNS topic automatically
-5. Subscribe the slack-notifier Lambda to the SNS topic for Slack notifications
+2. Specify which resources to monitor with `monitored_resources`
+3. Add metadata (API path, service name) with `resource_metadata`
+4. Set threshold values, evaluation periods, and periods for each alarm
+5. Module creates alarms with tags and SNS topic automatically
+6. Subscribe the slack-notifier Lambda to the SNS topic for Slack notifications
 
 ## Usage
 
@@ -21,13 +22,20 @@ module "lambda_monitoring" {
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix   = local.resource_prefix
-  sns_topic_name    = "${local.resource_prefix}-lambda-alarms"
+  sns_topic_name    = local.alarms_topic_name
   sns_display_name  = "My Service Lambda Alarms"
-  kms_key_id        = data.aws_kms_key.sqs_kms_key.arn
+  kms_key_id        = data.aws_kms_key.sns_kms_key.arn
   alarm_config_path = "lambda/config"
 
   monitored_resources = {
     my_lambda = module.my_lambda.lambda_function_name
+  }
+
+  resource_metadata = {
+    my_lambda = {
+      api_path = "/my-endpoint"
+      service  = "My Service"
+    }
   }
 
   alarm_thresholds = {
@@ -72,7 +80,7 @@ module "lambda_monitoring" {
   enable_warning_alarms = var.enable_warning_alarms
 
   tags = {
-    Name = "${local.resource_prefix}-lambda-alarms"
+    Name = local.alarms_topic_name
   }
 }
 ```
@@ -164,6 +172,7 @@ Then add corresponding thresholds, evaluation periods, and periods in your modul
 | `sns_display_name` | Yes | Display name for SNS topic |
 | `alarm_config_path` | Yes | Template path (e.g., `lambda/config`) |
 | `monitored_resources` | No | Map of resource keys to identifiers (default: `{}`) |
+| `resource_metadata` | No | Map of resource keys to metadata (`api_path`, `service`) for alarm tags (default: `{}`) |
 | `alarm_thresholds` | Yes | Map of resource keys to alarm thresholds |
 | `alarm_evaluation_periods` | Yes | Map of resource keys to evaluation periods |
 | `alarm_periods` | Yes | Map of resource keys to periods in seconds |
