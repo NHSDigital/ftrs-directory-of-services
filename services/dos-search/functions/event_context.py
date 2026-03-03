@@ -57,15 +57,22 @@ def _get_header(headers: dict[str, Any], *names: str) -> Optional[str]:
 
 def _extract_mandatory(headers: dict[str, Any]) -> dict[str, Any]:
     corr_header = _get_header(headers, "nhsd-correlation-id")
-    parts = corr_header.split(".") if corr_header else []
+    split_corr_header = corr_header.split(".") if corr_header else []
 
     return {
         "dos_nhsd_correlation_id": (
-            next(iter(parts[_CORRELATION_ID_INDEX : _CORRELATION_ID_INDEX + 1]), None)
+            next(
+                iter(
+                    split_corr_header[_CORRELATION_ID_INDEX : _CORRELATION_ID_INDEX + 1]
+                ),
+                None,
+            )
             or PLACEHOLDER
         ),
         "dos_message_id": (
-            next(iter(parts[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None)
+            next(
+                iter(split_corr_header[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None
+            )
             or PLACEHOLDER
         ),
         "dos_nhsd_request_id": (_get_header(headers, "nhsd-request-id") or PLACEHOLDER),
