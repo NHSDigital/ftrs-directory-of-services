@@ -13,4 +13,6 @@ locals {
     lambda         = "lambda"
     logs           = "logs"
   }
+
+  apim_apigee_cidrs_normalized = distinct(compact(var.apim_apigee_cidrs))
 }
