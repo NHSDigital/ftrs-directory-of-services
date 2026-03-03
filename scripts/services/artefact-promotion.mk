@@ -5,6 +5,7 @@
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
 RETAIN_VERSIONS ?= 5
+TAG_CONCURRENCY ?= 10
 
 # Determine branch: prefer GITHUB_REF_NAME (in CI), fallback to git command (local)
 # In GitHub Actions detached HEAD state, git rev-parse returns "HEAD" not "main"
@@ -50,7 +51,7 @@ endef
 # Incremental retention tagging for a versioned S3 prefix.
 # Only processes 2 boundary versions per run (new version + evicted version).
 # Skips entire evicted version if first object is already tagged ephemeral.
-# Per-key tagging is parallelised with & / wait to minimise wall-clock time.
+# Per-key tagging is parallelised with bounded concurrency and PID tracking.
 # $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
 # $(2) = current version tag (e.g. PRERELEASE_TAG or RELEASE_TAG)
 define update-retention-tags
@@ -71,6 +72,10 @@ define update-retention-tags
 			retention_value=ephemeral; \
 		fi; \
 		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(1)/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+		if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
+			echo "No objects found under $(1)/$$version – skipping"; \
+			continue; \
+		fi; \
 		if [ "$$retention_value" = "ephemeral" ]; then \
 			first_key=$$(echo "$$keys" | awk '{print $$1}'); \
 			if [ -n "$$first_key" ]; then \
@@ -81,10 +86,21 @@ define update-retention-tags
 				fi; \
 			fi; \
 		fi; \
+		pids=""; failed=0; count=0; \
 		for key in $$keys; do \
 			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
+			pids="$$pids $$!"; \
+			count=$$((count + 1)); \
+			if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
+				for pid in $$pids; do wait $$pid || failed=1; done; \
+				pids=""; \
+			fi; \
 		done; \
-		wait; \
+		for pid in $$pids; do wait $$pid || failed=1; done; \
+		if [ $$failed -ne 0 ]; then \
+			echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
+			exit 1; \
+		fi; \
 	done
 endef
 
@@ -92,10 +108,12 @@ stage:
 	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot stage artefacts$(COLOR_RESET)" && exit 1)
 	$(call log_start,Staging release $(PRERELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
-	$(call update--tags,staging,$(PRERELEASE_TAG))
+	$(call update-retention-tags,staging,$(PRERELEASE_TAG))
 	$(call log_success,Release staged successfully)
 
 release-candidate:
+	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot promote release-candidate artefacts$(COLOR_RESET)" && exit 1)
+	@[ -n "$(RELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: RELEASE_TAG is not set; cannot promote release-candidate artefacts$(COLOR_RESET)" && exit 1)
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))
@@ -109,8 +127,23 @@ release:
 	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN),$(RETENTION_TAG_RELEASE))
 	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "releases/$(RELEASE_VERSION_CLEAN)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+	if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
+		echo "No objects found under releases/$(RELEASE_VERSION_CLEAN) – skipping tagging"; \
+	else \
+	pids=""; failed=0; count=0; \
 	for key in $$keys; do \
 		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION) & \
+		pids="$$pids $$!"; \
+		count=$$((count + 1)); \
+		if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
+			for pid in $$pids; do wait $$pid || failed=1; done; \
+			pids=""; \
+		fi; \
 	done; \
-	wait
+	for pid in $$pids; do wait $$pid || failed=1; done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
+		exit 1; \
+	fi; \
+	fi
 	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
