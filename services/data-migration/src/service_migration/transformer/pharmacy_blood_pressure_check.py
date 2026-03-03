@@ -104,8 +104,8 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
         if parent_service is None:
             self.logger.log(
                 DataMigrationLogBase.DM_ETL_038,
-                service_id=service.id,
-                base_ods_code=base_ods_code,
+                record_id=service.id,
+                ods_code=base_ods_code,
             )
             raise ParentPharmacyNotFoundError(
                 record_id=service.id,

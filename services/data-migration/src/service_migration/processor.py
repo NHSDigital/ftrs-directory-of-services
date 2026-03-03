@@ -107,10 +107,6 @@ class DataMigrationProcessor:
                 self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
                 return
 
-            if isinstance(transformer, LinkedPharmacyTransformer):
-                if not self._setup_linked_transformer(transformer, service):
-                    return
-
             validation_result = transformer.validator.validate(
                 service
             )  # note: some pre-transformation logic here
