@@ -198,7 +198,9 @@ def test_update_organisation_no_false_positive_diff_when_type_is_string_in_state
     }
     existing_state = ServiceMigrationState.model_validate(state_data)
 
-    assert existing_state.organisation.type == OrganisationType.DISTANCE_SELLING_PHARMACY
+    assert (
+        existing_state.organisation.type == OrganisationType.DISTANCE_SELLING_PHARMACY
+    )
 
     builder = ServiceTransactionBuilder(
         service_id=123, logger=mock_logger, migration_state=existing_state
