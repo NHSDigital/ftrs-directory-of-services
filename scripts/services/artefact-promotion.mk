@@ -73,7 +73,7 @@ define update-retention-tags
 		fi; \
 		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(1)/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
 		if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
-			echo "No objects found under $(1)/$$version – skipping"; \
+			echo "No objects found under $(1)/$$version - skipping"; \
 			continue; \
 		fi; \
 		if [ "$$retention_value" = "ephemeral" ]; then \
