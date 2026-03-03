@@ -237,7 +237,7 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_038 = LogReference(
         level=WARNING,
-        message="Parent pharmacy record not found for service ID {service_id} and base ODS code {base_ods_code}",
+        message="No parent pharmacy record found for service ID {record_id} with base ODS code {ods_code}",
     )
     DM_ETL_039 = LogReference(
         level=ERROR,

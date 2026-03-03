@@ -64,16 +64,9 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
-      run: | #TODO: Refactor to use env variables instead of export statements (Sonar Cloud issue) - FTRS-3194
-        export TF_VAR_slack_webhook_alarms_url="${{ inputs.slack_webhook_alarms_url }}"
-        export MGMT_ACCOUNT_ID=${{ inputs.mgmt_account_id }}
-        export ACTION=${{ inputs.action }}
-        export STACK=${{ inputs.stack }}
-        export ENVIRONMENT=${{ inputs.environment }}
-        export WORKSPACE=${{ inputs.workspace }}
-        export PROJECT=${{ inputs.project }}
-        export RELEASE_TAG=${{ inputs.release_tag }}
-        export SPLUNK_COLLECTOR_URL=${{ inputs.splunk_collector_url }}
-        export SPLUNK_HEC_ENDPOINT=${{ inputs.splunk_hec_endpoint }}
-        export SPLUNK_HEC_TOKEN=${{ inputs.splunk_hec_token }}
+        TF_VAR_slack_webhook_alarms_url: ${{ inputs.slack_webhook_alarms_url }}
+        SPLUNK_COLLECTOR_URL: ${{ inputs.splunk_collector_url }}
+        SPLUNK_HEC_ENDPOINT: ${{ inputs.splunk_hec_endpoint }}
+        SPLUNK_HEC_TOKEN: ${{ inputs.splunk_hec_token }}
+      run: | 
         /bin/bash ./scripts/workflow/action-infra-stack.sh

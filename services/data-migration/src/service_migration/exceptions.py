@@ -11,7 +11,7 @@ class ParentPharmacyNotFoundError(ServiceMigrationException):
 
     def __init__(self, record_id: int, ods_code: str) -> None:
         super().__init__(
-            f"No parent pharmacy record found for service {record_id} with base ODS code {ods_code}",
+            f"No parent pharmacy found for service {record_id} with base ODS {ods_code}",
             requeue=False,
         )
         self.record_id = record_id
