@@ -41,7 +41,7 @@ class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
     - The service must be active
 
     Parent pharmacy resolution:
-    - The ODS suffix 'CON' is removed to derive the base 5-character ODS code
+    - The ODS suffix 'CON' is removed to derive the base ODS code (no length validation)
     - The parent pharmacy (type 13 or 134) is looked up by base ODS code in the legacy DB
     - If a parent state record already exists, its organisation/location IDs are reused
     - If no state record exists, the parent pharmacy is migrated first (transaction 1)
@@ -49,7 +49,7 @@ class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
     - If no parent pharmacy record exists in DoS at all, the service is rejected
 
     Feature flag behavior:
-    - When data_migration_contraception_pharmacy_enabled is disabled:
+    - When data_migration_pharmacy_enabled is disabled:
       Service is not supported (no records created)
     - When enabled: A HealthcareService of type Oral Contraception Prescription and Supply
       is created and linked to the parent pharmacy organisation and location
@@ -84,7 +84,7 @@ class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
         """
         Resolve the parent pharmacy organisation and location for a CON service.
 
-        Derives the base ODS code by stripping the 'CON' suffix, then:
+        Derives the base ODS code by stripping the 'CON' suffix (no validation of resulting length), then:
         1. Queries the legacy DB for a parent pharmacy service with that base ODS code
         2. If found, checks the state table for an already-migrated state record
         3. If a state record exists, returns (None, org_id, loc_id) — no migration needed

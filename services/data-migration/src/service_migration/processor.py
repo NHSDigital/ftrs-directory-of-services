@@ -298,6 +298,9 @@ class DataMigrationProcessor:
                 org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
             except Exception as e:
                 self.metrics.errors += 1
+                self.logger.exception(
+                    "Parent pharmacy migration failed"
+                )
                 self.logger.log(
                     DataMigrationLogBase.DM_ETL_039,
                     parent_record_id=parent_service.id,
