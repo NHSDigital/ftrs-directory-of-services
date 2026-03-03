@@ -90,30 +90,35 @@ def test_is_service_supported(
 
 
 @pytest.mark.parametrize(
-    "service_name, expected_result, expected_message",
+    "statusid, service_name, expected_result, expected_message",
     [
-        ("BP Check: Test Service", True, None),
-        ("BP: Test Service", True, None),
+        (1, "BP Check: Test Service", True, None),
+        (1, "BP: Test Service", True, None),
         (
+            1,
             "bp check: Test Service",
             False,
             "Service name does not start with required prefix (BP Check: or BP:)",
         ),
         (
+            1,
             "Test Service",
             False,
             "Service name does not start with required prefix (BP Check: or BP:)",
         ),
-        (None, False, "Service name is missing"),
+        (1, None, False, "Service name is missing"),
+        (2, "BP Check: Test Service", False, "Service is not active"),
+        (3, "BP Check: Test Service", False, "Service is not active"),
     ],
 )
 def test_should_include_service(
     mock_legacy_service: Service,
+    statusid: int,
     service_name: str | None,
     expected_result: bool,
     expected_message: str | None,
 ) -> None:
-    mock_legacy_service.statusid = 1
+    mock_legacy_service.statusid = statusid
     mock_legacy_service.name = service_name
 
     should_include, message = PharmacyBPCheckTransformer.should_include_service(
