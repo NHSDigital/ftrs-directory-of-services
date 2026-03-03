@@ -139,11 +139,12 @@ jobs:
       matrix:
         include:
           - name: "dos-ui"
-            enabled: ${{ needs.check-stack-toggles.outputs.ui_enabled }}
+            enabled: ${{ needs.deploy-account-wide-infrastructure.outputs.ui_enabled }}
           - name: "read-only-viewer"
-            enabled: ${{ needs.check-stack-toggles.outputs.read_only_viewer_enabled }}
+            enabled: ${{ needs.deploy-account-wide-infrastructure.outputs.read_only_viewer_enabled }}
     needs:
       - deploy-application-infrastructure
+      - deploy-account-wide-infrastructure
     uses: ./.github/workflows/deploy-frontend-project.yaml
     with:
       name: ${{ matrix.name }}

@@ -47,61 +47,58 @@ define update-build-info
 	rm -rf $$tmp_dir
 endef
 
+# Incremental retention tagging for a versioned S3 prefix.
+# Only processes 2 boundary versions per run (new version + evicted version).
+# Skips entire evicted version if first object is already tagged ephemeral.
+# Per-key tagging is parallelised with & / wait to minimise wall-clock time.
+# $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
+# $(2) = current version tag (e.g. PRERELEASE_TAG or RELEASE_TAG)
+define update-retention-tags
+	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
+	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
+	total=$$(echo "$$all_versions" | grep -c .); \
+	if [ "$$total" -gt "$(RETAIN_VERSIONS)" ]; then \
+		evicted=$$(echo "$$all_versions" | sed -n "$$(($$total - $(RETAIN_VERSIONS)))p"); \
+		versions_to_process="$(2) $$evicted"; \
+	else \
+		versions_to_process="$(2)"; \
+	fi; \
+	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
+	for version in $$versions_to_process; do \
+		if echo "$$retain_versions" | grep -qx "$$version"; then \
+			retention_value=retain; \
+		else \
+			retention_value=ephemeral; \
+		fi; \
+		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(1)/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+		if [ "$$retention_value" = "ephemeral" ]; then \
+			first_key=$$(echo "$$keys" | awk '{print $$1}'); \
+			if [ -n "$$first_key" ]; then \
+				probe=$$(aws s3api get-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$first_key" --query "TagSet[?Key=='retention'].Value | [0]" --output text --region $(AWS_REGION) 2>/dev/null); \
+				if [ "$$probe" = "ephemeral" ]; then \
+					echo "Skipping $(1)/$$version (already ephemeral)"; \
+					continue; \
+				fi; \
+			fi; \
+		fi; \
+		for key in $$keys; do \
+			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
+		done; \
+		wait; \
+	done
+endef
+
 stage:
 	$(call log_start,Staging release $(PRERELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
-	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
-	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
-	# Optimisation: only re-tag the two versions whose status changes (new version + the one that just
-	# dropped out of the retain window), then parallelise put-object-tagging calls with xargs -P.
-	@echo "Updating retention tags for staging (keep last $(RETAIN_VERSIONS) versions)..."
-	@tag_objects() { \
-		local prefix=$$1 retention=$$2; \
-		aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$$prefix" \
-			--query 'Contents[].Key' --output text --region $(AWS_REGION) \
-			| tr '\t' '\n' | grep -v '^$$' \
-			| xargs -P 10 -I {} aws s3api put-object-tagging \
-				--bucket $(ARTEFACT_BUCKET) --key "{}" \
-				--tagging "TagSet=[{Key=retention,Value=$$retention}]" \
-				--region $(AWS_REGION); \
-	}; \
-	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
-	total=$$(echo "$$all_versions" | grep -c '.'); \
-	tag_objects "staging/$(PRERELEASE_TAG)/" retain & \
-	if [ "$$total" -gt "$(RETAIN_VERSIONS)" ]; then \
-		drop_version=$$(echo "$$all_versions" | sed -n "$$((total - $(RETAIN_VERSIONS)))p"); \
-		tag_objects "staging/$$drop_version/" ephemeral & \
-	fi; \
-	wait
+	$(call update--tags,staging,$(PRERELEASE_TAG))
 	$(call log_success,Release staged successfully)
 
 release-candidate:
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))
-	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
-	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
-	# Optimisation: only re-tag the two versions whose status changes (new version + the one that just
-	# dropped out of the retain window), then parallelise put-object-tagging calls with xargs -P.
-	@echo "Updating retention tags for release-candidates (keep last $(RETAIN_VERSIONS) versions)..."
-	@tag_objects() { \
-		local prefix=$$1 retention=$$2; \
-		aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$$prefix" \
-			--query 'Contents[].Key' --output text --region $(AWS_REGION) \
-			| tr '\t' '\n' | grep -v '^$$' \
-			| xargs -P 10 -I {} aws s3api put-object-tagging \
-				--bucket $(ARTEFACT_BUCKET) --key "{}" \
-				--tagging "TagSet=[{Key=retention,Value=$$retention}]" \
-				--region $(AWS_REGION); \
-	}; \
-	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/release-candidates/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
-	total=$$(echo "$$all_versions" | grep -c '.'); \
-	tag_objects "release-candidates/$(RELEASE_TAG)/" retain & \
-	if [ "$$total" -gt "$(RETAIN_VERSIONS)" ]; then \
-		drop_version=$$(echo "$$all_versions" | sed -n "$$((total - $(RETAIN_VERSIONS)))p"); \
-		tag_objects "release-candidates/$$drop_version/" ephemeral & \
-	fi; \
-	wait
+	$(call update-retention-tags,release-candidates,$(RELEASE_TAG))
 	$(call log_success,Promoted from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 
 release:
@@ -112,6 +109,7 @@ release:
 	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN),$(RETENTION_TAG_RELEASE))
 	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "releases/$(RELEASE_VERSION_CLEAN)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
 	for key in $$keys; do \
-		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION); \
-	done
+		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION) & \
+	done; \
+	wait
 	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
