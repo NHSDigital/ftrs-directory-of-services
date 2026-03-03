@@ -20,8 +20,10 @@ from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
 )
-from service_migration.transformer.base import LinkedPharmacyTransformer
-from service_migration.transformer.base_pharmacy import BasePharmacyTransformer
+from service_migration.transformer.base_pharmacy import (
+    BasePharmacyTransformer,
+    LinkedPharmacyTransformer,
+)
 
 
 class DataMigrationProcessor:
