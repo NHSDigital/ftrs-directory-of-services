@@ -12,6 +12,21 @@ module "sns_encryption_key" {
   account_id       = data.aws_caller_identity.current.account_id
   aws_service_name = "sns.amazonaws.com"
   description      = "Encryption key for SNS topics in ${var.environment} environment"
+
+  additional_policy_statements = [
+    {
+      Sid    = "AllowCloudWatchAlarmsAccess"
+      Effect = "Allow"
+      Principal = {
+        Service = "cloudwatch.amazonaws.com"
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey"
+      ]
+      Resource = "*"
+    }
+  ]
 }
 
 module "secrets_manager_encryption_key" {

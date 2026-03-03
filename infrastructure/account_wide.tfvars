@@ -29,17 +29,6 @@ regional_waf_scope           = "REGIONAL"
 regional_waf_log_group       = "regional-web-acl-logs"
 regional_waf_log_group_class = "STANDARD"
 
-regional_waf_hostile_country_codes = [
-  "BY",
-  "CN",
-  "HK",
-  "IR",
-  "MO",
-  "RU",
-  "SY",
-  "KP",
-]
-
 enable_s3_kms_encryption = true
 
 enable_firehose_s3_kms_encryption = true
@@ -50,3 +39,8 @@ retry_duration                    = 300
 s3_backup_mode                    = "FailedEventsOnly"
 
 cloudtrail_log_retention_days = 30
+
+apim_apigee_cidrs = [
+  "35.197.254.55/32",
+  "35.246.55.143/32",
+]
