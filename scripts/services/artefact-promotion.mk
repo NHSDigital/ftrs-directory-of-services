@@ -52,13 +52,15 @@ endef
 # Iterates all versions each run to ensure the full retain window is correct,
 # regardless of RETAIN_VERSIONS changes, manual tag edits, or prior partial failures.
 # Per-key tagging is parallelised with bounded concurrency and PID tracking.
-# Objects already tagged ephemeral are skipped to avoid unnecessary API calls.
+# Concurrency pool is global across all versions to maximise throughput.
+# put-object-tagging is idempotent so no pre-read check is needed.
 # $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
 # $(2) = current version tag (e.g. PRERELEASE_TAG or RELEASE_TAG)
 define update-retention-tags
 	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
 	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
 	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
+	pids=""; failed=0; count=0; \
 	for version in $$all_versions; do \
 		if echo "$$retain_versions" | grep -qx "$$version"; then \
 			retention_value=retain; \
@@ -70,14 +72,7 @@ define update-retention-tags
 			echo "No objects found under $(1)/$$version - skipping"; \
 			continue; \
 		fi; \
-		pids=""; failed=0; count=0; \
 		for key in $$keys; do \
-			if [ "$$retention_value" = "ephemeral" ]; then \
-				current_tag=$$(aws s3api get-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --query "TagSet[?Key=='retention'].Value | [0]" --output text --region $(AWS_REGION) 2>/dev/null); \
-				if [ "$$current_tag" = "ephemeral" ]; then \
-					continue; \
-				fi; \
-			fi; \
 			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
 			pids="$$pids $$!"; \
 			count=$$((count + 1)); \
@@ -86,12 +81,12 @@ define update-retention-tags
 				pids=""; \
 			fi; \
 		done; \
-		for pid in $$pids; do wait $$pid || failed=1; done; \
-		if [ $$failed -ne 0 ]; then \
-			echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
-			exit 1; \
-		fi; \
-	done
+	done; \
+	for pid in $$pids; do wait $$pid || failed=1; done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
+		exit 1; \
+	fi
 endef
 
 stage:
