@@ -48,24 +48,18 @@ define update-build-info
 	rm -rf $$tmp_dir
 endef
 
-# Incremental retention tagging for a versioned S3 prefix.
-# Only processes 2 boundary versions per run (new version + evicted version).
-# Skips entire evicted version if first object is already tagged ephemeral.
+# Full-reconciliation retention tagging for a versioned S3 prefix.
+# Iterates all versions each run to ensure the full retain window is correct,
+# regardless of RETAIN_VERSIONS changes, manual tag edits, or prior partial failures.
 # Per-key tagging is parallelised with bounded concurrency and PID tracking.
+# Objects already tagged ephemeral are skipped to avoid unnecessary API calls.
 # $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
 # $(2) = current version tag (e.g. PRERELEASE_TAG or RELEASE_TAG)
 define update-retention-tags
 	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
 	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
-	total=$$(echo "$$all_versions" | grep -c .); \
-	if [ "$$total" -gt "$(RETAIN_VERSIONS)" ]; then \
-		evicted=$$(echo "$$all_versions" | sed -n "$$(($$total - $(RETAIN_VERSIONS)))p"); \
-		versions_to_process="$(2) $$evicted"; \
-	else \
-		versions_to_process="$(2)"; \
-	fi; \
 	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
-	for version in $$versions_to_process; do \
+	for version in $$all_versions; do \
 		if echo "$$retain_versions" | grep -qx "$$version"; then \
 			retention_value=retain; \
 		else \
@@ -76,18 +70,14 @@ define update-retention-tags
 			echo "No objects found under $(1)/$$version - skipping"; \
 			continue; \
 		fi; \
-		if [ "$$retention_value" = "ephemeral" ]; then \
-			first_key=$$(echo "$$keys" | awk '{print $$1}'); \
-			if [ -n "$$first_key" ]; then \
-				probe=$$(aws s3api get-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$first_key" --query "TagSet[?Key=='retention'].Value | [0]" --output text --region $(AWS_REGION) 2>/dev/null); \
-				if [ "$$probe" = "ephemeral" ]; then \
-					echo "Skipping $(1)/$$version (already ephemeral)"; \
+		pids=""; failed=0; count=0; \
+		for key in $$keys; do \
+			if [ "$$retention_value" = "ephemeral" ]; then \
+				current_tag=$$(aws s3api get-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --query "TagSet[?Key=='retention'].Value | [0]" --output text --region $(AWS_REGION) 2>/dev/null); \
+				if [ "$$current_tag" = "ephemeral" ]; then \
 					continue; \
 				fi; \
 			fi; \
-		fi; \
-		pids=""; failed=0; count=0; \
-		for key in $$keys; do \
 			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
 			pids="$$pids $$!"; \
 			count=$$((count + 1)); \
