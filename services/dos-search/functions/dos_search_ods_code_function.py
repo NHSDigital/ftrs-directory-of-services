@@ -25,6 +25,10 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Access-Control-Allow-Headers": ", ".join(
         sorted(OrganizationHeaders.get_allowed_headers())
     ),
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Cache-Control": "no-store",
 }
 
 

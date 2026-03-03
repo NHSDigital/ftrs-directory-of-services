@@ -60,7 +60,7 @@ Feature: Data Migration - Pharmacy
         "identifier_oldDoS_uid": "999999",
         "identifier_ODS_ODSCode": "FXX99",
         "name": "Test Community Pharmacy",
-        "type": "Pharmacy",
+        "type": "Community Pharmacy",
         "active": true
       }
       """
@@ -144,7 +144,7 @@ Feature: Data Migration - Pharmacy
         "identifier_oldDoS_uid": "999998",
         "identifier_ODS_ODSCode": "FXX98",
         "name": "Initial Pharmacy Public Name",
-        "type": "Pharmacy",
+        "type": "Community Pharmacy",
         "active": true
       }
       """
@@ -232,7 +232,7 @@ Feature: Data Migration - Pharmacy
         "identifier_oldDoS_uid": "999996",
         "identifier_ODS_ODSCode": "FXX96",
         "name": "Test Distance Selling Pharmacy",
-        "type": "Pharmacy Distance Selling",
+        "type": "Distance Selling Pharmacy",
         "active": true
       }
       """
@@ -316,7 +316,7 @@ Feature: Data Migration - Pharmacy
         "identifier_oldDoS_uid": "999995",
         "identifier_ODS_ODSCode": "FXX95",
         "name": "Initial Distance Pharmacy Public Name",
-        "type": "Pharmacy Distance Selling",
+        "type": "Distance Selling Pharmacy",
         "active": true
       }
       """

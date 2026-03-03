@@ -52,3 +52,14 @@ data "aws_s3_object" "python_dependency_layer" {
   key    = "${local.artefact_base_path}/${var.project}-slack-notifier-python-dependency-layer.zip"
 }
 
+data "aws_iam_policy_document" "cloudwatch_alarm_tags" {
+  count = local.stack_enabled
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudwatch:ListTagsForResource"
+    ]
+    resources = ["arn:aws:cloudwatch:${var.aws_region}:${local.account_id}:alarm:*"]
+  }
+}

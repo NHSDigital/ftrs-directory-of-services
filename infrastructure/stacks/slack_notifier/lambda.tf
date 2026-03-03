@@ -42,7 +42,9 @@ module "slack_lambda" {
 
   cloudwatch_logs_retention = var.cloudwatch_logs_retention_days
 
-  policy_jsons = []
+  policy_jsons = [
+    data.aws_iam_policy_document.cloudwatch_alarm_tags[0].json
+  ]
 }
 
 resource "aws_sns_topic_subscription" "slack_notification" {
