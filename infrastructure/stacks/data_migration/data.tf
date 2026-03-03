@@ -334,3 +334,7 @@ data "aws_lambda_function" "slack_notifier" {
 data "aws_dms_replication_task" "dms_cdc_replication_task" {
   replication_task_id = "${local.resource_prefix}-etl-cdc-replication-task"
 }
+
+data "aws_kms_key" "sns_kms_alias" {
+  key_id = local.kms_aliases.sns
+}
