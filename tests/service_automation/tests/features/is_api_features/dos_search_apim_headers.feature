@@ -13,6 +13,7 @@ Feature: dos-search tests to validate headers required by the apim proxy and api
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
+@test
   Scenario Outline: I cannot search for Organization endpoint data by ODS Code when missing mandatory headers
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "<headers>"
     Then I receive a status code "400" in response

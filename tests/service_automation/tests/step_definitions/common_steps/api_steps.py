@@ -1,21 +1,18 @@
 import json
 import re
 
-from loguru import logger
 from playwright.sync_api import APIResponse
 from pytest_bdd import parsers, then
 
 
 @then(parsers.parse('I receive a status code "{status_code:d}" in response'))
 def status_code(fresponse: APIResponse, status_code: int) -> None:
-    #  logger.info(f"Received status code: {fresponse.json()}")
     assert fresponse.status == status_code
 
 
 @then(parsers.parse('the response body contains an "{resource_type}" resource'))
 def api_check_resource_type(fresponse: APIResponse, resource_type: str) -> None:
     response = fresponse.json()
-    logger.info(f"response: {response}")
     assert response["resourceType"] == resource_type
 
 
@@ -100,8 +97,6 @@ def api_check_operation_outcome_any_issue_by_key_value(
     fresponse: APIResponse, key: str, value: str
 ) -> None:
     response = fresponse.json()
-    logger.info(f"OperationOutcome issues: {response['issue']}")
-    logger.info(f"Checking for issue with {key}='{value}'")
     assert any(issue.get(key) == value for issue in response["issue"])
 
 

@@ -39,11 +39,11 @@ def get_repo_fixture(
     "there is an Organisation with an ODS code in the repo",
     target_fixture="ods_code",
 )
-def find_organisation_with_ods_code(organisation_repo_seeded) -> str:
-    ods_code = organisation_repo_seeded.get_first_record_ods_code()
+def find_organisation_with_ods_code(organisation_smoke_repo_seeded) -> str:
+    ods_code = organisation_smoke_repo_seeded.get_first_record_ods_code()
     assert ods_code, "No Organisation with ODS code found in the repo"
     logger.info(
-        f"Using ODS code '{ods_code}' from Organization dynamo for smoke tests from '{organisation_repo_seeded.model_cls.__name__}' repository"
+        f"Using ODS code '{ods_code}' from Organization dynamo for smoke tests from '{organisation_smoke_repo_seeded.model_cls.__name__}' repository"
     )
     return ods_code
 

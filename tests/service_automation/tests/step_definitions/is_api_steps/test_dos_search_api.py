@@ -102,9 +102,6 @@ def send_get_with_params_with_headers(
     params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     headers = {**MANDATORY_APIG_REQUEST_HEADERS, **json.loads(headers)}
     url = get_url(api_name) + "/" + resource_name
-    logger.info(
-        f"Requesting URL: {url} HERE with params: {params} with headers: {headers}"
-    )
     return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
@@ -123,7 +120,6 @@ def send_get_with_params(
     # headers can be manipulated in individual tests if needed
     headers = {**MANDATORY_APIG_REQUEST_HEADERS}
     url = get_url(api_name) + "/" + resource_name
-    logger.info(f"Requesting URL: {url} with params: {params} with headers: {headers}")
     return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
@@ -160,7 +156,6 @@ def send_to_apim_get_with_params_with_headers(
 ) -> APIResponse:
     headers = {**json.loads(headers)}
     url = nhsd_apim_proxy_url + "/" + resource_name
-
     return _send_api_request(apim_request_context, url, params, headers)
 
 
@@ -235,8 +230,6 @@ def _send_api_request(
         headers=headers,
     )
 
-    logger.info(f"response: {response.text}")
-
     return response
 
 
@@ -301,7 +294,6 @@ def send_to_apim_invalid_token_with_ods_code(
         "Authorization": "Bearer invalid_token",
     }
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
-    # logger.info(f"Requesting URL: {url} with params: {params} with headers: {headers}")
     return _send_api_request(api_request_context, url, params, headers)
 
 
@@ -327,7 +319,77 @@ def send_to_apim_get_with_ods_code_from_dynamo(
         "Authorization": f"Bearer {apim_token}",
     }
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
-    # logger.info(f"Requesting URL: {url} with params: {params} with headers: {headers}")
+    return _send_api_request(api_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with an odscode that does not exist in the organisation dynamo table'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_get_with_nonexistent_ods_code(
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    apim_token: str,
+) -> APIResponse:
+    logger.info(
+        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: XXXXX"
+    )
+    url = dos_search_service_url + "/" + resource_name
+    headers = {
+        **MANDATORY_APIM_REQUEST_HEADERS,
+        "Authorization": f"Bearer {apim_token}",
+    }
+    params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|XXXXX"
+    return _send_api_request(api_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the smoke test APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_smoke_test_apim_get_with_query_params(
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    apim_token: str,
+    params: str,
+) -> APIResponse:
+    logger.info(
+        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with query params: {params}"
+    )
+    url = dos_search_service_url + "/" + resource_name
+    headers = {
+        **MANDATORY_APIM_REQUEST_HEADERS,
+        "Authorization": f"Bearer {apim_token}",
+    }
+    return _send_api_request(api_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the smoke test APIM endpoint "(?P<resource_name>.*?)" with an odscode from dynamo organisation table and params "(?P<params>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_smoke_test_apim_get_with_query_params(
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    apim_token: str,
+    ods_code: str,
+    params: str,
+) -> APIResponse:
+    params = params + f"|{ods_code}"
+    url = dos_search_service_url + "/" + resource_name
+    headers = {
+        **MANDATORY_APIM_REQUEST_HEADERS,
+        "Authorization": f"Bearer {apim_token}",
+    }
     return _send_api_request(api_request_context, url, params, headers)
 
 
@@ -401,7 +463,6 @@ def send_to_apim_with_malformed_auth(
     """Send request to APIM with a malformed Authorization header."""
     url = nhsd_apim_proxy_url + "/" + resource_name
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": "MalformedHeader"}
-    logger.info(f"Requesting URL: {url} with params: {params} with headers: {headers}")
     return _send_api_request(apim_request_context, url, params, headers)
 
 
@@ -458,4 +519,28 @@ def send_to_apim_with_ods_code_empty_auth(
     url = dos_search_service_url + "/" + resource_name
     params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, "Authorization": ""}
+    return _send_api_request(api_request_context, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with an odscode from dynamo organisation table with headers "(?P<headers>.*?)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_to_apim_get_with_ods_code_from_dynamo_with_headers(
+    api_request_context: APIRequestContext,
+    dos_search_service_url: str,
+    resource_name: str,
+    ods_code: str,
+    apim_token: str,
+    headers: str,
+) -> APIResponse:
+    url = dos_search_service_url + "/" + resource_name
+    headers = {**json.loads(headers)}
+    headers = {
+        **headers,
+        "Authorization": f"Bearer {apim_token}",
+    }
+    params = f"_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|{ods_code}"
     return _send_api_request(api_request_context, url, params, headers)

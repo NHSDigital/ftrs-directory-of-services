@@ -66,6 +66,7 @@ logger.add(
     filter=_redact_record,
 )
 logger.add(_redacting_sink, level="INFO", colorize=False)
+
 logger.remove(0)
 
 # Load base .env first
@@ -280,7 +281,7 @@ def write_allure_environment(env, workspace, project, commit_hash):
 
 
 @pytest.fixture(scope="session")
-def organisation_repo_seeded(
+def organisation_smoke_repo_seeded(
     organisation_repo: AttributeLevelRepository[Organisation],
 ) -> AttributeLevelRepository[Organisation]:
     return organisation_repo
@@ -301,7 +302,7 @@ def healthcare_service_repo():
     return get_service_repository(HealthcareService, "healthcare-service")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def organisation_repo_seeded(organisation_repo):
     json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
     organisation = model_from_json_file(json_file, organisation_repo)
@@ -351,6 +352,7 @@ def service_url_factory(apigee_environment: str):
         base = "https://api.service.nhs.uk"
     else:
         base = f"https://{apigee_environment}.api.service.nhs.uk"
+    logger.info(f"Base URL for API requests: {base}")
 
     def _build_url(api_name: str) -> str:
         return f"{base.rstrip('/')}/{api_name}/FHIR/R4/"

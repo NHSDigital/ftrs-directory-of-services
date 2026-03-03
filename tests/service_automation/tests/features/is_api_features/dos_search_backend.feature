@@ -7,7 +7,7 @@ Feature: dos-search tests against the api gateway
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-@test
+
   Scenario: I search for Organization endpoint data by ODS Code with valid query parameters
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response

@@ -1,7 +1,6 @@
 import json
 import re
 
-from loguru import logger
 from playwright.sync_api import APIResponse
 from pytest_bdd import parsers, then
 
@@ -72,9 +71,7 @@ def api_check_resource_type_field_value(
     ]
     assert len(resource_entries) > 0, f"No {resource_type} resource found"
     resource = resource_entries[0]["resource"]
-    logger.info(f"Checking {resource_type}.{field_name} value. Resource: {resource}")
     actual_value = resource.get(field_name)
-    logger.info(f"actual value='{actual_value}'")
     assert actual_value == expected_value, (
         f"Expected {resource_type}.{field_name} '{expected_value}' but got '{actual_value}'"
     )
@@ -100,9 +97,7 @@ def api_check_resource_type_boolean_value(
     ]
     assert len(resource_entries) > 0, f"No {resource_type} resource found"
     resource = resource_entries[0]["resource"]
-    logger.info(f"Checking {resource_type}.{field_name} value. Resource: {resource}")
     actual_value = resource.get(field_name)
-    logger.info(f"actual value='{actual_value}'")
     assert actual_value == expected_bool, (
         f"Expected {resource_type}.{field_name} '{expected_bool}' but got '{actual_value}'"
     )
