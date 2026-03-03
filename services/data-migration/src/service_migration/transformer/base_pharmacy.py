@@ -178,7 +178,11 @@ class LinkedPharmacyTransformer(ServiceTransformer):
         """
         Resolve the parent pharmacy organisation and location for a linked service.
         """
-        base_ods_code = service.odscode[: -len(self.ODS_SUFFIX)]
+        base_ods_code = (
+            service.odscode[: -len(self.ODS_SUFFIX)]
+            if self.ODS_SUFFIX
+            else service.odscode
+        )
 
         parent_service = self._find_parent_service(engine, base_ods_code)
 

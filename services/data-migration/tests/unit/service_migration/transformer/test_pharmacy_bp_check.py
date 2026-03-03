@@ -89,6 +89,26 @@ def test_is_service_supported(
     assert message == expected_message
 
 
+def test_is_service_not_supported_when_feature_flag_disabled(
+    mock_legacy_service: Service,
+    mocker: MockerFixture,
+) -> None:
+    mocker.patch(
+        "service_migration.transformer.pharmacy_blood_pressure_check.is_enabled",
+        return_value=False,
+    )
+
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+
+    is_supported, message = PharmacyBPCheckTransformer.is_service_supported(
+        mock_legacy_service
+    )
+
+    assert is_supported is False
+    assert message == "Pharmacy service selection is disabled by feature flag"
+
+
 @pytest.mark.parametrize(
     "statusid, service_name, expected_result, expected_message",
     [
@@ -235,6 +255,34 @@ def test_resolve_parent_returns_service_when_state_missing(
     assert org_id is None
     assert loc_id is None
     mock_get_state.assert_called_once_with(parent_service.id)
+
+
+def test_resolve_parent_derives_correct_base_ods_code(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    mocker: MockerFixture,
+) -> None:
+    parent_service = Service(
+        **mock_legacy_service.model_dump(mode="python", warnings=False)
+    )
+    parent_service.id = 12345
+    parent_service.typeid = 148
+    parent_service.odscode = "A1B2C"
+
+    mock_engine = MagicMock()
+    mock_get_state = MagicMock(return_value=None)
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    find_parent = mocker.patch.object(
+        transformer, "_find_parent_service", return_value=parent_service
+    )
+
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "A1B2CBPS"
+
+    transformer.resolve_parent(mock_legacy_service, mock_engine, mock_get_state)
+
+    find_parent.assert_called_once_with(mock_engine, "A1B2C")
 
 
 def test_resolve_parent_raises_when_parent_not_found(
