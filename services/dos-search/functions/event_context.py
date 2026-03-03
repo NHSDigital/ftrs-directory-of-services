@@ -14,13 +14,6 @@ PLACEHOLDER = "Value not found. Please check if this value was provided in the r
 _CORRELATION_ID_INDEX = 1
 _MESSAGE_ID_INDEX = 2
 
-MANDATORY_LOG_KEYS = (
-    "dos_nhsd_correlation_id",
-    "dos_message_id",
-    "dos_nhsd_request_id",
-    "dos_message_category",
-)
-
 
 def setup_request(event: dict[str, Any], logger: Logger) -> None:
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}

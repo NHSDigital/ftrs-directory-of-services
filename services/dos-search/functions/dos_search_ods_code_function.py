@@ -10,7 +10,6 @@ from pydantic import ValidationError
 
 from functions import error_util
 from functions.event_context import (
-    MANDATORY_LOG_KEYS,
     get_response_size_and_duration,
     setup_request,
 )
@@ -31,7 +30,7 @@ def request_context_middleware(
     try:
         return next_middleware(app)
     finally:
-        logger.remove_keys(*MANDATORY_LOG_KEYS)
+        logger.thread_safe_clear_keys()
 
 
 app = APIGatewayRestResolver()
