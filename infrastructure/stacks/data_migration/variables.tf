@@ -161,7 +161,7 @@ variable "cdc_migration_type" {
 variable "dms_instance_multi_az" {
   description = "Is DMS instance set up in multi-AZ mode"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "dms_task_logging_enabled" {
