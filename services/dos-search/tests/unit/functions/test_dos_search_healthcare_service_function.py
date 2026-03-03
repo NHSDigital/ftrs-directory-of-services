@@ -4,7 +4,6 @@ import pytest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 
-# Mock FeatureFlagsClient class before import to prevent instantiation errors
 with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_client_class:
     mock_client_class.return_value.is_enabled.return_value = True
 
