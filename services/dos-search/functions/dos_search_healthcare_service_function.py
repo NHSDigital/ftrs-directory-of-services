@@ -41,14 +41,14 @@ def get_healthcare_service() -> Response:
             "Healthcare Service search endpoint is enabled via feature flag",
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="enabled",
-            dos_message_category="FEATURE_FLAG"
+            dos_message_category="FEATURE_FLAG",
         )
     else:
         dos_logger.warning(
             "Healthcare Service search endpoint is disabled via feature flag",
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="disabled",
-            dos_message_category="FEATURE_FLAG"
+            dos_message_category="FEATURE_FLAG",
         )
         return {
             "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
