@@ -89,6 +89,7 @@ define update-retention-tags
 endef
 
 stage:
+	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot stage artefacts$(COLOR_RESET)" && exit 1)
 	$(call log_start,Staging release $(PRERELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update--tags,staging,$(PRERELEASE_TAG))
