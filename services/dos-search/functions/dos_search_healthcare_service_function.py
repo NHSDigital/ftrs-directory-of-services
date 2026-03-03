@@ -1,11 +1,11 @@
-from http import HTTPStatus
 import time
+from http import HTTPStatus
 
-from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from pydantic import ValidationError
 
 from functions import error_util
