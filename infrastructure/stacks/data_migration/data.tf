@@ -324,3 +324,13 @@ data "aws_iam_role" "firehose_role" {
 data "http" "rds_ca_certificate" {
   url = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
 }
+
+data "aws_lambda_function" "slack_notifier" {
+  # Not needed ? count = local.is_primary_environment ? 1 : 0
+  function_name = "ftrs-dos-${var.environment}-slack-notifier"
+}
+
+# TODO test only
+data "aws_dms_replication_task" "dms_cdc_replication_task" {
+  replication_task_id = "${local.resource_prefix}-etl-cdc-replication-task"
+}
