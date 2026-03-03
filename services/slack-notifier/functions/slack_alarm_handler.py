@@ -6,13 +6,10 @@ Sends essential alert information: metric trigger, threshold, API, endpoint, per
 import json
 from typing import Any
 
-from ftrs_common.logger import Logger
-
 from functions.alarm_parser import flatten_dict, parse_cloudwatch_alarm
+from functions.logger import logger
 from functions.slack_client import get_slack_webhook_url, send_to_slack
 from functions.slack_formatter import build_slack_message
-
-logger = Logger.get("slack-notifier")
 
 
 def _raise_processing_error(failed: int) -> None:

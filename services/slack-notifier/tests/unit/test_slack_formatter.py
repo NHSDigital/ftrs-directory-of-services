@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from functions.slack_formatter import (
     build_slack_message,
     format_timestamp,
@@ -51,7 +53,12 @@ class TestFormatTimestamp:
 
 
 class TestBuildSlackMessage:
-    def test_alarm_state_message_critical(self):
+    @patch("functions.slack_formatter.get_alarm_tags")
+    def test_alarm_state_message_critical(self, mock_get_alarm_tags: object) -> None:
+        mock_get_alarm_tags.return_value = {  # type: ignore
+            "api_path": "/Organization",
+            "service": "dos-search",
+        }
         alarm_data = {
             "AlarmName": "test-lambda-errors-critical",
             "AlarmArn": "arn:aws:cloudwatch:eu-west-2:000000000000:alarm:test-alarm",  # gitleaks:allow
@@ -77,7 +84,12 @@ class TestBuildSlackMessage:
         assert any("Errors" in str(block) for block in result["blocks"])
         assert any("100" in str(block) for block in result["blocks"])
 
-    def test_alarm_state_message_warning(self):
+    @patch("functions.slack_formatter.get_alarm_tags")
+    def test_alarm_state_message_warning(self, mock_get_alarm_tags: object) -> None:
+        mock_get_alarm_tags.return_value = {  # type: ignore
+            "api_path": "/Organization",
+            "service": "dos-search",
+        }
         alarm_data = {
             "AlarmName": "test-lambda-duration-p95-warning",
             "AlarmArn": "arn:aws:cloudwatch:eu-west-2:000000000000:alarm:test-alarm",  # gitleaks:allow
@@ -103,7 +115,12 @@ class TestBuildSlackMessage:
         assert any("Duration" in str(block) for block in result["blocks"])
         assert any("600" in str(block) for block in result["blocks"])
 
-    def test_missing_optional_fields(self):
+    @patch("functions.slack_formatter.get_alarm_tags")
+    def test_missing_optional_fields(self, mock_get_alarm_tags: object) -> None:
+        mock_get_alarm_tags.return_value = {  # type: ignore
+            "api_path": "N/A",
+            "service": "Unknown",
+        }
         alarm_data = {
             "AlarmName": "minimal-alarm-critical",
             "NewStateValue": "ALARM",
@@ -115,7 +132,12 @@ class TestBuildSlackMessage:
         assert "minimal-alarm-critical" in result["blocks"][0]["text"]["text"]
         assert any("N/A" in str(block) for block in result["blocks"])
 
-    def test_url_links_present(self):
+    @patch("functions.slack_formatter.get_alarm_tags")
+    def test_url_links_present(self, mock_get_alarm_tags: object) -> None:
+        mock_get_alarm_tags.return_value = {  # type: ignore
+            "api_path": "/Organization",
+            "service": "dos-search",
+        }
         alarm_data = {
             "AlarmName": "test-alarm",
             "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:test",  # gitleaks:allow

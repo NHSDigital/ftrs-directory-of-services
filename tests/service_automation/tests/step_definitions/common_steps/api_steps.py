@@ -76,13 +76,6 @@ def api_check_operation_outcome_any_issue_by_key_value(fresponse, key, value):
     assert any(issue.get(key) == value for issue in response["issue"])
 
 
-def count_resources(lambda_response, resource_type):
-    return sum(
-        entry.get("resource", {}).get("resourceType") == resource_type
-        for entry in lambda_response.get("entry", [])
-    )
-
-
 @then("the response includes security headers")
 def verify_security_headers(fresponse) -> None:
     """Verify that the response includes all required security headers."""
@@ -94,3 +87,10 @@ def verify_security_headers(fresponse) -> None:
     assert headers.get("x-content-type-options") == "nosniff"
     assert headers.get("x-frame-options") == "DENY"
     assert headers.get("cache-control") == "no-store"
+
+
+def count_resources(lambda_response, resource_type):
+    return sum(
+        entry.get("resource", {}).get("resourceType") == resource_type
+        for entry in lambda_response.get("entry", [])
+    )
