@@ -203,7 +203,6 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL summary:
-# - Default action allows; hostile countries are blocked when configured.
 # - Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
 # - BotControl excludes APIM/Apigee allowlist via scope-down when CIDRs are provided.
 
@@ -217,39 +216,10 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     allow {}
   }
 
-  # Optional hostile country block
-  dynamic "rule" {
-    for_each = length(var.regional_waf_hostile_country_codes) > 0 ? [1] : []
-    content {
-      name     = "regional-waf-block-hostile-countries"
-      priority = 0
-
-      action {
-        block {}
-      }
-
-      statement {
-        geo_match_statement {
-          country_codes = var.regional_waf_hostile_country_codes
-          forwarded_ip_config {
-            header_name       = "X-Forwarded-For"
-            fallback_behavior = "MATCH"
-          }
-        }
-      }
-
-      visibility_config {
-        cloudwatch_metrics_enabled = false
-        metric_name                = "${local.resource_prefix}-regional-waf-block-hostile-countries"
-        sampled_requests_enabled   = true
-      }
-    }
-  }
-
   # Managed rule groups
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
-    priority = 10
+    priority = 0
 
     override_action {
       none {}
@@ -265,6 +235,42 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     visibility_config {
       cloudwatch_metrics_enabled = false
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-ip-reputation-list"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 10
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
+
+        # Exclude APIGEE host IPs from BotControl evaluation.
+        dynamic "scope_down_statement" {
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
+          content {
+            not_statement {
+              statement {
+                ip_set_reference_statement {
+                  arn = aws_wafv2_ip_set.apim_apigee_allowlist_regional[0].arn
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
       sampled_requests_enabled   = true
     }
   }
@@ -292,43 +298,8 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
   }
 
   rule {
-    name     = "AWSManagedRulesBotControlRuleSet"
-    priority = 30
-
-    override_action {
-      none {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesBotControlRuleSet"
-        vendor_name = "AWS"
-
-        dynamic "scope_down_statement" {
-          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
-          content {
-            not_statement {
-              statement {
-                ip_set_reference_statement {
-                  arn = aws_wafv2_ip_set.apim_apigee_whitelist_regional[0].arn
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = false
-      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
     name     = "AWSManagedRulesCommonRuleSet"
-    priority = 40
+    priority = 30
 
     override_action {
       none {}
@@ -350,7 +321,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
 
   rule {
     name     = "AWSManagedRulesLinuxRuleSet"
-    priority = 50
+    priority = 40
 
     override_action {
       none {}
@@ -372,7 +343,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
 
   rule {
     name     = "AWSManagedRulesUnixRuleSet"
-    priority = 60
+    priority = 50
 
     override_action {
       none {}
@@ -399,9 +370,9 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
   }
 }
 
-resource "aws_wafv2_ip_set" "apim_apigee_whitelist_regional" {
+resource "aws_wafv2_ip_set" "apim_apigee_allowlist_regional" {
   count              = length(local.apim_apigee_cidrs_normalized) > 0 ? 1 : 0
-  name               = "${local.resource_prefix}-apim-apigee-whitelist-regional"
+  name               = "${local.resource_prefix}-apim-apigee-allowlist-regional"
   description        = "IP set for APIM/Apigee allowlist (regional scope)"
   scope              = "REGIONAL"
   ip_address_version = "IPV4"
