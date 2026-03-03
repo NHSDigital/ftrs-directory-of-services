@@ -100,4 +100,4 @@ jobs:
     with:
       env: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
     secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
+      SLACK_WEBHOOK_PIPELINE_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
