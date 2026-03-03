@@ -1,5 +1,4 @@
 import time
-from http import HTTPStatus
 
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
@@ -34,6 +33,9 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 @app.get("/HealthcareService")
 @tracer.capture_method
 def get_healthcare_service() -> Response:
+    start = time.time()
+    dos_logger.init(app.current_event)
+
     if FEATURE_FLAGS_CLIENT.is_enabled(
         FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
     ):
@@ -50,12 +52,16 @@ def get_healthcare_service() -> Response:
             feature_flag_status="disabled",
             dos_message_category="FEATURE_FLAG",
         )
-        return {
-            "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
-            "body": "Service Unavailable: Healthcare Service search endpoint is currently disabled",
-        }
-    start = time.time()
-    dos_logger.init(app.current_event)
+        fhir_resource = error_util.create_resource_service_unavailable_error()
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            fhir_resource, start
+        )
+        dos_logger.exception(
+            "Internal server error occurred",
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
+        )
+        return create_response(500, fhir_resource)
 
     try:
         query_params = app.current_event.query_string_parameters or {}

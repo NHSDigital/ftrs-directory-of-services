@@ -4,11 +4,17 @@ import pytest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 
-from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
-from functions.dos_search_healthcare_service_function import (
-    DEFAULT_RESPONSE_HEADERS,
-    lambda_handler,
-)
+# Mock FeatureFlagsClient class before import to prevent instantiation errors
+with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_client_class:
+    mock_client_class.return_value.is_enabled.return_value = True
+
+    from ftrs_common.feature_flags import FeatureFlag
+
+    from functions.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
+    from functions.dos_search_healthcare_service_function import (
+        DEFAULT_RESPONSE_HEADERS,
+        lambda_handler,
+    )
 
 
 @pytest.fixture
@@ -16,11 +22,17 @@ def mock_error_util():
     with patch("functions.dos_search_healthcare_service_function.error_util") as mock:
         mock_validation_error = OperationOutcome.model_construct(id="validation-error")
         mock_internal_error = OperationOutcome.model_construct(id="internal-error")
+        mock_service_unavailable_error = OperationOutcome.model_construct(
+            id="service-unavailable-error"
+        )
 
         mock.create_validation_error_operation_outcome.return_value = (
             mock_validation_error
         )
         mock.create_resource_internal_server_error.return_value = mock_internal_error
+        mock.create_resource_service_unavailable_error.return_value = (
+            mock_service_unavailable_error
+        )
 
         yield mock
 
@@ -44,6 +56,15 @@ def mock_logger():
 @pytest.fixture
 def lambda_context() -> MagicMock:
     return MagicMock()
+
+
+@pytest.fixture
+def mock_feature_flags_client():
+    with patch(
+        "functions.dos_search_healthcare_service_function.FEATURE_FLAGS_CLIENT"
+    ) as mock:
+        mock.is_enabled.return_value = True
+        yield mock
 
 
 @pytest.fixture
@@ -211,3 +232,68 @@ class TestHealthcareServiceLambdaHandler:
 
         # Assert
         mock_logger.exception.assert_called_once()
+
+    def test_lambda_handler_with_feature_flag_enabled(
+        self,
+        lambda_context: MagicMock,
+        mock_ftrs_service: MagicMock,
+        mock_logger: MagicMock,
+        mock_feature_flags_client: MagicMock,
+        bundle: Bundle,
+    ) -> None:
+        # Arrange
+        mock_feature_flags_client.is_enabled.return_value = True
+        mock_ftrs_service.healthcare_services_by_ods.return_value = bundle
+        event = _build_event("ABC123")
+
+        # Act
+        response = lambda_handler(event, lambda_context)
+
+        # Assert
+        mock_feature_flags_client.is_enabled.assert_called_once_with(
+            FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
+        )
+        mock_logger.info.assert_any_call(
+            "Healthcare Service search endpoint is enabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="enabled",
+            dos_message_category="FEATURE_FLAG",
+        )
+        assert response["statusCode"] == 200
+        assert_response(
+            response,
+            expected_status_code=200,
+            expected_body=bundle.model_dump_json(),
+        )
+
+    def test_lambda_handler_with_feature_flag_disabled(
+        self,
+        lambda_context: MagicMock,
+        mock_error_util: MagicMock,
+        mock_logger: MagicMock,
+        mock_feature_flags_client: MagicMock,
+    ) -> None:
+        # Arrange
+        mock_feature_flags_client.is_enabled.return_value = False
+        event = _build_event("ABC123")
+
+        # Act
+        response = lambda_handler(event, lambda_context)
+
+        # Assert
+        mock_feature_flags_client.is_enabled.assert_called_once_with(
+            FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
+        )
+        mock_logger.warning.assert_called_with(
+            "Healthcare Service search endpoint is disabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="disabled",
+            dos_message_category="FEATURE_FLAG",
+        )
+        mock_error_util.create_resource_service_unavailable_error.assert_called_once()
+        assert response["statusCode"] == 500
+        assert_response(
+            response,
+            expected_status_code=500,
+            expected_body=mock_error_util.create_resource_service_unavailable_error.return_value.model_dump_json(),
+        )
