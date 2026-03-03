@@ -34,7 +34,7 @@ class TestSetupRequest:
     def test_appends_mandatory_fields(self, event, log_data):
         mock_logger = MagicMock()
         setup_request(event, mock_logger)
-        mock_logger.append_keys.assert_called_once_with(**log_data)
+        mock_logger.thread_safe_append_keys.assert_called_once_with(**log_data)
 
     def test_appends_mandatory_fields_with_missing_headers(self, event, log_data):
         modified_event = deepcopy(event)
@@ -48,7 +48,7 @@ class TestSetupRequest:
 
         mock_logger = MagicMock()
         setup_request(modified_event, mock_logger)
-        mock_logger.append_keys.assert_called_once_with(**expected)
+        mock_logger.thread_safe_append_keys.assert_called_once_with(**expected)
 
     def test_logs_one_time_fields(self, event, details):
         mock_logger = MagicMock()

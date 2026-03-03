@@ -14,6 +14,13 @@ PLACEHOLDER = "Value not found. Please check if this value was provided in the r
 _CORRELATION_ID_INDEX = 1
 _MESSAGE_ID_INDEX = 2
 
+MANDATORY_LOG_KEYS = (
+    "dos_nhsd_correlation_id",
+    "dos_message_id",
+    "dos_nhsd_request_id",
+    "dos_message_category",
+)
+
 
 def setup_request(event: dict[str, Any], logger: Logger) -> None:
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
@@ -22,7 +29,7 @@ def setup_request(event: dict[str, Any], logger: Logger) -> None:
     fetch_or_set_request_id(header_id=_get_header(headers, "nhsd-request-id"))
     fetch_or_set_correlation_id(existing=_get_header(headers, "nhsd-correlation-id"))
 
-    logger.append_keys(**log_data)
+    logger.thread_safe_append_keys(**log_data)
 
     details = _extract_one_time(event, headers)
     logger.log(
