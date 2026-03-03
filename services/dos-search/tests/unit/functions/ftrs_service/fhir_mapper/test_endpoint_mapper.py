@@ -234,7 +234,7 @@ class TestEndpointMapper:
         # Assert
         assert result is None
         mock_logger.log.assert_called_once_with(
-            DosSearchLogBase.DOS_SEARCH_009,
+            DosSearchLogBase.DOS_SEARCH_011,
             business_scenario="UnknownScenario",
         )
 

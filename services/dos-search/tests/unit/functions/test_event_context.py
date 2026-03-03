@@ -15,11 +15,19 @@ from functions.logbase import DosSearchLogBase
 
 @pytest.fixture(autouse=True)
 def setup_env_vars():
+    prev_environment = os.environ.get("ENVIRONMENT")
+    prev_lambda_version = os.environ.get("AWS_LAMBDA_FUNCTION_VERSION")
     os.environ["ENVIRONMENT"] = "Development"
     os.environ["AWS_LAMBDA_FUNCTION_VERSION"] = "0.0.1"
     yield
-    os.environ.pop("ENVIRONMENT", None)
-    os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
+    if prev_environment is None:
+        os.environ.pop("ENVIRONMENT", None)
+    else:
+        os.environ["ENVIRONMENT"] = prev_environment
+    if prev_lambda_version is None:
+        os.environ.pop("AWS_LAMBDA_FUNCTION_VERSION", None)
+    else:
+        os.environ["AWS_LAMBDA_FUNCTION_VERSION"] = prev_lambda_version
 
 
 class TestSetupRequest:

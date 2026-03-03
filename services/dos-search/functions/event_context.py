@@ -31,7 +31,7 @@ def setup_request(event: dict[str, Any], logger: Logger) -> None:
 
 
 def get_response_size_and_duration(
-    fhir_resource: FHIRResourceModel, start: float, logger: Logger
+    fhir_resource: Optional[FHIRResourceModel], start: float, logger: Logger
 ) -> tuple[int, int]:
     duration_ms = int((time.time() - start) * 1000)
     try:

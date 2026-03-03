@@ -263,10 +263,13 @@ class TestLambdaHandler:
                     ods_code=ods_code,
                     dos_message_category="REQUEST",
                 ),
+                call.exception("Unhandled exception"),
                 call.log(
                     DosSearchLogBase.DOS_SEARCH_006,
                     dos_response_time="1ms",
                     dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
+                    exception_type=type(exception).__name__,
+                    exception_message=str(exception),
                 ),
                 call.log(
                     DosSearchLogBase.DOS_SEARCH_004,

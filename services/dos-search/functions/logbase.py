@@ -42,9 +42,13 @@ class DosSearchLogBase(LogBase):
     )
     DOS_SEARCH_009 = LogReference(
         level=ERROR,
-        message="Error occurred while processing",
+        message="Error occurred while retrieving or mapping organisation data",
     )
     DOS_SEARCH_010 = LogReference(
         level=ERROR,
         message="Failed to calculate response size",
+    )
+    DOS_SEARCH_011 = LogReference(
+        level=WARNING,
+        message="Unknown business scenario value; endpoint business scenario extension omitted",
     )

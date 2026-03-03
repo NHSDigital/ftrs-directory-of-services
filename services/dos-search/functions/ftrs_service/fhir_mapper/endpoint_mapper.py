@@ -121,7 +121,7 @@ class EndpointMapper:
 
         if not business_scenario_code:
             logger.log(
-                DosSearchLogBase.DOS_SEARCH_009,
+                DosSearchLogBase.DOS_SEARCH_011,
                 business_scenario=business_scenario,
             )
             return None
