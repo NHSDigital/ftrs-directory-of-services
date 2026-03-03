@@ -120,3 +120,19 @@ data "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
 data "aws_iam_role" "firehose_role" {
   name = "${local.account_prefix}-${var.firehose_name}-cw-role"
 }
+
+data "aws_ssm_parameter" "appconfig_application_id" {
+  name = "/${var.project}/${var.environment}/appconfig/application_id${local.workspace_suffix}"
+}
+
+data "aws_appconfig_configuration_profiles" "appconfig_configuration_profiles" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_appconfig_environments" "appconfig_environments" {
+  application_id = data.aws_ssm_parameter.appconfig_application_id.value
+}
+
+data "aws_iam_policy" "appconfig_access_policy" {
+  name = "${local.project_prefix}${local.workspace_suffix}-appconfig-data-read"
+}

@@ -1,5 +1,7 @@
+from http import HTTPStatus
 import time
 
+from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -18,6 +20,7 @@ dos_logger = DosLogger.get(service=service)
 logger = dos_logger.logger
 tracer = Tracer()
 app = APIGatewayRestResolver()
+FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
 
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
@@ -31,6 +34,26 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 @app.get("/HealthcareService")
 @tracer.capture_method
 def get_healthcare_service() -> Response:
+    if FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
+    ):
+        dos_logger.info(
+            "Healthcare Service search endpoint is enabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="enabled",
+            dos_message_category="FEATURE_FLAG"
+        )
+    else:
+        dos_logger.warning(
+            "Healthcare Service search endpoint is disabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="disabled",
+            dos_message_category="FEATURE_FLAG"
+        )
+        return {
+            "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
+            "body": "Service Unavailable: Healthcare Service search endpoint is currently disabled",
+        }
     start = time.time()
     dos_logger.init(app.current_event)
 
