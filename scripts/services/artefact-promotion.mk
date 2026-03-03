@@ -128,7 +128,7 @@ release:
 	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN),$(RETENTION_TAG_RELEASE))
 	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "releases/$(RELEASE_VERSION_CLEAN)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
 	if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
-		echo "No objects found under releases/$(RELEASE_VERSION_CLEAN) – skipping tagging"; \
+		echo "No objects found under releases/$(RELEASE_VERSION_CLEAN) - skipping tagging"; \
 	else \
 	pids=""; failed=0; count=0; \
 	for key in $$keys; do \
