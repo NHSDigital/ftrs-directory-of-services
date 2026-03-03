@@ -1,7 +1,8 @@
 resource "aws_sns_topic" "data_migration_sns_topic" {
   # TODO restore after test
   # count = local.is_primary_environment ? 1 : 0
-  name = "${local.resource_prefix}-sns-topic"
+  name              = "${local.resource_prefix}-sns-topic"
+  kms_master_key_id = data.aws_kms_key.sqs_kms_alias.arn
 }
 
 resource "aws_sns_topic_subscription" "alarms_to_slack" {
