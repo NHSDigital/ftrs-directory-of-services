@@ -341,3 +341,21 @@ variable "dns_port" {
   type        = number
   default     = 53
 }
+
+variable "alarm_datapoints_cdc" {
+  description = "The number of datapoints to alarm for CDC latency CloudWatch alarms"
+  type        = number
+  default     = 5
+}
+
+variable "alarm_threshold_cdc_critical" {
+  description = "The threshold in seconds which when exceeded trigger CDC latency Cloudwatch critical alarm"
+  type        = number
+  default     = 120
+}
+
+variable "alarm_threshold_cdc_warning" {
+  description = "The threshold in seconds which when exceeded trigger CDC latency Cloudwatch warning alarm"
+  type        = number
+  default     = 30
+}
