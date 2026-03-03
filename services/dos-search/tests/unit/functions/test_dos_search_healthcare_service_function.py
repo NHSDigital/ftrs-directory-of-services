@@ -81,7 +81,7 @@ def _build_event(ods_code: str) -> dict:
         "path": "/HealthcareService",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}",
+            "organization.identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}",
         },
         "requestContext": {"requestId": "req-id"},
         "headers": {},

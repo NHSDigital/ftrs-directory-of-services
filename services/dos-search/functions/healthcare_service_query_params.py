@@ -1,6 +1,6 @@
 import re
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
 from functions.constants import (
     ODS_ORG_CODE_IDENTIFIER_SYSTEM,
@@ -47,7 +47,7 @@ class HealthcareServiceQueryParams(BaseModel):
         description=f"Organization identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{code}}'",
     )
 
-    model_config = {"extra": "forbid", "populate_by_name": True}
+    model_config = ConfigDict(extra="forbid")
 
     @computed_field
     @property

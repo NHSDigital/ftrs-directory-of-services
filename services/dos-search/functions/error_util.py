@@ -85,12 +85,6 @@ PROXY_HEADER_BY_INTERNAL_HEADER_MAP: dict[str, str] = {
     NHSD_REQUEST_ID: X_REQUEST_ID,
 }
 
-HEALTHCARE_SERVICE_ALIAS_MAP: dict[str, str] = {
-    field_name: field_info.alias
-    for field_name, field_info in HealthcareServiceQueryParams.model_fields.items()
-    if field_info.alias and field_info.alias != field_name
-}
-
 
 def create_resource_internal_server_error() -> OperationOutcome:
     return OperationOutcome.model_validate(
@@ -262,8 +256,6 @@ def _extract_field_name(error: ErrorDetails, friendly_name: str) -> int | str:
 
     if friendly_name == FRIENDLY_NAME_HEADERS:
         field_name = PROXY_HEADER_BY_INTERNAL_HEADER_MAP.get(field_name, field_name)
-    elif friendly_name == FRIENDLY_NAME_QUERY_PARAMETERS:
-        field_name = HEALTHCARE_SERVICE_ALIAS_MAP.get(field_name, field_name)
 
     return field_name
 
