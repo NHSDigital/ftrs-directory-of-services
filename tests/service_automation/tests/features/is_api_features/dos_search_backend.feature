@@ -1,5 +1,5 @@
 @is-api @integrated-search @dos-search-ods-code-api
-Feature: dos-search tests against the api gateway 
+Feature: dos-search tests against the api gateway
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"

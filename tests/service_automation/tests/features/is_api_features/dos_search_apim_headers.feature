@@ -2,18 +2,13 @@
 @nhsd_apim_authorization(access="application",level="level3")
 
 Feature: dos-search tests to validate headers required by the apim proxy and api-gateway
-# Add tests to check that the headers are not case sensitive
-# Add tests to check for valid and invalid headers combos are handled correctly
-# Add tests that allowed headers are allowed  0 check for differences between apim and apig
-
-
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
     And I have a organisation repo
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
-@test
+
   Scenario Outline: I cannot search for Organization endpoint data by ODS Code when missing mandatory headers
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "<headers>"
     Then I receive a status code "400" in response
@@ -82,7 +77,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with valid query parameters and valid headers, including mandatory headers and additional optional headers
-    When I request data from the "dos-search" endpoint "Organization" with valid query params and additional headers "<headers>"
+    When I request data from the APIM endpoint "Organization" with valid query params and additional headers "<headers>"
     Then I receive a status code "200" in response
     And the response body contains a bundle
     And the bundle contains "1" "Organization" resources
@@ -92,21 +87,15 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
       |{"NHSD-Request-ID": "req-987654321"} |
       |{"Content-Type": "application/fhir+json"} |
       |{"NHSD-Correlation-ID": "corr-123456789"} |
-      # |{"NHSD-Message-Id": "msg-1122334455"} |
-      # |{"NHSD-Api-Version": "1.0"} |
-      # |{"NHSD-End-User-Role": "GPPracticeAdmin"} |
-      # |{"NHSD-Client-Id": "client-abc123"} |
-      # |{"NHSD-Connecting-Party-App-Name": "dos-search-service"} |
+      |{"End-User-Role": "GPPracticeAdmin"} |
       |{"Accept": "application/fhir+json"} |
       |{"Accept-Encoding": "gzip, deflate"} |
       |{"Accept-Language": "en-GB"} |
       |{"User-Agent": "curl/8.0"} |
-      # |{"Host": "dos-search-ftrs-735.dev.ftrs.cloud.nhs.uk"} |
       |{"X-Forwarded-For": "192.168.1.10"} |
       |{"X-Forwarded-Port": "443"} |
       |{"X-Forwarded-Proto": "https"} |
       |{"NHSD-Request-ID": "req-987654321", "NHSD-Correlation-ID": "corr-123456789"} |
-
 
 
   Scenario: I search for Organization endpoint data by ODS Code with valid query parameters and no headers
@@ -118,7 +107,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with valid query parameters and invalid headers
-    When I request data from the "dos-search" endpoint "Organization" with valid query params and additional headers "<headers>"
+    When I request data from the APIM endpoint "Organization" with valid query params and additional headers "<headers>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -130,3 +119,18 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
       |headers                              |header_name           |
       |{"My-Request-ID": "req-987654321"}   |my-request-id         |
       |{"Correlation-ID": "corr-123456789"} |correlation-id        |
+
+
+
+Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with valid headers in upper and lower case
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with headers "<headers>"
+    Then I receive a status code "200" in response
+    And the response body contains a bundle
+    And the response headers contain the following headers and values "<response headers>"
+    And the response is valid against the dos-search schema for endpoint "/Organization"
+    Examples:
+    |headers                                                                 |response headers                                                                 |
+    |{"Version": "1", "X-Correlation-ID": "11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA", "X-Request-ID": "0E0B220-8136-4CA5-AE46-1D97EF59D068", "Content-Type": "application/fhir+json"} |{"x-correlation-id": "11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA", "x-request-id": "0E0B220-8136-4CA5-AE46-1D97EF59D068", "content-type": "application/fhir+json"} |
+    |{"version": "1", "x-Correlation-iD": "11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA", "x-ReQuest-id": "0E0B220-8136-4CA5-AE46-1D97EF59D068", "Content-Type": "application/fhir+json"} |{"x-correlation-id": "11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA", "x-request-id": "0E0B220-8136-4CA5-AE46-1D97EF59D068", "content-type": "application/fhir+json"} |
+
+

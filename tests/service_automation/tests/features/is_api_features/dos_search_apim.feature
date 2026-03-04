@@ -101,7 +101,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
     | foo              | bar              |
     | _sort            | name             |
 
-
+@test
   Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with ODS code at valid boundary length
     When I request data from the APIM endpoint "Organization" with query params "identifier=https://fhir.nhs.uk/Id/ods-organization-code|<ods_code>&_revinclude=Endpoint:organization"
     Then I receive a status code "200" in response

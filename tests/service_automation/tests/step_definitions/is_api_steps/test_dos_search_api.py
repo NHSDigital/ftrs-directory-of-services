@@ -88,21 +88,24 @@ def dns_resolvable(api_name: str, env: str, workspace: str) -> None:
 
 @when(
     parsers.re(
-        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and additional headers "(?P<headers>.*?)"'
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with valid query params and additional headers "(?P<headers>.*?)"'
     ),
     target_fixture="fresponse",
 )
 def send_get_with_params_with_headers(
-    api_request_context_mtls: APIRequestContext,
-    api_name: str,
+    apim_request_context: APIRequestContext,
+    nhsd_apim_proxy_url: str,
     resource_name: str,
     headers: str,
 ) -> APIResponse:
     # headers can be manipulated in individual tests if needed
     params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
-    headers = {**MANDATORY_APIG_REQUEST_HEADERS, **json.loads(headers)}
-    url = get_url(api_name) + "/" + resource_name
-    return _send_api_request(api_request_context_mtls, url, params, headers)
+    headers = {**MANDATORY_APIM_REQUEST_HEADERS, **json.loads(headers)}
+    url = nhsd_apim_proxy_url + "/" + resource_name
+    logger.info(
+        f"Sending request to URL: {url} with params: {params} and headers: {headers}"
+    )
+    return _send_api_request(apim_request_context, url, params, headers)
 
 
 @when(
@@ -120,6 +123,9 @@ def send_get_with_params(
     # headers can be manipulated in individual tests if needed
     headers = {**MANDATORY_APIG_REQUEST_HEADERS}
     url = get_url(api_name) + "/" + resource_name
+    logger.info(
+        f"Sending request to URL: {url} with params: {params} and headers: {headers}"
+    )
     return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
