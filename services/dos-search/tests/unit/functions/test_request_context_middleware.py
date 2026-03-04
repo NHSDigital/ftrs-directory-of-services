@@ -41,7 +41,11 @@ class TestRequestContextMiddleware:
 
         request_context_middleware(app, next_middleware)
 
-        assert call_order == ["setup_request", "next_middleware", "thread_safe_clear_keys"]
+        assert call_order == [
+            "setup_request",
+            "next_middleware",
+            "thread_safe_clear_keys",
+        ]
 
     def test_returns_response_from_next_middleware(
         self, app, mock_setup_request, mock_logger
