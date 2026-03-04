@@ -2,6 +2,24 @@ locals {
   appconfig_configuration_profile_id = try(tolist(data.aws_appconfig_configuration_profiles.appconfig_configuration_profiles.configuration_profile_ids)[0], null)
   appconfig_environment_id           = try(tolist(data.aws_appconfig_environments.appconfig_environments.environment_ids)[0], null)
 
+  # 
+  # DMS replication instance class -> max network bandwidth (bytes/sec)
+  # Fill values from your approved source of truth.
+  dms_instance_bandwidth_bytes_per_sec = {
+    "dms.t3.small" = 30000000 # TODO: 30 megabytes per second is a placeholder value, replace with actual bandwidth for dms.t3.small
+  }
+
+  dms_instance_bandwidth_bps = lookup(
+    local.dms_instance_bandwidth_bytes_per_sec,
+    var.dms_replication_instance_class,
+    null
+  )
+
+  # 80% threshold for critical alarms
+  dms_network_threshold_80pct = floor(local.dms_instance_bandwidth_bps * 0.8)
+  # 60% threshold for warnings
+  dms_network_threshold_60pct = floor(local.dms_instance_bandwidth_bps * 0.6)
+  # 
   dms_simple_metric_alarm_configs = {
     source_latency_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCLatencySource-High"
@@ -236,7 +254,7 @@ locals {
       metric_name         = "ReadThroughput"
       comparison_operator = "GreaterThanThreshold"
       threshold           = var.alarm_threshold_read_throughput_critical
-      alarm_description   = "Critical - Read Throughput > ${var.alarm_threshold_read_throughput_critical} ops per second"
+      alarm_description   = "Critical - Read Throughput > ${var.alarm_threshold_read_throughput_critical} bytes per second"
       datapoints_to_alarm = var.alarm_datapoints
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
@@ -249,7 +267,7 @@ locals {
       metric_name         = "ReadThroughput"
       comparison_operator = "GreaterThanThreshold"
       threshold           = var.alarm_threshold_read_throughput_warning
-      alarm_description   = "Warning - Read Throughput > ${var.alarm_threshold_read_throughput_warning} ops per second"
+      alarm_description   = "Warning - Read Throughput > ${var.alarm_threshold_read_throughput_warning} bytes per second"
       datapoints_to_alarm = var.alarm_datapoints
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
@@ -598,9 +616,62 @@ locals {
         }
       ]
     }
+    network_receive_throughput_critical = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Critical"
+      metric_name         = "NetworkReceiveThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_80pct
+      alarm_description   = "Critical - NetworkReceiveThroughput > 80% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_receive_throughput_warning = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Warning"
+      metric_name         = "NetworkReceiveThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_60pct
+      alarm_description   = "Warning - NetworkReceiveThroughput > 60% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_transmit_throughput_critical = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Critical"
+      metric_name         = "NetworkTransmitThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_80pct
+      alarm_description   = "Critical - NetworkTransmitThroughput > 80% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_transmit_throughput_warning = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Warning"
+      metric_name         = "NetworkTransmitThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_60pct
+      alarm_description   = "Warning - NetworkTransmitThroughput > 60% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
   }
 }
 
+# checks
 check "dms_alarm_config_schema" {
   assert {
     condition = alltrue([
@@ -609,19 +680,19 @@ check "dms_alarm_config_schema" {
           length(try(cfg.metric_queries, [])) == 0 &&
           try(cfg.metric_name, null) != null &&
           try(cfg.threshold, null) != null &&
-          try(cfg.threshold_metric_id, null) == null
+          try(cfg.threshold_metric_id, null) == null &&
+          try(cfg.dimensions, null) != null
           ) || (
           length(try(cfg.metric_queries, [])) > 0 &&
           try(cfg.metric_name, null) == null &&
-          (
-            try(cfg.threshold_metric_id, null) != null ||
-            try(cfg.threshold, null) != null
-          )
+          try(cfg.threshold, null) != null &&
+          try(cfg.threshold_metric_id, null) == null &&
+          try(cfg.comparison_operator, null) != null
         )
       )
     ])
 
-    error_message = "Each DMS alarm config must be either: simple metric mode (metric_name + threshold, no metric_queries) OR metric query mode (metric_queries + threshold_metric_id/threshold, no metric_name)."
+    error_message = "Each DMS alarm config must be either: simple metric mode (metric_name + threshold + dimensions, no metric_queries/threshold_metric_id) OR metric query mode (metric_queries + threshold + comparison_operator, no metric_name/threshold_metric_id)."
   }
 }
 check "dms_metric_query_single_return_data" {
@@ -646,5 +717,22 @@ check "dms_simple_alarm_dimensions_required" {
     ])
 
     error_message = "Each simple alarm in dms_simple_metric_alarm_configs must define a non-empty dimensions map."
+  }
+}
+
+check "dms_replication_instance_class_supported" {
+  assert {
+    condition = contains(
+      keys(local.dms_instance_bandwidth_bytes_per_sec),
+      var.dms_replication_instance_class
+    )
+    error_message = "Unsupported dms_replication_instance_class for bandwidth lookup. Add it to local.dms_instance_bandwidth_bytes_per_sec."
+  }
+}
+
+check "dms_replication_instance_bandwidth_configured" {
+  assert {
+    condition     = local.dms_instance_bandwidth_bps != null && local.dms_instance_bandwidth_bps > 0
+    error_message = "Bandwidth bytes/sec must be set (> 0) for the selected dms_replication_instance_class."
   }
 }
