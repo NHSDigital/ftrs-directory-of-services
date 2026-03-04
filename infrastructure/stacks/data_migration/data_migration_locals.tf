@@ -362,13 +362,13 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.5) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
 
       metric_queries = [
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesDiskSource"
@@ -386,12 +386,6 @@ locals {
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.5x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.5)"
-          return_data = true
         }
       ]
     }
@@ -401,13 +395,14 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.3) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
+
       metric_queries = [
         # Base metric
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesDiskSource"
@@ -425,12 +420,6 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.3x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.3)"
-          return_data = true
         }
       ]
     }
@@ -440,13 +429,13 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
 
       metric_queries = [
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesMemorySource"
@@ -464,12 +453,6 @@ locals {
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.5x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.5)"
-          return_data = true
         }
       ]
     }
@@ -479,13 +462,14 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.3) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
+
       metric_queries = [
         # Base metric
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesMemorySource"
@@ -503,12 +487,6 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.3x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.3)"
-          return_data = true
         }
       ]
     }
@@ -518,13 +496,13 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.5) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
 
       metric_queries = [
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesDiskTarget"
@@ -542,12 +520,6 @@ locals {
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.5x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.5)"
-          return_data = true
         }
       ]
     }
@@ -557,13 +529,14 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.3) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
+
       metric_queries = [
         # Base metric
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesDiskTarget"
@@ -581,12 +554,6 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.3x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.3)"
-          return_data = true
         }
       ]
     }
@@ -596,8 +563,8 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
 
       metric_queries = [
         {
@@ -620,12 +587,6 @@ locals {
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.5x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.5)"
-          return_data = true
         }
       ]
     }
@@ -635,13 +596,14 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
-      threshold           = 0 # Trigger when UPPER(ad1) - (m1 * 1.3) > 0
-      comparison_operator = "GreaterThanThreshold"
+      comparison_operator = "GreaterThanUpperThreshold"
+      threshold_metric_id = "ad1" # Use the anomaly detection upper band as the threshold for the alarm
+
       metric_queries = [
         # Base metric
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesMemoryTarget"
@@ -659,12 +621,6 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           return_data = false
-        },
-        # Returns the amount by which the anomaly upper bound exceeds 1.3x the metric average
-        {
-          id          = "ad2"
-          expression  = "UPPER(ad1) - (m1 * 1.3)"
-          return_data = true
         }
       ]
     }
@@ -685,14 +641,21 @@ check "dms_alarm_config_schema" {
           ) || (
           length(try(cfg.metric_queries, [])) > 0 &&
           try(cfg.metric_name, null) == null &&
-          try(cfg.threshold, null) != null &&
-          try(cfg.threshold_metric_id, null) == null &&
-          try(cfg.comparison_operator, null) != null
+          try(cfg.comparison_operator, null) != null &&
+          (
+            (
+              try(cfg.threshold_metric_id, null) != null &&
+              try(cfg.threshold, null) == null
+              ) || (
+              try(cfg.threshold, null) != null &&
+              try(cfg.threshold_metric_id, null) == null
+            )
+          )
         )
       )
     ])
 
-    error_message = "Each DMS alarm config must be either: simple metric mode (metric_name + threshold + dimensions, no metric_queries/threshold_metric_id) OR metric query mode (metric_queries + threshold + comparison_operator, no metric_name/threshold_metric_id)."
+    error_message = "Each DMS alarm config must be either: simple metric mode (metric_name + threshold + dimensions, no metric_queries/threshold_metric_id) OR metric query mode (metric_queries + comparison_operator + exactly one of threshold or threshold_metric_id, no metric_name)."
   }
 }
 check "dms_metric_query_single_return_data" {
