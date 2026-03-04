@@ -1,1 +1,0 @@
-data_migration_rds_enable_reader_instance = true
