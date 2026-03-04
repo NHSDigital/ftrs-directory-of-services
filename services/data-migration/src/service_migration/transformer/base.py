@@ -38,6 +38,9 @@ from common.cache import DoSMetadataCache
 from common.uuid_utils import generate_uuid
 from service_migration.formatting.address_formatter import format_address
 from service_migration.formatting.number_formatter import clean_decimal
+from service_migration.transformer.organisation_type_mappings import (
+    SERVICE_TYPE_TO_ORGANISATION_TYPE,
+)
 from service_migration.validation.base import Validator
 from service_migration.validation.service import ServiceValidator
 
@@ -118,7 +121,7 @@ class ServiceTransformer(ABC):
         Create an Organisation instance from the source DoS service data.
         """
         organisation_id = generate_uuid(service.id, "organisation")
-        service_type = self.metadata.service_types.get(service.typeid)
+        organisation_type = SERVICE_TYPE_TO_ORGANISATION_TYPE.get(service.typeid)
 
         return Organisation(
             id=organisation_id,
@@ -127,7 +130,7 @@ class ServiceTransformer(ABC):
             active=True,
             name=service.publicname,
             telecom=[],
-            type=service_type.name,
+            type=organisation_type,
             createdBy=self.MIGRATION_USER,
             created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
