@@ -11,6 +11,7 @@ from ftrs_data_layer.domain import (
     Organisation,
     PositionGCS,
 )
+from ftrs_data_layer.domain.enums import OrganisationType
 
 from service_migration.ddb_transactions import ServiceTransactionBuilder
 from service_migration.exceptions import ServiceMigrationException
@@ -166,6 +167,49 @@ def test_update_organisation_no_changes(
     )
 
     result = builder.add_organisation(mock_organisation)
+
+    assert result is builder
+    assert len(builder.items) == 0
+    assert mock_logger.was_logged("DM_ETL_029")
+
+
+def test_update_organisation_no_false_positive_diff_when_type_is_string_in_state(
+    mock_logger: MockLogger,
+    mock_organisation: Organisation,
+) -> None:
+    """Regression test: organisation type stored as plain str in migration state
+    must not cause a false positive diff against the same value as OrganisationType enum.
+    """
+    # Simulate state loaded from DynamoDB - model_validate with raw string data
+    # now coerces "Distance Selling Pharmacy" to OrganisationType enum
+    state_data = {
+        "source_record_id": "services#123",
+        "version": 1,
+        "organisation_id": str(mock_organisation.id),
+        "organisation": {
+            **mock_organisation.model_dump(mode="json"),
+            "type": "Distance Selling Pharmacy",
+        },
+        "location_id": None,
+        "location": None,
+        "healthcare_service_id": None,
+        "healthcare_service": None,
+        "validation_issues": [],
+    }
+    existing_state = ServiceMigrationState.model_validate(state_data)
+
+    assert (
+        existing_state.organisation.type == OrganisationType.DISTANCE_SELLING_PHARMACY
+    )
+
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    org_with_enum_type = mock_organisation.model_copy(
+        update={"type": OrganisationType.DISTANCE_SELLING_PHARMACY}
+    )
+    result = builder.add_organisation(org_with_enum_type)
 
     assert result is builder
     assert len(builder.items) == 0
