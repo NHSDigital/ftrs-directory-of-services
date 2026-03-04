@@ -33,6 +33,15 @@ if [[ $EXPORTS_SET -eq 1 ]]; then
   exit 1
 fi
 
+# Map internal API names to Proxygen API names
+PROXYGEN_API_NAME="${API_NAME}"
+if [ "$API_NAME" = "dos-ingest" ]; then
+    PROXYGEN_API_NAME="uec-dos-ingestion"
+fi
+
+echo "Using internal API name: $API_NAME" >&2
+echo "Mapped Proxygen API name: $PROXYGEN_API_NAME" >&2
+
 # Set instance name based on workspace
 if [[ -n "$WORKSPACE" ]]; then
     INSTANCE_NAME="${API_NAME}-${WORKSPACE}_FHIR_R4"
@@ -44,7 +53,7 @@ echo "Clearing down proxy instance $INSTANCE_NAME from environment $PROXY_ENV fo
 
 RESPONSE=$(
   curl -s -w "\n%{http_code}" --connect-timeout 10 --max-time 30 --retry 5 --retry-all-errors --retry-max-time 120 \
-    -X DELETE "${PROXYGEN_URL}/apis/${API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
+    -X DELETE "${PROXYGEN_URL}/apis/${PROXYGEN_API_NAME}/environments/${PROXY_ENV}/instances/${INSTANCE_NAME}" \
     -H "Authorization: Bearer $ACCESS_TOKEN"
 )
 

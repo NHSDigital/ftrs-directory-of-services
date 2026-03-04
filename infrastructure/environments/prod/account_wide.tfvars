@@ -25,3 +25,9 @@ single_nat_gateway     = false
 one_nat_gateway_per_az = true
 
 regional_waf_log_group_retention_days = 90
+cloudtrail_log_retention_days         = 365
+
+apim_apigee_cidrs = [
+  "34.89.69.6/32",
+  "34.89.0.111/32",
+]

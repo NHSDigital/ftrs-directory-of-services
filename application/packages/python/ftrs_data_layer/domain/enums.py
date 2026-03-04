@@ -20,6 +20,8 @@ class DayOfWeek(str, Enum):
 
 class OrganisationType(str, Enum):
     GP_PRACTICE = "GP Practice"
+    COMMUNITY_PHARMACY = "Community Pharmacy"
+    DISTANCE_SELLING_PHARMACY = "Distance Selling Pharmacy"
 
 
 class OrganisationTypeCode(str, Enum):
@@ -39,6 +41,9 @@ class HealthcareServiceType(str, Enum):
     GP_CONSULTATION_SERVICE = "GP Consultation Service"
     PCN_SERVICE = "Primary Care Network Enhanced Access Service"
     ESSENTIAL_SERVICES = "Essential Services"
+    ORAL_CONTRACEPTION_PRESCRIPTION_AND_SUPPLY = (
+        "Oral Contraception Prescription and Supply"
+    )
 
 
 class EndpointStatus(str, Enum):

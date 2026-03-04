@@ -1,0 +1,33 @@
+"""Fetch CloudWatch alarm tags."""
+
+import boto3
+
+from functions.logger import logger
+
+
+def get_alarm_tags(alarm_arn: str) -> dict[str, str]:
+    """Fetch tags for a CloudWatch alarm.
+
+    Args:
+        alarm_arn: ARN of the CloudWatch alarm
+
+    Returns:
+        dict: Tags with api_path and service, defaults to N/A and Unknown if not found
+    """
+    if not alarm_arn:
+        return {"api_path": "N/A", "service": "Unknown"}
+
+    try:
+        cloudwatch = boto3.client("cloudwatch")
+        response = cloudwatch.list_tags_for_resource(ResourceARN=alarm_arn)
+
+        tags = {tag["Key"]: tag["Value"] for tag in response.get("Tags", [])}
+
+        return {
+            "api_path": tags.get("api_path", "N/A"),
+            "service": tags.get("service", "Unknown"),
+        }
+
+    except Exception:
+        logger.exception("Failed to fetch alarm tags")
+        return {"api_path": "N/A", "service": "Unknown"}

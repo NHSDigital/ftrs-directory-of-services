@@ -5,9 +5,8 @@ import os
 from typing import Any
 
 import urllib3
-from ftrs_common.logger import Logger
 
-logger = Logger.get("slack-notifier")
+from functions.logger import logger
 
 http = urllib3.PoolManager(timeout=urllib3.Timeout(connect=5.0, read=10.0))
 

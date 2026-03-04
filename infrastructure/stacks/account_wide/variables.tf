@@ -175,16 +175,6 @@ variable "regional_waf_log_group_retention_days" {
   type        = number
   default     = 365
 }
-variable "regional_waf_allowed_country_codes" {
-  description = "Allowed country codes for the regional WAF access"
-  type        = list(string)
-  default     = ["GB", "JE", "IM"]
-}
-variable "regional_waf_hostile_country_codes" {
-  description = "Country codes to explicitly block for the regional WAF"
-  type        = list(string)
-  default     = []
-}
 
 # Performance EC2 configuration
 variable "performance_instance_type" {
@@ -326,4 +316,34 @@ variable "performance_ec2_log_group_retention_days" {
   description = "The retention period for the Performance EC2 log group"
   type        = number
   default     = 30
+}
+
+variable "cloudtrail_trail_name" {
+  description = "The name suffix for the S3 data events CloudTrail trail"
+  type        = string
+  default     = "s3-data-events"
+}
+
+variable "cloudtrail_bucket_name" {
+  description = "The name suffix for the S3 bucket used to store CloudTrail logs"
+  type        = string
+  default     = "cloudtrail-logs"
+}
+
+variable "cloudtrail_log_retention_days" {
+  description = "Number of days to retain CloudTrail logs in S3 before expiry"
+  type        = number
+  default     = 365
+}
+
+variable "cloudtrail_bucket_force_destroy" {
+  description = "Whether to allow force-destroying the CloudTrail S3 bucket on stack deletion"
+  type        = bool
+  default     = false
+}
+
+variable "apim_apigee_cidrs" {
+  description = "CIDRs (for single IPs) for the APIGEE service that hosts the API-M proxies."
+  type        = list(string)
+  default     = []
 }
