@@ -52,10 +52,10 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
   retention_in_days = var.dms_audit_cloudwatch_logs_retention_days
 }
 
-resource "aws_cloudwatch_metric_alarm" "dms_cdc_latency" {
+resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
   # TODO restore after test
   # count = local.is_primary_environment ? 1 : 0
-  for_each = local.dms_alarm_configs
+  for_each = merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs)
 
   alarm_name          = each.value.alarm_name
   comparison_operator = try(each.value.comparison_operator, try(each.value.threshold_metric_id, null) != null ? "GreaterThanUpperThreshold" : "GreaterThanThreshold")
@@ -68,6 +68,8 @@ resource "aws_cloudwatch_metric_alarm" "dms_cdc_latency" {
   threshold           = try(each.value.threshold, null)
   threshold_metric_id = try(each.value.threshold_metric_id, null)
   treat_missing_data  = "notBreaching"
+
+  insufficient_data_actions = []
 
   dynamic "metric_query" {
     for_each = try(each.value.metric_queries, [])
