@@ -203,7 +203,8 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL summary:
-# - Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - AWS Managed rule groups block (AmazonIpReputation, KnownBadInputs, Linux, Unix).
+# - AWS Managed rule groups count (BotControl, Common).
 # - BotControl excludes APIM/Apigee allowlist via scope-down when CIDRs are provided.
 
 # Regional Web ACL
@@ -244,7 +245,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     priority = 10
 
     override_action {
-      none {}
+      count {}
     }
 
     statement {
@@ -302,7 +303,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     priority = 30
 
     override_action {
-      none {}
+      count {}
     }
 
     statement {
