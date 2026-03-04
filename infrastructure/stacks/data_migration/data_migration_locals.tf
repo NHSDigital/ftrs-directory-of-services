@@ -385,7 +385,7 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -419,7 +419,7 @@ locals {
         {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -452,7 +452,7 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -486,7 +486,7 @@ locals {
         {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -519,7 +519,7 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -553,7 +553,7 @@ locals {
         {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -569,7 +569,7 @@ locals {
       metric_queries = [
         {
           id          = "m1"
-          return_data = false
+          return_data = true
 
           metric = {
             metric_name = "CDCChangesMemoryTarget"
@@ -586,7 +586,7 @@ locals {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
           label       = "AnomalyDetectionBand"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -620,7 +620,7 @@ locals {
         {
           id          = "ad1"
           expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
-          return_data = false
+          return_data = true
         }
       ]
     }
@@ -661,14 +661,26 @@ check "dms_alarm_config_schema" {
 check "dms_metric_query_single_return_data" {
   assert {
     condition = alltrue([
-      for name, cfg in local.dms_metric_query_alarm_configs :
-      length([
-        for query in try(cfg.metric_queries, []) : query
-        if try(query.return_data, false)
-      ]) == 1
+      for name, cfg in local.dms_metric_query_alarm_configs : (
+        try(cfg.threshold_metric_id, null) != null ? (
+          length([
+            for query in try(cfg.metric_queries, []) : query
+            if try(query.id, null) == cfg.threshold_metric_id
+          ]) == 1 &&
+          length([
+            for query in try(cfg.metric_queries, []) : query
+            if try(query.id, null) == cfg.threshold_metric_id && try(query.return_data, false)
+          ]) == 1
+          ) : (
+          length([
+            for query in try(cfg.metric_queries, []) : query
+            if try(query.return_data, false)
+          ]) == 1
+        )
+      )
     ])
 
-    error_message = "Each metric-query alarm in dms_metric_query_alarm_configs must set return_data = true on exactly one metric_query."
+    error_message = "Metric-query alarms must be valid: if threshold_metric_id is set, the matching query id must exist exactly once and have return_data = true; otherwise exactly one query must have return_data = true."
   }
 }
 
