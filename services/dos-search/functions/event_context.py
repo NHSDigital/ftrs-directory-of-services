@@ -11,7 +11,6 @@ from functions.logbase import DosSearchLogBase
 
 PLACEHOLDER = "Value not found. Please check if this value was provided in the request."
 
-_CORRELATION_ID_INDEX = 1
 _MESSAGE_ID_INDEX = 2
 
 
@@ -60,23 +59,12 @@ def _extract_mandatory(headers: dict[str, Any]) -> dict[str, Any]:
     split_corr_header = corr_header.split(".") if corr_header else []
 
     return {
-        "dos_nhsd_correlation_id": (
-            next(
-                iter(
-                    split_corr_header[_CORRELATION_ID_INDEX : _CORRELATION_ID_INDEX + 1]
-                ),
-                None,
-            )
-            or PLACEHOLDER
-        ),
         "dos_message_id": (
             next(
                 iter(split_corr_header[_MESSAGE_ID_INDEX : _MESSAGE_ID_INDEX + 1]), None
             )
             or PLACEHOLDER
         ),
-        "dos_nhsd_request_id": (_get_header(headers, "nhsd-request-id") or PLACEHOLDER),
-        "dos_message_category": "LOGGING",
     }
 
 

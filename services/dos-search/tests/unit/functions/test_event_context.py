@@ -39,11 +39,8 @@ class TestSetupRequest:
     def test_appends_mandatory_fields_with_missing_headers(self, event, log_data):
         modified_event = deepcopy(event)
         modified_event["headers"].pop("NHSD-Correlation-ID")
-        modified_event["headers"].pop("NHSD-Request-ID")
 
         expected = dict(log_data)
-        expected["dos_nhsd_correlation_id"] = PLACEHOLDER
-        expected["dos_nhsd_request_id"] = PLACEHOLDER
         expected["dos_message_id"] = PLACEHOLDER
 
         mock_logger = MagicMock()
