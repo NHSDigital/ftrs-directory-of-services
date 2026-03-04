@@ -11,4 +11,5 @@ class DosSearchHealthLogBase(LogBase):
     DOS_SEARCH_HEALTH_001 = LogReference(
         level=WARNING,
         message="Health check failed",
+        exc_info=True,
     )

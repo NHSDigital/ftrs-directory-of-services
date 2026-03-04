@@ -29,12 +29,8 @@ def _is_table_active() -> bool:
         repository = get_service_repository(Organisation, "organisation")
         table = repository.table
         table_status: str = table.table_status
-    except Exception as exc:
-        logger.log(
-            DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001,
-            exception_type=exc.__class__.__name__,
-            exception=str(exc),
-        )
+    except Exception:
+        logger.log(DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001)
         return False
     else:
         return table_status == "ACTIVE"

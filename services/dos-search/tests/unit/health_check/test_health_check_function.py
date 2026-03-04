@@ -47,8 +47,6 @@ class TestHealthCheckFunction:
         assert result["statusCode"] == 500
         mock_logger.log.assert_called_once_with(
             DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001,
-            exception_type="Exception",
-            exception="Failed to get repository",
         )
 
     @patch("health_check.health_check_function.get_service_repository")
