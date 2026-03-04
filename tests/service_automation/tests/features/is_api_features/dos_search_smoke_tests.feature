@@ -8,7 +8,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
 
 
 
-  Scenario: I search for Organization endpoint data by ODS Code via APIM with an existing ODS code from the Organisation dynamo table - smoke test
+  Scenario: I search for Organization endpoint data by ODS Code with an existing ODS code
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -16,7 +16,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
 
-  Scenario: I search for Organization endpoint data by ODS Code via APIM with an ODS code that does not exist in the Organisation dynamo table - smoke test
+  Scenario: I search for Organization endpoint data by ODS Code with an ODS code that does not exist
     When I request data from the APIM endpoint "Organization" with an odscode that does not exist in the organisation dynamo table
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -24,7 +24,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
 
-  Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with invalid ODS code - smoke test
+  Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid ODS code
     When I request data from the smoke test APIM endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -42,7 +42,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
- Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with invalid _revinclude value - smoke test
+ Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid _revinclude value
     When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -59,7 +59,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
       |_revinclude=ENDPOINT:ORGANIZATION&identifier=https://fhir.nhs.uk/Id/ods-organization-code |
 
 
-  Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with invalid identifier system - smoke test
+  Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid identifier system
     When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -76,7 +76,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
       |_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid| https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
 
 
-  Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with missing parameters - smoke test
+  Scenario Outline: I search for Organization endpoint data by ODS Code with missing parameters
     When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -92,8 +92,8 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     |                                                                    | 'identifier', '_revinclude' |
 
 
-Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with unexpected query parameter - smoke test
-    When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"    
+Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
+    When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
     And the OperationOutcome contains "1" issues
@@ -108,7 +108,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
     | _revinclude=Endpoint:organization&_sort=name&identifier=https://fhir.nhs.uk/Id/ods-organization-code | _sort            | name             |
 
 
-  Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with ODS code at valid boundary length- smoke test
+  Scenario Outline: I search for Organization endpoint data by ODS Code with ODS code at valid boundary length
     When I request data from the smoke test APIM endpoint "Organization" with query params "identifier=https://fhir.nhs.uk/Id/ods-organization-code|<ods_code>&_revinclude=Endpoint:organization"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -120,8 +120,8 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
       | ABCDE        |
       | ABCDE1234567 |
 
-  
-    Scenario Outline: I search for Organization endpoint data by ODS Code via APIM with an existing ODS code from the Organisation dynamo table with missing mandatory headers - smoke test
+
+    Scenario Outline: I search for Organization endpoint data by ODS Code with an existing ODS code with missing mandatory headers
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table with headers "<headers>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -138,17 +138,17 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
       | {}                         | 'version', 'x-request-id' |
 
 
-  Scenario: I can access APIM for the dos-search 'ping' Endpoint and no access is required - smoke test
+  Scenario: I can access APIM for the dos-search 'ping' Endpoint and no access is required
     When I request data from the APIM endpoint "_ping" with an odscode from dynamo organisation table but without authentication
     Then I receive a status code "200" in response
 
 
-  Scenario: I cannot search for Organization endpoint data by ODS Code without mtls credentials - smoke test
+  Scenario: I cannot search for Organization endpoint data by ODS Code without mtls credentials
     When I attempt to request data from the "dos-search" endpoint "Organization" with an odscode from dynamo organisation table but without authentication
     Then I receive a connection reset error
 
 
-  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with invalid access token - smoke test
+  Scenario: I cannot search for Organization endpoint data by ODS Code with invalid access token
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with invalid token
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -159,7 +159,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
 
 
-  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM without authentication - smoke test
+  Scenario: I cannot search for Organization endpoint data by ODS Code without authentication
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but without authentication
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -172,7 +172,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
 
 
 
-  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with malformed Authorization header format - smoke test
+  Scenario: I cannot search for Organization endpoint data by ODS Code with malformed Authorization header format
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with malformed auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -185,7 +185,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code via APIM w
 
 
 
-  Scenario: I cannot search for Organization endpoint data by ODS Code via APIM with empty Authorization header - smoke test
+  Scenario: I cannot search for Organization endpoint data by ODS Code with empty Authorization header
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table but with empty auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource

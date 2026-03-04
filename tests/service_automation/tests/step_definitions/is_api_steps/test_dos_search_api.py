@@ -88,7 +88,7 @@ def dns_resolvable(api_name: str, env: str, workspace: str) -> None:
 
 @when(
     parsers.re(
-        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with valid query params and additional headers "(?P<headers>.*?)"'
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with valid query params and additional headers "(?P<headers>.*)"'
     ),
     target_fixture="fresponse",
 )
@@ -102,9 +102,6 @@ def send_get_with_params_with_headers(
     params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     headers = {**MANDATORY_APIM_REQUEST_HEADERS, **json.loads(headers)}
     url = nhsd_apim_proxy_url + "/" + resource_name
-    logger.info(
-        f"Sending request to URL: {url} with params: {params} and headers: {headers}"
-    )
     return _send_api_request(apim_request_context, url, params, headers)
 
 
@@ -123,9 +120,24 @@ def send_get_with_params(
     # headers can be manipulated in individual tests if needed
     headers = {**MANDATORY_APIG_REQUEST_HEADERS}
     url = get_url(api_name) + "/" + resource_name
-    logger.info(
-        f"Sending request to URL: {url} with params: {params} and headers: {headers}"
-    )
+    return _send_api_request(api_request_context_mtls, url, params, headers)
+
+
+@when(
+    parsers.re(
+        r'I request data from the "(?P<api_name>.*?)" endpoint "(?P<resource_name>.*?)" with valid query params and invalid headers "(?P<headers>.*)"'
+    ),
+    target_fixture="fresponse",
+)
+def send_get_with_invalid_headers(
+    api_request_context_mtls: APIRequestContext,
+    api_name: str,
+    resource_name: str,
+    headers: str,
+) -> APIResponse:
+    headers = {**json.loads(headers)}
+    url = get_url(api_name) + "/" + resource_name
+    params = "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     return _send_api_request(api_request_context_mtls, url, params, headers)
 
 
@@ -291,9 +303,6 @@ def send_to_apim_invalid_token_with_ods_code(
     resource_name: str,
     ods_code: str,
 ) -> APIResponse:
-    logger.info(
-        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: {ods_code}"
-    )
     url = dos_search_service_url + "/" + resource_name
     headers = {
         **MANDATORY_APIM_REQUEST_HEADERS,
@@ -316,9 +325,6 @@ def send_to_apim_get_with_ods_code_from_dynamo(
     ods_code: str,
     apim_token: str,
 ) -> APIResponse:
-    logger.info(
-        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: {ods_code}"
-    )
     url = dos_search_service_url + "/" + resource_name
     headers = {
         **MANDATORY_APIM_REQUEST_HEADERS,
@@ -340,9 +346,6 @@ def send_to_apim_get_with_nonexistent_ods_code(
     resource_name: str,
     apim_token: str,
 ) -> APIResponse:
-    logger.info(
-        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with ODS code: XXXXX"
-    )
     url = dos_search_service_url + "/" + resource_name
     headers = {
         **MANDATORY_APIM_REQUEST_HEADERS,
@@ -365,9 +368,6 @@ def send_to_smoke_test_apim_get_with_query_params(
     apim_token: str,
     params: str,
 ) -> APIResponse:
-    logger.info(
-        f"Requesting APIM URL: {dos_search_service_url}/{resource_name} with query params: {params}"
-    )
     url = dos_search_service_url + "/" + resource_name
     headers = {
         **MANDATORY_APIM_REQUEST_HEADERS,
