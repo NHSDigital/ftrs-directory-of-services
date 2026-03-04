@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Type
+from typing import TYPE_CHECKING, Type
 from uuid import UUID
 
 from ftrs_common.logger import Logger
@@ -31,6 +32,7 @@ from ftrs_data_layer.domain.clinical_code import (
 from ftrs_data_layer.domain.enums import TimeUnit
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
+from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from common.uuid_utils import generate_uuid
@@ -38,6 +40,9 @@ from service_migration.formatting.address_formatter import format_address
 from service_migration.formatting.number_formatter import clean_decimal
 from service_migration.validation.base import Validator
 from service_migration.validation.service import ServiceValidator
+
+if TYPE_CHECKING:
+    from service_migration.models import ServiceMigrationState
 
 
 class ServiceTransformOutput(BaseModel):
@@ -417,3 +422,32 @@ class ServiceTransformer(ABC):
         result.append(current_range)
 
         return result
+
+
+class LinkedPharmacyTransformer(ServiceTransformer):
+    """
+    Abstract base class for transformers that produce a service linked to a separately-migrated
+    parent record (e.g. a pharmacy service linked to a parent pharmacy organisation/location).
+
+    Subclasses must implement `resolve_parent` to determine the parent's organisation and
+    location IDs before transformation, and set them on the instance prior to `transform()`.
+    """
+
+    @abstractmethod
+    def resolve_parent(
+        self,
+        service: legacy_model.Service,
+        engine: Engine,
+        get_state_record: Callable[[int], "ServiceMigrationState | None"],
+    ) -> tuple[legacy_model.Service | None, UUID | None, UUID | None]:
+        """
+        Resolve the parent record for a linked service.
+
+        :param service: The legacy service being processed.
+        :param engine: SQLAlchemy engine for querying the legacy database.
+        :param get_state_record: Callable to fetch migration state by legacy service ID.
+        :return: Tuple of (parent_legacy_service_or_None, org_id_or_None, loc_id_or_None).
+                 If parent state already exists, returns (None, org_id, loc_id).
+                 If parent needs migrating, returns (parent_service, None, None).
+        """
+        ...

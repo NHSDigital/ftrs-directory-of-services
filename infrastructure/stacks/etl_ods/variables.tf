@@ -45,20 +45,9 @@ variable "transformer_lambda_connection_timeout" {
   type        = number
 }
 
-
 variable "lambda_memory_size" {
   description = "The memory size for the ETL ODS Lambda functions"
   type        = number
-}
-
-
-variable "etl_ods_pipeline_store_bucket_name" {
-  description = "The name of the S3 bucket to use for the etl ods pipeline"
-}
-
-variable "s3_versioning" {
-  description = "Whether to enable versioning on the S3 bucket"
-  type        = bool
 }
 
 variable "delay_seconds" {

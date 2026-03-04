@@ -7,12 +7,19 @@ from ftrs_data_layer.domain import Organisation
 app = APIGatewayRestResolver()
 logger = Logger(service="dos-search-health")
 
+SECURITY_HEADERS: dict[str, str] = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Cache-Control": "no-store",
+}
+
 
 @app.get("/_status")
 def get_status() -> Response:
     table_active = _is_table_active()
     status_code = 200 if table_active else 500
-    return Response(status_code=status_code)
+    return Response(status_code=status_code, headers=SECURITY_HEADERS)
 
 
 def _is_table_active() -> bool:

@@ -67,7 +67,7 @@ jobs:
       environment: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
       workspace: ${{ github.event.client_payload.workspace || inputs.workspace || needs.metadata.outputs.workspace }}
       apim_env: internal-dev
-      api_names: '["dos-search"]'
+      api_names: '["dos-search", "dos-ingest"]'
       ref: ${{ inputs.ref }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
@@ -100,4 +100,4 @@ jobs:
     with:
       env: ${{ github.event.client_payload.environment || inputs.environment || needs.metadata.outputs.environment }}
     secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_PIPELINE_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}

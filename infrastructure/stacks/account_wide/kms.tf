@@ -4,6 +4,14 @@ module "sqs_encryption_key" {
   account_id       = data.aws_caller_identity.current.account_id
   aws_service_name = "sqs.amazonaws.com"
   description      = "Encryption key for SQS queues in ${var.environment} environment"
+}
+
+module "sns_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.sns
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "sns.amazonaws.com"
+  description      = "Encryption key for SNS topics in ${var.environment} environment"
 
   additional_policy_statements = [
     {
@@ -11,18 +19,6 @@ module "sqs_encryption_key" {
       Effect = "Allow"
       Principal = {
         Service = "cloudwatch.amazonaws.com"
-      }
-      Action = [
-        "kms:Decrypt",
-        "kms:GenerateDataKey"
-      ]
-      Resource = "*"
-    },
-    {
-      Sid    = "AllowSNSAccess"
-      Effect = "Allow"
-      Principal = {
-        Service = "sns.amazonaws.com"
       }
       Action = [
         "kms:Decrypt",
@@ -301,6 +297,34 @@ module "scheduler_encryption_key" {
         }
       }
     },
+    {
+      Sid    = "AllowGitHubRunnerAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.app_github_runner_role_name}",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.account_prefix}-${var.account_github_runner_role_name}"
+        ]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource  = "*"
+      Condition = {}
+    }
+  ]
+}
+
+module "cloudtrail_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.cloudtrail
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "cloudtrail.amazonaws.com"
+  description      = "Encryption key for CloudTrail in ${var.environment} environment"
+  additional_policy_statements = [
     {
       Sid    = "AllowGitHubRunnerAccess"
       Effect = "Allow"
