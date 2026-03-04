@@ -1,4 +1,5 @@
 module "lambda_monitoring" {
+  count  = local.is_primary_environment ? 1 : 0
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix = local.resource_prefix # Used for naming SNS topic and alarms

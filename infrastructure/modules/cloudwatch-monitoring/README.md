@@ -133,11 +133,11 @@ Monitors Lambda functions with these alarms:
 
 ### api-gateway/config
 
-Placeholder - will be implemented in future tickets
+Placeholder - will be implemented in future tickets - FTRS-2230
 
 ### waf/config
 
-Placeholder - will be implemented in future tickets
+Placeholder - will be implemented in future tickets - FTRS-2230
 
 ## Adding New Alarms to Templates
 

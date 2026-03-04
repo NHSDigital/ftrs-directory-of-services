@@ -56,10 +56,6 @@ data "aws_kms_key" "dynamodb_kms_key" {
   key_id = local.kms_aliases.dynamodb
 }
 
-data "aws_kms_key" "sqs_kms_key" {
-  key_id = local.kms_aliases.sqs
-}
-
 data "aws_kms_key" "sns_kms_key" {
   key_id = local.kms_aliases.sns
 }
