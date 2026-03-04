@@ -55,22 +55,45 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
 resource "aws_cloudwatch_metric_alarm" "dms_cdc_latency" {
   # TODO restore after test
   # count = local.is_primary_environment ? 1 : 0
-  for_each = local.dms_cdc_latency_alarm_configs
+  for_each = local.dms_alarm_configs
 
   alarm_name          = each.value.alarm_name
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 5
+  comparison_operator = try(each.value.comparison_operator, try(each.value.threshold_metric_id, null) != null ? "GreaterThanUpperThreshold" : "GreaterThanThreshold")
+  evaluation_periods  = each.value.evaluation_periods
   datapoints_to_alarm = each.value.datapoints_to_alarm
-  metric_name         = each.value.metric_name
-  namespace           = "AWS/DMS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = each.value.threshold
+  metric_name         = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.metric_name, null)
+  namespace           = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.namespace, "AWS/DMS")
+  period              = length(try(each.value.metric_queries, [])) > 0 ? null : each.value.period
+  statistic           = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.statistic, "Average")
+  threshold           = try(each.value.threshold, null)
+  threshold_metric_id = try(each.value.threshold_metric_id, null)
   treat_missing_data  = "notBreaching"
 
-  dimensions = {
-    ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+  dynamic "metric_query" {
+    for_each = try(each.value.metric_queries, [])
+    content {
+      id          = metric_query.value.id
+      expression  = try(metric_query.value.expression, null)
+      label       = try(metric_query.value.label, null)
+      return_data = try(metric_query.value.return_data, null)
+
+      dynamic "metric" {
+        for_each = try(metric_query.value.metric, null) == null ? [] : [metric_query.value.metric]
+        content {
+          metric_name = metric.value.metric_name
+          namespace   = metric.value.namespace
+          period      = metric.value.period
+          stat        = metric.value.stat
+          unit        = try(metric.value.unit, null)
+          dimensions  = try(metric.value.dimensions, null)
+        }
+      }
+    }
   }
+
+  dimensions = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.dimensions, {
+    ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+  })
 
   alarm_description = each.value.alarm_description
 

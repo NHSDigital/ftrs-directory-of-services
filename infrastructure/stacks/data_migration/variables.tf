@@ -359,3 +359,15 @@ variable "alarm_threshold_cdc_warning" {
   type        = number
   default     = 30
 }
+
+variable "alarm_evaluation_periods_cdc" {
+  description = "The number of evaluation periods for CDC latency CloudWatch alarms"
+  type        = number
+  default     = 5
+}
+
+variable "alarm_period_cdc" {
+  description = "The period in seconds for CDC latency CloudWatch alarms"
+  type        = number
+  default     = 60
+}
