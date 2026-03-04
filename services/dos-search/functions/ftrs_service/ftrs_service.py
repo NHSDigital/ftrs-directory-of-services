@@ -27,16 +27,8 @@ class FtrsService:
 
             fhir_bundle = self.mapper.map_to_fhir(organisation, ods_code)
 
-        except Exception as exc:
-            logger.exception(
-                "Error occurred while retrieving or mapping organisation data"
-            )
-            logger.log(
-                DosSearchLogBase.DOS_SEARCH_009,
-                exception_type=type(exc).__name__,
-                exception_message=str(exc),
-            )
+        except Exception:
+            logger.log(DosSearchLogBase.DOS_SEARCH_009)
             raise
-
         else:
             return fhir_bundle

@@ -64,9 +64,8 @@ def get_organization() -> Response:
         ftrs_service = FtrsService()
         fhir_resource = ftrs_service.endpoints_by_ods(ods_code)
 
-    except Exception as exc:
-        logger.exception("Unhandled exception")
-        return handle_general_exception(exc, start)
+    except Exception:
+        return handle_general_exception(start)
     else:
         # success path: measure and log response metrics
         response_size, duration_ms = get_response_size_and_duration(
@@ -97,7 +96,7 @@ def handle_event_validation_error(exception: ValidationError, start: float) -> R
     return create_response(400, fhir_resource)
 
 
-def handle_general_exception(exc: Exception, start: float) -> Response:
+def handle_general_exception(start: float) -> Response:
     fhir_resource = error_util.create_resource_internal_server_error()
 
     response_size, duration_ms = get_response_size_and_duration(
@@ -107,8 +106,6 @@ def handle_general_exception(exc: Exception, start: float) -> Response:
         DosSearchLogBase.DOS_SEARCH_006,
         dos_response_time=f"{duration_ms}ms",
         dos_response_size=response_size,
-        exception_type=type(exc).__name__,
-        exception_message=str(exc),
     )
 
     return create_response(500, fhir_resource)

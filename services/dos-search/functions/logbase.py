@@ -31,6 +31,7 @@ class DosSearchLogBase(LogBase):
     DOS_SEARCH_006 = LogReference(
         level=ERROR,
         message="Internal server error occurred: Logging response time & size",
+        exc_info=True,
     )
     DOS_SEARCH_007 = LogReference(
         level=INFO,
@@ -43,6 +44,7 @@ class DosSearchLogBase(LogBase):
     DOS_SEARCH_009 = LogReference(
         level=ERROR,
         message="Error occurred while retrieving or mapping organisation data",
+        exc_info=True,
     )
     DOS_SEARCH_010 = LogReference(
         level=ERROR,
