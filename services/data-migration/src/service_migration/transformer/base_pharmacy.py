@@ -11,7 +11,6 @@ from ftrs_data_layer.domain import (
     Organisation,
 )
 from ftrs_data_layer.domain import legacy as legacy_model
-from ftrs_data_layer.domain.enums import OrganisationType
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from sqlalchemy import Engine
 from sqlalchemy.orm import selectinload
@@ -26,11 +25,6 @@ from service_migration.transformer.base import (
 
 if TYPE_CHECKING:
     from service_migration.models import ServiceMigrationState
-
-PHARMACY_TYPE_TO_ORGANISATION_TYPE: dict[int, OrganisationType] = {
-    13: OrganisationType.COMMUNITY_PHARMACY,
-    134: OrganisationType.DISTANCE_SELLING_PHARMACY,
-}
 
 
 class BasePharmacyTransformer(ServiceTransformer):
