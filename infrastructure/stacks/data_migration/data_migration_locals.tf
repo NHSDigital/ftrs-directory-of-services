@@ -301,6 +301,58 @@ locals {
         ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
       }
     }
+    network_receive_throughput_critical = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Critical"
+      metric_name         = "NetworkReceiveThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_80pct
+      alarm_description   = "Critical - NetworkReceiveThroughput > 80% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_receive_throughput_warning = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Warning"
+      metric_name         = "NetworkReceiveThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_60pct
+      alarm_description   = "Warning - NetworkReceiveThroughput > 60% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_transmit_throughput_critical = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Critical"
+      metric_name         = "NetworkTransmitThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_80pct
+      alarm_description   = "Critical - NetworkTransmitThroughput > 80% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    network_transmit_throughput_warning = {
+      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Warning"
+      metric_name         = "NetworkTransmitThroughput"
+      comparison_operator = "GreaterThanThreshold"
+      threshold           = local.dms_network_threshold_60pct
+      alarm_description   = "Warning - NetworkTransmitThroughput > 60% of replication instance network bandwidth"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
   }
 
   dms_metric_query_alarm_configs = {
@@ -615,58 +667,6 @@ locals {
           return_data = true
         }
       ]
-    }
-    network_receive_throughput_critical = {
-      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Critical"
-      metric_name         = "NetworkReceiveThroughput"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = local.dms_network_threshold_80pct
-      alarm_description   = "Critical - NetworkReceiveThroughput > 80% of replication instance network bandwidth"
-      datapoints_to_alarm = var.alarm_datapoints
-      evaluation_periods  = var.alarm_evaluation_periods
-      period              = var.alarm_period
-      dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
-      }
-    }
-    network_receive_throughput_warning = {
-      alarm_name          = "${local.resource_prefix}-DMS-NetworkReceiveThroughput-Warning"
-      metric_name         = "NetworkReceiveThroughput"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = local.dms_network_threshold_60pct
-      alarm_description   = "Warning - NetworkReceiveThroughput > 60% of replication instance network bandwidth"
-      datapoints_to_alarm = var.alarm_datapoints
-      evaluation_periods  = var.alarm_evaluation_periods
-      period              = var.alarm_period
-      dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
-      }
-    }
-    network_transmit_throughput_critical = {
-      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Critical"
-      metric_name         = "NetworkTransmitThroughput"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = local.dms_network_threshold_80pct
-      alarm_description   = "Critical - NetworkTransmitThroughput > 80% of replication instance network bandwidth"
-      datapoints_to_alarm = var.alarm_datapoints
-      evaluation_periods  = var.alarm_evaluation_periods
-      period              = var.alarm_period
-      dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
-      }
-    }
-    network_transmit_throughput_warning = {
-      alarm_name          = "${local.resource_prefix}-DMS-NetworkTransmitThroughput-Warning"
-      metric_name         = "NetworkTransmitThroughput"
-      comparison_operator = "GreaterThanThreshold"
-      threshold           = local.dms_network_threshold_60pct
-      alarm_description   = "Warning - NetworkTransmitThroughput > 60% of replication instance network bandwidth"
-      datapoints_to_alarm = var.alarm_datapoints
-      evaluation_periods  = var.alarm_evaluation_periods
-      period              = var.alarm_period
-      dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
-      }
     }
   }
 }
