@@ -48,6 +48,12 @@ variable "rds_cloudwatch_logs_retention" {
   default     = 14
 }
 
+variable "data_migration_rds_enable_reader_instance" {
+  description = "Enable RDS reader instance"
+  type        = bool
+  default     = false
+}
+
 variable "data_migration_rds_min_capacity" {
   description = "The minimum capacity for the RDS instance"
   type        = number
