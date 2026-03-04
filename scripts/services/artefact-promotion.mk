@@ -55,7 +55,6 @@ endef
 # Concurrency pool is global across all versions to maximise throughput.
 # put-object-tagging is idempotent so no pre-read check is needed.
 # $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
-# $(2) = current version tag (e.g. PRERELEASE_TAG or RELEASE_TAG)
 define update-retention-tags
 	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
 	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
@@ -93,7 +92,7 @@ stage:
 	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot stage artefacts$(COLOR_RESET)" && exit 1)
 	$(call log_start,Staging release $(PRERELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
-	$(call update-retention-tags,staging,$(PRERELEASE_TAG))
+	$(call update-retention-tags,staging)
 	$(call log_success,Release staged successfully)
 
 release-candidate:
@@ -102,7 +101,7 @@ release-candidate:
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))
-	$(call update-retention-tags,release-candidates,$(RELEASE_TAG))
+	$(call update-retention-tags,release-candidates)
 	$(call log_success,Promoted from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 
 release:

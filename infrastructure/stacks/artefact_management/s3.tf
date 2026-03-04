@@ -9,6 +9,7 @@ module "artefacts_bucket" {
   # - Objects tagged "retention=ephemeral" expire per rules below
   # - Objects tagged "retention=retain" are kept (used for last X versions, see RETAIN_VERSIONS in Makefiles)
   # - Objects tagged "retention=permanent" are kept indefinitely (releases)
+  # Exception: development/latest/ noncurrent version expiration applies regardless of tags
   lifecycle_rule_inputs = [
     {
       id     = "development-latest-retain-5-versions"
