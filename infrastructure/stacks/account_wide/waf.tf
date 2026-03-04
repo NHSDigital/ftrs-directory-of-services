@@ -203,9 +203,9 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL summary:
-# - AWS Managed rule groups block (AmazonIpReputation, KnownBadInputs, Linux, Unix).
-# - AWS Managed rule groups count (BotControl, Common).
-# - BotControl excludes APIM/Apigee allowlist via scope-down when CIDRs are provided.
+# - AWS Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - BotControl managed rule group rules count (SignalNonBrowserUserAgent, CategoryHttpLibrary).
+# - BotControl and Common exclude APIM/Apigee allowlist via scope-down when CIDRs are provided.
 
 # Regional Web ACL
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
@@ -245,13 +245,27 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     priority = 10
 
     override_action {
-      count {}
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesBotControlRuleSet"
         vendor_name = "AWS"
+
+        rule_action_override {
+          name = "CategoryHttpLibrary"
+          action_to_use {
+            count {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalNonBrowserUserAgent"
+          action_to_use {
+            count {}
+          }
+        }
 
         # Exclude APIGEE host IPs from BotControl evaluation.
         dynamic "scope_down_statement" {
@@ -303,13 +317,27 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     priority = 30
 
     override_action {
-      count {}
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
+
+        # Exclude APIGEE host IPs from Common Rule Set evaluation.
+        dynamic "scope_down_statement" {
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
+          content {
+            not_statement {
+              statement {
+                ip_set_reference_statement {
+                  arn = aws_wafv2_ip_set.apim_apigee_allowlist_regional[0].arn
+                }
+              }
+            }
+          }
+        }
       }
     }
 
