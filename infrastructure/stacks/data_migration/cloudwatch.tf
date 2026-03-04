@@ -58,7 +58,7 @@ resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
   for_each = merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs)
 
   alarm_name          = each.value.alarm_name
-  comparison_operator = try(each.value.comparison_operator, try(each.value.threshold_metric_id, null) != null ? "GreaterThanUpperThreshold" : "GreaterThanThreshold")
+  comparison_operator = try(each.value.comparison_operator, "GreaterThanThreshold")
   evaluation_periods  = each.value.evaluation_periods
   datapoints_to_alarm = each.value.datapoints_to_alarm
   metric_name         = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.metric_name, null)
@@ -93,9 +93,7 @@ resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
     }
   }
 
-  dimensions = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.dimensions, {
-    ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
-  })
+  dimensions = length(try(each.value.metric_queries, [])) > 0 ? null : each.value.dimensions
 
   alarm_description = each.value.alarm_description
 
