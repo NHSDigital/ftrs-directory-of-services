@@ -17,7 +17,7 @@ def bundle():
 @pytest.fixture
 def mock_setup_request():
     """Mock for the setup_request utility function."""
-    with patch("functions.dos_search_ods_code_function.setup_request") as mock:
+    with patch("functions.request_context_middleware.setup_request") as mock:
         yield mock
 
 

@@ -2,36 +2,22 @@ import time
 
 from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
-from aws_lambda_powertools.event_handler.middlewares import NextMiddleware
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.event_context import (
-    get_response_size_and_duration,
-    setup_request,
-)
+from functions.event_context import get_response_size_and_duration
 from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logbase import DosSearchLogBase
 from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
+from functions.request_context_middleware import request_context_middleware
 
 service = "dos-search"
 logger = Logger.get(service=service)
 tracer = Tracer()
-
-
-def request_context_middleware(
-    app: APIGatewayRestResolver, next_middleware: NextMiddleware
-) -> Response:
-    setup_request(app.current_event, logger)
-    try:
-        return next_middleware(app)
-    finally:
-        logger.thread_safe_clear_keys()
-
 
 app = APIGatewayRestResolver()
 app.use([request_context_middleware])
