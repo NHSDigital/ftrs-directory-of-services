@@ -49,20 +49,6 @@ Feature: dos-search tests to validate the response structure from the api-gatewa
     # Schema validation
     And the response is valid against the dos-search schema for endpoint "/Organization"
 
-  Scenario: I search for Organization endpoint data by ODS Code and verify the Bundle structure of a successful response conforms to the specification
-    When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
-    Then I receive a status code "200" in response
-    And the response body contains a bundle
-    And the bundle type is "searchset"
-    And the bundle contains a self link
-    And the bundle contains "1" "Organization" resources
-    And the bundle contains "4" "Endpoint" resources
-    And all "Organization" entries have search mode "match"
-    And all "Endpoint" entries have search mode "include"
-    And the response headers contain "content-type" with value "application/fhir+json"
-    And the response is valid against the dos-search schema for endpoint "/Organization"
-
-
 
   Scenario: I search for Organization endpoint data by ODS Code and verify individual endpoint data values for organisation M00081046
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"

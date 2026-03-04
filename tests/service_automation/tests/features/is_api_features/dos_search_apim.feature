@@ -80,13 +80,13 @@ Feature: dos-search tests against the apim proxy
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-    | params                                                             | missing_param               |
-    | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | '_revinclude'               |
-    | _revinclude=Endpoint:organization                                  | 'identifier'                |
-    |                                                                    | 'identifier', '_revinclude' |
+      | params                                                              | missing_param               |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046 | '_revinclude'               |
+      | _revinclude=Endpoint:organization                                   | 'identifier'                |
+      |                                                                     | 'identifier', '_revinclude' |
 
 
-Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
+  Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046&<unexpected_param>=<unexpected_value>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -97,9 +97,9 @@ Scenario Outline: I search for Organization endpoint data by ODS Code with unexp
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-    | unexpected_param | unexpected_value |
-    | foo              | bar              |
-    | _sort            | name             |
+      | unexpected_param | unexpected_value |
+      | foo              | bar              |
+      | _sort            | name             |
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with ODS code at valid boundary length

@@ -161,7 +161,7 @@ def send_to_apim_get_with_params(
 
 @when(
     parsers.re(
-        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with headers "(?P<headers>.*?)"'
+        r'I request data from the APIM endpoint "(?P<resource_name>.*?)" with query params "(?P<params>.*?)" with headers "(?P<headers>.*)"'
     ),
     target_fixture="fresponse",
 )
@@ -382,7 +382,7 @@ def send_to_smoke_test_apim_get_with_query_params(
     ),
     target_fixture="fresponse",
 )
-def send_to_smoke_test_apim_get_with_query_params(
+def send_to_smoke_test_apim_get_with_query_params_dynamo(
     api_request_context: APIRequestContext,
     dos_search_service_url: str,
     resource_name: str,

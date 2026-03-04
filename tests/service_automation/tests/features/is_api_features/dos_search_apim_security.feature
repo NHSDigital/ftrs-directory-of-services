@@ -47,7 +47,7 @@ Feature: dos-search tests to ensure that the apim proxy is secure
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
 
 
-Scenario: I cannot search APIM for Organization endpoint data by ODS Code with malformed Authorization header format
+  Scenario: I cannot search APIM for Organization endpoint data by ODS Code with malformed Authorization header format
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with malformed auth header
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource

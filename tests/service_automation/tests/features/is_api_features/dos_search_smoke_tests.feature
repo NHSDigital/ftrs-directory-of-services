@@ -4,7 +4,7 @@ Feature: dos-search smoke tests
 # They are designed to smoke test basic functionality of the dos-search API, and should not be testing edge cases or error conditions that require specific data to be present.
 Background: Set stack and select ODS code for testing from the organisation dynamo table
     Given that the stack is "dos-search"
-    Given there is an Organisation with an ODS code in the repo
+    And there is an Organisation with an ODS code in the repo
 
 
 
@@ -42,7 +42,7 @@ Background: Set stack and select ODS code for testing from the organisation dyna
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
- Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid _revinclude value
+  Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid _revinclude value
     When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -53,10 +53,10 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-      | params     |
-      |_revinclude=:&identifier=https://fhir.nhs.uk/Id/ods-organization-code         |
-      |_revinclude=Invalid:value&identifier=https://fhir.nhs.uk/Id/ods-organization-code      |
-      |_revinclude=ENDPOINT:ORGANIZATION&identifier=https://fhir.nhs.uk/Id/ods-organization-code |
+      | params                                                                                      |
+      | _revinclude=:&identifier=https://fhir.nhs.uk/Id/ods-organization-code                      |
+      | _revinclude=Invalid:value&identifier=https://fhir.nhs.uk/Id/ods-organization-code          |
+      | _revinclude=ENDPOINT:ORGANIZATION&identifier=https://fhir.nhs.uk/Id/ods-organization-code  |
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with an invalid identifier system
@@ -70,10 +70,10 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-      | params                                                                             | identifier_system          |
-      |_revinclude=Endpoint:organization&identifier=                           |                            |
-      |_revinclude=Endpoint:organization&identifier=invalidSystem             | invalidSystem              |
-      |_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid| https://fhir.nhs.uk/Id/ods-organization-codeInvalid |
+      | params                                                                                           | identifier_system                                    |
+      | _revinclude=Endpoint:organization&identifier=                                                    |                                                      |
+      | _revinclude=Endpoint:organization&identifier=invalidSystem                                       | invalidSystem                                        |
+      | _revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-codeInvalid | https://fhir.nhs.uk/Id/ods-organization-codeInvalid  |
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with missing parameters
@@ -87,12 +87,12 @@ Background: Set stack and select ODS code for testing from the organisation dyna
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-    | params                                                             | missing_param               |
-    |identifier=https://fhir.nhs.uk/Id/ods-organization-code            | '_revinclude'               |
-    |                                                                    | 'identifier', '_revinclude' |
+      | params                                                           | missing_param               |
+      | identifier=https://fhir.nhs.uk/Id/ods-organization-code          | '_revinclude'               |
+      |                                                                  | 'identifier', '_revinclude' |
 
 
-Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
+  Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
     When I request data from the smoke test APIM endpoint "Organization" with an odscode from dynamo organisation table and params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -103,9 +103,9 @@ Scenario Outline: I search for Organization endpoint data by ODS Code with unexp
     And the OperationOutcome contains an issue with details for INVALID_SEARCH_DATA coding
     And the response is valid against the dos-search schema for endpoint "/Organization"
     Examples:
-    |params                                                             | unexpected_param | unexpected_value |
-    | _revinclude=Endpoint:organization&foo=bar&identifier=https://fhir.nhs.uk/Id/ods-organization-code | foo              | bar              |
-    | _revinclude=Endpoint:organization&_sort=name&identifier=https://fhir.nhs.uk/Id/ods-organization-code | _sort            | name             |
+      | params                                                                                                 | unexpected_param | unexpected_value |
+      | _revinclude=Endpoint:organization&foo=bar&identifier=https://fhir.nhs.uk/Id/ods-organization-code   | foo              | bar              |
+      | _revinclude=Endpoint:organization&_sort=name&identifier=https://fhir.nhs.uk/Id/ods-organization-code | _sort            | name             |
 
 
   Scenario Outline: I search for Organization endpoint data by ODS Code with ODS code at valid boundary length
@@ -121,7 +121,7 @@ Scenario Outline: I search for Organization endpoint data by ODS Code with unexp
       | ABCDE1234567 |
 
 
-    Scenario Outline: I search for Organization endpoint data by ODS Code with an existing ODS code with missing mandatory headers
+  Scenario Outline: I search for Organization endpoint data by ODS Code with an existing ODS code with missing mandatory headers
     When I request data from the APIM endpoint "Organization" with an odscode from dynamo organisation table with headers "<headers>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
