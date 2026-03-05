@@ -249,7 +249,7 @@ class DataMigrationLogBase(LogBase):
     )
     DM_ETL_041 = LogReference(
         level=ERROR,
-        message="DynamoDB ValidationException during transaction write - invalid attribute value type",
+        message="DynamoDB ValidationException during transaction write",
     )
 
     DM_ETL_999 = LogReference(
