@@ -53,7 +53,10 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
-  for_each = local.is_primary_environment ? merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs) : {}
+  for_each = {
+    for alarm_key, alarm_cfg in merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs) : alarm_key => alarm_cfg
+    if local.is_primary_environment
+  }
 
   alarm_name          = each.value.alarm_name
   comparison_operator = try(each.value.comparison_operator, "GreaterThanThreshold")
