@@ -16,9 +16,9 @@ locals {
   )
 
   # 80% threshold for critical alarms
-  dms_network_threshold_80pct = floor(local.dms_instance_bandwidth_bps * 0.8)
+  dms_network_threshold_80pct = local.dms_instance_bandwidth_bps == null ? null : floor(local.dms_instance_bandwidth_bps * 0.8)
   # 60% threshold for warnings
-  dms_network_threshold_60pct = floor(local.dms_instance_bandwidth_bps * 0.6)
+  dms_network_threshold_60pct = local.dms_instance_bandwidth_bps == null ? null : floor(local.dms_instance_bandwidth_bps * 0.6)
   # 
   dms_simple_metric_alarm_configs = {
     source_latency_critical = {
@@ -30,7 +30,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
       }
     }
     target_latency_critical = {
@@ -42,7 +42,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
       }
     }
     source_latency_warning = {
@@ -54,7 +54,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
       }
     }
     target_latency_warning = {
@@ -66,7 +66,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
       }
     }
     instance_cpu_warning = {
@@ -78,7 +78,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_cpu_critical = {
@@ -90,7 +90,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_freeable_memory_critical = {
@@ -103,7 +103,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_freeable_memory_warning = {
@@ -116,7 +116,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_available_memory_critical = {
@@ -129,7 +129,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_available_memory_warning = {
@@ -142,7 +142,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_free_storage_critical = {
@@ -155,7 +155,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_free_storage_warning = {
@@ -168,7 +168,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_swap_usage_critical = {
@@ -181,7 +181,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_swap_usage_warning = {
@@ -194,7 +194,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_write_latency_critical = {
@@ -207,7 +207,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_write_latency_warning = {
@@ -220,7 +220,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_latency_critical = {
@@ -233,7 +233,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_latency_warning = {
@@ -246,7 +246,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_iops_critical = {
@@ -259,7 +259,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_iops_warning = {
@@ -272,7 +272,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_throughput_critical = {
@@ -285,7 +285,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_read_throughput_warning = {
@@ -298,7 +298,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_write_throughput_critical = {
@@ -311,7 +311,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     instance_write_throughput_warning = {
@@ -324,7 +324,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     network_receive_throughput_critical = {
@@ -337,7 +337,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     network_receive_throughput_warning = {
@@ -350,7 +350,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     network_transmit_throughput_critical = {
@@ -363,7 +363,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
     network_transmit_throughput_warning = {
@@ -376,7 +376,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
       }
     }
   }
@@ -384,7 +384,7 @@ locals {
   dms_metric_query_alarm_configs = {
     cdc_changes_disk_source_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesDiskSource-High"
-      alarm_description   = "Critical - anomaly upper bound is >50% above CDCChangesDiskSource average"
+      alarm_description   = "Critical - CDCChangesDiskSource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -403,7 +403,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -417,7 +417,7 @@ locals {
     }
     cdc_changes_disk_source_warning = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesDiskSource-Warning"
-      alarm_description   = "Warning - anomaly upper bound is >30% above CDCChangesDiskSource average"
+      alarm_description   = "Warning - CDCChangesDiskSource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -437,7 +437,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -451,7 +451,7 @@ locals {
     }
     cdc_changes_memory_source_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesMemorySource-High"
-      alarm_description   = "Critical - anomaly upper bound is >50% above CDCChangesMemorySource average"
+      alarm_description   = "Critical - CDCChangesMemorySource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -470,7 +470,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -484,7 +484,7 @@ locals {
     }
     cdc_changes_memory_source_warning = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesMemorySource-Warning"
-      alarm_description   = "Warning - anomaly upper bound is >30% above CDCChangesMemorySource average"
+      alarm_description   = "Warning - CDCChangesMemorySource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -504,7 +504,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -518,7 +518,7 @@ locals {
     }
     cdc_changes_disk_target_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesDiskTarget-High"
-      alarm_description   = "Critical - anomaly upper bound is >50% above CDCChangesDiskTarget average"
+      alarm_description   = "Critical - CDCChangesDiskTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -537,7 +537,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -551,7 +551,7 @@ locals {
     }
     cdc_changes_disk_target_warning = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesDiskTarget-Warning"
-      alarm_description   = "Warning - anomaly upper bound is >30% above CDCChangesDiskTarget average"
+      alarm_description   = "Warning - CDCChangesDiskTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -571,7 +571,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -585,7 +585,7 @@ locals {
     }
     cdc_changes_memory_target_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesMemoryTarget-High"
-      alarm_description   = "Critical - anomaly upper bound is >50% above CDCChangesMemoryTarget average"
+      alarm_description   = "Critical - CDCChangesMemoryTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -604,7 +604,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -618,7 +618,7 @@ locals {
     }
     cdc_changes_memory_target_warning = {
       alarm_name          = "${local.resource_prefix}-DMS-CDCChangesMemoryTarget-Warning"
-      alarm_description   = "Warning - anomaly upper bound is >30% above CDCChangesMemoryTarget average"
+      alarm_description   = "Warning - CDCChangesMemoryTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)"
       evaluation_periods  = var.alarm_evaluation_periods
       datapoints_to_alarm = var.alarm_datapoints
       period              = var.alarm_period
@@ -638,7 +638,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = data.aws_dms_replication_task.dms_cdc_replication_task.id
+              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
             }
           }
         },
@@ -656,7 +656,7 @@ locals {
 # checks
 check "dms_alarm_config_schema" {
   assert {
-    condition = alltrue([
+    condition = local.is_primary_environment ? alltrue([
       for name, cfg in merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs) : (
         (
           length(try(cfg.metric_queries, [])) == 0 &&
@@ -679,14 +679,14 @@ check "dms_alarm_config_schema" {
           )
         )
       )
-    ])
+    ]) : true
 
     error_message = "Each DMS alarm config must be either: simple metric mode (metric_name + threshold + dimensions, no metric_queries/threshold_metric_id) OR metric query mode (metric_queries + comparison_operator + exactly one of threshold or threshold_metric_id, no metric_name)."
   }
 }
 check "dms_metric_query_single_return_data" {
   assert {
-    condition = alltrue([
+    condition = local.is_primary_environment ? alltrue([
       for name, cfg in local.dms_metric_query_alarm_configs : (
         try(cfg.threshold_metric_id, null) != null ? (
           length([
@@ -704,7 +704,7 @@ check "dms_metric_query_single_return_data" {
           ]) == 1
         )
       )
-    ])
+    ]) : true
 
     error_message = "Metric-query alarms must be valid: if threshold_metric_id is set, the matching query id must exist exactly once and have return_data = true; otherwise exactly one query must have return_data = true."
   }
@@ -712,10 +712,10 @@ check "dms_metric_query_single_return_data" {
 
 check "dms_simple_alarm_dimensions_required" {
   assert {
-    condition = alltrue([
+    condition = local.is_primary_environment ? alltrue([
       for name, cfg in local.dms_simple_metric_alarm_configs :
       try(cfg.dimensions, null) != null && length(keys(cfg.dimensions)) > 0
-    ])
+    ]) : true
 
     error_message = "Each simple alarm in dms_simple_metric_alarm_configs must define a non-empty dimensions map."
   }
@@ -723,17 +723,17 @@ check "dms_simple_alarm_dimensions_required" {
 
 check "dms_replication_instance_class_supported" {
   assert {
-    condition = contains(
+    condition = local.is_primary_environment ? contains(
       keys(local.dms_instance_bandwidth_bytes_per_sec),
       var.dms_replication_instance_class
-    )
+    ) : true
     error_message = "Unsupported dms_replication_instance_class for bandwidth lookup. Add it to local.dms_instance_bandwidth_bytes_per_sec."
   }
 }
 
 check "dms_replication_instance_bandwidth_configured" {
   assert {
-    condition     = local.dms_instance_bandwidth_bps != null && local.dms_instance_bandwidth_bps > 0
+    condition     = local.is_primary_environment ? (local.dms_instance_bandwidth_bps != null && local.dms_instance_bandwidth_bps > 0) : true
     error_message = "Bandwidth bytes/sec must be set (> 0) for the selected dms_replication_instance_class."
   }
 }

@@ -53,9 +53,7 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
-  # TODO restore after test
-  # count = local.is_primary_environment ? 1 : 0
-  for_each = merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs)
+  for_each = local.is_primary_environment ? merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs) : {}
 
   alarm_name          = each.value.alarm_name
   comparison_operator = try(each.value.comparison_operator, "GreaterThanThreshold")
@@ -97,6 +95,6 @@ resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
 
   alarm_description = each.value.alarm_description
 
-  alarm_actions = [aws_sns_topic.data_migration_sns_topic.arn]
-  ok_actions    = [aws_sns_topic.data_migration_sns_topic.arn]
+  alarm_actions = [aws_sns_topic.data_migration_sns_topic[0].arn]
+  ok_actions    = [aws_sns_topic.data_migration_sns_topic[0].arn]
 }
