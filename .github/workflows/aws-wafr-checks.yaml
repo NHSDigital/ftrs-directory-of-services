@@ -211,7 +211,7 @@ jobs:
       # Upload report artifacts for download
       - name: Upload reports
         if: steps.should-run.outputs.should_run == 'true'
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7
         with:
           name: aws-wafr-thrifty-reports-${{ matrix.environment }}
           path: reports/
