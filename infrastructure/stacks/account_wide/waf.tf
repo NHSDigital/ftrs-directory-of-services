@@ -203,8 +203,10 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
 }
 
 # Regional Web ACL summary:
-# - Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - AWS Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - BotControl managed rule group rules count (SignalNonBrowserUserAgent, CategoryHttpLibrary).
 # - BotControl excludes APIM/Apigee allowlist via scope-down when CIDRs are provided.
+# - Common excludes APIM/Apigee allowlist only for the _status endpoint.
 
 # Regional Web ACL
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
@@ -251,6 +253,20 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesBotControlRuleSet"
         vendor_name = "AWS"
+
+        rule_action_override {
+          name = "CategoryHttpLibrary"
+          action_to_use {
+            count {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalNonBrowserUserAgent"
+          action_to_use {
+            count {}
+          }
+        }
 
         # Exclude APIGEE host IPs from BotControl evaluation.
         dynamic "scope_down_statement" {
@@ -309,6 +325,37 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
+
+        # Exclude APIGEE host IPs only for the _status endpoint.
+        dynamic "scope_down_statement" {
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
+          content {
+            not_statement {
+              statement {
+                and_statement {
+                  statement {
+                    ip_set_reference_statement {
+                      arn = aws_wafv2_ip_set.apim_apigee_allowlist_regional[0].arn
+                    }
+                  }
+                  statement {
+                    byte_match_statement {
+                      search_string         = "/_status"
+                      positional_constraint = "EXACTLY"
+                      field_to_match {
+                        uri_path {}
+                      }
+                      text_transformation {
+                        priority = 0
+                        type     = "NONE"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 

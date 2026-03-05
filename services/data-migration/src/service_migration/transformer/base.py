@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Type
+from typing import Type
 from uuid import UUID
 
 from ftrs_common.logger import Logger
@@ -32,17 +31,16 @@ from ftrs_data_layer.domain.clinical_code import (
 from ftrs_data_layer.domain.enums import TimeUnit
 from ftrs_data_layer.logbase import DataMigrationLogBase
 from pydantic import BaseModel, Field
-from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from common.uuid_utils import generate_uuid
 from service_migration.formatting.address_formatter import format_address
 from service_migration.formatting.number_formatter import clean_decimal
+from service_migration.transformer.organisation_type_mappings import (
+    SERVICE_TYPE_TO_ORGANISATION_TYPE,
+)
 from service_migration.validation.base import Validator
 from service_migration.validation.service import ServiceValidator
-
-if TYPE_CHECKING:
-    from service_migration.models import ServiceMigrationState
 
 
 class ServiceTransformOutput(BaseModel):
@@ -68,7 +66,11 @@ class ServiceTransformer(ABC):
     )
     VALIDATOR_CLS: Type[Validator] = ServiceValidator
 
-    def __init__(self, logger: Logger, metadata: DoSMetadataCache) -> None:
+    def __init__(
+        self,
+        logger: Logger,
+        metadata: DoSMetadataCache,
+    ) -> None:
         self.start_time = datetime.now(UTC)
         self.logger = logger
         self.metadata = metadata
@@ -78,7 +80,6 @@ class ServiceTransformer(ABC):
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         """
         Transform the given service data into a dictionary format.
-
         :param service: The service data to transform.
         :return: A dictionary representation of the transformed service data.
         """
@@ -91,7 +92,6 @@ class ServiceTransformer(ABC):
     ) -> tuple[bool, str | None]:
         """
         Check if the service is supported by this transformer for transformation.
-
         :param service: The service data to check.
         :return: A tuple (bool, str) indicating if the service is supported and a reason if not.
         """
@@ -104,7 +104,6 @@ class ServiceTransformer(ABC):
     ) -> tuple[bool, str | None]:
         """
         Check if the service record can be should be included in the transformation.
-
         :param service: The service data to check.
         :return: A tuple (bool, str) indicating if the record is transformable and a reason if not.
         """
@@ -118,7 +117,7 @@ class ServiceTransformer(ABC):
         Create an Organisation instance from the source DoS service data.
         """
         organisation_id = generate_uuid(service.id, "organisation")
-        service_type = self.metadata.service_types.get(service.typeid)
+        organisation_type = SERVICE_TYPE_TO_ORGANISATION_TYPE.get(service.typeid)
 
         return Organisation(
             id=organisation_id,
@@ -127,7 +126,7 @@ class ServiceTransformer(ABC):
             active=True,
             name=service.publicname,
             telecom=[],
-            type=service_type.name,
+            type=organisation_type,
             createdBy=self.MIGRATION_USER,
             created=self.start_time,
             lastUpdatedBy=self.MIGRATION_USER,
@@ -151,11 +150,9 @@ class ServiceTransformer(ABC):
         payload_mime_type = PAYLOAD_MIMETYPE_MAPPING.get(
             endpoint.format, endpoint.format
         )
-
         if endpoint.transport == "telno":
             payload_type = None
             payload_mime_type = None
-
         return Endpoint(
             id=generate_uuid(endpoint.id, "endpoint"),
             identifier_oldDoS_id=endpoint.id,
@@ -193,13 +190,11 @@ class ServiceTransformer(ABC):
             if service.latitude and service.longitude
             else None
         )
-
         formatted_address = format_address(
             service.address,
             service.town,
             service.postcode,
         )
-
         return Location(
             id=generate_uuid(service.id, "location"),
             identifier_oldDoS_uid=service.uid,
@@ -228,7 +223,6 @@ class ServiceTransformer(ABC):
         """
         Create a HealthcareService instance from the source DoS service data.
         """
-
         return HealthcareService(
             id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
@@ -277,11 +271,9 @@ class ServiceTransformer(ABC):
             availability_cls = AvailableTime
             day = self.metadata.opening_time_days.get(day_opening.dayid)
             day_of_week = day.name.lower()[:3]
-
             if day.name == "BankHoliday":
                 availability_cls = AvailableTimePublicHolidays
                 day_of_week = None
-
             items.extend(
                 [
                     availability_cls(
@@ -293,7 +285,6 @@ class ServiceTransformer(ABC):
                     for opening_time in day_opening.times
                 ]
             )
-
         return items
 
     def build_specified_opening_times(
@@ -309,7 +300,6 @@ class ServiceTransformer(ABC):
                 availability_cls = AvailableTimeVariation
                 if specified_time.isclosed:
                     availability_cls = NotAvailable
-
                 items.append(
                     availability_cls(
                         startTime=datetime.combine(
@@ -320,7 +310,6 @@ class ServiceTransformer(ABC):
                         ),
                     )
                 )
-
         return items
 
     def build_sgsds(
@@ -374,7 +363,6 @@ class ServiceTransformer(ABC):
         Build age eligibility criteria from the service's age ranges, in days.
         * Where there are multiple consecutive age ranges, these should be combined to a single range.
         * Where there are multiple non consecutive age ranges, these should each be an item in the list.
-
         It handles standard DoS age groups (in days):
         * 0-364.25, 365.25-1825.25, 1826.25-5843, 5844-47481.5
         * Two ranges are consecutive if the end of one is very close to the start of the next.
@@ -383,18 +371,14 @@ class ServiceTransformer(ABC):
         if not service.age_range:
             self.logger.log(DataMigrationLogBase.DM_ETL_017, service_id=service.id)
             return None
-
         TOLERANCE = Decimal(1)
-
         sorted_ranges = sorted(service.age_range, key=lambda x: x.daysfrom)
-
         result = []
         current_range = {
             "rangeFrom": clean_decimal(sorted_ranges[0].daysfrom),
             "rangeTo": clean_decimal(sorted_ranges[0].daysto),
             "type": TimeUnit.DAYS,
         }
-
         for age_range in sorted_ranges[1:]:
             current_end = current_range["rangeTo"]
             next_start = age_range.daysfrom
@@ -418,36 +402,5 @@ class ServiceTransformer(ABC):
                     "rangeTo": clean_decimal(next_end),
                     "type": TimeUnit.DAYS,
                 }
-
         result.append(current_range)
-
         return result
-
-
-class LinkedPharmacyTransformer(ServiceTransformer):
-    """
-    Abstract base class for transformers that produce a service linked to a separately-migrated
-    parent record (e.g. a pharmacy service linked to a parent pharmacy organisation/location).
-
-    Subclasses must implement `resolve_parent` to determine the parent's organisation and
-    location IDs before transformation, and set them on the instance prior to `transform()`.
-    """
-
-    @abstractmethod
-    def resolve_parent(
-        self,
-        service: legacy_model.Service,
-        engine: Engine,
-        get_state_record: Callable[[int], "ServiceMigrationState | None"],
-    ) -> tuple[legacy_model.Service | None, UUID | None, UUID | None]:
-        """
-        Resolve the parent record for a linked service.
-
-        :param service: The legacy service being processed.
-        :param engine: SQLAlchemy engine for querying the legacy database.
-        :param get_state_record: Callable to fetch migration state by legacy service ID.
-        :return: Tuple of (parent_legacy_service_or_None, org_id_or_None, loc_id_or_None).
-                 If parent state already exists, returns (None, org_id, loc_id).
-                 If parent needs migrating, returns (parent_service, None, None).
-        """
-        ...
