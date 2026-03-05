@@ -478,3 +478,15 @@ variable "alarm_threshold_write_throughput_warning" {
   type        = number
   default     = 20000000 # 20MB/s
 }
+
+variable "alarm_threshold_available_memory_critical" {
+  description = "Available memory threshold in bytes; triggers critical when AvailableMemory is less than this value"
+  type        = number
+  default     = 1000000000 # 1GB
+}
+
+variable "alarm_threshold_available_memory_warning" {
+  description = "Available memory threshold in bytes; triggers warning when AvailableMemory is less than this value"
+  type        = number
+  default     = 2000000000 # 2GB
+}

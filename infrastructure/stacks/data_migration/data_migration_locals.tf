@@ -119,6 +119,32 @@ locals {
         ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
       }
     }
+    instance_available_memory_critical = {
+      alarm_name          = "${local.resource_prefix}-DMS-InstanceAvailableMemory-High"
+      metric_name         = "AvailableMemory"
+      comparison_operator = "LessThanThreshold"
+      threshold           = var.alarm_threshold_available_memory_critical
+      alarm_description   = "Critical - Available memory < ${var.alarm_threshold_available_memory_critical} bytes"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
+    instance_available_memory_warning = {
+      alarm_name          = "${local.resource_prefix}-DMS-InstanceAvailableMemory-Warning"
+      metric_name         = "AvailableMemory"
+      comparison_operator = "LessThanThreshold"
+      threshold           = var.alarm_threshold_available_memory_warning
+      alarm_description   = "Warning - Available memory < ${var.alarm_threshold_available_memory_warning} bytes"
+      datapoints_to_alarm = var.alarm_datapoints
+      evaluation_periods  = var.alarm_evaluation_periods
+      period              = var.alarm_period
+      dimensions = {
+        ReplicationInstanceIdentifier = "${local.resource_prefix}-etl-replication-instance"
+      }
+    }
     instance_free_storage_critical = {
       alarm_name          = "${local.resource_prefix}-DMS-InstanceFreeStorage-High"
       metric_name         = "FreeStorageSpace"
