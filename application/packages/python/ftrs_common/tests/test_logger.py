@@ -1,8 +1,10 @@
+import json
+import time
 from logging import CRITICAL, DEBUG, ERROR, INFO, WARNING
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-from ftrs_common.logger import LogBase, Logger, LogReference
+from ftrs_common.logger import LogBase, Logger, LogReference, SplunkHECFormatter
 
 
 def test_logger_create() -> None:
@@ -133,3 +135,60 @@ def test_format_message_missing_params() -> None:
         KeyError, match="Missing key in log message \\(CUSTOM_LOG\\): 'param'"
     ):
         logger.format_message(CustomLogBase.CUSTOM_LOG, missing_param="value")
+
+
+def test_splunk_hec_formatter_serialize_structure() -> None:
+    """serialize() returns valid JSON wrapping the log dict in a HEC envelope."""
+    formatter = SplunkHECFormatter()
+    log_dict = {"service": "my_service", "level": "INFO", "message": "hello"}
+
+    with patch(
+        "ftrs_common.logger.get_splunk_index",
+        return_value="app_directoryofservices_prod",
+    ):
+        result = formatter.serialize(log_dict)
+
+    payload = json.loads(result)
+    assert isinstance(payload["time"], float)
+    assert payload["source"] == "my_service"
+    assert payload["index"] == "app_directoryofservices_prod"
+    assert payload["event"] == log_dict
+
+
+def test_splunk_hec_formatter_serialize_default_source() -> None:
+    """serialize() falls back to 'ftrs' when 'service' key is absent."""
+    formatter = SplunkHECFormatter()
+    log_dict = {"level": "INFO", "message": "no service key"}
+
+    with patch(
+        "ftrs_common.logger.get_splunk_index",
+        return_value="app_directoryofservices_prod",
+    ):
+        result = formatter.serialize(log_dict)
+
+    payload = json.loads(result)
+    assert payload["source"] == "ftrs"
+
+
+def test_splunk_hec_formatter_time_is_current_epoch() -> None:
+    """serialize() sets 'time' to a current Unix epoch float."""
+    formatter = SplunkHECFormatter()
+    log_dict = {"service": "svc", "message": "msg"}
+
+    with patch(
+        "ftrs_common.logger.get_splunk_index",
+        return_value="app_directoryofservices_prod",
+    ):
+        before = time.time()
+        result = formatter.serialize(log_dict)
+        after = time.time()
+
+    payload = json.loads(result)
+    assert before <= payload["time"] <= after
+
+
+def test_logger_get_uses_splunk_hec_formatter() -> None:
+    """Logger.get() creates an instance whose handler uses SplunkHECFormatter."""
+    logger = Logger.get(service="hec_formatter_check")
+    formatter_types = [type(h.formatter) for h in logger.handlers]
+    assert SplunkHECFormatter in formatter_types

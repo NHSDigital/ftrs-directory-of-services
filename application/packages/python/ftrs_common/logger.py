@@ -1,11 +1,15 @@
+import json
 import logging
+import time
 from dataclasses import dataclass
 from enum import Enum
 from functools import cache
 
 from aws_lambda_powertools.logging import Logger as PowertoolsLogger
+from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
 from ftrs_common.utils.correlation_id import get_correlation_id
 from ftrs_common.utils.request_id import get_request_id
+from ftrs_common.utils.splunk import get_splunk_index
 
 
 @dataclass(frozen=True)
@@ -27,6 +31,27 @@ class LogBase(Enum):
     The log reference will be the name of the enum member.
     The details of the log are held in the value of the enum member.
     """
+
+
+class SplunkHECFormatter(LambdaPowertoolsFormatter):
+    """
+    Formats log records as Splunk HTTP Event Collector (HEC) event payloads.
+
+    Each log line emitted to stdout is a valid Splunk HEC JSON object with:
+      - time: Unix epoch float
+      - source: the logger service name
+      - index: app_directoryofservices_<resolved_environment>
+      - event: the original structured log dict
+    """
+
+    def serialize(self, log: dict) -> str:  # type: ignore[override]
+        hec_payload = {
+            "time": time.time(),
+            "source": log.get("service", "ftrs"),
+            "index": get_splunk_index(),
+            "event": log,
+        }
+        return json.dumps(hec_payload, default=str)
 
 
 class Logger(PowertoolsLogger):
@@ -91,4 +116,4 @@ class Logger(PowertoolsLogger):
         """
         Create a new instance of the Logger class.
         """
-        return cls(service=service)
+        return cls(service=service, logger_formatter=SplunkHECFormatter())
