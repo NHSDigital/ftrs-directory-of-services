@@ -96,6 +96,13 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         records = self._get_records_by_ods_code(ods_code)
         return records[0] if records else None
 
+    def get_first_record_ods_code(self) -> str | None:
+        records = self.iter_records(max_results=1)
+        first_record = next(records, None)
+        if first_record:
+            return getattr(first_record, "identifier_ODS_ODSCode", None)
+        return None
+
     def _get_records_by_ods_code(self, ods_code: str) -> list[ModelType]:
         ods_code_field = "identifier_ODS_ODSCode"
         records: list[ModelType] = self._query(

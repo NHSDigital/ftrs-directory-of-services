@@ -1,6 +1,8 @@
 import ast
 import json
 import os
+import re
+import sys
 from typing import Any, Callable, Dict, cast
 
 import boto3
@@ -24,15 +26,47 @@ from utilities.infra.secrets_util import GetSecretWrapper
 
 pytest_plugins = ["data_migration_fixtures", "fixtures.ods_fixtures"]
 
-# Configure Loguru to log into a file and console
+_REDACT_PATTERNS = [
+    (re.compile(r"(Bearer\s)([A-Za-z0-9\-._~+/]+=*)"), r"\1[REDACTED]"),
+    (
+        re.compile(r"(Authorization['\"]?\s*:\s*['\"]?)([^'\"}\s]+)", re.IGNORECASE),
+        r"\1[REDACTED]",
+    ),
+    (
+        re.compile(r"(Authentication['\"]?\s*:\s*['\"]?)([^'\"}\s]+)", re.IGNORECASE),
+        r"\1[REDACTED]",
+    ),
+]
+
+
+def _redact(message: str) -> str:
+    for pattern, replacement in _REDACT_PATTERNS:
+        message = pattern.sub(replacement, message)
+    return message
+
+
+def _redact_record(record: dict) -> bool:
+    """Loguru filter that redacts sensitive data from log messages before output."""
+    record["message"] = _redact(record["message"])
+    return True
+
+
+def _redacting_sink(message: str) -> None:
+    sys.stderr.write(_redact(str(message)))
+
+
+# Configure Loguru to log into a file and console, including redactions
 logger.add(
     "test_logs.log",
     rotation="1 day",
     level="INFO",
     backtrace=True,
-    diagnose=True,
+    diagnose=False,
     mode="w",
+    filter=_redact_record,
 )
+logger.add(_redacting_sink, level="INFO", colorize=False)
+
 logger.remove(0)
 
 # Load base .env first
@@ -203,6 +237,11 @@ def apigee_token() -> str:
     return _get_env_var("APIGEE_ACCESS_TOKEN")
 
 
+@pytest.fixture(scope="module")
+def apim_token() -> str:
+    return _get_env_var("APIM_ACCESS_TOKEN")
+
+
 @pytest.fixture(scope="session", autouse=True)
 def load_env_file(env):
     load_dotenv()
@@ -242,6 +281,13 @@ def write_allure_environment(env, workspace, project, commit_hash):
 
 
 @pytest.fixture(scope="session")
+def organisation_smoke_repo_seeded(
+    organisation_repo: AttributeLevelRepository[Organisation],
+) -> AttributeLevelRepository[Organisation]:
+    return organisation_repo
+
+
+@pytest.fixture(scope="session")
 def organisation_repo() -> AttributeLevelRepository[Organisation]:
     return get_service_repository(Organisation, "organisation")
 
@@ -256,7 +302,7 @@ def healthcare_service_repo():
     return get_service_repository(HealthcareService, "healthcare-service")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def organisation_repo_seeded(organisation_repo):
     json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
     organisation = model_from_json_file(json_file, organisation_repo)
@@ -306,6 +352,7 @@ def service_url_factory(apigee_environment: str):
         base = "https://api.service.nhs.uk"
     else:
         base = f"https://{apigee_environment}.api.service.nhs.uk"
+    logger.info(f"Base URL for API requests: {base}")
 
     def _build_url(api_name: str) -> str:
         return f"{base.rstrip('/')}/{api_name}/FHIR/R4/"
@@ -315,6 +362,11 @@ def service_url_factory(apigee_environment: str):
 
 @pytest.fixture(scope="module")
 def dos_ingest_service_url(service_url_factory, api_name="dos-ingest"):
+    return service_url_factory(api_name)
+
+
+@pytest.fixture(scope="module")
+def dos_search_service_url(service_url_factory, api_name="dos-search"):
     return service_url_factory(api_name)
 
 
