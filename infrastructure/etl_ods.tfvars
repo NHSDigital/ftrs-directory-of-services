@@ -16,10 +16,7 @@ consumer_name                      = "consumer-lambda"
 consumer_lambda_handler            = "consumer.consumer.consumer_lambda_handler"
 consumer_lambda_connection_timeout = 150
 
-lambda_memory_size                 = 512
-etl_ods_pipeline_store_bucket_name = "pipeline-store"
-s3_versioning                      = false
-
+lambda_memory_size = 512
 
 delay_seconds              = 10
 visibility_timeout_seconds = 900

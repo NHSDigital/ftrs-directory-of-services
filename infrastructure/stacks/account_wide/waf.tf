@@ -202,6 +202,11 @@ resource "aws_wafv2_web_acl_logging_configuration" "waf_logging_configuration" {
   provider                = aws.us-east-1
 }
 
+# Regional Web ACL summary:
+# - AWS Managed rule groups block (AmazonIpReputation, KnownBadInputs, BotControl, Common, Linux, Unix).
+# - BotControl managed rule group rules count (SignalNonBrowserUserAgent, CategoryHttpLibrary).
+# - BotControl and Common exclude APIM/Apigee allowlist via scope-down when CIDRs are provided.
+
 # Regional Web ACL
 resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
   name        = "${local.resource_prefix}-${var.regional_waf_name}"
@@ -212,69 +217,10 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     allow {}
   }
 
-  # Geo restrictions
-  rule {
-    name     = "regional-waf-count-disallowed-countries"
-    priority = 0
-
-    action {
-      count {}
-    }
-
-    statement {
-      not_statement {
-        statement {
-          geo_match_statement {
-            country_codes = var.regional_waf_allowed_country_codes
-            forwarded_ip_config {
-              header_name       = "X-Forwarded-For"
-              fallback_behavior = "NO_MATCH"
-            }
-          }
-        }
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = false
-      metric_name                = "${local.resource_prefix}-regional-waf-count-disallowed-countries"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  # Optional hostile country block
-  dynamic "rule" {
-    for_each = length(var.regional_waf_hostile_country_codes) > 0 ? [1] : []
-    content {
-      name     = "regional-waf-block-hostile-countries"
-      priority = 1
-
-      action {
-        block {}
-      }
-
-      statement {
-        geo_match_statement {
-          country_codes = var.regional_waf_hostile_country_codes
-          forwarded_ip_config {
-            header_name       = "X-Forwarded-For"
-            fallback_behavior = "MATCH"
-          }
-        }
-      }
-
-      visibility_config {
-        cloudwatch_metrics_enabled = false
-        metric_name                = "${local.resource_prefix}-regional-waf-block-hostile-countries"
-        sampled_requests_enabled   = true
-      }
-    }
-  }
-
   # Managed rule groups
   rule {
     name     = "AWSManagedRulesAmazonIpReputationList"
-    priority = 10
+    priority = 0
 
     override_action {
       none {}
@@ -290,6 +236,56 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     visibility_config {
       cloudwatch_metrics_enabled = false
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-ip-reputation-list"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesBotControlRuleSet"
+    priority = 10
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesBotControlRuleSet"
+        vendor_name = "AWS"
+
+        rule_action_override {
+          name = "CategoryHttpLibrary"
+          action_to_use {
+            count {}
+          }
+        }
+
+        rule_action_override {
+          name = "SignalNonBrowserUserAgent"
+          action_to_use {
+            count {}
+          }
+        }
+
+        # Exclude APIGEE host IPs from BotControl evaluation.
+        dynamic "scope_down_statement" {
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
+          content {
+            not_statement {
+              statement {
+                ip_set_reference_statement {
+                  arn = aws_wafv2_ip_set.apim_apigee_allowlist_regional[0].arn
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
       sampled_requests_enabled   = true
     }
   }
@@ -317,39 +313,31 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
   }
 
   rule {
-    name     = "AWSManagedRulesBotControlRuleSet"
+    name     = "AWSManagedRulesCommonRuleSet"
     priority = 30
 
     override_action {
-      count {}
-    }
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesBotControlRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    visibility_config {
-      cloudwatch_metrics_enabled = false
-      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  rule {
-    name     = "AWSManagedRulesCommonRuleSet"
-    priority = 40
-
-    override_action {
-      count {}
+      none {}
     }
 
     statement {
       managed_rule_group_statement {
         name        = "AWSManagedRulesCommonRuleSet"
         vendor_name = "AWS"
+
+        # Exclude APIGEE host IPs from Common Rule Set evaluation.
+        dynamic "scope_down_statement" {
+          for_each = length(local.apim_apigee_cidrs_normalized) > 0 ? [1] : []
+          content {
+            not_statement {
+              statement {
+                ip_set_reference_statement {
+                  arn = aws_wafv2_ip_set.apim_apigee_allowlist_regional[0].arn
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -360,9 +348,63 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
   }
 
+  rule {
+    name     = "AWSManagedRulesLinuxRuleSet"
+    priority = 40
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesLinuxRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-linux-rules"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesUnixRuleSet"
+    priority = 50
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesUnixRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = false
+      metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-unix-rules"
+      sampled_requests_enabled   = true
+    }
+  }
+
   visibility_config {
     cloudwatch_metrics_enabled = false
     metric_name                = "${local.resource_prefix}-regional-waf"
     sampled_requests_enabled   = true
   }
+}
+
+resource "aws_wafv2_ip_set" "apim_apigee_allowlist_regional" {
+  count              = length(local.apim_apigee_cidrs_normalized) > 0 ? 1 : 0
+  name               = "${local.resource_prefix}-apim-apigee-allowlist-regional"
+  description        = "IP set for APIM Apigee allowlist regional scope"
+  scope              = "REGIONAL"
+  ip_address_version = "IPV4"
+
+  addresses = local.apim_apigee_cidrs_normalized
 }
