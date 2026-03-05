@@ -26,7 +26,7 @@ class HealthcareServicesByOdsService:
                 ods_code=ods_code,
             )
 
-            organisations = self.repository._get_records_by_ods_code(ods_code)
+            organisations = self.repository.get_by_ods_code(ods_code)
 
             if not organisations:
                 dos_logger.info(
