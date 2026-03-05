@@ -128,6 +128,7 @@ This sandbox is deployed via the APIM sandbox deployment pipeline. To deploy:
 3. The pipeline will automatically build and deploy the sandbox image
 
 Alternatively, for internal-dev-sandbox deployment:
+
 - Use the tag format: `internal-dev-sandbox-dos-ingest-X.Y.Z`
 
 ## Canned responses
