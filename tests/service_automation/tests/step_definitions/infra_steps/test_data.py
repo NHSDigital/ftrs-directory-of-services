@@ -11,7 +11,7 @@ scenarios("./infra_features/data_repository.feature")
 
 
 @pytest.fixture
-def organisation_repo_seeded(organisation_repo):
+def organisation_repo_seeded_data_test(organisation_repo):
     json_file = "Organisation/organisation-for-session-seeded-repo-test.json"
     organisation = model_from_json_file(json_file, organisation_repo)
     if not check_record_in_repo(organisation_repo, organisation.id):

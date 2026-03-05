@@ -1,8 +1,31 @@
 from pathlib import Path
 
 from loguru import logger
+from playwright.sync_api import APIResponse
 from pytest_bdd import parsers, then
 from utilities.infra.schema_validator import validate_api_response
+
+
+def _find_repo_root(start: Path, marker: str = ".git") -> Path:
+    """Walk parent directories from *start* until *marker* is found.
+
+    Args:
+        start: The starting directory.
+        marker: Name of the file or directory that identifies the repo root.
+
+    Returns:
+        The repository root path.
+
+    Raises:
+        FileNotFoundError: If no parent contains the marker.
+    """
+    current = start if start.is_dir() else start.parent
+    for parent in (current, *current.parents):
+        if (parent / marker).exists():
+            return parent
+    raise FileNotFoundError(
+        f"Could not find repo root: no '{marker}' marker in any parent of {start}"
+    )
 
 
 @then(
@@ -11,7 +34,7 @@ from utilities.infra.schema_validator import validate_api_response
     )
 )
 def validate_response_against_dos_search_schema(
-    fresponse, api_name: str, endpoint_path: str
+    fresponse: APIResponse, api_name: str, endpoint_path: str
 ) -> None:
     """
     Validate the API response against the OpenAPI schema.
@@ -19,11 +42,8 @@ def validate_response_against_dos_search_schema(
         fresponse: The API response fixture
         endpoint_path: The API endpoint path (e.g., "/Organization")
     """
-    # Path to the yaml schema file - navigate from current file to repo root
-    current_file = Path(__file__).resolve()
-    repo_root = current_file.parents[
-        5
-    ]  # Go up: is_api_steps -> step_definitions -> tests -> service_automation -> tests -> repo_root
+    # Derive repo root by walking up to the .git marker
+    repo_root = _find_repo_root(Path(__file__).resolve())
 
     schema_path = repo_root / "docs" / "specification" / (api_name + ".yaml")
 

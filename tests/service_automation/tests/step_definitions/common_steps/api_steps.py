@@ -110,7 +110,6 @@ def api_check_response_header(
 ) -> None:
     """Verify that a specific header is present in the response with the expected value."""
     response_headers = fresponse.headers
-    # Check if header exists (case-insensitive)
     header_found = False
     actual_value = None
     for key, value in response_headers.items():

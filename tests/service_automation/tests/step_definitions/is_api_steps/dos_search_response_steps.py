@@ -85,9 +85,7 @@ def api_check_resource_type_field_value(
 def api_check_resource_type_boolean_value(
     fresponse: APIResponse, resource_type: str, field_name: str, expected_value: str
 ) -> None:
-    """Verify {resource_type}.{field_name} has the expected boolean value.
-    Accepts 'true' or 'false' (case-insensitive).
-    """
+    """Verify {resource_type}.{field_name} has the expected boolean value."""
     expected_bool = expected_value == "true"
     response = fresponse.json()
     resource_entries = [
