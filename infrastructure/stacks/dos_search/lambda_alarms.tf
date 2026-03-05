@@ -1,5 +1,6 @@
 module "lambda_monitoring" {
-  count  = local.is_primary_environment ? 1 : 0
+  #TODO: Allowing to be workspaced to enable testing. Will uncomment once tested.
+  # count  = local.is_primary_environment ? 1 : 0
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix = local.resource_prefix # Used for naming SNS topic and alarms
