@@ -19,6 +19,9 @@ locals {
   dms_network_threshold_80pct = local.dms_instance_bandwidth_bps == null ? null : floor(local.dms_instance_bandwidth_bps * 0.8)
   # 60% threshold for warnings
   dms_network_threshold_60pct = local.dms_instance_bandwidth_bps == null ? null : floor(local.dms_instance_bandwidth_bps * 0.6)
+
+  dms_cdc_replication_task_id = try(aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id, null)
+  dms_replication_instance_id = try(aws_dms_replication_instance.dms_replication_instance[0].id, null)
   # 
   dms_simple_metric_alarm_configs = {
     source_latency_critical = {
@@ -30,7 +33,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+        ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
       }
     }
     target_latency_critical = {
@@ -42,7 +45,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+        ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
       }
     }
     source_latency_warning = {
@@ -54,7 +57,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+        ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
       }
     }
     target_latency_warning = {
@@ -66,7 +69,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+        ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
       }
     }
     instance_cpu_warning = {
@@ -78,7 +81,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_cpu_critical = {
@@ -90,7 +93,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_freeable_memory_critical = {
@@ -103,7 +106,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_freeable_memory_warning = {
@@ -116,7 +119,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_available_memory_critical = {
@@ -129,7 +132,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_available_memory_warning = {
@@ -142,7 +145,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_free_storage_critical = {
@@ -155,7 +158,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_free_storage_warning = {
@@ -168,7 +171,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_swap_usage_critical = {
@@ -181,7 +184,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_swap_usage_warning = {
@@ -194,7 +197,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_write_latency_critical = {
@@ -207,7 +210,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_write_latency_warning = {
@@ -220,7 +223,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_latency_critical = {
@@ -233,7 +236,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_latency_warning = {
@@ -246,7 +249,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_iops_critical = {
@@ -259,7 +262,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_iops_warning = {
@@ -272,7 +275,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_throughput_critical = {
@@ -285,7 +288,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_read_throughput_warning = {
@@ -298,7 +301,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_write_throughput_critical = {
@@ -311,7 +314,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     instance_write_throughput_warning = {
@@ -324,7 +327,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     network_receive_throughput_critical = {
@@ -337,7 +340,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     network_receive_throughput_warning = {
@@ -350,7 +353,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     network_transmit_throughput_critical = {
@@ -363,7 +366,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
     network_transmit_throughput_warning = {
@@ -376,7 +379,7 @@ locals {
       evaluation_periods  = var.alarm_evaluation_periods
       period              = var.alarm_period
       dimensions = {
-        ReplicationInstanceIdentifier = aws_dms_replication_instance.dms_replication_instance[0].id
+        ReplicationInstanceIdentifier = local.dms_replication_instance_id
       }
     }
   }
@@ -403,7 +406,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -437,7 +440,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -470,7 +473,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -504,7 +507,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -537,7 +540,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -571,7 +574,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -604,7 +607,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
@@ -638,7 +641,7 @@ locals {
             stat        = "Average"
 
             dimensions = {
-              ReplicationTaskIdentifier = aws_dms_replication_task.dms_cdc_replication_task[0].replication_task_id
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
             }
           }
         },
