@@ -41,6 +41,10 @@ class HealthcareServiceType(str, Enum):
     GP_CONSULTATION_SERVICE = "GP Consultation Service"
     PCN_SERVICE = "Primary Care Network Enhanced Access Service"
     ESSENTIAL_SERVICES = "Essential Services"
+    BLOOD_PRESSURE_CHECK = "Blood Pressure Check"
+    ORAL_CONTRACEPTION_PRESCRIPTION_AND_SUPPLY = (
+        "Oral Contraception Prescription and Supply"
+    )
 
 
 class EndpointStatus(str, Enum):

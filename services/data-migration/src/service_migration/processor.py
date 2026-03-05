@@ -1,5 +1,6 @@
 from time import perf_counter
 from typing import Any, Iterable
+from uuid import UUID
 
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from ftrs_common.logger import Logger
@@ -13,10 +14,15 @@ from sqlmodel import Session, create_engine, select
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
 from service_migration.ddb_transactions import ServiceTransactionBuilder
+from service_migration.exceptions import ParentPharmacyNotFoundError
 from service_migration.models import ServiceMigrationMetrics, ServiceMigrationState
 from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
+)
+from service_migration.transformer.base_pharmacy import (
+    BasePharmacyTransformer,
+    LinkedPharmacyTransformer,
 )
 
 
@@ -92,6 +98,11 @@ class DataMigrationProcessor:
                 return
 
             self.metrics.supported += 1
+
+            if isinstance(transformer, LinkedPharmacyTransformer):
+                if not self._setup_linked_transformer(transformer, service):
+                    return
+
             should_include, reason = transformer.should_include_service(service)
             if not should_include:
                 self.metrics.skipped += 1
@@ -204,7 +215,10 @@ class DataMigrationProcessor:
                 DataMigrationLogBase.DM_ETL_003,
                 transformer_name=TransformerClass.__name__,
             )
-            return TransformerClass(logger=self.logger, metadata=self.metadata)
+            return TransformerClass(
+                logger=self.logger,
+                metadata=self.metadata,
+            )
 
     def _iter_records(self, batch_size: int = 1000) -> Iterable[legacy.Service]:
         """
@@ -267,6 +281,103 @@ class DataMigrationProcessor:
         return create_engine(connection_string, echo=False).execution_options(
             postgresql_readonly=True
         )
+
+    def _setup_linked_transformer(
+        self, transformer: LinkedPharmacyTransformer, service: legacy.Service
+    ) -> bool:
+        """
+        Resolve the parent for a linked-pharmacy transformer, migrate it if needed,
+        and set the org/location IDs on the transformer.
+        Returns False if processing should stop (parent not found or parent migration failed).
+        """
+        try:
+            parent_service, org_id, loc_id = transformer.resolve_parent(
+                service, self.engine, self.get_state_record
+            )
+        except ParentPharmacyNotFoundError:
+            self.metrics.errors += 1
+            return False
+
+        if parent_service is not None:
+            try:
+                org_id, loc_id = self._migrate_parent_pharmacy(parent_service)
+            except Exception as e:
+                self.metrics.errors += 1
+                self.logger.exception("Parent pharmacy migration failed")
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_039,
+                    parent_record_id=parent_service.id,
+                    record_id=service.id,
+                    error=str(e),
+                )
+                return False
+
+        if org_id is None or loc_id is None:
+            self.metrics.errors += 1
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_040,
+                record_id=service.id,
+            )
+            return False
+
+        transformer.parent_organisation_id = org_id
+        transformer.parent_location_id = loc_id
+        return True
+
+    def _migrate_parent_pharmacy(
+        self, parent_service: legacy.Service
+    ) -> tuple[UUID | None, UUID | None]:
+        """
+        Run the BasePharmacyTransformer on the parent pharmacy service and persist it
+        as transaction 1 of a two-transaction linked-pharmacy migration.
+
+        Returns the organisation_id and location_id from the newly written state record.
+        """
+        parent_transformer = BasePharmacyTransformer(
+            logger=self.logger, metadata=self.metadata
+        )
+
+        validation_result = parent_transformer.validator.validate(parent_service)
+        if not validation_result.should_continue:
+            raise ValueError(
+                f"Parent pharmacy service {parent_service.id} failed validation "
+                "and cannot be migrated as part of linked pharmacy processing"
+            )
+
+        parent_result = parent_transformer.transform(validation_result.sanitised)
+
+        parent_state = self.get_state_record(parent_service.id)
+
+        parent_transaction_items = (
+            ServiceTransactionBuilder(
+                service_id=parent_service.id,
+                logger=self.logger,
+                migration_state=parent_state,
+                validation_issues=validation_result.issues,
+            )
+            .add_organisation(
+                parent_result.organisation[0] if parent_result.organisation else None
+            )
+            .add_location(parent_result.location[0] if parent_result.location else None)
+            .add_healthcare_service(
+                parent_result.healthcare_service[0]
+                if parent_result.healthcare_service
+                else None
+            )
+            .build()
+        )
+
+        if parent_transaction_items:
+            self._execute_transaction(parent_transaction_items)
+
+        parent_state_after = self.get_state_record(parent_service.id)
+        if parent_state_after is None:
+            raise ValueError(
+                f"Parent pharmacy state record not found after migration "
+                f"for service {parent_service.id}"
+            )
+
+        return parent_state_after.organisation_id, parent_state_after.location_id
 
     def get_state_record(self, service_id: int) -> ServiceMigrationState | None:
         """

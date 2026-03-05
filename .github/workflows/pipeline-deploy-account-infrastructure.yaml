@@ -74,7 +74,7 @@ on:
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT:
         description: "Report upload bucket endpoint"
         required: false
-      SLACK_WEBHOOK_URL:
+      SLACK_WEBHOOK_PIPELINE_URL:
         description: "Slack webhook URL"
         required: false
       SLACK_WEBHOOK_ALARMS_URL:
@@ -276,4 +276,4 @@ jobs:
     with:
       env: ${{ needs.metadata.outputs.environment }}
     secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
+      SLACK_WEBHOOK_PIPELINE_URL: ${{ secrets.SLACK_WEBHOOK_PIPELINE_URL }}
