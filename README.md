@@ -90,7 +90,7 @@ The following software packages, or their equivalents, are expected to be instal
 - [Python](https://www.python.org/) required to run Git hooks,
 - [`jq`](https://jqlang.github.io/jq/) a lightweight and flexible command-line JSON processor.
 
-### Configuration.
+### Configuration
 
 To install and configure the toolchain dependencies
 
