@@ -57,8 +57,8 @@ do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7
 # 2) 400 invalid-identifier-system
 do_call "/Organization?identifier=foo%7CABC123" 400 "400 invalid-identifier-system"
 
-# 3) 400 invalid-identifier-value (too short)
-do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7CABC" 400 "400 invalid-identifier-value"
+# 3) 400 invalid-identifier-value (invalid characters)
+do_call "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code%7CABC%40%23" 400 "400 invalid-identifier-value"
 
 # 4) 400 missing-identifier-separator
 do_call "/Organization?identifier=ABC123" 400 "400 missing-identifier-separator"

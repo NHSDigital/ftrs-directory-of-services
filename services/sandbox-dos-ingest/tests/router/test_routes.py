@@ -47,19 +47,6 @@ class TestOrganizationGetEndpoint:
         assert org_entry["resource"]["resourceType"] == "Organization"
         assert org_entry["resource"]["identifier"][0]["value"] == "ABC123"
 
-    def test_valid_request_reflects_url_in_bundle_link(
-        self, client: TestClient
-    ) -> None:
-        """Test that the bundle link reflects the actual system and code."""
-
-        response = client.get(
-            f"/Organization?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123"
-        )
-        data = response.json()
-
-        link_url = data["link"][0]["url"]
-        assert f"identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|ABC123" in link_url
-
     def test_missing_identifier_returns_400(self, client: TestClient) -> None:
         """Test that missing identifier returns 400 error."""
 

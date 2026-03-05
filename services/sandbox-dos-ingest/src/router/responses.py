@@ -119,6 +119,28 @@ ERROR_NOT_FOUND = {
     ],
 }
 
+# GET /Organization - 400 Missing identifier parameter
+ERROR_MISSING_IDENTIFIER = {
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "error",
+            "code": "required",
+            "details": {
+                "coding": [
+                    {
+                        "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
+                        "code": "BAD_REQUEST",
+                        "display": "The Server was unable to process the request.",
+                    }
+                ],
+                "text": "Missing required parameter: identifier",
+            },
+            "diagnostics": "The 'identifier' query parameter is required",
+        }
+    ],
+}
+
 # GET /Organization - 400 Missing identifier separator
 ERROR_MISSING_IDENTIFIER_SEPARATOR = {
     "resourceType": "OperationOutcome",

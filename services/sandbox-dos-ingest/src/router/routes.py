@@ -9,6 +9,7 @@ from src.router.responses import (
     ERROR_INTERNAL_SERVER,
     ERROR_INVALID_IDENTIFIER_SYSTEM,
     ERROR_INVALID_IDENTIFIER_VALUE,
+    ERROR_MISSING_IDENTIFIER,
     ERROR_MISSING_IDENTIFIER_SEPARATOR,
     ERROR_NOT_FOUND,
     PUT_NOT_FOUND_RESPONSE,
@@ -19,16 +20,10 @@ from src.router.responses import (
 router = APIRouter()
 
 
-@router.get("/_status")
-async def health_check() -> dict[str, str]:
-    """Health check endpoint for container monitoring."""
-    return {"status": "healthy"}
-
-
 @router.get("/Organization")
 async def get_organization(
-    identifier: str = Query(
-        ...,
+    identifier: str | None = Query(
+        None,
         alias="identifier",
         description=f"ODS code in the format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{CODE}}' (FHIR search parameter)",
     ),
@@ -37,6 +32,14 @@ async def get_organization(
 
     Returns a FHIR Bundle containing matching Organization resources.
     """
+    # Check for missing identifier
+    if identifier is None:
+        return JSONResponse(
+            status_code=400,
+            content=ERROR_MISSING_IDENTIFIER,
+            media_type=MEDIA_TYPE,
+        )
+
     # Check for missing separator
     if "|" not in identifier:
         return JSONResponse(

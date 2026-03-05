@@ -15,7 +15,7 @@ COPY poetry.lock /app/
 # Install poetry and project dependencies (no virtualenv)
 RUN pip install --no-cache-dir "poetry>=2,<3" \
     && poetry config virtualenvs.create false \
-    && (poetry check --lock || poetry lock --no-interaction --no-ansi) \
+    && poetry check --lock \
     && poetry install --no-interaction --no-root --no-ansi
 
 # Copy application code

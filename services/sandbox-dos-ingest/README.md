@@ -11,7 +11,7 @@
 - GET /_status -> 200 (health check)
 - GET /Organization
   - 200 example: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123`
-  - 400 invalid-identifier-value: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC`
+  - 400 invalid-identifier-value: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC@#`
   - 400 invalid-identifier-system: `?identifier=foo|ABC123`
   - 400 missing-identifier-separator: `?identifier=ABC123`
   - 404 not-found: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|DEF456`
@@ -70,7 +70,7 @@ curl -H "Accept: application/fhir+json" \
 
 ```bash
 curl -H "Accept: application/fhir+json" \
-  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC"
+  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC%40%23"
 ```
 
 ### 400 Invalid identifier system
