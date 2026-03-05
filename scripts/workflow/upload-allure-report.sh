@@ -58,7 +58,7 @@ ZIP_FILE="$ZIP_DIR/allure-report.zip"
 
 ( cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" . )
 
-S3_KEY="${DEPLOYMENT_PATH}/service-automation/${DEPLOYMENT_TYPE}/allure-report-${TEST_TAG}-${TIMESTAMP}.zip"
+S3_KEY="${DEPLOYMENT_PATH}/service-automation/${DEPLOYMENT_TYPE}/allure-report-${TEST_TAG}.zip"
 
 aws s3 cp "$ZIP_FILE" "s3://${BUCKET_NAME}/${S3_KEY}"
 
