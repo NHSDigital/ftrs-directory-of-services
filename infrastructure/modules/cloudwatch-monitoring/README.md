@@ -92,6 +92,7 @@ module "lambda_monitoring" {
 ### Step 2: Slack Notifications (Optional)
 
 Slack notifications are now handled automatically by the module when you set:
+
 - `slack_notifier_enabled = true`
 - `slack_notifier_function_name = "your-slack-notifier-lambda-name"`
 
