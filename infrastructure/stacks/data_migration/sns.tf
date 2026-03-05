@@ -24,17 +24,23 @@ resource "aws_lambda_permission" "allow_sns_invoke" {
   source_arn    = aws_sns_topic.data_migration_sns_topic[0].arn
 }
 
-# resource "aws_lambda_permission" "allow_sns_invoke" {
-#   statement_id  = "AllowExecutionFromSNS"
-#   action        = "lambda:InvokeFunction"
-#   function_name = data.aws_lambda_function.slack_notifier.function_name
-#   principal     = "sns.amazonaws.com"
-#   source_arn    = module.monitoring.sns_topic_arn
-# }
-
-# resource "aws_sns_topic_subscription" "alarms_to_slack" {
-#   topic_arn = module.monitoring.sns_topic_arn
-#   protocol  = "lambda"
-#   endpoint  = data.aws_lambda_function.slack_notifier.arn
-#   depends_on = [aws_lambda_permission.allow_sns_invoke]
-# }
+data "aws_iam_policy_document" "data_migration_sns_topic_cloudwatch_policy" {
+  statement {
+    sid    = "AllowCloudWatchToPublish"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudwatch.amazonaws.com"]
+    }
+    actions = [
+      "SNS:Publish",
+    ]
+    resources = [
+      aws_sns_topic.data_migration_sns_topic.arn,
+    ]
+  }
+}
+resource "aws_sns_topic_policy" "data_migration_sns_topic_cloudwatch_policy" {
+  arn    = aws_sns_topic.data_migration_sns_topic.arn
+  policy = data.aws_iam_policy_document.data_migration_sns_topic_cloudwatch_policy.json
+}
