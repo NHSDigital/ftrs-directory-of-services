@@ -25,6 +25,7 @@ resource "aws_lambda_permission" "allow_sns_invoke" {
 }
 
 data "aws_iam_policy_document" "data_migration_sns_topic_cloudwatch_policy" {
+  count = local.is_primary_environment ? 1 : 0
   statement {
     sid    = "AllowCloudWatchToPublish"
     effect = "Allow"
@@ -35,12 +36,13 @@ data "aws_iam_policy_document" "data_migration_sns_topic_cloudwatch_policy" {
     actions = [
       "SNS:Publish",
     ]
-    resources = [
+    resources = local.is_primary_environment ? [
       aws_sns_topic.data_migration_sns_topic[0].arn,
-    ]
+    ] : []
   }
 }
 resource "aws_sns_topic_policy" "data_migration_sns_topic_cloudwatch_policy" {
+  count  = local.is_primary_environment ? 1 : 0
   arn    = aws_sns_topic.data_migration_sns_topic[0].arn
-  policy = data.aws_iam_policy_document.data_migration_sns_topic_cloudwatch_policy.json
+  policy = data.aws_iam_policy_document.data_migration_sns_topic_cloudwatch_policy[0].json
 }
