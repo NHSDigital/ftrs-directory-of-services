@@ -1,8 +1,8 @@
 import json
 
 from loguru import logger
-from playwright._impl._errors import Error as PlaywrightError
 from playwright.sync_api import APIRequestContext, APIResponse
+from playwright.sync_api import Error as PlaywrightError
 from pytest_bdd import given, parsers, scenarios, then, when
 from step_definitions.common_steps import api_steps
 from step_definitions.common_steps.api_steps import *  # noqa: F403
