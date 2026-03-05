@@ -177,9 +177,9 @@ paths:
             If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending a valid entry for this value.
           schema:
             type: integer
-            enum: 
+            enum:
               - 1
-            one: 
+            one:
               example: 1
               summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)
         - in: header
@@ -187,7 +187,7 @@ paths:
           required: true
           description: >
             A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-            This is parsed through to the backend server as a new header "NHSD-Request-Id". 
+            This is parsed through to the backend server as a new header "NHSD-Request-Id".
 
             Must be a universally unique identifier (UUID) (ideally version 4).
 

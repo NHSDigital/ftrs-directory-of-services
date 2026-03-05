@@ -88,8 +88,12 @@ info:
     - 400 to 499 if it failed because of a client error by your application
     - 500 to 599 if it failed because of an error on our server.
 
-    Errors specific to each API endpoint are shown in the Endpoints section, under Response. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
-    Your API-calling application should have a mechanism to automatically try again, for example by giving status information to your end user, before giving up. See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
+    - Errors specific to each API endpoint are shown in the Endpoints section under Response.
+    - See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#http-status-codes) for more on errors.
+    - For 404 errors, see [404 resource not found](https://digital.nhs.uk/developer/guides-and-documentation/troubleshooting-4xx-status-codes#404-resource_not_found).
+    - For 5xx errors, see [trouble shooting 5xx status codes](https://digital.nhs.uk/developer/guides-and-documentation/troubleshooting-5xx-status-codes).
+    - Your API-calling application should automatically retry failed requests where appropriate (for example, by giving status information to your end user before giving up).
+    - See our [reference guide](https://digital.nhs.uk/developer/guides-and-documentation/reference-guide#error-handling) for more information about error handling.
 
     ## Environments and testing
 
@@ -152,6 +156,7 @@ paths:
         - app-level3: [ ]
       parameters:
         - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/Version'
         - $ref: '#/components/parameters/XRequestID'
         - $ref: '#/components/parameters/XCorrelationID'
         - in: query
@@ -260,12 +265,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
               examples:
+                missing-headers:
+                  $ref: '#/components/examples/MissingHeaders'
+                missing-query-parameters:
+                  $ref: '#/components/examples/MissingQueryParameters'
+                invalid-version-header:
+                  $ref: '#/components/examples/InvalidVersionHeader'
                 invalid-identifier-value:
                   $ref: '#/components/examples/InvalidIdentifierValue'
-                missing-revinclude:
-                  $ref: '#/components/examples/MissingRevInclude'
                 invalid-identifier-system:
                   $ref: '#/components/examples/InvalidIdentifierSystem'
+                unexpected-header:
+                  $ref: '#/components/examples/UnexpectedHeader'
                 unexpected-query-param:
                   $ref: '#/components/examples/UnexpectedQueryParam'
         '401':
@@ -288,6 +299,24 @@ paths:
                           version: "1"
                           code: "FORBIDDEN"
                           display: "Forbidden"
+        '429':
+          description: Too many requests – Rate limit exceeded
+          content:
+            application/fhir+json:
+              schema:
+                $ref: '#/components/schemas/OperationOutcome'
+              example:
+                resourceType: "OperationOutcome"
+                issue:
+                  - severity: "error"
+                    code: "throttled"
+                    details:
+                      coding:
+                        - system: "https://fhir.nhs.uk/Codesystem/http-error-codes"
+                          version: "0.1.0"
+                          code: "SEND_TOO_MANY_REQUESTS"
+                          display: "429: Too many requests have been made by this source to the API in a given amount of time."
+                    diagnostics: "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -899,6 +928,48 @@ components:
                       code: "INVALID_RESOURCE_ID"
                       display: "Invalid resource ID"
   examples:
+    MissingHeaders:
+      summary: Missing required headers
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "required"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "REC_BAD_REQUEST"
+                  display: "400: The Receiver was unable to process the request."
+            diagnostics: "Missing required header(s): 'version', 'x-request-id'"
+    MissingQueryParameters:
+      summary: Missing required query parameter
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "required"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "INVALID_SEARCH_DATA"
+                  display: "Invalid search data"
+            diagnostics: "Missing required query parameter(s): 'identifier', '_revinclude'"
+    InvalidVersionHeader:
+      summary: Invalid Version header
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "value"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "REC_BAD_REQUEST"
+                  display: "400: The Receiver was unable to process the request."
+            diagnostics: "Invalid version found in supplied headers: version must be '1'"
     InvalidIdentifierValue:
       summary: Invalid ODS code format
       value:
@@ -913,20 +984,6 @@ components:
                   code: "INVALID_SEARCH_DATA"
                   display: "Invalid search data"
             diagnostics: "Invalid identifier value: ODS code 'ABC' must follow format ^[A-Za-z0-9]{5,12}$"
-    MissingRevInclude:
-      summary: Missing required _revinclude parameter
-      value:
-        resourceType: "OperationOutcome"
-        issue:
-          - severity: "error"
-            code: "value"
-            details:
-              coding:
-                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
-                  version: "1.0.0"
-                  code: "INVALID_SEARCH_DATA"
-                  display: "Invalid search data"
-            diagnostics: "The request is missing the '_revinclude=Endpoint:organization' parameter, which is required to include linked Endpoint resources."
     InvalidIdentifierSystem:
       summary: Invalid identifier system
       value:
@@ -941,6 +998,20 @@ components:
                   code: "INVALID_SEARCH_DATA"
                   display: "Invalid search data"
             diagnostics: "Invalid identifier system 'foo' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
+    UnexpectedHeader:
+      summary: Unexpected header
+      value:
+        resourceType: "OperationOutcome"
+        issue:
+          - severity: "error"
+            code: "value"
+            details:
+              coding:
+                - system: "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode"
+                  version: "1.0.0"
+                  code: "REC_BAD_REQUEST"
+                  display: "400: The Receiver was unable to process the request."
+            diagnostics: "Unexpected header(s): foo."
     UnexpectedQueryParam:
       summary: Unexpected query parameter
       value:
@@ -969,12 +1040,32 @@ components:
         type: string
         format: '^Bearer\ [[:ascii:]]+$'
         example: Bearer g1112R_ccQ1Ebbb4gtHBP1aaaNM
+    Version:
+      in: header
+      name: version
+      required: true
+      description: >
+        The major version increment of this API to query.
+
+        Must be a valid non-negative integer representing a supported major version increment of this API.
+
+        This is a mandatory header.
+
+        If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending a valid entry for this value.
+      schema:
+        type: integer
+        enum:
+          - 1
+        one:
+          example: 1
+          summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)
     XRequestID:
       name: X-Request-ID
       in: header
       required: true
       description: >
         A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+        This is parsed through to the backend server as a new header "NHSD-Request-Id".
 
         Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -1008,9 +1099,28 @@ x-nhsd-apim:
     url: https://dos-search.dev.ftrs.cloud.nhs.uk
     security:
       type: mtls
-      # checkov:skip=CKV_SECRET_6: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-544
+      # checkov:skip=CKV_SECRET_6: Acceptable as this isn't a secret leak, it's a reference to a secret not the value.
       secret: dos-search-mtls-secret
   access:
     - title: Application-restricted with Private Key JWT
       grants:
         app-level3: [ ]
+  target-attributes:
+    - name: application-id
+      required: false
+      header: application-id
+    - name: application-name
+      required: false
+      header: application-name
+  # Request a proxy-level cap of 150 TPS (9000/min) to limit aggregate traffic to the backend.
+  # Note: proxy is a shared/global cap across all applications; no per-application default is requested here.
+  ratelimiting:
+    proxy:
+      # 150 transactions per second -> 150 * 60 = 9,000 per minute
+      timeunit: "minute"
+      limit: 9000
+    # Per-application (per-subscription / per-api-key) quota to ensure fair usage between clients.
+    # 10 transactions per second -> 10 * 60 = 600 per minute per application
+    app-default:
+      timeunit: "minute"
+      limit: 600
