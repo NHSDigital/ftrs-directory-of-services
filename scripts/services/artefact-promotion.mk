@@ -59,6 +59,8 @@ define update-retention-tags
 	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
 	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
 	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
+	echo "all_versions: $$all_versions"; \
+	echo "retain_versions: $$retain_versions"; \
 	pids=""; failed=0; count=0; \
 	for version in $$all_versions; do \
 		if echo "$$retain_versions" | grep -qx "$$version"; then \
@@ -66,6 +68,7 @@ define update-retention-tags
 		else \
 			retention_value=ephemeral; \
 		fi; \
+		echo "retention tag for $$version: $$retention_value"; \
 		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(1)/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
 		if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
 			echo "No objects found under $(1)/$$version - skipping"; \
