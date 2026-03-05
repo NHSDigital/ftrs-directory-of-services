@@ -613,6 +613,7 @@ def test_put_item_condition_expression(
     assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
     assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
     assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_update_organisation_includes_audit_timestamps(
