@@ -93,7 +93,7 @@ module "healthcare_service_lambda" {
     local.appconfig_lambda_extension_layer_arn,
   ]
 
-  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id]
+  subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id if can(regex("/24$", subnet.cidr_block))]
   security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {
@@ -112,10 +112,12 @@ module "healthcare_service_lambda" {
     }
   }
 
-  account_id     = data.aws_caller_identity.current.account_id
-  account_prefix = local.account_prefix
-  aws_region     = var.aws_region
-  vpc_id         = data.aws_vpc.vpc.id
-
+  account_id                = data.aws_caller_identity.current.account_id
+  account_prefix            = local.account_prefix
+  aws_region                = var.aws_region
+  vpc_id                    = data.aws_vpc.vpc.id
+  build_splunk_subscription = var.build_splunk_subscription
+  firehose_role_arn         = data.aws_iam_role.firehose_role.arn
+  firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
   cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
 }

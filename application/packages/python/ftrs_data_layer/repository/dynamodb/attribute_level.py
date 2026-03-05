@@ -111,6 +111,6 @@ class AttributeLevelRepository(DynamoDBRepository[ModelType]):
         records: list[ModelType] = self._query(
             key="providedBy",
             value=organisation_id,
-            IndexName="ProvidedByIndex",
+            IndexName="ProvidedByValueIndex",
         )
         return list(records)

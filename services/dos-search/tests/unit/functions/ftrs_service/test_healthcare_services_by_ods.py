@@ -64,9 +64,7 @@ class TestFtrsServiceHealthcareServices:
         # Arrange
         ods_code = "ABC123"
         mock_healthcare_service = MagicMock()
-        ftrs_service.repository._get_records_by_ods_code.return_value = [
-            mock_organisation
-        ]
+        ftrs_service.repository.get_by_ods_code.return_value = [mock_organisation]
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = [
             mock_healthcare_service
         ]
@@ -75,9 +73,7 @@ class TestFtrsServiceHealthcareServices:
         result = ftrs_service.healthcare_services_by_ods(ods_code)
 
         # Assert
-        ftrs_service.repository._get_records_by_ods_code.assert_called_once_with(
-            ods_code
-        )
+        ftrs_service.repository.get_by_ods_code.assert_called_once_with(ods_code)
         mock_healthcare_service_repository.get_records_by_provided_by.assert_called_once_with(
             str(mock_organisation.id)
         )
@@ -93,15 +89,13 @@ class TestFtrsServiceHealthcareServices:
     ) -> None:
         # Arrange
         ods_code = "UNKNOWN"
-        ftrs_service.repository._get_records_by_ods_code.return_value = []
+        ftrs_service.repository.get_by_ods_code.return_value = []
 
         # Act
         result = ftrs_service.healthcare_services_by_ods(ods_code)
 
         # Assert
-        ftrs_service.repository._get_records_by_ods_code.assert_called_once_with(
-            ods_code
-        )
+        ftrs_service.repository.get_by_ods_code.assert_called_once_with(ods_code)
         mock_healthcare_service_bundle_mapper.map_to_fhir.assert_called_once_with(
             [], ods_code
         )
@@ -116,9 +110,7 @@ class TestFtrsServiceHealthcareServices:
     ) -> None:
         # Arrange
         ods_code = "ABC123"
-        ftrs_service.repository._get_records_by_ods_code.return_value = [
-            mock_organisation
-        ]
+        ftrs_service.repository.get_by_ods_code.return_value = [mock_organisation]
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = []
 
         # Act
@@ -144,7 +136,7 @@ class TestFtrsServiceHealthcareServices:
         mock_healthcare_service_1 = MagicMock()
         mock_healthcare_service_2 = MagicMock()
 
-        ftrs_service.repository._get_records_by_ods_code.return_value = [
+        ftrs_service.repository.get_by_ods_code.return_value = [
             mock_organisation,
             mock_org_2,
         ]
@@ -173,7 +165,7 @@ class TestFtrsServiceHealthcareServices:
         # Arrange
         ods_code = "ABC123"
         expected_exc = Exception("Repository error")
-        ftrs_service.repository._get_records_by_ods_code.side_effect = expected_exc
+        ftrs_service.repository.get_by_ods_code.side_effect = expected_exc
 
         # Act & Assert
         with pytest.raises(Exception, match="Repository error"):
@@ -188,9 +180,7 @@ class TestFtrsServiceHealthcareServices:
         # Arrange
         ods_code = "ABC123"
         expected_exc = Exception("Healthcare repo error")
-        ftrs_service.repository._get_records_by_ods_code.return_value = [
-            mock_organisation
-        ]
+        ftrs_service.repository.get_by_ods_code.return_value = [mock_organisation]
         mock_healthcare_service_repository.get_records_by_provided_by.side_effect = (
             expected_exc
         )
@@ -209,9 +199,7 @@ class TestFtrsServiceHealthcareServices:
         # Arrange
         ods_code = "ABC123"
         expected_exc = Exception("Mapper error")
-        ftrs_service.repository._get_records_by_ods_code.return_value = [
-            mock_organisation
-        ]
+        ftrs_service.repository.get_by_ods_code.return_value = [mock_organisation]
         mock_healthcare_service_repository.get_records_by_provided_by.return_value = []
         mock_healthcare_service_bundle_mapper.map_to_fhir.side_effect = expected_exc
 
