@@ -8,7 +8,6 @@ COMMIT_VALUE=${COMMIT_HASH:-}
 DEPLOYMENT_TYPE=${DEPLOYMENT_TYPE:-"development"}
 RELEASE_TAG=${RELEASE_TAG:-}
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
-RUN_TIMESTAMP=${RUN_TIMESTAMP:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
 RELEASE_VERSION=${RELEASE_VERSION:-$([[ -n "$RELEASE_TAG" ]] && echo "$RELEASE_TAG" || echo "null")}
 
 # Determine the deployment path based on deployment type
@@ -53,10 +52,9 @@ if [[ ! -d "$REPORT_DIR" ]]; then
   exit 0
 fi
 
-TIMESTAMP=$(date -u +%Y%m%dT%H%M%SZ)
 ZIP_DIR=$(mktemp -d)
 trap 'rm -rf "$ZIP_DIR"' EXIT
-ZIP_FILE="$ZIP_DIR/allure-report-${TIMESTAMP}.zip"
+ZIP_FILE="$ZIP_DIR/allure-report.zip"
 
 ( cd "$REPORT_DIR" && zip -qr "$ZIP_FILE" . )
 
