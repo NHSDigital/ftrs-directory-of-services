@@ -1,4 +1,4 @@
-ODS_ORG_CODE_IDENTIFIER_SYSTEM = "http://fhir.nhs.uk/Id/ods-organization-code"
+ODS_ORG_CODE_IDENTIFIER_SYSTEM = "https://fhir.nhs.uk/Id/ods-organization-code"
 SPINE_ERROR_OR_WARNING_CODE_SYSTEM = (
     "http://fhir.nhs.uk/R4/CodeSystem/Spine-ErrorOrWarningCode"
 )
