@@ -415,7 +415,7 @@ def test_get_records_by_provided_by() -> None:
     assert result == [MockModel(id="1", name="Test1"), MockModel(id="2", name="Test2")]
 
     repo.table.query.assert_called_once_with(
-        IndexName="ProvidedByIndex",
+        IndexName="ProvidedByValueIndex",
         KeyConditionExpression="providedBy = :providedBy",
         ExpressionAttributeValues={":providedBy": organisation_id},
         ReturnConsumedCapacity="INDEXES",
@@ -439,7 +439,7 @@ def test_get_records_by_provided_by_no_results() -> None:
     assert result == []
 
     repo.table.query.assert_called_once_with(
-        IndexName="ProvidedByIndex",
+        IndexName="ProvidedByValueIndex",
         KeyConditionExpression="providedBy = :providedBy",
         ExpressionAttributeValues={":providedBy": organisation_id},
         ReturnConsumedCapacity="INDEXES",
@@ -469,7 +469,7 @@ def test_get_records_by_provided_by_single_result() -> None:
     assert result == [MockModel(id="1", name="Test1")]
 
     repo.table.query.assert_called_once_with(
-        IndexName="ProvidedByIndex",
+        IndexName="ProvidedByValueIndex",
         KeyConditionExpression="providedBy = :providedBy",
         ExpressionAttributeValues={":providedBy": organisation_id},
         ReturnConsumedCapacity="INDEXES",
