@@ -36,11 +36,11 @@ data "aws_iam_policy_document" "data_migration_sns_topic_cloudwatch_policy" {
       "SNS:Publish",
     ]
     resources = [
-      aws_sns_topic.data_migration_sns_topic.arn,
+      aws_sns_topic.data_migration_sns_topic[0].arn,
     ]
   }
 }
 resource "aws_sns_topic_policy" "data_migration_sns_topic_cloudwatch_policy" {
-  arn    = aws_sns_topic.data_migration_sns_topic.arn
+  arn    = aws_sns_topic.data_migration_sns_topic[0].arn
   policy = data.aws_iam_policy_document.data_migration_sns_topic_cloudwatch_policy.json
 }
