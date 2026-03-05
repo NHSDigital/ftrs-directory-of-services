@@ -42,14 +42,14 @@ class HealthcareServicesByOdsService:
                 ods_code=ods_code,
             )
             healthcare_services = []
-            for id in organization_ids:
+            for organization_id in organization_ids:
                 dos_logger.info(
                     "Retrieving healthcare services for organisation",
-                    organization_id=id,
+                    organization_id=organization_id,
                 )
                 healthcare_services.extend(
                     self.healthcare_service_repository.get_records_by_provided_by(
-                        str(id)
+                        str(organization_id)
                     )
                 )
 

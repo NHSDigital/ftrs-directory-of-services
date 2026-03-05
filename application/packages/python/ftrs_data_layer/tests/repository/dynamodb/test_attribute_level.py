@@ -389,3 +389,88 @@ def test_get_by_ods_code() -> None:
         ExpressionAttributeValues={":identifier_ODS_ODSCode": ods_code},
         ReturnConsumedCapacity="INDEXES",
     )
+
+
+def test_get_records_by_provided_by() -> None:
+    """
+    Test the get_records_by_provided_by method of the DocumentLevelRepository.
+    """
+    repo = AttributeLevelRepository(
+        table_name="test_table",
+        model_cls=MockModel,
+    )
+    organisation_id = "d5a852ef-12c7-4014-b398-661716a63027"
+
+    repo.table.query = MagicMock(
+        return_value={
+            "Items": [
+                {"id": "1", "field": "document", "name": "Test1"},
+                {"id": "2", "field": "document", "name": "Test2"},
+            ]
+        }
+    )
+
+    result = repo.get_records_by_provided_by(organisation_id)
+
+    assert result == [MockModel(id="1", name="Test1"), MockModel(id="2", name="Test2")]
+
+    repo.table.query.assert_called_once_with(
+        IndexName="ProvidedByIndex",
+        KeyConditionExpression="providedBy = :providedBy",
+        ExpressionAttributeValues={":providedBy": organisation_id},
+        ReturnConsumedCapacity="INDEXES",
+    )
+
+
+def test_get_records_by_provided_by_no_results() -> None:
+    """
+    Test the get_records_by_provided_by method when no records are found.
+    """
+    repo = AttributeLevelRepository(
+        table_name="test_table",
+        model_cls=MockModel,
+    )
+    organisation_id = "nonexistent-org-id"
+
+    repo.table.query = MagicMock(return_value={"Items": []})
+
+    result = repo.get_records_by_provided_by(organisation_id)
+
+    assert result == []
+
+    repo.table.query.assert_called_once_with(
+        IndexName="ProvidedByIndex",
+        KeyConditionExpression="providedBy = :providedBy",
+        ExpressionAttributeValues={":providedBy": organisation_id},
+        ReturnConsumedCapacity="INDEXES",
+    )
+
+
+def test_get_records_by_provided_by_single_result() -> None:
+    """
+    Test the get_records_by_provided_by method when a single record is found.
+    """
+    repo = AttributeLevelRepository(
+        table_name="test_table",
+        model_cls=MockModel,
+    )
+    organisation_id = "d5a852ef-12c7-4014-b398-661716a63027"
+
+    repo.table.query = MagicMock(
+        return_value={
+            "Items": [
+                {"id": "1", "field": "document", "name": "Test1"},
+            ]
+        }
+    )
+
+    result = repo.get_records_by_provided_by(organisation_id)
+
+    assert result == [MockModel(id="1", name="Test1")]
+
+    repo.table.query.assert_called_once_with(
+        IndexName="ProvidedByIndex",
+        KeyConditionExpression="providedBy = :providedBy",
+        ExpressionAttributeValues={":providedBy": organisation_id},
+        ReturnConsumedCapacity="INDEXES",
+    )
