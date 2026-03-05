@@ -64,3 +64,15 @@ variable "resource_metadata" {
   }))
   default = {}
 }
+
+variable "slack_notifier_enabled" {
+  description = "Enable Slack notifier subscription to SNS topic"
+  type        = bool
+  default     = false
+}
+
+variable "slack_notifier_function_name" {
+  description = "Name of the Slack notifier Lambda function"
+  type        = string
+  default     = ""
+}

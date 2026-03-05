@@ -79,6 +79,9 @@ module "lambda_monitoring" {
 
   enable_warning_alarms = var.enable_warning_alarms
 
+  slack_notifier_enabled       = true
+  slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+
   tags = {
     Name = local.alarms_topic_name
   }

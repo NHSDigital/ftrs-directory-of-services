@@ -27,6 +27,10 @@ module "lambda_monitoring" {
   kms_key_id        = data.aws_kms_key.sns_kms_key.arn
   alarm_config_path = "lambda/config"
 
+  # Enable Slack notifications
+  slack_notifier_enabled       = true
+  slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+
   monitored_resources = {
     my_lambda = module.my_lambda.lambda_function_name
   }
@@ -85,34 +89,13 @@ module "lambda_monitoring" {
 }
 ```
 
-### Step 2: Connect to Slack Notifier
+### Step 2: Slack Notifications (Optional)
 
-In your stack (e.g., `stacks/my_service/slack_notifications.tf`):
+Slack notifications are now handled automatically by the module when you set:
+- `slack_notifier_enabled = true`
+- `slack_notifier_function_name = "your-slack-notifier-lambda-name"`
 
-```hcl
-data "aws_lambda_function" "slack_notifier" {
-  count         = var.slack_notifier_stack_enabled ? 1 : 0
-  function_name = "${local.project_prefix}-slack-notifier"
-}
-
-resource "aws_lambda_permission" "allow_sns_invoke" {
-  count         = var.slack_notifier_stack_enabled ? 1 : 0
-  statement_id  = "AllowExecutionFromSNS-${local.resource_prefix}"
-  action        = "lambda:InvokeFunction"
-  function_name = data.aws_lambda_function.slack_notifier[0].function_name
-  principal     = "sns.amazonaws.com"
-  source_arn    = module.lambda_monitoring.sns_topic_arn
-}
-
-resource "aws_sns_topic_subscription" "lambda_alarms_to_slack" {
-  count     = var.slack_notifier_stack_enabled ? 1 : 0
-  topic_arn = module.lambda_monitoring.sns_topic_arn
-  protocol  = "lambda"
-  endpoint  = data.aws_lambda_function.slack_notifier[0].arn
-
-  depends_on = [aws_lambda_permission.allow_sns_invoke]
-}
-```
+No separate `slack_notifications.tf` file is needed!
 
 ## Available Templates
 
@@ -178,6 +161,8 @@ Then add corresponding thresholds, evaluation periods, and periods in your modul
 | `alarm_periods` | Yes | Map of resource keys to periods in seconds |
 | `kms_key_id` | Yes | KMS key for SNS encryption |
 | `enable_warning_alarms` | No | Enable warning alarms (default: `true`) |
+| `slack_notifier_enabled` | No | Enable Slack notifier subscription (default: `false`) |
+| `slack_notifier_function_name` | No | Name of Slack notifier Lambda function (required if `slack_notifier_enabled = true`) |
 | `tags` | No | Tags for SNS topic (default: `{}`) |
 
 ## Module Outputs
