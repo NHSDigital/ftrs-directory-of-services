@@ -84,6 +84,8 @@ module "rds_replication_target_db" {
   master_password             = random_password.rds_password[0].result
   database_name               = var.target_rds_database
 
+  preferred_backup_window = ""
+
   tags = local.backup_tags
 
   iam_database_authentication_enabled = true
