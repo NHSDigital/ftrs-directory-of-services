@@ -47,7 +47,7 @@ class SplunkHECFormatter(LambdaPowertoolsFormatter):
     def serialize(self, log: dict) -> str:  # type: ignore[override]
         hec_payload = {
             "time": time.time(),
-            "source": log.get("service", "ftrs"),
+            "source": log.get("service") or log.get("function_name") or "ftrs",
             "index": get_splunk_index(),
             "event": log,
         }

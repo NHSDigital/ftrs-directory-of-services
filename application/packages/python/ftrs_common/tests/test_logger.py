@@ -155,8 +155,27 @@ def test_splunk_hec_formatter_serialize_structure() -> None:
     assert payload["event"] == log_dict
 
 
+def test_splunk_hec_formatter_serialize_function_name_fallback() -> None:
+    """serialize() falls back to 'function_name' when 'service' key is absent."""
+    formatter = SplunkHECFormatter()
+    log_dict = {
+        "function_name": "my_lambda",
+        "level": "INFO",
+        "message": "no service key",
+    }
+
+    with patch(
+        "ftrs_common.logger.get_splunk_index",
+        return_value="app_directoryofservices_prod",
+    ):
+        result = formatter.serialize(log_dict)
+
+    payload = json.loads(result)
+    assert payload["source"] == "my_lambda"
+
+
 def test_splunk_hec_formatter_serialize_default_source() -> None:
-    """serialize() falls back to 'ftrs' when 'service' key is absent."""
+    """serialize() falls back to 'ftrs' when both 'service' and 'function_name' keys are absent."""
     formatter = SplunkHECFormatter()
     log_dict = {"level": "INFO", "message": "no service key"}
 
