@@ -251,7 +251,6 @@ class DataMigrationProcessor:
                 self.logger.log(
                     DataMigrationLogBase.DM_ETL_041,
                     transact_items=transact_items,
-                    error=str(e),
                     response=e.response if hasattr(e, "response") else None,
                 )
                 raise
