@@ -20,10 +20,12 @@ from service_migration.transformer import (
     SUPPORTED_TRANSFORMERS,
     ServiceTransformer,
 )
+from service_migration.transformer.base import ServiceTransformOutput
 from service_migration.transformer.base_pharmacy import (
     BasePharmacyTransformer,
     LinkedPharmacyTransformer,
 )
+from service_migration.validation.types import ValidationResult
 
 
 class DataMigrationProcessor:
@@ -42,7 +44,7 @@ class DataMigrationProcessor:
     ) -> None:
         self.logger = logger
         self.config = config
-        self.engine = self.create_db_engine()
+        self.engine = self._create_db_engine()
         self.metrics = ServiceMigrationMetrics()
         self.metadata = DoSMetadataCache(self.engine)
 
@@ -73,129 +75,6 @@ class DataMigrationProcessor:
             )
             self._process_service(service)
 
-    def _process_service(self, service: legacy.Service) -> None:
-        """
-        Process a single record by transforming it using the appropriate transformer.
-        """
-
-        self.logger.append_keys(record_id=service.id)
-        self.logger.log(
-            DataMigrationLogBase.DM_ETL_001,
-            record=service.model_dump(exclude_none=True, mode="json", warnings=False),
-        )
-
-        try:
-            start_time = perf_counter()
-            self.metrics.total += 1
-
-            transformer = self.get_transformer(service)
-            if not transformer:
-                self.metrics.unsupported += 1
-                self.logger.log(
-                    DataMigrationLogBase.DM_ETL_004,
-                    reason="No suitable transformer found",
-                )
-                return
-
-            self.metrics.supported += 1
-
-            if isinstance(transformer, LinkedPharmacyTransformer):
-                if not self._setup_linked_transformer(transformer, service):
-                    return
-
-            should_include, reason = transformer.should_include_service(service)
-            if not should_include:
-                self.metrics.skipped += 1
-                self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
-                return
-
-            validation_result = transformer.validator.validate(
-                service
-            )  # note: some pre-transformation logic here
-            if not validation_result.is_valid:
-                issues = [
-                    issue.model_dump(mode="json") for issue in validation_result.issues
-                ]
-                self.logger.log(
-                    DataMigrationLogBase.DM_ETL_013,
-                    record_id=service.id,
-                    issue_count=len(issues),
-                    issues=issues,
-                )
-
-            if not validation_result.should_continue:
-                self.metrics.invalid += 1
-                self.logger.log(
-                    DataMigrationLogBase.DM_ETL_014,
-                    record_id=service.id,
-                )
-                return
-
-            result = transformer.transform(validation_result.sanitised)
-            self.metrics.transformed += 1
-
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_006,
-                transformer_name=transformer.__class__.__name__,
-                original_record=service.model_dump(
-                    exclude_none=True, mode="json", warnings=False
-                ),
-                transformed_record=result.model_dump(
-                    exclude_none=True, mode="json", warnings=False
-                ),
-            )
-
-            state_record = self.get_state_record(service.id)
-
-            transaction_items = (
-                ServiceTransactionBuilder(
-                    service_id=service.id,
-                    logger=self.logger,
-                    migration_state=state_record,
-                    validation_issues=validation_result.issues,
-                )
-                .add_organisation(
-                    result.organisation[0] if result.organisation else None
-                )
-                .add_location(result.location[0] if result.location else None)
-                .add_healthcare_service(
-                    result.healthcare_service[0] if result.healthcare_service else None
-                )
-                .build()
-            )
-
-            if transaction_items:
-                self._execute_transaction(transaction_items)
-                if state_record is None:
-                    self.metrics.inserted += 1
-                else:
-                    self.metrics.updated += 1
-
-            elapsed_time = perf_counter() - start_time
-
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_007,
-                elapsed_time=elapsed_time,
-                transformer_name=transformer.__class__.__name__,
-                healthcare_service_count=len(result.healthcare_service),
-                location_count=len(result.location),
-                organisation_count=len(result.organisation),
-                healthcare_service_ids=[hs.id for hs in result.healthcare_service],
-                location_ids=[loc.id for loc in result.location],
-                organisation_ids=[org.id for org in result.organisation],
-            )
-
-        except Exception as e:
-            self.metrics.errors += 1
-            self.logger.exception(
-                "Unexpected error encountered whilst processing service record"
-            )
-            self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
-            return
-
-        finally:
-            self.logger.remove_keys(["record_id"])
-
     def get_transformer(self, service: legacy.Service) -> ServiceTransformer | None:
         """
         Get the appropriate transformer for the service.
@@ -219,6 +98,250 @@ class DataMigrationProcessor:
                 logger=self.logger,
                 metadata=self.metadata,
             )
+
+    def get_state_record(self, service_id: int) -> ServiceMigrationState | None:
+        """
+        Check if a data migration state record exists for the given service ID.
+        Returns the state record if it exists, None otherwise.
+        Uses get_item with the source_record_id as the key.
+        """
+        dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
+        state_table = get_table_name("data-migration-state")
+
+        source_record_id = ServiceMigrationState.format_source_record_id(service_id)
+
+        response = dynamodb_client.get_item(
+            TableName=state_table,
+            Key={"source_record_id": {"S": source_record_id}},
+            ConsistentRead=True,
+        )
+
+        item = response.get("Item")
+        if not item:
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_020,
+                record_id=service_id,
+            )
+            return None
+
+        # Deserialize the item back into a ServiceMigrationState
+        deserialized_data = {
+            k: self.deserializer.deserialize(v) for k, v in item.items()
+        }
+
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_019,
+            record_id=service_id,
+        )
+        return ServiceMigrationState.model_validate(deserialized_data)
+
+    def _process_service(self, service: legacy.Service) -> None:
+        """
+        Process a single record by transforming it using the appropriate transformer.
+        """
+        self.logger.append_keys(record_id=service.id)
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_001,
+            record=service.model_dump(exclude_none=True, mode="json", warnings=False),
+        )
+
+        try:
+            start_time = perf_counter()
+            self.metrics.total += 1
+
+            transformer, state_record = self._get_ready_transformer(service)
+            if transformer is None:
+                return
+
+            validation_result = self._validate_service(transformer, service)
+            if validation_result is None:
+                return
+
+            self._transform_and_persist(
+                service, transformer, validation_result, state_record, start_time
+            )
+
+        except Exception as e:
+            self.metrics.errors += 1
+            self.logger.exception(
+                "Unexpected error encountered whilst processing service record"
+            )
+            self.logger.log(DataMigrationLogBase.DM_ETL_008, error=str(e))
+            return
+
+        finally:
+            self.logger.remove_keys(["record_id"])
+
+    # Core processing methods
+
+    def _get_ready_transformer(
+        self, service: legacy.Service
+    ) -> tuple[ServiceTransformer | None, ServiceMigrationState | None]:
+        """
+        Get transformer and prepare it for use, including linked pharmacy setup
+        and migration state resolution.
+        """
+        transformer = self.get_transformer(service)
+        if not transformer:
+            self.metrics.unsupported += 1
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_004,
+                reason="No suitable transformer found",
+            )
+            return None, None
+
+        self.metrics.supported += 1
+
+        if isinstance(transformer, LinkedPharmacyTransformer):
+            if not self._setup_linked_transformer(transformer, service):
+                return None, None
+
+        should_include, reason = transformer.should_include_service(service)
+        should_continue, state_record = self._resolve_migration_state(
+            service, should_include, reason
+        )
+        if not should_continue:
+            return None, None
+
+        return transformer, state_record
+
+    def _resolve_migration_state(
+        self, service: legacy.Service, should_include: bool, reason: str
+    ) -> tuple[bool, ServiceMigrationState | None]:
+        if should_include:
+            return True, None
+
+        if service.statusid != 1:
+            state_record = self.get_state_record(service.id)
+            if state_record is not None:
+                return True, state_record
+
+        self.metrics.skipped += 1
+        self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
+        return False, None
+
+    # Validation & transformation helpers
+
+    def _validate_service(
+        self, transformer: ServiceTransformer, service: legacy.Service
+    ) -> ValidationResult[legacy.Service] | None:
+        validation_result = transformer.validator.validate(
+            service
+        )  # note: some pre-transformation logic here
+
+        if not validation_result.is_valid:
+            issues = [
+                issue.model_dump(mode="json") for issue in validation_result.issues
+            ]
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_013,
+                record_id=service.id,
+                issue_count=len(issues),
+                issues=issues,
+            )
+
+        if not validation_result.should_continue:
+            self.metrics.invalid += 1
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_014,
+                record_id=service.id,
+            )
+            return None
+
+        return validation_result
+
+    def _transform_and_persist(
+        self,
+        service: legacy.Service,
+        transformer: ServiceTransformer,
+        validation_result: ValidationResult[legacy.Service],
+        state_record: ServiceMigrationState | None,
+        start_time: float,
+    ) -> None:
+        """
+        Transform service data, persist to DynamoDB, and log completion.
+        """
+        result = transformer.transform(validation_result.sanitised)
+        self.metrics.transformed += 1
+
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_006,
+            transformer_name=transformer.__class__.__name__,
+            original_record=service.model_dump(
+                exclude_none=True, mode="json", warnings=False
+            ),
+            transformed_record=result.model_dump(
+                exclude_none=True, mode="json", warnings=False
+            ),
+        )
+
+        current_state = state_record or self.get_state_record(service.id)
+        transaction_items = self._build_transaction_items(
+            service.id, current_state, validation_result.issues, result
+        )
+        self._execute_transaction_and_track(current_state, transaction_items)
+
+        elapsed_time = perf_counter() - start_time
+        self._log_migration_completion(transformer, result, elapsed_time)
+
+    # Transaction & persistence helpers
+
+    def _build_transaction_items(
+        self,
+        service_id: int,
+        state_record: ServiceMigrationState | None,
+        validation_issues: list[Any],
+        result: ServiceTransformOutput,
+    ) -> list[dict[str, Any]]:
+        return (
+            ServiceTransactionBuilder(
+                service_id=service_id,
+                logger=self.logger,
+                migration_state=state_record,
+                validation_issues=validation_issues,
+            )
+            .add_organisation(result.organisation[0] if result.organisation else None)
+            .add_location(result.location[0] if result.location else None)
+            .add_healthcare_service(
+                result.healthcare_service[0] if result.healthcare_service else None
+            )
+            .build()
+        )
+
+    def _execute_transaction_and_track(
+        self,
+        state_record: ServiceMigrationState | None,
+        transaction_items: list[dict[str, Any]],
+    ) -> None:
+        if not transaction_items:
+            return
+
+        self._execute_transaction(transaction_items)
+        if state_record is None:
+            self.metrics.inserted += 1
+            return
+
+        self.metrics.updated += 1
+
+    def _log_migration_completion(
+        self,
+        transformer: ServiceTransformer,
+        result: ServiceTransformOutput,
+        elapsed_time: float,
+    ) -> None:
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_007,
+            elapsed_time=elapsed_time,
+            transformer_name=transformer.__class__.__name__,
+            healthcare_service_count=len(result.healthcare_service),
+            location_count=len(result.location),
+            organisation_count=len(result.organisation),
+            healthcare_service_ids=[hs.id for hs in result.healthcare_service],
+            location_ids=[loc.id for loc in result.location],
+            organisation_ids=[org.id for org in result.organisation],
+        )
+
+    # State & database helpers
 
     def _iter_records(self, batch_size: int = 1000) -> Iterable[legacy.Service]:
         """
@@ -268,7 +391,7 @@ class DataMigrationProcessor:
 
             raise  # Reraise other exceptions
 
-    def create_db_engine(self) -> Engine:
+    def _create_db_engine(self) -> Engine:
         # Validate the presence of a real connection string to avoid confusing errors when given mocks
         connection_string = getattr(
             getattr(self.config, "db_config", None), "connection_string", None
@@ -281,6 +404,8 @@ class DataMigrationProcessor:
         return create_engine(connection_string, echo=False).execution_options(
             postgresql_readonly=True
         )
+
+    # Specialized helpers (pharmacy-related)
 
     def _setup_linked_transformer(
         self, transformer: LinkedPharmacyTransformer, service: legacy.Service
@@ -378,39 +503,3 @@ class DataMigrationProcessor:
             )
 
         return parent_state_after.organisation_id, parent_state_after.location_id
-
-    def get_state_record(self, service_id: int) -> ServiceMigrationState | None:
-        """
-        Check if a data migration state record exists for the given service ID.
-        Returns True if the state record exists.
-        Uses get_item with the source_record_id as the key.
-        """
-        dynamodb_client = get_dynamodb_client(self.config.dynamodb_endpoint)
-        state_table = get_table_name("data-migration-state")
-
-        source_record_id = ServiceMigrationState.format_source_record_id(service_id)
-
-        response = dynamodb_client.get_item(
-            TableName=state_table,
-            Key={"source_record_id": {"S": source_record_id}},
-            ConsistentRead=True,
-        )
-
-        item = response.get("Item")
-        if not item:
-            self.logger.log(
-                DataMigrationLogBase.DM_ETL_020,
-                record_id=service_id,
-            )
-            return None
-
-        # Deserialize the item back into a ServiceMigrationState
-        deserialized_data = {
-            k: self.deserializer.deserialize(v) for k, v in item.items()
-        }
-
-        self.logger.log(
-            DataMigrationLogBase.DM_ETL_019,
-            record_id=service_id,
-        )
-        return ServiceMigrationState.model_validate(deserialized_data)
