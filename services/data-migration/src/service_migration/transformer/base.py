@@ -123,7 +123,7 @@ class ServiceTransformer(ABC):
             id=organisation_id,
             identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
-            active=True,
+            active=service.statusid == 1,
             name=service.publicname,
             telecom=[],
             type=organisation_type,
@@ -226,7 +226,7 @@ class ServiceTransformer(ABC):
         return HealthcareService(
             id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
-            active=True,
+            active=service.statusid == 1,
             category=category,
             type=type,
             providedBy=organisation_id,

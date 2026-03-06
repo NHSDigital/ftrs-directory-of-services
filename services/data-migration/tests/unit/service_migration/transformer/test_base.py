@@ -169,6 +169,22 @@ def test_service_transformer_build_organisation(
 
 
 @freeze_time("2025-07-17T12:00:00")
+def test_service_transformer_build_organisation_inactive(
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+    inactive_service = mock_legacy_service.model_copy(update={"statusid": 2})
+
+    result = transformer.build_organisation(inactive_service)
+
+    assert result.active is False
+
+
+@freeze_time("2025-07-17T12:00:00")
 def test_build_endpoint(
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
@@ -531,6 +547,32 @@ def test_build_healthcare_service(
         ],
         dispositions=["DX115", "DX12"],
     )
+
+
+@freeze_time("2025-07-25T12:00:00")
+def test_build_healthcare_service_inactive_status(
+    mock_legacy_service: Service,
+    mock_logger: MockLogger,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that healthcare service active field is False when service statusid != 1."""
+    transformer = BasicServiceTransformer(
+        logger=mock_logger, metadata=mock_metadata_cache
+    )
+
+    # Set service status to non-active (e.g., 2 = Commissioned)
+    mock_legacy_service.statusid = 2
+
+    result = transformer.build_healthcare_service(
+        mock_legacy_service,
+        "0fd917b6-608a-59a0-ba62-eba57ec06a0e",
+        "6ef3317e-c6dc-5e27-b36d-577c375eb060",
+        category="GP Services",
+        type="GP Consultation Service",
+    )
+
+    assert result.active is False
+    assert result.identifier_oldDoS_uid == "test-uid"
 
 
 def test_build_opening_times(
