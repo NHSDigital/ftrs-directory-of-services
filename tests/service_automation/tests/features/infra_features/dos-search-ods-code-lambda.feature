@@ -1,5 +1,5 @@
 @is-infra @integrated-search @is-lambda
-Feature: Lambda function
+Feature: dos-search tests against the ods-code-lambda
 
   Background: Check lambda function exists
     Given that the lambda function "ods-code-lambda" exists for stack "dos-search"

@@ -1,5 +1,5 @@
 @is-infra @integrated-search @data-repo
-Feature: Data Repository
+Feature: tests to validate the data repository functionality
 
   Scenario: Retrieve organisation model from seeded repository
     Given I have a organisation repo that is seeded
