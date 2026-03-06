@@ -125,6 +125,7 @@ class ServiceTransactionBuilder:
                     "Item": self._serialise_item(organisation, field="document"),
                     "ConditionExpression": "attribute_not_exists(id) AND attribute_not_exists(#field)",
                     "ExpressionAttributeNames": {"#field": "field"},
+                    "ReturnValuesOnConditionCheckFailure": "ALL_OLD",
                 }
             }
         )
@@ -204,6 +205,7 @@ class ServiceTransactionBuilder:
                     "Item": self._serialise_item(location, field="document"),
                     "ConditionExpression": "attribute_not_exists(id) AND attribute_not_exists(#field)",
                     "ExpressionAttributeNames": {"#field": "field"},
+                    "ReturnValuesOnConditionCheckFailure": "ALL_OLD",
                 }
             }
         )
@@ -284,6 +286,7 @@ class ServiceTransactionBuilder:
                     "Item": self._serialise_item(healthcare_service, field="document"),
                     "ConditionExpression": "attribute_not_exists(id) AND attribute_not_exists(#field)",
                     "ExpressionAttributeNames": {"#field": "field"},
+                    "ReturnValuesOnConditionCheckFailure": "ALL_OLD",
                 }
             }
         )
@@ -395,6 +398,7 @@ class ServiceTransactionBuilder:
                     "TableName": get_table_name("data-migration-state"),
                     "Item": self._serialise_item(self.migration_state),
                     "ConditionExpression": "attribute_not_exists(source_record_id)",
+                    "ReturnValuesOnConditionCheckFailure": "ALL_OLD",
                 }
             }
         )
@@ -425,6 +429,7 @@ class ServiceTransactionBuilder:
                     "ExpressionAttributeValues": {
                         ":current_version": {"N": str(self.migration_state.version - 1)}
                     },
+                    "ReturnValuesOnConditionCheckFailure": "ALL_OLD",
                 }
             }
         )
