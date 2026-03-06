@@ -337,7 +337,7 @@ paths:
         | `HealthcareService.eligibility` | `enum` | Eligibility requirements to use the service |
         | `HealthcareService.providedBy` | `string` | Reference to organization providing the service |
         | `HealthcareService.location` | `string` | Reference to location(s) where service is provided |
-        | `HealthcareService.endpoint` | `boolean` | Reference to technical endpoints for service interactions |
+        | `HealthcareService.endpoint` | `array` | Reference to technical endpoints for service interactions |
 
       operationId: readHealthcareService
       security:
@@ -439,7 +439,7 @@ paths:
         | `HealthcareService.eligibility` | `enum` | Eligibility requirements to use the service |
         | `HealthcareService.providedBy` | `string` | Reference to organization providing the service |
         | `HealthcareService.location` | `string` | Reference to location(s) where service is provided |
-        | `HealthcareService.endpoint` | `boolean` | Reference to technical endpoints for service interactions |
+        | `HealthcareService.endpoint` | `array` | Reference to technical endpoints for service interactions |
 
       operationId: searchHealthcareServices
       security:
