@@ -48,6 +48,30 @@ define update-build-info
 	rm -rf $$tmp_dir
 endef
 
+# Enqueue retention tag updates for all keys in $$keys using $$retention_value.
+# Requires caller-scoped variables: pids, failed, count, keys, retention_value.
+define queue-retention-tagging-jobs
+	for key in $$keys; do \
+		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
+		pids="$$pids $$!"; \
+		count=$$((count + 1)); \
+		if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
+			for pid in $$pids; do wait $$pid || failed=1; done; \
+			pids=""; \
+		fi; \
+	done
+endef
+
+# Wait for any queued background tag updates and fail if any worker failed.
+# Requires caller-scoped variables: pids, failed.
+define wait-for-retention-tagging-jobs
+	for pid in $$pids; do wait $$pid || failed=1; done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
+		exit 1; \
+	fi
+endef
+
 # Full-reconciliation retention tagging for a versioned S3 prefix.
 # Iterates all versions each run to ensure the full retain window is correct,
 # regardless of RETAIN_VERSIONS changes, manual tag edits, or prior partial failures.
@@ -74,21 +98,9 @@ define update-retention-tags
 			echo "No objects found under $(1)/$$version - skipping"; \
 			continue; \
 		fi; \
-		for key in $$keys; do \
-			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
-			pids="$$pids $$!"; \
-			count=$$((count + 1)); \
-			if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
-				for pid in $$pids; do wait $$pid || failed=1; done; \
-				pids=""; \
-			fi; \
-		done; \
+		$(call queue-retention-tagging-jobs); \
 	done; \
-	for pid in $$pids; do wait $$pid || failed=1; done; \
-	if [ $$failed -ne 0 ]; then \
-		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
-		exit 1; \
-	fi
+	$(call wait-for-retention-tagging-jobs)
 endef
 
 stage:
@@ -117,20 +129,9 @@ release:
 	if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
 		echo "No objects found under releases/$(RELEASE_VERSION_CLEAN) - skipping tagging"; \
 	else \
+	retention_value=permanent; \
 	pids=""; failed=0; count=0; \
-	for key in $$keys; do \
-		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION) & \
-		pids="$$pids $$!"; \
-		count=$$((count + 1)); \
-		if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
-			for pid in $$pids; do wait $$pid || failed=1; done; \
-			pids=""; \
-		fi; \
-	done; \
-	for pid in $$pids; do wait $$pid || failed=1; done; \
-	if [ $$failed -ne 0 ]; then \
-		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
-		exit 1; \
-	fi; \
+	$(call queue-retention-tagging-jobs); \
+	$(call wait-for-retention-tagging-jobs); \
 	fi
 	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))
