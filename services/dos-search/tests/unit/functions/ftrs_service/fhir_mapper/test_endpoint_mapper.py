@@ -6,7 +6,6 @@ from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointPayloadType,
 )
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
@@ -30,7 +29,7 @@ class TestEndpointMapper:
             result[0].coding[0].system
             == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
         )
-        assert result[0].coding[0].code == EndpointPayloadType.ED.value
+        assert result[0].coding[0].code == "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
 
     def test_create_endpoint(self, endpoint_mapper, endpoint):
         endpoint = endpoint_mapper._create_fhir_endpoint(endpoint)
