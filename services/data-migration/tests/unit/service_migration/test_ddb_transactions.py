@@ -572,6 +572,7 @@ def test_insert_state_record_condition(
 
     state_item = builder.items[-1]["Put"]
     assert state_item["ConditionExpression"] == "attribute_not_exists(source_record_id)"
+    assert state_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_update_state_record_condition(
@@ -600,6 +601,7 @@ def test_update_state_record_condition(
     assert "attribute_exists(source_record_id)" in state_item["ConditionExpression"]
     assert "version = :current_version" in state_item["ConditionExpression"]
     assert state_item["ExpressionAttributeValues"][":current_version"]["N"] == "5"
+    assert state_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_put_item_condition_expression(
@@ -608,6 +610,34 @@ def test_put_item_condition_expression(
 ) -> None:
     builder = ServiceTransactionBuilder(service_id=123, logger=mock_logger)
     builder.add_organisation(mock_organisation)
+
+    put_item = builder.items[0]["Put"]
+    assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
+    assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
+    assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
+
+
+def test_location_put_item_has_return_values_on_condition_check_failure(
+    mock_logger: MockLogger,
+    mock_location: Location,
+) -> None:
+    builder = ServiceTransactionBuilder(service_id=123, logger=mock_logger)
+    builder.add_location(mock_location)
+
+    put_item = builder.items[0]["Put"]
+    assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
+    assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
+    assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
+
+
+def test_healthcare_service_put_item_has_return_values_on_condition_check_failure(
+    mock_logger: MockLogger,
+    mock_healthcare_service: HealthcareService,
+) -> None:
+    builder = ServiceTransactionBuilder(service_id=123, logger=mock_logger)
+    builder.add_healthcare_service(mock_healthcare_service)
 
     put_item = builder.items[0]["Put"]
     assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
