@@ -72,7 +72,7 @@ jobs:
       SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
   deploy-toggle-infrastructure:
-    name: "Deploy toggle infrastructure to the ${{ inputs.environment }}environment"
+    name: "Deploy toggle infrastructure to the ${{ inputs.environment }} environment"
     needs:
       - deploy-account-wide-infrastructure
     uses: ./.github/workflows/deploy-application-infrastructure.yaml
