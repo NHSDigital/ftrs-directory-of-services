@@ -110,6 +110,22 @@ jobs:
           printf 'working_directory=services/sandbox-%s\n' "$PARSED_SERVICE" >> "$GITHUB_OUTPUT"
           printf 'build_directory=build/services/sandbox-%s\n' "$PARSED_SERVICE" >> "$GITHUB_OUTPUT"
 
+      - name: "Map API name for Proxygen"
+        if: ${{ inputs.parsed_should_deploy == 'true' }}
+        id: map-api-name
+        shell: bash
+        env:
+          PARSED_SERVICE: ${{ inputs.parsed_service }}
+        run: |
+          set -euo pipefail
+          # Map internal service names to Proxygen API names
+          PROXYGEN_API_NAME="$PARSED_SERVICE"
+          if [[ "$PARSED_SERVICE" == "dos-ingest" ]]; then
+            PROXYGEN_API_NAME="uec-dos-ingestion"
+          fi
+          printf 'proxygen_api_name=%s\n' "$PROXYGEN_API_NAME" >> "$GITHUB_OUTPUT"
+          echo "Mapped service '$PARSED_SERVICE' to Proxygen API name '$PROXYGEN_API_NAME'"
+
       - name: Get Proxygen Access Token
         if: ${{ inputs.parsed_should_deploy == 'true' }}
         id: get-token
@@ -127,15 +143,15 @@ jobs:
           PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
         with:
           access_token: ${{ steps.get-token.outputs.access_token }}
-          api_name: ${{ inputs.parsed_service }}
+          api_name: ${{ steps.map-api-name.outputs.proxygen_api_name }}
 
       - name: Re-tag sandbox image
         if: ${{ inputs.parsed_should_deploy == 'true' }}
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
-          API_NAME: ${{ inputs.parsed_service }}
-          REMOTE_NAME: ${{ inputs.parsed_service }}
+          API_NAME: ${{ steps.map-api-name.outputs.proxygen_api_name }}
+          REMOTE_NAME: ${{ steps.map-api-name.outputs.proxygen_api_name }}
           REMOTE_TAG: ${{ inputs.commit_hash }}
           VERSION_TAG: ${{ inputs.parsed_version }}
         run: make re-tag
