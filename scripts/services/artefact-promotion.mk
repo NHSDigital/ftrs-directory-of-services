@@ -5,7 +5,7 @@
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
 RETAIN_VERSIONS ?= 5
-TAG_CONCURRENCY ?= 10
+TAG_CONCURRENCY := 10
 
 # Determine branch: prefer GITHUB_REF_NAME (in CI), fallback to git command (local)
 # In GitHub Actions detached HEAD state, git rev-parse returns "HEAD" not "main"
