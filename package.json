@@ -3,7 +3,7 @@
   "private": true,
   "release": {
     "branches": [
-      "main"
+      "task/FTRS-3308_Release_pipeline_enhancements"
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",
