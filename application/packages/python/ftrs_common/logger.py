@@ -16,6 +16,7 @@ class LogReference:
 
     message: str
     level: int = logging.NOTSET
+    exc_info: bool = False
 
     def format(self, **kwargs: dict) -> str:
         return self.message.format(**kwargs)
@@ -46,7 +47,12 @@ class Logger(PowertoolsLogger):
         log_key = log_reference.name
         log_details = log_reference.value
         formatted_message = self.format_message(log_reference, **detail)
-        log_dict = {"msg": formatted_message, "reference": log_key, "stacklevel": 3}
+        log_dict = {
+            "msg": formatted_message,
+            "reference": log_key,
+            "stacklevel": 3,
+            "exc_info": log_details.exc_info,
+        }
         if detail:
             log_dict["detail"] = detail
 
