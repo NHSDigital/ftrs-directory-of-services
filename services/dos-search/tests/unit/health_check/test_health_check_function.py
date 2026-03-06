@@ -4,6 +4,7 @@ import pytest
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from health_check.health_check_function import lambda_handler
+from health_check.logbase import DosSearchHealthLogBase
 
 
 @pytest.fixture
@@ -34,15 +35,19 @@ class TestHealthCheckFunction:
 
         assert result["statusCode"] == 200
 
+    @patch("health_check.health_check_function.logger")
     @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_when_get_repository_fails(
-        self, mock_get_repository, lambda_event, lambda_context
+        self, mock_get_repository, mock_logger, lambda_event, lambda_context
     ):
         mock_get_repository.side_effect = Exception("Failed to get repository")
 
         result = lambda_handler(lambda_event, lambda_context)
 
         assert result["statusCode"] == 500
+        mock_logger.log.assert_called_once_with(
+            DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001,
+        )
 
     @patch("health_check.health_check_function.get_service_repository")
     def test_lambda_handler_when_table_inactive(
