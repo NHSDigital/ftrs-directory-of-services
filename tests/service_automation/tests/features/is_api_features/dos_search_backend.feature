@@ -1,5 +1,5 @@
 @is-api @integrated-search @dos-search-ods-code-api
-Feature: API DoS Service Search Backend
+Feature: dos-search tests against the api gateway
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -8,7 +8,7 @@ Feature: API DoS Service Search Backend
     And I create a model in the repo from json file "Organisation/organisation-with-4-endpoints.json"
 
 
-  Scenario: I search for dos-search Endpoint by ODS Code with valid query parameters
+  Scenario: I search for Organization endpoint data by ODS Code with valid query parameters
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -17,7 +17,7 @@ Feature: API DoS Service Search Backend
     And the response includes security headers
 
 
-  Scenario Outline: I search for dos-search Endpoint with invalid ODS code
+  Scenario Outline: I search for Organization endpoint data with an invalid ODS Code
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -35,7 +35,7 @@ Feature: API DoS Service Search Backend
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|123@@@&_revinclude=Endpoint:organization        | 123@@@        |
 
 
-  Scenario Outline: I search for dos-search Endpoint with invalid _revinclude value
+  Scenario Outline: I search for Organization endpoint data by ODS Code with invalid _revinclude value
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -52,7 +52,7 @@ Feature: API DoS Service Search Backend
       | identifier=https://fhir.nhs.uk/Id/ods-organization-code\|M00081046&_revinclude=ENDPOINT:ORGANIZATION |
 
 
-  Scenario Outline: I search for dos-search Endpoint with invalid identifier system
+  Scenario Outline: I search for Organization endpoint data by ODS Code with invalid identifier system
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -69,7 +69,7 @@ Feature: API DoS Service Search Backend
       | identifier=odsOrganisationCode\|M00081046&_revinclude=Endpoint:organization | odsOrganisationCode |
 
 
-  Scenario Outline: I search for dos-search Endpoint with missing parameters
+  Scenario Outline: I search for Organization endpoint data by ODS Code with missing parameters
     When I request data from the "dos-search" endpoint "Organization" with query params "<params>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -86,7 +86,7 @@ Feature: API DoS Service Search Backend
       |                                                                    | 'identifier', '_revinclude' |
 
   # New health check scenario for GET /_status
-  Scenario: I request a healthcheck of the dos-search Endpoint and receive a 200 response
+  Scenario: I request a healthcheck of the dos-search endpoint and receive a 200 response
     When I request data from the "dos-search" endpoint "_status" with query params ""
     Then I receive a status code "200" in response
     And the response includes security headers
@@ -105,7 +105,7 @@ Feature: API DoS Service Search Backend
     And the response includes security headers
 
 
-  Scenario Outline: I search for dos-search Endpoint with unexpected query parameter
+  Scenario Outline: I search for Organization endpoint data by ODS Code with unexpected query parameter
     When I request data from the "dos-search" endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046&<unexpected_param>=<unexpected_value>"
     Then I receive a status code "400" in response
     And the response body contains an "OperationOutcome" resource
@@ -119,3 +119,5 @@ Feature: API DoS Service Search Backend
       | unexpected_param | unexpected_value |
       | foo              | bar              |
       | junk             | 123              |
+
+
