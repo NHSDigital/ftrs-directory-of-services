@@ -122,13 +122,13 @@ jobs:
 
       - name: "Download AppConfig Feature Flags"
         if: ${{ inputs.download_appconfig_artifact == true && contains(fromJSON(inputs.toggle_stacks), matrix.stack) }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.appconfig_artifact_name }}_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
           path: infrastructure/toggles
 
       - name: "Download Terraform Plan Artifact"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         if: ${{ inputs.action == 'apply' }}
         with:
           name: ${{ matrix.stack }}_terraform_plan_${{ inputs.account_type }}_${{ inputs.environment }}

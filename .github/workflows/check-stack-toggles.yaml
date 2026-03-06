@@ -48,7 +48,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: "Download AppConfig artifact"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: appconfig_feature_flags_${{ inputs.workspace == 'default' && inputs.environment || 'workspace' }}
           path: ./toggles
