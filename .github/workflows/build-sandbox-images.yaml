@@ -55,6 +55,18 @@ jobs:
           CLEAN_NAME="${CLEAN_NAME#sandbox-}"
           printf 'API_NAME=%s\n' "$CLEAN_NAME" >> "$GITHUB_ENV"
 
+      - name: "Map API name for Proxygen"
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Map internal service names to Proxygen API names
+          PROXYGEN_API_NAME="$API_NAME"
+          if [[ "$API_NAME" == "dos-ingest" ]]; then
+            PROXYGEN_API_NAME="uec-dos-ingestion"
+          fi
+          printf 'PROXYGEN_API_NAME=%s\n' "$PROXYGEN_API_NAME" >> "$GITHUB_ENV"
+          echo "Mapped service '$API_NAME' to Proxygen API name '$PROXYGEN_API_NAME'"
+
       - name: "Checkout code"
         uses: actions/checkout@v6
         with:
@@ -101,10 +113,14 @@ jobs:
       - name: "Build image"
         run: make build
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          API_NAME: ${{ env.PROXYGEN_API_NAME }}
 
       - name: "Run unit tests"
         run: make unit-test
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
+        env:
+          API_NAME: ${{ env.PROXYGEN_API_NAME }}
 
       - name: "Publish artefacts to GitHub"
         uses: actions/upload-artifact@v6
@@ -132,7 +148,7 @@ jobs:
           PROXYGEN_BASE_URL: ${{ secrets.PROXYGEN_URL || '' }}
         with:
           access_token: ${{ steps.get-token.outputs.access_token }}
-          api_name: ${{ env.API_NAME }}
+          api_name: ${{ env.PROXYGEN_API_NAME }}
 
       - name: "Push image to ECR"
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -140,3 +156,4 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
         env:
           DOCKER_TOKEN: ${{ steps.get-docker-token.outputs.docker_token }}
+          API_NAME: ${{ env.PROXYGEN_API_NAME }}
