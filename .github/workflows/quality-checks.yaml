@@ -255,7 +255,7 @@ jobs:
           output_file_path: checkov.sarif
 
       - name: "Publish Checkov report"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
           name: "checkov-${{ inputs.build_timestamp }}.sarif"
@@ -326,7 +326,7 @@ jobs:
           skip-dirs: ${{ inputs.skip_dirs }}
 
       - name: "Publish Trivy report"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
           name: "trivy-${{ inputs.build_timestamp }}.sarif"

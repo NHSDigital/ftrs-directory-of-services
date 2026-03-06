@@ -123,7 +123,7 @@ jobs:
           API_NAME: ${{ env.PROXYGEN_API_NAME }}
 
       - name: "Publish artefacts to GitHub"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         env:
           ENVIRONMENT: ${{ inputs.environment }}
         with:
