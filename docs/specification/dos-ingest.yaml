@@ -124,7 +124,7 @@ servers:
   - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
     description: Sandbox Environment
   - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4'
-    description: Internal Sandbox
+    description: Internal Sandbox Environment
   - url: 'https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4'
     description: Development Environment
   - url: 'https://internal-qa.api.service.nhs.uk/dos-ingest/FHIR/R4'
