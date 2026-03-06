@@ -121,7 +121,7 @@ Note that if the branch has not been pushed with the dev pipeline successfully d
 ### Running APIM tests
 
 Ensure your `.env` file is populated for `API_NAME`, `APIM_ENV` and optionally `WORKSPACE`.
-An example of a `.env` file for running APIM tests locally against the branched workspace for FTRS-99999 is: 
+An example of a `.env` file for running APIM tests locally against the branched workspace for FTRS-99999 is:
 
 ```.env
   PROJECT_NAME=ftrs-dos
@@ -130,7 +130,7 @@ An example of a `.env` file for running APIM tests locally against the branched 
   COMMIT_HASH=abc123
   API_NAME=dos-search
   APIM_ENV=internal-dev
-``` 
+```
 
 Then fetch an APIGEE_ACCESS_TOKEN for the API via Proxygen:
 
@@ -142,6 +142,32 @@ Then run the tests:
 
 ```shell
 make test MARKERS="your markers here" TEST_TYPE="apim"
+```
+
+### Running SMOKE tests
+
+The smoke tests are do not use the APIM pytest library or any seeded data.
+Ensure that your .env is set correctly for the environment you are testing against
+
+```.env
+  PROJECT_NAME=ftrs-dos
+  ENV=int
+  WORKSPACE=  # For `main`, leave this blank
+  COMMIT_HASH=abc123
+  API_NAME=dos-search
+  APIM_ENV=int
+```
+
+Then set an APIM_ACCESS_TOKEN for the API and Environment by generating a bearer token locally and setting APIM_ACCESS_TOKEN to this value:
+
+```shell
+export APIM_ACCESS_TOKEN=XXXX
+```
+
+Then run the tests:
+
+```shell
+make test MARKERS="is-smoke"
 ```
 
 ### Running UI tests

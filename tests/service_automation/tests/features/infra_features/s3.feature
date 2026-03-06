@@ -1,5 +1,8 @@
-@is-infra @integrated-search @is-s3
-Feature: S3 Bucket Name Validation
+@is-infra  @is-s3
+Feature: tests to validate AWS S3 functionality
+
+  Background: Set stack
+    Given that the stack is "dos-search"
 
 #  Scenario: get a s3 bucket
 #    Given I can see the S3 bucket "gp-search-s3" for stack "gp-search"
