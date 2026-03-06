@@ -40,7 +40,7 @@ class SplunkHECFormatter(LambdaPowertoolsFormatter):
     Each log line emitted to stdout is a valid Splunk HEC JSON object with:
       - time: Unix epoch float
       - source: the logger service name
-      - index: app_directoryofservices_<resolved_environment>
+      - index: value returned by get_splunk_index(), typically "<prefix>_<env>"
       - event: the original structured log dict
     """
 
