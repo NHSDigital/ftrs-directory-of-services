@@ -45,6 +45,7 @@ def test_logger_log() -> None:
         msg="Debug log message",
         detail={"some_detail": "test detail"},
         stacklevel=3,
+        exc_info=False,
     )
 
     logger.log(CustomLogBase.INFO_LOG, another_detail="another test detail")
@@ -53,6 +54,7 @@ def test_logger_log() -> None:
         msg="Info log message",
         detail={"another_detail": "another test detail"},
         stacklevel=3,
+        exc_info=False,
     )
 
     logger.log(CustomLogBase.WARNING_LOG, yet_another_detail="yet another test detail")
@@ -61,6 +63,7 @@ def test_logger_log() -> None:
         msg="Warning log message",
         detail={"yet_another_detail": "yet another test detail"},
         stacklevel=3,
+        exc_info=False,
     )
 
     logger.log(CustomLogBase.ERROR_LOG, error_detail="error test detail")
@@ -69,6 +72,7 @@ def test_logger_log() -> None:
         msg="Error log message",
         detail={"error_detail": "error test detail"},
         stacklevel=3,
+        exc_info=False,
     )
 
     logger.log(CustomLogBase.CRITICAL_LOG, critical_detail="critical test detail")
@@ -77,6 +81,7 @@ def test_logger_log() -> None:
         msg="Critical log message",
         detail={"critical_detail": "critical test detail"},
         stacklevel=3,
+        exc_info=False,
     )
 
 
