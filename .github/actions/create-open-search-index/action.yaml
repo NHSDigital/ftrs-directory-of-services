@@ -31,8 +31,8 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
 
     - name: Create OpenSearch index
       id: create_index

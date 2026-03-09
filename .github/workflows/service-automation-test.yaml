@@ -135,31 +135,13 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
-        with:
-          asdf_branch: v0.15.0
+      - name: "Setup asdf"
+        id: setup-asdf
+        uses: ./.github/actions/setup-asdf
 
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions', 'tests/service_automation/.tool-versions') }}
-
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
-
-      - name: "Install uv"
-        uses: astral-sh/setup-uv@v6
-
-      - name: "Cache uv dependencies"
-        id: uv-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
+      - name: "Setup uv"
+        id: setup-uv
+        uses: ./.github/actions/setup-uv
 
       - name: "Cache Playwright browsers"
         id: playwright-cache
@@ -177,7 +159,7 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Install project"
-        if: steps.asdf-cache.outputs.cache-hit != 'true' || steps.uv-cache.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.setup-asdf.outputs.cache-hit != 'true' || steps.setup-uv.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           uv sync
           uv run playwright install

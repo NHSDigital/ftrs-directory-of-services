@@ -67,21 +67,8 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
-        with:
-          asdf_branch: v0.15.0
-
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
-
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
+      - name: "Setup asdf"
+        uses: ./.github/actions/setup-asdf
 
       - name: "Configure AWS Credentials"
         uses: ./.github/actions/configure-credentials

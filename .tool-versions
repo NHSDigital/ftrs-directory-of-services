@@ -6,6 +6,9 @@ vale 3.6.0
 python 3.12.7
 uv 0.10.9
 nodejs 22.14.0
+allure 2.25.0
+java temurin-jre-17.0.16+8
+jmeter 5.6.3
 
 # ==============================================================================
 # The section below is reserved for Docker image versions.

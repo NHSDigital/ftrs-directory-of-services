@@ -5,9 +5,9 @@ description = "NHS FTRS Directory of Services Monorepo - Powered by uv workspace
 requires-python = ">=3.12"
 dependencies = []
 
-[tool.uv]
+[dependency-groups]
 # Shared tool dependencies across the entire monorepo
-dev-dependencies = [
+dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.14.0",
