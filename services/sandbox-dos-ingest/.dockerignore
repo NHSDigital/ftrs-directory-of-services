@@ -42,7 +42,6 @@ env/
 tests/
 
 # Documentation
-README.md
 docs/
 
 # Local development files

@@ -35,8 +35,9 @@ class TestRequestContextMiddleware:
             "thread_safe_clear_keys"
         )
         next_middleware = MagicMock(
-            side_effect=lambda *a: call_order.append("next_middleware")
-            or MagicMock(spec=Response)
+            side_effect=lambda *a: (
+                call_order.append("next_middleware") or MagicMock(spec=Response)
+            )
         )
 
         request_context_middleware(app, next_middleware)

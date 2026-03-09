@@ -70,6 +70,7 @@ docstring-code-format = true
 minversion = "6.0"
 addopts = "-v --cov=src --cov-report=term-missing --cov-fail-under=80 --cov-branch --cov-context=test"
 testpaths = ["tests"]
+pythonpath = ["src"]
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.hatch.build.targets.wheel]
