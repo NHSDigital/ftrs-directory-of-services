@@ -1119,3 +1119,37 @@ def test_post_organisation_returns_503_when_feature_flag_disabled(
         "Service Unavailable: Data Migration Search Triage Code feature is disabled."
         in response_body["body"]
     )
+
+
+def test_get_organisation_by_id_returns_503_when_feature_flag_disabled(
+    mock_feature_flags: MagicMock,
+) -> None:
+    """Test that GET /Organization/{id} returns 503 when feature flag is disabled."""
+    mock_feature_flags.is_enabled.return_value = False
+
+    response = client.get(f"/Organization/{test_org_id}")
+
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    response_body = response.json()
+    assert response_body["statusCode"] == HTTPStatus.SERVICE_UNAVAILABLE
+    assert (
+        "Service Unavailable: Data Migration Search Triage Code feature is disabled."
+        in response_body["body"]
+    )
+
+
+def test_delete_organisation_returns_503_when_feature_flag_disabled(
+    mock_feature_flags: MagicMock,
+) -> None:
+    """Test that DELETE /Organization/{id} returns 503 when feature flag is disabled."""
+    mock_feature_flags.is_enabled.return_value = False
+
+    response = client.delete(f"/Organization/{test_org_id}")
+
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    response_body = response.json()
+    assert response_body["statusCode"] == HTTPStatus.SERVICE_UNAVAILABLE
+    assert (
+        "Service Unavailable: Data Migration Search Triage Code feature is disabled."
+        in response_body["body"]
+    )
