@@ -105,7 +105,9 @@ def raise_fhir_exception(diagnostics: str, code: str, severity: str = "error") -
 
 
 @router.get(
-    "/Organization/{organisation_id}", summary="Read a single organisation by id"
+    "/Organization/{organisation_id}",
+    summary="Read a single organisation by id",
+    response_class=JSONResponse,
 )
 def get_organisation_by_id(
     organisation_id: UUID = Path(
@@ -113,7 +115,7 @@ def get_organisation_by_id(
         examples=["00000000-0000-0000-0000-11111111111"],
         description=ORGANISATION_ID_DESCRIPTION,
     ),
-) -> Organisation:
+) -> JSONResponse:
     if not FEATURE_FLAGS_CLIENT.is_enabled(
         FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
     ):
