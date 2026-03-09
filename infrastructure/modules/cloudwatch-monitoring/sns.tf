@@ -6,19 +6,24 @@ resource "aws_sns_topic" "alarms" {
   tags = var.tags
 }
 
-resource "aws_sns_topic_policy" "alarms" {
-  arn = aws_sns_topic.alarms.arn
+data "aws_iam_policy_document" "alarms_cloudwatch_policy" {
+  statement {
+    sid    = "AllowCloudWatchToPublish"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudwatch.amazonaws.com"]
+    }
+    actions = [
+      "SNS:Publish",
+    ]
+    resources = [
+      aws_sns_topic.alarms.arn,
+    ]
+  }
+}
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid    = "AllowCloudWatchPublish"
-      Effect = "Allow"
-      Principal = {
-        Service = "cloudwatch.amazonaws.com"
-      }
-      Action   = "SNS:Publish"
-      Resource = aws_sns_topic.alarms.arn
-    }]
-  })
+resource "aws_sns_topic_policy" "alarms" {
+  arn    = aws_sns_topic.alarms.arn
+  policy = data.aws_iam_policy_document.alarms_cloudwatch_policy.json
 }
