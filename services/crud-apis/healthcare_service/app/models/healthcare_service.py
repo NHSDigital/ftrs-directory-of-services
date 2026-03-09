@@ -40,7 +40,9 @@ def validate_healthcare_service_type(v: str) -> str:
         raise InvalidHealthcareServiceTypeError from None
 
 
-def validate_healthcare_service_status(v: str) -> str:
+def validate_healthcare_service_status(
+    v: str | HealthcareServiceStatus,
+) -> HealthcareServiceStatus:
     """
     Validate healthcare service status with generic error message.
 

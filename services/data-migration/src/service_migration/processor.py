@@ -206,7 +206,7 @@ class DataMigrationProcessor:
         return transformer, state_record
 
     def _resolve_migration_state(
-        self, service: legacy.Service, should_include: bool, reason: str
+        self, service: legacy.Service, should_include: bool, reason: str | None
     ) -> tuple[bool, ServiceMigrationState | None]:
         if should_include:
             return True, None
@@ -217,7 +217,10 @@ class DataMigrationProcessor:
                 return True, state_record
 
         self.metrics.skipped += 1
-        self.logger.log(DataMigrationLogBase.DM_ETL_005, reason=reason)
+        self.logger.log(
+            DataMigrationLogBase.DM_ETL_005,
+            reason=reason or "No reason provided",
+        )
         return False, None
 
     # Validation & transformation helpers
