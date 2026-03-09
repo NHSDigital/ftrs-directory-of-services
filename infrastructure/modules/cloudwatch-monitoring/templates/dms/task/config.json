@@ -1,0 +1,44 @@
+{
+    "replication_task": [
+        {
+        "metric_name": "CDCLatencySource",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "source_latency_warning",
+        "description": "DMS replication task source latency warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCLatencySource",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "source_latency_critical",
+        "description": "DMS replication task source latency critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCLatencyTarget",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "target_latency_warning",
+        "description": "DMS replication task target latency warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCLatencyTarget",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "target_latency_critical",
+        "description": "DMS replication task target latency critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        }
+  ]
+}

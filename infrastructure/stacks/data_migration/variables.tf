@@ -341,3 +341,158 @@ variable "dns_port" {
   type        = number
   default     = 53
 }
+
+variable "alarm_datapoints" {
+  description = "The number of datapoints to alarm for DMS-related CloudWatch alarms"
+  type        = number
+  default     = 5
+}
+
+variable "alarm_threshold_cdc_critical" {
+  description = "The threshold in seconds which when exceeded trigger CDC latency Cloudwatch critical alarm"
+  type        = number
+  default     = 120
+}
+
+variable "alarm_threshold_cdc_warning" {
+  description = "The threshold in seconds which when exceeded trigger CDC latency Cloudwatch warning alarm"
+  type        = number
+  default     = 30
+}
+
+variable "alarm_evaluation_periods" {
+  description = "The number of evaluation periods for DMS-related CloudWatch alarms"
+  type        = number
+  default     = 5
+}
+
+variable "alarm_period" {
+  description = "The period in seconds for DMS-related CloudWatch alarms"
+  type        = number
+  default     = 60
+}
+
+variable "alarm_threshold_cpu_warning" {
+  description = "CPU utilization percentage threshold; triggers warning when CPUUtilization is greater than this value"
+  type        = number
+  default     = 70
+}
+
+variable "alarm_threshold_cpu_critical" {
+  description = "CPU utilization percentage threshold; triggers critical when CPUUtilization is greater than this value"
+  type        = number
+  default     = 80
+}
+
+variable "alarm_threshold_freeable_memory_critical" {
+  description = "Freeable memory threshold in bytes; triggers critical when FreeableMemory is less than this value"
+  type        = number
+  default     = 1000000000 # 1GB
+}
+
+variable "alarm_threshold_freeable_memory_warning" {
+  description = "Freeable memory threshold in bytes; triggers warning when FreeableMemory is less than this value"
+  type        = number
+  default     = 2000000000 # 2GB
+}
+
+variable "alarm_threshold_free_storage_critical" {
+  description = "Free storage threshold in bytes; triggers critical when FreeStorageSpace is less than this value"
+  type        = number
+  default     = 5000000000 # 5GB
+}
+
+variable "alarm_threshold_free_storage_warning" {
+  description = "Free storage threshold in bytes; triggers warning when FreeStorageSpace is less than this value"
+  type        = number
+  default     = 10000000000 # 10GB
+}
+
+variable "alarm_threshold_swap_usage_critical" {
+  description = "Swap usage threshold in bytes; triggers critical when SwapUsage is greater than this value"
+  type        = number
+  default     = 512000000 # 512MB
+}
+
+variable "alarm_threshold_swap_usage_warning" {
+  description = "Swap usage threshold in bytes; triggers warning when SwapUsage is greater than this value"
+  type        = number
+  default     = 100000000 # 100MB
+}
+
+variable "alarm_threshold_write_latency_critical" {
+  description = "Write latency threshold in milliseconds; triggers critical when WriteLatency is greater than this value"
+  type        = number
+  default     = 1000 # 1 second
+}
+
+variable "alarm_threshold_write_latency_warning" {
+  description = "Write latency threshold in milliseconds; triggers warning when WriteLatency is greater than this value"
+  type        = number
+  default     = 500 # 0.5 second
+}
+variable "alarm_threshold_read_latency_critical" {
+  description = "Read latency threshold in milliseconds; triggers critical when ReadLatency is greater than this value"
+  type        = number
+  default     = 1000 # 1 second
+}
+
+variable "alarm_threshold_read_latency_warning" {
+  description = "Read latency threshold in milliseconds; triggers warning when ReadLatency is greater than this value"
+  type        = number
+  default     = 500 # 0.5 second
+}
+
+variable "alarm_threshold_read_iops_critical" {
+  description = "Read IOPS threshold; triggers critical when ReadIOPS is greater than this value"
+  type        = number
+  default     = 1000
+}
+
+variable "alarm_threshold_read_iops_warning" {
+  description = "Read IOPS threshold; triggers warning when ReadIOPS is greater than this value"
+  type        = number
+  default     = 500
+}
+
+variable "alarm_threshold_read_throughput_critical" {
+  description = "Read throughput threshold in bytes/second; triggers critical when ReadThroughput is greater than this value"
+  type        = number
+  default     = 50000000 # 50MB/s
+}
+
+variable "alarm_threshold_read_throughput_warning" {
+  description = "Read throughput threshold in bytes/second; triggers warning when ReadThroughput is greater than this value"
+  type        = number
+  default     = 20000000 # 20MB/s
+}
+
+variable "alarm_threshold_write_throughput_critical" {
+  description = "Write throughput threshold in bytes/second; triggers critical when WriteThroughput is greater than this value"
+  type        = number
+  default     = 50000000 # 50MB/s
+}
+
+variable "alarm_threshold_write_throughput_warning" {
+  description = "Write throughput threshold in bytes/second; triggers warning when WriteThroughput is greater than this value"
+  type        = number
+  default     = 20000000 # 20MB/s
+}
+
+variable "alarm_threshold_available_memory_critical" {
+  description = "Available memory threshold in bytes; triggers critical when AvailableMemory is less than this value"
+  type        = number
+  default     = 1000000000 # 1GB
+}
+
+variable "alarm_threshold_available_memory_warning" {
+  description = "Available memory threshold in bytes; triggers warning when AvailableMemory is less than this value"
+  type        = number
+  default     = 2000000000 # 2GB
+}
+
+variable "enable_warning_alarms" {
+  description = "Whether to enable warning level CloudWatch alarms for DMS resources"
+  type        = bool
+  default     = true
+}

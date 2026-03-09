@@ -1,0 +1,264 @@
+{
+    "replication_instance": [
+        {
+        "metric_name": "CPUUtilization",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "cpu_warning",
+        "description": "DMS replication instance CPU utilization warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier"
+        },
+        {
+        "metric_name": "CPUUtilization",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "cpu_critical",
+        "description": "DMS replication instance CPU utilization critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier"
+        },
+        {
+        "metric_name": "FreeableMemory",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "freeable_memory_warning",
+        "description": "DMS replication instance freeable memory warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier"
+        },
+        {
+        "metric_name": "FreeableMemory",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "freeable_memory_critical",
+        "description": "DMS replication instance freeable memory critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier"
+        },
+        {
+        "metric_name": "AvailableMemory",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "available_memory_warning",
+        "description": "DMS replication instance available memory warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier"
+        },
+        {
+        "metric_name": "AvailableMemory",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "available_memory_critical",
+        "description": "DMS replication instance available memory critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "FreeStorageSpace",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "free_storage_space_warning",
+        "description": "DMS replication instance free storage space warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "FreeStorageSpace",
+        "statistic": "Average",
+        "comparison_operator": "LessThanThreshold",
+        "alarm_suffix": "free_storage_space_critical",
+        "description": "DMS replication instance free storage space critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "SwapUsage",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "swap_usage_warning",
+        "description": "DMS replication instance swap usage warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "SwapUsage",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "swap_usage_critical",
+        "description": "DMS replication instance swap usage critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "WriteLatency",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "write_latency_warning",
+        "description": "DMS replication instance write latency warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "WriteLatency",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "write_latency_critical",
+        "description": "DMS replication instance write latency critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadLatency",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_latency_warning",
+        "description": "DMS replication instance read latency warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadLatency",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_latency_critical",
+        "description": "DMS replication instance read latency critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadIOPS",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_iops_warning",
+        "description": "DMS replication instance read IOPS warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadIOPS",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_iops_critical",
+        "description": "DMS replication instance read IOPS critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_throughput_warning",
+        "description": "DMS replication instance read throughput warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "ReadThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "read_throughput_critical",
+        "description": "DMS replication instance read throughput critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "WriteThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "write_throughput_warning",
+        "description": "DMS replication instance write throughput warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "WriteThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "write_throughput_critical",
+        "description": "DMS replication instance write throughput critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "NetworkReceiveThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "network_receive_throughput_warning",
+        "description": "DMS replication instance network receive throughput warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "NetworkReceiveThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "network_receive_throughput_critical",
+        "description": "DMS replication instance network receive throughput critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "NetworkTransmitThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "network_transmit_throughput_warning",
+        "description": "DMS replication instance network transmit throughput warning threshold",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        },
+        {
+        "metric_name": "NetworkTransmitThroughput",
+        "statistic": "Average",
+        "comparison_operator": "GreaterThanThreshold",
+        "alarm_suffix": "network_transmit_throughput_critical",
+        "description": "DMS replication instance network transmit throughput critical threshold",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationInstanceIdentifier",
+        "datapoints_to_alarm": 5
+        }
+        
+  ]
+}

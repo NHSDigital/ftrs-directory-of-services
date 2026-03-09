@@ -15,6 +15,7 @@ module "metric_alarm" {
   alarm_description   = each.value.description
   alarm_actions       = [aws_sns_topic.alarms.arn]
   treat_missing_data  = "notBreaching"
+  datapoints_to_alarm = each.value.datapoints_to_alarm
 
   dimensions = {
     (each.value.dimension_name) = each.value.resource_identifier

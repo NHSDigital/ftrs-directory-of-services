@@ -76,3 +76,15 @@ variable "slack_notifier_function_name" {
   type        = string
   default     = ""
 }
+
+variable "alarm_descriptions" {
+  description = "Map of resource keys to their alarm descriptions"
+  type        = map(map(string))
+  default     = {}
+}
+
+variable "alarm_datapoints_to_alarm" {
+  description = "Map of resource keys to their datapoints to alarm configuration"
+  type        = map(map(number))
+  default     = {}
+}

@@ -15,9 +15,10 @@ locals {
           metric_name         = alarm.metric_name
           statistic           = alarm.statistic
           threshold           = lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null)
+          datapoints_to_alarm = lookup(lookup(var.alarm_datapoints_to_alarm, resource_key, {}), alarm.alarm_suffix, lookup(alarm, "datapoints_to_alarm", null))
           comparison_operator = alarm.comparison_operator
           alarm_name          = "${var.resource_prefix}-${replace(resource_key, "_", "-")}-${alarm.alarm_suffix}"
-          description         = alarm.description
+          description         = lookup(lookup(var.alarm_descriptions, resource_key, {}), alarm.alarm_suffix, alarm.description)
           evaluation_periods  = lookup(lookup(var.alarm_evaluation_periods, resource_key, {}), alarm.alarm_suffix, 1)
           period              = lookup(lookup(var.alarm_periods, resource_key, {}), alarm.alarm_suffix, 60)
           actions_enabled     = alarm.severity == "warning" ? var.enable_warning_alarms : true
