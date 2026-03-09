@@ -1,0 +1,33 @@
+name: Warm Dependency Caches
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The branch, tag or SHA to checkout"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  warm-dependency-caches:
+    name: "Warm dependency caches"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: "Setup asdf"
+        uses: ./.github/actions/setup-asdf
+
+      - name: "Setup uv"
+        uses: ./.github/actions/setup-uv
+
+      - name: "Sync uv dependencies"
+        run: uv sync
+        working-directory: "tests/service_automation"

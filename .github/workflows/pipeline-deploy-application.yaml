@@ -40,10 +40,19 @@ jobs:
     with:
       ref: ${{ inputs.ref }}
 
+  warm-dependency-caches:
+    name: "Warm dependency caches"
+    needs:
+      - metadata
+    uses: ./.github/workflows/warm-dependency-caches.yaml
+    with:
+      ref: ${{ inputs.ref }}
+
   quality-checks:
     name: "Quality checks for ${{ needs.metadata.outputs.environment }} deployment"
     needs:
       - metadata
+      - warm-dependency-caches
     uses: ./.github/workflows/quality-checks.yaml
     with:
       environment: ${{ needs.metadata.outputs.environment }}
@@ -363,6 +372,7 @@ jobs:
             type: "bdd"
     needs:
       - metadata
+      - warm-dependency-caches
       - deploy-application-infrastructure
       - restore-dynamodb-from-s3
       - export-dynamodb-to-s3
