@@ -1,6 +1,7 @@
 name: Code Quality Checks Workflow
 
-permissions: {}
+permissions:
+  contents: read
 on:
   workflow_call:
     inputs:
