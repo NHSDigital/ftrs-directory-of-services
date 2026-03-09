@@ -26,6 +26,6 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        uv venv .venv
+        [ -d .venv ] || uv venv .venv
         echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
         uv pip install --python .venv/bin/python ${{ inputs.packages }}
