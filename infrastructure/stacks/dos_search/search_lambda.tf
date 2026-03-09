@@ -80,22 +80,29 @@ module "healthcare_service_lambda" {
   attach_tracing_policy   = true
   tracing_mode            = "Active"
   number_of_policy_jsons  = "2"
-  policy_jsons            = [data.aws_iam_policy_document.dynamodb_access_policy.json]
-  timeout                 = var.lambda_timeout
-  memory_size             = var.lambda_memory_size
+  policy_jsons = [
+    data.aws_iam_policy_document.dynamodb_access_policy.json,
+    data.aws_iam_policy.appconfig_access_policy.policy,
+  ]
+  timeout     = var.lambda_timeout
+  memory_size = var.lambda_memory_size
 
   layers = [
     aws_lambda_layer_version.python_dependency_layer.arn,
     aws_lambda_layer_version.common_packages_layer.arn,
+    local.appconfig_lambda_extension_layer_arn,
   ]
 
   subnet_ids         = [for subnet in data.aws_subnet.private_subnets_details : subnet.id if can(regex("/24$", subnet.cidr_block))]
   security_group_ids = [try(aws_security_group.dos_search_lambda_security_group[0].id, data.aws_security_group.dos_search_lambda_security_group[0].id)]
 
   environment_variables = {
-    "ENVIRONMENT"  = var.environment
-    "PROJECT_NAME" = var.project
-    "WORKSPACE"    = terraform.workspace == "default" ? "" : terraform.workspace
+    "ENVIRONMENT"                        = var.environment
+    "PROJECT_NAME"                       = var.project
+    "WORKSPACE"                          = terraform.workspace == "default" ? "" : terraform.workspace
+    "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
+    "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
+    "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
   }
 
   allowed_triggers = {

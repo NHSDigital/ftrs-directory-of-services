@@ -96,6 +96,20 @@ def create_resource_internal_server_error() -> OperationOutcome:
     )
 
 
+def create_resource_service_unavailable_error() -> OperationOutcome:
+    return OperationOutcome.model_validate(
+        {
+            "issue": [
+                _create_issue(
+                    "exception",
+                    "fatal",
+                    diagnostics="Service Unavailable: Healthcare Service search endpoint is currently disabled",
+                )
+            ]
+        }
+    )
+
+
 def create_validation_error_operation_outcome(
     exception: ValidationError,
 ) -> OperationOutcome:

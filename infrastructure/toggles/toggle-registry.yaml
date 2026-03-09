@@ -29,6 +29,19 @@ appconfig_flags:
       ref: false
       prod: false
 
+  - id: dos_search_healthcare_service_enabled
+    name: "Dos Search - Healthcare Service Enabled"
+    description: "Enable Healthcare services endpoints from the current DoS"
+    service: dos-search
+    owner: "Dos Search Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
 stack_toggles:
   - id: data_migration_version_history_enabled
     name: "Data Migration - Version History Enabled"
@@ -146,6 +159,24 @@ api_gateway_toggles:
       int: true
       ref: true
       prod: true
+
+  - id: dos_search_healthcareservice_search_enabled
+    name: "DoS Search - Healthcare Service Search Enabled"
+    description: "Enable/disable the DoS Search Healthcare Service endpoint (Search by ODS Code)"
+    route: "GET /HealthcareService"
+    service: dos-search
+    terraform_variable: dos_search_healthcareservice_search_enabled
+    disabled_response:
+      status_code: 503
+      message: "Healthcare Service search endpoint is currently disabled"
+    owner: "DoS Search Team"
+    environments:
+      workspace: false
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
 
   - id: crud_api_organisation_create_enabled
     name: "CRUD API - Organisation Create Enabled"

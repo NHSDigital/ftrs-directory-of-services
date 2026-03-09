@@ -4,6 +4,7 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
 from pydantic import ValidationError
 
 from functions import error_util
@@ -18,6 +19,7 @@ dos_logger = DosLogger.get(service=service)
 logger = dos_logger.logger
 tracer = Tracer()
 app = APIGatewayRestResolver()
+FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
 
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
     "Content-Type": "application/fhir+json",
@@ -33,6 +35,33 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 def get_healthcare_service() -> Response:
     start = time.time()
     dos_logger.init(app.current_event)
+
+    if FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
+    ):
+        dos_logger.info(
+            "Healthcare Service search endpoint is enabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="enabled",
+            dos_message_category="FEATURE_FLAG",
+        )
+    else:
+        dos_logger.warning(
+            "Healthcare Service search endpoint is disabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="disabled",
+            dos_message_category="FEATURE_FLAG",
+        )
+        fhir_resource = error_util.create_resource_service_unavailable_error()
+        response_size, duration_ms = dos_logger.get_response_size_and_duration(
+            fhir_resource, start
+        )
+        dos_logger.exception(
+            "Internal server error occurred",
+            dos_response_time=f"{duration_ms}ms",
+            dos_response_size=response_size,
+        )
+        return create_response(500, fhir_resource)
 
     try:
         query_params = app.current_event.query_string_parameters or {}
