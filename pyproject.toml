@@ -3,23 +3,20 @@ name = "ftrs-directory-of-services"
 version = "0.1.0"
 description = "NHS FTRS Directory of Services Monorepo - Powered by uv workspaces"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "crud-apis",
+    "pipeline",
+    "dos-search",
+    "slack-notifier",
+    "ftrs-aws-local",
+]
 
-[project.scripts]
-# data-migration
-dos-etl = "cli.main:typer_app"
-# crud-apis
-start-organisations-api = "organisations.local:run"
-start-healthcare-api = "healthcare_service.local:run"
-start-location-api = "location.local:run"
-start-all-apis = "handler_main:run"
-# slack-notifier
-slack-notifier = "functions.slack_alarm_handler:lambda_handler"
-# ftrs-aws-local
-ftrs-aws-local = "dynamodb.cli:typer_app"
-# dos-search
-dos-search-function = "functions.dos_search_ods_code_function:lambda_handler"
-dos-search-health-check = "health_check.health_check_function:lambda_handler"
+[tool.uv.sources]
+crud-apis = {workspace = true}
+pipeline = {workspace = true}
+dos-search = {workspace = true}
+slack-notifier = {workspace = true}
+ftrs-aws-local = {workspace = true}
 
 [dependency-groups]
 # Shared tool dependencies across the entire monorepo
@@ -28,7 +25,11 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.14.0",
     "ruff>=0.14.2",
-    "mypy>=1.10.0"
+    "mypy>=1.10.0",
+    # Local dev entry point runtime dependencies (not for Lambda deployment)
+    "awswrangler>=3.11.0",
+    "pandas>=2.2.2",
+    "uvicorn>=0.34.2",
 ]
 
 [tool.uv.workspace]
