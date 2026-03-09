@@ -20,22 +20,6 @@ include ../../scripts/services/python-service.mk
 # Service-Specific Overrides
 # ==============================================================================
 
-# Override dependency layer export to exclude additional groups
-build-dependency-layer: ## Build Python dependency layer artefact
-	@echo "Building dependency layer for $(SERVICE)..."
-	@mkdir -p $(DEPENDENCY_DIR)/python
-	uv export --no-dev --no-hashes -o $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-		--platform $(PLATFORM) \
-		--target $(DEPENDENCY_DIR)/python \
-		--implementation cp \
-		--python-version $(PYTHON_VERSION) \
-		--no-deps \
-		--upgrade \
-		-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
-	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
-
 _install-dependency: ## Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}
 	asdf plugin add ${name} ||:
