@@ -4,19 +4,23 @@ from aws_lambda_powertools import Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
+from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.event_context import get_response_size_and_duration
 from functions.ftrs_service.ftrs_service import FtrsService
-from functions.logger.dos_logger import DosLogger
+from functions.logbase import DosSearchLogBase
 from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
+from functions.request_context_middleware import request_context_middleware
 
 service = "dos-search"
-dos_logger = DosLogger.get(service=service)
-logger = dos_logger.logger
+logger = Logger.get(service=service)
 tracer = Tracer()
+
 app = APIGatewayRestResolver()
+app.use([request_context_middleware])
 
 
 DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
@@ -36,7 +40,6 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 @tracer.capture_method
 def get_organization() -> Response:
     start = time.time()
-    dos_logger.init(app.current_event)
     try:
         try:
             OrganizationHeaders.model_validate(app.current_event.headers)
@@ -52,8 +55,8 @@ def get_organization() -> Response:
 
         ods_code = validated_params.ods_code
         # Structured request log
-        dos_logger.info(
-            "Received request for odsCode",
+        logger.log(
+            DosSearchLogBase.DOS_SEARCH_002,
             ods_code=ods_code,
             dos_message_category="REQUEST",
         )
@@ -65,12 +68,12 @@ def get_organization() -> Response:
         return handle_general_exception(start)
     else:
         # success path: measure and log response metrics
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
 
-        dos_logger.info(
-            "Successfully processed: Logging response time & size",
+        logger.log(
+            DosSearchLogBase.DOS_SEARCH_003,
             dos_response_time=f"{duration_ms}ms",
             dos_response_size=response_size,
             dos_message_category="METRICS",
@@ -81,11 +84,11 @@ def get_organization() -> Response:
 def handle_event_validation_error(exception: ValidationError, start: float) -> Response:
     fhir_resource = error_util.create_validation_error_operation_outcome(exception)
 
-    response_size, duration_ms = dos_logger.get_response_size_and_duration(
-        fhir_resource, start
+    response_size, duration_ms = get_response_size_and_duration(
+        fhir_resource, start, logger
     )
-    dos_logger.warning(
-        "Validation error occurred: Logging response time & size",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_005,
         validation_errors=exception.errors(),
         dos_response_time=f"{duration_ms}ms",
         dos_response_size=response_size,
@@ -94,14 +97,13 @@ def handle_event_validation_error(exception: ValidationError, start: float) -> R
 
 
 def handle_general_exception(start: float) -> Response:
-    # Log exception with structured fields
     fhir_resource = error_util.create_resource_internal_server_error()
 
-    response_size, duration_ms = dos_logger.get_response_size_and_duration(
-        fhir_resource, start
+    response_size, duration_ms = get_response_size_and_duration(
+        fhir_resource, start, logger
     )
-    dos_logger.exception(
-        "Internal server error occurred: Logging response time & size",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_006,
         dos_response_time=f"{duration_ms}ms",
         dos_response_size=response_size,
     )
@@ -113,8 +115,8 @@ def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Respo
     # Log response creation with structured fields (we don't have event in this scope)
     # response details have been logged in the handler; this is an additional log point
     body = fhir_resource.model_dump_json()
-    dos_logger.info(
-        "Creating response",
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_004,
         status_code=status_code,
         body=body,
         dos_message_category="RESPONSE",

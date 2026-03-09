@@ -1,6 +1,6 @@
 @is-apim @integrated-search @dos-search-ods-code-api
 @nhsd_apim_authorization(access="application",level="level3")
-Feature: API DoS Service Search Is Secured
+Feature: dos-search tests to ensure that the apim proxy is secure
 
   Background: Set stack and seed repo
     Given that the stack is "dos-search"
@@ -18,7 +18,7 @@ Feature: API DoS Service Search Is Secured
     Then I receive a status code "200" in response
 
 
-  Scenario: I search APIM for dos-search Endpoint by ODS Code with valid query parameters and a valid access token
+  Scenario: I search for Organization endpoint data by ODS Code with valid query parameters and a valid access token
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046"
     Then I receive a status code "200" in response
     And the response body contains a bundle
@@ -26,7 +26,7 @@ Feature: API DoS Service Search Is Secured
     And the bundle contains "4" "Endpoint" resources
 
 
-  Scenario: I cannot search APIM for dos-search Endpoint with invalid access token
+  Scenario: I cannot search APIM for Organization endpoint data by ODS Code with invalid access token
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with invalid token
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -36,7 +36,7 @@ Feature: API DoS Service Search Is Secured
     And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
 
-  Scenario: I cannot search APIM for dos-search Endpoint without authentication
+  Scenario: I cannot search APIM for Organization endpoint data by ODS Code without authentication
     When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" without authentication
     Then I receive a status code "401" in response
     And the response body contains an "OperationOutcome" resource
@@ -47,3 +47,23 @@ Feature: API DoS Service Search Is Secured
     And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
 
 
+  Scenario: I cannot search APIM for Organization endpoint data by ODS Code with malformed Authorization header format
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with malformed auth header
+    Then I receive a status code "401" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "security"
+    And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
+    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding
+
+
+  Scenario: I cannot search APIM for Organization endpoint data by ODS Code with empty Authorization header
+    When I request data from the APIM endpoint "Organization" with query params "_revinclude=Endpoint:organization&identifier=https://fhir.nhs.uk/Id/ods-organization-code|M00081046" with empty auth header
+    Then I receive a status code "401" in response
+    And the response body contains an "OperationOutcome" resource
+    And the OperationOutcome contains "1" issues
+    And the OperationOutcome contains an issue with severity "error"
+    And the OperationOutcome contains an issue with code "security"
+    And the OperationOutcome contains an issue with diagnostics "Invalid or missing authentication token"
+    And the OperationOutcome contains an issue with details for INVALID_AUTH_CODING coding

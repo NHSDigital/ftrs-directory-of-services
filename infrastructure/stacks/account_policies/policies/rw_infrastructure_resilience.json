@@ -10,14 +10,25 @@
             "Resource": "*"
         },
         {
-            "Sid": "AWSResilienceHubFullAccess",
+            "Sid": "AWSFaultInjectionSimulatorFullAccess",
             "Effect": "Allow",
             "Action": [
-                "backup:DescribeBackupVault",
-                "backup:GetBackupPlan",
-                "backup:GetBackupSelection",
-                "backup:ListBackupPlans",
-                "backup:ListBackupSelections",
+                "fis:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AWSResilienceHubServiceFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "resiliencehub:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ResilienceHubSupportingServicesReadAccess",
+            "Effect": "Allow",
+            "Action": [
                 "datasync:DescribeTask",
                 "datasync:ListLocations",
                 "datasync:ListTasks",
@@ -28,11 +39,6 @@
                 "drs:DescribeSourceServers",
                 "drs:GetReplicationConfiguration",
                 "ds:DescribeDirectories",
-                "fis:GetExperiment",
-                "fis:GetExperimentTemplate",
-                "fis:ListExperimentTemplates",
-                "fis:ListExperiments",
-                "fis:ListExperimentResolvedTargets",
                 "fsx:DescribeFileSystems",
                 "route53-recovery-control-config:ListClusters",
                 "route53-recovery-control-config:ListControlPanels",
