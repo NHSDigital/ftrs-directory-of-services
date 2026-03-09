@@ -1,4 +1,5 @@
 from fhir.resources.R4B.bundle import Bundle
+from ftrs_common.logger import Logger
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import HealthcareService
 from ftrs_data_layer.domain.organisation import Organisation
@@ -6,9 +7,8 @@ from ftrs_data_layer.domain.organisation import Organisation
 from functions.ftrs_service.fhir_mapper.healthcare_service_bundle_mapper import (
     HealthcareServiceBundleMapper,
 )
-from functions.logger.dos_logger import DosLogger
 
-dos_logger = DosLogger.get(service="dos-search")
+logger = Logger.get(service="dos-search")
 
 
 class HealthcareServicesByOdsService:
@@ -21,7 +21,7 @@ class HealthcareServicesByOdsService:
 
     def healthcare_services_by_ods(self, ods_code: str) -> Bundle:
         try:
-            dos_logger.info(
+            logger.info(
                 "Retrieving organisations by ods_code for healthcare services lookup",
                 ods_code=ods_code,
             )
@@ -29,21 +29,21 @@ class HealthcareServicesByOdsService:
             organisations = self.repository.get_by_ods_code(ods_code)
 
             if not organisations:
-                dos_logger.info(
+                logger.info(
                     "No organisations found for ods_code, returning empty bundle",
                     ods_code=ods_code,
                 )
                 return self.healthcare_service_mapper.map_to_fhir([], ods_code)
             organization_ids = [str(org.id) for org in organisations]
 
-            dos_logger.info(
+            logger.info(
                 "Retrieving healthcare services for organisations",
                 organization_ids=organization_ids,
                 ods_code=ods_code,
             )
             healthcare_services = []
             for organization_id in organization_ids:
-                dos_logger.info(
+                logger.info(
                     "Retrieving healthcare services for organisation",
                     organization_id=organization_id,
                 )
@@ -53,7 +53,7 @@ class HealthcareServicesByOdsService:
                     )
                 )
 
-            dos_logger.info(
+            logger.info(
                 "Mapping healthcare services to fhir_bundle",
                 healthcare_service_count=len(healthcare_services),
             )
@@ -63,7 +63,7 @@ class HealthcareServicesByOdsService:
             )
 
         except Exception:
-            dos_logger.exception(
+            logger.exception(
                 "Error occurred while processing healthcare services request"
             )
             raise

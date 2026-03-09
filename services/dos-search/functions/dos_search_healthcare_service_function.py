@@ -5,18 +5,18 @@ from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
+from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.event_context import get_response_size_and_duration
 from functions.ftrs_service.healthcare_services_by_ods import (
     HealthcareServicesByOdsService,
 )
 from functions.healthcare_service_query_params import HealthcareServiceQueryParams
-from functions.logger.dos_logger import DosLogger
 
 service = "dos-search"
-dos_logger = DosLogger.get(service=service)
-logger = dos_logger.logger
+logger = Logger.get(service=service)
 tracer = Tracer()
 app = APIGatewayRestResolver()
 FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
@@ -34,12 +34,11 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 @tracer.capture_method
 def get_healthcare_service() -> Response:
     start = time.time()
-    dos_logger.init(app.current_event)
 
     if FEATURE_FLAGS_CLIENT.is_enabled(
         FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
     ):
-        dos_logger.info(
+        logger.info(
             "Healthcare Service search endpoint is enabled via feature flag",
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="enabled",
@@ -47,10 +46,10 @@ def get_healthcare_service() -> Response:
         )
     else:
         fhir_resource = error_util.create_resource_service_unavailable_error()
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
-        dos_logger.warning(
+        logger.warning(
             "Service unavailable - Healthcare Service search endpoint is disabled via feature flag",
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="disabled",
@@ -66,7 +65,7 @@ def get_healthcare_service() -> Response:
         validated_params = HealthcareServiceQueryParams.model_validate(query_params)
 
         ods_code = validated_params.ods_code
-        dos_logger.info(
+        logger.info(
             "Received request for healthcare service",
             ods_code=ods_code,
             dos_message_category="REQUEST",
@@ -77,10 +76,10 @@ def get_healthcare_service() -> Response:
 
     except ValidationError as exception:
         fhir_resource = error_util.create_validation_error_operation_outcome(exception)
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
-        dos_logger.warning(
+        logger.warning(
             "Validation error occurred",
             validation_errors=exception.errors(),
             dos_response_time=f"{duration_ms}ms",
@@ -90,10 +89,10 @@ def get_healthcare_service() -> Response:
 
     except Exception:
         fhir_resource = error_util.create_resource_internal_server_error()
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
-        dos_logger.exception(
+        logger.exception(
             "Internal server error occurred",
             dos_response_time=f"{duration_ms}ms",
             dos_response_size=response_size,
@@ -101,10 +100,10 @@ def get_healthcare_service() -> Response:
         return create_response(500, fhir_resource)
 
     else:
-        response_size, duration_ms = dos_logger.get_response_size_and_duration(
-            fhir_resource, start
+        response_size, duration_ms = get_response_size_and_duration(
+            fhir_resource, start, logger
         )
-        dos_logger.info(
+        logger.info(
             "Successfully processed healthcare service request",
             dos_response_time=f"{duration_ms}ms",
             dos_response_size=response_size,
@@ -115,7 +114,7 @@ def get_healthcare_service() -> Response:
 
 def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
     body = fhir_resource.model_dump_json()
-    dos_logger.info(
+    logger.info(
         "Creating response",
         status_code=status_code,
         dos_message_category="RESPONSE",

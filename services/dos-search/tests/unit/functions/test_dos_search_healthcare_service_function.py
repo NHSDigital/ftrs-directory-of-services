@@ -47,7 +47,7 @@ def mock_ftrs_service():
 
 @pytest.fixture
 def mock_logger():
-    with patch("functions.dos_search_healthcare_service_function.dos_logger") as mock:
+    with patch("functions.dos_search_healthcare_service_function.logger") as mock:
         mock.get_response_size_and_duration.return_value = (100, 1)
         yield mock
 
@@ -288,8 +288,8 @@ class TestHealthcareServiceLambdaHandler:
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="disabled",
             dos_message_category="FEATURE_FLAG",
-            dos_response_time="1ms",
-            dos_response_size=100,
+            dos_response_time="0ms",
+            dos_response_size=68,
         )
         mock_error_util.create_resource_service_unavailable_error.assert_called_once()
         assert response["statusCode"] == 503
