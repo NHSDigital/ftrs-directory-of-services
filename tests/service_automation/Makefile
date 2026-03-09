@@ -30,25 +30,25 @@ install: config
 
 config:
 	make _install-dependencies
-	poetry install --no-root --no-interaction --with shared
-	poetry run playwright install chromium
+	uv sync
+	uv run playwright install chromium
 
 lint:
-	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
-	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
+	uv run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	uv run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 
 lint-staged:
 	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
 	if [ -z "$$files" ]; then \
 		echo "No files staged"; \
 	else \
-		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
-		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs uv run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs uv run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
 	fi
 
 lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 pre-commit: lint-staged
 
@@ -65,13 +65,13 @@ test:
 		echo "Running tests for test type: $$TEST_TYPE"; \
 		echo "Running tests for env: $$ENVIRONMENT"; \
 		if [ "$$marker" = "ui" ] || [ "$(TEST_TYPE)" = "ui" ]; then \
-			poetry run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
+			uv run pytest -m "$$marker" -p allure_pytest --alluredir=$(ALLURE_RESULTS); \
 		elif [ "$(TEST_TYPE)" = "apim" ]; then \
 			echo "Running tests for API name: $(API_NAME)"; \
 			echo "Running tests for proxy name: $$PROXY_NAME"; \
-			poetry run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
+			uv run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		else \
-			poetry run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
+			uv run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
 

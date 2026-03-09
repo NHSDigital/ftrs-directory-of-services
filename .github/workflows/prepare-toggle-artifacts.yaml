@@ -30,10 +30,11 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
+      - name: "Install uv"
+        uses: astral-sh/setup-uv@v6
+
       - name: "Install Python dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
+        run: uv pip install --system pyyaml
 
       - name: "Generate feature flags JSON"
         env:

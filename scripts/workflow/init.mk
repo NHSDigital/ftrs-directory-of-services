@@ -6,7 +6,6 @@ nodejs-install: # Install Node.js
 
 python-install: # Install Python
 	make _install-dependency name="python"
-	make _install-dependency name="poetry" version=latest
 
 terraform-install: # Install Terraform
 	make _install-dependency name="terraform"

@@ -47,12 +47,12 @@ include ../../scripts/services/python-service.mk
 # ==============================================================================
 
 unit-test: ## Run unit tests
-	poetry run pytest tests/unit
+	uv run pytest tests/unit
 
 # Override default build to produce extractor + transformer + consumer artefacts
 build: ensure-build-dir build-dependency-layer build-extractor-lambda build-transformer-lambda build-consumer-lambda
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+	uv export --no-hashes -o $(BUILD_DIR)/requirements.txt
 
 build-extractor-lambda: ensure-build-dir ## Build extractor lamdba artefact
 	mkdir -p $(BUILD_DIR)/extractor-tmp

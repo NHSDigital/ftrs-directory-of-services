@@ -12,11 +12,12 @@ dependencies = [
     "pandas==3.0.0"
 ]
 
-[tool.poetry.scripts]
+[project.scripts]
 generate_database_update_data = "database_updates.generate_database_update_data:main"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
-packages = [
-    { include = "database_updates" }
-]
+[tool.hatch.build.targets.wheel]
+packages = ["database_updates"]

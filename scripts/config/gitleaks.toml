@@ -20,8 +20,7 @@ regexes = [
 [allowlist]
 paths = [
   '''.terraform.lock.hcl''',
-  '''poetry.lock''',
-  '''.poetry.lock''',
+  '''uv.lock''',
   '''yarn.lock''',
   '''scripts/workflow/create-vpn-client-cert.sh''',
   '''services/data-migration/tests/unit/''',

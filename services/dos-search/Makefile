@@ -7,8 +7,8 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-search
-POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := dos_search-$(POETRY_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := dos_search-$(PROJECT_VERSION)-py3-none-any.whl
 
 # ==============================================================================
 # Include Shared Python Service Targets
@@ -24,7 +24,7 @@ include ../../scripts/services/python-service.mk
 build-dependency-layer: ## Build Python dependency layer artefact
 	@echo "Building dependency layer for $(SERVICE)..."
 	@mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without test --without shared --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	uv export --no-dev --no-hashes -o $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 		--platform $(PLATFORM) \
 		--target $(DEPENDENCY_DIR)/python \

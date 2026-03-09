@@ -166,7 +166,6 @@ export AWS_REGION=eu-west-2
 
 ```bash
 cd services/data-migration
-eval $(poetry env activate)
 
 # MUST export these environment variables before running Lambda
 export ENDPOINT_URL=http://localhost:8000
@@ -240,9 +239,6 @@ aws dynamodb query \
 This method runs the Lambda handler function directly in Python without AWS tooling.
 
 ```bash
-   # Activate Python virtual environment
-   eval $(poetry env activate)
-
    # Set required environment variables
    export ENVIRONMENT=local
    export WORKSPACE=test_workspace
@@ -300,9 +296,8 @@ This method runs the Lambda handler function directly in Python without AWS tool
 If you prefer to run the Lambda handler directly without the script:
 
 ```bash
-   # Activate Python virtual environment
+   # Activate Python virtual environment (or use `uv run python -c ...`)
    cd services/data-migration
-   eval $(poetry env activate)
 
    # Set required environment variables
    export SQS_QUEUE_URL=http://localhost:4566/data-migration-queue

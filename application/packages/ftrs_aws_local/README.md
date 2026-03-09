@@ -9,8 +9,7 @@ Postgres.
 
 ## Installation
 
-Poetry is used for dependency management and packaging. Ensure you have poetry installed,
- and then run `poetry install` to install packages from the **ftrs_aws_local** package.
+uv is used for dependency management. Run `uv sync` from the repository root to install all packages.
 
 ## Start Database Container
 
@@ -132,6 +131,5 @@ dynamoDB instance.
 Unit tests are run using Pytest. You can use the make target to conveniently run these tests, or run them directly using pytest.
 
 ```bash
-eval $(poetry env activate)
-pytest tests/unit
+uv run pytest tests/unit
 ```

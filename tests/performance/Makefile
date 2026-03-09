@@ -201,8 +201,8 @@ data-prep:
 	echo "Generating data"
 	cd ./scripts/ && sh extract_ids_from_source_db.sh
 	cd ./scripts/data_generation \
-		&& poetry install \
-		&& poetry run generate_database_update_data
+		&& uv sync \
+		&& uv run generate_database_update_data
 
 
 data-migration-typical-day-hot-hour-ui:
