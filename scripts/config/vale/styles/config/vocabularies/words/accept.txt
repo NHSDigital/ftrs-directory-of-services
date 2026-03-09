@@ -142,3 +142,4 @@ backup_copy_vault_account_id
 backup_copy_vault_arn
 dynamodb
 project_name
+uv
