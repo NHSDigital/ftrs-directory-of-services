@@ -9,7 +9,7 @@ The previous approach required you to maintain separate virtual environments, `p
 ## What Changed
 
 | Area | Before | After |
-|---|---|---|
+| ---- | ------ | ----- |
 | Package manager | `poetry 2.1.1` | `uv 0.10.9` |
 | Virtual environments | One per service (e.g. `services/crud-apis/.venv`) | One at repo root (`.venv`) |
 | Lockfile | Per-service `poetry.lock` | Single `uv.lock` at repo root |
@@ -20,7 +20,7 @@ The previous approach required you to maintain separate virtual environments, `p
 | Install | `poetry install --no-interaction` | `uv sync` |
 | Build wheel | `poetry build -f wheel -o <dir>` | `uv build --wheel --out-dir <dir>` |
 | Export requirements | `poetry export --without dev --without-hashes` | `uv export --no-dev --no-hashes --no-emit-workspace` |
-| `.tool-versions` per service | Present (python + poetry) | Deleted — inherits from repo root |
+| `.tool-versions` per service | Present (Python + poetry) | Deleted — inherits from repo root |
 | Root `pyproject.toml` | Did not exist | New — defines the uv workspace |
 
 ---
@@ -297,4 +297,3 @@ The per-service `poetry.lock` files have been deleted in this branch. If they re
 ```bash
 find . -mindepth 2 -name 'poetry.lock' -delete
 ```
-

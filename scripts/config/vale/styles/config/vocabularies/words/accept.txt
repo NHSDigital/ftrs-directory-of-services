@@ -143,3 +143,7 @@ backup_copy_vault_arn
 dynamodb
 project_name
 uv
+lockfile
+Lockfile
+Makefile
+Makefile's
