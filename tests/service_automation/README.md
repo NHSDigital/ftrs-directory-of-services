@@ -213,6 +213,7 @@ make test MARKERS="data-sourcing"
 ### Running crud-api tests
 
 ### Running crud-api for organization tests
+
 ```shell
 make test MARKERS="crud-org-api"
 ```
@@ -295,12 +296,12 @@ The ETL mock includes the following test scenarios:
 | **Missing Optional Fields**| API response missing optional fields|Tests the system's ability to handle missing optional fields|
 | **Invalid ODSCode Format**|API returns an invalid format for the ODSCode field|Verifies validation of the ODSCode format|
 
-
 Each scenario is designed to test specific error conditions and edge cases that might occur when interacting with the real ODS API.
 
 #### Configuration
 
 The mock system automatically:
+
 - Retrieves the mock API Gateway URL from AWS Systems Manager Parameter Store
 - Configures the ETL Lambda environment variables to use the mock endpoint
 - Manages test data scenarios through predefined date-based triggers
