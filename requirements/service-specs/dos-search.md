@@ -97,7 +97,7 @@ Contains connection details (address, payloadType, status). Associated to Organi
 
 ## 7. Architecture & Deployment
 
-- Serverless compute: AWS Lambda (Python 3.12) packaged via Poetry.
+- Serverless compute: AWS Lambda (Python 3.12) packaged via uv.
 - Data: DynamoDB (partitioned by entity type, keyed by ODS code or internal id).
 - Observability: AWS Lambda Powertools (structured logging, tracing), X-Ray integration, metrics export (latency histograms, TPS).
 - Security: TLS enforced via API Gateway; request validation ensures ODS codes conform; dependencies scanned in CI.

@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+# Copy uv binary from official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Install curl for healthcheck and create non-root user
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
@@ -8,18 +11,14 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Copy dependency manifests
-COPY pyproject.toml /app/
-COPY poetry.lock /app/
+# Copy dependency manifest and readme (required by hatchling build backend)
+COPY pyproject.toml README.md /app/
 
-# Install poetry and project dependencies (no virtualenv)
-RUN pip install --no-cache-dir "poetry>=2,<3" \
-    && poetry config virtualenvs.create false \
-    && poetry check --lock \
-    && poetry install --no-interaction --no-root --no-ansi
-
-# Copy application code
+# Copy application code (must precede `uv pip install .` so hatchling can find the sources)
 COPY src /app/src
+
+# Install only production dependencies (no dev group)
+RUN uv pip install --system --no-cache .
 
 # Permissions
 RUN chown -R appuser:appuser /app

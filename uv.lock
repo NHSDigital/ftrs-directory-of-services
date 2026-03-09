@@ -464,7 +464,7 @@ wheels = [
 [[package]]
 name = "dos-ingest-sandbox"
 version = "0.1.0"
-source = { virtual = "services/sandbox-dos-ingest" }
+source = { editable = "services/sandbox-dos-ingest" }
 dependencies = [
     { name = "fastapi" },
     { name = "uvicorn" },
@@ -472,8 +472,10 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -484,8 +486,10 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-cov", specifier = ">=6.1.1" },
     { name = "ruff", specifier = ">=0.9.6" },
-    { name = "uvicorn", specifier = ">=0.34.2" },
 ]
 
 [[package]]
