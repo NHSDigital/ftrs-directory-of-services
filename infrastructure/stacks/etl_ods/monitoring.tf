@@ -138,10 +138,7 @@ module "etl_ods_lambda_monitoring" {
   enable_warning_alarms = var.enable_warning_alarms
 
   tags = {
-    Name        = local.alarms_topic_name
-    Service     = var.service
-    Environment = var.environment
-    Stack       = var.stack_name
+    Name = local.alarms_topic_name
   }
 }
 
