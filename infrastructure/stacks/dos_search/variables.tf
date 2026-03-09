@@ -32,12 +32,6 @@ variable "lambda_timeout" {
   type        = number
 }
 
-variable "build_splunk_subscription" {
-  description = "Whether to build the CloudWatch subscription"
-  type        = bool
-  default     = false
-}
-
 #####################################################
 
 # API Gateway
