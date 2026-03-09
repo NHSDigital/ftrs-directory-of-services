@@ -11,8 +11,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Copy dependency manifest
-COPY pyproject.toml /app/
+# Copy dependency manifest and readme (required by hatchling build backend)
+COPY pyproject.toml README.md /app/
 
 # Install only production dependencies (no dev group)
 RUN uv pip install --system --no-cache .

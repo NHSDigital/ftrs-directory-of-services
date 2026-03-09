@@ -47,4 +47,3 @@ poetry.lock
 tests/
 scripts/
 Makefile
-README.md
