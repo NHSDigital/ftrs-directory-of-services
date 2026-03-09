@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+# Copy uv binary from official image
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Install curl for healthcheck and create non-root user
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
@@ -8,14 +11,11 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# Copy dependency manifests
-COPY pyproject.toml poetry.lock /app/
+# Copy dependency manifest
+COPY pyproject.toml /app/
 
-# Install poetry and project dependencies (no virtualenv)
-RUN pip install --no-cache-dir "poetry>=2,<3" \
-    && poetry config virtualenvs.create false \
-    && (poetry check --lock || poetry lock --no-interaction --no-ansi) \
-    && poetry install --no-interaction --no-root --no-ansi
+# Install only production dependencies (no dev group)
+RUN uv pip install --system --no-cache .
 
 # Copy application code
 COPY src /app/src
