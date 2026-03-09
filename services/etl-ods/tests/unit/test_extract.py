@@ -58,7 +58,7 @@ def test_fetch_outdated_organisations_success(mocker: MockerFixture) -> None:
     assert result[1]["id"] == "XYZ789"
 
     expected_params = [
-        ("_lastUpdated", date),
+        ("lastChangeDate", date),
         ("_count", "1000"),
         ("roleCode", OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value),
         ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value),
@@ -83,7 +83,7 @@ def test_fetch_outdated_organisations_empty_results(
             "link": [
                 {
                     "relation": "self",
-                    "url": "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?_lastUpdated=2025-10-15",
+                    "url": "https://api.service.nhs.uk/organisation-data-terminology-api/fhir/Organization?lastChangeDate=2025-10-15",
                 }
             ],
         },

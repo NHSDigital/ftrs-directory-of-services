@@ -72,7 +72,7 @@ def fetch_outdated_organisations(date: str) -> list[dict]:
 
 def _build_ods_query_params(date: str) -> list[tuple[str, str]]:
     return [
-        ("_lastUpdated", f"{date}"),
+        ("lastChangeDate", f"{date}"),
         ("_count", str(_get_page_limit())),
         ("roleCode", OrganisationTypeCode.PRESCRIBING_COST_CENTRE_CODE.value),
         ("roleCode", OrganisationTypeCode.GP_PRACTICE_ROLE_CODE.value),
