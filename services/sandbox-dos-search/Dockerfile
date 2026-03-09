@@ -14,11 +14,11 @@ WORKDIR /app
 # Copy dependency manifest and readme (required by hatchling build backend)
 COPY pyproject.toml README.md /app/
 
+# Copy application code (must precede `pip install .` so hatchling can find the sources)
+COPY src /app/src
+
 # Install only production dependencies (no dev group)
 RUN uv pip install --system --no-cache .
-
-# Copy application code
-COPY src /app/src
 
 # Permissions
 RUN chown -R appuser:appuser /app

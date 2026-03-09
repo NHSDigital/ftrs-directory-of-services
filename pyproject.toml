@@ -45,6 +45,7 @@ exclude = [
     "services/dos-ui",
     "services/read-only-viewer",
     "sandbox/dos-search",
+    "sandbox/dos-ingest-sandbox",
     "application/packages/utilities",
     # Excluded: pins pandas==3.0.0 which is incompatible with awswrangler used
     # in ftrs-aws-local. Manage this project's venv independently.

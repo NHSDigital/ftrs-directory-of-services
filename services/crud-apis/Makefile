@@ -28,13 +28,13 @@ coverage: ## Run tests with coverage for all API modules
 
 # Local development targets
 start-organisations-api: ## Start organisations API
-	uv run poe start-organisations-api
+	uv run start-organisations-api
 
 start-healthcare-api: ## Start healthcare service API
-	uv run poe start-healthcare-api
+	uv run start-healthcare-api
 
 start-location-api: ## Start location API
-	uv run poe start-location-api
+	uv run start-location-api
 
 start-all-apis: ## Start all APIs
-	uv run poe start-all-apis
+	uv run start-all-apis

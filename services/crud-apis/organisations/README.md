@@ -3,7 +3,7 @@
 ## Installation
 
 This project requires Python and uv as core dependencies.
-The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
+The current versions of these can be found in the repository root `.tool-versions` file, and can be installed using asdf.
 
 ### Install Python Dependencies
 

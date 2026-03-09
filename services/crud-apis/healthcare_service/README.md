@@ -9,7 +9,7 @@ The Healthcare Service API provides endpoints to manage healthcare services. It 
 ### Prerequisites
 
 This project requires Python and uv as core dependencies.
-The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
+The current versions of these can be found in the repository root `.tool-versions` file, and can be installed using asdf.
 
 ### Install Dependencies
 
@@ -73,10 +73,10 @@ uv run pytest tests
 from the crud-apis directory run:
 
 ```bash
-uv run poe start-healthcare-api
+uv run start-healthcare-api
 ```
 
-The API will be available at [http://localhost:7000].
+The API will be available at [http://localhost:8002].
 
 ## API Endpoints
 
