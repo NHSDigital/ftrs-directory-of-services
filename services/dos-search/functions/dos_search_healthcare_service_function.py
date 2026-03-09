@@ -46,22 +46,20 @@ def get_healthcare_service() -> Response:
             dos_message_category="FEATURE_FLAG",
         )
     else:
-        dos_logger.warning(
-            "Healthcare Service search endpoint is disabled via feature flag",
-            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-            feature_flag_status="disabled",
-            dos_message_category="FEATURE_FLAG",
-        )
         fhir_resource = error_util.create_resource_service_unavailable_error()
         response_size, duration_ms = dos_logger.get_response_size_and_duration(
             fhir_resource, start
         )
-        dos_logger.exception(
-            "Internal server error occurred",
+        dos_logger.warning(
+            "Service unavailable - Healthcare Service search endpoint is disabled via feature flag",
+            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+            feature_flag_status="disabled",
+            dos_message_category="FEATURE_FLAG",
             dos_response_time=f"{duration_ms}ms",
             dos_response_size=response_size,
         )
-        return create_response(500, fhir_resource)
+
+        return create_response(503, fhir_resource)
 
     try:
         query_params = app.current_event.query_string_parameters or {}

@@ -284,15 +284,17 @@ class TestHealthcareServiceLambdaHandler:
             FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
         )
         mock_logger.warning.assert_called_with(
-            "Healthcare Service search endpoint is disabled via feature flag",
+            "Service unavailable - Healthcare Service search endpoint is disabled via feature flag",
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="disabled",
             dos_message_category="FEATURE_FLAG",
+            dos_response_time="1ms",
+            dos_response_size=100,
         )
         mock_error_util.create_resource_service_unavailable_error.assert_called_once()
-        assert response["statusCode"] == 500
+        assert response["statusCode"] == 503
         assert_response(
             response,
-            expected_status_code=500,
+            expected_status_code=503,
             expected_body=mock_error_util.create_resource_service_unavailable_error.return_value.model_dump_json(),
         )
