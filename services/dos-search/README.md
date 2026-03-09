@@ -76,6 +76,15 @@ For `dos-search` use the following layout:
   `/Organization` route and a `lambda_handler`). The per-endpoint wrapper
   `endpoints/organisation/handler.py` wires the runtime and delegates to the
   implementation.
+- `GET /TriageCode` will use one Lambda (`endpoints/triage_code/handler.py`).
+  The handler delegates to the implementation in
+  `endpoints/triage_code/triage_code_function.py`.
+  Implementation note: the active TriageCode endpoint logic lives in
+  `endpoints/triage_code/triage_code_function.py` (it exposes the
+  `/TriageCode` route and a `lambda_handler`). The per-endpoint wrapper
+  `endpoints/triage_code/handler.py` wires the runtime and delegates to the
+  implementation.
+  The endpoint supports `GET` and `POST` methods.
 
 ### Naming conventions
 
@@ -224,7 +233,7 @@ This is the proposed structure when migrating to one Lambda per endpoint. It kee
 │   ├── organisation/                   # /Organization endpoint
 │   │   ├── handler.py                  # Lambda entrypoint (handler.lambda_handler)
 │   │   └── dos_search_ods_code_function.py  # Implementation/shared imports
-│   └── triage_code/                    # /triage_code endpoint
+│   ├── triage_code/                    # /TriageCode endpoint
 │       ├── handler.py
 │       └── triage_code_function.py
 ├── common/                             # Shared code included in each package

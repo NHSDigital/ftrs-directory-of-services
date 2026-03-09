@@ -10,6 +10,10 @@ variable "lambda_name" {
   description = "The name of the gp search lambda"
 }
 
+variable "triage_code_lambda_name" {
+  description = "The name of the triage code lambda for gp search"
+}
+
 variable "health_check_lambda_name" {
   description = "The name of the health check lambda for gp search"
 }
@@ -26,6 +30,12 @@ variable "lambda_memory_size" {
 variable "lambda_timeout" {
   description = "The connection timeout of the lambda function"
   type        = number
+}
+
+variable "build_splunk_subscription" {
+  description = "Whether to build the CloudWatch subscription"
+  type        = bool
+  default     = false
 }
 
 #####################################################
