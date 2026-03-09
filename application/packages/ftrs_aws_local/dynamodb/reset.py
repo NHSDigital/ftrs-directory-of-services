@@ -347,7 +347,6 @@ def get_entity_config(entity_name: ClearableEntityTypes) -> dict:
                 {"AttributeName": "id", "AttributeType": "S"},
                 {"AttributeName": "field", "AttributeType": "S"},
                 {"AttributeName": "codeType", "AttributeType": "S"},
-                {"AttributeName": "codeID", "AttributeType": "S"},
             ],
             "global_secondary_indexes": [
                 {

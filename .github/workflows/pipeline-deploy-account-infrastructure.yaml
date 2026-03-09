@@ -55,6 +55,13 @@ on:
         description: "Deployment environment"
         required: true
         type: string
+    outputs:
+      ui_enabled:
+        description: "Whether UI stack is enabled"
+        value: ${{ jobs.check-stack-toggles.outputs.ui_enabled }}
+      read_only_viewer_enabled:
+        description: "Whether read-only-viewer stack is enabled"
+        value: ${{ jobs.check-stack-toggles.outputs.read_only_viewer_enabled }}
     secrets:
       ACCOUNT_ID:
         description: "AWS account ID for credentials"

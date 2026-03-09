@@ -121,7 +121,7 @@ jobs:
         working-directory: ${{ steps.get-directories.outputs.working_directory }}
 
       - name: "Publish coverage report to GitHub"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ inputs.name }}.xml
           path: ${{ steps.get-directories.outputs.working_directory }}/coverage-${{ inputs.name }}.xml
@@ -147,7 +147,7 @@ jobs:
           WORKSPACE: ${{ inputs.workspace }}
 
       - name: "Publish artefacts to GitHub"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.name }}-${{ inputs.build_type }}-artefacts
           path: ${{ steps.get-directories.outputs.build_directory }}

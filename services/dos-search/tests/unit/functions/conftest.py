@@ -9,24 +9,33 @@ from functions.constants import (
 )
 
 
-# Fixtures extracted from functions/test_dos_search_ods_code_function.py to support functions/test_dos_logger.py
 @pytest.fixture
 def bundle():
     return Bundle.model_construct(id="bundle-id")
 
 
 @pytest.fixture
-def mock_logger(log_data, details, bundle):
-    with patch("functions.dos_search_ods_code_function.dos_logger") as mock:
-        mock.extract.return_value = log_data
-        mock.extract_one_time.return_value = details
-        # get_response_size_and_duration setup
+def mock_setup_request():
+    """Mock for the setup_request utility function."""
+    with patch("functions.request_context_middleware.setup_request") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_response_size_and_duration(bundle):
+    """Mock for the get_response_size_and_duration utility function."""
+    with patch(
+        "functions.dos_search_ods_code_function.get_response_size_and_duration"
+    ) as mock:
         response_size = len(bundle.model_dump_json().encode("utf-8"))
-        response_time = 1
-        mock.get_response_size_and_duration.return_value = (
-            response_size,
-            response_time,
-        )
+        mock.return_value = (response_size, 1)
+        yield mock
+
+
+@pytest.fixture
+def mock_logger():
+    """Mock for the FTRS common Logger used for all log() calls."""
+    with patch("functions.dos_search_ods_code_function.logger") as mock:
         yield mock
 
 
@@ -77,11 +86,7 @@ def event(ods_code):
 @pytest.fixture
 def log_data():
     return {
-        "logger": "dos_logger",
-        "dos_nhsd_correlation_id": "correlation_id",
-        "dos_nhsd_request_id": "request_id",
         "dos_message_id": "message_id",
-        "dos_message_category": "LOGGING",
     }
 
 

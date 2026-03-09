@@ -9,6 +9,7 @@ from ftrs_data_layer.domain.enums import (
 )
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.logbase import DosSearchLogBase
 
 
 @pytest.fixture
@@ -226,7 +227,7 @@ class TestEndpointMapper:
     ):
         # Arrange
         mock_logger = mocker.patch(
-            "functions.ftrs_service.fhir_mapper.endpoint_mapper.dos_logger"
+            "functions.ftrs_service.fhir_mapper.endpoint_mapper.logger"
         )
 
         # Act
@@ -234,8 +235,9 @@ class TestEndpointMapper:
 
         # Assert
         assert result is None
-        mock_logger.error.assert_called_once_with(
-            "Unknown business scenario: UnknownScenario"
+        mock_logger.log.assert_called_once_with(
+            DosSearchLogBase.DOS_SEARCH_011,
+            business_scenario="UnknownScenario",
         )
 
     def test_create_extensions_with_compression_false(
