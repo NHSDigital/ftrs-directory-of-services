@@ -11,11 +11,12 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
+logger = logging.getLogger(__name__)
 
 typer_app = Typer(
     name="ftrs-aws-local",
     help="AWS Local CLI for managing local AWS services",
 )
 
-typer_app.command("start")(lambda: logging.info("Starting AWS Local services"))
+typer_app.command("start")(lambda: logger.info("Starting AWS Local services"))
 typer_app.command("reset")(reset)

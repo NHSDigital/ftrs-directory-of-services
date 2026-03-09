@@ -138,8 +138,8 @@ def populate_sqs_queue(config: QueuePopulatorConfig) -> None:
             "Id": str(record_or_service_id),
             "MessageBody": DMSEvent(
                 type="dms_event",
-                record_id=record_or_service_id if record_or_service_id else 0,
-                service_id=record_or_service_id if record_or_service_id else 0,
+                record_id=record_or_service_id or 0,
+                service_id=record_or_service_id or 0,
                 table_name=config.table_name,
                 method="insert",
             ).model_dump_json(),

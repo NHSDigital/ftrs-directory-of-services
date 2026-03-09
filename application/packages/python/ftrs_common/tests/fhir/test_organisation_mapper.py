@@ -693,8 +693,8 @@ def test__extract_legal_dates_with_valid_typed_period() -> None:
     ]
 
     start, end = mapper._extract_legal_dates(fhir_org)
-    assert start == "2020-01-15"
-    assert end == "2025-12-31"
+    assert start == date(2020, 1, 15)
+    assert end == date(2025, 12, 31)
 
 
 def test__extract_legal_dates_no_extension_attribute() -> None:
@@ -774,8 +774,8 @@ def test__extract_legal_dates_multiple_extensions_typed_period_present() -> None
     ]
 
     start, end = mapper._extract_legal_dates(fhir_org)
-    assert start == "2020-01-15"
-    assert end == "2025-12-31"
+    assert start == date(2020, 1, 15)
+    assert end == date(2025, 12, 31)
 
 
 def test__extract_legal_dates_typed_period_no_sub_extensions() -> None:
@@ -882,8 +882,8 @@ def test__extract_legal_dates_ext_with_dict_method() -> None:
     fhir_org.extension = [role_ext]
 
     start, end = mapper._extract_legal_dates(fhir_org)
-    assert start == "2020-01-15"
-    assert end == "2025-12-31"
+    assert start == date(2020, 1, 15)
+    assert end == date(2025, 12, 31)
 
 
 def test__extract_legal_dates_mixed_extension_types() -> None:
@@ -931,7 +931,7 @@ def test__extract_legal_dates_mixed_extension_types() -> None:
     ]
 
     start, end = mapper._extract_legal_dates(fhir_org)
-    assert start == "2020-01-15"
+    assert start == date(2020, 1, 15)
     assert end is None
 
 
@@ -1000,8 +1000,8 @@ def test__extract_legal_dates_first_matching_extension_wins() -> None:
 
     start, end = mapper._extract_legal_dates(fhir_org)
     # Should return dates from first OrganisationRole
-    assert start == "2020-01-15"
-    assert end == "2025-12-31"
+    assert start == date(2020, 1, 15)
+    assert end == date(2025, 12, 31)
 
 
 def test_to_fhir_with_legal_dates() -> None:
@@ -1040,8 +1040,8 @@ def test_to_fhir_with_legal_dates() -> None:
     )
     assert typed_period is not None
     period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-    assert period["valuePeriod"]["start"] == "2020-01-15"
-    assert period["valuePeriod"]["end"] == "2025-12-31"
+    assert period["valuePeriod"]["start"] == date(2020, 1, 15)
+    assert period["valuePeriod"]["end"] == date(2025, 12, 31)
 
 
 @pytest.mark.parametrize(
@@ -1067,8 +1067,8 @@ def test_to_fhir_with_legal_dates() -> None:
                     },
                 ],
             },
-            "2020-01-15",
-            "2025-12-31",
+            date(2020, 1, 15),
+            date(2025, 12, 31),
             id="both_dates",
         ),
         pytest.param(
@@ -1085,7 +1085,7 @@ def test_to_fhir_with_legal_dates() -> None:
                     },
                 ],
             },
-            "2020-01-15",
+            date(2020, 1, 15),
             None,
             id="start_only",
         ),
@@ -1104,7 +1104,7 @@ def test_to_fhir_with_legal_dates() -> None:
                 ],
             },
             None,
-            "2025-12-31",
+            date(2025, 12, 31),
             id="end_only",
         ),
         pytest.param(
@@ -1121,7 +1121,7 @@ def test_to_fhir_with_legal_dates() -> None:
                     },
                 ],
             },
-            "2020-01-15",
+            date(2020, 1, 15),
             None,
             id="non_legal_type_still_extracts_dates",
         ),
@@ -1149,8 +1149,8 @@ def test_to_fhir_with_legal_dates() -> None:
 )
 def test__parse_legal_period(
     typed_period_ext: dict | None,
-    expected_start: str | None,
-    expected_end: str | None,
+    expected_start: date | None,
+    expected_end: date | None,
 ) -> None:
     """Test extracting dates from TypedPeriod Extension.
 
@@ -1216,7 +1216,7 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
         pytest.param(
             date(2020, 1, 15),
             None,
-            "2020-01-15",
+            date(2020, 1, 15),
             None,
             id="only_start_date_end_absent",
         ),
@@ -1224,7 +1224,7 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
             None,
             date(2025, 12, 31),
             None,
-            "2025-12-31",
+            date(2025, 12, 31),
             id="only_end_date_start_absent",
         ),
     ],
@@ -1232,8 +1232,8 @@ def test_from_fhir_no_legal_dates_when_no_extension() -> None:
 def test_to_fhir_partial_dates_absent_not_null(
     legal_start_date: date | None,
     legal_end_date: date | None,
-    expected_start_in_period: str | None,
-    expected_end_in_period: str | None,
+    expected_start_in_period: date | None,
+    expected_end_in_period: date | None,
 ) -> None:
     """Test to_fhir with partial dates - absent dates should not be in period dict, not null."""
     mapper = OrganizationMapper()
@@ -1360,8 +1360,8 @@ def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:
     )
     assert typed_period is not None
     period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-    assert period["valuePeriod"]["start"] == "2015-06-01"
-    assert period["valuePeriod"]["end"] == "2030-12-31"
+    assert period["valuePeriod"]["start"] == date(2015, 6, 1)
+    assert period["valuePeriod"]["end"] == date(2030, 12, 31)
 
 
 def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates() -> (
@@ -1502,7 +1502,7 @@ def test_from_ods_fhir_to_fhir_extracts_first_organisation_role_with_legal_dates
     )
     assert typed_period is not None
     period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-    assert period["valuePeriod"]["start"] == "1974-04-01"
+    assert period["valuePeriod"]["start"] == date(1974, 4, 1)
 
 
 def test_from_ods_fhir_to_fhir_no_organisation_role() -> None:
@@ -1649,7 +1649,7 @@ def test_from_ods_fhir_to_fhir_extracts_nested_legal_dates_from_role() -> None:
     assert legal_period is not None
     period = next((e for e in legal_period["extension"] if e["url"] == "period"), None)
     assert period is not None
-    assert period["valuePeriod"]["start"] == "2014-04-15"
+    assert period["valuePeriod"]["start"] == date(2014, 4, 15)
 
 
 def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
@@ -1778,7 +1778,7 @@ def test_from_ods_fhir_to_fhir_nested_legal_dates_with_multiple_roles() -> None:
     assert typed_period is not None
     period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
     # First role's legal date should be extracted
-    assert period["valuePeriod"]["start"] == "1974-04-01"
+    assert period["valuePeriod"]["start"] == date(1974, 4, 1)
 
 
 # --- Tests for refactored Extension-based legal period helpers ---
@@ -1950,8 +1950,8 @@ def test_parse_legal_period_both_dates(org_mapper: OrganizationMapper) -> None:
     legal_ext = make_typed_period_ext("Legal", "2020-01-01", "2021-12-31")
     start, end = org_mapper._parse_legal_period(legal_ext)
 
-    assert start == "2020-01-01"
-    assert end == "2021-12-31"
+    assert start == date(2020, 1, 1)
+    assert end == date(2021, 12, 31)
 
 
 def test_parse_legal_period_start_only(org_mapper: OrganizationMapper) -> None:
@@ -1973,7 +1973,7 @@ def test_parse_legal_period_start_only(org_mapper: OrganizationMapper) -> None:
     )
     start, end = org_mapper._parse_legal_period(legal_ext)
 
-    assert start == "2020-01-01"
+    assert start == date(2020, 1, 1)
     assert end is None
 
 
@@ -2370,8 +2370,8 @@ def test__build_typed_period_extension_with_both_dates() -> None:
     )
 
     period_ext = next(e for e in result.extension if e.url == "period")
-    assert period_ext.valuePeriod.start == "2020-01-01"
-    assert period_ext.valuePeriod.end == "2025-12-31"
+    assert period_ext.valuePeriod.start == date(2020, 1, 1)
+    assert period_ext.valuePeriod.end == date(2025, 12, 31)
 
 
 def test__build_typed_period_extension_with_start_only() -> None:
@@ -2382,7 +2382,7 @@ def test__build_typed_period_extension_with_start_only() -> None:
     assert isinstance(result, Extension)
     assert result.url == TYPED_PERIOD_URL
     period_ext = next(e for e in result.extension if e.url == "period")
-    assert period_ext.valuePeriod.start == "2020-01-01"
+    assert period_ext.valuePeriod.start == date(2020, 1, 1)
     assert (
         not hasattr(period_ext.valuePeriod, "end") or period_ext.valuePeriod.end is None
     )

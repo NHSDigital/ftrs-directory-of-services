@@ -6,7 +6,6 @@ authors = [{ name = "NHS England" }]
 readme = "README.md"
 requires-python = ">=3.12,<4.0.0"
 dependencies = [
-  "allure-pytest>=2.13.5",
   "allure-pytest-bdd>=2.13.5",
   "aws-lambda-powertools (>=3.12.0,<4.0.0)",
   "boto3>=1.37.6",
@@ -72,7 +71,7 @@ docstring-code-format = true
 
 [tool.pytest.ini_options]
 testpaths = "tests"
-addopts = "-p no:allure_pytest_bdd -p no:allure_pytest"
+addopts = "-p no:allure_pytest_bdd"
 log_level = "INFO"
 bdd_features_base_dir = "tests/features/"
 # asyncio_default_fixture_loop_scope = "function"
