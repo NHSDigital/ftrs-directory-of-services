@@ -113,7 +113,7 @@ generate-build-info: ensure-build-dir
 build-dependency-layer: clean ### Build the dependency layer
 	$(call log_start,Building dependency layer for $(SERVICE))
 	@mkdir -p $(DEPENDENCY_DIR)/python
-	uv export --no-dev --no-hashes -o $(DEPENDENCY_DIR)/requirements.txt
+	uv export --no-dev --no-hashes --no-emit-workspace -o $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 		--platform $(PLATFORM) \
 		--target $(DEPENDENCY_DIR)/python \
