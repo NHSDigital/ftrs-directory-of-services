@@ -14,6 +14,7 @@ from ftrs_data_layer.domain import (
     EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceTelecom,
     HealthcareServiceType,
     Location,
@@ -226,7 +227,11 @@ class ServiceTransformer(ABC):
         return HealthcareService(
             id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
-            active=service.statusid == 1,
+            status=(
+                HealthcareServiceStatus.ACTIVE
+                if service.statusid == 1
+                else HealthcareServiceStatus.INACTIVE
+            ),
             category=category,
             type=type,
             providedBy=organisation_id,

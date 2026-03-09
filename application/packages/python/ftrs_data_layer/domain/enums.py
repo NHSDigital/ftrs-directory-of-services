@@ -47,6 +47,11 @@ class HealthcareServiceType(str, Enum):
     )
 
 
+class HealthcareServiceStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+
+
 class EndpointStatus(str, Enum):
     ACTIVE = "active"
     OFF = "off"

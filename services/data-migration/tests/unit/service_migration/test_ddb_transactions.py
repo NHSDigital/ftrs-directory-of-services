@@ -11,7 +11,10 @@ from ftrs_data_layer.domain import (
     Organisation,
     PositionGCS,
 )
-from ftrs_data_layer.domain.enums import OrganisationType
+from ftrs_data_layer.domain.enums import (
+    HealthcareServiceStatus,
+    OrganisationType,
+)
 
 from service_migration.ddb_transactions import ServiceTransactionBuilder
 from service_migration.exceptions import ServiceMigrationException
@@ -63,7 +66,7 @@ def mock_location() -> Location:
 def mock_healthcare_service() -> HealthcareService:
     return HealthcareService(
         id=UUID("33333333-3333-3333-3333-333333333333"),
-        active=True,
+        status=HealthcareServiceStatus.ACTIVE,
         type="GP Consultation Service",
         name="Test Service",
         providedBy=UUID("11111111-1111-1111-1111-111111111111"),

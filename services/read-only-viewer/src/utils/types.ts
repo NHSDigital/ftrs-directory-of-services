@@ -78,7 +78,7 @@ const openingTimeSchema = zod.discriminatedUnion("category", [
 export const healthcareServiceSchema = zod.object({
   id: zod.string().uuid(),
   identifier_oldDoS_uid: zod.string().uuid().optional(),
-  active: zod.boolean(),
+  status: zod.enum(["active", "inactive"]),
   category: zod.string().optional(),
   providedBy: zod.string().uuid(),
   location: zod.string().uuid(),

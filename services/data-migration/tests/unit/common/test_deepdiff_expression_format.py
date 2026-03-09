@@ -50,7 +50,7 @@ class TestComplexUpdateScenarios:
         modified = base_healthcare_service.model_copy(
             update={
                 "name": "Changed Name",
-                "active": False,
+                "status": "inactive",
                 "telecom": new_telecom,
             }
         )
@@ -60,12 +60,12 @@ class TestComplexUpdateScenarios:
         assert "SET" in result.update_expression
         assert len(result.expression_attribute_values) == 3  # noqa: PLR2004
         assert "name" in result.expression_attribute_names.values()
-        assert "active" in result.expression_attribute_names.values()
+        assert "status" in result.expression_attribute_names.values()
         assert "telecom" in result.expression_attribute_names.values()
         assert "email" in result.expression_attribute_names.values()
         values_list = list(result.expression_attribute_values.values())
         assert {"S": "Changed Name"} in values_list
-        assert {"BOOL": False} in values_list
+        assert {"S": "inactive"} in values_list
         assert {"S": "changed@test.com"} in values_list
 
     def test_empty_list_to_populated_list(

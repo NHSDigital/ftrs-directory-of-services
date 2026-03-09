@@ -22,6 +22,7 @@ from ftrs_data_layer.domain.enums import (
     EndpointPayloadType,
     EndpointStatus,
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceType,
     OrganisationType,
     TelecomType,
@@ -529,7 +530,7 @@ def base_healthcare_service() -> HealthcareService:
     return HealthcareService(
         id=UUID("43f8c8c0-2272-4371-966a-f2db6d338e58"),
         identifier_oldDoS_uid="HS123",
-        active=True,
+        status=HealthcareServiceStatus.ACTIVE,
         category=HealthcareServiceCategory.GP_SERVICES,
         type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
         providedBy=UUID("4ebead71-69d6-4571-8cff-982c54047903"),

@@ -467,7 +467,7 @@ def test_build_healthcare_service(
         },
         lastUpdated="2025-07-25T12:00:00+00:00",
         identifier_oldDoS_uid="test-uid",
-        active=True,
+        status="active",
         category="GP Services",
         type="GP Consultation Service",
         providedBy="0fd917b6-608a-59a0-ba62-eba57ec06a0e",
@@ -555,7 +555,7 @@ def test_build_healthcare_service_inactive_status(
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that healthcare service active field is False when service statusid != 1."""
+    """Test that healthcare service status field is 'inactive' when service statusid != 1."""
     transformer = BasicServiceTransformer(
         logger=mock_logger, metadata=mock_metadata_cache
     )
@@ -571,7 +571,7 @@ def test_build_healthcare_service_inactive_status(
         type="GP Consultation Service",
     )
 
-    assert result.active is False
+    assert result.status == "inactive"
     assert result.identifier_oldDoS_uid == "test-uid"
 
 
