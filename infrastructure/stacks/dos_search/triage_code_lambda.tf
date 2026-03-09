@@ -2,12 +2,12 @@ module "triage_code_lambda" {
   source                  = "../../modules/lambda"
   function_name           = "${local.resource_prefix}-${var.triage_code_lambda_name}"
   description             = "This lambda provides search logic to return endpoints by triage code"
-  handler                 = "endpoints/triage_code/handler.lambda_handler"
+  handler                 = "functions/triage_code_function.lambda_handler"
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-triage-code-lambda.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
   ignore_source_code_hash = false
-  s3_key_version_id       = data.aws_s3_object.dos_search_triage_code_lambda_package.version_id
+  s3_key_version_id       = data.aws_s3_object.dos_search_lambda_package.version_id
   attach_tracing_policy   = true
   tracing_mode            = "Active"
   number_of_policy_jsons  = "2"
@@ -46,4 +46,3 @@ module "triage_code_lambda" {
   firehose_role_arn         = data.aws_iam_role.firehose_role.arn
   firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
 }
-

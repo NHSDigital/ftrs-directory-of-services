@@ -85,6 +85,10 @@ For `dos-search` use the following layout:
   `endpoints/triage_code/handler.py` wires the runtime and delegates to the
   implementation.
   The endpoint supports `GET` and `POST` methods.
+  Temporary implementation note: until the dedicated triage-code package is built,
+  Terraform uses the shared dos-search artifact with
+  `functions/triage_code_function.lambda_handler`, which returns a 501
+  OperationOutcome response.
 
 ### Naming conventions
 
