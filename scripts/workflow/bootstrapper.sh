@@ -92,7 +92,7 @@ function terraform-init-migrate {
     TERRAFORM_STATE_KEY=$STACK/terraform.state
 
     terraform init -migrate-state -force-copy \
-      -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
+        -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
         -backend-config="dynamodb_table=$TF_VAR_terraform_lock_table_name" \
         -backend-config="encrypt=true" \
         -backend-config="key=$TERRAFORM_STATE_KEY" \
