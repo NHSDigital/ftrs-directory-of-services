@@ -18,7 +18,6 @@ module "metric_alarm" {
   datapoints_to_alarm = each.value.datapoints_to_alarm
   metric_query        = each.value.metric_queries
   threshold_metric_id = each.value.threshold_metric_id
-  # lookup(var.alarm_metric_queries, each.key, null)
 
   dimensions = each.value.metric_queries == null ? {
     (each.value.dimension_name) = each.value.resource_identifier
