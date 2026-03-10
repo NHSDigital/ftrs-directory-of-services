@@ -2,7 +2,7 @@ module "s3" {
   # Module version: 5.8.2
   source = "git::https://github.com/terraform-aws-modules/terraform-aws-s3-bucket.git?ref=c686a8b53be706e532c1d6845b08bd3895776ab0"
 
-  bucket                                = "${var.bucket_name}${local.workspace_suffix}"
+  bucket                                = local.bucket_name
   attach_policy                         = var.attach_policy || var.enable_kms_encryption
   policy                                = data.aws_iam_policy_document.combined_policy.json
   attach_deny_insecure_transport_policy = true
@@ -32,7 +32,7 @@ module "s3" {
 
   logging = var.s3_logging_bucket != "" ? {
     target_bucket = var.s3_logging_bucket
-    target_prefix = "${var.bucket_name}${local.workspace_suffix}/"
+    target_prefix = "${local.bucket_name}/"
   } : {}
 
   versioning = {

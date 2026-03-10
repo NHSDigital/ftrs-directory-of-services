@@ -21,7 +21,12 @@ if [[ $EXPORTS_SET = 1 ]] ; then
 fi
 
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
-export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"
+export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-${TERRAFORM_ACCOUNT_ID}"
+else
+  export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"
+fi
 
 echo "Checking for terraform workspace --> $WORKSPACE"
 echo "Terraform state S3 bucket name being checked --> $TERRAFORM_BUCKET_NAME"

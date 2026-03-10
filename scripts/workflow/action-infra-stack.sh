@@ -40,8 +40,14 @@ if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } &
 fi
 
 # needed for terraform management stack
-export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
+export TERRAFORM_STATE_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
+export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}-${TERRAFORM_ACCOUNT_ID}"
+else
+  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}"
+fi
 
 # check exports have been done
 EXPORTS_SET=0
@@ -57,21 +63,11 @@ if [ -z "$STACK" ] ; then
 fi
 
 if [ -z "$ENVIRONMENT" ] ; then
-  echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, preprod, prod
+  echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, int, ref, dr, prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|sandpit|int|ref|non-prod|preprod|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
-      EXPORTS_SET=1
-  fi
-fi
-
-if [ -z "$PROJECT" ] ; then
-  echo Set PROJECT to dos or cm
-  EXPORTS_SET=1
-else
-  if [[ ! "$PROJECT" =~ ^(dos|cm) ]]; then
-      echo PROJECT should be dos or cm
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|dr|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, dr or prod
       EXPORTS_SET=1
   fi
 fi
@@ -114,7 +110,7 @@ ENV_TF_VARS_FILE="environment.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
 TOGGLE_ENVIRONMENT=$( [ "${WORKSPACE}" = "default" ] && echo "${ENVIRONMENT}" || echo "workspace" )
 
-echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
+echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
 ROOT_DIR=$PWD
 # the directory that holds the stack to terraform
 STACK_DIR=$PWD/$TERRAFORM_DIR/$STACK

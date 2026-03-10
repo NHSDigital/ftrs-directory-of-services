@@ -13,8 +13,14 @@ export AWS_REGION="${AWS_REGION:-""}"                             # The AWS regi
 export ENVIRONMENT="${ENVIRONMENT:-""}"                    # Identify the environment (one of dev,test,security,preprod or prod) usually part of the account name
 export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
-export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
+export TERRAFORM_STATE_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
+export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}-${TERRAFORM_ACCOUNT_ID}"
+else
+  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}"
+fi
 
 export WORKSPACE="${WORKSPACE:-"default"}"
 
@@ -39,22 +45,12 @@ if [[ -z "$AWS_REGION" ]] ; then
   EXPORTS_SET=1
 fi
 
-if [[ -z "$PROJECT" ]] ; then
-  echo Set PROJECT to identify if account is for dos or cm
-  EXPORTS_SET=1
-else
-  if [[ ! "$PROJECT" =~ ^(dos|cm) ]]; then
-      echo PROJECT should be dos or cm
-      EXPORTS_SET=1
-  fi
-fi
-
 if [[ -z "$ENVIRONMENT" ]] ; then
-  echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
+  echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, int, ref, non-prod, dr or prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|sandpit|int|ref|non-prod|preprod|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|dr|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, dr or prod
       EXPORTS_SET=1
   fi
 fi
@@ -92,7 +88,7 @@ function terraform-init-migrate {
     TERRAFORM_STATE_KEY=$STACK/terraform.state
 
     terraform init -migrate-state -force-copy \
-        -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
+      -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
         -backend-config="dynamodb_table=$TF_VAR_terraform_lock_table_name" \
         -backend-config="encrypt=true" \
         -backend-config="key=$TERRAFORM_STATE_KEY" \
@@ -130,9 +126,9 @@ function github_runner_stack {
   STACK_DIR=$PWD/$TERRAFORM_DIR/$STACK
 
   if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then
-    echo "Bootstrapping the $STACK stack (terraform $ACTION) to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
+    echo "Bootstrapping the $STACK stack (terraform $ACTION) to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
   else
-    echo "Preparing to run terraform $ACTION for $STACK stack to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
+    echo "Preparing to run terraform $ACTION for $STACK stack to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
   fi
 
   # remove any previous local backend for stack
