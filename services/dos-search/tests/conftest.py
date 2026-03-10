@@ -15,7 +15,6 @@ from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
     EndpointPayloadMimeType,
-    EndpointPayloadType,
     EndpointStatus,
 )
 
@@ -48,7 +47,7 @@ def create_endpoint():
         },
         modified_date_time: datetime = datetime(2023, 10, 1),
         name: str = "Test Endpoint Name",
-        payload_type: EndpointPayloadType = EndpointPayloadType.ED,
+        payload_type: str = "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0",
         service=None,
         address: str = "https://example.com/endpoint",
         order: int = 1,
