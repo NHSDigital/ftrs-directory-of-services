@@ -6,12 +6,12 @@ module "metric_alarm" {
   comparison_operator = each.value.comparison_operator
   evaluation_periods  = each.value.evaluation_periods
   actions_enabled     = each.value.actions_enabled
-  metric_name         = each.value.metric_queries == null ? each.value.metric_name : null
-  namespace           = each.value.metric_queries == null ? each.value.namespace : null
-  period              = each.value.metric_queries == null ? each.value.period : null
-  statistic           = each.value.metric_queries == null ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? null : each.value.statistic) : null
-  extended_statistic  = each.value.metric_queries == null ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? each.value.statistic : null) : null
-  threshold           = each.value.metric_queries == null ? each.value.threshold : null
+  metric_name         = length(each.value.metric_queries) == 0 ? each.value.metric_name : null
+  namespace           = length(each.value.metric_queries) == 0 ? each.value.namespace : null
+  period              = length(each.value.metric_queries) == 0 ? each.value.period : null
+  statistic           = length(each.value.metric_queries) == 0 ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? null : each.value.statistic) : null
+  extended_statistic  = length(each.value.metric_queries) == 0 ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? each.value.statistic : null) : null
+  threshold           = length(each.value.metric_queries) == 0 ? each.value.threshold : null
   alarm_description   = each.value.description
   alarm_actions       = [aws_sns_topic.alarms.arn]
   treat_missing_data  = "notBreaching"
@@ -19,7 +19,7 @@ module "metric_alarm" {
   metric_query        = each.value.metric_queries
   threshold_metric_id = each.value.threshold_metric_id
 
-  dimensions = each.value.metric_queries == null ? {
+  dimensions = length(each.value.metric_queries) == 0 ? {
     (each.value.dimension_name) = each.value.resource_identifier
   } : null
 

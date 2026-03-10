@@ -254,7 +254,14 @@ module "dms_task_monitoring" {
       "source_latency_warning"  = var.alarm_evaluation_periods
       "target_latency_warning"  = var.alarm_evaluation_periods
       # metric queries
-      "cdc_changes_memory_target_warning" = var.alarm_evaluation_periods
+      "cdc_changes_disk_source_warning"    = var.alarm_evaluation_periods
+      "cdc_changes_disk_source_critical"   = var.alarm_evaluation_periods
+      "cdc_changes_memory_source_warning"  = var.alarm_evaluation_periods
+      "cdc_changes_memory_source_critical" = var.alarm_evaluation_periods
+      "cdc_changes_disk_target_warning"    = var.alarm_evaluation_periods
+      "cdc_changes_disk_target_critical"   = var.alarm_evaluation_periods
+      "cdc_changes_memory_target_warning"  = var.alarm_evaluation_periods
+      "cdc_changes_memory_target_critical" = var.alarm_evaluation_periods
     }
   }
 
@@ -265,7 +272,14 @@ module "dms_task_monitoring" {
       "target_latency_warning"  = var.alarm_period
       "target_latency_critical" = var.alarm_period
       # metric queries
-      "cdc_changes_memory_target_warning" = var.alarm_period
+      "cdc_changes_disk_source_warning"    = var.alarm_period
+      "cdc_changes_disk_source_critical"   = var.alarm_period
+      "cdc_changes_memory_source_warning"  = var.alarm_period
+      "cdc_changes_memory_source_critical" = var.alarm_period
+      "cdc_changes_disk_target_warning"    = var.alarm_period
+      "cdc_changes_disk_target_critical"   = var.alarm_period
+      "cdc_changes_memory_target_warning"  = var.alarm_period
+      "cdc_changes_memory_target_critical" = var.alarm_period
     }
   }
 
