@@ -196,12 +196,6 @@ module "dms_instance_monitoring" {
     }
   }
 
-  # alarm_datapoints_to_alarm = {
-  #   replication_instance = {
-  #     "instance_cpu_warning" = 1
-  #   }
-  # }
-
   enable_warning_alarms = var.enable_warning_alarms
 
   slack_notifier_enabled       = true
@@ -259,6 +253,8 @@ module "dms_task_monitoring" {
       "target_latency_critical" = var.alarm_evaluation_periods
       "source_latency_warning"  = var.alarm_evaluation_periods
       "target_latency_warning"  = var.alarm_evaluation_periods
+      # metric queries
+      "cdc_changes_memory_target_warning" = var.alarm_evaluation_periods
     }
   }
 
@@ -268,6 +264,214 @@ module "dms_task_monitoring" {
       "source_latency_critical" = var.alarm_period
       "target_latency_warning"  = var.alarm_period
       "target_latency_critical" = var.alarm_period
+      # metric queries
+      "cdc_changes_memory_target_warning" = var.alarm_period
+    }
+  }
+
+  alarm_metric_queries = {
+    replication_task = {
+      "cdc_changes_disk_source_warning" = [
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesDiskSource"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        # Anomaly detection band returns upper and lower bounds;
+        {
+          id          = "ad_warn"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 1.5)"
+          return_data = true
+        }
+      ]
+      "cdc_changes_disk_source_critical" = [
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesDiskSource"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        {
+          id          = "ad_crit"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
+          label       = "AnomalyDetectionBand"
+          return_data = true
+        }
+      ]
+      "cdc_changes_memory_source_warning" = [
+        # Base metric
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesMemorySource"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        # Anomaly detection band returns upper and lower bounds;
+        {
+          id          = "ad_warn"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 1.5)"
+          return_data = true
+        }
+      ]
+      "cdc_changes_memory_source_critical" = [
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesMemorySource"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        {
+          id          = "ad_crit"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
+          label       = "AnomalyDetectionBand"
+          return_data = true
+        }
+      ]
+      "cdc_changes_disk_target_warning" = [
+        # Base metric
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesDiskTarget"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        # Anomaly detection band returns upper and lower bounds;
+        {
+          id          = "ad_warn"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 1.5)"
+          return_data = true
+        }
+      ]
+      "cdc_changes_disk_target_critical" = [
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesDiskTarget"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        {
+          id          = "ad_crit"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
+          label       = "AnomalyDetectionBand"
+          return_data = true
+        }
+      ]
+      "cdc_changes_memory_target_warning" = [
+        # Base metric
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesMemoryTarget"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        # Anomaly detection band returns upper and lower bounds;
+        {
+          id          = "ad_warn"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 1.5)"
+          return_data = true
+        }
+      ]
+      "cdc_changes_memory_target_critical" = [
+        {
+          id          = "m1"
+          return_data = true
+
+          metric = {
+            metric_name = "CDCChangesMemoryTarget"
+            namespace   = "AWS/DMS"
+            period      = var.alarm_period
+            stat        = "Average"
+
+            dimensions = {
+              ReplicationTaskIdentifier = local.dms_cdc_replication_task_id
+            }
+          }
+        },
+        {
+          id          = "ad_crit"
+          expression  = "ANOMALY_DETECTION_BAND(m1, 2)"
+          label       = "AnomalyDetectionBand"
+          return_data = true
+        }
+      ]
+    }
+  }
+
+  alarm_metric_query_thresholds = {
+
+    replication_task = {
+      "cdc_changes_disk_source_warning"    = "ad_warn"
+      "cdc_changes_disk_source_critical"   = "ad_crit"
+      "cdc_changes_memory_source_warning"  = "ad_warn"
+      "cdc_changes_memory_source_critical" = "ad_crit"
+      "cdc_changes_disk_target_warning"    = "ad_warn"
+      "cdc_changes_disk_target_critical"   = "ad_crit"
+      "cdc_changes_memory_target_warning"  = "ad_warn"
+      "cdc_changes_memory_target_critical" = "ad_crit"
     }
   }
 

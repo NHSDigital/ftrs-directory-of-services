@@ -6,20 +6,23 @@ module "metric_alarm" {
   comparison_operator = each.value.comparison_operator
   evaluation_periods  = each.value.evaluation_periods
   actions_enabled     = each.value.actions_enabled
-  metric_name         = each.value.metric_name
-  namespace           = each.value.namespace
-  period              = each.value.period
-  statistic           = can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? null : each.value.statistic
-  extended_statistic  = can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? each.value.statistic : null
-  threshold           = each.value.threshold
+  metric_name         = each.value.metric_queries == null ? each.value.metric_name : null
+  namespace           = each.value.metric_queries == null ? each.value.namespace : null
+  period              = each.value.metric_queries == null ? each.value.period : null
+  statistic           = each.value.metric_queries == null ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? null : each.value.statistic) : null
+  extended_statistic  = each.value.metric_queries == null ? (can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? each.value.statistic : null) : null
+  threshold           = each.value.metric_queries == null ? each.value.threshold : null
   alarm_description   = each.value.description
   alarm_actions       = [aws_sns_topic.alarms.arn]
   treat_missing_data  = "notBreaching"
   datapoints_to_alarm = each.value.datapoints_to_alarm
+  metric_query        = each.value.metric_queries
+  threshold_metric_id = each.value.threshold_metric_id
+  # lookup(var.alarm_metric_queries, each.key, null)
 
-  dimensions = {
+  dimensions = each.value.metric_queries == null ? {
     (each.value.dimension_name) = each.value.resource_identifier
-  }
+  } : null
 
   tags = merge(
     var.tags,

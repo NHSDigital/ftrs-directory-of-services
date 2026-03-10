@@ -88,3 +88,15 @@ variable "alarm_datapoints_to_alarm" {
   type        = map(map(number))
   default     = {}
 }
+
+variable "alarm_metric_queries" {
+  description = "Map of resource keys to their metric query configurations"
+  type        = map(map(any))
+  default     = {}
+}
+
+variable "alarm_metric_query_thresholds" {
+  description = "Map of resource keys to their threshold metric IDs for anomaly detection"
+  type        = map(map(string))
+  default     = {}
+}

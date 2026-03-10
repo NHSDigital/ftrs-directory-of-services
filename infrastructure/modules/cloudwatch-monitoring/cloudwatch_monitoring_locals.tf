@@ -12,8 +12,8 @@ locals {
         for alarm in alarm_configs :
         "${resource_key}_${alarm.alarm_suffix}" => {
           resource_identifier = resource_identifier
-          metric_name         = alarm.metric_name
-          statistic           = alarm.statistic
+          metric_name         = lookup(alarm, "metric_name", null)
+          statistic           = lookup(alarm, "statistic", null)
           threshold           = lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null)
           datapoints_to_alarm = lookup(lookup(var.alarm_datapoints_to_alarm, resource_key, {}), alarm.alarm_suffix, lookup(alarm, "datapoints_to_alarm", null))
           comparison_operator = alarm.comparison_operator
@@ -27,8 +27,18 @@ locals {
           dimension_name      = lookup(alarm, "dimension_name", "FunctionName")
           api_path            = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "api_path", "N/A")
           service             = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "service", "Unknown")
+          metric_queries = [
+            for metric_query in try(var.alarm_metric_queries[resource_key][alarm.alarm_suffix], []) :
+            merge(
+              metric_query,
+              try(metric_query.metric, null) == null ? {} : {
+                metric = try(concat([], metric_query.metric), [metric_query.metric])
+              }
+            )
+          ]
+          threshold_metric_id = lookup(lookup(var.alarm_metric_query_thresholds, resource_key, {}), alarm.alarm_suffix, null)
         }
-        if lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null) != null
+        if lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null) != null || lookup(lookup(var.alarm_metric_queries, resource_key, {}), alarm.alarm_suffix, null) != null
       }
     ]...)
   ]...)

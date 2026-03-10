@@ -39,6 +39,86 @@
         "severity": "critical",
         "namespace": "AWS/DMS",
         "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesDiskSource",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_disk_source_warning",
+        "description": "Warning - CDCChangesDiskSource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,1.5)",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesDiskSource",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_disk_source_critical",
+        "description": "Critical - CDCChangesDiskSource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesMemorySource",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_memory_source_warning",
+        "description": "Warning - CDCChangesMemorySource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,1.5)",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesMemorySource",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_memory_source_critical",
+        "description": "Critical - CDCChangesMemorySource exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesDiskTarget",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_disk_target_warning",
+        "description": "Warning - CDCChangesDiskTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,1.5)",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesDiskTarget",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_disk_target_critical",
+        "description": "Critical - CDCChangesDiskTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesMemoryTarget",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_memory_target_warning",
+        "description": "Warning - CDCChangesMemoryTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,1.5)",
+        "severity": "warning",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
+        },
+        {
+        "metric_name": "CDCChangesMemoryTarget",
+        "statistic": "",
+        "comparison_operator": "GreaterThanUpperThreshold",
+        "alarm_suffix": "cdc_changes_memory_target_critical",
+        "description": "Critical - CDCChangesMemoryTarget exceeds anomaly detection upper band (ANOMALY_DETECTION_BAND m1,2)",
+        "severity": "critical",
+        "namespace": "AWS/DMS",
+        "dimension_name": "ReplicationTaskIdentifier"
         }
   ]
 }
