@@ -3,11 +3,11 @@ s3_bucket_name = "dos-search-s3"
 
 # Organization Lambda
 organization_name           = "organization-lambda"
-organization_lambda_handler = "organization.handler.lambda_handler"
+organization_lambda_handler = "src.organization.handler.lambda_handler"
 
 # Health Check Lambda
 health_check_name           = "health-check-lambda"
-health_check_lambda_handler = "health_check.handler.lambda_handler"
+health_check_lambda_handler = "src.health_check.handler.lambda_handler"
 
 # Healthcare Service Lambda
 healthcare_service_lambda_name = "healthcare-service-lambda"

@@ -145,9 +145,9 @@ build-dependency-layer: clean ### Build the dependency layer
 # Multi-lambda build helper (called for each lambda in LAMBDA_SUBDIRS)
 define build_lambda
 $(eval ZIP_NAME := ftrs-dos-$(SERVICE)-$(shell echo $(1) | tr '_' '-')-lambda.zip)
-@mkdir -p $(BUILD_DIR)/$(1)-tmp
-cp -r $(LAMBDA_SOURCES_SUBDIR)/$(1) $(BUILD_DIR)/$(1)-tmp/
-[ ! -d $(LAMBDA_SOURCES_SUBDIR)/common ] || cp -r $(LAMBDA_SOURCES_SUBDIR)/common $(BUILD_DIR)/$(1)-tmp/
+@mkdir -p $(BUILD_DIR)/$(1)-tmp/$(LAMBDA_SOURCES_SUBDIR)
+cp -r $(LAMBDA_SOURCES_SUBDIR)/$(1) $(BUILD_DIR)/$(1)-tmp/$(LAMBDA_SOURCES_SUBDIR)/
+[ ! -d $(LAMBDA_SOURCES_SUBDIR)/common ] || cp -r $(LAMBDA_SOURCES_SUBDIR)/common $(BUILD_DIR)/$(1)-tmp/$(LAMBDA_SOURCES_SUBDIR)/
 cd $(BUILD_DIR)/$(1)-tmp && zip -r -q ../$(ZIP_NAME) . --exclude "*__pycache__/*"
 @rm -rf $(BUILD_DIR)/$(1)-tmp
 $(call log_success,Lambda built: $(ZIP_NAME))
