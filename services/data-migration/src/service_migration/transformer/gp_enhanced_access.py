@@ -112,9 +112,10 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
         Status exclusion is bypassed when ``state_record`` is provided, meaning
         the service already exists in the migrated dataset.
         """
+        if state_record is not None:
+            return True, None
+
         if service.statusid != cls.STATUS_ACTIVE:
-            if state_record is not None:
-                return True, None
             return False, "Service is not active"
 
         # Check if service name contains any excluded patterns

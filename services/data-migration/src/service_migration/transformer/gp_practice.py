@@ -97,9 +97,10 @@ class GPPracticeTransformer(ServiceTransformer):
         """
         Check if the service is active, or already exists in the migrated dataset.
         """
+        if state_record is not None:
+            return True, None
+
         if service.statusid != cls.STATUS_ACTIVE:
-            if state_record is not None:
-                return True, None
             return False, "Service is not active"
 
         return True, None
