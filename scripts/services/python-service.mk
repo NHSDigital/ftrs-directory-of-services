@@ -16,9 +16,13 @@ DEPENDENCY_LAYER_NAME := ftrs-dos-$(SERVICE)-python-dependency-layer
 LAMBDA_NAME := ftrs-dos-$(SERVICE)-lambda
 
 # Multi-lambda support: Set LAMBDA_SUBDIRS in service Makefile to build multiple lambdas
-# Example: LAMBDA_SUBDIRS := extractor transformer consumer
+# Example: LAMBDA_SUBDIRS := extractor transformer consumer health_check
 # Each lambda will be built from its subdirectory with common/ included
 LAMBDA_SUBDIRS ?=
+
+# Optional; subdirectory containing the lambda directories
+# Example: LAMBDA_SOURCES_SUBDIR := src
+LAMBDA_SOURCES_SUBDIR ?= .
 
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 BUILD_TIMESTAMP := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -127,51 +131,51 @@ build-dependency-layer: clean ### Build the dependency layer
 
 # Multi-lambda build helper (called for each lambda in LAMBDA_SUBDIRS)
 define build_lambda
-	@mkdir -p $(BUILD_DIR)/$(1)-tmp
-	cp -r $(1) $(BUILD_DIR)/$(1)-tmp/
-	[ ! -d common ] || cp -r common $(BUILD_DIR)/$(1)-tmp/
-	cd $(BUILD_DIR)/$(1)-tmp && zip -r -q ../ftrs-dos-$(SERVICE)-$(1)-lambda.zip . --exclude "*__pycache__/*"
-	@rm -rf $(BUILD_DIR)/$(1)-tmp
-	$(call log_success,Lambda built: ftrs-dos-$(SERVICE)-$(1)-lambda.zip)
+$(eval ZIP_NAME := ftrs-dos-$(SERVICE)-$(shell echo $(1) | tr '_' '-')-lambda.zip)
+@mkdir -p $(BUILD_DIR)/$(1)-tmp
+cp -r $(LAMBDA_SOURCES_SUBDIR)/$(1) $(BUILD_DIR)/$(1)-tmp/
+[ ! -d $(LAMBDA_SOURCES_SUBDIR)/common ] || cp -r $(LAMBDA_SOURCES_SUBDIR)/common $(BUILD_DIR)/$(1)-tmp/
+cd $(BUILD_DIR)/$(1)-tmp && zip -r -q ../$(ZIP_NAME) . --exclude "*__pycache__/*"
+@rm -rf $(BUILD_DIR)/$(1)-tmp
+$(call log_success,Lambda built: $(ZIP_NAME))
 endef
 
 build: ensure-build-dir build-dependency-layer generate-build-info ### Build the service
 ifdef LAMBDA_SUBDIRS
 	$(call log_start,Building $(SERVICE) with multiple lambdas: $(LAMBDA_SUBDIRS))
 	$(foreach lambda,$(LAMBDA_SUBDIRS),$(call build_lambda,$(lambda)))
-	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
-	$(call log_success,Build complete)
 else
 	$(call log_start,Building $(SERVICE))
 	poetry build -f wheel -o $(BUILD_DIR)
-	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME).zip
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
-	$(call log_success,Build complete: $(LAMBDA_NAME).zip)
+	$(call log_success,Lambda built: $(LAMBDA_NAME).zip)
 endif
+	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
+	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+	$(call log_success,Build complete)
+
+# Multi-lambda publish helper (called for each lambda in LAMBDA_SUBDIRS)
+define publish_lambda
+$(eval ZIP_NAME := ftrs-dos-$(SERVICE)-$(shell echo $(1) | tr '_' '-')-lambda.zip)
+aws s3 cp $(BUILD_DIR)/$(ZIP_NAME) s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(ZIP_NAME) --checksum-algorithm SHA256 --region $(AWS_REGION)
+aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(ZIP_NAME)" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+$(call log_success,Lambda published: $(ZIP_NAME))
+endef
 
 publish: ## Publish artifacts to S3 development path
+	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
 ifdef LAMBDA_SUBDIRS
-	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
-	$(foreach lambda,$(LAMBDA_SUBDIRS),aws s3 cp $(BUILD_DIR)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip --checksum-algorithm SHA256 --region $(AWS_REGION); aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/ftrs-dos-$(SERVICE)-$(lambda)-lambda.zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION);)
-	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
-	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(DEPENDENCY_LAYER_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
-	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
-	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/build-info.json" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
-	$(call log_success,Published successfully)
+	$(foreach lambda,$(LAMBDA_SUBDIRS),$(call publish_lambda,$(lambda)))
 else
-	$(call log_start,Publishing $(SERVICE) to $(ARTEFACT_DEVELOPMENT_PATH))
 	aws s3 cp $(BUILD_DIR)/$(LAMBDA_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(LAMBDA_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
 	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(LAMBDA_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
+	$(call log_success,Lambda published: $(LAMBDA_NAME).zip)
+endif
 	aws s3 cp $(BUILD_DIR)/$(DEPENDENCY_LAYER_NAME).zip s3://$(ARTEFACT_DEVELOPMENT_PATH)/$(DEPENDENCY_LAYER_NAME).zip --checksum-algorithm SHA256 --region $(AWS_REGION)
 	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/$(DEPENDENCY_LAYER_NAME).zip" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
 	aws s3 cp $(BUILD_INFO_FILE) s3://$(ARTEFACT_DEVELOPMENT_PATH)/build-info.json --checksum-algorithm SHA256 --region $(AWS_REGION)
 	aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$(ARTEFACT_DEVELOPMENT_PREFIX)/build-info.json" --tagging "TagSet=[{Key=retention,Value=$(RETENTION_VALUE)}]" --region $(AWS_REGION)
 	$(call log_success,Published successfully)
-endif
-
-pre-commit: lint
 
 # ==============================================================================
 # Help Target
