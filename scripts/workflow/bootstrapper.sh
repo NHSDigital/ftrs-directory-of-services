@@ -13,7 +13,7 @@ export AWS_REGION="${AWS_REGION:-""}"                             # The AWS regi
 export ENVIRONMENT="${ENVIRONMENT:-""}"                    # Identify the environment (one of dev,test,security,preprod or prod) usually part of the account name
 export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
-export TERRAFORM_STATE_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
+export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
 if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
@@ -21,9 +21,9 @@ if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
   exit 1
 fi
 if [[ "$ENVIRONMENT" == "prod" ]]; then
-  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}-${TERRAFORM_ACCOUNT_ID}"
+  export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}-${TERRAFORM_ACCOUNT_ID}"
 else
-  export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}"
+  export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}"
 fi
 
 export WORKSPACE="${WORKSPACE:-"default"}"
@@ -74,8 +74,8 @@ fi
 # -------------
 # First time thru we haven't build the remote state bucket or lock table - so assume it doesn't exist to use
 # if remote state bucket does exist we are going to use it
-if aws s3api head-bucket --bucket "$TF_VAR_terraform_state_bucket_name" 2>/dev/null; then
-  echo "Terraform S3 State Bucket Name: ${TF_VAR_terraform_state_bucket_name} already bootstrapped"
+if aws s3api head-bucket --bucket "$TERRAFORM_BACKEND_BUCKET_NAME" 2>/dev/null; then
+  echo "Terraform S3 State Bucket Name: ${TERRAFORM_BACKEND_BUCKET_NAME} already bootstrapped"
   export USE_REMOTE_STATE_STORE=true
 else
   export USE_REMOTE_STATE_STORE=false
@@ -92,7 +92,7 @@ function terraform-init-migrate {
     TERRAFORM_STATE_KEY=$STACK/terraform.state
 
     terraform init -migrate-state -force-copy \
-        -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
+        -backend-config="bucket=$TERRAFORM_BACKEND_BUCKET_NAME" \
         -backend-config="dynamodb_table=$TF_VAR_terraform_lock_table_name" \
         -backend-config="encrypt=true" \
         -backend-config="key=$TERRAFORM_STATE_KEY" \
@@ -102,14 +102,14 @@ function terraform-init-migrate {
 # function to determine if state is held locally or remote
 function terraform-initialise {
 
-    echo "Terraform S3 State Bucket Name: ${TF_VAR_terraform_state_bucket_name}"
+    echo "Terraform S3 State Bucket Name: ${TERRAFORM_BACKEND_BUCKET_NAME}"
     echo "Terraform Lock Table Name: ${TF_VAR_terraform_lock_table_name}"
 
     if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then
       terraform init
     else
       terraform init \
-          -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
+          -backend-config="bucket=$TERRAFORM_BACKEND_BUCKET_NAME" \
           -backend-config="dynamodb_table=$TF_VAR_terraform_lock_table_name" \
           -backend-config="encrypt=true" \
           -backend-config="key=$STACK/terraform.state" \
@@ -253,7 +253,7 @@ cd "$ROOT_DIR" || exit
 
 if ! $USE_REMOTE_STATE_STORE  ; then
   # check if remote state bucket exists we are okay to migrate state to it
-  if aws s3api head-bucket --bucket "$TF_VAR_terraform_state_bucket_name" 2>/dev/null; then
+  if aws s3api head-bucket --bucket "$TERRAFORM_BACKEND_BUCKET_NAME" 2>/dev/null; then
     export USE_REMOTE_STATE_STORE=true
     echo Preparing to migrate stack from local backend to remote backend
     # the directory that holds the stack to terraform
