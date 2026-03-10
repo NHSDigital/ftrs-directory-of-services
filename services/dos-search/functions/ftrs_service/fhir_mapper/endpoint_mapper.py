@@ -60,7 +60,7 @@ class EndpointMapper:
 
     def _create_payload_type(self, endpoint: Endpoint) -> list[CodeableConcept]:
         system = "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-        code = endpoint.payloadType.value
+        code = endpoint.payloadType
 
         if not code:
             return []

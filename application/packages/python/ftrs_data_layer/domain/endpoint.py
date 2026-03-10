@@ -5,7 +5,6 @@ from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
     EndpointPayloadMimeType,
-    EndpointPayloadType,
     EndpointStatus,
 )
 
@@ -27,7 +26,7 @@ class Endpoint(DBModel):
     name: str | None
     payloadMimeType: EndpointPayloadMimeType | None
     businessScenario: EndpointBusinessScenario
-    payloadType: EndpointPayloadType | None
+    payloadType: str | None
     address: str
     managedByOrganisation: UUID
     service: UUID | None
