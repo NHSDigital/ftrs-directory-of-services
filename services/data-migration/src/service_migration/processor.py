@@ -267,11 +267,10 @@ class DataMigrationProcessor:
             ),
         )
 
-        current_state = state_record or self.get_state_record(service.id)
         transaction_items = self._build_transaction_items(
-            service.id, current_state, validation_result.issues, result
+            service.id, state_record, validation_result.issues, result
         )
-        self._execute_transaction_and_track(current_state, transaction_items)
+        self._execute_transaction_and_track(state_record, transaction_items)
 
         return result
 
