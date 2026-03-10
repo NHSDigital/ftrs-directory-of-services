@@ -31,7 +31,7 @@ module "s3" {
   }
 
   logging = var.s3_logging_bucket != "" ? {
-    target_bucket = var.s3_logging_bucket
+    target_bucket = local.logging_bucket_name
     target_prefix = "${local.bucket_name}/"
   } : {}
 

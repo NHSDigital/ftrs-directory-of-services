@@ -67,11 +67,11 @@ if [ -z "$STACK" ] ; then
 fi
 
 if [ -z "$ENVIRONMENT" ] ; then
-  echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, int, ref, prod
+  echo Set ENVIRONMENT to the environment to action the terraform in - one of mgmt, dev, test, int, ref, non-prod, prod, prototype
   EXPORTS_SET=1
 else
   if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, or prod
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, prod, or prototype
       EXPORTS_SET=1
   fi
 fi

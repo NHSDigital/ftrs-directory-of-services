@@ -38,7 +38,7 @@ data "aws_s3_object" "crud_apis_lambda_package" {
 }
 
 data "aws_s3_object" "truststore" {
-  bucket = local.s3_trust_store_bucket_name
+  bucket = local.s3_trust_store_bucket_lookup_name
   key    = local.trust_store_file_path
 }
 
