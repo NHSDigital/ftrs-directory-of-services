@@ -1,0 +1,1237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="CRUD_Organisation_Test_Plan">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments"
+        guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments" />
+      </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement"
+        testname="Plan HTTP Request Defaults">
+        <stringProp name="HTTPSampler.domain">${__groovy(props.get(&quot;test_mode&quot;) ==
+          &quot;proxy&quot; ? (props.get(&quot;Apim_Env&quot;) + vars.get(&quot;Apim_Domain&quot;))
+          : props.get(&quot;ServiceEndpoint&quot;))}</stringProp>
+        <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+          guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments" />
+        </elementProp>
+        <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+      </ConfigTestElement>
+      <hashTree />
+      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager"
+        testname="Plan HTTP Cache Manager">
+        <boolProp name="clearEachIteration">true</boolProp>
+        <boolProp name="useExpires">true</boolProp>
+        <boolProp name="CacheManager.controlledByThread">false</boolProp>
+      </CacheManager>
+      <hashTree />
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup"
+        testname="setUp Thread Group">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler"
+          testname="Set Test Mode and Operation Variables">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// Set boolean properties based on test_mode property
+            log.info(&quot;Setting test mode variables for CRUD test plan&quot;)
+            def testMode = props.get(&quot;test_mode&quot;)
+            props.put(&quot;isProxyMode&quot;, (testMode == &quot;proxy&quot;).toString())
+            props.put(&quot;isLoadMode&quot;, (testMode == &quot;load&quot;).toString())
+            props.put(&quot;isStressMode&quot;, (testMode == &quot;stress&quot;).toString())
+
+            // Set test operation variables (get or put)
+            def testOperation = props.get(&quot;test_operation&quot;) ?: &quot;get&quot;
+            props.put(&quot;isGetOp&quot;, (testOperation == &quot;get&quot;).toString())
+            props.put(&quot;isPutOp&quot;, (testOperation == &quot;put&quot;).toString())
+            log.info(&quot;Test mode and operation variables set successfully&quot;)
+
+            def scriptFile = new File(&apos;./scripts/LoadParams.groovy&apos;)
+            def scriptText = scriptFile.text
+            evaluate(scriptText)
+
+            log.info(&quot;Configuration loaded successfully&quot;) </stringProp>
+        </JSR223Sampler>
+        <hashTree />
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="Apim_Domain" elementType="Argument">
+              <stringProp name="Argument.name">Apim_Domain</stringProp>
+              <stringProp name="Argument.value">.api.service.nhs.uk</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </Arguments>
+        <hashTree />
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Get Token - Proxy">
+        <stringProp name="ThreadGroup.num_threads">${__P(token_num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(token_ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration+10,30)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(token_startup_delay,0)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">stoptestnow</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(token_loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If Controller">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TransactionController guiclass="TransactionControllerGui"
+            testclass="TransactionController"
+            testname="Generate JWT and Bearer Token Transaction Controller" enabled="true">
+            <boolProp name="TransactionController.includeTimers">false</boolProp>
+          </TransactionController>
+          <hashTree>
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor"
+              testname="AWS Secrets Manager - JSR223 PreProcessor" enabled="true">
+              <stringProp name="scriptLanguage">groovy</stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="cacheKey">false</stringProp>
+              <stringProp name="script">import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+                import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder
+                import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest
+                import com.amazonaws.services.secretsmanager.model.GetSecretValueResult
+                import groovy.json.JsonSlurper
+
+                try {
+                String secretName = props.get(&quot;AWS_SECRET_NAME&quot;) ?:
+                vars.get(&quot;AWS_SECRET_NAME&quot;)
+                String region = props.get(&quot;AWS_REGION&quot;) ?:
+                vars.get(&quot;AWS_REGION&quot;) ?: &quot;eu-west-2&quot;
+
+                log.info(&quot;Fetching secret: ${secretName} from region: ${region}&quot;)
+
+                def client = AWSSecretsManagerClientBuilder.standard()
+                .withRegion(region)
+                .withCredentials(new DefaultAWSCredentialsProviderChain())
+                .build()
+
+                GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest()
+                .withSecretId(secretName)
+
+                GetSecretValueResult getSecretValueResult =
+                client.getSecretValue(getSecretValueRequest)
+                String secretString = getSecretValueResult.getSecretString()
+                log.info(&quot;Successfully retrieved secret&quot;)
+
+                def jsonSlurper = new JsonSlurper()
+                def secretJson = jsonSlurper.parseText(secretString)
+
+                secretJson.each { key, value -&gt;
+                vars.put(key as String, value as String)
+                log.info(&quot;Set variable: ${key}&quot;)
+                }
+
+                log.info(&quot;Successfully processed secret key-value pairs&quot;)
+
+                } catch (ClassNotFoundException e) {
+                log.error(&quot;AWS SDK classes not found&quot;)
+                log.error(&quot;Error: ${e.message}&quot;, e)
+                } catch (Exception e) {
+                log.error(&quot;Error fetching or processing AWS secret: ${e.message}&quot;, e)
+                e.printStackTrace()
+                }
+</stringProp>
+            </JSR223PreProcessor>
+            <hashTree />
+            <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Generate JWT Token - JSR223 PreProcessor" enabled="true">
+              <stringProp name="cacheKey">false</stringProp>
+              <stringProp name="filename"></stringProp>
+              <stringProp name="parameters"></stringProp>
+              <stringProp name="script">import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+
+import java.io.ByteArrayOutputStream
+import java.security.KeyFactory
+import java.security.interfaces.RSAPrivateKey
+import java.security.spec.PKCS8EncodedKeySpec
+import java.util.Base64
+import java.util.Date
+import java.util.Map
+import java.util.UUID
+
+// Helper: write DER length bytes to a stream
+def writeDerLength(ByteArrayOutputStream out, int len) {
+    if (len &lt; 128) { out.write(len) }
+    else if (len &lt; 256) { out.write(0x81); out.write(len) }
+    else if (len &lt; 65536) { out.write(0x82); out.write((len &gt;&gt; 8) &amp; 0xFF); out.write(len &amp; 0xFF) }
+    else { out.write(0x83); out.write((len &gt;&gt; 16) &amp; 0xFF); out.write((len &gt;&gt; 8) &amp; 0xFF); out.write(len &amp; 0xFF) }
+}
+
+    String apiKey = vars.get(&quot;api_key&quot;)
+    String kidName = vars.get(&quot;kid&quot;)
+    String key = vars.get(&quot;private_key&quot;)
+    // Convert escaped newlines from AWS Secrets Manager to actual newlines
+    key = key.replace(&quot;\\n&quot;, &quot;\n&quot;).replace(&quot;\\r&quot;, &quot;&quot;)
+    long tokenExpireTime = 300000
+
+    // Strip PEM headers/footers and whitespace to get raw base64
+    String base64Content = key
+        .replaceAll(&quot;-----[A-Za-z0-9 ]+-----&quot;, &quot;&quot;)
+        .replaceAll(&quot;\\s+&quot;, &quot;&quot;)
+
+    byte[] keyBytes = Base64.getDecoder().decode(base64Content)
+    KeyFactory kf = KeyFactory.getInstance(&quot;RSA&quot;)
+    RSAPrivateKey privateKey
+
+    if (key.contains(&quot;BEGIN RSA PRIVATE KEY&quot;)) {
+        // PKCS#1 format - wrap in PKCS#8 DER envelope for Java KeyFactory
+        // AlgorithmIdentifier SEQUENCE: OID 1.2.840.113549.1.1.1 (rsaEncryption) + NULL
+        byte[] algId = [(byte)0x30, (byte)0x0D, (byte)0x06, (byte)0x09, (byte)0x2A, (byte)0x86, (byte)0x48, (byte)0x86, (byte)0xF7, (byte)0x0D, (byte)0x01, (byte)0x01, (byte)0x01, (byte)0x05, (byte)0x00] as byte[]
+        byte[] version = [(byte)0x02, (byte)0x01, (byte)0x00] as byte[]
+        // Wrap PKCS#1 bytes in OCTET STRING
+        ByteArrayOutputStream octetOut = new ByteArrayOutputStream()
+        octetOut.write(0x04)
+        writeDerLength(octetOut, keyBytes.length)
+        octetOut.write(keyBytes)
+        // Build inner content: version + algId + octetString
+        ByteArrayOutputStream innerOut = new ByteArrayOutputStream()
+        innerOut.write(version)
+        innerOut.write(algId)
+        innerOut.write(octetOut.toByteArray())
+        byte[] innerContent = innerOut.toByteArray()
+        // Wrap in outer SEQUENCE
+        ByteArrayOutputStream pkcs8Out = new ByteArrayOutputStream()
+        pkcs8Out.write(0x30)
+        writeDerLength(pkcs8Out, innerContent.length)
+        pkcs8Out.write(innerContent)
+        privateKey = (RSAPrivateKey) kf.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Out.toByteArray()))
+    } else {
+        // PKCS#8 format (BEGIN PRIVATE KEY)
+        privateKey = (RSAPrivateKey) kf.generatePrivate(new PKCS8EncodedKeySpec(keyBytes))
+    }
+
+    String tokenUrl = vars.get(&quot;token_url&quot;)
+    String jwtId = UUID.randomUUID().toString()
+    long nowMillis = System.currentTimeMillis()
+    long expMillis = nowMillis + tokenExpireTime
+
+    Algorithm algorithm = Algorithm.RSA512(null, privateKey)
+
+    String jwtToken = JWT.create()
+            .withSubject(apiKey)
+            .withIssuer(apiKey)
+            .withAudience(tokenUrl)
+            .withJWTId(jwtId)
+            .withExpiresAt(new Date(expMillis))
+            .withHeader(Map.of(&quot;kid&quot;, kidName))
+            .sign(algorithm)
+
+    vars.put(&quot;JWT_Token&quot;, jwtToken)
+</stringProp>
+              <stringProp name="scriptLanguage">groovy</stringProp>
+            </JSR223PreProcessor>
+            <hashTree />
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+              testname="Get Bearer Token">
+              <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+                guiclass="HTTPArgumentsPanel" testclass="Arguments"
+                testname="User Defined Variables">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="grant_type" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">client_credentials</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">grant_type</stringProp>
+                    <stringProp name="HTTPArgument.content_type">text/plain</stringProp>
+                  </elementProp>
+                  <elementProp name="client_assertion_type" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">urn:ietf:params:oauth:client-assertion-type:jwt-bearer</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">client_assertion_type</stringProp>
+                    <stringProp name="HTTPArgument.content_type">text/plain</stringProp>
+                  </elementProp>
+                  <elementProp name="client_assertion" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">${JWT_Token}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">client_assertion</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                testname="HTTP Header Manager">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">content-type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor"
+                testname="Extract Bearer Token">
+                <stringProp name="JSONPostProcessor.referenceNames">varBearer</stringProp>
+                <stringProp name="JSONPostProcessor.jsonPathExprs">$.access_token</stringProp>
+                <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+                <stringProp name="JSONPostProcessor.defaultValues">TOKEN_NOT_FOUND</stringProp>
+              </JSONPostProcessor>
+              <hashTree />
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor"
+                testname="Set Bearer Token as Property" enabled="true">
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="script">def bearerToken = vars.get(&quot;varBearer&quot;)
+                  def iteration = vars.getIteration()
+
+                  // Log the response for debugging
+                  def responseCode = prev.getResponseCode()
+                  def responseBody = prev.getResponseDataAsString()
+                  log.info(&quot;Token response code: ${responseCode}&quot;)
+                  log.info(&quot;Token response body: ${responseBody}&quot;)
+
+                  if (bearerToken != null &amp;&amp; !bearerToken.isEmpty() &amp;&amp; bearerToken
+                  != &quot;TOKEN_NOT_FOUND&quot;) {
+                  props.put(&quot;varBearer&quot;, bearerToken)
+                  log.info(&quot;Iteration ${iteration}: Bearer token successfully set&quot;)
+                  } else {
+                  log.error(&quot;Iteration ${iteration}: Bearer token is null!&quot;)
+                  }
+</stringProp>
+                <stringProp name="scriptLanguage">groovy</stringProp>
+              </JSR223PostProcessor>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+          <JSR223Timer guiclass="TestBeanGUI" testclass="JSR223Timer"
+            testname="Wait 5 Minutes (Skip First Iteration)" enabled="true">
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="script">def iteration = vars.getIteration()
+              if (iteration == 1) {
+              return 0
+              } else {
+              return 290000
+              }
+</stringProp>
+            <stringProp name="scriptLanguage">groovy</stringProp>
+          </JSR223Timer>
+          <hashTree />
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop Thread if NOT Proxy Mode" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(!props.get(&apos;isProxyMode&apos;)
+            || props.get(&apos;isProxyMode&apos;) == &apos;false&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction"
+            testname="Flow Control Action - Stop Thread" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Get Organisation Backend - Precise Throughput" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,0)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Load Mode AND Get Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isLoadMode&apos;) ==
+            &apos;true&apos; &amp;&amp; props.get(&apos;isGetOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+            testname="Get Organisation by Identifier" enabled="true">
+            <stringProp name="HTTPSampler.path">Organization</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+              guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="identifier" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.name">identifier</stringProp>
+                  <stringProp name="Argument.value">https://fhir.nhs.uk/Id/ods-organization-code|${org_odscode}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+              testname="Organisation ID Parameters" enabled="true">
+              <stringProp name="delimiter">,</stringProp>
+              <stringProp name="fileEncoding"></stringProp>
+              <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+              <boolProp name="ignoreFirstLine">true</boolProp>
+              <boolProp name="quotedData">false</boolProp>
+              <boolProp name="recycle">true</boolProp>
+              <stringProp name="shareMode">shareMode.group</stringProp>
+              <boolProp name="stopThread">false</boolProp>
+              <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+            </CSVDataSet>
+            <hashTree />
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+              testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Accept</stringProp>
+                  <stringProp name="Header.value">application/fhir+json</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+            <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer"
+              testname="Precise Throughput Timer" enabled="true">
+              <doubleProp>
+                <name>allowedThroughputSurplus</name>
+                <value>1.0</value>
+                <savedValue>0.0</savedValue>
+              </doubleProp>
+              <intProp name="batchSize">1</intProp>
+              <intProp name="batchThreadDelay">0</intProp>
+              <stringProp name="duration">${__P(duration,3660)}</stringProp>
+              <intProp name="exactLimit">10000</intProp>
+              <longProp name="randomSeed">1</longProp>
+              <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
+              <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
+            </PreciseThroughputTimer>
+            <hashTree />
+            <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion"
+              testname="GET NFR Response Time Assertion" enabled="true">
+              <stringProp name="DurationAssertion.duration">300</stringProp>
+            </DurationAssertion>
+            <hashTree />
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Load Mode or Get Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isLoadMode&apos;) !=
+            &apos;true&apos; || props.get(&apos;isGetOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action"
+            enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Put Organisation Backend - Precise Throughput" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,0)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Load Mode AND Put Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isLoadMode&apos;) ==
+            &apos;true&apos; &amp;&amp; props.get(&apos;isPutOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+            testname="Put Organisation" enabled="true">
+            <stringProp name="HTTPSampler.path">Organization/${org_id}</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">PUT</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+              guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{
+                    "resourceType": "Organization",
+                    "id": "${org_id}",
+                    "meta": {
+                    "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                    },
+                    "identifier": [
+                    {
+                    "use": "official",
+                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                    "value": "${org_odscode}"
+                    }
+                    ],
+                    "active": true,
+                    "name": "${org_name}",
+                    "telecom": [
+                    {
+                    "system": "phone",
+                    "value": "447424723851"
+                    }
+                    ]
+                    }</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+              testname="Organisation ID Parameters" enabled="true">
+              <stringProp name="delimiter">,</stringProp>
+              <stringProp name="fileEncoding"></stringProp>
+              <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+              <boolProp name="ignoreFirstLine">true</boolProp>
+              <boolProp name="quotedData">false</boolProp>
+              <boolProp name="recycle">true</boolProp>
+              <stringProp name="shareMode">shareMode.group</stringProp>
+              <boolProp name="stopThread">false</boolProp>
+              <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+            </CSVDataSet>
+            <hashTree />
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+              testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/fhir+json</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">NHSE-Product-ID</stringProp>
+                  <stringProp name="Header.value">NHSE-Product-ID</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+            <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer"
+              testname="Precise Throughput Timer" enabled="true">
+              <doubleProp>
+                <name>allowedThroughputSurplus</name>
+                <value>1.0</value>
+                <savedValue>0.0</savedValue>
+              </doubleProp>
+              <intProp name="batchSize">1</intProp>
+              <intProp name="batchThreadDelay">0</intProp>
+              <stringProp name="duration">${__P(duration,3660)}</stringProp>
+              <intProp name="exactLimit">10000</intProp>
+              <longProp name="randomSeed">1</longProp>
+              <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
+              <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
+            </PreciseThroughputTimer>
+            <hashTree />
+            <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion"
+              testname="PUT NFR Response Time Assertion" enabled="true">
+              <stringProp name="DurationAssertion.duration">400</stringProp>
+            </DurationAssertion>
+            <hashTree />
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Load Mode or Put Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isLoadMode&apos;) !=
+            &apos;true&apos; || props.get(&apos;isPutOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action"
+            enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Get Organisation Proxy - Precise Throughput" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Proxy Mode AND Get Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;) ==
+            &apos;true&apos; &amp;&amp; props.get(&apos;isGetOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TransactionController guiclass="TransactionControllerGui"
+            testclass="TransactionController"
+            testname="Get Organisation by Identifier Transaction Controller">
+            <boolProp name="TransactionController.parent">true</boolProp>
+            <boolProp name="TransactionController.includeTimers">false</boolProp>
+          </TransactionController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+              testname="Get Organisation by Identifier">
+              <stringProp name="HTTPSampler.path">/${__P(Apim_Workspace)}/FHIR/R4/Organization</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+                guiclass="HTTPArgumentsPanel" testclass="Arguments"
+                testname="User Defined Variables">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="identifier" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.name">identifier</stringProp>
+                    <stringProp name="Argument.value">https://fhir.nhs.uk/Id/ods-organization-code|${org_odscode}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+                testname="Organisation ID Parameters" enabled="true">
+                <stringProp name="delimiter">,</stringProp>
+                <stringProp name="fileEncoding"></stringProp>
+                <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+                <boolProp name="ignoreFirstLine">true</boolProp>
+                <boolProp name="quotedData">false</boolProp>
+                <boolProp name="recycle">true</boolProp>
+                <stringProp name="shareMode">shareMode.group</stringProp>
+                <boolProp name="stopThread">false</boolProp>
+                <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+              </CSVDataSet>
+              <hashTree />
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                testname="HTTP Header Manager" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Authorization</stringProp>
+                    <stringProp name="Header.value">Bearer ${__P(varBearer,${varBearer})}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Accept</stringProp>
+                    <stringProp name="Header.value">application/fhir+json</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer"
+                testname="Precise Throughput Timer" enabled="true">
+                <doubleProp>
+                  <name>allowedThroughputSurplus</name>
+                  <value>1.0</value>
+                  <savedValue>0.0</savedValue>
+                </doubleProp>
+                <intProp name="batchSize">1</intProp>
+                <intProp name="batchThreadDelay">0</intProp>
+                <stringProp name="duration">${__P(duration,3660)}</stringProp>
+                <intProp name="exactLimit">10000</intProp>
+                <longProp name="randomSeed">1</longProp>
+                <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
+                <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
+              </PreciseThroughputTimer>
+              <hashTree />
+              <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion"
+                testname="GET NFR Response Time Assertion (Proxy)" enabled="true">
+                <stringProp name="DurationAssertion.duration">300</stringProp>
+              </DurationAssertion>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Proxy Mode or Get Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;) !=
+            &apos;true&apos; || props.get(&apos;isGetOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action"
+            enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Put Organisation Proxy - Precise Throughput" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Proxy Mode AND Put Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;) ==
+            &apos;true&apos; &amp;&amp; props.get(&apos;isPutOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TransactionController guiclass="TransactionControllerGui"
+            testclass="TransactionController" testname="Put Organisation Transaction Controller">
+            <boolProp name="TransactionController.parent">true</boolProp>
+            <boolProp name="TransactionController.includeTimers">false</boolProp>
+          </TransactionController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+              testname="Put Organisation">
+              <stringProp name="HTTPSampler.path">/${__P(Apim_Workspace)}/FHIR/R4/Organization/${org_id}</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.method">PUT</stringProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+                guiclass="HTTPArgumentsPanel" testclass="Arguments"
+                testname="User Defined Variables">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">{
+                      "resourceType": "Organization",
+                      "id": "${org_id}",
+                      "meta": {
+                      "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                      },
+                      "identifier": [
+                      {
+                      "use": "official",
+                      "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                      "value": "${org_odscode}"
+                      }
+                      ],
+                      "active": true,
+                      "name": "${org_name}",
+                      "telecom": [
+                      {
+                      "system": "phone",
+                      "value": "447424723850"
+                      }
+                      ]
+                      }</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+                testname="Organisation ID Parameters" enabled="true">
+                <stringProp name="delimiter">,</stringProp>
+                <stringProp name="fileEncoding"></stringProp>
+                <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+                <boolProp name="ignoreFirstLine">true</boolProp>
+                <boolProp name="quotedData">false</boolProp>
+                <boolProp name="recycle">true</boolProp>
+                <stringProp name="shareMode">shareMode.group</stringProp>
+                <boolProp name="stopThread">false</boolProp>
+                <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+              </CSVDataSet>
+              <hashTree />
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                testname="HTTP Header Manager" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Authorization</stringProp>
+                    <stringProp name="Header.value">Bearer ${__P(varBearer,${varBearer})}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/fhir+json</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer"
+                testname="Precise Throughput Timer" enabled="true">
+                <doubleProp>
+                  <name>allowedThroughputSurplus</name>
+                  <value>1.0</value>
+                  <savedValue>0.0</savedValue>
+                </doubleProp>
+                <intProp name="batchSize">1</intProp>
+                <intProp name="batchThreadDelay">0</intProp>
+                <stringProp name="duration">${__P(duration,3660)}</stringProp>
+                <intProp name="exactLimit">10000</intProp>
+                <longProp name="randomSeed">1</longProp>
+                <stringProp name="throughput">${__P(timer_throughput,9000.0)}</stringProp>
+                <stringProp name="throughputPeriod">${__P(timer_throughput_period,60)}</stringProp>
+              </PreciseThroughputTimer>
+              <hashTree />
+              <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion"
+                testname="PUT NFR Response Time Assertion (Proxy)" enabled="true">
+                <stringProp name="DurationAssertion.duration">400</stringProp>
+              </DurationAssertion>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Proxy Mode or Put Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isProxyMode&apos;) !=
+            &apos;true&apos; || props.get(&apos;isPutOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action"
+            enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector"
+        testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree />
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Get Organisation Backend - Throughput Shaping Timer" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Stress Mode AND Get Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isStressMode&apos;)
+            == &apos;true&apos; &amp;&amp; props.get(&apos;isGetOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <kg.apc.jmeter.timers.VariableThroughputTimer
+            guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui"
+            testclass="kg.apc.jmeter.timers.VariableThroughputTimer"
+            testname="jp@gc - Throughput Shaping Timer" enabled="true">
+            <collectionProp name="load_profile">
+              <collectionProp name="step_1">
+                <stringProp name="start">0</stringProp>
+                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_2">
+                <stringProp name="start">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_3">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_4">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_5">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_6">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_7">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_8">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_9">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_10">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_11">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="step_12">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+          </kg.apc.jmeter.timers.VariableThroughputTimer>
+          <hashTree />
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+            testname="Get Organisation by Identifier" enabled="true">
+            <stringProp name="HTTPSampler.path">Organization</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+              guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="identifier" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.name">identifier</stringProp>
+                  <stringProp name="Argument.value">https://fhir.nhs.uk/Id/ods-organization-code|${org_odscode}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+              testname="Organisation ID Parameters" enabled="true">
+              <stringProp name="delimiter">,</stringProp>
+              <stringProp name="fileEncoding"></stringProp>
+              <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+              <boolProp name="ignoreFirstLine">true</boolProp>
+              <boolProp name="quotedData">false</boolProp>
+              <boolProp name="recycle">true</boolProp>
+              <stringProp name="shareMode">shareMode.group</stringProp>
+              <boolProp name="stopThread">false</boolProp>
+              <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+            </CSVDataSet>
+            <hashTree />
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+              testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Accept</stringProp>
+                  <stringProp name="Header.value">application/fhir+json</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Stress Mode or Get Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isStressMode&apos;)
+            != &apos;true&apos; || props.get(&apos;isGetOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction"
+            testname="Flow Control Action - Stop Thread" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+        testname="Put Organisation Backend - Throughput Shaping Timer" enabled="true">
+        <stringProp name="ThreadGroup.num_threads">${__P(num_threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(ramp_time,1)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,10)}</stringProp>
+        <stringProp name="ThreadGroup.delay">${__P(startup_delay,10)}</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+          guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">${__P(loop_count,-1)}</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="If Stress Mode AND Put Operation" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isStressMode&apos;)
+            == &apos;true&apos; &amp;&amp; props.get(&apos;isPutOp&apos;) == &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <kg.apc.jmeter.timers.VariableThroughputTimer
+            guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui"
+            testclass="kg.apc.jmeter.timers.VariableThroughputTimer"
+            testname="jp@gc - Throughput Shaping Timer" enabled="true">
+            <collectionProp name="load_profile">
+              <collectionProp name="put_step_1">
+                <stringProp name="start">0</stringProp>
+                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_2">
+                <stringProp name="start">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="end">${__P(throughput_step,50)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_3">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 2)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_4">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 3)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_5">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 4)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_6">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 5)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_7">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 6)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_8">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 7)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_9">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 8)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_10">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 9)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_11">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 10)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+              <collectionProp name="put_step_12">
+                <stringProp name="start">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+                <stringProp name="end">${__groovy(${__P(throughput_step,50)} * 11)}</stringProp>
+                <stringProp name="duration">${__P(step_duration,300)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+          </kg.apc.jmeter.timers.VariableThroughputTimer>
+          <hashTree />
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+            testname="Put Organisation" enabled="true">
+            <stringProp name="HTTPSampler.path">Organization/${org_id}</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">PUT</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments"
+              guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">{
+                    "resourceType": "Organization",
+                    "id": "${org_id}",
+                    "meta": {
+                    "profile": ["https://fhir.nhs.uk/StructureDefinition/UKCore-Organization"]
+                    },
+                    "identifier": [
+                    {
+                    "use": "official",
+                    "system": "https://fhir.nhs.uk/Id/ods-organization-code",
+                    "value": "${org_odscode}"
+                    }
+                    ],
+                    "active": true,
+                    "name": "${org_name}",
+                    "telecom": [
+                    {
+                    "system": "phone",
+                    "value": "447424723851"
+                    }
+                    ]
+                    }</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+              testname="Organisation ID Parameters" enabled="true">
+              <stringProp name="delimiter">,</stringProp>
+              <stringProp name="fileEncoding"></stringProp>
+              <stringProp name="filename">parameter_files/crud_organisation_ids.csv</stringProp>
+              <boolProp name="ignoreFirstLine">true</boolProp>
+              <boolProp name="quotedData">false</boolProp>
+              <boolProp name="recycle">true</boolProp>
+              <stringProp name="shareMode">shareMode.group</stringProp>
+              <boolProp name="stopThread">false</boolProp>
+              <stringProp name="variableNames">org_id,org_odscode,org_name</stringProp>
+            </CSVDataSet>
+            <hashTree />
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+              testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/fhir+json</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">NHSE-Product-ID</stringProp>
+                  <stringProp name="Header.value">NHSE-Product-ID</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController"
+          testname="Stop If Not Stress Mode or Put Op" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(props.get(&apos;isStressMode&apos;)
+            != &apos;true&apos; || props.get(&apos;isPutOp&apos;) != &apos;true&apos;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TestAction guiclass="TestActionGui" testclass="TestAction"
+            testname="Flow Control Action - Stop Thread" enabled="true">
+            <intProp name="ActionProcessor.action">2</intProp>
+            <intProp name="ActionProcessor.target">0</intProp>
+            <stringProp name="ActionProcessor.duration">0</stringProp>
+          </TestAction>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -65,9 +65,10 @@ if (workspace == "default") {
     props.put("Workspace", "-" + workspace)
 }
 
+// Service name is configurable; defaults to dos-search
+def serviceName = props.get("service_name") ?: "dos-search"
+props.put("Apim_Workspace", serviceName + (props.get("Workspace") ?: ""))
 
-props.put("Apim_Workspace", "dos-search" + (props.get("Workspace") ?: ""))
 
-
-log.info("Loaded APIM Params: Apim_Env=${props.get("Apim_Env")},Apim_Workspace=${props.get("Apim_workspace")},  Env=${props.get("Env")}, AWS_SECRET_NAME=${props.get("AWS_SECRET_NAME")}")
+log.info("Loaded APIM Params: Apim_Env=${props.get("Apim_Env")}, Apim_Workspace=${props.get("Apim_Workspace")}, ServiceName=${serviceName}, Env=${props.get("Env")}, AWS_SECRET_NAME=${props.get("AWS_SECRET_NAME")}")
 log.info("Loaded Backend Params: ServiceEndpoint=${props.get("ServiceEndpoint")}, Workspace=${props.get("Workspace")}")

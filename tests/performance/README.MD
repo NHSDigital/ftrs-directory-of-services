@@ -10,10 +10,13 @@ This is a Performance Testing Framework using JMeter to load test services withi
 ├── performance/
     ├── parameter_files/          # Test data files (CSV, certificates, etc.)
     ├── IS_Test_Plan.jmx          # Main unified test plan (supports all modes)
+    ├── DS_Test_Plan.jmx          # CRUD test plan for dos-ingest (GET/PUT Organisation)
     ├── FDOS_Test_Plan.jmx          # Test plan for just data migration (to be included in the main one in the future)
     ├── scripts/
     │   ├── LoadParams.groovy     # Parameter loading script
-    |   ├── data_generation/      # Scripts for generating csv's as deterministic input for jmeter scripts
+    │   ├── data_generation/      # Scripts for generating csv's as deterministic input for jmeter scripts
+    │   └── etl_ods/              # ETL ODS tooling (SQS injection, metrics) — see etl_ods/README.md
+    ├── reports/                  # Generated metrics reports (CSV, JSON)
     ├── Makefile
     └── README.MD
 ```
@@ -61,7 +64,7 @@ The `IS_Test_Plan.jmx` is a unified test plan that supports three different test
 
 ### Key Features
 
-- **Setup Thread Group**: Runs first to initialize test mode variables and load parameters from `LoadParams.groovy`
+- **Setup Thread Group**: Runs first to initialize test mode variables and load parameters from `LoadParams.groovy` (shared across all test plans; the `service_name` property controls the APIM workspace name, defaulting to `dos-search`)
 - **Conditional Execution**: Each Thread Group has If Controllers that only execute in the appropriate test mode
 - **Flow Control Actions**: Prevents StackOverflowError with infinite loops by stopping threads when not in the correct mode
 - **Flexible Configuration**: All test parameters are configurable via command-line properties (`-J` flags)
@@ -112,6 +115,144 @@ Total Duration = 12 steps × step_duration
 ```
 For a 5-minute (300 second) test, set `step_duration=25` (12 × 25 = 300 seconds).
 
+## Test Plan Overview: DS_Test_Plan.jmx
+
+The `DS_Test_Plan.jmx` is a CRUD test plan for the dos-ingest service. It tests GET and PUT Organisation endpoints and supports the same three test modes as `IS_Test_Plan` (`proxy`, `load`, `stress`) — see [IS_Test_Plan parameters](#common-parameters) for shared parameter details.
+
+### DS-Specific Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `test_operation` | CRUD operation: `get` or `put` | (required) |
+| `service_name` | APIM workspace/service name | `dos-ingest` |
+| `timer_throughput` | Target throughput (requests/period) | `1` (IS defaults to `9000.0`) |
+
+### Generating Test Data
+
+The `crud_organisation_ids.csv` file used by `DS_Test_Plan.jmx` can be generated from DynamoDB rather than maintained manually. The script scans the organisation table for the target environment and writes real organisation IDs, ODS codes, and names to the CSV.
+
+```sh
+# Extract all organisations for dev environment (default workspace)
+make ds-data-prep ENVIRONMENT=dev
+
+# Extract from a non-default workspace
+make ds-data-prep ENVIRONMENT=dev WORKSPACE=my-branch
+
+# Limit to 100 organisations
+make ds-data-prep ENVIRONMENT=dev LIMIT=100
+```
+
+Or run the script directly:
+```sh
+ENVIRONMENT=dev ./scripts/extract_organisation_ids.sh
+```
+
+The script derives the DynamoDB table name using the convention `ftrs-dos-{env}-database-organisation{-workspace}` and works on both local machines (with AWS credentials/SSO) and EC2 instances (via IAM instance profile).
+
+### Using Make Targets
+
+#### Load Testing (mTLS - Direct Backend)
+```sh
+make ds-load-test \
+  ENVIRONMENT=dev \
+  ENDPOINT=myendpoint.dev.ftrs.cloud.nhs.uk \
+  PFX_PATH=./parameter_files/jmeter_pfx.pfx \
+  TEST_OPERATION=get \
+  NUM_THREADS=10 \
+  RAMP_TIME=1 \
+  DURATION=300 \
+  STARTUP_DELAY=0 \
+  THROUGHPUT=100 \
+  THROUGHPUT_PERIOD=60
+```
+
+#### Proxy Testing (JWT Authentication via APIM)
+```sh
+make ds-proxy-test \
+  ENVIRONMENT=dev \
+  APIM_ENV=internal-dev \
+  TEST_OPERATION=get \
+  NUM_THREADS=1 \
+  RAMP_TIME=1 \
+  DURATION=15 \
+  STARTUP_DELAY=5 \
+  THROUGHPUT=1 \
+  THROUGHPUT_PERIOD=60
+```
+
+#### Stress Testing (Ramped Throughput with mTLS)
+```sh
+make ds-stress-test \
+  ENVIRONMENT=dev \
+  ENDPOINT=myendpoint.dev.ftrs.cloud.nhs.uk \
+  PFX_PATH=./parameter_files/jmeter_pfx.pfx \
+  TEST_OPERATION=get \
+  NUM_THREADS=30 \
+  RAMP_TIME=1 \
+  DURATION=300 \
+  STARTUP_DELAY=10 \
+  THROUGHPUT_STEP=5 \
+  STEP_DURATION=25
+```
+**Note**: For stress tests, ensure `STEP_DURATION × 12 steps = DURATION` for complete ramp profile.
+
+### Running from Command Line
+
+#### Load Mode (Direct Backend with mTLS)
+```sh
+jmeter -n -t DS_Test_Plan.jmx \
+  -J serviceendpoint=myendpoint.dev.ftrs.cloud.nhs.uk \
+  -f -l result.jtl -e -o "report" \
+  -D javax.net.ssl.keyStore="path to pfx file" \
+  -D javax.net.ssl.keyStorePassword="yourpassword" \
+  -J test_mode="load" \
+  -J test_operation="get" \
+  -J num_threads=10 \
+  -J ramp_time=1 \
+  -J duration=300 \
+  -J startup_delay=0 \
+  -J timer_throughput=100 \
+  -J timer_throughput_period=60
+```
+
+#### Proxy Mode (APIM with JWT)
+```sh
+jmeter -n -t DS_Test_Plan.jmx \
+  -J apim_env=internal-dev \
+  -J env=dev \
+  -J AWS_SECRET_NAME=/ftrs-dos/dev/dos-ingest-jwt-credentials \
+  -J service_name=dos-ingest \
+  -f -l result.jtl -e -o "report" \
+  -J test_mode="proxy" \
+  -J test_operation="get" \
+  -J num_threads=10 \
+  -J ramp_time=1 \
+  -J duration=300 \
+  -J startup_delay=0 \
+  -J timer_throughput=100 \
+  -J timer_throughput_period=60 \
+  -J token_num_threads=1 \
+  -J token_ramp_time=1 \
+  -J token_loop_count=1
+```
+
+#### Stress Mode (Ramped Throughput)
+```sh
+jmeter -n -t DS_Test_Plan.jmx \
+  -J serviceendpoint=myendpoint.dev.ftrs.cloud.nhs.uk \
+  -f -l result.jtl -e -o "report" \
+  -D javax.net.ssl.keyStore="path to pfx file" \
+  -D javax.net.ssl.keyStorePassword="yourpassword" \
+  -J test_mode="stress" \
+  -J test_operation="get" \
+  -J num_threads=30 \
+  -J ramp_time=1 \
+  -J duration=300 \
+  -J startup_delay=10 \
+  -J throughput_step=5 \
+  -J step_duration=25
+```
+
 ## Test Plan Overview: FDOS_Test_Plan.jmx
 
 Parameters relevant for FDOS test plan:
@@ -140,6 +281,10 @@ jmeter -t FDOS_Test_Plan.jmx \
   -J bulk_startup_delay=30 \
   -J duration=3600
 ```
+
+## ETL ODS Performance Testing
+
+See [scripts/etl_ods/README.md](scripts/etl_ods/README.md) for SQS injection, CloudWatch metrics, and ETL ODS pipeline tooling.
 
 ## Test Configuration
 

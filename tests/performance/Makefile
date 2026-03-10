@@ -186,9 +186,101 @@ jmeter-setup-jwt-certs:
 		--query 'SecretString' \
 		--output text > ./parameter_files/jwt-credentials.json;
 
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+# Data Sourcing
+# ---------------------------------------------------------------------------------------------------------------------------------------------------
+
+ds-data-prep: ## Extract organisation IDs from DynamoDB [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [LIMIT=max rows]
+	echo "Extracting organisation IDs from DynamoDB for environment: ${ENVIRONMENT}, workspace: ${WORKSPACE:-default}"
+	ENVIRONMENT=${ENVIRONMENT} WORKSPACE=${WORKSPACE:-default} LIMIT=${LIMIT:-} \
+		sh ./scripts/etl_ods/extract_organisation_ids.sh
+
+ds-setup-jwt-certs: ## Fetch dos-ingest JWT credentials from Secrets Manager [ENVIRONMENT=dev|test|int|ref]
+	echo "/ftrs-dos/$(ENVIRONMENT)/dos-ingest-jwt-credentials";
+	aws secretsmanager get-secret-value \
+		--region $(AWS_REGION) \
+		--secret-id /ftrs-dos/$(ENVIRONMENT)/dos-ingest-jwt-credentials \
+		--query 'SecretString' \
+		--output text > ./parameter_files/jwt-credentials.json;
+
+ds-proxy-test: ## Run DS_Test_Plan via APIM proxy (JWT auth) [TEST_OPERATION=get|put] [APIM_ENV=internal-dev|internal-dev-sandbox] [ENVIRONMENT=dev|test|int|ref] [NUM_THREADS] [RAMP_TIME] [DURATION] [STARTUP_DELAY] [THROUGHPUT] [THROUGHPUT_PERIOD]
+	echo "Running DS_Test_Plan proxy test (operation: ${TEST_OPERATION}, env: ${APIM_ENV})..."
+	rm -rf report result.jtl
+	make ds-setup-jwt-certs ENVIRONMENT=${ENVIRONMENT}
+	touch performance_run.lock
+	jmeter -n -t DS_Test_Plan.jmx \
+		-Japim_env=${APIM_ENV} -Jenv=${ENVIRONMENT} \
+		-JAWS_SECRET_NAME=/ftrs-dos/${ENVIRONMENT}/dos-ingest-jwt-credentials \
+		-Jtest_mode=proxy -Jtest_operation=${TEST_OPERATION} \
+		-Jservice_name=dos-ingest \
+		-Jnum_threads=${NUM_THREADS} -Jramp_time=${RAMP_TIME} \
+		-Jduration=${DURATION} -Jstartup_delay=${STARTUP_DELAY} \
+		-Jtimer_throughput=${THROUGHPUT} -Jtimer_throughput_period=${THROUGHPUT_PERIOD} \
+		-Jtoken_num_threads=1 -Jtoken_ramp_time=1 -Jtoken_loop_count=1 \
+		-f -l result.jtl -e -o report
+	rm -f performance_run.lock
+
+ds-load-test: ## Run DS_Test_Plan load test via mTLS [TEST_OPERATION=get|put] [ENDPOINT=service endpoint] [ENVIRONMENT=dev|test|int|ref] [PFX_PATH=path to pfx] [NUM_THREADS] [RAMP_TIME] [DURATION] [STARTUP_DELAY] [THROUGHPUT] [THROUGHPUT_PERIOD]
+	echo "Running DS_Test_Plan load test (operation: ${TEST_OPERATION}, endpoint: ${ENDPOINT})..."
+	rm -rf report result.jtl
+	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region $(AWS_REGION) --secret-id /ftrs-directory-of-services/$(ENVIRONMENT)/api-jmeter-pks-key --query 'SecretString')
+	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
+	touch performance_run.lock
+	jmeter -n -t DS_Test_Plan.jmx \
+		-Jserviceendpoint=${ENDPOINT} \
+		-Jtest_mode=load -Jtest_operation=${TEST_OPERATION} \
+		-Jnum_threads=${NUM_THREADS} -Jramp_time=${RAMP_TIME} \
+		-Jduration=${DURATION} -Jstartup_delay=${STARTUP_DELAY} \
+		-Jtimer_throughput=${THROUGHPUT} -Jtimer_throughput_period=${THROUGHPUT_PERIOD} \
+		-D javax.net.ssl.keyStore="${PFX_PATH}" \
+		-D javax.net.ssl.keyStorePassword="$$STRIPPED_PFX_PASSWORD" \
+		-f -l result.jtl -e -o report
+	rm -f performance_run.lock
+
+
+ds-stress-test: ## Run DS_Test_Plan stress test via mTLS [TEST_OPERATION=get|put] [ENDPOINT=service endpoint] [ENVIRONMENT=dev|test|int|ref] [PFX_PATH=path to pfx] [NUM_THREADS] [RAMP_TIME] [DURATION] [STARTUP_DELAY] [THROUGHPUT_STEP] [STEP_DURATION]
+	echo "Running DS_Test_Plan stress test (operation: ${TEST_OPERATION}, endpoint: ${ENDPOINT})..."
+	rm -rf report result.jtl
+	PFX_PASSWORD=$$(aws secretsmanager get-secret-value --region $(AWS_REGION) --secret-id /ftrs-directory-of-services/$(ENVIRONMENT)/api-jmeter-pks-key --query 'SecretString')
+	STRIPPED_PFX_PASSWORD=$$(echo $$PFX_PASSWORD | tr -d '"')
+	touch performance_run.lock
+	jmeter -n -t DS_Test_Plan.jmx \
+		-Jserviceendpoint=${ENDPOINT} \
+		-Jtest_mode=stress -Jtest_operation=${TEST_OPERATION} \
+		-Jnum_threads=${NUM_THREADS} -Jramp_time=${RAMP_TIME} \
+		-Jduration=${DURATION} -Jstartup_delay=${STARTUP_DELAY} \
+		-Jthroughput_step=${THROUGHPUT_STEP} -Jstep_duration=${STEP_DURATION} \
+		-D javax.net.ssl.keyStore="${PFX_PATH}" \
+		-D javax.net.ssl.keyStorePassword="$$STRIPPED_PFX_PASSWORD" \
+		-f -l result.jtl -e -o report
+	rm -f performance_run.lock
+
+etl-inject-sqs:
+	echo "Injecting $(or $(COUNT),100) synthetic messages to SQS transform queue (env: $(ENVIRONMENT), workspace: $(or $(WORKSPACE),default))"
+	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) COUNT=$(or $(COUNT),100) \
+		BATCH_SIZE=$(or $(BATCH_SIZE),10) AWS_REGION=$(or $(AWS_REGION),eu-west-2) \
+		python ./scripts/etl_ods/generate_synthetic_sqs_messages.py
+
+etl-inject-sqs-dry-run:
+	echo "Dry run - previewing synthetic messages..."
+	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) COUNT=$(or $(COUNT),5) \
+		DRY_RUN=true python ./scripts/etl_ods/generate_synthetic_sqs_messages.py
+
+etl-metrics: ## Fetch ETL ODS CloudWatch metrics [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [HOURS=1] [START=datetime] [END=datetime]
+	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) \
+		python ./scripts/etl_ods/cloudwatch_metrics.py --hours $(or $(HOURS),1) \
+		$(if $(START),--start '$(START)') $(if $(END),--end '$(END)')
+
+etl-metrics-csv: ## Fetch ETL ODS metrics and export latency report to CSV [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [HOURS=1] [START=datetime] [END=datetime]
+	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) \
+		python ./scripts/etl_ods/cloudwatch_metrics.py --hours $(or $(HOURS),1) --export-csv \
+		$(if $(START),--start '$(START)') $(if $(END),--end '$(END)')
+
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
 # Data migration
 # ---------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 data-prep:
 	echo "Clearing out 'dos' paramerter files"
