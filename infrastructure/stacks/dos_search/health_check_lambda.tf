@@ -1,13 +1,13 @@
 module "health_check_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.health_check_lambda_name}"
+  function_name           = "${local.resource_prefix}-${var.health_check_name}"
   description             = "This lambda provides a health check for the search lambda"
-  handler                 = "health_check/health_check_function.lambda_handler"
+  handler                 = var.health_check_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.health_check_name}.zip"
   ignore_source_code_hash = false
-  s3_key_version_id       = data.aws_s3_object.dos_search_lambda_package.version_id
+  s3_key_version_id       = data.aws_s3_object.dos_search_health_check_lambda_package.version_id
   attach_tracing_policy   = true
   tracing_mode            = "Active"
   number_of_policy_jsons  = "2"

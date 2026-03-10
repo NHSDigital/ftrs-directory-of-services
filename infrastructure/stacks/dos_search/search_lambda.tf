@@ -18,16 +18,16 @@ resource "aws_lambda_layer_version" "python_dependency_layer" {
   s3_object_version = data.aws_s3_object.python_dependency_layer.version_id
 }
 
-module "lambda" {
+module "organization_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.lambda_name}"
+  function_name           = "${local.resource_prefix}-${var.organization_name}"
   description             = "This lambda provides search logic to returns an organisation and its endpoints"
-  handler                 = "functions/dos_search_ods_code_function.lambda_handler"
+  handler                 = var.organization_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.organization_name}.zip"
   ignore_source_code_hash = false
-  s3_key_version_id       = data.aws_s3_object.dos_search_lambda_package.version_id
+  s3_key_version_id       = data.aws_s3_object.dos_search_organization_lambda_package.version_id
   attach_tracing_policy   = true
   tracing_mode            = "Active"
   number_of_policy_jsons  = "2"

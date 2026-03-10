@@ -1,9 +1,15 @@
-dos_search_service_name = "ftrs-dos-search"
-
 # Resource names
-s3_bucket_name                 = "dos-search-s3"
-lambda_name                    = "ods-code-lambda"
-health_check_lambda_name       = "health-check-lambda"
+s3_bucket_name = "dos-search-s3"
+
+# Organization Lambda
+organization_name           = "organization-lambda"
+organization_lambda_handler = "organization.handler.lambda_handler"
+
+# Health Check Lambda
+health_check_name           = "health-check-lambda"
+health_check_lambda_handler = "health_check.handler.lambda_handler"
+
+# Healthcare Service Lambda
 healthcare_service_lambda_name = "healthcare-service-lambda"
 
 #Lambda
