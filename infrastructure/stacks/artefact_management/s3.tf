@@ -9,18 +9,16 @@ module "artefacts_bucket" {
   # - Objects tagged "retention=ephemeral" expire per rules below
   # - Objects tagged "retention=retain" are kept (used for last X versions, see RETAIN_VERSIONS in Makefiles)
   # - Objects tagged "retention=permanent" are kept indefinitely (releases)
+  # Exception: development/latest/ noncurrent version expiration applies regardless of tags
   lifecycle_rule_inputs = [
     {
       id     = "development-latest-retain-5-versions"
       status = "Enabled"
       filter = {
         prefix = "development/latest/"
-        tags = {
-          retention = "retain"
-        }
       }
       noncurrent_version_expiration = {
-        days                      = 1
+        noncurrent_days           = 1
         newer_noncurrent_versions = 5
       }
     },
@@ -36,6 +34,9 @@ module "artefacts_bucket" {
       expiration = {
         days = 30
       }
+      noncurrent_version_expiration = {
+        noncurrent_days = 10
+      }
     },
     {
       id     = "staging-expire-90-days"
@@ -49,6 +50,9 @@ module "artefacts_bucket" {
       expiration = {
         days = 90
       }
+      noncurrent_version_expiration = {
+        noncurrent_days = 10
+      }
     },
     {
       id     = "release-candidates-expire-90-days"
@@ -61,6 +65,9 @@ module "artefacts_bucket" {
       }
       expiration = {
         days = 90
+      }
+      noncurrent_version_expiration = {
+        noncurrent_days = 10
       }
     }
   ]

@@ -374,6 +374,14 @@ class DataMigrationProcessor:
             if hasattr(e, "response"):
                 error_code = e.response.get("Error", {}).get("Code")
 
+            if error_code == "ValidationException":
+                self.logger.log(
+                    DataMigrationLogBase.DM_ETL_041,
+                    transact_items=transact_items,
+                    response=e.response if hasattr(e, "response") else None,
+                )
+                raise
+
             if (
                 e.__class__.__name__ == "TransactionCanceledException"
                 or error_code == "TransactionCanceledException"
