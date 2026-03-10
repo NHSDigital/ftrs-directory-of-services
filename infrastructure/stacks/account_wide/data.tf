@@ -139,3 +139,7 @@ data "aws_iam_policy_document" "vpc_flow_logs_s3_bucket_policy_doc" {
     resources = ["_S3_BUCKET_ARN_"]
   }
 }
+
+data "aws_s3_bucket" "terraform_state_bucket" {
+  bucket = "nhse-${var.environment}-${var.repo_name}-terraform-state"
+}

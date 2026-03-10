@@ -48,14 +48,15 @@ module "subnet_flow_logs_s3_bucket" {
 
 module "trust_store_s3_bucket" {
   # This module creates an S3 bucket for the trust store used for MTLS Certificates.
-  source                = "../../modules/s3"
+  source                       = "../../modules/s3"
   environment           = var.environment
-  bucket_name           = local.s3_trust_store_bucket_name
-  s3_logging_bucket     = local.s3_logging_bucket
-  s3_encryption_key_arn = module.s3_encryption_key.arn
-  enable_kms_encryption = var.enable_s3_kms_encryption
-  attach_policy         = true
-  policy                = data.aws_iam_policy_document.trust_store_bucket_policy.json
+  bucket_name                  = local.s3_trust_store_bucket_name
+  s3_logging_bucket            = local.s3_logging_bucket
+  s3_encryption_key_arn        = module.s3_encryption_key.arn
+  enable_kms_encryption        = var.enable_s3_kms_encryption
+  attach_policy                = true
+  metric_configuration_enabled = true
+  policy                       = data.aws_iam_policy_document.trust_store_bucket_policy.json
 }
 
 # IS Performance S3 Bucket

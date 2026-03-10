@@ -71,3 +71,9 @@ variable "attach_cloudtrail_log_delivery_policy" {
   type        = bool
   default     = false
 }
+
+variable "metric_configuration_enabled" {
+  description = "Whether to enable metric configuration for the S3 bucket"
+  type        = bool
+  default     = false
+}
