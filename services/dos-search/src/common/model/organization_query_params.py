@@ -1,0 +1,97 @@
+import re
+
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+
+from src.common.constants import (
+    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
+    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
+)
+
+
+class InvalidIdentifierSystem(ValueError):
+    def __init__(self, identifier: str) -> None:
+        super().__init__(
+            f"Invalid identifier system '{identifier}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'"
+        )
+
+
+class ODSCodeInvalidFormatError(ValueError):
+    def __init__(self, ods_code: str) -> None:
+        super().__init__(
+            f"Invalid identifier value: ODS code '{ods_code}' must follow format {ODS_REGEX}"
+        )
+
+
+class InvalidRevincludeError(ValueError):
+    def __init__(self) -> None:
+        super().__init__(
+            f"The request is missing the '_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}' parameter, which is required to include linked Endpoint resources."
+        )
+
+
+IDENTIFIER_SEPERATOR = "|"
+ODS_REGEX = r"^[A-Za-z0-9]{5,12}$"
+
+
+def _extract_identifier_system(identifier: str) -> str:
+    return (
+        identifier.split(IDENTIFIER_SEPERATOR, 1)[0]
+        if IDENTIFIER_SEPERATOR in identifier
+        else ""
+    )
+
+
+def _extract_identifier_value(identifier: str) -> str:
+    return (
+        identifier.split(IDENTIFIER_SEPERATOR, 1)[1].upper()
+        if IDENTIFIER_SEPERATOR in identifier
+        else ""
+    )
+
+
+class OrganizationQueryParams(BaseModel):
+    identifier: str = Field(
+        alias="identifier",
+        description=f"Organization identifier in format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{code}}'",
+    )
+    revinclude: str = Field(alias="_revinclude")
+
+    model_config = ConfigDict(extra="forbid")
+
+    @computed_field
+    @property
+    def ods_code(self) -> str:
+        return _extract_identifier_value(self.identifier)
+
+    # noinspection PyNestedDecorators
+    @field_validator("identifier")
+    @classmethod
+    def validate_identifier(cls, v: str) -> str:
+        identifier_system = _extract_identifier_system(v)
+
+        if identifier_system != ODS_ORG_CODE_IDENTIFIER_SYSTEM:
+            raise InvalidIdentifierSystem(identifier_system)
+
+        identifier_value = _extract_identifier_value(v)
+
+        if not re.match(ODS_REGEX, identifier_value):
+            raise ODSCodeInvalidFormatError(identifier_value)
+
+        return v
+
+    # noinspection PyNestedDecorators
+    @field_validator("revinclude")
+    @classmethod
+    def validate_revinclude(cls, v: str) -> str:
+        if v != REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION:
+            raise InvalidRevincludeError
+        return v
+
+    @classmethod
+    def get_required_query_params(cls) -> list[str]:
+        """Get required query parameters from OrganizationQueryParams model."""
+        return [
+            field_info.alias
+            for field_info in cls.model_fields.values()
+            if field_info.alias and field_info.is_required()
+        ]

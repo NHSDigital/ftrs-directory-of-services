@@ -1,0 +1,72 @@
+from fhir.resources.R4B.bundle import Bundle
+from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import HealthcareService
+from ftrs_data_layer.domain.organisation import Organisation
+
+from src.common.fhir_mapper.healthcare_service_bundle_mapper import (
+    HealthcareServiceBundleMapper,
+)
+
+logger = Logger.get(service="dos-search")
+
+
+class HealthcareServicesByOdsService:
+    def __init__(self) -> None:
+        self.repository = get_service_repository(Organisation, "organisation")
+        self.healthcare_service_repository = get_service_repository(
+            HealthcareService, "healthcare-service"
+        )
+        self.healthcare_service_mapper = HealthcareServiceBundleMapper()
+
+    def healthcare_services_by_ods(self, ods_code: str) -> Bundle:
+        try:
+            logger.info(
+                "Retrieving organisations by ods_code for healthcare services lookup",
+                ods_code=ods_code,
+            )
+
+            organisations = self.repository.get_by_ods_code(ods_code)
+
+            if not organisations:
+                logger.info(
+                    "No organisations found for ods_code, returning empty bundle",
+                    ods_code=ods_code,
+                )
+                return self.healthcare_service_mapper.map_to_fhir([], ods_code)
+            organization_ids = [str(org.id) for org in organisations]
+
+            logger.info(
+                "Retrieving healthcare services for organisations",
+                organization_ids=organization_ids,
+                ods_code=ods_code,
+            )
+            healthcare_services = []
+            for organization_id in organization_ids:
+                logger.info(
+                    "Retrieving healthcare services for organisation",
+                    organization_id=organization_id,
+                )
+                healthcare_services.extend(
+                    self.healthcare_service_repository.get_records_by_provided_by(
+                        str(organization_id)
+                    )
+                )
+
+            logger.info(
+                "Mapping healthcare services to fhir_bundle",
+                healthcare_service_count=len(healthcare_services),
+            )
+
+            fhir_bundle = self.healthcare_service_mapper.map_to_fhir(
+                healthcare_services, ods_code
+            )
+
+        except Exception:
+            logger.exception(
+                "Error occurred while processing healthcare services request"
+            )
+            raise
+
+        else:
+            return fhir_bundle
