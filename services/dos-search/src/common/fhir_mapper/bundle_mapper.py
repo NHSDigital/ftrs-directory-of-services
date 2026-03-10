@@ -4,56 +4,28 @@ from aws_lambda_powertools import Tracer
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
 from ftrs_common.utils.api_url_util import get_fhir_url
-from ftrs_data_layer.domain import Organisation
-
-from src.common.constants import (
-    ODS_ORG_CODE_IDENTIFIER_SYSTEM,
-    REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION,
-)
-
-from .endpoint_mapper import EndpointMapper
-from .organization_mapper import (
-    OrganizationMapper,
-)
 
 tracer = Tracer()
 
 
 class BundleMapper:
-    def __init__(self) -> None:
-        self.organization_mapper = OrganizationMapper()
-        self.endpoint_mapper = EndpointMapper()
+    def __init__(self, api_name: str, primary_resource_type: str) -> None:
+        self.api_name = api_name
+        self.primary_resource_type = primary_resource_type
 
     @tracer.capture_method
-    def map_to_fhir(self, organisation: Organisation, ods_code: str) -> Bundle:
-        resources = self._create_resources(organisation) if organisation else []
-
-        return self._create_bundle(resources, ods_code)
-
-    def _create_resources(self, organisation: Organisation) -> list[FHIRResourceModel]:
-        endpoint_resources = self.endpoint_mapper.map_to_fhir_endpoints(organisation)
-        organization_resource = self.organization_mapper.map_to_fhir_organization(
-            organisation
-        )
-
-        return [organization_resource] + endpoint_resources
+    def map_to_fhir(self, resources: list[FHIRResourceModel], self_url: str) -> Bundle:
+        return self._create_bundle(resources, self_url)
 
     def _create_bundle(
-        self,
-        resources: list[FHIRResourceModel],
-        ods_code: str,
+        self, resources: list[FHIRResourceModel], self_url: str
     ) -> Bundle:
         bundle_type = "searchset"
         bundle_id = str(uuid4())
-        url = (
-            f"{get_fhir_url('dos-search', 'Organization')}"
-            f"?identifier={ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}"
-            f"&_revinclude={REVINCLUDE_VALUE_ENDPOINT_ORGANIZATION}"
-        )
         bundle_link = [
             {
                 "relation": "self",
-                "url": url,
+                "url": self_url,
             }
         ]
 
@@ -71,7 +43,7 @@ class BundleMapper:
         return bundle
 
     def _create_entry(self, resource: FHIRResourceModel) -> dict[str, object]:
-        url = get_fhir_url("dos-search", resource.get_resource_type(), resource.id)
+        url = get_fhir_url(self.api_name, resource.get_resource_type(), resource.id)
         search_mode = self._get_search_mode(resource)
 
         return {
@@ -81,7 +53,7 @@ class BundleMapper:
         }
 
     def _get_search_mode(self, resource: FHIRResourceModel) -> str:
-        if resource.get_resource_type() == "Organization":
+        if resource.get_resource_type() == self.primary_resource_type:
             return "match"
         else:
             return "include"

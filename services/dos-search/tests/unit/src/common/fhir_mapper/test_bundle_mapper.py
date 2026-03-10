@@ -2,15 +2,17 @@ from unittest.mock import patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
-from fhir.resources.R4B.organization import Organization as FhirOrganization
 
-from src.common.constants import ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from src.common.fhir_mapper.bundle_mapper import BundleMapper
+
+API_NAME = "dos-search"
+PRIMARY_RESOURCE_TYPE = "Organization"
+SELF_URL = "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|O123&_revinclude=Endpoint:organization"  # gitleaks:allow
 
 
 @pytest.fixture
-def bundle_mapper():
-    return BundleMapper()
+def bundle_mapper() -> BundleMapper:
+    return BundleMapper(api_name=API_NAME, primary_resource_type=PRIMARY_RESOURCE_TYPE)
 
 
 @pytest.fixture
@@ -20,100 +22,67 @@ def mock_get_fhir_url():
 
 
 class TestBundleMapper:
-    def test_map_to_fhir_with_no_endpoints(self, bundle_mapper, create_organisation):
-        # Arrange - Create a new organization record with no endpoints instead of modifying the existing one
-        org_value = create_organisation(endpoints=[])
-        ods_code = "O123"
+    def test_map_to_fhir_with_no_resources(self, bundle_mapper: BundleMapper) -> None:
+        # Act
+        bundle = bundle_mapper.map_to_fhir([], SELF_URL)
 
-        # Create mock organization resource
-        org_resource = FhirOrganization.model_validate(
-            {
-                "id": "org-123",
-                "identifier": [
-                    {
-                        "use": "official",
-                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
-                        "value": "O123",
-                    }
-                ],
-                "name": "Test Organization",
-                "active": True,
-            }
-        )
+        # Assert
+        assert isinstance(bundle, Bundle)
+        assert bundle.type == "searchset"
+        assert len(bundle.entry) == 0
+        assert len(bundle.link) == 1
+        assert bundle.link[0].relation == "self"
+        assert bundle.link[0].url == SELF_URL
 
-        # Mock the mapper methods
-        with patch.object(
-            bundle_mapper.organization_mapper,
-            "map_to_fhir_organization",
-            return_value=org_resource,
-        ) as mock_org_mapper:
-            with patch.object(
-                bundle_mapper.endpoint_mapper, "map_to_fhir_endpoints", return_value=[]
-            ) as mock_endpoint_mapper:
-                # Act
-                bundle = bundle_mapper.map_to_fhir(org_value, ods_code)
-
-                # Assert
-                mock_org_mapper.assert_called_once_with(org_value)
-                mock_endpoint_mapper.assert_called_once_with(org_value)
-                assert isinstance(bundle, Bundle)
-                assert bundle.type == "searchset"
-                assert len(bundle.entry) == 1  # Only organization, no endpoints
-                assert bundle.entry[0].resource == org_resource
-
-    def test_map_to_fhir_with_multiple_endpoints(
-        self, bundle_mapper, organisation, create_fhir_endpoint
-    ):
+    def test_map_to_fhir_with_organization_only(
+        self, bundle_mapper: BundleMapper, create_fhir_organization, mock_get_fhir_url
+    ) -> None:
         # Arrange
-        ods_code = "O123"
+        org_resource = create_fhir_organization()
+        mock_get_fhir_url.return_value = "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
 
-        # Create two mock endpoint resources
+        # Act
+        bundle = bundle_mapper.map_to_fhir([org_resource], SELF_URL)
+
+        # Assert
+        assert isinstance(bundle, Bundle)
+        assert bundle.type == "searchset"
+        assert len(bundle.entry) == 1
+        assert bundle.entry[0].resource == org_resource
+        assert bundle.entry[0].search.mode == "match"
+
+    def test_map_to_fhir_with_multiple_resources(
+        self,
+        bundle_mapper: BundleMapper,
+        create_fhir_organization,
+        create_fhir_endpoint,
+        mock_get_fhir_url,
+    ) -> None:
+        # Arrange
+        org_resource = create_fhir_organization()
         endpoint1 = create_fhir_endpoint()
         endpoint2 = create_fhir_endpoint()
+        mock_get_fhir_url.return_value = "https://example.org/FHIR/R4/resource"
 
-        # Create mock organization resource
-        org_resource = FhirOrganization.model_validate(
-            {
-                "id": "org-123",
-                "identifier": [
-                    {
-                        "use": "official",
-                        "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
-                        "value": "O123",
-                    }
-                ],
-                "name": "Test Organization",
-                "active": True,
-            }
+        # Act
+        bundle = bundle_mapper.map_to_fhir(
+            [org_resource, endpoint1, endpoint2], SELF_URL
         )
 
-        # Mock the mapper methods
-        with patch.object(
-            bundle_mapper.organization_mapper,
-            "map_to_fhir_organization",
-            return_value=org_resource,
-        ) as mock_org_mapper:
-            with patch.object(
-                bundle_mapper.endpoint_mapper,
-                "map_to_fhir_endpoints",
-                return_value=[endpoint1, endpoint2],
-            ) as mock_endpoint_mapper:
-                # Act
-                bundle = bundle_mapper.map_to_fhir(organisation, ods_code)
-
-                # Assert
-                mock_org_mapper.assert_called_once_with(organisation)
-                mock_endpoint_mapper.assert_called_once_with(organisation)
-                assert isinstance(bundle, Bundle)
-                assert bundle.type == "searchset"
-                assert len(bundle.entry) == 3  # 1 organization + 2 endpoints
-                assert bundle.entry[0].resource == org_resource
-                assert bundle.entry[1].resource == endpoint1
-                assert bundle.entry[2].resource == endpoint2
+        # Assert
+        assert isinstance(bundle, Bundle)
+        assert bundle.type == "searchset"
+        assert len(bundle.entry) == 3
+        assert bundle.entry[0].resource == org_resource
+        assert bundle.entry[1].resource == endpoint1
+        assert bundle.entry[2].resource == endpoint2
 
     def test_create_entry_for_endpoint(
-        self, bundle_mapper, create_fhir_endpoint, mock_get_fhir_url
-    ):
+        self,
+        bundle_mapper: BundleMapper,
+        create_fhir_endpoint,
+        mock_get_fhir_url,
+    ) -> None:
         # Arrange
         endpoint_resource = create_fhir_endpoint()
         mock_get_fhir_url.return_value = (
@@ -124,13 +93,19 @@ class TestBundleMapper:
         entry = bundle_mapper._create_entry(endpoint_resource)
 
         # Assert
+        mock_get_fhir_url.assert_called_once_with(
+            API_NAME, "Endpoint", endpoint_resource.id
+        )
         assert entry["fullUrl"] == "https://example.org/FHIR/R4/Endpoint/endpoint-123"
         assert entry["resource"] == endpoint_resource
         assert entry["search"]["mode"] == "include"
 
     def test_create_entry_for_organization(
-        self, bundle_mapper, create_fhir_organization, mock_get_fhir_url
-    ):
+        self,
+        bundle_mapper: BundleMapper,
+        create_fhir_organization,
+        mock_get_fhir_url,
+    ) -> None:
         # Arrange
         organization_resource = create_fhir_organization()
         mock_get_fhir_url.return_value = "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
@@ -139,6 +114,9 @@ class TestBundleMapper:
         entry = bundle_mapper._create_entry(organization_resource)
 
         # Assert
+        mock_get_fhir_url.assert_called_once_with(
+            API_NAME, "Organization", organization_resource.id
+        )
         assert (
             entry["fullUrl"]
             == "https://dos-search.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/00000000-0000-0000-0000-000000000000"  # gitleaks:allow
@@ -146,65 +124,65 @@ class TestBundleMapper:
         assert entry["resource"] == organization_resource
         assert entry["search"]["mode"] == "match"
 
-    def test_get_search_mode(
-        self, bundle_mapper, create_fhir_endpoint, create_fhir_organization
-    ):
+    def test_get_search_mode_match_for_primary_type(
+        self,
+        bundle_mapper: BundleMapper,
+        create_fhir_organization,
+    ) -> None:
         # Arrange
+        org_resource = create_fhir_organization()
+
+        # Act & Assert
+        assert bundle_mapper._get_search_mode(org_resource) == "match"
+
+    def test_get_search_mode_include_for_non_primary_type(
+        self,
+        bundle_mapper: BundleMapper,
+        create_fhir_endpoint,
+    ) -> None:
+        # Arrange
+        endpoint_resource = create_fhir_endpoint()
+
+        # Act & Assert
+        assert bundle_mapper._get_search_mode(endpoint_resource) == "include"
+
+    def test_get_search_mode_is_configurable(
+        self, create_fhir_endpoint, create_fhir_organization
+    ) -> None:
+        # Arrange - create a mapper where Endpoint is the primary type
+        mapper = BundleMapper(api_name=API_NAME, primary_resource_type="Endpoint")
         endpoint_resource = create_fhir_endpoint()
         org_resource = create_fhir_organization()
 
         # Act & Assert
-        # Check that Organizations get 'match' mode
-        search_mode = bundle_mapper._get_search_mode(org_resource)
-        assert search_mode == "match"
+        assert mapper._get_search_mode(endpoint_resource) == "match"
+        assert mapper._get_search_mode(org_resource) == "include"
 
-        # Check that other resources get 'include' mode
-        search_mode = bundle_mapper._get_search_mode(endpoint_resource)
-        assert search_mode == "include"
-
-    def test_map_to_fhir_with_no_organisation(self, bundle_mapper):
+    def test_bundle_self_link_uses_provided_url(
+        self, bundle_mapper: BundleMapper
+    ) -> None:
         # Arrange
-        ods_code = "O123"
+        custom_url = "https://example.org/FHIR/R4/HealthcareService?active=true"
 
         # Act
-        bundle = bundle_mapper.map_to_fhir(None, ods_code)
+        bundle = bundle_mapper.map_to_fhir([], custom_url)
 
         # Assert
-        assert isinstance(bundle, Bundle)
-        assert bundle.type == "searchset"
-        assert len(bundle.entry) == 0  # Empty bundle
-        assert len(bundle.link) == 1
-        assert bundle.link[0].relation == "self"
-        assert ods_code in bundle.link[0].url
+        assert bundle.link[0].url == custom_url
 
-    def test_create_resources(
-        self,
-        bundle_mapper,
-        organisation,
-        create_fhir_endpoint,
-        create_fhir_organization,
-    ):
+    def test_api_name_passed_to_get_fhir_url(
+        self, create_fhir_organization, mock_get_fhir_url
+    ) -> None:
         # Arrange
-        endpoint = create_fhir_endpoint()
-        org = create_fhir_organization()
+        custom_api = "crud-apis"
+        mapper = BundleMapper(api_name=custom_api, primary_resource_type="Organization")
+        org_resource = create_fhir_organization()
+        mock_get_fhir_url.return_value = "https://crud-apis.dev.ftrs.cloud.nhs.uk/FHIR/R4/Organization/org-id"  # gitleaks:allow
 
-        # Mock the mapper methods
-        with patch.object(
-            bundle_mapper.organization_mapper,
-            "map_to_fhir_organization",
-            return_value=org,
-        ) as mock_org_mapper:
-            with patch.object(
-                bundle_mapper.endpoint_mapper,
-                "map_to_fhir_endpoints",
-                return_value=[endpoint],
-            ) as mock_endpoint_mapper:
-                # Act
-                resources = bundle_mapper._create_resources(organisation)
+        # Act
+        mapper.map_to_fhir([org_resource], SELF_URL)
 
-                # Assert
-                mock_org_mapper.assert_called_once_with(organisation)
-                mock_endpoint_mapper.assert_called_once_with(organisation)
-                assert len(resources) == 2
-                assert resources[0] == org
-                assert resources[1] == endpoint
+        # Assert
+        mock_get_fhir_url.assert_called_once_with(
+            custom_api, "Organization", org_resource.id
+        )
