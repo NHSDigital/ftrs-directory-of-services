@@ -125,7 +125,7 @@ The `DS_Test_Plan.jmx` is a CRUD test plan for the dos-ingest service. It tests 
 |-----------|-------------|---------|
 | `test_operation` | CRUD operation: `get` or `put` | (required) |
 | `service_name` | APIM workspace/service name | `dos-ingest` |
-| `timer_throughput` | Target throughput (requests/period) | `1` (IS defaults to `9000.0`) |
+| `timer_throughput` | Target throughput (requests/period) | `9000.0` |
 
 ### Generating Test Data
 
@@ -144,7 +144,7 @@ make ds-data-prep ENVIRONMENT=dev LIMIT=100
 
 Or run the script directly:
 ```sh
-ENVIRONMENT=dev ./scripts/extract_organisation_ids.sh
+ENVIRONMENT=dev ./scripts/etl_ods/extract_organisation_ids.sh
 ```
 
 The script derives the DynamoDB table name using the convention `ftrs-dos-{env}-database-organisation{-workspace}` and works on both local machines (with AWS credentials/SSO) and EC2 instances (via IAM instance profile).

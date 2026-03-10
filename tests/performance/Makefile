@@ -1,6 +1,7 @@
 PROJECT_NAME := ftrs-dos
 ENV_LEVEL_PROJECT := ftrs-directory-of-services
 ENVIRONMENT ?= dev
+WORKSPACE = default
 STACK := dos-search
 PYTHON_VERSION ?= 3.12
 LOCAL_DIR := parameter_files
@@ -256,16 +257,33 @@ ds-stress-test: ## Run DS_Test_Plan stress test via mTLS [TEST_OPERATION=get|put
 		-f -l result.jtl -e -o report
 	rm -f performance_run.lock
 
-etl-inject-sqs:
-	echo "Injecting $(or $(COUNT),100) synthetic messages to SQS transform queue (env: $(ENVIRONMENT), workspace: $(or $(WORKSPACE),default))"
+etl-inject-sqs: ## Inject synthetic SQS messages to transform queue [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [COUNT=100] [BATCH_SIZE=10]
+	$(eval START_TIME := $(shell date -u '+%Y-%m-%d %H:%M'))
+	echo "Injecting $(or $(COUNT),100) synthetic messages to SQS transform queue (env: $(ENVIRONMENT), workspace: $(or $(WORKSPACE),default)) at $(START_TIME) UTC..."
 	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) COUNT=$(or $(COUNT),100) \
 		BATCH_SIZE=$(or $(BATCH_SIZE),10) AWS_REGION=$(or $(AWS_REGION),eu-west-2) \
 		python ./scripts/etl_ods/generate_synthetic_sqs_messages.py
+	@echo ""
+	echo "Use 'make etl-metrics ENVIRONMENT=$(ENVIRONMENT) START=\"$(START_TIME)\"' to capture pipeline latency"
 
-etl-inject-sqs-dry-run:
+etl-inject-sqs-dry-run: ## Preview synthetic SQS messages without sending [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [COUNT=5]
 	echo "Dry run - previewing synthetic messages..."
 	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) COUNT=$(or $(COUNT),5) \
 		DRY_RUN=true python ./scripts/etl_ods/generate_synthetic_sqs_messages.py
+
+etl-trigger-extractor: ## Invoke ETL ODS Extractor Lambda for a specific date [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=default] [DATE=YYYY-MM-DD]
+	$(eval ETL_WORKSPACE := $(or $(WORKSPACE),default))
+	$(eval LAMBDA_NAME := ftrs-dos-$(ENVIRONMENT)-etl-ods-extractor-lambda$(if $(filter default,$(ETL_WORKSPACE)),,-$(ETL_WORKSPACE)))
+	$(eval START_TIME := $(shell date -u '+%Y-%m-%d %H:%M'))
+	echo "Invoking Extractor Lambda $(LAMBDA_NAME) for date $(DATE) at $(START_TIME) UTC..."
+	aws lambda invoke \
+		--region $(or $(AWS_REGION),eu-west-2) \
+		--function-name $(LAMBDA_NAME) \
+		--payload '{"date": "$(DATE)"}' \
+		--cli-binary-format raw-in-base64-out \
+		/dev/stdout | cat
+	@echo ""
+	echo "Use 'make etl-metrics ENVIRONMENT=$(ENVIRONMENT) START=\"$(START_TIME)\"' to capture pipeline latency"
 
 etl-metrics: ## Fetch ETL ODS CloudWatch metrics [ENVIRONMENT=dev|test|int|ref] [WORKSPACE=workspace] [HOURS=1] [START=datetime] [END=datetime]
 	ENVIRONMENT=$(ENVIRONMENT) WORKSPACE=$(or $(WORKSPACE),default) \

@@ -87,9 +87,7 @@ def generate_organisation(
                 ]
             }
         ],
-        "telecom": [
-            {"system": "phone", "value": "01234567890"}
-        ],
+        "telecom": [{"system": "phone", "value": "01234567890"}],
         "address": [
             {
                 "use": "work",
@@ -231,6 +229,10 @@ def main() -> None:
         )
     print()
 
+    if count <= 0:
+        print("COUNT is 0 — nothing to do.")
+        return
+
     print(f"Generating {count} Organisation messages...")
     messages = []
     for i in range(count):
@@ -244,15 +246,20 @@ def main() -> None:
         else:
             organisation = generate_organisation(index=i + 1)
 
-        messages.append({
-            "organisation": organisation,
-            "correlation_id": str(uuid.uuid4()),
-            "request_id": str(uuid.uuid4()),
-        })
+        messages.append(
+            {
+                "organisation": organisation,
+                "correlation_id": str(uuid.uuid4()),
+                "request_id": str(uuid.uuid4()),
+            }
+        )
 
     if dry_run:
         print("\nDRY RUN — sample message:")
-        print(json.dumps(messages[0], indent=2))
+        if messages:
+            print(json.dumps(messages[0], indent=2))
+        else:
+            print("No messages generated (COUNT=0).")
         print(f"\nGenerated {len(messages)} messages (not sent)")
         return
 

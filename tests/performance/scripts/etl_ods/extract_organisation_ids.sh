@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PERF_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-: "${ENVIRONMENT:?ENVIRONMENT must be set (dev|test|int|ref|prod)}"
+: "${ENVIRONMENT:?ENVIRONMENT must be set (dev|test|int|ref)}"
 
 AWS_REGION="${AWS_REGION:-eu-west-2}"
 WORKSPACE="${WORKSPACE:-default}"

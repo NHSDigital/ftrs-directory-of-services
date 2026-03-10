@@ -564,6 +564,9 @@ def _parse_datetime(value: str) -> datetime:
         2026-03-10                (date only, midnight UTC)
     """
     value = value.strip()
+    # Normalize trailing 'Z' (ISO 8601 UTC) to offset format for strptime
+    if value.endswith("Z"):
+        value = value[:-1] + "+0000"
     for fmt in (
         "%Y-%m-%dT%H:%M:%S%z",
         "%Y-%m-%dT%H:%M:%S",

@@ -2,6 +2,17 @@
 
 Scripts for load testing and monitoring the ETL ODS pipeline (Extractor → Transformer → Consumer).
 
+## Testing Approaches
+
+There are two approaches for performance testing the ETL ODS pipeline:
+
+| Approach | What it tests | How it works |
+|----------|---------------|--------------|
+| **1. Trigger Extractor** | Full pipeline (Extractor → Transformer → Consumer) | Invokes the Extractor Lambda with a specific date, which calls the real ODS API and pushes results through the full pipeline |
+| **2. SQS Injection** | Transformer → Consumer only | Injects synthetic FHIR Organisation messages directly onto the SQS transform queue, bypassing the Extractor |
+
+Both approaches use `make etl-metrics` to capture pipeline latency from CloudWatch.
+
 ## Contents
 
 ```
@@ -18,8 +29,50 @@ etl_ods/
 - AWS CLI configured with valid credentials/SSO
 - Python 3.11+ with `boto3`
 - Access to the target AWS environment
+- Run `extract_organisation_ids.sh` to extract real ODS codes from DynamoDB before injecting SQS messages:
 
-## SQS Injection
+  ```sh
+  make ds-data-prep ENVIRONMENT=dev
+  ```
+
+  This generates `parameter_files/crud_organisation_ids.csv` used by the SQS injection script.
+
+## Approach 1: Trigger Extractor Lambda
+
+Invoke the Extractor Lambda directly with a specific date. It calls the real ODS API, fetches organisations modified on that date, and pushes them through the full pipeline. The date must be in `YYYY-MM-DD` format and no more than 185 days in the past.
+
+### Quick Start
+
+```sh
+cd tests/performance
+
+# Trigger extractor for a specific date
+make etl-trigger-extractor ENVIRONMENT=dev DATE=2026-03-09 WORKSPACE=default
+
+# Trigger on a non-default workspace
+make etl-trigger-extractor ENVIRONMENT=dev DATE=2026-03-09 WORKSPACE=my-branch
+
+# Then capture latency
+make etl-metrics ENVIRONMENT=dev
+```
+
+### Parameters
+
+| Variable      | Description                             | Default      |
+|---------------|-----------------------------------------|--------------|
+| `ENVIRONMENT` | Target AWS environment                  | (required)   |
+| `DATE`        | Date to extract (YYYY-MM-DD)            | (required)   |
+| `WORKSPACE`   | Terraform workspace                     | `default`    |
+| `AWS_REGION`  | AWS region                              | `eu-west-2`  |
+
+### How It Works
+
+- Invokes `ftrs-dos-{env}-etl-ods-extractor-lambda{-workspace}` with a `{"date": "YYYY-MM-DD"}` payload.
+- The Extractor calls the ODS API for organisations modified on that date.
+- Results are pushed onto the transform queue and flow through the full pipeline.
+- Volume depends on how many organisations were actually modified on the given date.
+
+## Approach 2: SQS Injection
 
 Inject synthetic FHIR Organisation messages directly onto the SQS transform queue, bypassing the Extractor Lambda. This allows testing the Transform and Load stages at volumes beyond what the real ODS API provides.
 
