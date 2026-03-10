@@ -157,9 +157,12 @@ class DataMigrationProcessor:
             if validation_result is None:
                 return
 
-            self._transform_and_persist(
-                service, transformer, validation_result, state_record, start_time
+            result = self._transform_and_persist(
+                service, transformer, validation_result, state_record
             )
+
+            elapsed_time = perf_counter() - start_time
+            self._log_migration_completion(transformer, result, elapsed_time)
 
         except Exception as e:
             self.metrics.errors += 1
@@ -259,10 +262,9 @@ class DataMigrationProcessor:
         transformer: ServiceTransformer,
         validation_result: ValidationResult[legacy.Service],
         state_record: ServiceMigrationState | None,
-        start_time: float,
-    ) -> None:
+    ) -> ServiceTransformOutput:
         """
-        Transform service data, persist to DynamoDB, and log completion.
+        Transform service data and persist to DynamoDB.
         """
         result = transformer.transform(validation_result.sanitised)
         self.metrics.transformed += 1
@@ -284,8 +286,7 @@ class DataMigrationProcessor:
         )
         self._execute_transaction_and_track(current_state, transaction_items)
 
-        elapsed_time = perf_counter() - start_time
-        self._log_migration_completion(transformer, result, elapsed_time)
+        return result
 
     # Transaction & persistence helpers
 

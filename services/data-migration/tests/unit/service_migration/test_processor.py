@@ -434,12 +434,21 @@ def test_process_service_inactive_without_existing_state_skips(
     ]
 
 
-def test_process_service_updates_existing_org_active(
+@pytest.mark.parametrize(
+    ("current_active", "existing_active"),
+    [
+        (True, False),
+        (False, True),
+    ],
+)
+def test_process_service_updates_existing_org_active_status(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
+    current_active: bool,
+    existing_active: bool,
 ) -> None:
     mock_transformer = mocker.MagicMock()
     mock_transformer.__name__ = "MockTransformer"
@@ -459,7 +468,7 @@ def test_process_service_updates_existing_org_active(
 
     current_org = Organisation(
         identifier_ODS_ODSCode="A12345",
-        active=True,
+        active=current_active,
         name="Test Org",
         telecom=[],
     )
@@ -485,7 +494,7 @@ def test_process_service_updates_existing_org_active(
         ),
         version=1,
         organisation_id=current_org.id,
-        organisation=current_org.model_copy(update={"active": False}),
+        organisation=current_org.model_copy(update={"active": existing_active}),
         location_id=None,
         location=None,
         healthcare_service_id=None,
@@ -506,83 +515,7 @@ def test_process_service_updates_existing_org_active(
     processor._process_service(mock_legacy_service)
 
     updated_org = mock_builder.add_organisation.call_args[0][0]
-    assert updated_org.active is True
-    assert processor.metrics.updated == 1
-
-
-def test_process_service_updates_existing_org_inactive(
-    mocker: MockerFixture,
-    mock_config: DataMigrationConfig,
-    mock_logger: MockLogger,
-    mock_legacy_service: Service,
-    mock_metadata_cache: DoSMetadataCache,
-) -> None:
-    mock_transformer = mocker.MagicMock()
-    mock_transformer.__name__ = "MockTransformer"
-    mock_transformer.is_service_supported.return_value = (True, None)
-    mock_transformer.should_include_service.return_value = (True, None)
-    mock_transformer.return_value = mock_transformer
-    mocker.patch(
-        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
-    )
-
-    validation_result = ValidationResult(
-        origin_record_id=mock_legacy_service.id,
-        issues=[],
-        sanitised=mock_legacy_service,
-    )
-    mock_transformer.validator.validate.return_value = validation_result
-
-    current_org = Organisation(
-        identifier_ODS_ODSCode="A12345",
-        active=False,
-        name="Test Org",
-        telecom=[],
-    )
-    mock_transformer.transform.return_value = ServiceTransformOutput(
-        organisation=[current_org],
-        healthcare_service=[],
-        location=[],
-    )
-
-    mock_builder = mocker.MagicMock()
-    mock_builder.add_organisation.return_value = mock_builder
-    mock_builder.add_location.return_value = mock_builder
-    mock_builder.add_healthcare_service.return_value = mock_builder
-    mock_builder.build.return_value = [{}]
-    mocker.patch(
-        "service_migration.processor.ServiceTransactionBuilder",
-        return_value=mock_builder,
-    )
-
-    existing_state = ServiceMigrationState(
-        source_record_id=ServiceMigrationState.format_source_record_id(
-            mock_legacy_service.id
-        ),
-        version=1,
-        organisation_id=current_org.id,
-        organisation=current_org.model_copy(update={"active": True}),
-        location_id=None,
-        location=None,
-        healthcare_service_id=None,
-        healthcare_service=None,
-        validation_issues=[],
-    )
-
-    processor = DataMigrationProcessor(
-        config=mock_config,
-        logger=mock_logger,
-    )
-    processor.metadata = mock_metadata_cache
-    processor.logger.append_keys = mocker.MagicMock()
-    processor.logger.remove_keys = mocker.MagicMock()
-    processor._execute_transaction = mocker.MagicMock()
-    processor.get_state_record = mocker.MagicMock(return_value=existing_state)
-
-    processor._process_service(mock_legacy_service)
-
-    updated_org = mock_builder.add_organisation.call_args[0][0]
-    assert updated_org.active is False
+    assert updated_org.active is current_active
     assert processor.metrics.updated == 1
 
 
