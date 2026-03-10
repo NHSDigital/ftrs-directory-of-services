@@ -9,6 +9,8 @@ PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
 POETRY_VERSION := $(shell poetry version -s)
 
+LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
+
 BUILD_DIR := ../../build/services/$(SERVICE)
 DEPENDENCY_DIR := $(BUILD_DIR)/dependency-layer
 
@@ -62,8 +64,8 @@ RETENTION_VALUE := $(patsubst retention=%,%,$(RETENTION_TAG))
 # Common Targets
 # ==============================================================================
 
-.PHONY: ensure-build-dir clean install install-dependencies lint lint-fix test \
-		unit-test coverage generate-build-info build build-dependency-layer \
+.PHONY: ensure-build-dir clean install install-dependencies lint lint-fix lint-staged \
+		test unit-test coverage generate-build-info build build-dependency-layer \
 		publish stage release-candidate release
 
 # ------------------------------------------------------------------------------
@@ -74,7 +76,7 @@ ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
 
 clean:
-	@rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml
+	@rm -rf .pytest_cache .ruff_cache .tmp .build .coverage coverage.xml coverage-*.xml
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(DEPENDENCY_DIR)
 
@@ -89,12 +91,23 @@ install-dependencies: ## Install project dependencies
 # ------------------------------------------------------------------------------
 
 lint: ## Run linting checks
-	poetry run ruff check
-	poetry run ruff format --check
+	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 
-lint-fix:
+lint-staged: ## Run linting checks only on stages files
+	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
+	if [ -z "$$files" ]; then \
+		echo "No files staged"; \
+	else \
+		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+	fi
+
+lint-fix: ## Run linting checks and fix auto-fixable issues
 	poetry run ruff check --fix
 	poetry run ruff format
+
+pre-commit: lint-staged
 
 test: unit-test ## Run all tests
 
