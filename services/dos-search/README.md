@@ -89,7 +89,6 @@ The service uses:
 ├── tools/
 │   └── manual_test_organization.py     # Local testing script
 └── ...                                 # Configuration files
-                          # Configuration files
 ```
 
 ### Testing
@@ -101,7 +100,7 @@ The service uses:
 make test
 
 # Run specific test file
-poetry run pytest tests/unit/src/test_dos_search_ods_code_function.py
+poetry run pytest tests/unit/src/organization/test_service.py
 ```
 
 #### Manual Testing
