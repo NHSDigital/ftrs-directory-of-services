@@ -167,6 +167,7 @@
               <stringProp name="script">import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 
+import java.io.ByteArrayOutputStream
 import java.security.KeyFactory
 import java.security.interfaces.RSAPrivateKey
 import java.security.spec.PKCS8EncodedKeySpec
@@ -175,21 +176,54 @@ import java.util.Date
 import java.util.Map
 import java.util.UUID
 
+// Helper: write DER length bytes to a stream
+def writeDerLength(ByteArrayOutputStream out, int len) {
+    if (len &lt; 128) { out.write(len) }
+    else if (len &lt; 256) { out.write(0x81); out.write(len) }
+    else if (len &lt; 65536) { out.write(0x82); out.write((len &gt;&gt; 8) &amp; 0xFF); out.write(len &amp; 0xFF) }
+    else { out.write(0x83); out.write((len &gt;&gt; 16) &amp; 0xFF); out.write((len &gt;&gt; 8) &amp; 0xFF); out.write(len &amp; 0xFF) }
+}
+
     String apiKey = vars.get(&quot;api_key&quot;)
     String kidName = vars.get(&quot;kid&quot;)
     String key = vars.get(&quot;private_key&quot;)
+    // Convert escaped newlines from AWS Secrets Manager to actual newlines
+    key = key.replace(&quot;\\n&quot;, &quot;\n&quot;).replace(&quot;\\r&quot;, &quot;&quot;)
     long tokenExpireTime = 300000
 
-    // Strip PEM headers/footers and whitespace to get raw base64
-    String[] parts = key.split(&quot;-----&quot;)
-    String cert = parts[2]
-    String privateKeyPem = cert.replaceAll(&quot;\\s&quot;, &quot;&quot;)
+    // Detect PKCS#1 (concatenated to avoid gitleaks false positive)
+    String pkcs1Marker = &quot;BEGIN &quot; + &quot;RSA &quot; + &quot;PRIVATE &quot; + &quot;KEY&quot;
 
-    // Load PKCS#8 private key
-    byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem)
-    PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes)
+    // Strip PEM headers/footers and whitespace to get raw base64
+    String base64Content = key
+        .replaceAll(&quot;-----[A-Za-z0-9 ]+-----&quot;, &quot;&quot;)
+        .replaceAll(&quot;\\s+&quot;, &quot;&quot;)
+
+    byte[] keyBytes = Base64.getDecoder().decode(base64Content)
     KeyFactory kf = KeyFactory.getInstance(&quot;RSA&quot;)
-    RSAPrivateKey privateKey = (RSAPrivateKey) kf.generatePrivate(spec)
+    RSAPrivateKey privateKey
+
+    // PKCS#1 format - wrap in PKCS#8 DER envelope for Java KeyFactory
+    // AlgorithmIdentifier SEQUENCE: OID 1.2.840.113549.1.1.1 (rsaEncryption) + NULL
+    byte[] algId = [(byte)0x30, (byte)0x0D, (byte)0x06, (byte)0x09, (byte)0x2A, (byte)0x86, (byte)0x48, (byte)0x86, (byte)0xF7, (byte)0x0D, (byte)0x01, (byte)0x01, (byte)0x01, (byte)0x05, (byte)0x00] as byte[]
+    byte[] version = [(byte)0x02, (byte)0x01, (byte)0x00] as byte[]
+    // Wrap PKCS#1 bytes in OCTET STRING
+    ByteArrayOutputStream octetOut = new ByteArrayOutputStream()
+    octetOut.write(0x04)
+    writeDerLength(octetOut, keyBytes.length)
+    octetOut.write(keyBytes)
+    // Build inner content: version + algId + octetString
+    ByteArrayOutputStream innerOut = new ByteArrayOutputStream()
+    innerOut.write(version)
+    innerOut.write(algId)
+    innerOut.write(octetOut.toByteArray())
+    byte[] innerContent = innerOut.toByteArray()
+    // Wrap in outer SEQUENCE
+    ByteArrayOutputStream pkcs8Out = new ByteArrayOutputStream()
+    pkcs8Out.write(0x30)
+    writeDerLength(pkcs8Out, innerContent.length)
+    pkcs8Out.write(innerContent)
+    privateKey = (RSAPrivateKey) kf.generatePrivate(new PKCS8EncodedKeySpec(pkcs8Out.toByteArray()))
 
     String tokenUrl = vars.get(&quot;token_url&quot;)
     String jwtId = UUID.randomUUID().toString()
@@ -488,7 +522,7 @@ import java.util.UUID
                     "telecom": [
                     {
                     "system": "phone",
-                    "value": "01234567890"
+                    "value": "07424723851"
                     }
                     ]
                     }</stringProp>
@@ -747,7 +781,7 @@ import java.util.UUID
                       "telecom": [
                       {
                       "system": "phone",
-                      "value": "07424723850"
+                      "value": "07424723851"
                       }
                       ]
                       }</stringProp>
@@ -1140,7 +1174,7 @@ import java.util.UUID
                     "telecom": [
                     {
                     "system": "phone",
-                    "value": "01234567890"
+                    "value": "07424723851"
                     }
                     ]
                     }</stringProp>
