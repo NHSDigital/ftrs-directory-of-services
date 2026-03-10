@@ -115,7 +115,7 @@ data "aws_prefix_list" "dynamodb" {
 data "aws_security_group" "dos_search_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
 
-  name = "${local.resource_prefix}-lambda-sg"
+  name = "${local.resource_prefix}-ods-code-lambda-sg"
 }
 
 data "aws_security_group" "vpce_interface_security_group" {
