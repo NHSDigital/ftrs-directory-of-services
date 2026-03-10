@@ -796,7 +796,6 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed(
     )
     processor.metadata = mock_metadata_cache
 
-
     class TransactionCanceledException(Exception):
         def __init__(self) -> None:
             super().__init__("Transaction cancelled")
