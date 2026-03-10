@@ -43,6 +43,10 @@ fi
 export TERRAFORM_STATE_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
+  echo "ACCOUNT_ID must be set or aws sts get-caller-identity must succeed when ENVIRONMENT=prod"
+  exit 1
+fi
 if [[ "$ENVIRONMENT" == "prod" ]]; then
   export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}-${TERRAFORM_ACCOUNT_ID}"
 else
@@ -66,8 +70,8 @@ if [ -z "$ENVIRONMENT" ] ; then
   echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, int, ref, dr, prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|dr|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, dr or prod
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, or prod
       EXPORTS_SET=1
   fi
 fi
@@ -110,7 +114,7 @@ ENV_TF_VARS_FILE="environment.tfvars"
 ENVIRONMENTS_SUB_DIR="environments"
 TOGGLE_ENVIRONMENT=$( [ "${WORKSPACE}" = "default" ] && echo "${ENVIRONMENT}" || echo "workspace" )
 
-echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
+echo "Preparing to run terraform $ACTION for stack $STACK to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
 ROOT_DIR=$PWD
 # the directory that holds the stack to terraform
 STACK_DIR=$PWD/$TERRAFORM_DIR/$STACK

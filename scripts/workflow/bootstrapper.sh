@@ -16,6 +16,10 @@ export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get r
 export TERRAFORM_STATE_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
+  echo "ACCOUNT_ID must be set or aws sts get-caller-identity must succeed when ENVIRONMENT=prod"
+  exit 1
+fi
 if [[ "$ENVIRONMENT" == "prod" ]]; then
   export TF_VAR_terraform_state_bucket_name="${TERRAFORM_STATE_BUCKET_NAME}-${TERRAFORM_ACCOUNT_ID}"
 else
@@ -49,8 +53,8 @@ if [[ -z "$ENVIRONMENT" ]] ; then
   echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, int, ref, non-prod, dr or prod
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|dr|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, dr or prod
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, or prod
       EXPORTS_SET=1
   fi
 fi
@@ -126,9 +130,9 @@ function github_runner_stack {
   STACK_DIR=$PWD/$TERRAFORM_DIR/$STACK
 
   if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then
-    echo "Bootstrapping the $STACK stack (terraform $ACTION) to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
+    echo "Bootstrapping the $STACK stack (terraform $ACTION) to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
   else
-    echo "Preparing to run terraform $ACTION for $STACK stack to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $TF_VAR_project"
+    echo "Preparing to run terraform $ACTION for $STACK stack to terraform workspace $WORKSPACE for environment $ENVIRONMENT and project $PROJECT"
   fi
 
   # remove any previous local backend for stack
