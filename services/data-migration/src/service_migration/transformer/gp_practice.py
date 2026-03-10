@@ -1,8 +1,12 @@
 import re
+from typing import TYPE_CHECKING
 
 from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_data_layer.domain import HealthcareServiceCategory, HealthcareServiceType
 from ftrs_data_layer.domain import legacy as legacy_model
+
+if TYPE_CHECKING:
+    from service_migration.models import ServiceMigrationState
 
 from service_migration.transformer.base import (
     ServiceTransformer,
@@ -86,12 +90,16 @@ class GPPracticeTransformer(ServiceTransformer):
 
     @classmethod
     def should_include_service(
-        cls, service: legacy_model.Service
+        cls,
+        service: legacy_model.Service,
+        state_record: "ServiceMigrationState | None" = None,
     ) -> tuple[bool, str | None]:
         """
-        Check if the service is active.
+        Check if the service is active, or already exists in the migrated dataset.
         """
         if service.statusid != cls.STATUS_ACTIVE:
+            if state_record is not None:
+                return True, None
             return False, "Service is not active"
 
         return True, None

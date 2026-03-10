@@ -31,6 +31,7 @@ from ftrs_data_layer.domain.legacy import (
 )
 
 from common.cache import DoSMetadataCache
+from service_migration.models import ServiceMigrationState
 from service_migration.transformer import ServiceTransformer
 
 
@@ -46,8 +47,12 @@ class BasicServiceTransformer(ServiceTransformer):
         return super().is_service_supported(service)
 
     @classmethod
-    def should_include_service(cls, service: Service) -> tuple[bool, str | None]:
-        return super().should_include_service(service)
+    def should_include_service(
+        cls,
+        service: Service,
+        state_record: ServiceMigrationState | None = None,
+    ) -> tuple[bool, str | None]:
+        return super().should_include_service(service, state_record)
 
 
 @freeze_time("2025-07-17T12:00:00")

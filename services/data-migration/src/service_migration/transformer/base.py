@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Type
+from typing import TYPE_CHECKING, Type
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from service_migration.models import ServiceMigrationState
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
@@ -101,11 +104,19 @@ class ServiceTransformer(ABC):
     @classmethod
     @abstractmethod
     def should_include_service(
-        cls, service: legacy_model.Service
+        cls,
+        service: legacy_model.Service,
+        state_record: "ServiceMigrationState | None" = None,
     ) -> tuple[bool, str | None]:
         """
-        Check if the service record can be should be included in the transformation.
+        Check if the service record should be included in the transformation.
+
+        If ``state_record`` is provided the service already exists in the migrated
+        dataset, and status-based exclusion should be bypassed so that any changes
+        are reflected regardless of the service's current status.
+
         :param service: The service data to check.
+        :param state_record: Existing migration state for the service, if any.
         :return: A tuple (bool, str) indicating if the record is transformable and a reason if not.
         """
         return False, None

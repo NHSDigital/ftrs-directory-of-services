@@ -199,32 +199,19 @@ class DataMigrationProcessor:
             if not self._setup_linked_transformer(transformer, service):
                 return None, None
 
-        should_include, reason = transformer.should_include_service(service)
-        should_continue, state_record = self._resolve_migration_state(
-            service, should_include, reason
+        state_record = self.get_state_record(service.id)
+        should_include, reason = transformer.should_include_service(
+            service, state_record
         )
-        if not should_continue:
+        if not should_include:
+            self.metrics.skipped += 1
+            self.logger.log(
+                DataMigrationLogBase.DM_ETL_005,
+                reason=reason or "No reason provided",
+            )
             return None, None
 
         return transformer, state_record
-
-    def _resolve_migration_state(
-        self, service: legacy.Service, should_include: bool, reason: str | None
-    ) -> tuple[bool, ServiceMigrationState | None]:
-        if should_include:
-            return True, None
-
-        if service.statusid != 1:
-            state_record = self.get_state_record(service.id)
-            if state_record is not None:
-                return True, state_record
-
-        self.metrics.skipped += 1
-        self.logger.log(
-            DataMigrationLogBase.DM_ETL_005,
-            reason=reason or "No reason provided",
-        )
-        return False, None
 
     # Validation & transformation helpers
 

@@ -275,6 +275,7 @@ def test_process_service_skipped_service(
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
+    processor.get_state_record = mocker.MagicMock(return_value=None)
 
     processor._process_service(mock_legacy_service)
 
@@ -308,10 +309,7 @@ def test_process_service_inactive_existing_state_updates(
     mock_transformer = mocker.MagicMock()
     mock_transformer.__name__ = "MockTransformer"
     mock_transformer.is_service_supported.return_value = (True, None)
-    mock_transformer.should_include_service.return_value = (
-        False,
-        "Service is not active",
-    )
+    mock_transformer.should_include_service.return_value = (True, None)
     mock_transformer.return_value = mock_transformer
     mocker.patch(
         "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
@@ -377,6 +375,10 @@ def test_process_service_inactive_existing_state_updates(
         skipped=0,
         invalid=0,
         errors=0,
+    )
+    mock_transformer.should_include_service.assert_called_once_with(
+        inactive_service,
+        existing_state,
     )
     mock_transformer.validator.validate.assert_called_once_with(inactive_service)
 
@@ -556,6 +558,7 @@ def test_handles_invalid_service(
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
     processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
 
     assert processor.metrics == ServiceMigrationMetrics(
         total=0,

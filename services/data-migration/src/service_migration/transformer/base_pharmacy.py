@@ -117,9 +117,13 @@ class BasePharmacyTransformer(ServiceTransformer):
 
     @classmethod
     def should_include_service(
-        cls, service: legacy_model.Service
+        cls,
+        service: legacy_model.Service,
+        state_record: "ServiceMigrationState | None" = None,
     ) -> tuple[bool, str | None]:
         if service.statusid != cls.STATUS_ACTIVE:
+            if state_record is not None:
+                return True, None
             return False, "Service is not active"
 
         return True, None
@@ -227,9 +231,13 @@ class LinkedPharmacyTransformer(ServiceTransformer):
 
     @classmethod
     def should_include_service(
-        cls, service: legacy_model.Service
+        cls,
+        service: legacy_model.Service,
+        state_record: "ServiceMigrationState | None" = None,
     ) -> tuple[bool, str | None]:
         if service.statusid != cls.STATUS_ACTIVE:
+            if state_record is not None:
+                return True, None
             return False, "Service is not active"
 
         return True, None
