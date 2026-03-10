@@ -272,7 +272,7 @@ class DataMigrationProcessor:
                     self.logger.log(
                         DataMigrationLogBase.DM_ETL_022, response=e.response
                     )
-                    return
+                    raise
 
             raise  # Reraise other exceptions
 
