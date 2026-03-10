@@ -1,4 +1,4 @@
-from fhir.resources.R4B.bundle import Bundle, BundleEntry
+from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleEntrySearch, BundleLink
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
@@ -248,7 +248,9 @@ class OrganizationMapper(FhirMapper):
         }
 
         if request_url:
-            bundle_dict["link"] = [{"relation": "self", "url": request_url}]
+            bundle_dict["link"] = [
+                BundleLink.model_validate({"relation": "self", "url": request_url})
+            ]
 
         return Bundle.model_construct(**bundle_dict)
 
@@ -266,7 +268,7 @@ class OrganizationMapper(FhirMapper):
 
         entry_dict = {
             "resource": minimal_org,
-            "search": {"mode": "match"},
+            "search": BundleEntrySearch.model_validate({"mode": "match"}),
         }
 
         if request_url:
