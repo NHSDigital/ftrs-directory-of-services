@@ -43,7 +43,8 @@ locals {
 
   env_domain_name = "${var.environment}.${var.root_domain_name}"
 
-  s3_trust_store_bucket_name = var.environment == "prod" ? "${local.account_prefix}-${var.s3_trust_store_bucket_name}-${local.account_id}" : "${local.account_prefix}-${var.s3_trust_store_bucket_name}"
+  s3_trust_store_bucket_name        = "${local.account_prefix}-${var.s3_trust_store_bucket_name}"
+  s3_trust_store_bucket_lookup_name = var.environment == "prod" ? "${local.s3_trust_store_bucket_name}-${local.account_id}" : "${local.s3_trust_store_bucket_name}"
 
   trust_store_file_path = "${var.environment}/truststore-${var.stack_name}.pem"
 
