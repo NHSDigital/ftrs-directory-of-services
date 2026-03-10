@@ -796,8 +796,8 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed(
     )
     processor.metadata = mock_metadata_cache
 
-    # Create a real exception (not a MagicMock) with proper attributes
-    class MockTransactionCanceledException(Exception):
+
+    class TransactionCanceledException(Exception):
         def __init__(self) -> None:
             super().__init__("Transaction cancelled")
             self.response = {
@@ -810,10 +810,7 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed(
                 ],
             }
 
-    # Create an instance of the exception
-    mock_exception = MockTransactionCanceledException()
-    # Set the class name to match what the code checks
-    mock_exception.__class__.__name__ = "TransactionCanceledException"
+    mock_exception = TransactionCanceledException()
 
     # Mock DynamoDB client to raise the exception
     mock_dynamodb_client = mocker.MagicMock()
@@ -825,7 +822,7 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed(
     )
 
     # Should raise the exception after logging DM_ETL_022
-    with pytest.raises(Exception, match="Transaction cancelled"):
+    with pytest.raises(TransactionCanceledException):
         processor._execute_transaction([])
 
     # Verify DM_ETL_022 was logged before the raise
@@ -918,14 +915,17 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed_via_r
     )
     processor.metadata = mock_metadata_cache
 
-    # Create mock exception with response but different class name
-    mock_exception = Exception("Transaction cancelled")
-    mock_exception.response = {
-        "Error": {"Code": "TransactionCanceledException"},
-        "CancellationReasons": [
-            {"Code": "ConditionalCheckFailed"},
-        ],
-    }
+    class BotoClientError(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ConditionalCheckFailed"},
+                ],
+            }
+
+    mock_exception = BotoClientError()
 
     # Mock DynamoDB client to raise the exception
     mock_dynamodb_client = mocker.MagicMock()
@@ -937,7 +937,7 @@ def test_execute_transaction_raises_and_logs_when_conditional_check_failed_via_r
     )
 
     # Should raise the exception after logging DM_ETL_022
-    with pytest.raises(Exception, match="Transaction cancelled"):
+    with pytest.raises(BotoClientError):
         processor._execute_transaction([])
 
     # Verify DM_ETL_022 was logged before the raise
