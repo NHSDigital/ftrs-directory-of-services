@@ -50,7 +50,7 @@ if [[ -z "$AWS_REGION" ]] ; then
 fi
 
 if [[ -z "$ENVIRONMENT" ]] ; then
-  echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, int, ref, non-prod, dr or prod
+  echo Set ENVIRONMENT to identify if account is for mgmt, dev, test, int, ref, non-prod, or prod
   EXPORTS_SET=1
 else
   if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|prod|prototype) ]]; then
