@@ -48,6 +48,9 @@ env TARGET_SPEC_FILE_PATH="$TARGET_SPEC_FILE" \
     yq eval -o=json '."x-nhsd-apim".target = load(strenv(TARGET_SPEC_FILE_PATH))' \
     "$SPEC_FILE" > "$MODIFIED_SPEC_PATH"
 
+# Remove target-attributes for sandbox deployments (hosted targets don't need them)
+yq eval -i 'del(."x-nhsd-apim"."target-attributes")' "$MODIFIED_SPEC_PATH"
+
 case "$PROXY_ENV" in
     "sandbox") SERVER_DESC="Sandbox" ;;
     "internal-dev-sandbox") SERVER_DESC="Internal Sandbox" ;;
