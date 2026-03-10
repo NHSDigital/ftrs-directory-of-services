@@ -9,7 +9,7 @@ variable "environment" {
   nullable    = false
 
   validation {
-    condition     = trim(var.environment) != ""
+    condition     = trimspace(var.environment) != ""
     error_message = "environment must be a non-empty string."
   }
 }
