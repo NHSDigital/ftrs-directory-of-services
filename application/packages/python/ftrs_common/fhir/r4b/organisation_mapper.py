@@ -221,17 +221,64 @@ class OrganizationMapper(FhirMapper):
             non_primary_role_codes=non_primary_codes,
         )
 
-    def to_fhir_bundle(self, organisations: list[Organisation]) -> Bundle:
-        """Convert list of Organisation objects to FHIR Bundle (searchset)."""
-        entries = [
-            BundleEntry.model_construct(resource=self.to_fhir(org))
-            for org in organisations
-        ]
-        bundle = Bundle.model_construct()
-        bundle.type = "searchset"
-        bundle.total = len(entries)
-        bundle.entry = entries
-        return bundle
+    def to_fhir_bundle(
+        self,
+        organisations: list[Organisation],
+        request_url: str | None = None,
+    ) -> Bundle:
+        """Convert list of Organisation objects to FHIR Bundle (searchset).
+
+        Returns a FHIR-compliant Bundle containing minimal Organization resources with only id and meta.
+        Each entry has search.mode set to "match" indicating the resource matched the search criteria.
+
+        Args:
+            organisations: List of Organisation domain objects
+            request_url: The request URL for the Bundle self link
+
+        Returns:
+            FHIR Bundle with Organization resources
+        """
+        entries = [self._create_bundle_entry(org, request_url) for org in organisations]
+
+        bundle_dict = {
+            "resourceType": "Bundle",
+            "type": "searchset",
+            "total": len(entries),
+            "entry": entries,
+        }
+
+        if request_url:
+            bundle_dict["link"] = [{"relation": "self", "url": request_url}]
+
+        return Bundle.model_construct(**bundle_dict)
+
+    def _create_bundle_entry(
+        self, org: Organisation, request_url: str | None = None
+    ) -> BundleEntry:
+        """Create a FHIR Bundle entry with minimal Organization resource."""
+        minimal_org = FhirOrganisation.model_validate(
+            {
+                "resourceType": "Organization",
+                "id": str(org.id),
+                "meta": self._build_meta_profile(),
+            }
+        )
+
+        entry_dict = {
+            "resource": minimal_org,
+            "search": {"mode": "match"},
+        }
+
+        if request_url:
+            base_url = self._extract_base_url(request_url)
+            entry_dict["fullUrl"] = f"{base_url}/Organization/{org.id}"
+
+        return BundleEntry.model_construct(**entry_dict)
+
+    def _extract_base_url(self, request_url: str) -> str:
+        if "?" in request_url:
+            return request_url.split("?")[0].rsplit("/", 1)[0]
+        return request_url.rsplit("/", 1)[0]
 
     def from_ods_fhir_to_fhir(
         self, ods_fhir_organization: dict

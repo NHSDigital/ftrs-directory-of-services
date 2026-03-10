@@ -466,19 +466,19 @@ def test_to_fhir_bundle_single_org() -> None:
     assert len(bundle_single.entry) == 1
     resource = bundle_single.entry[0].resource
     assert resource.id == "00000000-0000-0000-0000-00000000000a"
-    assert resource.name == "Test Org 1"
-    assert resource.active is True
-    assert resource.identifier[0].value == "ODS1"
-    assert (
-        resource.identifier[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
-    )
-    assert resource.identifier[0].use == "official"
-    assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].value == "020 7972 3272"
     assert (
         resource.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
+
+    # Verify that only id, resourceType, and meta are present (no other fields)
+    resource_dict = resource.model_dump(exclude_none=True)
+    assert set(resource_dict.keys()) == {"resourceType", "id", "meta"}
+    assert "name" not in resource_dict
+    assert "active" not in resource_dict
+    assert "identifier" not in resource_dict
+    assert "telecom" not in resource_dict
+    assert "extension" not in resource_dict
 
 
 def test_to_fhir_bundle_multiple_orgs() -> None:
@@ -513,6 +513,71 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         "00000000-0000-0000-0000-00000000000a",
         "00000000-0000-0000-0000-00000000000b",
     }
+
+    for entry in bundle_multi.entry:
+        resource_dict = entry.resource.model_dump(exclude_none=True)
+        assert set(resource_dict.keys()) == {"resourceType", "id", "meta"}
+        assert "name" not in resource_dict
+        assert "active" not in resource_dict
+        assert "identifier" not in resource_dict
+        assert "telecom" not in resource_dict
+
+
+def test_to_fhir_bundle_with_request_url() -> None:
+    """Test that to_fhir_bundle includes link and fullUrl when request_url is provided."""
+    mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    org1 = Organisation(
+        id="00000000-0000-0000-0000-00000000000a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom=[],
+        lastUpdatedBy=modified_by,
+    )
+
+    request_url = "https://api.example.com/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS1"
+    bundle = mapper.to_fhir_bundle([org1], request_url=request_url)
+
+    assert bundle.link is not None
+    assert len(bundle.link) == 1
+    assert bundle.link[0].relation == "self"
+    assert bundle.link[0].url == request_url
+
+    assert len(bundle.entry) == 1
+    assert bundle.entry[0].fullUrl is not None
+    assert (
+        "/Organization/00000000-0000-0000-0000-00000000000a" in bundle.entry[0].fullUrl
+    )
+
+    assert bundle.entry[0].search is not None
+    assert bundle.entry[0].search.mode == "match"
+
+
+def test_to_fhir_bundle_without_request_url() -> None:
+    """Test that to_fhir_bundle works without request_url (no link or fullUrl)."""
+    mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    org1 = Organisation(
+        id="00000000-0000-0000-0000-00000000000a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom=[],
+        lastUpdatedBy=modified_by,
+    )
+
+    bundle = mapper.to_fhir_bundle([org1])
+
+    # Verify Bundle has no link when request_url not provided
+    assert bundle.link is None or len(bundle.link) == 0
+
+    assert len(bundle.entry) == 1
+    assert bundle.entry[0].fullUrl is None
 
 
 def test__get_org_telecom_with_phone() -> None:

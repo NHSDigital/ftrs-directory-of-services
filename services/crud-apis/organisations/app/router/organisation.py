@@ -79,7 +79,10 @@ async def get_handle_organisation_requests(
 
         ods_code = organization_query_params.ods_code
         result = organisation_service.get_by_ods_code(ods_code)
-        bundle = organisation_mapper.to_fhir_bundle(result)
+
+        request_url = str(request.url)
+
+        bundle = organisation_mapper.to_fhir_bundle(result, request_url=request_url)
         return JSONResponse(
             content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
         )

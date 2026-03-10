@@ -47,7 +47,6 @@ info:
 
     You do not need to know much about FHIR to use this API - FHIR APIs are just RESTful APIs that follow specific rules. In particular:
     * resource names are capitalised and singular, for example /Patient not /patients
-    * array names are singular, for example line not lines for address lines
     * data items that are country-specific and thus not included in the FHIR global base resources are usually wrapped in an extension object
 
     There are [libraries and SDKs available](https://digital.nhs.uk/developer/guides-and-documentation/api-technologies-at-nhs-digital#fhir-libraries-and-sdks) to help with FHIR API integration.
@@ -139,8 +138,8 @@ paths:
       summary: Search for organisations by ODS code to return organization details
       description: |
         ## Overview
-        Retrieve an organization identified by an ODS code, or all organizations if no identifier is provided.
-
+        Retrieve an organization identified by an ODS code.
+        
         ## Request requirements
         - The `identifier` query parameter must be in the format `https://fhir.nhs.uk/Id/ods-organization-code|{CODE}` (minimum 1, maximum 12 alphanumeric characters).
 
@@ -221,51 +220,9 @@ paths:
                     resource:
                       resourceType: "Organization"
                       id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
-                      identifier:
-                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
-                          value: "ABC123"
-                      extension:
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
-                          extension:
-                            - url: "instanceID"
-                              valueInteger: 12345
-                            - url: "roleCode"
-                              valueCodeableConcept:
-                                coding:
-                                  - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
-                                    code: "RO177"
-                                    display: "PRESCRIBING COST CENTRE"
-                            - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod"
-                              extension:
-                                - url: "dateType"
-                                  valueCoding:
-                                    system: "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
-                                    code: "Legal"
-                                    display: "Legal"
-                                - url: "period"
-                                  valuePeriod:
-                                    start: "2020-01-15"
-                                    end: "2025-12-31"
-                        - url: "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
-                          extension:
-                            - url: "roleCode"
-                              valueCodeableConcept:
-                                coding:
-                                  - system: "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole"
-                                    code: "RO76"
-                                    display: "GP PRACTICE"
-                      active: true
-                      name: "Example Organization"
-                      telecom:
-                        - system: "phone"
-                          value: "01234 567890"
-                        - system: "email"
-                          value: "example@example.com"
-                      address:
-                        - line: ["Example Medical Practice", "Example Street"]
-                          city: "Example City"
-                          postalCode: "AB12 3CD"
-                          country: "ENGLAND"
+                      meta:
+                        profile:
+                          - "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                     search:
                       mode: "match"
         '400':
@@ -1254,32 +1211,6 @@ components:
                 enum:
                   - work
                 example: work
-        address:
-          type: array
-          items:
-            type: object
-            required:
-              - line
-              - city
-              - postalCode
-              - country
-            properties:
-              line:
-                type: array
-                items:
-                  type: string
-                example:
-                  - Example Medical Practice
-                  - Example Street
-              city:
-                type: string
-                example: Example City
-              postalCode:
-                type: string
-                example: AB12 3CD
-              country:
-                type: string
-                example: "ENGLAND"
     Bundle:
       type: object
       required:
@@ -1298,6 +1229,18 @@ components:
         total:
           type: integer
           example: 1
+        link:
+          type: array
+          description: Links related to this Bundle, including self-reference
+          items:
+            type: object
+            properties:
+              relation:
+                type: string
+                example: self
+              url:
+                type: string
+                example: https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
         entry:
           type: array
           items:
@@ -1305,8 +1248,20 @@ components:
             required:
               - resource
             properties:
+              fullUrl:
+                type: string
+                description: Absolute URL for this resource
+                example: https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96
               resource:
                 $ref: '#/components/schemas/Organization'
+              search:
+                type: object
+                description: Search metadata for this entry
+                properties:
+                  mode:
+                    type: string
+                    enum: [match, include]
+                    example: match
     OperationOutcome:
       type: object
       required:
