@@ -126,8 +126,7 @@
                 "support-console:*"
             ],
             "Resource": "*"
-        }
-        ,
+        },
         {
             "Sid": "IAMAccessAnalyzerFullAccess",
             "Effect": "Allow",
@@ -145,14 +144,6 @@
                     "iam:AWSServiceName": "access-analyzer.amazonaws.com"
                 }
             }
-        },
-        {
-            "Sid": "FirehoseFullAccess",
-            "Effect": "Allow",
-            "Action": [
-                "firehose:*"
-            ],
-            "Resource": "*"
         }
     ]
 }

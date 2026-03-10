@@ -139,6 +139,7 @@ jobs:
       matrix:
         include:
           - name: "sandbox-dos-search"
+          - name: "sandbox-dos-ingest"
     uses: ./.github/workflows/build-sandbox-images.yaml
     with:
       name: ${{ matrix.name }}

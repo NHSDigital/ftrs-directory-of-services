@@ -64,9 +64,15 @@ module "rds_replication_target_db" {
   port           = var.rds_port
 
   instance_class = var.rds_instance_class
-  instances = {
-    one = {}
-  }
+  instances = merge(
+    {
+      one = {}
+    },
+    var.data_migration_rds_enable_reader_instance ?
+    {
+      two = {}
+    } : {},
+  )
 
   serverlessv2_scaling_configuration = {
     min_capacity = var.data_migration_rds_min_capacity
@@ -77,6 +83,8 @@ module "rds_replication_target_db" {
   master_username             = random_pet.rds_username[0].id
   master_password             = random_password.rds_password[0].result
   database_name               = var.target_rds_database
+
+  preferred_backup_window = ""
 
   tags = local.backup_tags
 

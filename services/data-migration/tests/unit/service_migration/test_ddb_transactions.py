@@ -11,6 +11,7 @@ from ftrs_data_layer.domain import (
     Organisation,
     PositionGCS,
 )
+from ftrs_data_layer.domain.enums import OrganisationType
 
 from service_migration.ddb_transactions import ServiceTransactionBuilder
 from service_migration.exceptions import ServiceMigrationException
@@ -166,6 +167,49 @@ def test_update_organisation_no_changes(
     )
 
     result = builder.add_organisation(mock_organisation)
+
+    assert result is builder
+    assert len(builder.items) == 0
+    assert mock_logger.was_logged("DM_ETL_029")
+
+
+def test_update_organisation_no_false_positive_diff_when_type_is_string_in_state(
+    mock_logger: MockLogger,
+    mock_organisation: Organisation,
+) -> None:
+    """Regression test: organisation type stored as plain str in migration state
+    must not cause a false positive diff against the same value as OrganisationType enum.
+    """
+    # Simulate state loaded from DynamoDB - model_validate with raw string data
+    # now coerces "Distance Selling Pharmacy" to OrganisationType enum
+    state_data = {
+        "source_record_id": "services#123",
+        "version": 1,
+        "organisation_id": str(mock_organisation.id),
+        "organisation": {
+            **mock_organisation.model_dump(mode="json"),
+            "type": "Distance Selling Pharmacy",
+        },
+        "location_id": None,
+        "location": None,
+        "healthcare_service_id": None,
+        "healthcare_service": None,
+        "validation_issues": [],
+    }
+    existing_state = ServiceMigrationState.model_validate(state_data)
+
+    assert (
+        existing_state.organisation.type == OrganisationType.DISTANCE_SELLING_PHARMACY
+    )
+
+    builder = ServiceTransactionBuilder(
+        service_id=123, logger=mock_logger, migration_state=existing_state
+    )
+
+    org_with_enum_type = mock_organisation.model_copy(
+        update={"type": OrganisationType.DISTANCE_SELLING_PHARMACY}
+    )
+    result = builder.add_organisation(org_with_enum_type)
 
     assert result is builder
     assert len(builder.items) == 0
@@ -528,6 +572,7 @@ def test_insert_state_record_condition(
 
     state_item = builder.items[-1]["Put"]
     assert state_item["ConditionExpression"] == "attribute_not_exists(source_record_id)"
+    assert state_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_update_state_record_condition(
@@ -556,6 +601,7 @@ def test_update_state_record_condition(
     assert "attribute_exists(source_record_id)" in state_item["ConditionExpression"]
     assert "version = :current_version" in state_item["ConditionExpression"]
     assert state_item["ExpressionAttributeValues"][":current_version"]["N"] == "5"
+    assert state_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_put_item_condition_expression(
@@ -569,6 +615,35 @@ def test_put_item_condition_expression(
     assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
     assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
     assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
+
+
+def test_location_put_item_has_return_values_on_condition_check_failure(
+    mock_logger: MockLogger,
+    mock_location: Location,
+) -> None:
+    builder = ServiceTransactionBuilder(service_id=123, logger=mock_logger)
+    builder.add_location(mock_location)
+
+    put_item = builder.items[0]["Put"]
+    assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
+    assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
+    assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
+
+
+def test_healthcare_service_put_item_has_return_values_on_condition_check_failure(
+    mock_logger: MockLogger,
+    mock_healthcare_service: HealthcareService,
+) -> None:
+    builder = ServiceTransactionBuilder(service_id=123, logger=mock_logger)
+    builder.add_healthcare_service(mock_healthcare_service)
+
+    put_item = builder.items[0]["Put"]
+    assert "attribute_not_exists(id)" in put_item["ConditionExpression"]
+    assert "attribute_not_exists(#field)" in put_item["ConditionExpression"]
+    assert put_item["ExpressionAttributeNames"]["#field"] == "field"
+    assert put_item["ReturnValuesOnConditionCheckFailure"] == "ALL_OLD"
 
 
 def test_update_organisation_includes_audit_timestamps(

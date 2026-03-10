@@ -6,10 +6,10 @@ from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
-    EndpointPayloadType,
 )
 
 from functions.ftrs_service.fhir_mapper.endpoint_mapper import EndpointMapper
+from functions.logbase import DosSearchLogBase
 
 
 @pytest.fixture
@@ -30,7 +30,10 @@ class TestEndpointMapper:
             result[0].coding[0].system
             == "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
         )
-        assert result[0].coding[0].code == EndpointPayloadType.ED.value
+        assert (
+            result[0].coding[0].code
+            == "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
+        )
 
     def test_create_endpoint(self, endpoint_mapper, endpoint):
         endpoint = endpoint_mapper._create_fhir_endpoint(endpoint)
@@ -224,7 +227,7 @@ class TestEndpointMapper:
     ):
         # Arrange
         mock_logger = mocker.patch(
-            "functions.ftrs_service.fhir_mapper.endpoint_mapper.dos_logger"
+            "functions.ftrs_service.fhir_mapper.endpoint_mapper.logger"
         )
 
         # Act
@@ -232,8 +235,9 @@ class TestEndpointMapper:
 
         # Assert
         assert result is None
-        mock_logger.error.assert_called_once_with(
-            "Unknown business scenario: UnknownScenario"
+        mock_logger.log.assert_called_once_with(
+            DosSearchLogBase.DOS_SEARCH_011,
+            business_scenario="UnknownScenario",
         )
 
     def test_create_extensions_with_compression_false(

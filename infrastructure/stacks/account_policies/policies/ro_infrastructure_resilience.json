@@ -10,6 +10,25 @@
                 "backup:List*"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "AWSFaultInjectionSimulatorReadOnlyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "fis:Get*",
+                "fis:List*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AWSResilienceHubReadOnlyAccess",
+            "Effect": "Allow",
+            "Action": [
+                "resiliencehub:Describe*",
+                "resiliencehub:Get*",
+                "resiliencehub:List*"
+            ],
+            "Resource": "*"
         }
     ]
 }

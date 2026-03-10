@@ -41,6 +41,10 @@ class HealthcareServiceType(str, Enum):
     GP_CONSULTATION_SERVICE = "GP Consultation Service"
     PCN_SERVICE = "Primary Care Network Enhanced Access Service"
     ESSENTIAL_SERVICES = "Essential Services"
+    BLOOD_PRESSURE_CHECK = "Blood Pressure Check"
+    ORAL_CONTRACEPTION_PRESCRIPTION_AND_SUPPLY = (
+        "Oral Contraception Prescription and Supply"
+    )
 
 
 class EndpointStatus(str, Enum):
@@ -58,15 +62,6 @@ class EndpointConnectionType(str, Enum):
 class EndpointBusinessScenario(str, Enum):
     PRIMARY = "Primary"
     COPY = "Copy"
-
-
-class EndpointPayloadType(str, Enum):
-    ED = "urn:nhs-itk:interaction:primaryEmergencyDepartmentRecipientNHS111CDADocument-v2-0"
-    GP_PRIMARY = "urn:nhs-itk:interaction:primaryGeneralPractitionerRecipientNHS111CDADocument-v2-0"
-    GP_COPY = "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0"
-    OTHER = "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0"
-    AMBULANCE = "urn:nhs-itk:interaction:primaryNHS111RequestforAmbulance-v2-0"  # TODO: review if this is real value
-    SCHEDULING = "scheduling"  # TODO: review how to handle this
 
 
 class EndpointPayloadMimeType(str, Enum):

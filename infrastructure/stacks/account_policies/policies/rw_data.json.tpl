@@ -146,7 +146,7 @@
             "Resource": "*"
         },
         {
-            "Sid": "KMSAccessForDynamoDB",
+            "Sid": "KMSAccessForDynamoDBAndS3",
             "Effect": "Allow",
             "Action": [
                 "kms:Decrypt",
@@ -157,7 +157,10 @@
             "Resource": "arn:aws:kms:${aws_region}:${account_id}:key/*",
             "Condition": {
                 "StringEquals": {
-                    "kms:ViaService": "dynamodb.${aws_region}.amazonaws.com"
+                    "kms:ViaService": [
+                        "dynamodb.${aws_region}.amazonaws.com",
+                        "s3.${aws_region}.amazonaws.com"
+                    ]
                 }
             }
         }

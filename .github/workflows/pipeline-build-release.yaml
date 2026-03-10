@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       prerelease_tag:
-        description: "The prerelease tag to build the release artefacts from (if not provided, the latest will be used)"
-        required: false
+        description: "The prerelease tag to build the release artefacts from (e.g. v1.0.1-pre.3)"
+        required: true
         type: string
 
 permissions:
@@ -69,12 +69,26 @@ jobs:
           LAST_VERSION="${{ steps.semantic-release.outputs.last_release_version }}"
           NEW_VERSION="${{ steps.semantic-release.outputs.new_release_version }}"
 
+          # Fallback to the latest version tag if semantic-release outputs are empty
+          if [[ -z "$LAST_VERSION" && -z "$NEW_VERSION" ]]; then
+            LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*-rc*' | sort -V | tail -n 1)
+            if [[ -n "$LAST_TAG" ]]; then
+              LAST_VERSION="${LAST_TAG#v}"
+              LAST_VERSION="${LAST_VERSION%%-rc*}"
+            fi
+          fi
+
           # If no new version, fallback to last version
           if [[ -z "$NEW_VERSION" || "$NEW_VERSION" == "$LAST_VERSION" ]]; then
             echo "No new release detected, using last released version: $LAST_VERSION"
             VERSION_TO_USE="$LAST_VERSION"
           else
             VERSION_TO_USE="$NEW_VERSION"
+          fi
+
+          if [[ -z "$VERSION_TO_USE" ]]; then
+            echo "Unable to determine a release version. Ensure tags exist or semantic-release runs successfully."
+            exit 1
           fi
 
           # Generate RC tag using your RC script

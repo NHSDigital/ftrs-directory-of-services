@@ -235,6 +235,22 @@ class DataMigrationLogBase(LogBase):
         level=INFO,
         message="Skipping state record item as no changes were required during migration",
     )
+    DM_ETL_038 = LogReference(
+        level=WARNING,
+        message="No parent pharmacy record found for service ID {record_id} with base ODS code {ods_code}",
+    )
+    DM_ETL_039 = LogReference(
+        level=ERROR,
+        message="Failed to migrate parent pharmacy service {parent_record_id} for linked service {record_id}",
+    )
+    DM_ETL_040 = LogReference(
+        level=ERROR,
+        message="Parent pharmacy migration for service {record_id} did not produce valid organisation or location IDs",
+    )
+    DM_ETL_041 = LogReference(
+        level=ERROR,
+        message="DynamoDB ValidationException during transaction write",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."
