@@ -3,8 +3,8 @@ module "api_gateway_monitoring" {
 
   resource_prefix = local.resource_prefix
 
-  sns_topic_name   = local.alarms_topic_name
-  sns_display_name = "DoS Search Alarms"
+  sns_topic_name   = "${local.alarms_topic_name}-api-gateway"
+  sns_display_name = "DoS Search Alarms API Gateway"
   kms_key_id       = data.aws_kms_key.sns_kms_key.arn
 
   alarm_config_path = "api-gateway/config"
