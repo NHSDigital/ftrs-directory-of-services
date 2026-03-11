@@ -127,15 +127,15 @@ module "transformer_lambda" {
 resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
   event_source_arn        = aws_sqs_queue.transform_queue.arn
   function_name           = module.transformer_lambda.lambda_function_name
-  batch_size              = 10
+  batch_size              = 5
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 5
+    maximum_concurrency = 15
   }
 
-  maximum_batching_window_in_seconds = 5
+  maximum_batching_window_in_seconds = 2
 
   depends_on = [
     module.transformer_lambda
@@ -195,15 +195,15 @@ module "consumer_lambda" {
 resource "aws_lambda_event_source_mapping" "consumer_queue_trigger" {
   event_source_arn        = aws_sqs_queue.load_queue.arn
   function_name           = module.consumer_lambda.lambda_function_name
-  batch_size              = 10
+  batch_size              = 5
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 5
+    maximum_concurrency = 15
   }
 
-  maximum_batching_window_in_seconds = 5
+  maximum_batching_window_in_seconds = 2
 
   depends_on = [
     module.consumer_lambda
