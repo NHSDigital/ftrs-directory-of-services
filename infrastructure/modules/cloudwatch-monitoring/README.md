@@ -109,6 +109,7 @@ The `try()` function returns `null` when the module isn't created (e.g., in non-
 
 > [!NOTE]
 > If you're testing the alarms module in a workspace without `count`, use direct access without index notation:
+>
 > ```hcl
 > value = module.lambda_monitoring.sns_topic_arn
 > ```
