@@ -1,6 +1,7 @@
 module "backup_reports_bucket" {
   count             = local.stack_enabled
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = "${local.resource_prefix}-reports"
   s3_logging_bucket = local.s3_logging_bucket
 

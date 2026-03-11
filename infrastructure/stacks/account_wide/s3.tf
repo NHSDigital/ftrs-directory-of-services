@@ -1,6 +1,7 @@
 # VPC Flow Logs S3 Bucket and Resource Policy
 module "vpc_flow_logs_s3_bucket" {
   source        = "../../modules/s3"
+  environment   = var.environment
   bucket_name   = "${local.resource_prefix}-${var.vpc_flow_logs_bucket_name}"
   versioning    = var.flow_log_s3_versioning
   force_destroy = var.flow_log_s3_force_destroy
@@ -24,6 +25,7 @@ module "vpc_flow_logs_s3_bucket" {
 # Subnet Flow Logs S3 Bucket and Resource Policy
 module "subnet_flow_logs_s3_bucket" {
   source        = "../../modules/s3"
+  environment   = var.environment
   bucket_name   = "${local.resource_prefix}-${var.subnet_flow_logs_bucket_name}"
   versioning    = var.flow_log_s3_versioning
   force_destroy = var.flow_log_s3_force_destroy
@@ -47,6 +49,7 @@ module "subnet_flow_logs_s3_bucket" {
 module "trust_store_s3_bucket" {
   # This module creates an S3 bucket for the trust store used for MTLS Certificates.
   source                = "../../modules/s3"
+  environment           = var.environment
   bucket_name           = local.s3_trust_store_bucket_name
   s3_logging_bucket     = local.s3_logging_bucket
   s3_encryption_key_arn = module.s3_encryption_key.arn
@@ -58,12 +61,14 @@ module "trust_store_s3_bucket" {
 # IS Performance S3 Bucket
 module "performance_s3" {
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = "${local.resource_prefix}-${var.performance_files_bucket_name}"
   s3_logging_bucket = local.s3_logging_bucket
 }
 
 module "firehose_backup_s3" {
   source                = "../../modules/s3"
+  environment           = var.environment
   bucket_name           = "${local.resource_prefix}-${var.firehose_name}-backup"
   s3_encryption_key_arn = module.firehose_encryption_key.arn
   enable_kms_encryption = var.enable_firehose_s3_kms_encryption
@@ -73,6 +78,7 @@ module "firehose_backup_s3" {
 # S3 bucket to receive CloudTrail log deliveries
 module "cloudtrail_s3_bucket" {
   source        = "../../modules/s3"
+  environment   = var.environment
   bucket_name   = "${local.resource_prefix}-${var.cloudtrail_bucket_name}"
   force_destroy = var.cloudtrail_bucket_force_destroy
 
