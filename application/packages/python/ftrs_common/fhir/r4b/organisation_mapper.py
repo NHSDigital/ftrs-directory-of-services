@@ -257,17 +257,14 @@ class OrganizationMapper(FhirMapper):
     def _create_bundle_entry(
         self, org: Organisation, request_url: str | None = None
     ) -> BundleEntry:
-        """Create a FHIR Bundle entry with minimal Organization resource."""
-        minimal_org = FhirOrganisation.model_validate(
-            {
-                "resourceType": "Organization",
-                "id": str(org.id),
-                "meta": self._build_meta_profile(),
-            }
-        )
+        """Create a FHIR Bundle entry with Organization resource."""
+        full_org = self.to_fhir(org)
+
+        # Remove extensions
+        full_org.extension = None
 
         entry_dict = {
-            "resource": minimal_org,
+            "resource": full_org,
             "search": BundleEntrySearch.model_validate({"mode": "match"}),
         }
 

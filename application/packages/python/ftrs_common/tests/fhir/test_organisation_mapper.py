@@ -471,14 +471,19 @@ def test_to_fhir_bundle_single_org() -> None:
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
 
-    # Verify that only id, resourceType, and meta are present (no other fields)
-    resource_dict = resource.model_dump(exclude_none=True)
-    assert set(resource_dict.keys()) == {"resourceType", "id", "meta"}
-    assert "name" not in resource_dict
-    assert "active" not in resource_dict
-    assert "identifier" not in resource_dict
-    assert "telecom" not in resource_dict
-    assert "extension" not in resource_dict
+    # Verify MustSupport fields ARE present
+    assert resource.identifier is not None
+    assert len(resource.identifier) > 0
+    assert resource.identifier[0].value == "ODS1"
+    assert resource.active is True
+    assert resource.name == "Test Org 1"
+    assert resource.telecom is not None
+    assert len(resource.telecom) == 1
+    assert resource.telecom[0].value == "020 7972 3272"
+
+    # Verify extensions and address are NOT present
+    assert not hasattr(resource, "extension") or resource.extension is None
+    assert not hasattr(resource, "address") or resource.address is None
 
 
 def test_to_fhir_bundle_multiple_orgs() -> None:
@@ -515,12 +520,17 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
     }
 
     for entry in bundle_multi.entry:
-        resource_dict = entry.resource.model_dump(exclude_none=True)
-        assert set(resource_dict.keys()) == {"resourceType", "id", "meta"}
-        assert "name" not in resource_dict
-        assert "active" not in resource_dict
-        assert "identifier" not in resource_dict
-        assert "telecom" not in resource_dict
+        resource = entry.resource
+
+        # Verify MustSupport fields ARE present
+        assert resource.identifier is not None
+        assert len(resource.identifier) > 0
+        assert resource.active is not None
+        assert resource.name is not None
+
+        # Verify extensions and address are NOT present
+        assert not hasattr(resource, "extension") or resource.extension is None
+        assert not hasattr(resource, "address") or resource.address is None
 
 
 def test_to_fhir_bundle_with_request_url() -> None:

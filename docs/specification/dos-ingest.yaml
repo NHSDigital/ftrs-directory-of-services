@@ -227,6 +227,16 @@ paths:
                       meta:
                         profile:
                           - "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+                      identifier:
+                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                          value: "ABC123"
+                      active: true
+                      name: "Example GP Practice"
+                      telecom:
+                        - system: "phone"
+                          value: "01234 567890"
+                        - system: "email"
+                          value: "example@example.com"
                     search:
                       mode: "match"
         '400':
@@ -1247,6 +1257,7 @@ components:
                 example: https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
         entry:
           type: array
+          description: Organization resources matching the search criteria.
           items:
             type: object
             required:

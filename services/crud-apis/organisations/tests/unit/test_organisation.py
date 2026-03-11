@@ -316,10 +316,10 @@ def test_get_handle_organisation_returns_bundle_with_fhir_fields(
     assert "profile" in resource["meta"]
     assert "tag" not in resource["meta"]
 
-    assert "identifier" not in resource
-    assert "active" not in resource
-    assert "name" not in resource
-    assert "telecom" not in resource
+    assert "identifier" in resource
+    assert "active" in resource
+    assert "name" in resource
+    assert "telecom" in resource
     assert "extension" not in resource
 
 
