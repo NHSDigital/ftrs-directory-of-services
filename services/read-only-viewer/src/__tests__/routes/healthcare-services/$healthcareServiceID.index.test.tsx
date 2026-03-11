@@ -60,7 +60,7 @@ describe("HealthCareServiceDetailsRoute", () => {
       { key: "ID", value: "healthcare-service-2" },
       { key: "Name", value: "Healthcare Service 2" },
       { key: "Type", value: "Type B" },
-      { key: "Active", value: "Yes" },
+      { key: "Status", value: "Active" },
       {
         key: "Contact Information",
         value:

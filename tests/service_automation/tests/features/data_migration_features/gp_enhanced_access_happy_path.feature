@@ -63,7 +63,7 @@ Feature: Data Migration
       {
         "id": "56101471-f2b1-5324-83e2-1c6d55f3628c",
         "field": "document",
-        "active": true,
+        "status": "active",
         "category": "GP Services",
         "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
         "ageEligibilityCriteria": null,
