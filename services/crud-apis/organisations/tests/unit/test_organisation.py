@@ -1100,17 +1100,24 @@ def test_update_organisation_identifier_empty_list() -> None:
     )
 
 
-def test_post_organisation_returns_503_when_feature_flag_disabled(
+@pytest.mark.parametrize(
+    ("method", "url", "kwargs"),
+    [
+        ("post", "/Organization", {"json": get_organisation()}),
+        ("get", f"/Organization/{test_org_id}", {}),
+        ("delete", f"/Organization/{test_org_id}", {}),
+    ],
+)
+def test_organisation_returns_503_when_feature_flag_disabled(
     mock_feature_flags: MagicMock,
+    method: str,
+    url: str,
+    kwargs: dict,
 ) -> None:
-    """Test that POST /Organization returns 503 when feature flag is disabled."""
-    # Override the fixture to return False for this test
+    """Test that POST, GET, and DELETE /Organization endpoints return 503 when feature flag is disabled."""
     mock_feature_flags.is_enabled.return_value = False
 
-    organisation_data = get_organisation()
-    response = client.post("/Organization", json=organisation_data)
-
-    response = client.post("/Organization", json=organisation_data)
+    response = getattr(client, method)(url, **kwargs)
 
     assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     response_body = response.json()

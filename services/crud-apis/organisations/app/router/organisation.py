@@ -105,7 +105,9 @@ def raise_fhir_exception(diagnostics: str, code: str, severity: str = "error") -
 
 
 @router.get(
-    "/Organization/{organisation_id}", summary="Read a single organisation by id"
+    "/Organization/{organisation_id}",
+    summary="Read a single organisation by id",
+    response_class=JSONResponse,
 )
 def get_organisation_by_id(
     organisation_id: UUID = Path(
@@ -113,11 +115,26 @@ def get_organisation_by_id(
         examples=["00000000-0000-0000-0000-11111111111"],
         description=ORGANISATION_ID_DESCRIPTION,
     ),
-) -> Organisation:
+) -> JSONResponse:
+    if not FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    ):
+        crud_organisation_logger.log(
+            CrudApisLogBase.CRUD_API_002,
+        )
+        return JSONResponse(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            content={
+                "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
+                "body": "Service Unavailable: Data Migration Search Triage Code feature is disabled.",
+            },
+        )
+
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_003,
         organisation_id=organisation_id,
     )
+
     organisation = org_repository.get(organisation_id)
 
     if not organisation:
@@ -219,13 +236,9 @@ def post_organisation(
         ],
     ),
 ) -> JSONResponse:
-    if FEATURE_FLAGS_CLIENT.is_enabled(
+    if not FEATURE_FLAGS_CLIENT.is_enabled(
         FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
     ):
-        crud_organisation_logger.log(
-            CrudApisLogBase.CRUD_API_001,
-        )
-    else:
         crud_organisation_logger.log(
             CrudApisLogBase.CRUD_API_002,
         )
@@ -236,6 +249,10 @@ def post_organisation(
                 "body": "Service Unavailable: Data Migration Search Triage Code feature is disabled.",
             },
         )
+
+    crud_organisation_logger.log(
+        CrudApisLogBase.CRUD_API_001,
+    )
 
     organisation = Organisation(**organisation_data.model_dump())
     crud_organisation_logger.log(
@@ -265,10 +282,25 @@ def delete_organisation(
         description=ORGANISATION_ID_DESCRIPTION,
     ),
 ) -> Response:
+    if not FEATURE_FLAGS_CLIENT.is_enabled(
+        FeatureFlag.DATA_MIGRATION_SEARCH_TRIAGE_CODE_ENABLED
+    ):
+        crud_organisation_logger.log(
+            CrudApisLogBase.CRUD_API_002,
+        )
+        return JSONResponse(
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            content={
+                "statusCode": HTTPStatus.SERVICE_UNAVAILABLE,
+                "body": "Service Unavailable: Data Migration Search Triage Code feature is disabled.",
+            },
+        )
+
     crud_organisation_logger.log(
         CrudApisLogBase.ORGANISATION_017,
         organisation_id=organisation_id,
     )
+
     organisation = org_repository.get(organisation_id)
 
     if not organisation:
