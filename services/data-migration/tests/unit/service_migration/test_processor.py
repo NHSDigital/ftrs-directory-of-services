@@ -1009,21 +1009,20 @@ def test_execute_transaction(
         assert "Item" in item["Put"]
 
 
-def test_execute_transaction_handles_transaction_cancelled_with_conditional_check_failed(
+def test_execute_transaction_raises_and_logs_when_conditional_check_failed(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that _save handles TransactionCanceledException with ConditionalCheckFailed gracefully."""
+    """Test that _execute_transaction logs DM_ETL_022 and re-raises when TransactionCanceledException has ConditionalCheckFailed."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
 
-    # Create a real exception (not a MagicMock) with proper attributes
-    class MockTransactionCanceledException(Exception):
+    class TransactionCanceledException(Exception):
         def __init__(self) -> None:
             super().__init__("Transaction cancelled")
             self.response = {
@@ -1036,10 +1035,7 @@ def test_execute_transaction_handles_transaction_cancelled_with_conditional_chec
                 ],
             }
 
-    # Create an instance of the exception
-    mock_exception = MockTransactionCanceledException()
-    # Set the class name to match what the code checks
-    mock_exception.__class__.__name__ = "TransactionCanceledException"
+    mock_exception = TransactionCanceledException()
 
     # Mock DynamoDB client to raise the exception
     mock_dynamodb_client = mocker.MagicMock()
@@ -1050,22 +1046,23 @@ def test_execute_transaction_handles_transaction_cancelled_with_conditional_chec
         return_value=mock_dynamodb_client,
     )
 
-    # Should not raise exception, should return gracefully
-    processor._execute_transaction([])
+    # Should raise the exception after logging DM_ETL_022
+    with pytest.raises(TransactionCanceledException):
+        processor._execute_transaction([])
 
-    # Verify DM_ETL_022 was logged
+    # Verify DM_ETL_022 was logged before the raise
     logs = mock_logger.get_log("DM_ETL_022")
     assert len(logs) > 0, "DM_ETL_022 was not logged"
     assert logs[0]["reference"] == "DM_ETL_022"
 
 
-def test_execute_transaction_handles_transaction_cancelled_without_conditional_check_failed(
+def test_execute_transaction_raises_when_transaction_cancelled_without_conditional_check_failed(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that _save re-raises TransactionCanceledException if not due to ConditionalCheckFailed."""
+    """Test that _execute_transaction re-raises TransactionCanceledException if not due to ConditionalCheckFailed."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
@@ -1101,13 +1098,13 @@ def test_execute_transaction_handles_transaction_cancelled_without_conditional_c
         processor._execute_transaction([])
 
 
-def test_execute_transaction_handles_other_exceptions(
+def test_execute_transaction_raises_on_other_exceptions(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that _save re-raises non-TransactionCanceledException exceptions."""
+    """Test that _execute_transaction re-raises non-TransactionCanceledException exceptions."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
@@ -1130,27 +1127,30 @@ def test_execute_transaction_handles_other_exceptions(
         processor._execute_transaction([])
 
 
-def test_execute_transaction_checks_exception_via_response_code(
+def test_execute_transaction_raises_and_logs_when_conditional_check_failed_via_response_code(
     mocker: MockerFixture,
     mock_config: DataMigrationConfig,
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that _save checks exception code via response attribute."""
+    """Test that _execute_transaction logs DM_ETL_022 and re-raises when ConditionalCheckFailed is detected via response error code."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
 
-    # Create mock exception with response but different class name
-    mock_exception = Exception("Transaction cancelled")
-    mock_exception.response = {
-        "Error": {"Code": "TransactionCanceledException"},
-        "CancellationReasons": [
-            {"Code": "ConditionalCheckFailed"},
-        ],
-    }
+    class BotoClientError(Exception):
+        def __init__(self) -> None:
+            super().__init__("Transaction cancelled")
+            self.response = {
+                "Error": {"Code": "TransactionCanceledException"},
+                "CancellationReasons": [
+                    {"Code": "ConditionalCheckFailed"},
+                ],
+            }
+
+    mock_exception = BotoClientError()
 
     # Mock DynamoDB client to raise the exception
     mock_dynamodb_client = mocker.MagicMock()
@@ -1161,10 +1161,11 @@ def test_execute_transaction_checks_exception_via_response_code(
         return_value=mock_dynamodb_client,
     )
 
-    # Should not raise exception, should return gracefully
-    processor._execute_transaction([])
+    # Should raise the exception after logging DM_ETL_022
+    with pytest.raises(BotoClientError):
+        processor._execute_transaction([])
 
-    # Verify DM_ETL_022 was logged
+    # Verify DM_ETL_022 was logged before the raise
     logs = mock_logger.get_log("DM_ETL_022")
     assert len(logs) > 0, "DM_ETL_022 was not logged"
     assert logs[0]["reference"] == "DM_ETL_022"
@@ -1176,7 +1177,7 @@ def test_execute_transaction_logs_success_on_successful_write(
     mock_logger: MockLogger,
     mock_metadata_cache: DoSMetadataCache,
 ) -> None:
-    """Test that _save logs DM_ETL_021 on successful transactional write."""
+    """Test that _execute_transaction logs DM_ETL_021 on successful transactional write."""
     processor = DataMigrationProcessor(
         config=mock_config,
         logger=mock_logger,
