@@ -221,7 +221,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^https:\/\/fhir.nhs.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
+            pattern: '^https:\/\/fhir\.nhs\.uk\/Id\/ods-organization-code\|[A-Za-z0-9]{5,12}$'
             example: "https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
         - in: query
           name: _revinclude
@@ -1289,15 +1289,14 @@ components:
       required: true
       description: >
         A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-        This is parsed through to the backend server as a new header "NHSD-Request-Id".
 
         Must be a universally unique identifier (UUID) (ideally version 4).
 
         Mirrored back in a response header.
 
         This is a mandatory header.
-
-        If you re-send a failed request, use the same value in this header.
+        Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+        *If you re-send a failed request, use the same value in this header.*
       schema:
         type: string
         pattern: >-
@@ -1312,6 +1311,8 @@ components:
         It can take any value, but we recommend avoiding `.` characters.
 
         Mirrored back in a response header.
+
+        Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
       schema:
         type: string
         example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA

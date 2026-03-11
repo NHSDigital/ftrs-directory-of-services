@@ -177,9 +177,9 @@ paths:
             If you receive repeated 400 Bad Requests marking an invalid header, check that you are correctly sending a valid entry for this value.
           schema:
             type: integer
-            enum:
+            enum: 
               - 1
-            one:
+            one: 
               example: 1
               summary: A sample value representing the latest deployed version of the API under major version 1 (v1.x.x)
         - in: header
@@ -187,15 +187,14 @@ paths:
           required: true
           description: >
             A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-            This is parsed through to the backend server as a new header "NHSD-Request-Id".
 
             Must be a universally unique identifier (UUID) (ideally version 4).
 
             Mirrored back in a response header.
 
             This is a mandatory header.
-
-            If you re-send a failed request, use the same value in this header.
+            Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+            *If you re-send a failed request, use the same value in this header.*
           schema:
             type: string
             pattern: >-
@@ -209,6 +208,8 @@ paths:
             It can take any value, but we recommend avoiding `.` characters.
 
             Mirrored back in a response header.
+
+            Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
           schema:
             type: string
             example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
@@ -311,7 +312,34 @@ paths:
                       address: "dummy-endpoint-email@nhs.net"
                     search:
                       mode: "include"
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
 
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         '400':
           description: Bad request
           content:
@@ -417,7 +445,34 @@ paths:
                               code: "INVALID_SEARCH_DATA"
                               display: "Invalid search data"
                         diagnostics: "Unexpected query parameter(s): foo. Only 'identifier' and '_revinclude' are allowed."
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
 
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         '401':
           description: Unauthorized - Invalid or missing authentication token
           content:
@@ -436,6 +491,34 @@ paths:
                           version: "1"
                           code: "UNAUTHORIZED"
                           display: "Unauthorized"
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         '403':
           description: Forbidden - Insufficient permissions
           content:
@@ -454,6 +537,34 @@ paths:
                           version: "1"
                           code: "FORBIDDEN"
                           display: "Forbidden"
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         '429':
           description: Too many requests – Rate limit exceeded
           content:
@@ -472,6 +583,34 @@ paths:
                           code: "SEND_TOO_MANY_REQUESTS"
                           display: "429: Too many requests have been made by this source to the API in a given amount of time."
                     diagnostics: "You have exceeded the agreed rate limits for this endpoint. Please retry. If problems persist please contact support."
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
+
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
         '500':
           description: Internal server error
           content:
@@ -484,7 +623,34 @@ paths:
                   - severity: "fatal"
                     code: "exception"
                     diagnostics: "Internal server error"
+          headers:
+            X-Request-ID:
+              description: >
+                A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
 
+                Must be a universally unique identifier (UUID) (ideally version 4).
+
+                Mirrored back in a response header.
+
+                This is a mandatory header.
+                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
+                *If you re-send a failed request, use the same value in this header.*
+              schema:
+                type: string
+                pattern: >-
+                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
+            X-Correlation-ID:
+              description: >
+                An optional ID which you can use to track transactions across multiple systems.
+                It can take any value, but we recommend avoiding `.` characters.
+
+                Mirrored back in a response header.
+
+                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
+              schema:
+                type: string
+                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
 components:
   securitySchemes:
     app-level3:
