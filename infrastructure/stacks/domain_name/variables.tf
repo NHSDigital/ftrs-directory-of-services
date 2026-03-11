@@ -70,3 +70,47 @@ variable "enable_warning_alarms" {
   type        = bool
   default     = true
 }
+
+variable "route53_health_check_failure_threshold" {
+  description = "The number of consecutive health check failures before the health check is considered failed"
+  type        = number
+  default     = 3
+}
+
+variable "route53_health_check_request_interval" {
+  description = "The interval in seconds between Route 53 health checks (10 or 30)"
+  type        = number
+  default     = 30
+}
+
+variable "route53_health_check_status_critical_alarm_threshold" {
+  description = "The health check status threshold for triggering a critical alarm (0 = unhealthy)"
+  type        = number
+  default     = 1
+}
+
+variable "route53_health_check_status_critical_alarm_evaluation_periods" {
+  description = "The number of evaluation periods for the health check status critical alarm"
+  type        = number
+}
+
+variable "route53_health_check_status_critical_alarm_period" {
+  description = "The period (in seconds) for the health check status critical alarm"
+  type        = number
+}
+
+variable "route53_health_check_percentage_healthy_critical_alarm_threshold" {
+  description = "The percentage healthy threshold for triggering a critical alarm"
+  type        = number
+  default     = 100
+}
+
+variable "route53_health_check_percentage_healthy_critical_alarm_evaluation_periods" {
+  description = "The number of evaluation periods for the health check percentage healthy critical alarm"
+  type        = number
+}
+
+variable "route53_health_check_percentage_healthy_critical_alarm_period" {
+  description = "The period (in seconds) for the health check percentage healthy critical alarm"
+  type        = number
+}

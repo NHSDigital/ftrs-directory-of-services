@@ -1,0 +1,24 @@
+{
+  "route53": [
+    {
+      "metric_name": "HealthCheckStatus",
+      "statistic": "Minimum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "health-check-status-critical",
+      "description": "Route 53 health check is unhealthy - DNS or domain availability issue detected",
+      "severity": "critical",
+      "namespace": "AWS/Route53",
+      "dimension_name": "HealthCheckId"
+    },
+    {
+      "metric_name": "HealthCheckPercentageHealthy",
+      "statistic": "Minimum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "health-check-percentage-healthy-critical",
+      "description": "Route 53 health check percentage healthy is critically low - DNS or domain availability issue detected",
+      "severity": "critical",
+      "namespace": "AWS/Route53",
+      "dimension_name": "HealthCheckId"
+    }
+  ]
+}
