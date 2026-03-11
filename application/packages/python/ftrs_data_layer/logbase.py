@@ -247,6 +247,10 @@ class DataMigrationLogBase(LogBase):
         level=ERROR,
         message="Parent pharmacy migration for service {record_id} did not produce valid organisation or location IDs",
     )
+    DM_ETL_041 = LogReference(
+        level=ERROR,
+        message="DynamoDB ValidationException during transaction write",
+    )
 
     DM_ETL_999 = LogReference(
         level=INFO, message="Data Migration ETL Pipeline completed successfully."

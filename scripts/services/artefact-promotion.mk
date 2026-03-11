@@ -1,10 +1,11 @@
 # Shared Makefile for artefact promotion of services
 
-.PHONY: set-prerelease-version stage release-candidate release
+.PHONY: stage release-candidate release
 
 ARTEFACT_BUCKET := $(REPO_NAME)-$(ENVIRONMENT)-artefacts-bucket
 RELEASE_VERSION := $(if $(RELEASE_TAG),$(RELEASE_TAG),$(if $(PRERELEASE_TAG),$(PRERELEASE_TAG),null))
 RETAIN_VERSIONS ?= 5
+TAG_CONCURRENCY := 10
 
 # Determine branch: prefer GITHUB_REF_NAME (in CI), fallback to git command (local)
 # In GitHub Actions detached HEAD state, git rev-parse returns "HEAD" not "main"
@@ -47,66 +48,75 @@ define update-build-info
 	rm -rf $$tmp_dir
 endef
 
-set-prerelease-version:
-ifeq ($(strip $(PRERELEASE_TAG)),)
-	$(call log_start,Finding latest prerelease version)
-	$(eval PRERELEASE_TAG := $(shell \
-		aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) \
-		| awk '{print $$2}' \
-		| sed 's/\/$$//' \
-		| sort -V \
-		| tail -1 \
-	))
-	@if [ -z "$(PRERELEASE_TAG)" ]; then \
-        echo "$(COLOR_RED)✗ ERROR: No prerelease versions found in staging$(COLOR_RESET)"; \
+# Enqueue retention tag updates for all keys in $$keys using $$retention_value.
+# Requires caller-scoped variables: pids, failed, count, keys, retention_value.
+define queue-retention-tagging-jobs
+	for key in $$keys; do \
+		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION) & \
+		pids="$$pids $$!"; \
+		count=$$((count + 1)); \
+		if [ $$((count % $(TAG_CONCURRENCY))) -eq 0 ]; then \
+			for pid in $$pids; do wait $$pid || failed=1; done; \
+			pids=""; \
+		fi; \
+	done
+endef
+
+# Wait for any queued background tag updates and fail if any worker failed.
+# Requires caller-scoped variables: pids, failed.
+define wait-for-retention-tagging-jobs
+	for pid in $$pids; do wait $$pid || failed=1; done; \
+	if [ $$failed -ne 0 ]; then \
+		echo "$(COLOR_RED)ERROR: One or more tagging operations failed$(COLOR_RESET)"; \
 		exit 1; \
 	fi
-	$(call log_success,Using prerelease version: $(PRERELEASE_TAG))
-else
-	$(call log_success,Using provided prerelease version: $(PRERELEASE_TAG))
-endif
+endef
 
-stage: set-prerelease-version
-	$(call log_start,Staging release $(PRERELEASE_TAG))
-	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
-	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
-	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
-	@echo "Updating retention tags for staging (keep last $(RETAIN_VERSIONS) versions)..."
-	@all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/staging/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
+# Full-reconciliation retention tagging for a versioned S3 prefix.
+# Iterates all versions each run to ensure the full retain window is correct,
+# regardless of RETAIN_VERSIONS changes, manual tag edits, or prior partial failures.
+# Per-key tagging is parallelised with bounded concurrency and PID tracking.
+# Concurrency pool is global across all versions to maximise throughput.
+# put-object-tagging is idempotent so no pre-read check is needed.
+# $(1) = S3 prefix under bucket (e.g. staging, release-candidates)
+define update-retention-tags
+	@echo "Updating retention tags for $(1) (keep last $(RETAIN_VERSIONS) versions)..."; \
+	all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/$(1)/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
 	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
+	echo "all_versions: $$all_versions"; \
+	echo "retain_versions: $$retain_versions"; \
+	pids=""; failed=0; count=0; \
 	for version in $$all_versions; do \
 		if echo "$$retain_versions" | grep -qx "$$version"; then \
 			retention_value=retain; \
 		else \
 			retention_value=ephemeral; \
 		fi; \
-		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "staging/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
-		for key in $$keys; do \
-			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION); \
-		done; \
-	done
+		echo "retention tag for $$version: $$retention_value"; \
+		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "$(1)/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
+		if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
+			echo "No objects found under $(1)/$$version - skipping"; \
+			continue; \
+		fi; \
+		$(call queue-retention-tagging-jobs); \
+	done; \
+	$(call wait-for-retention-tagging-jobs)
+endef
+
+stage:
+	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot stage artefacts$(COLOR_RESET)" && exit 1)
+	$(call log_start,Staging release $(PRERELEASE_TAG))
+	aws s3 cp s3://$(ARTEFACT_DEVELOPMENT_PATH)/ s3://$(ARTEFACT_STAGING_PATH)/ --recursive --region $(AWS_REGION)
+	$(call update-retention-tags,staging)
 	$(call log_success,Release staged successfully)
 
-release-candidate: set-prerelease-version
+release-candidate:
+	@[ -n "$(PRERELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: PRERELEASE_TAG is not set; cannot promote release-candidate artefacts$(COLOR_RESET)" && exit 1)
+	@[ -n "$(RELEASE_TAG)" ] || (echo "$(COLOR_RED)ERROR: RELEASE_TAG is not set; cannot promote release-candidate artefacts$(COLOR_RESET)" && exit 1)
 	$(call log_start,Promoting from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 	aws s3 cp s3://$(ARTEFACT_STAGING_PATH)/ s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_CANDIDATE_PATH),$(RELEASE_TAG),$(RETENTION_TAG_EPHEMERAL))
-	# Retag the last X versions (RETAIN_VERSIONS) with retention=retain to exclude from S3 lifecycle expiration
-	# Older versions remain tagged retention=ephemeral and will expire per S3 lifecycle rules
-	@echo "Updating retention tags for release-candidates (keep last $(RETAIN_VERSIONS) versions)..."
-	@all_versions=$$(aws s3 ls s3://$(ARTEFACT_BUCKET)/release-candidates/ --region $(AWS_REGION) | awk '{print $$2}' | sed 's/\/$$//' | sort -V); \
-	retain_versions=$$(echo "$$all_versions" | tail -$(RETAIN_VERSIONS)); \
-	for version in $$all_versions; do \
-		if echo "$$retain_versions" | grep -qx "$$version"; then \
-			retention_value=retain; \
-		else \
-			retention_value=ephemeral; \
-		fi; \
-		keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "release-candidates/$$version/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
-		for key in $$keys; do \
-			aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=$$retention_value}]" --region $(AWS_REGION); \
-		done; \
-	done
+	$(call update-retention-tags,release-candidates)
 	$(call log_success,Promoted from staging/$(PRERELEASE_TAG) to release-candidates/$(RELEASE_TAG))
 
 release:
@@ -116,7 +126,12 @@ release:
 	aws s3 cp s3://$(ARTEFACT_RELEASE_CANDIDATE_PATH)/ s3://$(ARTEFACT_RELEASE_PATH)/ --recursive --region $(AWS_REGION)
 	$(call update-build-info,$(ARTEFACT_RELEASE_PATH),$(RELEASE_VERSION_CLEAN),$(RETENTION_TAG_RELEASE))
 	@keys=$$(aws s3api list-objects-v2 --bucket $(ARTEFACT_BUCKET) --prefix "releases/$(RELEASE_VERSION_CLEAN)/" --query 'Contents[].Key' --output text --region $(AWS_REGION)); \
-	for key in $$keys; do \
-		aws s3api put-object-tagging --bucket $(ARTEFACT_BUCKET) --key "$$key" --tagging "TagSet=[{Key=retention,Value=permanent}]" --region $(AWS_REGION); \
-	done
+	if [ -z "$$keys" ] || [ "$$keys" = "None" ]; then \
+		echo "No objects found under releases/$(RELEASE_VERSION_CLEAN) - skipping tagging"; \
+	else \
+	retention_value=permanent; \
+	pids=""; failed=0; count=0; \
+	$(call queue-retention-tagging-jobs); \
+	$(call wait-for-retention-tagging-jobs); \
+	fi
 	$(call log_success,Release published successfully to releases/$(RELEASE_VERSION_CLEAN))

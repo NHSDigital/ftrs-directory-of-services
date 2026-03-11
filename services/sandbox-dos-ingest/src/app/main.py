@@ -1,18 +1,27 @@
 import uvicorn
-
 from fastapi import FastAPI
-from ..router.routes import router as api_router
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 from starlette.status import HTTP_200_OK
 
+from src.router.routes import router as api_router
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://digital.nhs.uk"],
+    allow_methods=["GET", "PUT", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
+)
+
 app.include_router(api_router)
 
 
 @app.get("/_status")
-def status():
+def status() -> Response:
     return Response(status_code=HTTP_200_OK)
 
-# Listening on 0.0.0.0 is intentional as the process will be running in a container. 
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9000)

@@ -25,6 +25,7 @@ from mypy_boto3_dynamodb.type_defs import ExportDescriptionTypeDef
 
 CONSOLE = rich.get_console()
 S3_CLIENT = boto3.client("s3")
+STS_CLIENT = boto3.client("sts")
 
 
 def get_migration_store_bucket_name(env: str, workspace: str | None = None) -> str:
@@ -34,6 +35,10 @@ def get_migration_store_bucket_name(env: str, workspace: str | None = None) -> s
     bucket_name = f"ftrs-dos-{env}-data-migration-pipeline-store"
     if workspace:
         bucket_name += f"-{workspace}"
+
+    if env == "prod":
+        account_id = STS_CLIENT.get_caller_identity()["Account"]
+        bucket_name += f"-{account_id}"
 
     return bucket_name
 

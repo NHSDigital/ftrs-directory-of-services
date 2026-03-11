@@ -71,6 +71,7 @@ testpaths = "tests"
 addopts = "-p no:allure_pytest_bdd -p no:allure_pytest"
 log_level = "INFO"
 bdd_features_base_dir = "tests/features/"
+# asyncio_default_fixture_loop_scope = "function"
 markers = [
   "ui: mark test as UI test",
   "is-api: mark test as IS API test",
@@ -105,6 +106,7 @@ markers = [
   "manual: marks test as manual test",
   "test-db-load-schema-data-migration: marks test as using the test db fixture with schema and data migration from source database",
   "rds_schema_modification: marks test as using RDS schema modification",
-  "version-history: marks tests as version-history related (tests handler logic, not AWS Streams integration)"
+  "version-history: marks tests as version-history related (tests handler logic, not AWS Streams integration)",
+  "is-smoke: marks test as integrated-search smoke test that can be run in non-dev/test environments",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

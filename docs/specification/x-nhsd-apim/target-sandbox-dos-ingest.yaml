@@ -1,9 +1,9 @@
 type: hosted
 healthcheck: /_status
 containers:
-  - name: uec-dos-ingest
+  - name: uec-dos-ingestion
     image:
-      name: uec-dos-ingest
+      name: uec-dos-ingestion
       tag: latest
     environment:
       LOG_LEVEL: info

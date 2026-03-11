@@ -67,9 +67,11 @@ def extract_primary_role_display(org_response: dict) -> Optional[str]:
 def fetch_ods_organizations(
     request_context: APIRequestContext, last_change_date: str, minimum_count: int
 ) -> List[dict]:
-    terminology_url = f"{ODS_TERMINOLOGY_INT_API_URL}?_lastUpdated={last_change_date}"
     response = make_api_request_with_retries(
-        request_context=request_context, method="GET", url=terminology_url
+        request_context=request_context,
+        method="GET",
+        url=ODS_TERMINOLOGY_INT_API_URL,
+        params={"lastChangeDate": last_change_date},
     )
 
     if response.get("resourceType") != "Bundle":

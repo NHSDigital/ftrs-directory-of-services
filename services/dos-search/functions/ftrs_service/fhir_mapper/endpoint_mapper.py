@@ -1,11 +1,12 @@
 from fhir.resources.R4B.codeableconcept import CodeableConcept
 from fhir.resources.R4B.coding import Coding
 from fhir.resources.R4B.endpoint import Endpoint as FhirEndpoint
+from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import Endpoint, Organisation
 
-from functions.logger.dos_logger import DosLogger
+from functions.logbase import DosSearchLogBase
 
-dos_logger = DosLogger.get(service="dos-search")
+logger = Logger.get(service="dos-search")
 
 
 class EndpointMapper:
@@ -59,7 +60,7 @@ class EndpointMapper:
 
     def _create_payload_type(self, endpoint: Endpoint) -> list[CodeableConcept]:
         system = "http://hl7.org/fhir/ValueSet/endpoint-payload-type"
-        code = endpoint.payloadType.value
+        code = endpoint.payloadType
 
         if not code:
             return []
@@ -119,7 +120,10 @@ class EndpointMapper:
         business_scenario_code = self.BUSINESS_SCENARIO_MAP.get(business_scenario)
 
         if not business_scenario_code:
-            dos_logger.error(f"Unknown business scenario: {business_scenario}")
+            logger.log(
+                DosSearchLogBase.DOS_SEARCH_011,
+                business_scenario=business_scenario,
+            )
             return None
 
         return {

@@ -122,13 +122,19 @@ info:
   version: 1.0.0
 servers:
   - url: https://sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4
-    description: Sandbox Environment
+    description: Sandbox
+  - url: 'https://internal-dev-sandbox.api.service.nhs.uk/dos-ingest/FHIR/R4'
+    description: Internal Sandbox
   - url: 'https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4'
-    description: Development Environment
+    description: Development
   - url: 'https://internal-qa.api.service.nhs.uk/dos-ingest/FHIR/R4'
-    description: Internal QA Environment
+    description: Internal QA
   - url: https://int.api.service.nhs.uk/dos-ingest/FHIR/R4
-    description: Integration Environment
+    description: Integration
+  - url: 'https://ref.api.service.nhs.uk/dos-ingest/FHIR/R4'
+    description: Reference
+  - url: 'https://api.service.nhs.uk/dos-ingest/FHIR/R4'
+    description: Production
 paths:
   '/Organization':
     get:
