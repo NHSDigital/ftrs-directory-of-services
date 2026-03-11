@@ -1,41 +1,11 @@
 {
   "api": [
     {
-      "metric_name": "4XXError",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "4xx-errors-warning",
-      "description": "API Gateway 4XX errors warning threshold",
-      "severity": "warning",
-      "namespace": "AWS/ApiGateway",
-      "dimension_name": "ApiName"
-    },
-    {
-      "metric_name": "5XXError",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "5xx-errors-warning",
-      "description": "API Gateway 5XX errors warning threshold",
-      "severity": "warning",
-      "namespace": "AWS/ApiGateway",
-      "dimension_name": "ApiName"
-    },
-    {
-      "metric_name": "5XXError",
-      "statistic": "Sum",
-      "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "5xx-errors-critical",
-      "description": "API Gateway 5XX errors critical threshold",
-      "severity": "critical",
-      "namespace": "AWS/ApiGateway",
-      "dimension_name": "ApiName"
-    },
-    {
       "metric_name": "Latency",
-      "statistic": "p99",
+      "statistic": "p95",
       "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "latency-p99-warning",
-      "description": "API Gateway latency p99 warning threshold",
+      "alarm_suffix": "latency-p95-warning",
+      "description": "API Gateway latency p95 warning threshold",
       "severity": "warning",
       "namespace": "AWS/ApiGateway",
       "dimension_name": "ApiName"
@@ -51,11 +21,91 @@
       "dimension_name": "ApiName"
     },
     {
+      "metric_name": "IntegrationLatency",
+      "statistic": "p95",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "integration-latency-p95-warning",
+      "description": "API Gateway integration latency p95 warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "IntegrationLatency",
+      "statistic": "p99",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "integration-latency-p99-critical",
+      "description": "API Gateway integration latency p99 critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "Count",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "tps-critical",
+      "description": "API Gateway transactions per second critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
       "metric_name": "Count",
       "statistic": "Sum",
       "comparison_operator": "GreaterThanThreshold",
-      "alarm_suffix": "request-spike-critical",
-      "description": "API Gateway request spike critical threshold",
+      "alarm_suffix": "usage-volume-warning",
+      "description": "API Gateway usage volume warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "Count",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "usage-volume-critical",
+      "description": "API Gateway usage volume critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "4XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "4xx-errors-warning",
+      "description": "API Gateway 4XX errors warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "4XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "4xx-errors-critical",
+      "description": "API Gateway 4XX errors critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "5XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-critical",
+      "description": "API Gateway 5XX errors critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/ApiGateway",
+      "dimension_name": "ApiName"
+    },
+    {
+      "metric_name": "5XXError",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "status-endpoint-5xx-critical",
+      "description": "API Gateway status endpoint 5XX errors critical threshold",
       "severity": "critical",
       "namespace": "AWS/ApiGateway",
       "dimension_name": "ApiName"
