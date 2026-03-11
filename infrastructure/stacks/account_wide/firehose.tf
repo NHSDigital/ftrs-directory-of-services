@@ -12,7 +12,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk_event" {
     hec_endpoint               = "${var.splunk_collector_url}${var.splunk_hec_endpoint}"
     hec_token                  = var.splunk_hec_token
     hec_acknowledgment_timeout = var.hec_acknowledgment_timeout
-    hec_endpoint_type          = var.hec_endpoint_type
+    hec_endpoint_type          = "Event"
     retry_duration             = var.retry_duration
     s3_backup_mode             = var.s3_backup_mode
 
