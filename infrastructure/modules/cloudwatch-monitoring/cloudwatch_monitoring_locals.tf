@@ -24,7 +24,7 @@ locals {
           namespace           = lookup(alarm, "namespace", "AWS/Lambda")
           dimensions = merge(
             { (lookup(alarm, "dimension_name", "FunctionName")) = resource_identifier },
-            lookup(alarm, "additional_dimensions", {})
+            lookup(var.resource_additional_dimensions, resource_key, {})
           )
           api_path = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "api_path", "N/A")
           service  = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "service", "Unknown")

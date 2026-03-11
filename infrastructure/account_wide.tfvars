@@ -74,3 +74,11 @@ terraform_state_s3_5xx_errors_warning_alarm_period              = 300
 terraform_state_s3_5xx_errors_critical_alarm_period             = 300
 terraform_state_s3_4xx_errors_warning_alarm_period              = 300
 terraform_state_s3_4xx_errors_critical_alarm_period             = 300
+
+# VPC Endpoint alarms (shared thresholds applied to all VPC endpoints)
+vpce_active_connections_warning_alarm_threshold           = 1
+vpce_active_connections_critical_alarm_threshold          = 0
+vpce_active_connections_warning_alarm_evaluation_periods  = 1
+vpce_active_connections_critical_alarm_evaluation_periods = 1
+vpce_active_connections_warning_alarm_period              = 300
+vpce_active_connections_critical_alarm_period             = 300

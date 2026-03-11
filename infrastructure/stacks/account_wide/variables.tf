@@ -468,3 +468,33 @@ variable "terraform_state_s3_4xx_errors_critical_alarm_period" {
   description = "The period (in seconds) for the 4xx errors critical alarm for the terraform state S3 bucket"
   type        = number
 }
+
+variable "vpce_active_connections_warning_alarm_threshold" {
+  description = "The active connections count threshold for triggering a warning alarm for VPC endpoints"
+  type        = number
+}
+
+variable "vpce_active_connections_critical_alarm_threshold" {
+  description = "The active connections count threshold for triggering a critical alarm for VPC endpoints"
+  type        = number
+}
+
+variable "vpce_active_connections_warning_alarm_evaluation_periods" {
+  description = "The number of evaluation periods for the active connections warning alarm for VPC endpoints"
+  type        = number
+}
+
+variable "vpce_active_connections_critical_alarm_evaluation_periods" {
+  description = "The number of evaluation periods for the active connections critical alarm for VPC endpoints"
+  type        = number
+}
+
+variable "vpce_active_connections_warning_alarm_period" {
+  description = "The period (in seconds) for the active connections warning alarm for VPC endpoints"
+  type        = number
+}
+
+variable "vpce_active_connections_critical_alarm_period" {
+  description = "The period (in seconds) for the active connections critical alarm for VPC endpoints"
+  type        = number
+}

@@ -65,6 +65,12 @@ variable "resource_metadata" {
   default = {}
 }
 
+variable "resource_additional_dimensions" {
+  description = "Map of resource keys to additional dimensions that override or supplement those from the alarm config (e.g., to replace placeholder values)"
+  type        = map(map(string))
+  default     = {}
+}
+
 variable "slack_notifier_function_name" {
   description = "Name of the Slack notifier Lambda function"
   type        = string

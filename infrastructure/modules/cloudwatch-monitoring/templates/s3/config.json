@@ -8,8 +8,7 @@
       "description": "S3 5xx errors warning threshold",
       "severity": "warning",
       "namespace": "AWS/S3",
-      "dimension_name": "BucketName",
-      "additional_dimensions": { "FilterId": "EntireBucket" }
+      "dimension_name": "BucketName"
     },
     {
       "metric_name": "5xxErrors",
@@ -19,8 +18,7 @@
       "description": "S3 5xx errors critical threshold",
       "severity": "critical",
       "namespace": "AWS/S3",
-      "dimension_name": "BucketName",
-      "additional_dimensions": { "FilterId": "EntireBucket" }
+      "dimension_name": "BucketName"
     },
     {
       "metric_name": "4xxErrors",
@@ -30,8 +28,7 @@
       "description": "S3 4xx errors warning threshold",
       "severity": "warning",
       "namespace": "AWS/S3",
-      "dimension_name": "BucketName",
-      "additional_dimensions": { "FilterId": "EntireBucket" }
+      "dimension_name": "BucketName"
     },
     {
       "metric_name": "4xxErrors",
@@ -41,8 +38,7 @@
       "description": "S3 4xx errors critical threshold",
       "severity": "critical",
       "namespace": "AWS/S3",
-      "dimension_name": "BucketName",
-      "additional_dimensions": { "FilterId": "EntireBucket" }
+      "dimension_name": "BucketName"
     }
   ]
 }
