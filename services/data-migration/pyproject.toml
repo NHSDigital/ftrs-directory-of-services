@@ -24,6 +24,8 @@ dependencies = [
 
 [tool.uv.sources]
 ftrs-python-packages = {workspace = true}
+[tool.uv]
+pythonpath = ["src"]
 
 [project.scripts]
 dos-etl = "cli.main:typer_app"
