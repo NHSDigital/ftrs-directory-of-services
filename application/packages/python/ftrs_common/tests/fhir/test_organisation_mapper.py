@@ -60,7 +60,6 @@ def test_to_fhir_maps_fields_correctly() -> None:
         non_primary_role_codes=["bcd123"],
     )
     fhir_org = mapper.to_fhir(org)
-    EXPECTED_EXTENTION_LENGTH = 2
     assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org"
@@ -73,8 +72,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         fhir_org.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 def test_to_fhir_handles_missing_telecom() -> None:
@@ -96,7 +94,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
     assert fhir_org.name == "Test Org 2"
     assert fhir_org.active is False
     assert fhir_org.identifier[0].value == "ODS2"
-    assert not hasattr(fhir_org, "contact") or fhir_org.telecom == []
+    assert not hasattr(fhir_org, "telecom") or fhir_org.telecom is None
 
 
 def test__build_meta_profile() -> None:
@@ -231,16 +229,10 @@ def test__build_telecom() -> None:
     assert telecom[2].use is None
 
 
-def test__build_telecom_empty_list() -> None:
-    mapper = OrganizationMapper()
-    telecom_empty_list = mapper._build_telecom([])
-    assert telecom_empty_list == []
-
-
 def test__build_telecom_none() -> None:
     mapper = OrganizationMapper()
     telecom_empty_list = mapper._build_telecom(None)
-    assert telecom_empty_list == []
+    assert telecom_empty_list is None
 
 
 def test__build_telecom_str_phone() -> None:
@@ -1099,24 +1091,8 @@ def test_to_fhir_with_legal_dates() -> None:
     fhir_org = mapper.to_fhir(org)
 
     assert isinstance(fhir_org, FhirOrganisation)
-    assert hasattr(fhir_org, "extension")
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == 1
-
-    ext_dict = fhir_org.extension[0].dict()
-    assert (
-        ext_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
-    )
-
-    # Check that the TypedPeriod extension is present
-    typed_period = next(
-        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
-    )
-    assert typed_period is not None
-    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-    assert period["valuePeriod"]["start"] == "2020-01-15"
-    assert period["valuePeriod"]["end"] == "2025-12-31"
+    # Extensions are not included in to_fhir (used for minimal GET responses)
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 @pytest.mark.parametrize(
@@ -1333,27 +1309,7 @@ def test_to_fhir_partial_dates_absent_not_null(
 
     fhir_org = mapper.to_fhir(org)
 
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == 1
-
-    ext_dict = fhir_org.extension[0].dict()
-    typed_period = next(
-        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
-    )
-    assert typed_period is not None
-    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-
-    if expected_start_in_period is not None:
-        assert "start" in period["valuePeriod"]
-        assert period["valuePeriod"]["start"] == expected_start_in_period
-    else:
-        assert "start" not in period["valuePeriod"]
-
-    if expected_end_in_period is not None:
-        assert "end" in period["valuePeriod"]
-        assert period["valuePeriod"]["end"] == expected_end_in_period
-    else:
-        assert "end" not in period["valuePeriod"]
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:

@@ -46,11 +46,10 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict]:
+    def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict] | None:
         """Build FHIR telecom list from phone, email and web."""
-        # Temporary handling for string and None telecom (old data format)
         if not telecom:
-            return []
+            return
         if isinstance(telecom, str):
             return [
                 ContactPoint.model_validate(
@@ -192,11 +191,10 @@ class OrganizationMapper(FhirMapper):
             "active": organisation.active,
             "name": organisation.name,
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
-            "telecom": self._build_telecom(organisation.telecom),
         }
-        extensions = self._build_organisation_extensions(organisation)
-        if extensions:
-            org_dict["extension"] = extensions
+        telecom = self._build_telecom(organisation.telecom)
+        if telecom:
+            org_dict["telecom"] = telecom
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
@@ -259,9 +257,6 @@ class OrganizationMapper(FhirMapper):
     ) -> BundleEntry:
         """Create a FHIR Bundle entry with Organization resource."""
         full_org = self.to_fhir(org)
-
-        # Remove extensions
-        full_org.extension = None
 
         entry_dict = {
             "resource": full_org,

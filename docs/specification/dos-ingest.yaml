@@ -1001,7 +1001,6 @@ components:
         - meta
         - active
         - name
-        - type
         - identifier
       properties:
         resourceType:
@@ -1164,30 +1163,6 @@ components:
         name:
           type: string
           example: GP Practice Name
-        type:
-          type: array
-          items:
-            type: object
-            required:
-              - coding
-            properties:
-              coding:
-                type: array
-                items:
-                  type: object
-                  required:
-                    - system
-                    - code
-                  properties:
-                    system:
-                      type: string
-                      example: TO-DO
-                    code:
-                      type: string
-                      example: GP Service
-                    display:
-                      type: string
-                      example: GP Service
         identifier:
           type: array
           items:
@@ -1216,15 +1191,11 @@ components:
                 type: string
                 enum:
                   - phone
+                  - email
                 example: phone
               value:
                 type: string
                 example: 01234 567890
-              use:
-                type: string
-                enum:
-                  - work
-                example: work
     Bundle:
       type: object
       required:
@@ -1236,13 +1207,13 @@ components:
           type: string
           enum: [Bundle]
           example: Bundle
+        id:
+          type: string
+          example: 87c5f637-cca3-4ddd-97a9-a3f6e6746bbe
         type:
           type: string
           enum: [searchset]
           example: searchset
-        total:
-          type: integer
-          example: 1
         link:
           type: array
           description: Links related to this Bundle, including self-reference

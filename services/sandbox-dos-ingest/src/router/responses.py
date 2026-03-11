@@ -7,91 +7,40 @@ from src.models.constants import (
 # GET /Organization - 200 Success Bundle
 SUCCESS_BUNDLE_ABC123 = {
     "resourceType": "Bundle",
+    "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
     "type": "searchset",
-    "total": 1,
+    "link": [
+        {
+            "relation": "self",
+            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
+        }
+    ],
     "entry": [
         {
             "fullUrl": "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
             "resource": {
                 "resourceType": "Organization",
                 "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
+                "meta": {
+                    "profile": [
+                        "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+                    ]
+                },
                 "identifier": [
                     {
                         "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": "ABC123",
                     }
                 ],
-                "extension": [
-                    {
-                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                        "extension": [
-                            {"url": "instanceID", "valueInteger": 12345},
-                            {
-                                "url": "roleCode",
-                                "valueCodeableConcept": {
-                                    "coding": [
-                                        {
-                                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                            "code": "RO177",
-                                            "display": "PRESCRIBING COST CENTRE",
-                                        }
-                                    ]
-                                },
-                            },
-                            {
-                                "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-TypedPeriod",
-                                "extension": [
-                                    {
-                                        "url": "dateType",
-                                        "valueCoding": {
-                                            "system": "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType",
-                                            "code": "Legal",
-                                            "display": "Legal",
-                                        },
-                                    },
-                                    {
-                                        "url": "period",
-                                        "valuePeriod": {
-                                            "start": "2020-01-15",
-                                            "end": "2025-12-31",
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        "url": "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole",
-                        "extension": [
-                            {
-                                "url": "roleCode",
-                                "valueCodeableConcept": {
-                                    "coding": [
-                                        {
-                                            "system": "https://digital.nhs.uk/services/organisation-data-service/CodeSystem/ODSOrganisationRole",
-                                            "code": "RO76",
-                                            "display": "GP PRACTICE",
-                                        }
-                                    ]
-                                },
-                            }
-                        ],
-                    },
-                ],
                 "active": True,
-                "name": "Example Organization",
+                "name": "Example GP Practice",
                 "telecom": [
                     {"system": "phone", "value": "01234 567890"},
                     {"system": "email", "value": "example@example.com"},
                 ],
-                "address": [
-                    {
-                        "line": ["Example Medical Practice", "Example Street"],
-                        "city": "Example City",
-                        "postalCode": "AB12 3CD",
-                        "country": "ENGLAND",
-                    }
-                ],
+            },
+            "search": {
+                "mode": "match",
             },
         }
     ],
