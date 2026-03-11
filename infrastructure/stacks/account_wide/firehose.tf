@@ -1,26 +1,27 @@
-resource "aws_kinesis_firehose_delivery_stream" "splunk" {
+resource "aws_kinesis_firehose_delivery_stream" "splunk_event" {
   name        = "${local.resource_prefix}-${var.firehose_name}"
   destination = "splunk"
+
   server_side_encryption {
     enabled  = var.enable_firehose_sse
     key_type = var.enable_firehose_sse ? "CUSTOMER_MANAGED_CMK" : null
     key_arn  = var.enable_firehose_sse ? module.firehose_encryption_key.arn : null
   }
+
   splunk_configuration {
     hec_endpoint               = "${var.splunk_collector_url}${var.splunk_hec_endpoint}"
     hec_token                  = var.splunk_hec_token
     hec_acknowledgment_timeout = var.hec_acknowledgment_timeout
     hec_endpoint_type          = var.hec_endpoint_type
+    retry_duration             = var.retry_duration
+    s3_backup_mode             = var.s3_backup_mode
 
-    retry_duration = var.retry_duration
 
     cloudwatch_logging_options {
       enabled         = true
       log_group_name  = aws_cloudwatch_log_group.firehose_log_group.name
       log_stream_name = "SplunkDelivery"
     }
-
-    s3_backup_mode = var.s3_backup_mode
 
     s3_configuration {
       role_arn           = aws_iam_role.firehose_role.arn
@@ -32,7 +33,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
 
     processing_configuration {
       enabled = true
-      # decompression of gzipped logs
+
       processors {
         type = "Decompression"
 
@@ -41,6 +42,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
           parameter_value = "GZIP"
         }
       }
+
       processors {
         type = "CloudWatchLogProcessing"
 
@@ -50,6 +52,64 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
         }
       }
     }
+  }
+}
 
+resource "aws_kinesis_firehose_delivery_stream" "splunk_raw" {
+  name        = "${local.resource_prefix}-${var.raw_firehose_name}"
+  destination = "splunk"
+
+  server_side_encryption {
+    enabled  = var.enable_firehose_sse
+    key_type = var.enable_firehose_sse ? "CUSTOMER_MANAGED_CMK" : null
+    key_arn  = var.enable_firehose_sse ? module.firehose_encryption_key.arn : null
+  }
+
+  splunk_configuration {
+    hec_endpoint               = "${var.splunk_collector_url}${var.splunk_hec_endpoint}"
+    hec_token                  = var.splunk_hec_token
+    hec_acknowledgment_timeout = var.hec_acknowledgment_timeout
+    hec_endpoint_type          = "Raw"
+    retry_duration             = var.retry_duration
+    s3_backup_mode             = var.s3_backup_mode
+
+
+    cloudwatch_logging_options {
+      enabled         = true
+      log_group_name  = aws_cloudwatch_log_group.firehose_raw_log_group.name
+      log_stream_name = "SplunkDelivery"
+    }
+
+    s3_configuration {
+      role_arn           = aws_iam_role.firehose_role.arn
+      bucket_arn         = module.firehose_raw_backup_s3.s3_bucket_arn
+      buffering_interval = 300
+      buffering_size     = 5
+      compression_format = "GZIP"
+
+    }
+
+    processing_configuration {
+      enabled = true
+
+      # decompression of gzipped logs before raw delivery to Splunk
+      processors {
+        type = "Decompression"
+
+        parameters {
+          parameter_name  = "CompressionFormat"
+          parameter_value = "GZIP"
+        }
+      }
+
+      processors {
+        type = "CloudWatchLogProcessing"
+
+        parameters {
+          parameter_name  = "DataMessageExtraction"
+          parameter_value = "true"
+        }
+      }
+    }
   }
 }

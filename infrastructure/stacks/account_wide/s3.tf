@@ -75,6 +75,14 @@ module "firehose_backup_s3" {
   s3_logging_bucket     = local.s3_logging_bucket
 }
 
+module "firehose_raw_backup_s3" {
+  source                = "../../modules/s3"
+  bucket_name           = "${local.resource_prefix}-${var.raw_firehose_name}-backup"
+  s3_encryption_key_arn = module.firehose_encryption_key.arn
+  enable_kms_encryption = var.enable_firehose_s3_kms_encryption
+  s3_logging_bucket     = local.s3_logging_bucket
+}
+
 # S3 bucket to receive CloudTrail log deliveries
 module "cloudtrail_s3_bucket" {
   source        = "../../modules/s3"

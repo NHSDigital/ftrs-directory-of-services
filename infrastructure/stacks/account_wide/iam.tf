@@ -30,7 +30,9 @@ resource "aws_iam_role_policy" "firehose_policy" {
         ]
         Resource = [
           module.firehose_backup_s3.s3_bucket_arn,
-          "${module.firehose_backup_s3.s3_bucket_arn}/*"
+          "${module.firehose_backup_s3.s3_bucket_arn}/*",
+          module.firehose_raw_backup_s3.s3_bucket_arn,
+          "${module.firehose_raw_backup_s3.s3_bucket_arn}/*"
         ]
       },
       {
@@ -38,7 +40,10 @@ resource "aws_iam_role_policy" "firehose_policy" {
         Action = [
           "logs:PutLogEvents"
         ]
-        Resource = "${aws_cloudwatch_log_group.firehose_log_group.arn}"
+        Resource = [
+          aws_cloudwatch_log_group.firehose_log_group.arn,
+          aws_cloudwatch_log_group.firehose_raw_log_group.arn
+        ]
       }
       ], var.enable_firehose_sse ? [{
         Effect = "Allow"
@@ -81,7 +86,10 @@ resource "aws_iam_role_policy" "cw_to_firehose_policy" {
         "firehose:PutRecord",
         "firehose:PutRecordBatch"
       ]
-      Resource = aws_kinesis_firehose_delivery_stream.splunk.arn
+      Resource = [
+        aws_kinesis_firehose_delivery_stream.splunk_event.arn,
+        aws_kinesis_firehose_delivery_stream.splunk_raw.arn
+      ]
     }]
   })
 }
