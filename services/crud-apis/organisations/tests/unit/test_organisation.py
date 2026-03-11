@@ -84,18 +84,6 @@ def get_organisation() -> dict:
                 "payloadMimeType": "application/fhir",
                 "isCompressionEnabled": True,
                 "managedByOrganisation": "d5a852ef-12c7-4014-b398-661716a63027",
-                "createdBy": {
-                    "type": "user",
-                    "value": "INGRESS_API_ID",
-                    "display": "FtRS Ingress API",
-                },
-                "created": "2023-10-01T00:00:00Z",
-                "lastUpdatedBy": {
-                    "type": "user",
-                    "value": "INGRESS_API_ID",
-                    "display": "FtRS Ingress API",
-                },
-                "lastUpdated": "2023-11-01T00:00:00Z",
                 "name": "Test Organisation Endpoint",
                 "payloadType": "urn:nhs-itk:interaction:primaryOutofHourRecipientNHS111CDADocument-v2-0",
                 "service": None,
