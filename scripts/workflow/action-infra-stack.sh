@@ -42,6 +42,16 @@ fi
 # needed for terraform management stack
 export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
+export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
+  echo "ACCOUNT_ID must be set or aws sts get-caller-identity must succeed when ENVIRONMENT=prod"
+  exit 1
+fi
+if [[ "$ENVIRONMENT" == "prod" ]]; then
+  export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}-${TERRAFORM_ACCOUNT_ID}"
+else
+  export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}"
+fi
 
 # check exports have been done
 EXPORTS_SET=0
@@ -57,21 +67,11 @@ if [ -z "$STACK" ] ; then
 fi
 
 if [ -z "$ENVIRONMENT" ] ; then
-  echo Set ENVIRONMENT to the environment to action the terraform in - one of dev, test, preprod, prod
+  echo Set ENVIRONMENT to the environment to action the terraform in - one of mgmt, dev, test, int, ref, non-prod, prod, prototype
   EXPORTS_SET=1
 else
-  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|sandpit|int|ref|non-prod|preprod|prod|prototype) ]]; then
-      echo ENVIRONMENT should be mgmt, dev, test, sandpit, int, ref, non-prod, preprod or prod
-      EXPORTS_SET=1
-  fi
-fi
-
-if [ -z "$PROJECT" ] ; then
-  echo Set PROJECT to dos or cm
-  EXPORTS_SET=1
-else
-  if [[ ! "$PROJECT" =~ ^(dos|cm) ]]; then
-      echo PROJECT should be dos or cm
+  if [[ ! $ENVIRONMENT =~ ^(mgmt|dev|test|int|ref|non-prod|prod|prototype) ]]; then
+      echo ENVIRONMENT should be mgmt, dev, test, int, ref, non-prod, prod, or prototype
       EXPORTS_SET=1
   fi
 fi
@@ -93,14 +93,14 @@ fi
 
 function terraform-initialise {
 
-    echo "Terraform S3 State Bucket Name: ${TF_VAR_terraform_state_bucket_name}"
+    echo "Terraform S3 State Bucket Name: ${TERRAFORM_BACKEND_BUCKET_NAME}"
     echo "Terraform Lock Table Name: ${TF_VAR_terraform_lock_table_name}"
 
     if [[ "$USE_REMOTE_STATE_STORE" =~ ^(false|no|n|off|0|FALSE|NO|N|OFF) ]]; then
       terraform init
     else
       terraform init \
-          -backend-config="bucket=$TF_VAR_terraform_state_bucket_name" \
+          -backend-config="bucket=$TERRAFORM_BACKEND_BUCKET_NAME" \
           -backend-config="dynamodb_table=$TF_VAR_terraform_lock_table_name" \
           -backend-config="encrypt=true" \
           -backend-config="key=$STACK/terraform.state" \

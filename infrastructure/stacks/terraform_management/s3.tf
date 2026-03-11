@@ -1,5 +1,6 @@
 module "terraform_state_bucket" {
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = var.terraform_state_bucket_name
   s3_logging_bucket = local.s3_logging_bucket
   depends_on        = [module.logging_bucket]
@@ -7,6 +8,7 @@ module "terraform_state_bucket" {
 
 module "logging_bucket" {
   source        = "../../modules/s3"
+  environment   = var.environment
   bucket_name   = local.s3_logging_bucket
   versioning    = var.s3_logging_bucket_versioning
   attach_policy = true
