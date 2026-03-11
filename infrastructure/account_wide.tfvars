@@ -43,3 +43,34 @@ apim_apigee_cidrs = [
   "35.197.254.55/32",
   "35.246.55.143/32",
 ]
+
+# S3 alarms: truststore bucket
+truststore_s3_5xx_errors_warning_alarm_threshold           = 1
+truststore_s3_5xx_errors_critical_alarm_threshold          = 5
+truststore_s3_4xx_errors_warning_alarm_threshold           = 25
+truststore_s3_4xx_errors_critical_alarm_threshold          = 50
+truststore_s3_5xx_errors_warning_alarm_evaluation_periods  = 1
+truststore_s3_5xx_errors_critical_alarm_evaluation_periods = 1
+truststore_s3_4xx_errors_warning_alarm_evaluation_periods  = 1
+truststore_s3_4xx_errors_critical_alarm_evaluation_periods = 1
+truststore_s3_5xx_errors_warning_alarm_period              = 300
+truststore_s3_5xx_errors_critical_alarm_period             = 300
+truststore_s3_4xx_errors_warning_alarm_period              = 300
+truststore_s3_4xx_errors_critical_alarm_period             = 300
+
+# WARNING alarm actions are disabled by default (placeholder alarms only)
+enable_warning_alarms = false
+
+# S3 alarms: Terraform state bucket
+terraform_state_s3_5xx_errors_warning_alarm_threshold           = 1
+terraform_state_s3_5xx_errors_critical_alarm_threshold          = 5
+terraform_state_s3_4xx_errors_warning_alarm_threshold           = 25
+terraform_state_s3_4xx_errors_critical_alarm_threshold          = 50
+terraform_state_s3_5xx_errors_warning_alarm_evaluation_periods  = 1
+terraform_state_s3_5xx_errors_critical_alarm_evaluation_periods = 1
+terraform_state_s3_4xx_errors_warning_alarm_evaluation_periods  = 1
+terraform_state_s3_4xx_errors_critical_alarm_evaluation_periods = 1
+terraform_state_s3_5xx_errors_warning_alarm_period              = 300
+terraform_state_s3_5xx_errors_critical_alarm_period             = 300
+terraform_state_s3_4xx_errors_warning_alarm_period              = 300
+terraform_state_s3_4xx_errors_critical_alarm_period             = 300
