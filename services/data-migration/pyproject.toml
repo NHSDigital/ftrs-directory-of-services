@@ -24,8 +24,6 @@ dependencies = [
 
 [tool.uv.sources]
 ftrs-python-packages = {workspace = true}
-[tool.uv]
-pythonpath = ["src"]
 
 [project.scripts]
 dos-etl = "cli.main:typer_app"
@@ -76,15 +74,14 @@ pythonpath = ["src"]
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.hatch.build.targets.wheel]
-sources = ["src"]
 packages = [
-    "common",
-    "seeding",
-    "dms_provisioner",
-    "record_change_trigger",
-    "reference_data_load",
-    "service_migration",
-    "queue_populator",
-    "version_history",
-    "cli",
+    "src/common",
+    "src/seeding",
+    "src/dms_provisioner",
+    "src/record_change_trigger",
+    "src/reference_data_load",
+    "src/service_migration",
+    "src/queue_populator",
+    "src/version_history",
+    "src/cli",
 ]
