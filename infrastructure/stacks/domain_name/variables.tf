@@ -68,5 +68,5 @@ variable "acm_days_to_expiry_critical_alarm_period" {
 variable "enable_warning_alarms" {
   description = "Enable actions for WARNING severity alarms (set to false to create placeholders)"
   type        = bool
-  default     = false
+  default     = true
 }
