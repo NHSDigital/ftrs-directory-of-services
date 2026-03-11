@@ -6,7 +6,7 @@ module "acm_api_cert_alarms" {
 
   sns_topic_name   = local.alarms_topic_name
   sns_display_name = "ACM API Certificate Alarms"
-  kms_key_id       = data.aws_kms_key.sns_kms_key.arn
+  kms_key_id       = data.aws_kms_key.sns_kms_key[0].arn
 
   alarm_config_path = "acm/config"
 
