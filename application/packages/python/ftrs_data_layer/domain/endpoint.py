@@ -1,5 +1,7 @@
+from datetime import datetime
 from uuid import UUID
 
+from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
@@ -20,6 +22,12 @@ PAYLOAD_MIMETYPE_MAPPING = {
 
 
 class Endpoint(DBModel):
+    # Endpoints doesn't need to be audited, healtcare services and organization have audit event fields
+    created: datetime | None = None
+    lastUpdated: datetime | None = None
+    createdBy: AuditEvent | None = None
+    lastUpdatedBy: AuditEvent | None = None
+
     identifier_oldDoS_id: int | None
     status: EndpointStatus
     connectionType: EndpointConnectionType

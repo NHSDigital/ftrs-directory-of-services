@@ -167,10 +167,6 @@ class ServiceTransformer(ABC):
             service=service_id,
             order=endpoint.endpointorder,
             isCompressionEnabled=endpoint.iscompressionenabled == "compressed",
-            createdBy=self.MIGRATION_USER,
-            created=self.start_time,
-            lastUpdatedBy=self.MIGRATION_USER,
-            lastUpdated=self.start_time,
             comment=endpoint.comment,
         )
 
