@@ -48,7 +48,7 @@ data "aws_acm_certificate" "domain_cert" {
 }
 
 data "aws_s3_object" "truststore" {
-  bucket = local.s3_trust_store_bucket_name
+  bucket = local.s3_trust_store_bucket_lookup_name
   key    = local.trust_store_file_path
 }
 

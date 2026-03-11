@@ -16,6 +16,7 @@ data "aws_iam_policy_document" "ddb_export_policy" {
 module "s3" {
   count             = local.stack_enabled
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = "${local.resource_prefix}-${var.ddb_export_bucket_name}"
   versioning        = var.s3_versioning
   force_destroy     = true
@@ -42,6 +43,7 @@ data "aws_iam_policy_document" "s3_opensearch_pipeline_dlq_bucket_policy" {
 module "s3_opensearch_pipeline_dlq_bucket" {
   count             = local.stack_enabled
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = "${local.resource_prefix}-${var.opensearch_pipeline_s3_dlq_bucket_name}"
   versioning        = var.s3_versioning
   force_destroy     = true

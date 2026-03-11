@@ -1,6 +1,7 @@
 module "read_only_viewer_bucket" {
   count             = local.stack_enabled
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = "${local.resource_prefix}-${var.read_only_viewer_bucket_name}"
   versioning        = var.s3_versioning
   force_destroy     = var.force_destroy

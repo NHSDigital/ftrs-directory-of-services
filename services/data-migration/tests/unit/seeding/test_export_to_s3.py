@@ -29,6 +29,17 @@ def test_get_s3_bucket_name_workspace() -> None:
     assert result == "ftrs-dos-dev-data-migration-pipeline-store-test_workspace"
 
 
+def test_get_s3_bucket_name_prod_appends_account_id(mocker: MockerFixture) -> None:
+    mocker.patch(
+        "seeding.export_to_s3.STS_CLIENT.get_caller_identity",
+        return_value={"Account": "123456789012"},
+    )
+
+    result = get_migration_store_bucket_name(env="prod")
+
+    assert result == "ftrs-dos-prod-data-migration-pipeline-store-123456789012"
+
+
 def test_trigger_table_export(mocker: MockerFixture) -> None:
     mock_ddb_client = mocker.MagicMock()
     mock_ddb_client.describe_table.return_value = {

@@ -3,6 +3,17 @@
 
 variable "bucket_name" { description = "The S3 bucket name" }
 
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = trimspace(var.environment) != ""
+    error_message = "environment must be a non-empty string."
+  }
+}
+
 # ==============================================================================
 # Default variables
 
