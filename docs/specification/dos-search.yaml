@@ -793,25 +793,6 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-                This is a mandatory header.
-                Please make a note of this value if you might need to raise a support ticket, as this value, as well as the value of X-Correlation-ID will be required. 
-                *If you re-send a failed request, use the same value in this header.*
-              schema:
-                type: string
-                pattern: >-
-                  ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
-                example: 60E0B220-8136-4CA5-AE46-1D97EF59D068
-            X-Correlation-ID:
-              description: >
-                An optional ID which you can use to track transactions across multiple systems.
-                It can take any value, but we recommend avoiding `.` characters.
-
-                Mirrored back in a response header.
-
-                Please make a note of this value if you might need to raise a support ticket, as this value as well as the value of X-Request-ID will be required.
-              schema:
-                type: string
-                example: 11C46F5F-CDEF-4865-94B2-0EE0EDCC26DA
 components:
   securitySchemes:
     app-level3:
