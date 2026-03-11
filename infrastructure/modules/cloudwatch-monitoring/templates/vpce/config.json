@@ -3,7 +3,7 @@
     {
       "metric_name": "ActiveConnections",
       "statistic": "Sum",
-      "comparison_operator": "LowerThanThreshold",
+      "comparison_operator": "LessThanThreshold",
       "alarm_suffix": "active-connections-warning",
       "description": "VPC Endpoint active connections warning threshold",
       "severity": "warning",
@@ -13,7 +13,7 @@
     {
       "metric_name": "ActiveConnections",
       "statistic": "Sum",
-      "comparison_operator": "LowerThanThreshold",
+      "comparison_operator": "LessThanThreshold",
       "alarm_suffix": "active-connections-critical",
       "description": "VPC Endpoint active connections critical threshold",
       "severity": "critical",
