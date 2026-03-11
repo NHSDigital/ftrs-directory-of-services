@@ -22,7 +22,7 @@ PAYLOAD_MIMETYPE_MAPPING = {
 
 
 class Endpoint(DBModel):
-    # Endpoints doesn't need to be audited, healtcare services and organization have audit event fields
+    # Endpoints doesn't need to be audited, healthcare service and organisation have own audit event fields
     created: datetime | None = None
     lastUpdated: datetime | None = None
     createdBy: AuditEvent | None = None
