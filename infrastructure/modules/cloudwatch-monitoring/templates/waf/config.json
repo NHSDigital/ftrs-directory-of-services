@@ -1,0 +1,44 @@
+{
+  "waf": [
+    {
+      "metric_name": "BlockedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "blocked-requests-warning",
+      "description": "WAF blocked requests warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
+    },
+    {
+      "metric_name": "BlockedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "blocked-requests-critical",
+      "description": "WAF blocked requests critical threshold (potential attack)",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
+    },
+    {
+      "metric_name": "AllowedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "allowed-requests-spike-critical",
+      "description": "WAF allowed requests spike critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
+    },
+    {
+      "metric_name": "CountedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "counted-requests-warning",
+      "description": "WAF counted requests warning threshold (count mode rules)",
+      "severity": "warning",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
+    }
+  ]
+}
