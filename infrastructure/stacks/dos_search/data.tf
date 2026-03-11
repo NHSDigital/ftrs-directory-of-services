@@ -56,6 +56,10 @@ data "aws_kms_key" "dynamodb_kms_key" {
   key_id = local.kms_aliases.dynamodb
 }
 
+data "aws_kms_key" "sns_kms_key" {
+  key_id = local.kms_aliases.sns
+}
+
 data "aws_iam_policy_document" "vpc_access_policy" {
   # checkov:skip=CKV_AWS_111: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
   # checkov:skip=CKV_AWS_356: TODO https://nhsd-jira.digital.nhs.uk/browse/FDOS-421
