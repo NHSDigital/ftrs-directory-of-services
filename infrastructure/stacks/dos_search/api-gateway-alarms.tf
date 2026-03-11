@@ -1,11 +1,10 @@
 module "api_gateway_monitoring" {
-  #count  = local.is_primary_environment ? 1 : 0
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix = local.resource_prefix
 
   sns_topic_name   = local.alarms_topic_name
-  sns_display_name = "DoS Search API Gateway Alarms"
+  sns_display_name = "DoS Search Alarms"
   kms_key_id       = data.aws_kms_key.sns_kms_key.arn
 
   alarm_config_path = "api-gateway/config"
