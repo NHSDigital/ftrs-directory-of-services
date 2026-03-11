@@ -1,8 +1,10 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from fhir.resources.R4B.bundle import Bundle
 from fhir.resources.R4B.operationoutcome import OperationOutcome
+
+from functions.logbase import DosSearchLogBase
 
 with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_client_class:
     mock_client_class.return_value.is_enabled.return_value = True
@@ -207,8 +209,8 @@ class TestHealthcareServiceLambdaHandler:
         lambda_handler(event, lambda_context)
 
         # Assert
-        mock_logger.info.assert_any_call(
-            "Received request for healthcare service",
+        mock_logger.log.assert_any_call(
+            DosSearchLogBase.DOS_SEARCH_012,
             ods_code="ABC123",
             dos_message_category="REQUEST",
         )
@@ -230,7 +232,16 @@ class TestHealthcareServiceLambdaHandler:
         lambda_handler(event, lambda_context)
 
         # Assert
-        mock_logger.exception.assert_called_once()
+        expected_size = len(
+            mock_error_util.create_resource_internal_server_error.return_value.model_dump_json().encode(
+                "utf-8"
+            )
+        )
+        mock_logger.log.assert_any_call(
+            DosSearchLogBase.DOS_SEARCH_006,
+            dos_response_time=ANY,
+            dos_response_size=expected_size,
+        )
 
     def test_lambda_handler_with_feature_flag_enabled(
         self,
@@ -252,8 +263,8 @@ class TestHealthcareServiceLambdaHandler:
         mock_feature_flags_client.is_enabled.assert_called_once_with(
             FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
         )
-        mock_logger.info.assert_any_call(
-            "Healthcare Service search endpoint is enabled via feature flag",
+        mock_logger.log.assert_any_call(
+            DosSearchLogBase.DOS_SEARCH_014,
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="enabled",
             dos_message_category="FEATURE_FLAG",
@@ -283,12 +294,12 @@ class TestHealthcareServiceLambdaHandler:
         mock_feature_flags_client.is_enabled.assert_called_once_with(
             FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
         )
-        mock_logger.warning.assert_called_with(
-            "Service unavailable - Healthcare Service search endpoint is disabled via feature flag",
+        mock_logger.log.assert_any_call(
+            DosSearchLogBase.DOS_SEARCH_013,
             feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
             feature_flag_status="disabled",
             dos_message_category="FEATURE_FLAG",
-            dos_response_time="0ms",
+            dos_response_time=ANY,
             dos_response_size=68,
         )
         mock_error_util.create_resource_service_unavailable_error.assert_called_once()
