@@ -236,7 +236,8 @@ class OrganizationMapper(FhirMapper):
         Returns:
             FHIR Bundle with Organization resources
         """
-        entries = [self._create_bundle_entry(org, request_url) for org in organisations]
+        base_url = self._extract_base_url(request_url) if request_url else None
+        entries = [self._create_bundle_entry(org, base_url) for org in organisations]
 
         bundle_dict = {
             "resourceType": "Bundle",
@@ -253,7 +254,7 @@ class OrganizationMapper(FhirMapper):
         return Bundle.model_construct(**bundle_dict)
 
     def _create_bundle_entry(
-        self, org: Organisation, request_url: str | None = None
+        self, org: Organisation, base_url: str | None = None
     ) -> BundleEntry:
         """Create a FHIR Bundle entry with Organization resource."""
         full_org = self.to_fhir(org)
@@ -263,8 +264,7 @@ class OrganizationMapper(FhirMapper):
             "search": BundleEntrySearch.model_validate({"mode": "match"}),
         }
 
-        if request_url:
-            base_url = self._extract_base_url(request_url)
+        if base_url:
             entry_dict["fullUrl"] = f"{base_url}/Organization/{org.id}"
 
         return BundleEntry.model_construct(**entry_dict)
