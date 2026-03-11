@@ -19,6 +19,7 @@ In your stack (e.g., `stacks/my_service/monitoring.tf`):
 
 ```hcl
 module "lambda_monitoring" {
+  count  = local.is_primary_environment ? 1 : 0  # Optional: Comment this out if you want the alarms to be work-spaced so they can be tested
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix   = local.resource_prefix
@@ -27,8 +28,7 @@ module "lambda_monitoring" {
   kms_key_id        = data.aws_kms_key.sns_kms_key.arn
   alarm_config_path = "lambda/config"
 
-  # Enable Slack notifications
-  slack_notifier_enabled       = true
+  # Slack notifications
   slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
 
   monitored_resources = {
@@ -89,14 +89,39 @@ module "lambda_monitoring" {
 }
 ```
 
-### Step 2: Slack Notifications (Optional)
+### Step 2: Accessing Module Outputs (When Using Count)
 
-Slack notifications are now handled automatically by the module when you set:
+If you use `count` with the module, access outputs with index notation:
 
-- `slack_notifier_enabled = true`
-- `slack_notifier_function_name = "your-slack-notifier-lambda-name"`
+```hcl
+output "lambda_monitoring_sns_topic_arn" {
+  description = "ARN of the Lambda monitoring SNS topic"
+  value       = try(module.lambda_monitoring[0].sns_topic_arn, null)
+}
 
-No separate `slack_notifications.tf` file is needed!
+output "lambda_monitoring_sns_topic_name" {
+  description = "Name of the Lambda monitoring SNS topic"
+  value       = try(module.lambda_monitoring[0].sns_topic_name, null)
+}
+```
+
+The `try()` function returns `null` when the module isn't created (e.g., in non-primary environments).
+
+> [!NOTE]
+> If you're testing the alarms module in a workspace without `count`, use direct access without index notation:
+> ```hcl
+> value = module.lambda_monitoring.sns_topic_arn
+> ```
+
+### Step 3: Slack Notifications
+
+Slack notifications are handled automatically by the module. Simply provide the Slack notifier Lambda function name:
+
+```hcl
+slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+```
+
+The module will automatically subscribe the Lambda to the SNS topic.
 
 ## Available Templates
 
@@ -162,14 +187,13 @@ Then add corresponding thresholds, evaluation periods, and periods in your modul
 | `alarm_periods` | Yes | Map of resource keys to periods in seconds |
 | `kms_key_id` | Yes | KMS key for SNS encryption |
 | `enable_warning_alarms` | No | Enable warning alarms (default: `true`) |
-| `slack_notifier_enabled` | No | Enable Slack notifier subscription (default: `false`) |
-| `slack_notifier_function_name` | No | Name of Slack notifier Lambda function (required if `slack_notifier_enabled = true`) |
+| `slack_notifier_function_name` | Yes | Name of Slack notifier Lambda function |
 | `tags` | No | Tags for SNS topic (default: `{}`) |
 
 ## Module Outputs
 
 | Name | Description |
 |------|-------------|
-| `sns_topic_arn` | ARN of the SNS topic (use for slack-notifier subscription) |
+| `sns_topic_arn` | ARN of the SNS topic |
 | `sns_topic_name` | Name of the SNS topic |
 | `alarm_arns` | Map of alarm names to ARNs |
