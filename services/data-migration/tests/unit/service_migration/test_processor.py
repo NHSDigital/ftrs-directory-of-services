@@ -1,6 +1,7 @@
 import pytest
 from freezegun import freeze_time
 from ftrs_common.mocks.mock_logger import MockLogger
+from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.legacy.service import (
     Service,
 )
@@ -9,6 +10,7 @@ from sqlalchemy import Engine
 
 from common.cache import DoSMetadataCache
 from service_migration.config import DataMigrationConfig
+from service_migration.models import ServiceMigrationState
 from service_migration.processor import DataMigrationProcessor, ServiceMigrationMetrics
 from service_migration.transformer.base import ServiceTransformOutput
 from service_migration.validation.types import ValidationIssue, ValidationResult
@@ -273,6 +275,7 @@ def test_process_service_skipped_service(
         logger=mock_logger,
     )
     processor.metadata = mock_metadata_cache
+    processor.get_state_record = mocker.MagicMock(return_value=None)
 
     processor._process_service(mock_legacy_service)
 
@@ -294,6 +297,228 @@ def test_process_service_skipped_service(
             "reference": "DM_ETL_005",
         }
     ]
+
+
+def test_process_service_inactive_existing_state_updates(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.should_include_service.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
+    )
+
+    inactive_service = mock_legacy_service.model_copy(update={"statusid": 2})
+
+    validation_result = ValidationResult(
+        origin_record_id=inactive_service.id,
+        issues=[],
+        sanitised=inactive_service,
+    )
+    mock_transformer.validator.validate.return_value = validation_result
+    mock_transformer.transform.return_value = ServiceTransformOutput(
+        organisation=[],
+        healthcare_service=[],
+        location=[],
+    )
+
+    mock_builder = mocker.MagicMock()
+    mock_builder.add_organisation.return_value = mock_builder
+    mock_builder.add_location.return_value = mock_builder
+    mock_builder.add_healthcare_service.return_value = mock_builder
+    mock_builder.build.return_value = [{}]
+    mocker.patch(
+        "service_migration.processor.ServiceTransactionBuilder",
+        return_value=mock_builder,
+    )
+
+    existing_state = ServiceMigrationState(
+        source_record_id=ServiceMigrationState.format_source_record_id(
+            inactive_service.id
+        ),
+        version=1,
+        organisation_id=None,
+        organisation=None,
+        location_id=None,
+        location=None,
+        healthcare_service_id=None,
+        healthcare_service=None,
+        validation_issues=[],
+    )
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=existing_state)
+
+    processor._process_service(inactive_service)
+
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=1,
+        inserted=0,
+        updated=1,
+        skipped=0,
+        invalid=0,
+        errors=0,
+    )
+    mock_transformer.should_include_service.assert_called_once_with(
+        inactive_service,
+        existing_state,
+    )
+    mock_transformer.validator.validate.assert_called_once_with(inactive_service)
+
+
+def test_process_service_inactive_without_existing_state_skips(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.should_include_service.return_value = (
+        False,
+        "Service is not active",
+    )
+    mock_transformer.return_value = mock_transformer
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
+    )
+
+    inactive_service = mock_legacy_service.model_copy(update={"statusid": 2})
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+    processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
+
+    processor._process_service(inactive_service)
+
+    assert processor.metrics == ServiceMigrationMetrics(
+        total=1,
+        supported=1,
+        unsupported=0,
+        transformed=0,
+        inserted=0,
+        updated=0,
+        skipped=1,
+        invalid=0,
+        errors=0,
+    )
+    mock_transformer.validator.validate.assert_not_called()
+    processor._execute_transaction.assert_not_called()
+    assert mock_logger.get_log("DM_ETL_005") == [
+        {
+            "msg": "Record skipped due to condition: Service is not active",
+            "detail": {"reason": "Service is not active"},
+            "reference": "DM_ETL_005",
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    ("current_active", "existing_active"),
+    [
+        (True, False),
+        (False, True),
+    ],
+)
+def test_process_service_updates_existing_org_active_status(
+    mocker: MockerFixture,
+    mock_config: DataMigrationConfig,
+    mock_logger: MockLogger,
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    current_active: bool,
+    existing_active: bool,
+) -> None:
+    mock_transformer = mocker.MagicMock()
+    mock_transformer.__name__ = "MockTransformer"
+    mock_transformer.is_service_supported.return_value = (True, None)
+    mock_transformer.should_include_service.return_value = (True, None)
+    mock_transformer.return_value = mock_transformer
+    mocker.patch(
+        "service_migration.processor.SUPPORTED_TRANSFORMERS", [mock_transformer]
+    )
+
+    validation_result = ValidationResult(
+        origin_record_id=mock_legacy_service.id,
+        issues=[],
+        sanitised=mock_legacy_service,
+    )
+    mock_transformer.validator.validate.return_value = validation_result
+
+    current_org = Organisation(
+        identifier_ODS_ODSCode="A12345",
+        active=current_active,
+        name="Test Org",
+        telecom=[],
+    )
+    mock_transformer.transform.return_value = ServiceTransformOutput(
+        organisation=[current_org],
+        healthcare_service=[],
+        location=[],
+    )
+
+    mock_builder = mocker.MagicMock()
+    mock_builder.add_organisation.return_value = mock_builder
+    mock_builder.add_location.return_value = mock_builder
+    mock_builder.add_healthcare_service.return_value = mock_builder
+    mock_builder.build.return_value = [{}]
+    mocker.patch(
+        "service_migration.processor.ServiceTransactionBuilder",
+        return_value=mock_builder,
+    )
+
+    existing_state = ServiceMigrationState(
+        source_record_id=ServiceMigrationState.format_source_record_id(
+            mock_legacy_service.id
+        ),
+        version=1,
+        organisation_id=current_org.id,
+        organisation=current_org.model_copy(update={"active": existing_active}),
+        location_id=None,
+        location=None,
+        healthcare_service_id=None,
+        healthcare_service=None,
+        validation_issues=[],
+    )
+
+    processor = DataMigrationProcessor(
+        config=mock_config,
+        logger=mock_logger,
+    )
+    processor.metadata = mock_metadata_cache
+    processor.logger.append_keys = mocker.MagicMock()
+    processor.logger.remove_keys = mocker.MagicMock()
+    processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=existing_state)
+
+    processor._process_service(mock_legacy_service)
+
+    updated_org = mock_builder.add_organisation.call_args[0][0]
+    assert updated_org.active is current_active
+    assert processor.metrics.updated == 1
 
 
 def test_handles_invalid_service(
@@ -333,6 +558,7 @@ def test_handles_invalid_service(
     processor.logger.append_keys = mocker.MagicMock()
     processor.logger.remove_keys = mocker.MagicMock()
     processor._execute_transaction = mocker.MagicMock()
+    processor.get_state_record = mocker.MagicMock(return_value=None)
 
     assert processor.metrics == ServiceMigrationMetrics(
         total=0,

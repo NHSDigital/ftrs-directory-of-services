@@ -8,6 +8,7 @@ from ftrs_data_layer.domain.clinical_code import (
 )
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceType,
     TimeUnit,
 )
@@ -29,7 +30,7 @@ class AgeRangeType(BaseModel):
 
 class HealthcareService(DBModel):
     identifier_oldDoS_uid: str | None = None
-    active: bool
+    status: HealthcareServiceStatus
     category: HealthcareServiceCategory
     type: HealthcareServiceType
     providedBy: UUID | None

@@ -4,6 +4,7 @@ from uuid import UUID
 from ftrs_data_layer.domain.auditevent import AuditEvent
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceType,
 )
 from pydantic import BaseModel, EmailStr, Field
@@ -15,6 +16,13 @@ class InvalidHealthcareServiceTypeError(ValueError):
 
     def __init__(self) -> None:
         super().__init__("Invalid healthcare service type")
+
+
+class InvalidHealthcareServiceStatusError(ValueError):
+    """Invalid healthcare service status provided."""
+
+    def __init__(self) -> None:
+        super().__init__("Invalid healthcare service status")
 
 
 def validate_healthcare_service_type(v: str) -> str:
@@ -32,9 +40,32 @@ def validate_healthcare_service_type(v: str) -> str:
         raise InvalidHealthcareServiceTypeError from None
 
 
+def validate_healthcare_service_status(
+    v: str | HealthcareServiceStatus,
+) -> HealthcareServiceStatus:
+    """
+    Validate healthcare service status with generic error message.
+
+    Uses BeforeValidator to intercept Pydantic's enum validation and provide
+    a generic error message instead of listing all enum values.
+    """
+    if isinstance(v, HealthcareServiceStatus):
+        return v
+    try:
+        return HealthcareServiceStatus(v)
+    except ValueError:
+        raise InvalidHealthcareServiceStatusError from None
+
+
 # Custom type annotation for enum field with generic validation error
 HealthcareServiceTypeField = Annotated[
     HealthcareServiceType, BeforeValidator(validate_healthcare_service_type)
+]
+
+
+# Custom type annotation for status field with generic validation error
+HealthcareServiceStatusField = Annotated[
+    HealthcareServiceStatus, BeforeValidator(validate_healthcare_service_status)
 ]
 
 
@@ -59,7 +90,7 @@ class TelecomDict(BaseModel):
 
 class HealthCareService(BaseModel):
     name: str = Field(min_length=1, max_length=100, example="GP Practice")
-    active: bool = Field(..., example=True)
+    status: HealthcareServiceStatusField = Field(..., example="active")
     telecom: TelecomDict = Field(
         default_factory=TelecomDict,
         example={

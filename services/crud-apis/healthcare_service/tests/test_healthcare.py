@@ -32,7 +32,7 @@ def get_mock_service() -> HealthcareService:
         },
         "lastUpdated": "2025-05-27T12:50:55.481233Z",
         "identifier_oldDoS_uid": "161799",
-        "active": True,
+        "status": "active",
         "category": "GP Services",
         "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
         "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
@@ -136,7 +136,7 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
     mock_repository.update.return_value = None
     update_payload = {
         "name": "Test Update Healthcare Service",
-        "active": False,
+        "status": "inactive",
         "category": "GP Services",
         "telecom": {
             "phone_private": "000000 99999",
@@ -190,7 +190,7 @@ def test_update_healthcare_service_not_found(mock_repository: MockerFixture) -> 
 
     update_payload = {
         "name": "Test Update Healthcare Service",
-        "active": False,
+        "status": "inactive",
         "category": "GP Services",
         "telecom": {
             "phone_private": "000000 99999",
@@ -237,7 +237,7 @@ def test_update_healthcare_service_invalid_request_body() -> None:
         "detail": [
             {
                 "type": "missing",
-                "loc": ["body", "active"],
+                "loc": ["body", "status"],
                 "msg": "Field required",
                 "input": {"name": "Test Update Healthcare Service"},
             },
@@ -306,7 +306,7 @@ def test_create_healthcare_service(mock_repository: MockerFixture) -> None:
                 "value": "INGRESS_API_ID",
                 "display": "FtRS Ingress API",
             },
-            "active": True,
+            "status": "active",
             "location": "e13b21b1-8859-4364-9efb-951d43cc8264",
             "providedBy": "96602abd-f265-4803-b4fb-413692279b5c",
             "telecom": {
@@ -345,7 +345,7 @@ def test_create_healthcare_service_invalid_data() -> None:
         "detail": [
             {
                 "type": "missing",
-                "loc": ["body", "active"],
+                "loc": ["body", "status"],
                 "msg": "Field required",
                 "input": {
                     "name": "Invalid Healthcare Service",

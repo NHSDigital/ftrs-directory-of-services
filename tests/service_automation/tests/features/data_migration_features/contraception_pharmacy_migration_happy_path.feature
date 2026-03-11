@@ -104,7 +104,7 @@ Feature: Data Migration - Contraception Pharmacy
         "name": "Contraception: Kent - Boots - Tunbridge Wells",
         "category": "Pharmacy Services",
         "type": "Oral Contraception Prescription and Supply",
-        "active": true
+        "status": "active"
       }
       """
 
@@ -210,7 +210,7 @@ Feature: Data Migration - Contraception Pharmacy
         "name": "Contraception: Kent - Boots - Tonbridge",
         "category": "Pharmacy Services",
         "type": "Oral Contraception Prescription and Supply",
-        "active": true
+        "status": "active"
       }
       """
 

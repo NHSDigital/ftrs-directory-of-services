@@ -7,6 +7,7 @@ from ftrs_data_layer.domain.legacy import Service
 from pytest_mock import MockerFixture
 
 from common.cache import DoSMetadataCache
+from service_migration.models import ServiceMigrationState
 from service_migration.transformer.gp_enhanced_access import GPEnhancedAccessTransformer
 
 
@@ -182,6 +183,25 @@ def test_should_include_service(
 
     assert should_include == expected_result
     assert message == expected_message
+
+
+def test_should_include_service_inactive_with_existing_state(
+    mock_legacy_service: Service,
+) -> None:
+    mock_legacy_service.typeid = 136
+    mock_legacy_service.odscode = "U12345"
+    mock_legacy_service.statusid = 2
+    mock_legacy_service.name = "Enhanced Access Service"
+
+    existing_state = ServiceMigrationState.init(service_id=mock_legacy_service.id)
+
+    should_include, message = GPEnhancedAccessTransformer.should_include_service(
+        mock_legacy_service,
+        existing_state,
+    )
+
+    assert should_include is True
+    assert message is None
 
 
 @pytest.mark.parametrize(

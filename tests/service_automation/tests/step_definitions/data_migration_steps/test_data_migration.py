@@ -3,6 +3,8 @@ import re
 from datetime import datetime
 from decimal import Decimal
 from pprint import pprint
+from typing import Any, Dict, Optional
+from uuid import UUID
 
 import pytest
 from common.uuid_utils import generate_uuid
@@ -67,6 +69,7 @@ scenarios(
     "../features/data_migration_features/incremental_updates/update_status.feature",
     "../features/data_migration_features/incremental_updates/update_endpoints.feature",
     "../features/data_migration_features/incremental_updates/update_state_management_and_validation.feature",
+    "../features/data_migration_features/incremental_updates/organisation_active_status_updates.feature",
     # Feature toggle tests
     "../features/data_migration_features/triage_code_migration_feature_flag_disabled.feature",
     "../features/data_migration_features/gp_practice_migration_feature_flag_disabled.feature",
@@ -112,15 +115,44 @@ def check_table_content_by_id(table_name, service_id, docstring, dynamodb):
 
 
 @then(
+    parsers.parse(
+        "field '{field_name}' on table '{table_name}' for service ID '{service_id}' has content:"
+    )
+)
+@then(
     parsers.re(
         r"field '(?P<field_name>[\w-]*)' on table '(?P<table_name>[\w-]*)' for id '(?P<primary_id>[\w-]+)' has content:"
     )
 )
 def check_field_on_a_table_by_id(
-    field_name, table_name, primary_id, docstring, dynamodb
+    field_name: str,
+    table_name: str,
+    docstring: str,
+    dynamodb: Dict[str, Any],
+    service_id: Optional[str] = None,
+    primary_id: Optional[str] = None,
 ):
+    """Check a specific field on a table.
+
+    Accepts either:
+    - Direct UUID: field 'active' on table 'organisation' for id '91ef1ce8-...' has content:
+    - Service ID (auto-generates UUID): field 'active' on table 'organisation' for service ID '570001' has content:
+    """
+    id_value = primary_id or service_id
+    if id_value is None:
+        raise AssertionError("Expected either primary_id or service_id to be set")
+
+    # Check if id_value looks like a UUID or a service ID
+    if _is_uuid(id_value):
+        # Direct UUID provided
+        id_to_use = id_value
+    else:
+        # Service ID provided - generate UUID
+        namespace = table_name.replace("-", "_")
+        id_to_use = str(generate_uuid(id_value, namespace))
+
     _check_by_id_and_sort_key(
-        table_name, primary_id, docstring, dynamodb, filtered_by_field=field_name
+        table_name, id_to_use, docstring, dynamodb, filtered_by_field=field_name
     )
 
 
@@ -230,6 +262,18 @@ def validate_timestamp_format(path_to_field, date_text):
         pytest.fail(
             f"Text under {path_to_field}: {date_text} not recognised as valid datetime"
         )
+
+
+def _is_uuid(value: str) -> bool:
+    """Check if a string is a valid UUID format."""
+    try:
+        # Check if it's a UUID format (contains hyphens in UUID pattern)
+        if len(value) == 36 and value.count("-") == 4:
+            UUID(value)
+            return True
+    except (ValueError, AttributeError):
+        pass
+    return False
 
 
 def get_by_id(dynamodb, table_name, service_id):
