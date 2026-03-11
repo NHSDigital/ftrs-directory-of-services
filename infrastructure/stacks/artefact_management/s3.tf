@@ -1,5 +1,6 @@
 module "artefacts_bucket" {
   source            = "../../modules/s3"
+  environment       = var.environment
   bucket_name       = local.artefacts_bucket
   attach_policy     = true
   policy            = data.aws_iam_policy_document.artefacts_bucket_policy.json
