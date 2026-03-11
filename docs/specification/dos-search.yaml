@@ -187,7 +187,6 @@ paths:
           required: true
           description: >
             A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-            This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
             Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -317,7 +316,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -451,7 +449,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -498,7 +495,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -545,7 +541,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -592,7 +587,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
@@ -633,7 +627,6 @@ paths:
             X-Request-ID:
               description: >
                 A globally unique identifier (GUID) for the request, which we use to de-duplicate repeated requests and to trace the request if you contact our helpdesk.
-                This is parsed through to the backend server as a new header "NHSD-Request-Id". 
 
                 Must be a universally unique identifier (UUID) (ideally version 4).
 
