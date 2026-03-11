@@ -1,14 +1,12 @@
-from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from ftrs_data_layer.domain.auditevent import AuditEvent
-from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.enums import (
     EndpointBusinessScenario,
     EndpointConnectionType,
     EndpointPayloadMimeType,
     EndpointStatus,
 )
+from pydantic import BaseModel, Field
 
 PAYLOAD_MIMETYPE_MAPPING = {
     "PDF": "application/pdf",
@@ -21,13 +19,8 @@ PAYLOAD_MIMETYPE_MAPPING = {
 }
 
 
-class Endpoint(DBModel):
-    # Endpoints doesn't need to be audited, healthcare service and organisation have own audit event fields
-    created: datetime | None = None
-    lastUpdated: datetime | None = None
-    createdBy: AuditEvent | None = None
-    lastUpdatedBy: AuditEvent | None = None
-
+class Endpoint(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
     identifier_oldDoS_id: int | None
     status: EndpointStatus
     connectionType: EndpointConnectionType

@@ -189,10 +189,6 @@ def test_build_endpoint(
         isCompressionEnabled=False,
         comment="Test Endpoint 1",
     )
-    assert result.created is None
-    assert result.lastUpdated is None
-    assert result.createdBy is None
-    assert result.lastUpdatedBy is None
 
 
 @freeze_time("2025-07-17T12:00:00")
