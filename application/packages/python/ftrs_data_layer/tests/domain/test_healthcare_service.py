@@ -28,7 +28,7 @@ def test_healthcare_service_round_trip_and_types() -> None:
     hs = HealthcareService(
         id=uuid4(),
         identifier_oldDoS_uid="123456",
-        active=True,
+        status="active",
         category="GP Services",
         type="GP Consultation Service",
         createdBy=created_by,
@@ -106,7 +106,7 @@ def test_healthcare_service_invalid_day_of_week_raises() -> None:
     payload = {
         "id": str(uuid4()),
         "identifier_oldDoS_uid": "123456",
-        "active": True,
+        "status": "active",
         "category": "GP Services",
         "type": "GP Consultation Service",
         "createdBy": {"type": "user", "value": "test_user", "display": "Test User"},

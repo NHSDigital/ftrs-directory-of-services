@@ -55,6 +55,22 @@ Feature: Incremental Updates - Healthcare Service Field Changes
       }
       """
 
+    # Existing migrated service should still update when moved to non-active status
+    Given the "Service" with id "510001" is updated with attributes
+      | key      | value                     |
+      | statusid | 2                         |
+      | name     | Updated Name Non-Active   |
+
+    When the data migration process is run for table 'services', ID '510001' and method 'update'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
+    And the state table contains a record for key 'services#510001' with version 3
+    And field 'name' on table 'healthcare-service' for id '05683161-e3b2-549e-b63c-b7978b677c45' has content:
+      """
+      {
+        "name": "Updated Name Non-Active"
+      }
+      """
+
   Scenario: Update healthcare service phone number
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
@@ -109,6 +125,69 @@ Feature: Incremental Updates - Healthcare Service Field Changes
           "phone_private": null,
           "web": "www.service2.com"
         }
+      }
+      """
+
+  Scenario: Update triage disposition codes when service becomes non-active
+    Given a "Service" exists in DoS with attributes
+      | key                                 | value                                  |
+      | id                                  | 510009                                 |
+      | uid                                 | 510009                                 |
+      | name                                | Triage Update Practice                  |
+      | odscode                             | B51009                                 |
+      | openallhours                        | FALSE                                  |
+      | publicreferralinstructions          | Public referral text                   |
+      | telephonetriagereferralinstructions | Telephone triage instructions          |
+      | restricttoreferrals                 | FALSE                                  |
+      | address                             | 19 Service Street                      |
+      | town                                | SERVICETOWN                            |
+      | postcode                            | SE1 9AA                                |
+      | publicphone                         | 01234 777777                           |
+      | email                               | service9@nhs.net                       |
+      | web                                 | www.service9.com                       |
+      | createdtime                         | 2024-01-01 08:00:00.000                |
+      | modifiedtime                        | 2024-01-01 08:00:00.000                |
+      | typeid                              | 100                                    |
+      | statusid                            | 1                                      |
+      | publicname                          | Triage Update Practice                 |
+      | latitude                            | 51.5074                                |
+      | longitude                           | -0.1278                                |
+
+    And a "ServiceDisposition" exists in DoS with attributes
+      | key           | value  |
+      | id            | 710009 |
+      | serviceid     | 510009 |
+      | dispositionid | 4      |
+
+    When the data migration process is run for table 'services', ID '510009' and method 'insert'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
+    And the state table contains a record for key 'services#510009' with version 1
+    And field 'dispositions' on table 'healthcare-service' for service ID '510009' has content:
+      """
+      {
+        "dispositions": [
+          "DX05"
+        ]
+      }
+      """
+
+    # Existing migrated service should continue updating triage-related fields when non-active
+    Given the "Service" with id "510009" is updated with attributes
+      | key      | value |
+      | statusid | 2     |
+    And the "ServiceDisposition" with id "710009" is updated with attributes
+      | key           | value |
+      | dispositionid | 5     |
+
+    When the data migration process is run for table 'services', ID '510009' and method 'update'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
+    And the state table contains a record for key 'services#510009' with version 2
+    And field 'dispositions' on table 'healthcare-service' for service ID '510009' has content:
+      """
+      {
+        "dispositions": [
+          "DX06"
+        ]
       }
       """
 

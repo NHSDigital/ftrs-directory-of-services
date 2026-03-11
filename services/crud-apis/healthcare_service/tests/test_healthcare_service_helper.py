@@ -15,7 +15,7 @@ def test_create_healthcare_service_successful() -> NoReturn:
     mock_repository = Mock(spec=AttributeLevelRepository)
     test_service = HealthcareService(
         identifier_oldDoS_uid=None,
-        active=True,
+        status="active",
         category="GP Services",
         type="Primary Care Network Enhanced Access Service",
         providedBy=uuid4(),
@@ -51,7 +51,7 @@ def test_create_healthcare_service_repository_error() -> NoReturn:
     mock_repository = Mock(spec=AttributeLevelRepository)
     test_service = HealthcareService(
         identifier_oldDoS_uid=None,
-        active=True,
+        status="active",
         category="GP Services",
         type="GP Consultation Service",
         providedBy=uuid4(),

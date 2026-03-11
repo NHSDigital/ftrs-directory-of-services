@@ -113,6 +113,45 @@ Feature: Incremental Updates - Endpoint Changes
       }
       """
 
+    # Existing migrated service should still update endpoint data when non-active
+    Given the "Service" with id "570001" is updated with attributes
+      | key      | value |
+      | statusid | 2     |
+    And the "ServiceEndpoint" with id "600001" is updated with attributes
+      | key     | value                    |
+      | address | inactive-updated@nhs.net |
+
+    When the data migration process is run for table 'services', ID '570001' and method 'update'
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
+    And the state table contains a record for key 'services#570001' with version 3
+    And field 'endpoints' on table 'organisation' for id '12737b36-7811-563e-82c8-c50c8c093542' has content:
+      """
+      {
+        "endpoints": [
+          {
+            "id": "a94b1367-ac5b-591e-b8f1-a26bb8713f6a",
+            "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+            "created": "2026-01-12T13:57:24.828283Z",
+             "lastUpdatedBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
+            "lastUpdated": "2026-01-12T13:57:24.828283Z",
+            "address": "inactive-updated@nhs.net",
+            "connectionType": "email",
+            "businessScenario": "Copy",
+            "identifier_oldDoS_id": 600001,
+            "isCompressionEnabled": false,
+            "managedByOrganisation": "12737b36-7811-563e-82c8-c50c8c093542",
+            "name": null,
+            "order": 1,
+            "payloadMimeType": "application/pdf",
+            "payloadType": "urn:nhs-itk:interaction:copyRecipientNHS111CDADocument-v2-0",
+            "service": null,
+            "status": "active",
+            "comment": "Original endpoint"
+          }
+        ]
+      }
+      """
+
   Scenario: Update endpoint transport type
     Given a "Service" exists in DoS with attributes
       | key                 | value                     |
