@@ -19,19 +19,6 @@ members = [
 ]
 
 [[package]]
-name = "allure-pytest"
-version = "2.15.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "allure-python-commons" },
-    { name = "pytest" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/55/b73c5256d36c4c843a475762eebc90b104527766d4c7e4c4b4d9ed94f118/allure_pytest-2.15.3.tar.gz", hash = "sha256:b6576f8258de44f48ec59cfaee73cdbd1142c2ad6cfdc82d894fd1db8abf22e9", size = 17685, upload-time = "2025-12-30T05:21:55.909Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/1c/a50b21ce93ee95fa198683e09cb709d05079a5b2970cb304f2a5a1986afb/allure_pytest-2.15.3-py3-none-any.whl", hash = "sha256:66711efdc44c7c0d629f4eeab73ca20932f8786c251d61e242449f7b4ec18ca2", size = 12451, upload-time = "2025-12-30T05:21:54.776Z" },
-]
-
-[[package]]
 name = "allure-pytest-bdd"
 version = "2.15.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2106,7 +2093,6 @@ name = "service-test-automation"
 version = "0.1.0"
 source = { editable = "tests/service_automation" }
 dependencies = [
-    { name = "allure-pytest" },
     { name = "allure-pytest-bdd" },
     { name = "authlib" },
     { name = "aws-lambda-powertools" },
@@ -2143,7 +2129,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "allure-pytest", specifier = ">=2.13.5" },
     { name = "allure-pytest-bdd", specifier = ">=2.13.5" },
     { name = "authlib", specifier = ">=1.6.7,<2.0.0" },
     { name = "aws-lambda-powertools", specifier = ">=3.12.0,<4.0.0" },

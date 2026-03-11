@@ -69,9 +69,9 @@ test:
 		elif [ "$(TEST_TYPE)" = "apim" ]; then \
 			echo "Running tests for API name: $(API_NAME)"; \
 			echo "Running tests for proxy name: $$PROXY_NAME"; \
-			uv run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
+			uv run pytest -m "$$marker" --api-name=$(API_NAME) --proxy-name=$$PROXY_NAME --alluredir=$(ALLURE_RESULTS); \
 		else \
-			uv run pytest -m "$$marker" -p allure_pytest_bdd --alluredir=$(ALLURE_RESULTS); \
+			uv run pytest -m "$$marker" --alluredir=$(ALLURE_RESULTS); \
 		fi; \
 	done
 
