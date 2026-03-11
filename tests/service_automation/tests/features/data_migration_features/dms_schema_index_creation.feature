@@ -1,4 +1,4 @@
-@rds_schema_modification @data_migration
+@rds_schema_modification @data-migration
 
 Feature: DMS Schema Index Creation After Full Load
 

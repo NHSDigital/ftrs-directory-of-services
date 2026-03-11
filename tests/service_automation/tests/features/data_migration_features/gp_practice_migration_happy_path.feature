@@ -83,7 +83,7 @@ Feature: Data Migration
       {
         "id": "48865e3d-b8f0-508b-8520-29b3113da1e3",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": null,
         "category": "GP Services",
         "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
@@ -250,7 +250,7 @@ Feature: Data Migration
       {
         "id": "2477cbb9-e50f-5de5-b907-0db20cdb7819",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": null,
         "category": "GP Services",
         "createdBy": {"type": "app", "value": "INTERNAL001", "display": "Data Migration"},

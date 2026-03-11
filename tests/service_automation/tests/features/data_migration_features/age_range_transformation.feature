@@ -87,7 +87,7 @@ Feature: Data Migration
       {
         "id": "3a3bab5d-6931-5e79-96af-e723aa87b078",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": [
           {
             "rangeFrom": "0",
@@ -193,7 +193,7 @@ Feature: Data Migration
       {
         "id": "7194eaa7-8f8e-57e2-a8ac-b694aba132cf",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": [
           {
             "rangeFrom": "0",
@@ -292,7 +292,7 @@ Feature: Data Migration
       {
         "id": "8d73a7f5-1e60-5880-902f-4ad5d4b9f08b",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": [
           {
             "rangeFrom": "-5844",
@@ -397,7 +397,7 @@ Feature: Data Migration
       {
         "id": "be4d2882-bfaf-521c-b3fe-7d6bd8c9142b",
         "field": "document",
-        "active": true,
+        "status": "active",
         "ageEligibilityCriteria": [
           {
             "rangeFrom": "0",

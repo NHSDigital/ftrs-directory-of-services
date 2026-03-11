@@ -108,5 +108,8 @@ markers = [
   "rds_schema_modification: marks test as using RDS schema modification",
   "version-history: marks tests as version-history related (tests handler logic, not AWS Streams integration)",
   "is-smoke: marks test as integrated-search smoke test that can be run in non-dev/test environments",
+  "happy: marks happy-path BDD scenarios",
+  "rejection: marks rejection-path BDD scenarios",
+  "status-field-updates: marks data migration status field update scenarios",
 ]
 filterwarnings = ['ignore:.*datetime.datetime.utcnow*']

@@ -3,15 +3,15 @@ Feature: Incremental Updates - Service Status Changes
   Tests for updates involving service status transitions
 
   # NOTE: The GP Practice transformer only processes services with statusid=1 (active).
-  # Services with other status values (commissioned=2, deleted=3, etc.) are SKIPPED
-  # by the should_include_service check in the transformer.
+  # Services with other status values (commissioned=2, deleted=3, etc.) are excluded
+  # by the should_include_service check unless a prior migration state exists.
 
   Background:
     Given the test environment is configured
     And the DoS database has test data
     And DynamoDB tables are ready
 
-  Scenario: Update service status from active to inactive causes skip
+  Scenario: Update service status from active to inactive updates existing state
     Given a "Service" exists in DoS with attributes
       | key                 | value                   |
       | id                  | 560001                  |
@@ -38,16 +38,16 @@ Feature: Incremental Updates - Service Status Changes
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#560001' with version 1
 
-    # Change status to inactive/deleted (statusid=3) - service will be skipped
+    # Change status to inactive/deleted (statusid=3) - service is updated when state exists
     Given the "Service" with id "560001" is updated with attributes
       | key      | value |
       | statusid | 3     |
 
     When the data migration process is run for table 'services', ID '560001' and method 'update'
-    # Service with inactive status should be skipped during update
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped and 0 errors
+    # Service with inactive status continues due to existing state
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
 
-  Scenario: Update service status from active to commissioned causes skip
+  Scenario: Update service status from active to commissioned updates existing state
     Given a "Service" exists in DoS with attributes
       | key                 | value                        |
       | id                  | 560002                       |
@@ -74,14 +74,14 @@ Feature: Incremental Updates - Service Status Changes
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And the state table contains a record for key 'services#560002' with version 1
 
-    # Change status to commissioned (statusid=2) - service will be skipped
+    # Change status to commissioned (statusid=2) - service is updated when state exists
     Given the "Service" with id "560002" is updated with attributes
       | key      | value |
       | statusid | 2     |
 
     When the data migration process is run for table 'services', ID '560002' and method 'update'
-    # Commissioned status causes the service to be skipped (only active services are processed)
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 0 transformed, 0 inserted, 0 updated, 1 skipped and 0 errors
+    # Commissioned status continues due to existing state
+    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 0 inserted, 1 updated, 0 skipped and 0 errors
 
   Scenario: Update active service with other field changes
     Given a "Service" exists in DoS with attributes
