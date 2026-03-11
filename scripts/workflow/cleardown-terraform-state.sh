@@ -36,7 +36,7 @@ if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
 fi
 
 if [[ "$ENVIRONMENT" == "prod" ]]; then
-  export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-tfstate-${TERRAFORM_ACCOUNT_ID}"  # globally unique name
+  export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-tf-state-${TERRAFORM_ACCOUNT_ID}"  # globally unique name
 else
   export TERRAFORM_BUCKET_NAME="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 fi
