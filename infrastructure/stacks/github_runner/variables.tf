@@ -15,4 +15,5 @@ variable "oidc_client" {
 
 variable "oidc_thumbprint" {
   description = "Thumbprint for oidc provider"
+  type        = string
 }

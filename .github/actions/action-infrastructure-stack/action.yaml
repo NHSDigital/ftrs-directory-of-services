@@ -26,7 +26,7 @@ inputs:
     required: false
   oidc_thumbprint:
     description: "The GitHub Actions OIDC provider thumbprint"
-    required: false
+    required: true
   slack_webhook_alarms_url:
     description: "Slack webhook URL for alarm notifications"
     required: false

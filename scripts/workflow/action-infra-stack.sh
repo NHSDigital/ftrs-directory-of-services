@@ -95,8 +95,8 @@ if [ $EXPORTS_SET = 1 ] ; then
   exit 1
 fi
 
-if [[ -z "${TF_VAR_oidc_thumbprint:-}" ]]; then
-  echo "Set OIDC_THUMBPRINT or TF_VAR_oidc_thumbprint before running bootstrapper.sh"
+if [[ "$STACK" == "github_runner" ]] && [[ -z "${TF_VAR_oidc_thumbprint:-}" ]]; then
+  echo "Set OIDC_THUMBPRINT or TF_VAR_oidc_thumbprint when running the github_runner stack"
   exit 1
 fi
 
