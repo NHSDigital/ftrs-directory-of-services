@@ -26,6 +26,7 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk_event" {
     s3_configuration {
       role_arn           = aws_iam_role.firehose_role.arn
       bucket_arn         = module.firehose_backup_s3.s3_bucket_arn
+      prefix             = "event/"
       buffering_interval = 300
       buffering_size     = 5
       compression_format = "GZIP"
@@ -82,7 +83,8 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk_raw" {
 
     s3_configuration {
       role_arn           = aws_iam_role.firehose_role.arn
-      bucket_arn         = module.firehose_raw_backup_s3.s3_bucket_arn
+      bucket_arn         = module.firehose_backup_s3.s3_bucket_arn
+      prefix             = "raw/"
       buffering_interval = 300
       buffering_size     = 5
       compression_format = "GZIP"

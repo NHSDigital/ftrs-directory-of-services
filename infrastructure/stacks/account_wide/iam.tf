@@ -30,9 +30,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
         ]
         Resource = [
           module.firehose_backup_s3.s3_bucket_arn,
-          "${module.firehose_backup_s3.s3_bucket_arn}/*",
-          module.firehose_raw_backup_s3.s3_bucket_arn,
-          "${module.firehose_raw_backup_s3.s3_bucket_arn}/*"
+          "${module.firehose_backup_s3.s3_bucket_arn}/*"
         ]
       },
       {
