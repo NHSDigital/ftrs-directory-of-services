@@ -5,13 +5,18 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: "The environment (used for the manual approval gate, e.g. dev, prod)"
+        description: "The environment to deploy to (e.g. dev, test, int, ref, prod, mgmt, dev-account)"
         required: true
         type: string
-      matrix:
-        description: "JSON object (with an 'include' key) defining the name, environment, stacks and download_appconfig_artifact flag for each deployment target"
+      stacks:
+        description: "A JSON list of the infrastructure stacks to deploy (e.g. \"['account_security']\")"
         required: true
         type: string
+      download_appconfig_artifact:
+        description: "Whether to download the AppConfig feature flags artifact"
+        required: false
+        default: false
+        type: boolean
       ref:
         description: "Specify the branch, tag or SHA to be used for deployment"
         required: false
@@ -42,25 +47,22 @@ on:
 
 jobs:
   plan-infrastructure:
-    name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    name: "Plan infrastructure deployment for ${{ inputs.environment }}"
     concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{ matrix.stacks }}"
+      group: "${{ inputs.environment }}-default-account-${{ inputs.stacks }}"
       cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(inputs.matrix) }}
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ matrix.environment }}
+      environment: ${{ inputs.environment }}
       workspace: "default"
       ref: ${{ inputs.ref }}
-      stacks: ${{ matrix.stacks }}
+      stacks: ${{ inputs.stacks }}
       action: plan
       type: account
-      download_appconfig_artifact: ${{ matrix.download_appconfig_artifact }}
+      download_appconfig_artifact: ${{ inputs.download_appconfig_artifact }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
@@ -83,9 +85,9 @@ jobs:
         run: echo "$ENVIRONMENT deployment paused for manual approval. Please approve in the Actions tab."
 
   apply-infrastructure:
-    name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    name: "Apply infrastructure deployment for ${{ inputs.environment }}"
     concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{ matrix.stacks }}"
+      group: "${{ inputs.environment }}-default-account-${{ inputs.stacks }}"
       cancel-in-progress: false
     if: github.ref == 'refs/heads/main'
     needs:
@@ -93,15 +95,12 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(inputs.matrix) }}
     uses: ./.github/workflows/deploy-infrastructure.yaml
     with:
-      environment: ${{ matrix.environment }}
+      environment: ${{ inputs.environment }}
       workspace: "default"
       ref: ${{ inputs.ref }}
-      stacks: ${{ matrix.stacks }}
+      stacks: ${{ inputs.stacks }}
       action: apply
       type: account
     secrets:
