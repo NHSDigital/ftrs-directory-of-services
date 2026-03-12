@@ -6,12 +6,12 @@ module "s3_alarms" {
 
   sns_topic_name   = local.alarms_topic_name
   sns_display_name = "S3 Account Wide Alarms"
-  kms_key_id       = module.sns_encryption_key.arn
+  kms_key_id       = data.aws_kms_key.sns_kms_key[0].arn
 
   alarm_config_path = "s3/config"
 
   monitored_resources = {
-    truststore_s3      = module.trust_store_s3_bucket.s3_bucket_id
+    truststore_s3      = data.aws_s3_bucket.trust_store_s3_bucket.id
     terraform_state_s3 = data.aws_s3_bucket.terraform_state_bucket.id
   }
 
@@ -71,9 +71,9 @@ module "s3_alarms" {
     }
   }
 
-  slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+  slack_notifier_function_name = local.slack_notifier_function_name
 
   tags = {
-    Name = local.alarms_topic_name
+    Name = "${local.resource_prefix}-s3-alarms"
   }
 }

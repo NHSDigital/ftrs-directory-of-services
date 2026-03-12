@@ -222,3 +222,8 @@ variable "sns_topic_name" {
   description = "Name of the SNS topic for alarms"
   type        = string
 }
+
+variable "slack_notifier_function_name" {
+  description = "Name of the Lambda function to use for Slack notifications"
+  type        = string
+}

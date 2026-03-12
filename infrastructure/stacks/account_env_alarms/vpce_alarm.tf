@@ -6,99 +6,99 @@ module "vpce_alarms" {
 
   sns_topic_name   = local.alarms_topic_name
   sns_display_name = "VPC Endpoint Alarms"
-  kms_key_id       = module.sns_encryption_key.arn
+  kms_key_id       = data.aws_kms_key.sns_kms_key[0].arn
 
   alarm_config_path = "vpce/config"
 
   monitored_resources = {
-    dynamodb_vpce        = aws_vpc_endpoint.dynamodb_vpce.id
-    s3_vpce              = aws_vpc_endpoint.s3_vpce.id
-    current_dos_rds_vpce = aws_vpc_endpoint.current_dos_rds_endpoint.id
-    sqs_vpce             = aws_vpc_endpoint.interface_vpce["sqs"].id
-    ssm_vpce             = aws_vpc_endpoint.interface_vpce["ssm"].id
-    ssmmessages_vpce     = aws_vpc_endpoint.interface_vpce["ssmmessages"].id
-    ec2messages_vpce     = aws_vpc_endpoint.interface_vpce["ec2messages"].id
-    kms_vpce             = aws_vpc_endpoint.interface_vpce["kms"].id
-    secretsmanager_vpce  = aws_vpc_endpoint.interface_vpce["secretsmanager"].id
-    rds_vpce             = aws_vpc_endpoint.interface_vpce["rds"].id
-    appconfig_vpce       = aws_vpc_endpoint.interface_vpce["appconfig"].id
-    appconfigdata_vpce   = aws_vpc_endpoint.interface_vpce["appconfigdata"].id
-    lambda_vpce          = aws_vpc_endpoint.interface_vpce["lambda"].id
-    logs_vpce            = aws_vpc_endpoint.interface_vpce["logs"].id
+    dynamodb_vpce        = data.aws_vpc_endpoint.dynamodb_vpce.id
+    s3_vpce              = data.aws_vpc_endpoint.s3_vpce.id
+    current_dos_rds_vpce = data.aws_vpc_endpoint.current_dos_rds_endpoint.id
+    sqs_vpce             = data.aws_vpc_endpoint.sqs_vpce.id
+    ssm_vpce             = data.aws_vpc_endpoint.ssm_vpce.id
+    ssmmessages_vpce     = data.aws_vpc_endpoint.ssmmessages_vpce.id
+    ec2messages_vpce     = data.aws_vpc_endpoint.ec2messages_vpce.id
+    kms_vpce             = data.aws_vpc_endpoint.kms_vpce.id
+    secretsmanager_vpce  = data.aws_vpc_endpoint.secretsmanager_vpce.id
+    rds_vpce             = data.aws_vpc_endpoint.rds_vpce.id
+    appconfig_vpce       = data.aws_vpc_endpoint.appconfig_vpce.id
+    appconfigdata_vpce   = data.aws_vpc_endpoint.appconfigdata_vpce.id
+    lambda_vpce          = data.aws_vpc_endpoint.lambda_vpce.id
+    logs_vpce            = data.aws_vpc_endpoint.logs_vpce.id
   }
 
   resource_metadata = {}
 
   resource_additional_dimensions = {
     dynamodb_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.dynamodb_vpce.vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.dynamodb_vpce.service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.dynamodb_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.dynamodb_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     s3_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.s3_vpce.vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.s3_vpce.service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.s3_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.s3_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     current_dos_rds_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.current_dos_rds_endpoint.vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.current_dos_rds_endpoint.service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.current_dos_rds_endpoint.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.current_dos_rds_endpoint.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     sqs_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["sqs"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["sqs"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.sqs_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.sqs_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     ssm_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["ssm"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["ssm"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.ssm_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.ssm_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     ssmmessages_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["ssmmessages"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["ssmmessages"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.ssmmessages_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.ssmmessages_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     ec2messages_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["ec2messages"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["ec2messages"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.ec2messages_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.ec2messages_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     kms_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["kms"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["kms"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.kms_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.kms_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     secretsmanager_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["secretsmanager"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["secretsmanager"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.secretsmanager_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.secretsmanager_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     rds_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["rds"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["rds"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.rds_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.rds_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     appconfig_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["appconfig"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["appconfig"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.appconfig_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.appconfig_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     appconfigdata_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["appconfigdata"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["appconfigdata"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.appconfigdata_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.appconfigdata_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     lambda_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["lambda"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["lambda"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.lambda_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.lambda_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
     logs_vpce = {
-      "Endpoint Type" = aws_vpc_endpoint.interface_vpce["logs"].vpc_endpoint_type
-      "Service Name"  = aws_vpc_endpoint.interface_vpce["logs"].service_name
-      "VPC Id"        = module.vpc.vpc_id
+      "Endpoint Type" = data.aws_vpc_endpoint.logs_vpce.vpc_endpoint_type
+      "Service Name"  = data.aws_vpc_endpoint.logs_vpce.service_name
+      "VPC Id"        = data.aws_vpc.vpc.id
     }
   }
 
@@ -153,7 +153,7 @@ module "vpce_alarms" {
     logs_vpce            = { "active-connections-warning" = var.vpce_active_connections_warning_alarm_period, "active-connections-critical" = var.vpce_active_connections_critical_alarm_period }
   }
 
-  slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+  slack_notifier_function_name = local.slack_notifier_function_name
 
   tags = {
     Name = "${local.resource_prefix}-vpce-alarms"

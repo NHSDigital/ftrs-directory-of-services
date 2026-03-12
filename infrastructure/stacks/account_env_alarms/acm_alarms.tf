@@ -11,7 +11,7 @@ module "acm_api_cert_alarms" {
   alarm_config_path = "acm/config"
 
   monitored_resources = {
-    api_cert = aws_acm_certificate.custom_domain_api_cert[0].arn
+    api_cert = data.aws_acm_certificate.custom_domain_api_cert[0].arn
   }
 
   resource_metadata = {}
@@ -39,7 +39,7 @@ module "acm_api_cert_alarms" {
     }
   }
 
-  slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
+  slack_notifier_function_name = local.slack_notifier_function_name
 
   tags = {
     Name = "${local.resource_prefix}-acm-api-cert-alarms"
