@@ -10,6 +10,10 @@ variable "lambda_name" {
   description = "The name of the gp search lambda"
 }
 
+variable "triage_code_lambda_name" {
+  description = "The name of the triage code lambda for gp search"
+}
+
 variable "health_check_lambda_name" {
   description = "The name of the health check lambda for gp search"
 }

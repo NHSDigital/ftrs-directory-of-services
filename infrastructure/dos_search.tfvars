@@ -3,6 +3,7 @@ dos_search_service_name = "ftrs-dos-search"
 # Resource names
 s3_bucket_name           = "dos-search-s3"
 lambda_name              = "ods-code-lambda"
+triage_code_lambda_name  = "triage-code-lambda"
 health_check_lambda_name = "health-check-lambda"
 
 #Lambda
