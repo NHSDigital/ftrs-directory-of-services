@@ -46,10 +46,10 @@ class OrganizationMapper(FhirMapper):
             )
         ]
 
-    def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict] | None:
+    def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict]:
         """Build FHIR telecom list from phone, email and web."""
         if not telecom:
-            return
+            return []
         if isinstance(telecom, str):
             return [
                 ContactPoint.model_validate(
@@ -192,8 +192,8 @@ class OrganizationMapper(FhirMapper):
             "name": organisation.name,
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
         }
-        telecom = self._build_telecom(organisation.telecom)
-        if telecom:
+        if organisation.telecom:
+            telecom = self._build_telecom(organisation.telecom)
             org_dict["telecom"] = telecom
         return FhirOrganisation.model_validate(org_dict)
 

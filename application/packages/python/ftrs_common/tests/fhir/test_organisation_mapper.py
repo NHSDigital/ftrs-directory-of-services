@@ -229,10 +229,16 @@ def test__build_telecom() -> None:
     assert telecom[2].use is None
 
 
+def test__build_telecom_empty_list() -> None:
+    mapper = OrganizationMapper()
+    telecom_empty_list = mapper._build_telecom([])
+    assert telecom_empty_list == []
+
+
 def test__build_telecom_none() -> None:
     mapper = OrganizationMapper()
     telecom_empty_list = mapper._build_telecom(None)
-    assert telecom_empty_list is None
+    assert telecom_empty_list == []
 
 
 def test__build_telecom_str_phone() -> None:

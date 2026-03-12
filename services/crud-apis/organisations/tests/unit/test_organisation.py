@@ -276,11 +276,14 @@ def test_get_handle_organisation_requests_unhandled_exception(
 
 
 def test_get_handle_organisation_returns_bundle_with_fhir_fields(
-    mock_organisation_service: MockerFixture,
+    mocker: MockerFixture,
 ) -> None:
     """Test GET /Organization returns minimal Bundle with proper FHIR structure."""
     mock_org = Organisation(**get_organisation())
-    mock_organisation_service.get_by_ods_code.return_value = mock_org
+    mocker.patch(
+        "organisations.app.router.organisation.org_repository.get_by_ods_code",
+        return_value=mock_org,
+    )
     response = client.get(
         "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
     )
