@@ -48,6 +48,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      OIDC_THUMBPRINT:
+        description: "GitHub Actions OIDC provider thumbprint"
+        required: false
 
 jobs:
   prepare-toggles-artifacts:
@@ -76,6 +79,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   destroy-toggle-infrastructure:
     needs:
@@ -97,6 +101,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   cleardown-os-policies:
     name: "Cleardown OpenSearch Network Policies"

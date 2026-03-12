@@ -24,6 +24,9 @@ inputs:
   release_tag:
     description: "The release tag identifying the timeline in the repository to deploy from"
     required: false
+  oidc_thumbprint:
+    description: "The GitHub Actions OIDC provider thumbprint"
+    required: false
   slack_webhook_alarms_url:
     description: "Slack webhook URL for alarm notifications"
     required: false
@@ -64,6 +67,7 @@ runs:
         WORKSPACE: ${{ inputs.workspace }}
         PROJECT: ${{ inputs.project }}
         RELEASE_TAG: ${{ inputs.release_tag }}
+        OIDC_THUMBPRINT: ${{ inputs.oidc_thumbprint }}
         TF_VAR_slack_webhook_alarms_url: ${{ inputs.slack_webhook_alarms_url }}
         SPLUNK_COLLECTOR_URL: ${{ inputs.splunk_collector_url }}
         SPLUNK_HEC_ENDPOINT: ${{ inputs.splunk_hec_endpoint }}

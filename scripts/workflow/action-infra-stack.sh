@@ -27,6 +27,7 @@ export TF_VAR_release_tag="${RELEASE_TAG:-""}"
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
+export TF_VAR_oidc_thumbprint="${OIDC_THUMBPRINT:-""}"
 
 # Override ENVIRONMENT to non-prod for account_policies or account_security stack
 if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] || [ "$ENVIRONMENT" = "test" ]; } then
@@ -91,6 +92,11 @@ fi
 
 if [ $EXPORTS_SET = 1 ] ; then
   echo One or more exports not set
+  exit 1
+fi
+
+if [[ -z "${TF_VAR_oidc_thumbprint:-}" ]]; then
+  echo "Set OIDC_THUMBPRINT or TF_VAR_oidc_thumbprint before running bootstrapper.sh"
   exit 1
 fi
 

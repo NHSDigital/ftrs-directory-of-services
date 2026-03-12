@@ -71,6 +71,30 @@
             ]
         },
         {
+            "Sid": "GitHubOidcProviderAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:GetOpenIDConnectProvider",
+                "iam:DeleteOpenIDConnectProvider",
+                "iam:TagOpenIDConnectProvider",
+                "iam:UntagOpenIDConnectProvider",
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:AddClientIDToOpenIDConnectProvider",
+                "iam:RemoveClientIDFromOpenIDConnectProvider"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:oidc-provider/token.actions.githubusercontent.com"
+            ]
+        },
+        {
+            "Sid": "GitHubOidcProviderCreate",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateOpenIDConnectProvider"
+            ],
+            "Resource": "*"
+        },
+        {
             "Sid": "IAMPassRoleAccess",
             "Effect": "Allow",
             "Action": [

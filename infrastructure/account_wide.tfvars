@@ -44,3 +44,6 @@ apim_apigee_cidrs = [
   "35.197.254.55/32",
   "35.246.55.143/32",
 ]
+
+oidc_provider_url = "https://token.actions.githubusercontent.com"
+oidc_client       = "sts.amazonaws.com"
