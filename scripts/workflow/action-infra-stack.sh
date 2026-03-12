@@ -27,6 +27,7 @@ export TF_VAR_release_tag="${RELEASE_TAG:-""}"
 TF_VAR_stack_name=$(echo "$STACK" | tr '_' '-' )
 export TF_VAR_stack_name
 export TF_VAR_mgmt_account_id="${MGMT_ACCOUNT_ID:-""}"
+export TF_VAR_oidc_thumbprint="${OIDC_THUMBPRINT:-""}"
 
 # Override ENVIRONMENT to non-prod for account_policies or account_security stack
 if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } && { [ "$ENVIRONMENT" = "ref" ] || [ "$ENVIRONMENT" = "sandpit" ] || [ "$ENVIRONMENT" = "int" ] || [ "$ENVIRONMENT" = "test" ]; } then
@@ -40,16 +41,19 @@ if { [ "$STACK" = "account_policies" ] || [ "$STACK" = "account_security" ]; } &
 fi
 
 # needed for terraform management stack
-export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"  # globally unique name
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+
 if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
   echo "ACCOUNT_ID must be set or aws sts get-caller-identity must succeed when ENVIRONMENT=prod"
   exit 1
 fi
+
 if [[ "$ENVIRONMENT" == "prod" ]]; then
+  export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-tf-state"
   export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}-${TERRAFORM_ACCOUNT_ID}"
 else
+  export TF_VAR_terraform_state_bucket_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state"
   export TERRAFORM_BACKEND_BUCKET_NAME="${TF_VAR_terraform_state_bucket_name}"
 fi
 
@@ -88,6 +92,11 @@ fi
 
 if [ $EXPORTS_SET = 1 ] ; then
   echo One or more exports not set
+  exit 1
+fi
+
+if [[ "$STACK" == "github_runner" ]] && [[ -z "${TF_VAR_oidc_thumbprint:-}" ]]; then
+  echo "Set OIDC_THUMBPRINT or TF_VAR_oidc_thumbprint when running the github_runner stack"
   exit 1
 fi
 

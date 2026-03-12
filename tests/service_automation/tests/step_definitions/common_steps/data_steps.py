@@ -168,3 +168,20 @@ def create_model_from_json_with_specific_id(
     yield model
     logger.info(f"Cleaning up organisation with ID {model.id}")
     model_repo.delete(model.id)
+
+
+@given(
+    parsers.parse(
+        'I create a healthcare service model in the repo from json file "{json_file}"'
+    )
+)
+def create_healthcare_service_from_json(
+    json_file: str, healthcare_service_repo: AttributeLevelRepository
+):
+    """Create a healthcare service model from a JSON file."""
+    model = model_from_json_file(json_file, healthcare_service_repo)
+    if not check_record_in_repo(healthcare_service_repo, model.id):
+        healthcare_service_repo.delete(model.id)
+    healthcare_service_repo.create(model)
+    yield
+    healthcare_service_repo.delete(model.id)
