@@ -30,6 +30,10 @@ data "aws_kms_key" "ssm_kms_key" {
   key_id = local.kms_aliases.ssm
 }
 
+data "aws_kms_key" "sns_kms_key" {
+  key_id = local.kms_aliases.sns
+}
+
 data "aws_kms_key" "scheduler_kms_key" {
   key_id = local.kms_aliases.scheduler
 }
