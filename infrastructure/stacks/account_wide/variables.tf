@@ -290,12 +290,6 @@ variable "s3_backup_mode" {
   type        = string
 }
 
-variable "raw_firehose_name" {
-  description = "Name suffix for the raw (non-event) Splunk Firehose delivery stream"
-  type        = string
-  default     = "splunk-raw"
-}
-
 variable "performance_ec2_log_group" {
   description = "Name for the Performance EC2 log group"
   type        = string
