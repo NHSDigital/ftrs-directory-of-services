@@ -11,7 +11,6 @@ def test_endpoint() -> None:
         connectionType="itk",
         businessScenario="Copy",
         payloadMimeType="application/fhir",
-        identifier_oldDoS_uid="123456",
         isCompressionEnabled=True,
         managedByOrganisation=uuid4(),
         name="Test Endpoint Name",
