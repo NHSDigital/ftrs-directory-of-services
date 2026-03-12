@@ -7,6 +7,7 @@ from fhir.resources.R4B.healthcareservice import (
 from ftrs_data_layer.domain import HealthcareService, HealthcareServiceTelecom
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceType,
 )
 
@@ -26,6 +27,7 @@ def mock_healthcare_service() -> HealthcareService:
         id=uuid4(),
         identifier_oldDoS_uid="123456",
         active=True,
+        status=HealthcareServiceStatus.ACTIVE,
         category=HealthcareServiceCategory.GP_SERVICES,
         type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
         providedBy=uuid4(),
@@ -49,6 +51,7 @@ def mock_healthcare_service_minimal() -> HealthcareService:
         id=uuid4(),
         identifier_oldDoS_uid=None,
         active=True,
+        status=HealthcareServiceStatus.ACTIVE,
         category=HealthcareServiceCategory.GP_SERVICES,
         type=HealthcareServiceType.GP_CONSULTATION_SERVICE,
         providedBy=None,
