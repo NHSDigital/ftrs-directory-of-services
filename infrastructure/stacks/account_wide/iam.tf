@@ -41,8 +41,8 @@ resource "aws_iam_role_policy" "firehose_policy" {
           "logs:PutLogEvents"
         ]
         Resource = [
-          aws_cloudwatch_log_group.firehose_log_group.arn,
-          aws_cloudwatch_log_group.firehose_raw_log_group.arn
+          "${aws_cloudwatch_log_group.firehose_log_group.arn}:log-stream:*",
+          "${aws_cloudwatch_log_group.firehose_raw_log_group.arn}:log-stream:*"
         ]
       }
       ], var.enable_firehose_sse ? [{
