@@ -4,18 +4,21 @@ variable "resource_prefix" {
 }
 
 variable "sns_topic_name" {
-  description = "Name of the SNS topic for alarm notifications"
+  description = "Name of the SNS topic for alarm notifications. Required when external_sns_topic_arn is null."
   type        = string
+  default     = null
 }
 
 variable "sns_display_name" {
-  description = "Display name for the SNS topic"
+  description = "Display name for the SNS topic. Required when external_sns_topic_arn is null."
   type        = string
+  default     = null
 }
 
 variable "kms_key_id" {
-  description = "KMS key ID for SNS topic encryption"
+  description = "KMS key ID for SNS topic encryption. Optional; omit to create an unencrypted topic."
   type        = string
+  default     = null
 }
 
 variable "tags" {
@@ -74,4 +77,5 @@ variable "resource_additional_dimensions" {
 variable "slack_notifier_function_name" {
   description = "Name of the Slack notifier Lambda function"
   type        = string
+  default     = null
 }

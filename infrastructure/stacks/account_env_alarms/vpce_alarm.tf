@@ -2,6 +2,12 @@ module "vpce_alarms" {
   count  = local.is_primary_environment ? 1 : 0
   source = "../../modules/cloudwatch-monitoring"
 
+  providers = {
+    aws.metrics = aws
+    aws.sns     = aws
+    aws.lambda  = aws
+  }
+
   resource_prefix = local.resource_prefix
 
   sns_topic_name   = local.alarms_topic_name
