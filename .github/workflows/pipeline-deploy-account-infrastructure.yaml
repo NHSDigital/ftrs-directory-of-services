@@ -69,6 +69,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      OIDC_THUMBPRINT:
+        description: "GitHub Actions OIDC provider thumbprint"
+        required: false
       IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID:
         description: "Report upload AWS account ID"
         required: false
@@ -128,6 +131,7 @@ jobs:
       IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
       SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
       SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
@@ -213,6 +217,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
       SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
@@ -265,6 +270,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
       SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}

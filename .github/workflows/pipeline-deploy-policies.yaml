@@ -48,6 +48,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      OIDC_THUMBPRINT:
+        description: "GitHub Actions OIDC provider thumbprint"
+        required: false
       IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID:
         description: "Report upload AWS account ID"
         required: false
@@ -89,6 +92,7 @@ jobs:
       IDP_AWS_REPORT_UPLOAD_REGION: ${{ secrets.IDP_AWS_REPORT_UPLOAD_REGION }}
       IDP_AWS_REPORT_UPLOAD_ROLE_NAME: ${{ secrets.IDP_AWS_REPORT_UPLOAD_ROLE_NAME }}
       IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT: ${{ secrets.IDP_AWS_REPORT_UPLOAD_BUCKET_ENDPOINT }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   plan-permissions-infrastructure:
     name: "Plan ${{ matrix.name }} permissions infrastructure deployment for ${{ matrix.environment }}"
@@ -119,6 +123,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   manual-approval-permissions:
     name: "Manual approval for ${{ needs.metadata.outputs.environment }} permissions infrastructure deployment"
@@ -164,6 +169,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   slack-notifications:
     name: "Send Notification to Slack"

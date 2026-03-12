@@ -1,12 +1,16 @@
 locals {
+  # IAM OIDC ARNs and condition keys use issuer URL without scheme or trailing slash.
+  oidc_provider_identifier = trimsuffix(trimprefix(trimprefix(var.oidc_provider_url, "https://"), "http://"), "/")
+
   account_github_runner_policy_part1 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part1.json.tpl", {
     project   = var.project
     repo_name = var.repo_name
   }))
 
   account_github_runner_policy_part2 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part2.json.tpl", {
-    project   = var.project
-    repo_name = var.repo_name
+    project                  = var.project
+    repo_name                = var.repo_name
+    oidc_provider_identifier = local.oidc_provider_identifier
   }))
 
   account_github_runner_policy_part3 = jsondecode(templatefile("${path.module}/account_github_runner_policy_part3.json.tpl", {
@@ -30,13 +34,13 @@ resource "aws_iam_role" "account_github_runner_role" {
     {
       "Effect":"Allow",
       "Principal":{
-        "Federated":"arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
+        "Federated":"arn:aws:iam::${local.account_id}:oidc-provider/${local.oidc_provider_identifier}"
       },
       "Action":"sts:AssumeRoleWithWebIdentity",
       "Condition":{
         "ForAllValues:StringLike":{
-          "token.actions.githubusercontent.com:sub":"repo:${var.github_org}/${var.repo_name}:*",
-          "token.actions.githubusercontent.com:aud":"sts.amazonaws.com"
+          "${local.oidc_provider_identifier}:sub":"repo:${var.github_org}/${var.repo_name}:*",
+          "${local.oidc_provider_identifier}:aud":"${var.oidc_client}"
         }
       }
     }
@@ -55,13 +59,13 @@ resource "aws_iam_role" "app_github_runner_role" {
     {
       "Effect":"Allow",
       "Principal":{
-        "Federated":"arn:aws:iam::${local.account_id}:oidc-provider/token.actions.githubusercontent.com"
+        "Federated":"arn:aws:iam::${local.account_id}:oidc-provider/${local.oidc_provider_identifier}"
       },
       "Action":"sts:AssumeRoleWithWebIdentity",
       "Condition":{
         "ForAllValues:StringLike":{
-          "token.actions.githubusercontent.com:sub":"repo:${var.github_org}/${var.repo_name}:*",
-          "token.actions.githubusercontent.com:aud":"sts.amazonaws.com"
+          "${local.oidc_provider_identifier}:sub":"repo:${var.github_org}/${var.repo_name}:*",
+          "${local.oidc_provider_identifier}:aud":"${var.oidc_client}"
         }
       }
     }

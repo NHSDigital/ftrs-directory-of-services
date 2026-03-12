@@ -15,6 +15,12 @@ export PROJECT="${PROJECT:-"dos"}"
 export TF_VAR_repo_name="${REPOSITORY:-"$(basename -s .git "$(git config --get remote.origin.url)")"}"
 export TF_VAR_terraform_lock_table_name="nhse-$ENVIRONMENT-$TF_VAR_repo_name-terraform-state-lock"
 export TERRAFORM_ACCOUNT_ID="${ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text 2>/dev/null)}"
+export TF_VAR_oidc_thumbprint="${OIDC_THUMBPRINT:-""}"
+
+if [[ -z "${TF_VAR_oidc_thumbprint:-}" ]]; then
+  echo "Set OIDC_THUMBPRINT or TF_VAR_oidc_thumbprint before running bootstrapper.sh"
+  exit 1
+fi
 
 if [[ "$ENVIRONMENT" == "prod" && -z "$TERRAFORM_ACCOUNT_ID" ]]; then
   echo "ACCOUNT_ID must be set or aws sts get-caller-identity must succeed when ENVIRONMENT=prod"
