@@ -46,6 +46,9 @@ jobs:
     concurrency:
       group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{ matrix.stacks }}"
       cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.matrix) }}
@@ -87,6 +90,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs:
       - manual-approval
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.matrix) }}
