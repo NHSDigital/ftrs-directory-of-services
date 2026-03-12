@@ -39,6 +39,26 @@
       "severity": "warning",
       "namespace": "AWS/WAFV2",
       "dimension_name": "WebACL"
+    },
+    {
+      "metric_name": "BlockRuleMatch",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "block-rule-match-warning",
+      "description": "WAF block rule match warning threshold - elevated blocking activity (bot/scanner activity, misconfigured client retries or rate-limiting)",
+      "severity": "warning",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
+    },
+    {
+      "metric_name": "BlockRuleMatch",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanOrEqualToThreshold",
+      "alarm_suffix": "block-rule-match-critical",
+      "description": "WAF block rule match critical threshold - coordinated attack, malicious bot swarm or application layer attack targeting specific endpoints",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL"
     }
   ]
 }

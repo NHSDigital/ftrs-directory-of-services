@@ -114,3 +114,8 @@ variable "route53_health_check_percentage_healthy_critical_alarm_period" {
   description = "The period (in seconds) for the health check percentage healthy critical alarm"
   type        = number
 }
+
+variable "sns_topic_name" {
+  description = "Name of the SNS topic for alarms"
+  type        = string
+}

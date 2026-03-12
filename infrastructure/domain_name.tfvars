@@ -24,3 +24,5 @@ route53_health_check_status_critical_alarm_period                         = 60
 route53_health_check_percentage_healthy_critical_alarm_threshold          = 100
 route53_health_check_percentage_healthy_critical_alarm_evaluation_periods = 1
 route53_health_check_percentage_healthy_critical_alarm_period             = 60
+
+sns_topic_name = "route53-alarms"
