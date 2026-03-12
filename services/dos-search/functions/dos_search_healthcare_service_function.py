@@ -46,22 +46,24 @@ def get_healthcare_service() -> Response:
             feature_flag_status="enabled",
             dos_message_category="FEATURE_FLAG",
         )
-    else:
-        fhir_resource = error_util.create_resource_service_unavailable_error()
-        response_size, duration_ms = get_response_size_and_duration(
-            fhir_resource, start, logger
-        )
-        logger.log(
-            DosSearchLogBase.DOS_SEARCH_013,
-            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-            feature_flag_status="disabled",
-            dos_message_category="FEATURE_FLAG",
-            dos_response_time=f"{duration_ms}ms",
-            dos_response_size=response_size,
-        )
+        return _handle_healthcare_service_request(start)
 
-        return create_response(503, fhir_resource)
+    fhir_resource = error_util.create_resource_service_unavailable_error()
+    response_size, duration_ms = get_response_size_and_duration(
+        fhir_resource, start, logger
+    )
+    logger.log(
+        DosSearchLogBase.DOS_SEARCH_013,
+        feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+        feature_flag_status="disabled",
+        dos_message_category="FEATURE_FLAG",
+        dos_response_time=f"{duration_ms}ms",
+        dos_response_size=response_size,
+    )
+    return create_response(503, fhir_resource)
 
+
+def _handle_healthcare_service_request(start: float) -> Response:
     try:
         query_params = app.current_event.query_string_parameters or {}
         validated_params = HealthcareServiceQueryParams.model_validate(query_params)
