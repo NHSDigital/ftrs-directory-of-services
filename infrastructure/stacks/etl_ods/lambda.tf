@@ -86,7 +86,7 @@ module "transformer_lambda" {
   s3_key_version_id              = data.aws_s3_object.transformer_lambda_package.version_id
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 5
+  reserved_concurrent_executions = 15
 
 
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
