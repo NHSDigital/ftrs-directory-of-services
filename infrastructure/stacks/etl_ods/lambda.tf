@@ -127,7 +127,7 @@ module "transformer_lambda" {
 resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
   event_source_arn        = aws_sqs_queue.transform_queue.arn
   function_name           = module.transformer_lambda.lambda_function_name
-  batch_size              = 3
+  batch_size              = 1
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
@@ -195,7 +195,7 @@ module "consumer_lambda" {
 resource "aws_lambda_event_source_mapping" "consumer_queue_trigger" {
   event_source_arn        = aws_sqs_queue.load_queue.arn
   function_name           = module.consumer_lambda.lambda_function_name
-  batch_size              = 3
+  batch_size              = 1
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
