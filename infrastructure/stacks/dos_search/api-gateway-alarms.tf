@@ -1,4 +1,5 @@
 module "api_gateway_monitoring" {
+  # count = local.is_primary_environment ? 1 : 0 TODO: Enable once testing is complete
   source = "../../modules/cloudwatch-monitoring"
 
   resource_prefix = local.resource_prefix
@@ -16,7 +17,7 @@ module "api_gateway_monitoring" {
   resource_metadata = {
     dos_search_api = {
       api_path = "/Organization"
-      service  = "DoS Search API"
+      service  = "DoS Search"
     }
   }
 
@@ -67,6 +68,15 @@ module "api_gateway_monitoring" {
       "status-endpoint-5xx-critical"     = var.api_gateway_status_endpoint_5xx_period_seconds
     }
   }
+
+  api_gateway_log_group_name = aws_cloudwatch_log_group.api_gateway_log_group.name
+
+  rate_limiting_429_critical_threshold          = var.api_gateway_429_critical_threshold
+  rate_limiting_429_critical_period             = var.api_gateway_429_critical_period_seconds
+  rate_limiting_429_critical_evaluation_periods = var.api_gateway_429_critical_evaluation_periods
+  rate_limiting_429_warning_threshold           = var.api_gateway_429_warning_threshold
+  rate_limiting_429_warning_period              = var.api_gateway_429_warning_period_seconds
+  rate_limiting_429_warning_evaluation_periods  = var.api_gateway_429_warning_evaluation_periods
 
   enable_warning_alarms = var.enable_warning_alarms
 

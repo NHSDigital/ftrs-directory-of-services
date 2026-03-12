@@ -484,3 +484,80 @@ variable "api_gateway_status_endpoint_5xx_evaluation_periods" {
   type        = number
   default     = 1
 }
+
+############################
+# API Rate Limiting (429 errors)
+# Per-app limit: 10 TPS (600/min), proxy limit: 150 TPS (9000/min)
+# CRITICAL: >= 10 over 1 minute (multiple apps throttled or single app significantly over limit)
+# WARNING: ≥ 5 over 1 minute (sustained rate limiting) - disabled for now until baseline established
+############################
+variable "api_gateway_429_critical_threshold" {
+  description = "API Gateway 429 rate limiting critical threshold (>= 10/min suggests meaningful throttling given 10 TPS per-app limit)"
+  type        = number
+  default     = 10
+}
+
+variable "api_gateway_429_critical_period_seconds" {
+  description = "CloudWatch period in seconds for 429 critical alarm (1 minute)"
+  type        = number
+  default     = 60
+}
+
+variable "api_gateway_429_critical_evaluation_periods" {
+  description = "Evaluation periods for 429 critical alarm"
+  type        = number
+  default     = 1
+}
+
+variable "api_gateway_429_warning_threshold" {
+  description = "API Gateway 429 rate limiting warning threshold (null disables it per spec)"
+  type        = number
+  default     = null
+}
+
+variable "api_gateway_429_warning_period_seconds" {
+  description = "CloudWatch period in seconds for 429 warning alarm (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+variable "api_gateway_429_warning_evaluation_periods" {
+  description = "Evaluation periods for 429 warning alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# AWS WAF Blocked Requests
+# CRITICAL: >= 250 blocks per 5 minutes sustained for 15+ minutes
+# WARNING: >= 75 blocks per 5 minutes (3x baseline of 25)
+############################
+variable "waf_blocked_requests_warning_threshold" {
+  description = "WAF blocked requests warning threshold (3x baseline of 25 per 5 min)"
+  type        = number
+  default     = 75
+}
+
+variable "waf_blocked_requests_critical_threshold" {
+  description = "WAF blocked requests critical threshold (likely coordinated attack)"
+  type        = number
+  default     = 250
+}
+
+variable "waf_blocked_requests_period_seconds" {
+  description = "CloudWatch period in seconds for WAF blocked requests alarms (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+variable "waf_blocked_requests_warning_evaluation_periods" {
+  description = "Evaluation periods for WAF blocked requests warning alarm"
+  type        = number
+  default     = 1
+}
+
+variable "waf_blocked_requests_critical_evaluation_periods" {
+  description = "Evaluation periods for WAF blocked requests critical alarm (sustained 15+ minutes = 3 periods of 5 min)"
+  type        = number
+  default     = 3
+}
