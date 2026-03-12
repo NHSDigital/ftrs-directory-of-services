@@ -1,0 +1,107 @@
+name: Deploy Account Infrastructure Workflow
+
+permissions: {}
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "The environment (used for the manual approval gate, e.g. dev, prod)"
+        required: true
+        type: string
+      matrix:
+        description: "JSON object (with an 'include' key) defining the name, environment, stacks and download_appconfig_artifact flag for each deployment target"
+        required: true
+        type: string
+      ref:
+        description: "Specify the branch, tag or SHA to be used for deployment"
+        required: false
+        type: string
+    secrets:
+      ACCOUNT_ID:
+        description: "AWS account ID for credentials"
+        required: true
+      MGMT_ACCOUNT_ID:
+        description: "Management AWS account ID for credentials"
+        required: true
+      SLACK_WEBHOOK_ALARMS_URL:
+        description: "Slack webhook URL for CloudWatch alarm notifications"
+        required: false
+      SPLUNK_COLLECTOR_URL:
+        description: "The base url for splunk collector"
+        required: true
+      SPLUNK_HEC_ENDPOINT:
+        description: "The HEC endpoint for splunk"
+        required: true
+      SPLUNK_HEC_TOKEN:
+        description: "The HEC token for splunk"
+        required: true
+    outputs:
+      plan_result:
+        description: "The Terraform plan output"
+        value: ${{ jobs.plan-infrastructure.outputs.plan_result }}
+
+jobs:
+  plan-infrastructure:
+    name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{ matrix.stacks }}"
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.matrix) }}
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: "default"
+      ref: ${{ inputs.ref }}
+      stacks: ${{ matrix.stacks }}
+      action: plan
+      type: account
+      download_appconfig_artifact: ${{ matrix.download_appconfig_artifact }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
+
+  manual-approval:
+    name: "Manual approval for ${{ inputs.environment }} infrastructure deployment"
+    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
+    needs:
+      - plan-infrastructure
+    runs-on: ubuntu-latest
+    environment: "${{ inputs.environment }}-protected"
+    steps:
+      - name: Approval required
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: echo "$ENVIRONMENT deployment paused for manual approval. Please approve in the Actions tab."
+
+  apply-infrastructure:
+    name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
+    concurrency:
+      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{ matrix.stacks }}"
+      cancel-in-progress: false
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - manual-approval
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(inputs.matrix) }}
+    uses: ./.github/workflows/deploy-infrastructure.yaml
+    with:
+      environment: ${{ matrix.environment }}
+      workspace: "default"
+      ref: ${{ inputs.ref }}
+      stacks: ${{ matrix.stacks }}
+      action: apply
+      type: account
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
