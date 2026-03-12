@@ -86,7 +86,7 @@ module "transformer_lambda" {
   s3_key_version_id              = data.aws_s3_object.transformer_lambda_package.version_id
   timeout                        = var.transformer_lambda_connection_timeout
   memory_size                    = var.lambda_memory_size
-  reserved_concurrent_executions = 15
+  reserved_concurrent_executions = 21
 
 
   subnet_ids         = [for subnet in values(data.aws_subnet.private_subnets_details) : subnet.id if endswith(subnet.cidr_block, "/24")]
@@ -127,12 +127,12 @@ module "transformer_lambda" {
 resource "aws_lambda_event_source_mapping" "transform_queue_trigger" {
   event_source_arn        = aws_sqs_queue.transform_queue.arn
   function_name           = module.transformer_lambda.lambda_function_name
-  batch_size              = 5
+  batch_size              = 3
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 15
+    maximum_concurrency = 21
   }
 
   maximum_batching_window_in_seconds = 2
@@ -195,12 +195,12 @@ module "consumer_lambda" {
 resource "aws_lambda_event_source_mapping" "consumer_queue_trigger" {
   event_source_arn        = aws_sqs_queue.load_queue.arn
   function_name           = module.consumer_lambda.lambda_function_name
-  batch_size              = 5
+  batch_size              = 3
   enabled                 = true
   function_response_types = ["ReportBatchItemFailures"]
 
   scaling_config {
-    maximum_concurrency = 15
+    maximum_concurrency = 21
   }
 
   maximum_batching_window_in_seconds = 2
