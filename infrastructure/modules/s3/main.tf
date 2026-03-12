@@ -33,7 +33,7 @@ module "s3" {
   logging = var.s3_logging_bucket != "" ? {
     target_bucket = local.logging_bucket_name
     target_prefix = "${local.bucket_name}/"
-  } : []
+  } : {}
 
   metric_configuration = var.metric_configuration_enabled ? [{
     name = "EntireBucket"
