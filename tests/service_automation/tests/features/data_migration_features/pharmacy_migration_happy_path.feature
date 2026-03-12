@@ -75,7 +75,7 @@ Feature: Data Migration - Pharmacy
         "name": "Test Community Pharmacy",
         "category": "Pharmacy Services",
         "type": "Essential Services",
-        "active": true
+        "status": "active"
       }
       """
 
@@ -247,7 +247,7 @@ Feature: Data Migration - Pharmacy
         "name": "Test Distance Selling Pharmacy",
         "category": "Pharmacy Services",
         "type": "Essential Services",
-        "active": true
+        "status": "active"
       }
       """
 

@@ -23,7 +23,7 @@ def test_validate_with_valid() -> NoReturn:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "active": True,
+        "status": "active",
     }
     validator = HealthcareServiceCreatePayloadValidator(**payload)
     assert validator.name == "Healthcare Service"
@@ -39,7 +39,7 @@ def test_validate_with_empty_name() -> NoReturn:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "active": True,
+        "status": "active",
     }
     with pytest.raises(ValidationError) as exc_info:
         HealthcareServiceCreatePayloadValidator(**payload)
@@ -58,7 +58,7 @@ def test_validate_with_invalid_type() -> NoReturn:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "active": True,
+        "status": "active",
     }
     with pytest.raises(ValidationError) as exc_info:
         HealthcareServiceCreatePayloadValidator(**payload)
@@ -77,7 +77,7 @@ def test_validate_with_invalid_category() -> NoReturn:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "active": True,
+        "status": "active",
     }
     with pytest.raises(ValidationError) as exc_info:
         HealthcareServiceCreatePayloadValidator(**payload)
@@ -92,7 +92,7 @@ def test_validate_with_invalid_created_by() -> NoReturn:
         "type": HealthcareServiceType.GP_CONSULTATION_SERVICE,
         "category": HealthcareServiceCategory.GP_SERVICES,
         "createdBy": "   ",
-        "active": True,
+        "status": "active",
     }
     with pytest.raises(ValidationError) as exc_info:
         HealthcareServiceCreatePayloadValidator(**payload)
@@ -111,7 +111,7 @@ def test_validate_with_missing_fields() -> NoReturn:
             "value": "INGRESS_API_ID",
             "display": "FtRS Ingress API",
         },
-        "active": True,
+        "status": "active",
     }
     with pytest.raises(ValidationError) as exc_info:
         HealthcareServiceCreatePayloadValidator(**payload)

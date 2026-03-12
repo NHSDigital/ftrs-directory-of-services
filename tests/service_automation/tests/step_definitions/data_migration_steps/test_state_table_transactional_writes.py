@@ -45,24 +45,6 @@ def get_state_record(dynamodb: Dict[str, Any], state_key: str) -> Dict[str, Any]
     return {k: deserializer.deserialize(v) for k, v in response["Item"].items()}
 
 
-@when(parsers.parse("a record does not exist in the state table for key '{state_key}'"))
-def verify_no_state_record(
-    dynamodb: Dict[str, Any],
-    state_key: str,
-) -> None:
-    """Verify that no state record exists for the given key."""
-    state_table_name = get_table_name(resource="state", stack_name="data-migration")
-
-    client = dynamodb[DYNAMODB_CLIENT]
-    response = client.get_item(
-        TableName=state_table_name,
-        Key={"source_record_id": {"S": state_key}},
-    )
-
-    # Verify record does NOT exist
-    assert "Item" not in response, f"State record should not exist for key {state_key}"
-
-
 @then(parsers.parse("the pipeline treats the record as an '{operation}' operation"))
 def verify_operation_type(
     migration_context: Dict[str, Any],

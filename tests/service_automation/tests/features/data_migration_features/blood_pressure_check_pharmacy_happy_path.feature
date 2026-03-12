@@ -104,7 +104,7 @@ Feature: Data Migration - Blood Pressure Check Pharmacy
         "name": "BP Check: Kent - Boots - Maidstone",
         "category": "Pharmacy Services",
         "type": "Blood Pressure Check",
-        "active": true
+        "status": "active"
       }
       """
 
@@ -210,7 +210,7 @@ Feature: Data Migration - Blood Pressure Check Pharmacy
         "name": "BP Check: Kent - Boots - Canterbury",
         "category": "Pharmacy Services",
         "type": "Blood Pressure Check",
-        "active": true
+        "status": "active"
       }
       """
 

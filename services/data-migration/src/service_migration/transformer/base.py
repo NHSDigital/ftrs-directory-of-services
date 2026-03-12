@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Type
+from typing import TYPE_CHECKING, Type
 from uuid import UUID
+
+if TYPE_CHECKING:
+    from service_migration.models import ServiceMigrationState
 
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
@@ -14,6 +17,7 @@ from ftrs_data_layer.domain import (
     EndpointStatus,
     HealthcareService,
     HealthcareServiceCategory,
+    HealthcareServiceStatus,
     HealthcareServiceTelecom,
     HealthcareServiceType,
     Location,
@@ -100,11 +104,19 @@ class ServiceTransformer(ABC):
     @classmethod
     @abstractmethod
     def should_include_service(
-        cls, service: legacy_model.Service
+        cls,
+        service: legacy_model.Service,
+        state_record: "ServiceMigrationState | None" = None,
     ) -> tuple[bool, str | None]:
         """
-        Check if the service record can be should be included in the transformation.
+        Check if the service record should be included in the transformation.
+
+        If ``state_record`` is provided the service already exists in the migrated
+        dataset, and status-based exclusion should be bypassed so that any changes
+        are reflected regardless of the service's current status.
+
         :param service: The service data to check.
+        :param state_record: Existing migration state for the service, if any.
         :return: A tuple (bool, str) indicating if the record is transformable and a reason if not.
         """
         return False, None
@@ -123,7 +135,7 @@ class ServiceTransformer(ABC):
             id=organisation_id,
             identifier_oldDoS_uid=service.uid,
             identifier_ODS_ODSCode=service.odscode,
-            active=True,
+            active=service.statusid == 1,
             name=service.publicname,
             telecom=[],
             type=organisation_type,
@@ -226,7 +238,11 @@ class ServiceTransformer(ABC):
         return HealthcareService(
             id=generate_uuid(service.id, "healthcare_service"),
             identifier_oldDoS_uid=service.uid,
-            active=True,
+            status=(
+                HealthcareServiceStatus.ACTIVE
+                if service.statusid == 1
+                else HealthcareServiceStatus.INACTIVE
+            ),
             category=category,
             type=type,
             providedBy=organisation_id,

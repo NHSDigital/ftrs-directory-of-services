@@ -29,7 +29,11 @@ const HealthCareServiceOverview: React.FC<{
           { key: "ID", value: healthcareService.id },
           { key: "Name", value: healthcareService.name },
           { key: "Type", value: healthcareService.type },
-          { key: "Active", value: healthcareService.active ? "Yes" : "No" },
+          {
+            key: "Status",
+            value:
+              healthcareService.status === "active" ? "Active" : "Inactive",
+          },
           {
             key: "Contact Information",
             value: <ContactInformation telecom={healthcareService.telecom} />,
