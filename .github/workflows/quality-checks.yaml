@@ -50,6 +50,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      OIDC_THUMBPRINT:
+        description: "GitHub Actions OIDC provider thumbprint"
+        required: false
       IDP_AWS_REPORT_UPLOAD_ACCOUNT_ID:
         description: "Report upload AWS account ID"
         required: false
@@ -212,6 +215,7 @@ jobs:
           workspace: ${{ inputs.workspace }}
           stack: ${{ matrix.stack }}
           action: validate
+          oidc_thumbprint: ${{ secrets.OIDC_THUMBPRINT }}
           mgmt_account_id: ${{ secrets.MGMT_ACCOUNT_ID }}
           slack_webhook_alarms_url: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
           splunk_collector_url: ${{ secrets.SPLUNK_COLLECTOR_URL }}

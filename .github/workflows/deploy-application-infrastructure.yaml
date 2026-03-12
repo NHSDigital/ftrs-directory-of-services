@@ -62,6 +62,9 @@ on:
       MGMT_ACCOUNT_ID:
         description: "Management AWS account ID for credentials"
         required: true
+      OIDC_THUMBPRINT:
+        description: "GitHub Actions OIDC provider thumbprint"
+        required: false
       SLACK_WEBHOOK_ALARMS_URL:
         description: "Slack webhook URL for alarm notifications"
         required: false
@@ -97,6 +100,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   manual-approval-application-infra:
@@ -144,6 +148,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
 
   deploy_summary:
