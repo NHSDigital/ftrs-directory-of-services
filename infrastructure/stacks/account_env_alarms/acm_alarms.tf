@@ -39,15 +39,12 @@ module "acm_api_cert_alarms" {
     }
   }
 
-  enable_warning_alarms = var.enable_warning_alarms
-
   slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
 
   tags = {
     Name = "${local.resource_prefix}-acm-api-cert-alarms"
   }
 }
-
 
 # The CloudFront certificate lives in us-east-1 (AWS requirement). Rather than
 # creating a separate SNS topic + Slack Lambda there, these alarms send their
@@ -70,7 +67,6 @@ resource "aws_cloudwatch_metric_alarm" "acm_cloudfront_cert_days_to_expiry_warni
   threshold           = var.acm_days_to_expiry_warning_alarm_threshold
   alarm_description   = "ACM Certificate expiry warning - certificate expires in less than ${var.acm_days_to_expiry_warning_alarm_threshold} days"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = var.enable_warning_alarms
 
   alarm_actions = [module.acm_api_cert_alarms[0].sns_topic_arn]
 
@@ -97,7 +93,6 @@ resource "aws_cloudwatch_metric_alarm" "acm_cloudfront_cert_days_to_expiry_criti
   threshold           = var.acm_days_to_expiry_critical_alarm_threshold
   alarm_description   = "ACM Certificate expiry critical - certificate expires in less than ${var.acm_days_to_expiry_critical_alarm_threshold} days"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = true
 
   alarm_actions = [module.acm_api_cert_alarms[0].sns_topic_arn]
 

@@ -186,24 +186,6 @@ variable "acm_days_to_expiry_critical_alarm_period" {
   type        = number
 }
 
-variable "enable_warning_alarms" {
-  description = "Enable actions for WARNING severity alarms (set to false to create placeholders)"
-  type        = bool
-  default     = true
-}
-
-variable "route53_health_check_failure_threshold" {
-  description = "The number of consecutive health check failures before the health check is considered failed"
-  type        = number
-  default     = 3
-}
-
-variable "route53_health_check_request_interval" {
-  description = "The interval in seconds between Route 53 health checks (10 or 30)"
-  type        = number
-  default     = 30
-}
-
 variable "route53_health_check_status_critical_alarm_threshold" {
   description = "The health check status threshold for triggering a critical alarm (0 = unhealthy)"
   type        = number

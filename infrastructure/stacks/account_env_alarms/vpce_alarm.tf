@@ -153,8 +153,6 @@ module "vpce_alarms" {
     logs_vpce            = { "active-connections-warning" = var.vpce_active_connections_warning_alarm_period, "active-connections-critical" = var.vpce_active_connections_critical_alarm_period }
   }
 
-  enable_warning_alarms = var.enable_warning_alarms
-
   slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
 
   tags = {

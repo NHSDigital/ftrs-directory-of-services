@@ -18,7 +18,6 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_status_critical_env
   threshold           = var.route53_health_check_status_critical_alarm_threshold
   alarm_description   = "Route 53 health check is unhealthy - DNS or domain availability issue detected for ${local.root_domain_name}"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = true
 
   alarm_actions = [
     aws_sns_topic.alarms.arn
@@ -47,7 +46,6 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_percentage_healthy_
   threshold           = var.route53_health_check_percentage_healthy_critical_alarm_threshold
   alarm_description   = "Route 53 health check percentage healthy is critically low for ${local.root_domain_name}"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = true
 
   alarm_actions = [
     aws_sns_topic.alarms.arn
@@ -76,7 +74,6 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_status_critical_roo
   threshold           = var.route53_health_check_status_critical_alarm_threshold
   alarm_description   = "Route 53 health check is unhealthy - DNS or domain availability issue detected for ${local.root_domain_name}"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = true
 
   alarm_actions = [
     aws_sns_topic.alarms.arn
@@ -105,7 +102,6 @@ resource "aws_cloudwatch_metric_alarm" "route53_health_check_percentage_healthy_
   threshold           = var.route53_health_check_percentage_healthy_critical_alarm_threshold
   alarm_description   = "Route 53 health check percentage healthy is critically low for ${local.root_domain_name}"
   treat_missing_data  = "notBreaching"
-  actions_enabled     = true
 
   alarm_actions = [
     aws_sns_topic.alarms.arn

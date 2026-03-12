@@ -71,8 +71,6 @@ module "s3_alarms" {
     }
   }
 
-  enable_warning_alarms = var.enable_warning_alarms
-
   slack_notifier_function_name = "${local.project_prefix}-slack-notifier"
 
   tags = {

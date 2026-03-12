@@ -32,3 +32,16 @@ variable "cert_validation_record_ttl" {
   type        = number
   default     = 60
 }
+
+variable "route53_health_check_request_interval" {
+  description = "The interval in seconds between Route 53 health checks (10 or 30)"
+  type        = number
+  default     = 30
+}
+
+variable "route53_health_check_failure_threshold" {
+  description = "The number of consecutive health check failures before the health check is considered failed"
+  type        = number
+  default     = 3
+}
+
