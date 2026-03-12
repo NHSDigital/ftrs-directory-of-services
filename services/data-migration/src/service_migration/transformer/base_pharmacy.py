@@ -162,6 +162,16 @@ class LinkedPharmacyTransformer(ServiceTransformer):
             healthcare_service=[healthcare_service],
         )
 
+    def derive_base_ods_code(self, service: legacy_model.Service) -> str:
+        """
+        Derive the parent pharmacy ODS code from the linked service ODS code.
+        """
+        return (
+            service.odscode[: -len(self.ODS_SUFFIX)]
+            if self.ODS_SUFFIX
+            else service.odscode
+        )
+
     def resolve_parent(
         self,
         service: legacy_model.Service,
@@ -171,11 +181,7 @@ class LinkedPharmacyTransformer(ServiceTransformer):
         """
         Resolve the parent pharmacy organisation and location for a linked service.
         """
-        base_ods_code = (
-            service.odscode[: -len(self.ODS_SUFFIX)]
-            if self.ODS_SUFFIX
-            else service.odscode
-        )
+        base_ods_code = self.derive_base_ods_code(service)
 
         parent_service = self._find_parent_service(engine, base_ods_code)
 

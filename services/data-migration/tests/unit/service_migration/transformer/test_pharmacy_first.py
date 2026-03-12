@@ -185,6 +185,25 @@ def test_should_include_service(
     assert message == expected_message
 
 
+def test_should_include_service_inactive_with_existing_state(
+    mock_legacy_service: Service,
+) -> None:
+    mock_legacy_service.typeid = 132
+    mock_legacy_service.odscode = "FXX99M06"
+    mock_legacy_service.name = "PF++: Test Service"
+    mock_legacy_service.statusid = 2
+
+    existing_state = ServiceMigrationState.init(service_id=mock_legacy_service.id)
+
+    should_include, message = PharmacyFirstTransformer.should_include_service(
+        mock_legacy_service,
+        existing_state,
+    )
+
+    assert should_include is True
+    assert message is None
+
+
 def test_transform_creates_only_healthcare_service(
     mock_legacy_service: Service,
     mock_metadata_cache: DoSMetadataCache,
