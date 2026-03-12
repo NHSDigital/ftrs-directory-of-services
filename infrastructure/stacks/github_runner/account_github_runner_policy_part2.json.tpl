@@ -83,7 +83,7 @@
                 "iam:RemoveClientIDFromOpenIDConnectProvider"
             ],
             "Resource": [
-                "arn:aws:iam::*:oidc-provider/token.actions.githubusercontent.com"
+                "arn:aws:iam::*:oidc-provider/${oidc_provider_identifier}"
             ]
         },
         {
