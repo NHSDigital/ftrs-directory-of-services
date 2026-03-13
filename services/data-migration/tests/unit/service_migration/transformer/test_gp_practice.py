@@ -127,6 +127,8 @@ def test_transform(
         result.healthcare_service[0].type
         == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )
+    assert result.healthcare_service[0].endpoints == []
+    assert len(result.organisation[0].endpoints) == len(mock_legacy_service.endpoints)
 
 
 def test_transform_with_feature_flag_disabled(
@@ -191,3 +193,5 @@ def test_transform_with_feature_flag_enabled(
         result.healthcare_service[0].type
         == HealthcareServiceType.GP_CONSULTATION_SERVICE
     )
+    assert result.healthcare_service[0].endpoints == []
+    assert len(result.organisation[0].endpoints) == len(mock_legacy_service.endpoints)
