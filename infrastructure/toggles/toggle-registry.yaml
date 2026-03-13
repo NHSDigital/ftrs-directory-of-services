@@ -42,6 +42,19 @@ appconfig_flags:
       ref: false
       prod: false
 
+  - id: dos_search_triage_code_enabled
+    name: "Dos Search - Triage Code Enabled"
+    description: "Enable triage code endpoint from the current DoS"
+    service: dos-search
+    owner: "Dos Search Team"
+    environments:
+      workspace: true
+      dev: true
+      test: true
+      int: false
+      ref: false
+      prod: false
+
 stack_toggles:
   - id: data_migration_version_history_enabled
     name: "Data Migration - Version History Enabled"

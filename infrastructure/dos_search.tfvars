@@ -5,6 +5,7 @@ s3_bucket_name                 = "dos-search-s3"
 lambda_name                    = "ods-code-lambda"
 health_check_lambda_name       = "health-check-lambda"
 healthcare_service_lambda_name = "healthcare-service-lambda"
+triage_code_lambda_name        = "triage-code-lambda"
 
 #Lambda
 lambda_runtime     = "python3.12"

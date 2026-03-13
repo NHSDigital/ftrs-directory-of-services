@@ -7,3 +7,4 @@ class FeatureFlag(str, Enum):
     )
     DATA_MIGRATION_PHARMACY_ENABLED = "data_migration_pharmacy_enabled"
     DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED = "dos_search_healthcare_service_enabled"
+    DOS_SEARCH_TRIAGE_CODE_ENABLED = "dos_search_triage_code_enabled"
