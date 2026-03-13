@@ -258,6 +258,7 @@ class ServiceTransformer(ABC):
             symptomGroupSymptomDiscriminators=self.build_sgsds(service),
             dispositions=self.build_dispositions(service),
             ageEligibilityCriteria=self.build_age_eligibility_criteria(service),
+            endpoints=[],
         )
 
     def build_opening_times(self, service: legacy_model.Service) -> list[dict]:

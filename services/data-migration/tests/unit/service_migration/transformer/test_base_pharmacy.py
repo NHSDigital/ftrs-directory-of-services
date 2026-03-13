@@ -228,3 +228,53 @@ def test_transform_endpoints_excluded_from_organisation(
     # Verify organisation has no endpoints regardless of source data
     assert len(result.organisation) == 1
     assert result.organisation[0].endpoints == []
+    # Endpoints are assigned to the healthcare service instead
+    assert len(result.healthcare_service[0].endpoints) == len(
+        mock_legacy_service.endpoints
+    )
+
+
+@pytest.mark.parametrize(
+    "service_type_id",
+    [13, 134],
+)
+def test_transform_healthcare_service_endpoints_linked_correctly(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    service_type_id: int,
+) -> None:
+    """Test that HS endpoints have correct managedByOrganisation and service linkage."""
+    mock_legacy_service.typeid = service_type_id
+    mock_legacy_service.odscode = "FXX99"
+    mock_legacy_service.statusid = 1
+    assert len(mock_legacy_service.endpoints) > 0
+
+    transformer = BasePharmacyTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    org_id = result.organisation[0].id
+    hs_id = result.healthcare_service[0].id
+    for endpoint in result.healthcare_service[0].endpoints:
+        assert endpoint.managedByOrganisation == org_id
+        assert endpoint.service == hs_id
+
+
+@pytest.mark.parametrize(
+    "service_type_id",
+    [13, 134],
+)
+def test_transform_healthcare_service_has_no_endpoints_when_service_has_none(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+    service_type_id: int,
+) -> None:
+    """Test that HS endpoints list is empty when the source service has no endpoints."""
+    mock_legacy_service.typeid = service_type_id
+    mock_legacy_service.odscode = "FXX99"
+    mock_legacy_service.statusid = 1
+    mock_legacy_service.endpoints = []
+
+    transformer = BasePharmacyTransformer(MockLogger(), mock_metadata_cache)
+    result = transformer.transform(mock_legacy_service)
+
+    assert result.healthcare_service[0].endpoints == []

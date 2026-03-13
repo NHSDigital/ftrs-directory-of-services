@@ -253,6 +253,7 @@ def test_transform_services(
     # Verify no organisation or location linkage
     assert result.healthcare_service[0].providedBy is None
     assert result.healthcare_service[0].location is None
+    assert result.healthcare_service[0].endpoints == []
 
 
 @pytest.mark.parametrize(
