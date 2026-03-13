@@ -173,6 +173,7 @@ def test_update_healthcare_service_success(mock_repository: MockerFixture) -> No
         "lastUpdated": "2023-10-01T00:00:00Z",
         "symptomGroupSymptomDiscriminators": [],
         "ageEligibilityCriteria": None,
+        "endpoints": [],
     }
 
     response = client.put(f"/{test_service_id}", json=update_payload)
