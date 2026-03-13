@@ -85,7 +85,7 @@ resource "aws_iam_role_policy" "cw_to_firehose_policy" {
         "firehose:PutRecordBatch"
       ]
       Resource = [
-        aws_kinesis_firehose_delivery_stream.splunk_event.arn,
+        aws_kinesis_firehose_delivery_stream.splunk.arn,
         aws_kinesis_firehose_delivery_stream.splunk_raw.arn
       ]
     }]
