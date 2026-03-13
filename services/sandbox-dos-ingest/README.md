@@ -10,15 +10,17 @@
 
 - GET /_status -> 200 (health check)
 - GET /Organization
-  - 200 example: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123`
-  - 400 invalid-identifier-value: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC@#`
-  - 400 invalid-identifier-system: `?identifier=foo|ABC123`
+  - 200 success: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123`
+  - 400 missing-identifier: (no identifier query parameter)
   - 400 missing-identifier-separator: `?identifier=ABC123`
-  - 404 not-found: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|DEF456`
+  - 400 invalid-identifier-system: `?identifier=foo|ABC123`
+  - 400 invalid-identifier-value: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC@#`
+  - 404 not-found: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|DEF456` (any other valid code)
   - 500 internal-server-error: `?identifier=https://fhir.nhs.uk/Id/ods-organization-code|GHI789`
 - PUT /Organization/{id}
-  - 200 success: PUT to `/Organization/87c5f637-cca3-4ddd-97a9-a3f6e6746bbe`
-  - 404 not-found: PUT to `/Organization/not-found-id`
+  - 200 success: PUT to `/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96` (matches GET response)
+  - 422 validation-error: PUT to `/Organization/trigger-422-validation-error`
+  - 404 not-found: PUT to any other ID
 
 ## Quick start (local)
 
@@ -66,11 +68,18 @@ curl -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
 ```
 
-### 400 Invalid identifier format
+### 400 Missing identifier parameter
 
 ```bash
 curl -H "Accept: application/fhir+json" \
-  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC%40%23"
+  "http://localhost:9000/Organization"
+```
+
+### 400 Missing identifier separator
+
+```bash
+curl -H "Accept: application/fhir+json" \
+  "http://localhost:9000/Organization?identifier=ABC123"
 ```
 
 ### 400 Invalid identifier system
@@ -78,6 +87,13 @@ curl -H "Accept: application/fhir+json" \
 ```bash
 curl -H "Accept: application/fhir+json" \
   "http://localhost:9000/Organization?identifier=foo|ABC123"
+```
+
+### 400 Invalid identifier format
+
+```bash
+curl -H "Accept: application/fhir+json" \
+  "http://localhost:9000/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC%40%23"
 ```
 
 ### 404 Not Found
@@ -93,8 +109,28 @@ curl -H "Accept: application/fhir+json" \
 curl -X PUT \
   -H "Content-Type: application/fhir+json" \
   -H "Accept: application/fhir+json" \
-  -d '{"resourceType": "Organization", "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe", "active": true, "name": "Test Org"}' \
-  "http://localhost:9000/Organization/87c5f637-cca3-4ddd-97a9-a3f6e6746bbe"
+  -d '{"resourceType": "Organization", "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96", "active": true, "name": "Test Org"}' \
+  "http://localhost:9000/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+```
+
+### PUT Organization (422 Validation Error)
+
+```bash
+curl -X PUT \
+  -H "Content-Type: application/fhir+json" \
+  -H "Accept: application/fhir+json" \
+  -d '{"resourceType": "Organization", "id": "trigger-422-validation-error", "active": true, "name": "Test Org"}' \
+  "http://localhost:9000/Organization/trigger-422-validation-error"
+```
+
+### PUT Organization (404 Not Found)
+
+```bash
+curl -X PUT \
+  -H "Content-Type: application/fhir+json" \
+  -H "Accept: application/fhir+json" \
+  -d '{"resourceType": "Organization", "id": "unknown-id", "active": true, "name": "Test Org"}' \
+  "http://localhost:9000/Organization/unknown-id"
 ```
 
 ## Development

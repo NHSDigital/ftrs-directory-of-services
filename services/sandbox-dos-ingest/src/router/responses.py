@@ -97,27 +97,30 @@ SUCCESS_BUNDLE_ABC123 = {
     ],
 }
 
-# GET /Organization - 404 Not Found
-ERROR_NOT_FOUND = {
-    "resourceType": "OperationOutcome",
-    "issue": [
-        {
-            "severity": "error",
-            "code": "not-found",
-            "details": {
-                "coding": [
-                    {
-                        "system": OPERATION_OUTCOME_SYSTEM,
-                        "code": "MSG_NO_EXIST",
-                        "display": "Resource does not exist",
-                    }
-                ],
-                "text": "The requested organisation was not found",
-            },
-            "diagnostics": "Organisation with ODS code 'DEF456' not found",
-        }
-    ],
-}
+
+# GET /Organization - 404 Not Found (builder function)
+def build_not_found_error(ods_code: str) -> dict:
+    """Build error response for organization not found, including the actual ODS code."""
+    return {
+        "resourceType": "OperationOutcome",
+        "issue": [
+            {
+                "severity": "error",
+                "code": "not-found",
+                "details": {
+                    "coding": [
+                        {
+                            "system": OPERATION_OUTCOME_SYSTEM,
+                            "code": "MSG_NO_EXIST",
+                            "display": "Resource does not exist",
+                        }
+                    ],
+                    "text": "The requested organisation was not found",
+                },
+                "diagnostics": f"Organisation with ODS code '{ods_code}' not found",
+            }
+        ],
+    }
 
 # GET /Organization - 400 Missing identifier parameter
 ERROR_MISSING_IDENTIFIER = {
@@ -125,18 +128,18 @@ ERROR_MISSING_IDENTIFIER = {
     "issue": [
         {
             "severity": "error",
-            "code": "required",
+            "code": "invalid",
             "details": {
                 "coding": [
                     {
-                        "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
-                        "code": "BAD_REQUEST",
-                        "display": "The Server was unable to process the request.",
+                        "system": "https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode",
+                        "version": "1.0.0",
+                        "code": "INVALID_SEARCH_DATA",
+                        "display": "Invalid search data",
                     }
                 ],
-                "text": "Missing required parameter: identifier",
             },
-            "diagnostics": "The 'identifier' query parameter is required",
+            "diagnostics": "Invalid request data provided: Missing required request parameters: [identifier]",
         }
     ],
 }
@@ -163,49 +166,55 @@ ERROR_MISSING_IDENTIFIER_SEPARATOR = {
     ],
 }
 
-# GET /Organization - 400 Invalid identifier system
-ERROR_INVALID_IDENTIFIER_SYSTEM = {
-    "resourceType": "OperationOutcome",
-    "issue": [
-        {
-            "severity": "error",
-            "code": "structure",
-            "details": {
-                "coding": [
-                    {
-                        "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
-                        "code": "BAD_REQUEST",
-                        "display": "The Server was unable to process the request.",
-                    }
-                ],
-                "text": f"Invalid identifier system - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'",
-            },
-            "diagnostics": f"Invalid identifier system - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'",
-        }
-    ],
-}
 
-# GET /Organization - 400 Invalid ODS code format
-ERROR_INVALID_IDENTIFIER_VALUE = {
-    "resourceType": "OperationOutcome",
-    "issue": [
-        {
-            "severity": "error",
-            "code": "invalid",
-            "details": {
-                "coding": [
-                    {
-                        "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
-                        "code": "BAD_REQUEST",
-                        "display": "The Server was unable to process the request.",
-                    }
-                ],
-                "text": "Invalid identifier value: ODS code must follow format ^[A-Za-z0-9]{1,12}$",
-            },
-            "diagnostics": "Invalid identifier value: ODS code must follow format ^[A-Za-z0-9]{1,12}$",
-        }
-    ],
-}
+# GET /Organization - 400 Invalid identifier system (builder function)
+def build_invalid_identifier_system_error(system: str) -> dict:
+    """Build error response for invalid identifier system, including the actual system value."""
+    return {
+        "resourceType": "OperationOutcome",
+        "issue": [
+            {
+                "severity": "error",
+                "code": "structure",
+                "details": {
+                    "coding": [
+                        {
+                            "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
+                            "code": "BAD_REQUEST",
+                            "display": "The Server was unable to process the request.",
+                        }
+                    ],
+                    "text": f"Invalid identifier system '{system}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'",
+                },
+                "diagnostics": f"Invalid identifier system '{system}' - expected '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}'",
+            }
+        ],
+    }
+
+
+# GET /Organization - 400 Invalid ODS code format (builder function)
+def build_invalid_identifier_value_error(ods_code: str) -> dict:
+    """Build error response for invalid ODS code format, including the actual ODS code."""
+    return {
+        "resourceType": "OperationOutcome",
+        "issue": [
+            {
+                "severity": "error",
+                "code": "structure",
+                "details": {
+                    "coding": [
+                        {
+                            "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
+                            "code": "BAD_REQUEST",
+                            "display": "The Server was unable to process the request.",
+                        }
+                    ],
+                    "text": f"Invalid identifier value: ODS code '{ods_code}' must follow format ^[A-Za-z0-9]{{1,12}}$",
+                },
+                "diagnostics": f"Invalid identifier value: ODS code '{ods_code}' must follow format ^[A-Za-z0-9]{{1,12}}$",
+            }
+        ],
+    }
 
 # GET /Organization - 500 Internal Server Error
 ERROR_INTERNAL_SERVER = {
@@ -269,6 +278,28 @@ PUT_NOT_FOUND_RESPONSE = {
                 "text": "The requested organisation was not found",
             },
             "diagnostics": "Organisation not found.",
+        }
+    ],
+}
+
+# PUT /Organization/{id} - 422 Unprocessable Entity (validation error)
+PUT_VALIDATION_ERROR_RESPONSE = {
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "error",
+            "code": "invalid",
+            "details": {
+                "coding": [
+                    {
+                        "system": FHIR_HTTP_ERROR_CODES_SYSTEM,
+                        "code": "UNPROCESSABLE_ENTITY",
+                        "display": "Message was not malformed but deemed unprocessable by the server.",
+                    }
+                ],
+                "text": "Required field is missing",
+            },
+            "diagnostics": "Field 'example' is required",
         }
     ],
 }

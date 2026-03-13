@@ -2,13 +2,15 @@
 
 from src.router.responses import (
     ERROR_INTERNAL_SERVER,
-    ERROR_INVALID_IDENTIFIER_SYSTEM,
-    ERROR_INVALID_IDENTIFIER_VALUE,
+    ERROR_MISSING_IDENTIFIER,
     ERROR_MISSING_IDENTIFIER_SEPARATOR,
-    ERROR_NOT_FOUND,
     PUT_NOT_FOUND_RESPONSE,
     PUT_SUCCESS_RESPONSE,
+    PUT_VALIDATION_ERROR_RESPONSE,
     SUCCESS_BUNDLE_ABC123,
+    build_invalid_identifier_system_error,
+    build_invalid_identifier_value_error,
+    build_not_found_error,
 )
 
 
@@ -48,10 +50,19 @@ class TestErrorResponses:
     """Tests for error response structures."""
 
     def test_not_found_has_correct_structure(self) -> None:
-        """Test ERROR_NOT_FOUND has correct structure."""
-        assert ERROR_NOT_FOUND["resourceType"] == "OperationOutcome"
-        assert ERROR_NOT_FOUND["issue"][0]["severity"] == "error"
-        assert ERROR_NOT_FOUND["issue"][0]["code"] == "not-found"
+        """Test build_not_found_error has correct structure."""
+        error = build_not_found_error("TEST123")
+        assert error["resourceType"] == "OperationOutcome"
+        assert error["issue"][0]["severity"] == "error"
+        assert error["issue"][0]["code"] == "not-found"
+        assert "TEST123" in error["issue"][0]["diagnostics"]
+
+    def test_missing_identifier_has_correct_structure(self) -> None:
+        """Test ERROR_MISSING_IDENTIFIER has correct structure."""
+        assert ERROR_MISSING_IDENTIFIER["resourceType"] == "OperationOutcome"
+        assert ERROR_MISSING_IDENTIFIER["issue"][0]["severity"] == "error"
+        assert ERROR_MISSING_IDENTIFIER["issue"][0]["code"] == "invalid"
+        assert "INVALID_SEARCH_DATA" in str(ERROR_MISSING_IDENTIFIER["issue"][0]["details"]["coding"])
 
     def test_missing_separator_has_correct_structure(self) -> None:
         """Test ERROR_MISSING_IDENTIFIER_SEPARATOR has correct structure."""
@@ -60,16 +71,20 @@ class TestErrorResponses:
         assert ERROR_MISSING_IDENTIFIER_SEPARATOR["issue"][0]["code"] == "structure"
 
     def test_invalid_system_has_correct_structure(self) -> None:
-        """Test ERROR_INVALID_IDENTIFIER_SYSTEM has correct structure."""
-        assert ERROR_INVALID_IDENTIFIER_SYSTEM["resourceType"] == "OperationOutcome"
-        assert ERROR_INVALID_IDENTIFIER_SYSTEM["issue"][0]["severity"] == "error"
-        assert ERROR_INVALID_IDENTIFIER_SYSTEM["issue"][0]["code"] == "structure"
+        """Test build_invalid_identifier_system_error has correct structure."""
+        error = build_invalid_identifier_system_error("invalid-system")
+        assert error["resourceType"] == "OperationOutcome"
+        assert error["issue"][0]["severity"] == "error"
+        assert error["issue"][0]["code"] == "structure"
+        assert "invalid-system" in error["issue"][0]["diagnostics"]
 
     def test_invalid_value_has_correct_structure(self) -> None:
-        """Test ERROR_INVALID_IDENTIFIER_VALUE has correct structure."""
-        assert ERROR_INVALID_IDENTIFIER_VALUE["resourceType"] == "OperationOutcome"
-        assert ERROR_INVALID_IDENTIFIER_VALUE["issue"][0]["severity"] == "error"
-        assert ERROR_INVALID_IDENTIFIER_VALUE["issue"][0]["code"] == "invalid"
+        """Test build_invalid_identifier_value_error has correct structure."""
+        error = build_invalid_identifier_value_error("ABC!@")
+        assert error["resourceType"] == "OperationOutcome"
+        assert error["issue"][0]["severity"] == "error"
+        assert error["issue"][0]["code"] == "structure"
+        assert "ABC!@" in error["issue"][0]["diagnostics"]
 
     def test_internal_server_error_has_correct_structure(self) -> None:
         """Test ERROR_INTERNAL_SERVER has correct structure."""
@@ -91,3 +106,10 @@ class TestPutResponses:
         assert PUT_NOT_FOUND_RESPONSE["resourceType"] == "OperationOutcome"
         assert PUT_NOT_FOUND_RESPONSE["issue"][0]["severity"] == "error"
         assert PUT_NOT_FOUND_RESPONSE["issue"][0]["code"] == "not-found"
+
+    def test_put_validation_error_has_correct_structure(self) -> None:
+        """Test PUT_VALIDATION_ERROR_RESPONSE has correct structure."""
+        assert PUT_VALIDATION_ERROR_RESPONSE["resourceType"] == "OperationOutcome"
+        assert PUT_VALIDATION_ERROR_RESPONSE["issue"][0]["severity"] == "error"
+        assert PUT_VALIDATION_ERROR_RESPONSE["issue"][0]["code"] == "invalid"
+        assert "UNPROCESSABLE_ENTITY" in str(PUT_VALIDATION_ERROR_RESPONSE["issue"][0]["details"]["coding"])
