@@ -6,6 +6,11 @@ from fhir.resources.R4B.operationoutcome import OperationOutcome
 from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
+from functions.healthcare_service_query_params import (
+    HealthcareServiceQueryParams,
+    HsInvalidIdentifierSystem,
+    HsODSCodeInvalidFormatError,
+)
 from functions.organization_headers import (
     NHSD_REQUEST_ID,
     X_REQUEST_ID,
@@ -35,6 +40,7 @@ class ErrorGroup:
     error_type: str
     friendly_name: str
     error_details: list[ErrorDetail]
+    model_name: str = ""
 
 
 INVALID_SEARCH_DATA_CODING: dict[str, list] = {
@@ -63,12 +69,16 @@ VALUE_ERROR_MAPPINGS: dict[Type[ValueError], dict[str, str]] = {
     InvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
     ODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidRevincludeError: {"code": "value", "severity": "error"},
+    # HealthcareService query params error types
+    HsInvalidIdentifierSystem: {"code": "code-invalid", "severity": "error"},
+    HsODSCodeInvalidFormatError: {"code": "value", "severity": "error"},
     InvalidVersionError: {"code": "value", "severity": "error"},
 }
 
 FRIENDLY_MODEL_NAME_MAP: dict[str, str] = {
     OrganizationQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
     OrganizationHeaders.__name__: FRIENDLY_NAME_HEADERS,
+    HealthcareServiceQueryParams.__name__: FRIENDLY_NAME_QUERY_PARAMETERS,
 }
 
 PROXY_HEADER_BY_INTERNAL_HEADER_MAP: dict[str, str] = {
@@ -81,6 +91,20 @@ def create_resource_internal_server_error() -> OperationOutcome:
         {
             "issue": [
                 _create_issue("exception", "fatal", diagnostics="Internal server error")
+            ]
+        }
+    )
+
+
+def create_resource_service_unavailable_error() -> OperationOutcome:
+    return OperationOutcome.model_validate(
+        {
+            "issue": [
+                _create_issue(
+                    "exception",
+                    "fatal",
+                    diagnostics="Service Unavailable: Healthcare Service search endpoint is currently disabled",
+                )
             ]
         }
     )
@@ -100,6 +124,15 @@ def create_validation_error_operation_outcome(
     return OperationOutcome.model_validate({"issue": issues})
 
 
+def _get_allowed_query_params(model_name: str) -> list[str]:
+    """Get required query parameter aliases for the given model."""
+    if model_name == OrganizationQueryParams.__name__:
+        return OrganizationQueryParams.get_required_query_params()
+    if model_name == HealthcareServiceQueryParams.__name__:
+        return HealthcareServiceQueryParams.get_required_query_params()
+    return []
+
+
 def _create_issues_from_error(error_group: ErrorGroup) -> list[dict[str, Any]]:
     issues = []
 
@@ -109,11 +142,12 @@ def _create_issues_from_error(error_group: ErrorGroup) -> list[dict[str, Any]]:
         )
         diagnostics = f"Unexpected {error_group.friendly_name}(s): {unexpected}."
         if error_group.friendly_name == FRIENDLY_NAME_QUERY_PARAMETERS:
-            allowed_fields = " and ".join(
-                f"'{field}'"
-                for field in OrganizationQueryParams.get_required_query_params()
-            )
-            diagnostics += f" Only {allowed_fields} are allowed."
+            allowed = _get_allowed_query_params(error_group.model_name)
+            if len(allowed) == 1:
+                diagnostics += f" Only '{allowed[0]}' is allowed."
+            else:
+                joined = " and ".join(f"'{f}'" for f in allowed)
+                diagnostics += f" Only {joined} are allowed."
         issues.append(
             _create_issue(
                 "value",
@@ -189,7 +223,6 @@ def _create_issue(
 def _extract_validation_error_error_details_by_type(
     exception: ValidationError,
 ) -> list[ErrorGroup]:
-    """Extract useful error details from ValidationError and group by error type."""
     title = exception.title
     friendly_name = FRIENDLY_MODEL_NAME_MAP.get(title, "input")
     error_details_by_type = defaultdict(list)
@@ -197,18 +230,22 @@ def _extract_validation_error_error_details_by_type(
     for error in exception.errors():
         error_type = error.get("type", "unknown")
         field_name = _extract_field_name(error, friendly_name)
+        custom_error = (
+            error.get("ctx", {}).get("error") if error_type == "value_error" else None
+        )
 
         error_details_by_type[error_type].append(
             ErrorDetail(
-                field=field_name,
-                value=error.get("input"),
-                custom_error=error.get("ctx", {}).get("error"),
+                field=field_name, value=error.get("input"), custom_error=custom_error
             )
         )
 
     return [
         ErrorGroup(
-            error_type=error_type, friendly_name=friendly_name, error_details=errors
+            error_type=error_type,
+            friendly_name=friendly_name,
+            error_details=errors,
+            model_name=title,
         )
         for error_type, errors in error_details_by_type.items()
     ]

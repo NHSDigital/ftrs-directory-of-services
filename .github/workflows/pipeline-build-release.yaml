@@ -154,6 +154,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   deploy-application-infrastructure:
     name: "Deploy application infrastructure for release candidate ${{ needs.tag-release.outputs.release_tag }} in the ${{ needs.metadata.outputs.environment }} environment"
@@ -172,6 +173,7 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
 
   deploy-proxy-to-apim:
     name: "Deploy ${{ matrix.api_name }} API to Proxygen"

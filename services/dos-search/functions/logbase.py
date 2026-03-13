@@ -54,3 +54,15 @@ class DosSearchLogBase(LogBase):
         level=WARNING,
         message="Unknown business scenario value; endpoint business scenario extension omitted",
     )
+    DOS_SEARCH_012 = LogReference(
+        level=INFO,
+        message="Received request for healthcare service",
+    )
+    DOS_SEARCH_013 = LogReference(
+        level=WARNING,
+        message="Service unavailable - Healthcare Service search endpoint is disabled via feature flag",
+    )
+    DOS_SEARCH_014 = LogReference(
+        level=INFO,
+        message="Healthcare Service search endpoint is enabled via feature flag",
+    )
