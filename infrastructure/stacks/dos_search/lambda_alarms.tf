@@ -11,7 +11,7 @@ module "lambda_monitoring" {
   alarm_config_path = "lambda/config"
 
   monitored_resources = {
-    search_lambda             = module.lambda.lambda_function_name
+    organization_lambda       = module.organization_lambda.lambda_function_name
     health_check_lambda       = module.health_check_lambda.lambda_function_name
     healthcare_service_lambda = module.healthcare_service_lambda.lambda_function_name
   }

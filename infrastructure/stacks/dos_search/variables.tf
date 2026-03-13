@@ -1,21 +1,35 @@
-variable "dos_search_service_name" {
-  description = "The name of the gp search service"
-}
-
 variable "s3_bucket_name" {
-  description = "The name of the gp search bucket"
+  description = "The name of the dos-search bucket"
+  type        = string
 }
 
-variable "lambda_name" {
-  description = "The name of the gp search lambda"
+variable "organization_name" {
+  description = "The name of the organization lambda"
+  type        = string
 }
 
-variable "health_check_lambda_name" {
-  description = "The name of the health check lambda for gp search"
+variable "organization_lambda_handler" {
+  description = "The handler for the organization lambda"
+  type        = string
 }
 
-variable "healthcare_service_lambda_name" {
+variable "health_check_name" {
+  description = "The name of the health check lambda"
+  type        = string
+}
+
+variable "health_check_lambda_handler" {
+  description = "The handler for the health check lambda"
+  type        = string
+}
+
+variable "healthcare_service_name" {
   description = "The name of the healthcare service lambda"
+}
+
+variable "healthcare_service_lambda_handler" {
+  description = "The handler for the healthcare service lambda"
+  type        = string
 }
 
 variable "lambda_runtime" {
@@ -103,6 +117,11 @@ variable "health_check_lambda_cloudwatch_logs_retention_days" {
   description = "Number of days to retain CloudWatch logs for the health check Lambda"
   type        = number
   default     = 7
+}
+
+variable "api_gateway_access_logs_retention_days" {
+  description = "Number of days to retain API Gateway access logs"
+  type        = number
 }
 
 variable "api_gateway_throttling_rate_limit" {

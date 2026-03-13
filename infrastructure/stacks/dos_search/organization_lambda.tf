@@ -1,17 +1,17 @@
-module "health_check_lambda" {
+module "organization_lambda" {
   source                  = "../../modules/lambda"
-  function_name           = "${local.resource_prefix}-${var.health_check_name}"
-  description             = "This lambda provides a health check for the search lambda"
-  handler                 = var.health_check_lambda_handler
+  function_name           = "${local.resource_prefix}-${var.organization_name}"
+  description             = "This lambda provides search logic to returns an organisation and its endpoints"
+  handler                 = var.organization_lambda_handler
   runtime                 = var.lambda_runtime
   s3_bucket_name          = local.artefacts_bucket
-  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.health_check_name}.zip"
+  s3_key                  = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.organization_name}.zip"
   ignore_source_code_hash = false
-  s3_key_version_id       = data.aws_s3_object.dos_search_health_check_lambda_package.version_id
+  s3_key_version_id       = data.aws_s3_object.dos_search_organization_lambda_package.version_id
   attach_tracing_policy   = true
   tracing_mode            = "Active"
   number_of_policy_jsons  = "2"
-  policy_jsons            = [data.aws_iam_policy_document.health_check_dynamodb_access_policy.json]
+  policy_jsons            = [data.aws_iam_policy_document.dynamodb_access_policy.json]
   timeout                 = var.lambda_timeout
   memory_size             = var.lambda_memory_size
 
@@ -41,29 +41,8 @@ module "health_check_lambda" {
   aws_region     = var.aws_region
   vpc_id         = data.aws_vpc.vpc.id
 
-  cloudwatch_logs_retention = var.health_check_lambda_cloudwatch_logs_retention_days
+  cloudwatch_logs_retention = var.lambda_cloudwatch_logs_retention_days
   build_splunk_subscription = var.build_splunk_subscription
   firehose_role_arn         = data.aws_iam_role.firehose_role.arn
   firehose_arn              = data.aws_kinesis_firehose_delivery_stream.firehose_stream.arn
-}
-
-data "aws_iam_policy_document" "health_check_dynamodb_access_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "dynamodb:DescribeTable",
-    ]
-    resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${local.project_prefix}-database-${var.organisation_table_name}*"
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:DescribeKey"
-    ]
-    resources = [data.aws_kms_key.dynamodb_kms_key.arn]
-  }
 }

@@ -32,9 +32,19 @@ data "aws_s3_object" "python_dependency_layer" {
   key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-python-dependency-layer.zip"
 }
 
-data "aws_s3_object" "dos_search_lambda_package" {
+data "aws_s3_object" "dos_search_organization_lambda_package" {
   bucket = local.artefacts_bucket
-  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-lambda.zip"
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.organization_name}.zip"
+}
+
+data "aws_s3_object" "dos_search_health_check_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.health_check_name}.zip"
+}
+
+data "aws_s3_object" "dos_search_healthcare_service_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.healthcare_service_name}.zip"
 }
 
 data "aws_route53_zone" "dev_ftrs_cloud" {
@@ -109,7 +119,7 @@ data "aws_prefix_list" "dynamodb" {
 data "aws_security_group" "dos_search_lambda_security_group" {
   count = local.is_primary_environment ? 0 : 1
 
-  name = "${local.resource_prefix}-${var.lambda_name}-sg"
+  name = "${local.resource_prefix}-ods-code-lambda-sg"
 }
 
 data "aws_security_group" "vpce_interface_security_group" {

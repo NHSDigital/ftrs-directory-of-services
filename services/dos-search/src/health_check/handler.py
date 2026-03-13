@@ -1,0 +1,40 @@
+from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
+from aws_lambda_powertools.utilities.typing import LambdaContext
+from ftrs_common.logger import Logger
+from ftrs_common.utils.db_service import get_service_repository
+from ftrs_data_layer.domain import Organisation
+
+from src.common.logbase import DosSearchHealthLogBase
+
+app = APIGatewayRestResolver()
+logger = Logger.get(service="dos-search-health")
+
+SECURITY_HEADERS: dict[str, str] = {
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Cache-Control": "no-store",
+}
+
+
+@app.get("/_status")
+def get_status() -> Response:
+    table_active = _is_table_active()
+    status_code = 200 if table_active else 500
+    return Response(status_code=status_code, headers=SECURITY_HEADERS)
+
+
+def _is_table_active() -> bool:
+    try:
+        repository = get_service_repository(Organisation, "organisation")
+        table = repository.table
+        table_status: str = table.table_status
+    except Exception:
+        logger.log(DosSearchHealthLogBase.DOS_SEARCH_HEALTH_001)
+        return False
+    else:
+        return table_status == "ACTIVE"
+
+
+def lambda_handler(event: dict, context: LambdaContext) -> dict:
+    return app.resolve(event, context)
