@@ -24,3 +24,4 @@ single_nat_gateway     = true
 one_nat_gateway_per_az = false
 
 regional_waf_log_group_retention_days = 30
+splunk_default_index                  = "app_directoryofservices_dev"

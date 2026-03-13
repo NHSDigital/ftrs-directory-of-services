@@ -96,12 +96,6 @@ resource "aws_cloudwatch_log_group" "firehose_log_group" {
   retention_in_days = var.firehose_logs_retention_in_days
 }
 
-resource "aws_cloudwatch_log_group" "firehose_raw_log_group" {
-  # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
-  name              = "${local.resource_prefix}-${var.raw_firehose_name}-logs"
-  retention_in_days = var.firehose_logs_retention_in_days
-}
-
 resource "aws_cloudwatch_log_group" "performance_ec2_log_group" {
   # checkov:skip=CKV_AWS_158: Justification: Using AWS default encryption.
   # checkov:skip=CKV_AWS_338: Justification: These are internal logs for the running of performance tests. They do

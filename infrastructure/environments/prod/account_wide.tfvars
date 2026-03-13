@@ -31,3 +31,5 @@ apim_apigee_cidrs = [
   "34.89.69.6/32",
   "34.89.0.111/32",
 ]
+
+splunk_default_index = "app_directoryofservices_prod"
