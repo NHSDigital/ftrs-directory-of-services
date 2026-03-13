@@ -1,13 +1,8 @@
-from typing import TYPE_CHECKING
-
 from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_data_layer.domain import HealthcareServiceType
 from ftrs_data_layer.domain import legacy as legacy_model
 
 from service_migration.transformer.base_pharmacy import LinkedPharmacyTransformer
-
-if TYPE_CHECKING:
-    from service_migration.models import ServiceMigrationState
 
 
 class PharmacyFirstTransformer(LinkedPharmacyTransformer):
@@ -88,11 +83,3 @@ class PharmacyFirstTransformer(LinkedPharmacyTransformer):
             )
 
         return True, None
-
-    @classmethod
-    def should_include_service(
-        cls,
-        service: legacy_model.Service,
-        state_record: "ServiceMigrationState | None" = None,
-    ) -> tuple[bool, str | None]:
-        return super().should_include_service(service, state_record)
