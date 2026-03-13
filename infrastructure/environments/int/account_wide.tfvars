@@ -25,3 +25,4 @@ one_nat_gateway_per_az = false
 
 regional_waf_log_group_retention_days = 30
 cloudtrail_log_retention_days         = 90
+splunk_default_index                  = "app_directoryofservices_int"
