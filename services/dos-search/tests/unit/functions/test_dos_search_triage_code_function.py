@@ -12,12 +12,12 @@ from functions.logbase import DosSearchLogBase
 
 
 @pytest.fixture
-def mock_request_context() -> Generator[MagicMock, None, None]:
-    with patch(
-        "functions.request_context_middleware.setup_request"
-    ) as mock_setup_request, patch(
-        "functions.request_context_middleware.logger"
-    ) as mock_middleware_logger:
+def mock_request_context(
+    mock_setup_request: MagicMock,
+) -> Generator[MagicMock, None, None]:
+    with (
+        patch("functions.request_context_middleware.logger") as mock_middleware_logger,
+    ):
         mock_middleware_logger.thread_safe_clear_keys.return_value = None
         context = MagicMock()
         context.setup_request = mock_setup_request
@@ -68,118 +68,115 @@ def assert_response(
     assert response["body"] == expected_body
 
 
-class TestTriageCodeLambdaHandler:
-    def test_lambda_handler_with_feature_flag_enabled(
-        self,
-        lambda_context: MagicMock,
-        mock_request_context: MagicMock,
-        mock_logger: MagicMock,
-        mock_feature_flag_is_enabled: MagicMock,
-    ) -> None:
-        event = _build_event()
+def test_lambda_handler_with_feature_flag_enabled(
+    lambda_context: MagicMock,
+    mock_request_context: MagicMock,
+    mock_logger: MagicMock,
+    mock_feature_flag_is_enabled: MagicMock,
+) -> None:
+    event = _build_event()
 
-        response = lambda_handler(event, lambda_context)
+    response = lambda_handler(event, lambda_context)
 
-        expected_resource = OperationOutcome.model_validate(
-            {
-                "issue": [
-                    {
-                        "severity": "warning",
-                        "code": "not-supported",
-                        "diagnostics": (
-                            "Triage code search endpoint is not yet implemented"
-                        ),
-                    }
-                ]
-            }
-        )
-        mock_request_context.setup_request.assert_called_once()
-        mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
-        mock_feature_flag_is_enabled.assert_called_once_with(
-            "dos_search_triage_code_enabled",
-            False,
-        )
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_017,
-            feature_flag="DOS_SEARCH_TRIAGE_CODE_ENABLED",
-            feature_flag_status="enabled",
-            dos_message_category="FEATURE_FLAG",
-        )
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_015,
-            dos_message_category="REQUEST",
-        )
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_018,
-            dos_response_time=ANY,
-            dos_response_size=len(expected_resource.model_dump_json().encode("utf-8")),
-            dos_message_category="METRICS",
-        )
-        assert_response(
-            response,
-            expected_status_code=501,
-            expected_body=expected_resource.model_dump_json(),
-        )
+    expected_resource = OperationOutcome.model_validate(
+        {
+            "issue": [
+                {
+                    "severity": "warning",
+                    "code": "not-supported",
+                    "diagnostics": (
+                        "Triage code search endpoint is not yet implemented"
+                    ),
+                }
+            ]
+        }
+    )
+    mock_request_context.setup_request.assert_called_once()
+    mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
+    mock_feature_flag_is_enabled.assert_called_once_with(
+        "dos_search_triage_code_enabled",
+        False,
+    )
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_017,
+        feature_flag="DOS_SEARCH_TRIAGE_CODE_ENABLED",
+        feature_flag_status="enabled",
+        dos_message_category="FEATURE_FLAG",
+    )
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_015,
+        dos_message_category="REQUEST",
+    )
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_018,
+        dos_response_time=ANY,
+        dos_response_size=len(expected_resource.model_dump_json().encode("utf-8")),
+        dos_message_category="METRICS",
+    )
+    assert_response(
+        response,
+        expected_status_code=501,
+        expected_body=expected_resource.model_dump_json(),
+    )
 
-    def test_lambda_handler_with_feature_flag_disabled(
-        self,
-        lambda_context: MagicMock,
-        mock_request_context: MagicMock,
-        mock_logger: MagicMock,
-        mock_feature_flag_is_enabled: MagicMock,
-    ) -> None:
-        mock_feature_flag_is_enabled.return_value = False
-        event = _build_event()
 
-        response = lambda_handler(event, lambda_context)
+def test_lambda_handler_with_feature_flag_disabled(
+    lambda_context: MagicMock,
+    mock_request_context: MagicMock,
+    mock_logger: MagicMock,
+    mock_feature_flag_is_enabled: MagicMock,
+) -> None:
+    mock_feature_flag_is_enabled.return_value = False
+    event = _build_event()
 
-        expected_resource = OperationOutcome.model_validate(
-            {
-                "issue": [
-                    {
-                        "severity": "fatal",
-                        "code": "exception",
-                        "diagnostics": (
-                            "Service Unavailable: Triage code search endpoint is currently disabled"
-                        ),
-                    }
-                ]
-            }
-        )
-        mock_request_context.setup_request.assert_called_once()
-        mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
-        mock_feature_flag_is_enabled.assert_called_once_with(
-            "dos_search_triage_code_enabled",
-            False,
-        )
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_016,
-            feature_flag="DOS_SEARCH_TRIAGE_CODE_ENABLED",
-            feature_flag_status="disabled",
-            dos_message_category="FEATURE_FLAG",
-            dos_response_time=ANY,
-            dos_response_size=len(expected_resource.model_dump_json().encode("utf-8")),
-        )
-        assert_response(
-            response,
-            expected_status_code=503,
-            expected_body=expected_resource.model_dump_json(),
-        )
+    response = lambda_handler(event, lambda_context)
 
-    def test_lambda_handler_rejects_get_requests(
-        self,
-        lambda_context: MagicMock,
-        mock_request_context: MagicMock,
-        mock_logger: MagicMock,
-        mock_feature_flag_is_enabled: MagicMock,
-    ) -> None:
-        event = _build_event(http_method="GET")
+    expected_resource = OperationOutcome.model_validate(
+        {
+            "issue": [
+                {
+                    "severity": "fatal",
+                    "code": "exception",
+                    "diagnostics": (
+                        "Service Unavailable: Triage code search endpoint is currently disabled"
+                    ),
+                }
+            ]
+        }
+    )
+    mock_request_context.setup_request.assert_called_once()
+    mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
+    mock_feature_flag_is_enabled.assert_called_once_with(
+        "dos_search_triage_code_enabled",
+        False,
+    )
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_016,
+        feature_flag="DOS_SEARCH_TRIAGE_CODE_ENABLED",
+        feature_flag_status="disabled",
+        dos_message_category="FEATURE_FLAG",
+        dos_response_time=ANY,
+        dos_response_size=len(expected_resource.model_dump_json().encode("utf-8")),
+    )
+    assert_response(
+        response,
+        expected_status_code=503,
+        expected_body=expected_resource.model_dump_json(),
+    )
 
-        response = lambda_handler(event, lambda_context)
 
-        mock_request_context.setup_request.assert_called_once()
-        mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
-        mock_feature_flag_is_enabled.assert_not_called()
-        mock_logger.log.assert_not_called()
-        assert response["statusCode"] == 404
+def test_lambda_handler_rejects_get_requests(
+    lambda_context: MagicMock,
+    mock_request_context: MagicMock,
+    mock_logger: MagicMock,
+    mock_feature_flag_is_enabled: MagicMock,
+) -> None:
+    event = _build_event(http_method="GET")
 
+    response = lambda_handler(event, lambda_context)
+
+    mock_request_context.setup_request.assert_called_once()
+    mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
+    mock_feature_flag_is_enabled.assert_not_called()
+    mock_logger.log.assert_not_called()
+    assert response["statusCode"] == 404

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from fhir.resources.R4B.operationoutcome import OperationOutcome
 
@@ -6,6 +6,7 @@ from functions.logbase import DosSearchLogBase
 from functions.response_util import (
     DEFAULT_FHIR_RESPONSE_HEADERS,
     build_create_fhir_response,
+    build_dos_search_lambda_runtime,
     create_fhir_response,
 )
 
@@ -84,3 +85,34 @@ def test_build_create_fhir_response_copies_custom_headers() -> None:
         "Content-Type": "application/fhir+json",
         "X-Test": "1",
     }
+
+
+def test_build_dos_search_lambda_runtime_builds_common_runtime() -> None:
+    logger = MagicMock()
+    tracer = MagicMock()
+    app = MagicMock()
+    create_response = MagicMock()
+
+    with (
+        patch("functions.response_util.Logger.get", return_value=logger),
+        patch("functions.response_util.Tracer", return_value=tracer),
+        patch("functions.response_util.APIGatewayRestResolver", return_value=app),
+        patch(
+            "functions.response_util.build_create_fhir_response",
+            return_value=create_response,
+        ),
+    ):
+        runtime = build_dos_search_lambda_runtime(
+            log_reference=DosSearchLogBase.DOS_SEARCH_004
+        )
+
+    assert runtime.logger is logger
+    assert runtime.tracer is tracer
+    assert runtime.app is app
+    assert runtime.default_response_headers == DEFAULT_FHIR_RESPONSE_HEADERS
+    assert runtime.default_response_headers is not DEFAULT_FHIR_RESPONSE_HEADERS
+    assert runtime.create_response is create_response
+    app.use.assert_called_once()
+    middleware = app.use.call_args.args[0]
+    assert len(middleware) == 1
+    assert middleware[0].__name__ == "request_context_middleware"

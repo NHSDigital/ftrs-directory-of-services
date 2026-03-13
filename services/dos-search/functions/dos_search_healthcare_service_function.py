@@ -1,37 +1,29 @@
 import time
 
-from aws_lambda_powertools import Tracer
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
+from aws_lambda_powertools.event_handler import Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from ftrs_common.feature_flags import FeatureFlag
-from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
-from functions.dos_search_feature_flag_factory import build_dos_search_feature_flag_chain
+from functions.dos_search_feature_flag_factory import (
+    build_dos_search_feature_flag_chain,
+)
 from functions.event_context import DosSearchLogBase, get_response_size_and_duration
 from functions.ftrs_service.healthcare_services_by_ods import (
     HealthcareServicesByOdsService,
 )
 from functions.healthcare_service_query_params import HealthcareServiceQueryParams
-from functions.request_context_middleware import request_context_middleware
-from functions.response_util import (
-    DEFAULT_FHIR_RESPONSE_HEADERS,
-    build_create_fhir_response,
-)
+from functions.response_util import build_dos_search_lambda_runtime
 
-service = "dos-search"
-logger = Logger.get(service=service)
-tracer = Tracer()
-app = APIGatewayRestResolver()
-app.use([request_context_middleware])
-
-DEFAULT_RESPONSE_HEADERS: dict[str, str] = DEFAULT_FHIR_RESPONSE_HEADERS
-create_response = build_create_fhir_response(
-    logger=logger,
-    log_reference=DosSearchLogBase.DOS_SEARCH_004,
-    headers=DEFAULT_RESPONSE_HEADERS,
+_RUNTIME = build_dos_search_lambda_runtime(
+    log_reference=DosSearchLogBase.DOS_SEARCH_004
 )
+logger = _RUNTIME.logger
+tracer = _RUNTIME.tracer
+app = _RUNTIME.app
+DEFAULT_RESPONSE_HEADERS = _RUNTIME.default_response_headers
+create_response = _RUNTIME.create_response
 
 
 @app.get("/HealthcareService")

@@ -14,16 +14,14 @@ from ftrs_common.logger import LogBase, Logger
 from functions.event_context import get_response_size_and_duration
 
 
-def build_dos_search_feature_flag_guard(
+def build_dos_search_feature_flag_guard(  # noqa: PLR0913
     *,
     flag_name: FeatureFlag | str,
     logger_getter: Callable[[], Logger],
     enabled_log_reference: LogBase,
     disabled_log_reference: LogBase,
     create_error_resource_getter: Callable[[], Callable[[], FHIRResourceModel]],
-    create_response_getter: Callable[
-        [], Callable[[int, FHIRResourceModel], Response]
-    ],
+    create_response_getter: Callable[[], Callable[[int, FHIRResourceModel], Response]],
     default: bool = False,
 ) -> RequestGuard:
     return build_feature_flag_guard(
@@ -39,16 +37,14 @@ def build_dos_search_feature_flag_guard(
     )
 
 
-def build_dos_search_feature_flag_chain(
+def build_dos_search_feature_flag_chain(  # noqa: PLR0913
     *,
     flag_name: FeatureFlag | str,
     logger_getter: Callable[[], Logger],
     enabled_log_reference: LogBase,
     disabled_log_reference: LogBase,
     create_error_resource_getter: Callable[[], Callable[[], FHIRResourceModel]],
-    create_response_getter: Callable[
-        [], Callable[[int, FHIRResourceModel], Response]
-    ],
+    create_response_getter: Callable[[], Callable[[int, FHIRResourceModel], Response]],
     handler: Callable[[float], Response],
     additional_guards: Sequence[RequestGuard] = (),
     default: bool = False,

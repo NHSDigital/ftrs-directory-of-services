@@ -14,12 +14,12 @@ from functions.logbase import DosSearchLogBase
 
 
 @pytest.fixture
-def mock_request_context() -> Generator[MagicMock, None, None]:
-    with patch(
-        "functions.request_context_middleware.setup_request"
-    ) as mock_setup_request, patch(
-        "functions.request_context_middleware.logger"
-    ) as mock_middleware_logger:
+def mock_request_context(
+    mock_setup_request: MagicMock,
+) -> Generator[MagicMock, None, None]:
+    with (
+        patch("functions.request_context_middleware.logger") as mock_middleware_logger,
+    ):
         mock_middleware_logger.thread_safe_clear_keys.return_value = None
         context = MagicMock()
         context.setup_request = mock_setup_request
@@ -83,9 +83,7 @@ def _build_event(ods_code: str) -> dict[str, object]:
         "path": "/HealthcareService",
         "httpMethod": "GET",
         "queryStringParameters": {
-            "organization.identifier": (
-                f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}"
-            ),
+            "organization.identifier": f"{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{ods_code}",
         },
         "requestContext": {"requestId": "req-id"},
         "headers": {},
@@ -102,72 +100,70 @@ def assert_response(
     assert response["body"] == expected_body
 
 
-class TestHealthcareServiceLambdaHandler:
-    def test_lambda_handler_with_feature_flag_enabled(
-        self,
-        lambda_context: MagicMock,
-        mock_request_context: MagicMock,
-        mock_ftrs_service: MagicMock,
-        mock_logger: MagicMock,
-        mock_feature_flag_is_enabled: MagicMock,
-        bundle: Bundle,
-    ) -> None:
-        mock_ftrs_service.healthcare_services_by_ods.return_value = bundle
-        event = _build_event("ABC123")
+def test_lambda_handler_with_feature_flag_enabled(
+    lambda_context: MagicMock,
+    mock_request_context: MagicMock,
+    mock_ftrs_service: MagicMock,
+    mock_logger: MagicMock,
+    mock_feature_flag_is_enabled: MagicMock,
+    bundle: Bundle,
+) -> None:
+    mock_ftrs_service.healthcare_services_by_ods.return_value = bundle
+    event = _build_event("ABC123")
 
-        response = lambda_handler(event, lambda_context)
+    response = lambda_handler(event, lambda_context)
 
-        mock_request_context.setup_request.assert_called_once()
-        mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
-        mock_feature_flag_is_enabled.assert_called_once_with(
-            "dos_search_healthcare_service_enabled",
-            False,
-        )
-        mock_ftrs_service.healthcare_services_by_ods.assert_called_once_with("ABC123")
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_014,
-            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-            feature_flag_status="enabled",
-            dos_message_category="FEATURE_FLAG",
-        )
-        assert_response(
-            response,
-            expected_status_code=200,
-            expected_body=bundle.model_dump_json(),
-        )
+    mock_request_context.setup_request.assert_called_once()
+    mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
+    mock_feature_flag_is_enabled.assert_called_once_with(
+        "dos_search_healthcare_service_enabled",
+        False,
+    )
+    mock_ftrs_service.healthcare_services_by_ods.assert_called_once_with("ABC123")
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_014,
+        feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+        feature_flag_status="enabled",
+        dos_message_category="FEATURE_FLAG",
+    )
+    assert_response(
+        response,
+        expected_status_code=200,
+        expected_body=bundle.model_dump_json(),
+    )
 
-    def test_lambda_handler_with_feature_flag_disabled(
-        self,
-        lambda_context: MagicMock,
-        mock_request_context: MagicMock,
-        mock_error_util: MagicMock,
-        mock_ftrs_service: MagicMock,
-        mock_logger: MagicMock,
-        mock_feature_flag_is_enabled: MagicMock,
-    ) -> None:
-        mock_feature_flag_is_enabled.return_value = False
-        event = _build_event("ABC123")
 
-        response = lambda_handler(event, lambda_context)
+def test_lambda_handler_with_feature_flag_disabled(
+    lambda_context: MagicMock,
+    mock_request_context: MagicMock,
+    mock_error_util: MagicMock,
+    mock_ftrs_service: MagicMock,
+    mock_logger: MagicMock,
+    mock_feature_flag_is_enabled: MagicMock,
+) -> None:
+    mock_feature_flag_is_enabled.return_value = False
+    event = _build_event("ABC123")
 
-        mock_request_context.setup_request.assert_called_once()
-        mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
-        mock_feature_flag_is_enabled.assert_called_once_with(
-            "dos_search_healthcare_service_enabled",
-            False,
-        )
-        mock_ftrs_service.healthcare_services_by_ods.assert_not_called()
-        mock_error_util.create_resource_service_unavailable_error.assert_called_once()
-        mock_logger.log.assert_any_call(
-            DosSearchLogBase.DOS_SEARCH_013,
-            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-            feature_flag_status="disabled",
-            dos_message_category="FEATURE_FLAG",
-            dos_response_time=ANY,
-            dos_response_size=68,
-        )
-        assert_response(
-            response,
-            expected_status_code=503,
-            expected_body=mock_error_util.create_resource_service_unavailable_error.return_value.model_dump_json(),
-        )
+    response = lambda_handler(event, lambda_context)
+
+    mock_request_context.setup_request.assert_called_once()
+    mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
+    mock_feature_flag_is_enabled.assert_called_once_with(
+        "dos_search_healthcare_service_enabled",
+        False,
+    )
+    mock_ftrs_service.healthcare_services_by_ods.assert_not_called()
+    mock_error_util.create_resource_service_unavailable_error.assert_called_once()
+    mock_logger.log.assert_any_call(
+        DosSearchLogBase.DOS_SEARCH_013,
+        feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
+        feature_flag_status="disabled",
+        dos_message_category="FEATURE_FLAG",
+        dos_response_time=ANY,
+        dos_response_size=68,
+    )
+    assert_response(
+        response,
+        expected_status_code=503,
+        expected_body=mock_error_util.create_resource_service_unavailable_error.return_value.model_dump_json(),
+    )
