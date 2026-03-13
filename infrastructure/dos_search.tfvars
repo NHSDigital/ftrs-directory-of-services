@@ -10,7 +10,8 @@ health_check_name           = "health-check-lambda"
 health_check_lambda_handler = "src.health_check.handler.lambda_handler"
 
 # Healthcare Service Lambda
-healthcare_service_lambda_name = "healthcare-service-lambda"
+healthcare_service_name           = "healthcare-service-lambda"
+healthcare_service_lambda_handler = "src.healthcare_service.handler.lambda_handler"
 
 #Lambda
 lambda_runtime     = "python3.12"

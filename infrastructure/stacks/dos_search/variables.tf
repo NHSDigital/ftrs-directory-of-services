@@ -23,8 +23,13 @@ variable "health_check_lambda_handler" {
   type        = string
 }
 
-variable "healthcare_service_lambda_name" {
+variable "healthcare_service_name" {
   description = "The name of the healthcare service lambda"
+}
+
+variable "healthcare_service_lambda_handler" {
+  description = "The handler for the healthcare service lambda"
+  type        = string
 }
 
 variable "lambda_runtime" {

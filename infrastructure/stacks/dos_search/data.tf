@@ -42,6 +42,10 @@ data "aws_s3_object" "dos_search_health_check_lambda_package" {
   key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.health_check_name}.zip"
 }
 
+data "aws_s3_object" "dos_search_healthcare_service_lambda_package" {
+  bucket = local.artefacts_bucket
+  key    = "${local.artefact_base_path}/${var.project}-${var.stack_name}-${var.healthcare_service_name}.zip"
+}
 
 data "aws_route53_zone" "dev_ftrs_cloud" {
   name         = local.env_domain_name
