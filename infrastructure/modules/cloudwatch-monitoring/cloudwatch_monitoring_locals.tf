@@ -22,10 +22,12 @@ locals {
           period              = lookup(lookup(var.alarm_periods, resource_key, {}), alarm.alarm_suffix, 60)
           actions_enabled     = alarm.severity == "warning" ? var.enable_warning_alarms : true
           namespace           = lookup(alarm, "namespace", "AWS/Lambda")
-          dimensions          = lookup(alarm, "dimensions", {})
-          dimension_name      = lookup(alarm, "dimension_name", "FunctionName")
-          api_path            = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "api_path", "N/A")
-          service             = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "service", "Unknown")
+          dimensions = merge(
+            { (lookup(alarm, "dimension_name", "FunctionName")) = resource_identifier },
+            lookup(var.resource_additional_dimensions, resource_key, {})
+          )
+          api_path = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "api_path", "N/A")
+          service  = lookup(lookup(var.resource_metadata, resource_key, { api_path = "N/A", service = "Unknown" }), "service", "Unknown")
         }
         if lookup(lookup(var.alarm_thresholds, resource_key, {}), alarm.alarm_suffix, null) != null
       }

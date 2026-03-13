@@ -2,6 +2,12 @@ module "lambda_monitoring" {
   count  = local.is_primary_environment ? 1 : 0
   source = "../../modules/cloudwatch-monitoring"
 
+  providers = {
+    aws.metrics = aws
+    aws.sns     = aws
+    aws.lambda  = aws
+  }
+
   resource_prefix = local.resource_prefix # Used for naming SNS topic and alarms
 
   sns_topic_name   = local.alarms_topic_name

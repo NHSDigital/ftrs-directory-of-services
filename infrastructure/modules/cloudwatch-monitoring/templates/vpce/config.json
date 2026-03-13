@@ -1,0 +1,24 @@
+{
+  "vpce": [
+    {
+      "metric_name": "ActiveConnections",
+      "statistic": "Sum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "active-connections-warning",
+      "description": "VPC Endpoint active connections warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/PrivateLinkEndpoints",
+      "dimension_name": "VpcEndpointId"
+    },
+    {
+      "metric_name": "ActiveConnections",
+      "statistic": "Sum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "active-connections-critical",
+      "description": "VPC Endpoint active connections critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/PrivateLinkEndpoints",
+      "dimension_name": "VpcEndpointId"
+    }
+  ]
+}

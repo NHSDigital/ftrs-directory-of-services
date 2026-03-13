@@ -1,0 +1,24 @@
+{
+  "acm": [
+    {
+      "metric_name": "DaysToExpiry",
+      "statistic": "Minimum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "days-to-expiry-warning",
+      "description": "ACM Certificate expiry warning - certificate expires in less than 30 days",
+      "severity": "warning",
+      "namespace": "AWS/CertificateManager",
+      "dimension_name": "CertificateArn"
+    },
+    {
+      "metric_name": "DaysToExpiry",
+      "statistic": "Minimum",
+      "comparison_operator": "LessThanThreshold",
+      "alarm_suffix": "days-to-expiry-critical",
+      "description": "ACM Certificate expiry critical - certificate expires in less than 15 days",
+      "severity": "critical",
+      "namespace": "AWS/CertificateManager",
+      "dimension_name": "CertificateArn"
+    }
+  ]
+}

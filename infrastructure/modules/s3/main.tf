@@ -35,6 +35,10 @@ module "s3" {
     target_prefix = "${local.bucket_name}/"
   } : {}
 
+  metric_configuration = var.metric_configuration_enabled ? [{
+    name = "EntireBucket"
+  }] : []
+
   versioning = {
     enabled = var.versioning
   }

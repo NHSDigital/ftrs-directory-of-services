@@ -119,7 +119,7 @@ jobs:
       ref: ${{ inputs.ref }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination','account_env_alarms']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"
@@ -179,41 +179,21 @@ jobs:
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
 
-  plan-infrastructure:
-    name: "Plan ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
-    concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
-      cancel-in-progress: false
+  # --- Wave 1: run in parallel ---
+
+  deploy-account-security:
+    name: "Deploy account security infrastructure"
     needs:
       - metadata
       - quality-checks
       - check-stack-toggles
       - build-services
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "account"
-            environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['account_security']"
-            download_appconfig_artifact: false
-          - name: "env"
-            environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
-            download_appconfig_artifact: true
-          - name: "mgmt"
-            environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
-            download_appconfig_artifact: false
-    uses: ./.github/workflows/deploy-infrastructure.yaml
+    uses: ./.github/workflows/deploy-account-infrastructure.yaml
     with:
-      environment: ${{ matrix.environment }}
-      workspace: "default"
+      environment: ${{ needs.metadata.outputs.account_type }}
+      stacks: "['account_security']"
+      download_appconfig_artifact: false
       ref: ${{ inputs.ref }}
-      stacks: ${{ matrix.stacks }}
-      action: plan
-      type: account
-      download_appconfig_artifact: ${{ matrix.download_appconfig_artifact }}
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
@@ -223,54 +203,91 @@ jobs:
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
       SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
 
-  manual-approval:
-    name: "Manual approval for ${{ needs.metadata.outputs.environment }} infrastructure deployment"
-    if: ${{ github.ref == 'refs/heads/main' && (needs.plan-infrastructure.outputs.plan_result == 'true') }}
+  deploy-env-infrastructure:
+    name: "Deploy env infrastructure"
     needs:
       - metadata
-      - plan-infrastructure
-    runs-on: ubuntu-latest
-    environment: "${{ needs.metadata.outputs.environment }}-protected"
-    steps:
-      - name: Approval required
-        env:
-          ENVIRONMENT: ${{ needs.metadata.outputs.environment }}
-        run: echo "$ENVIRONMENT deployment paused for manual approval. Please approve in the Actions tab."
-
-  apply-infrastructure:
-    name: "Apply ${{ matrix.name }} infrastructure deployment for ${{ matrix.environment }}"
-    concurrency:
-      group: "${{ matrix.environment }}-default-${{ matrix.name }}-${{matrix.stacks}}"
-      cancel-in-progress: false
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - metadata
-      - manual-approval
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "account"
-            environment: ${{ needs.metadata.outputs.account_type }}
-            stacks: "['account_security']"
-          - name: "env"
-            environment: ${{ needs.metadata.outputs.environment }}
-            stacks: "['terraform_management','account_wide','domain_name','slack_notifier','aws_backup_source']"
-          - name: "mgmt"
-            environment: ${{ needs.metadata.outputs.mgmt_environment }}
-            stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
-    uses: ./.github/workflows/deploy-infrastructure.yaml
+      - quality-checks
+      - check-stack-toggles
+      - build-services
+    uses: ./.github/workflows/deploy-account-infrastructure.yaml
     with:
-      environment: ${{ matrix.environment }}
-      workspace: "default"
+      environment: ${{ needs.metadata.outputs.environment }}
+      stacks: "['terraform_management','account_wide','domain_name','aws_backup_source']"
+      download_appconfig_artifact: true
       ref: ${{ inputs.ref }}
-      stacks: ${{ matrix.stacks }}
-      action: apply
-      type: account
     secrets:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
       OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
+
+  deploy-mgmt-infrastructure:
+    name: "Deploy mgmt infrastructure"
+    needs:
+      - metadata
+      - quality-checks
+      - check-stack-toggles
+      - build-services
+    uses: ./.github/workflows/deploy-account-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.mgmt_environment }}
+      stacks: "['terraform_management','account_security','artefact_management','domain_name','aws_backup_destination']"
+      download_appconfig_artifact: false
+      ref: ${{ inputs.ref }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
+
+  # --- Wave 2: run sequentially after wave 1 ---
+  # Add further deploy-account-infrastructure calls here with:
+  #   needs: [deploy-account-security, deploy-env-infrastructure, deploy-mgmt-infrastructure]
+  # Each additional call after that simply needs the previous one.
+  deploy-slack-notifier-infrastructure:
+    name: "Deploy slack notifier infrastructure"
+    needs:
+      - metadata
+      - quality-checks
+      - check-stack-toggles
+      - build-services
+      - deploy-env-infrastructure
+    uses: ./.github/workflows/deploy-account-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      stacks: "['slack_notifier']"
+      download_appconfig_artifact: true
+      ref: ${{ inputs.ref }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
+      OIDC_THUMBPRINT: ${{ secrets.OIDC_THUMBPRINT }}
+      SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
+      SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
+      SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
+      SPLUNK_HEC_TOKEN: ${{ secrets.SPLUNK_HEC_TOKEN }}
+
+  deploy-account-env-alarms-infrastructure:
+    name: "Deploy account env alarms infrastructure"
+    needs:
+      - metadata
+      - deploy-slack-notifier-infrastructure
+    uses: ./.github/workflows/deploy-account-infrastructure.yaml
+    with:
+      environment: ${{ needs.metadata.outputs.environment }}
+      stacks: "['account_env_alarms']"
+      download_appconfig_artifact: false
+      ref: ${{ inputs.ref }}
+    secrets:
+      ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+      MGMT_ACCOUNT_ID: ${{ secrets.MGMT_ACCOUNT_ID }}
       SLACK_WEBHOOK_ALARMS_URL: ${{ secrets.SLACK_WEBHOOK_ALARMS_URL }}
       SPLUNK_COLLECTOR_URL: ${{ secrets.SPLUNK_COLLECTOR_URL }}
       SPLUNK_HEC_ENDPOINT: ${{ secrets.SPLUNK_HEC_ENDPOINT }}
@@ -281,9 +298,14 @@ jobs:
     needs:
       - metadata
       - quality-checks
-      - plan-infrastructure
-      - manual-approval
-      - apply-infrastructure
+      - prepare-toggle-artifacts
+      - check-stack-toggles
+      - build-services
+      - deploy-account-security
+      - deploy-env-infrastructure
+      - deploy-mgmt-infrastructure
+      - deploy-slack-notifier-infrastructure
+      - deploy-account-env-alarms-infrastructure
     if: always()
     uses: ./.github/workflows/slack-notifications.yaml
     with:

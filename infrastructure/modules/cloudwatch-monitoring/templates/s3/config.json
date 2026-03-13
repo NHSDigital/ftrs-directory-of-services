@@ -1,0 +1,44 @@
+{
+  "s3": [
+    {
+      "metric_name": "5xxErrors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-warning",
+      "description": "S3 5xx errors warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/S3",
+      "dimension_name": "BucketName"
+    },
+    {
+      "metric_name": "5xxErrors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "5xx-errors-critical",
+      "description": "S3 5xx errors critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/S3",
+      "dimension_name": "BucketName"
+    },
+    {
+      "metric_name": "4xxErrors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "4xx-errors-warning",
+      "description": "S3 4xx errors warning threshold",
+      "severity": "warning",
+      "namespace": "AWS/S3",
+      "dimension_name": "BucketName"
+    },
+    {
+      "metric_name": "4xxErrors",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "4xx-errors-critical",
+      "description": "S3 4xx errors critical threshold",
+      "severity": "critical",
+      "namespace": "AWS/S3",
+      "dimension_name": "BucketName"
+    }
+  ]
+}

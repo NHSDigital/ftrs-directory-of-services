@@ -1,9 +1,10 @@
 module "terraform_state_bucket" {
-  source            = "../../modules/s3"
-  environment       = var.environment
-  bucket_name       = var.terraform_state_bucket_name
-  s3_logging_bucket = local.s3_logging_bucket
-  depends_on        = [module.logging_bucket]
+  source                       = "../../modules/s3"
+  environment                  = var.environment
+  bucket_name                  = var.terraform_state_bucket_name
+  s3_logging_bucket            = local.s3_logging_bucket
+  metric_configuration_enabled = true
+  depends_on                   = [module.logging_bucket]
 }
 
 module "logging_bucket" {

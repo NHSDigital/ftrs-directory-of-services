@@ -4,18 +4,19 @@ variable "resource_prefix" {
 }
 
 variable "sns_topic_name" {
-  description = "Name of the SNS topic for alarm notifications"
+  description = "Name of the SNS topic for alarm notifications."
   type        = string
 }
 
 variable "sns_display_name" {
-  description = "Display name for the SNS topic"
+  description = "Display name for the SNS topic."
   type        = string
 }
 
 variable "kms_key_id" {
-  description = "KMS key ID for SNS topic encryption"
+  description = "KMS key ID for SNS topic encryption. Optional; omit to create an unencrypted topic."
   type        = string
+  default     = null
 }
 
 variable "tags" {
@@ -63,6 +64,12 @@ variable "resource_metadata" {
     service  = string
   }))
   default = {}
+}
+
+variable "resource_additional_dimensions" {
+  description = "Map of resource keys to additional dimensions that override or supplement those from the alarm config (e.g., to replace placeholder values)"
+  type        = map(map(string))
+  default     = {}
 }
 
 variable "slack_notifier_function_name" {
