@@ -6,13 +6,14 @@ from ftrs_data_layer.domain.base import DBModel
 from ftrs_data_layer.domain.clinical_code import (
     SymptomGroupSymptomDiscriminatorPair,
 )
+from ftrs_data_layer.domain.endpoint import Endpoint
 from ftrs_data_layer.domain.enums import (
     HealthcareServiceCategory,
     HealthcareServiceStatus,
     HealthcareServiceType,
     TimeUnit,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class HealthcareServiceTelecom(BaseModel):
@@ -41,3 +42,4 @@ class HealthcareService(DBModel):
     symptomGroupSymptomDiscriminators: list[SymptomGroupSymptomDiscriminatorPair]
     dispositions: list[str]
     ageEligibilityCriteria: list[AgeRangeType] | None = None
+    endpoints: list[Endpoint] = Field(default_factory=list)

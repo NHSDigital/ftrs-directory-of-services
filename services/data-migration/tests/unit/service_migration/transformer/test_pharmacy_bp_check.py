@@ -325,3 +325,51 @@ def test_resolve_parent_raises_when_parent_not_found(
     assert exc_info.value.record_id == test_service_id
     assert exc_info.value.ods_code == "FXX99"
     assert exc_info.value.requeue is False
+
+
+def test_transform_healthcare_service_endpoints_linked_correctly(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that HS endpoints have correct managedByOrganisation and service linkage."""
+    parent_org_id = uuid4()
+    parent_location_id = uuid4()
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    transformer.parent_organisation_id = parent_org_id
+    transformer.parent_location_id = parent_location_id
+
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP: Test Service"
+    assert len(mock_legacy_service.endpoints) > 0
+
+    result = transformer.transform(mock_legacy_service)
+
+    hs = result.healthcare_service[0]
+    assert len(hs.endpoints) == len(mock_legacy_service.endpoints)
+    for endpoint in hs.endpoints:
+        assert endpoint.managedByOrganisation == parent_org_id
+        assert endpoint.service == hs.id
+
+
+def test_transform_healthcare_service_has_no_endpoints_when_service_has_none(
+    mock_legacy_service: Service,
+    mock_metadata_cache: DoSMetadataCache,
+) -> None:
+    """Test that HS endpoints list is empty when the source service has no endpoints."""
+    parent_org_id = uuid4()
+    parent_location_id = uuid4()
+
+    transformer = PharmacyBPCheckTransformer(MockLogger(), mock_metadata_cache)
+    transformer.parent_organisation_id = parent_org_id
+    transformer.parent_location_id = parent_location_id
+
+    mock_legacy_service.typeid = 148
+    mock_legacy_service.odscode = "FXX99BPS"
+    mock_legacy_service.name = "BP: Test Service"
+    mock_legacy_service.endpoints = []
+
+    result = transformer.transform(mock_legacy_service)
+
+    assert result.healthcare_service[0].endpoints == []

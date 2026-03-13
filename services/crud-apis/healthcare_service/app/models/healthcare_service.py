@@ -134,6 +134,10 @@ class HealthCareService(BaseModel):
         default_factory=list,
         example=[],
     )
+    endpoints: Optional[list[dict]] = Field(
+        default_factory=list,
+        example=[],
+    )
 
 
 class HealthcareServiceCreatePayload(HealthCareService):

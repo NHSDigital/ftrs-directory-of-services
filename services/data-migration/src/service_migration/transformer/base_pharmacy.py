@@ -6,6 +6,7 @@ from uuid import UUID
 from ftrs_common.feature_flags import FeatureFlag, is_enabled
 from ftrs_common.logger import Logger
 from ftrs_data_layer.domain import (
+    HealthcareService,
     HealthcareServiceCategory,
     HealthcareServiceType,
     Organisation,
@@ -60,6 +61,22 @@ class BasePharmacyTransformer(ServiceTransformer):
         """
         organisation = super().build_organisation(service)
         return organisation.model_copy(update={"endpoints": []})
+
+    def build_healthcare_service(
+        self,
+        service: legacy_model.Service,
+        organisation_id: UUID,
+        location_id: UUID,
+        category: HealthcareServiceCategory | None = None,
+        type: HealthcareServiceType | None = None,
+    ) -> HealthcareService:
+        hs = super().build_healthcare_service(
+            service, organisation_id, location_id, category=category, type=type
+        )
+        endpoints = [
+            self.build_endpoint(ep, organisation_id, hs.id) for ep in service.endpoints
+        ]
+        return hs.model_copy(update={"endpoints": endpoints})
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         organisation = self.build_organisation(service)
@@ -146,6 +163,22 @@ class LinkedPharmacyTransformer(ServiceTransformer):
         super().__init__(logger=logger, metadata=metadata)
         self.parent_organisation_id: UUID | None = None
         self.parent_location_id: UUID | None = None
+
+    def build_healthcare_service(
+        self,
+        service: legacy_model.Service,
+        organisation_id: UUID,
+        location_id: UUID,
+        category: HealthcareServiceCategory | None = None,
+        type: HealthcareServiceType | None = None,
+    ) -> HealthcareService:
+        hs = super().build_healthcare_service(
+            service, organisation_id, location_id, category=category, type=type
+        )
+        endpoints = [
+            self.build_endpoint(ep, organisation_id, hs.id) for ep in service.endpoints
+        ]
+        return hs.model_copy(update={"endpoints": endpoints})
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         healthcare_service = self.build_healthcare_service(
