@@ -12,10 +12,10 @@ def test_get_secret_success(mocker: MockerFixture) -> None:
     """
     mocker.patch(
         "os.getenv",
-        side_effect=lambda key: {
+        side_effect={
             "ENVIRONMENT": "test_env",
             "PROJECT_NAME": "test_project",
-        }.get(key),
+        }.get,
     )
     mock_get_secret = mocker.patch(
         "aws_lambda_powertools.utilities.parameters.get_secret"
@@ -42,7 +42,7 @@ def test_get_secret_missing_env_vars(mocker: MockerFixture, env_vars: dict) -> N
     """
     mocker.patch(
         "os.getenv",
-        side_effect=lambda key: env_vars.get(key),
+        side_effect=env_vars.get,
     )
 
     with pytest.raises(ValueError):

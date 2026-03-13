@@ -8,16 +8,16 @@ The Location API provides endpoints to manage locations. It is built using FastA
 
 ### Prerequisites
 
-This project requires Python and Poetry as core dependencies.
-The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
+This project requires Python and uv as core dependencies.
+The current versions of these can be found in the repository root `.tool-versions` file, and can be installed using asdf.
 
 ### Install Dependencies
 
-Navigate to the `location` directory and install the dependencies using Poetry:
+Navigate to the repository root and install the dependencies using uv:
 
 ```bash
 cd services/crud-apis/location
-poetry install
+uv sync
 ```
 
 ### Environment Variables
@@ -41,10 +41,8 @@ make lint # Runs ruff check and ruff format
 To automatically format Python code and fix some linting issues, you can use:
 
 ```bash
-eval $(poetry env activate)
-
-ruff check --fix  # Runs linting with fix mode enabled
-ruff format       # Runs the python code formatter
+uv run ruff check --fix  # Runs linting with fix mode enabled
+uv run ruff format       # Runs the python code formatter
 ```
 
 ### Building the Lambda Package and Dependency Layers
@@ -62,8 +60,7 @@ Unit tests are run using Pytest. You can use the make target to conveniently run
 ```bash
 make unit-test
 # or
-eval $(poetry env activate)
-pytest tests
+uv run pytest tests
 ```
 
 ### Running Lambda Steps Locally
@@ -76,7 +73,7 @@ pytest tests
 from the crud-apis directory run:
 
 ```bash
-poetry run poe start-location-api
+uv run poe start-location-api
 ```
 
 The API will be available at [http://localhost:6000].

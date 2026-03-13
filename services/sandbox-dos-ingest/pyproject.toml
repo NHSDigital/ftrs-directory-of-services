@@ -12,24 +12,23 @@ requires-python = ">=3.12,<4.0.0"
 
 dependencies = [
   "fastapi (>=0.120.2,<0.121.0)",
-  "uvicorn (>=0.34.2,<0.35.0)",
+  "uvicorn (>=0.34.2,<0.35.0)"
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.6",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "httpx>=0.28.1",
 ]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
-packages = [{ include = "src" }]
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.9.6"
-pytest = "^8.3.5"
-pytest-cov = "^6.1.1"
-httpx = "^0.28.1"
-
-[tool.poetry.requires-plugins]
-poetry-plugin-export = ">=1.8"
+[tool.hatch.build.targets.wheel]
+packages = ["src/app", "src/models", "src/router"]
 
 [tool.ruff]
 line-length = 88

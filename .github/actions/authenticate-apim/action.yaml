@@ -20,12 +20,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install dependencies
-      shell: bash
-      run: |
-        set -euo pipefail
-        python -m pip install --upgrade pip
-        pip install pyjwt cryptography
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
+      with:
+        packages: pyjwt cryptography
 
     - name: Run Authentication Script
       id: authenticate

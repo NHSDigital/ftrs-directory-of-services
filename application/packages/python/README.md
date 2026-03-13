@@ -8,9 +8,7 @@ This package includes all common Python packages used by the FtRS Directory of S
 
 ## Installation
 
-Poetry is used for dependency management and packaging. Ensure you have poetry installed, and then run `make install` to install packages.
-
-> **Note:** Be sure to check that you are not currently in a virtual environment, and run `deactivate` to be sure to ensure dependencies in other projects are not polluted.
+uv is used for dependency management and packaging. Run `make install` to install packages.
 
 ## Running Linting & Formatting
 
@@ -19,8 +17,8 @@ Linting and formatting are handled using Ruff. To run the linting in check mode,
 To run linting & formatting in fix mode, run:
 
 ```bash
-poetry run ruff check --fix
-poetry run ruff format
+uv run ruff check --fix
+uv run ruff format
 ```
 
 ## Running Tests
@@ -30,7 +28,7 @@ Tests are run using Pytest. To run these tests, you can run:
 ```bash
 make unit-test
 ### or
-poetry run pytest
+uv run pytest
 ```
 
 ## Building the package

@@ -79,7 +79,7 @@ def get_endpoint_records(
     # Get organisation first to find endpoint IDs
     org_record = get_entity_record(dynamodb, "organisation", service_id)
     endpoints = org_record.get("endpoints", [])
-    return endpoints if endpoints else []
+    return endpoints or []
 
 
 def get_nested_value(obj: Dict[str, Any], path: str) -> Any:

@@ -1,6 +1,7 @@
 name: Code Quality Checks Workflow
 
-permissions: {}
+permissions:
+  contents: read
 on:
   workflow_call:
     inputs:
@@ -269,7 +270,7 @@ jobs:
   lint-service-automation-tests:
     name: "Lint service automation tests"
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
@@ -278,24 +279,14 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
-        with:
-          asdf_branch: v0.15.0
+      - name: "Setup asdf"
+        uses: ./.github/actions/setup-asdf
 
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+      - name: "Setup uv"
+        uses: ./.github/actions/setup-uv
 
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
-
-      - name: "Install project"
-        run: make install
+      - name: "Sync uv dependencies"
+        run: uv sync
         working-directory: "tests/service_automation"
 
       - name: "Run linting"

@@ -1,0 +1,71 @@
+[project]
+name = "ftrs-directory-of-services"
+version = "0.1.0"
+description = "NHS FTRS Directory of Services Monorepo - Powered by uv workspaces"
+requires-python = ">=3.12"
+dependencies = [
+    "crud-apis",
+    "pipeline",
+    "dos-search",
+    "slack-notifier",
+    "ftrs-aws-local",
+]
+
+[tool.uv.sources]
+crud-apis = {workspace = true}
+pipeline = {workspace = true}
+dos-search = {workspace = true}
+slack-notifier = {workspace = true}
+ftrs-aws-local = {workspace = true}
+
+[dependency-groups]
+# Shared tool dependencies across the entire monorepo
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.14.2",
+    "mypy>=1.10.0",
+    # Local dev entry point runtime dependencies (not for Lambda deployment)
+    "awswrangler>=3.11.0",
+    "pandas>=2.2.2",
+    "uvicorn>=0.34.2",
+]
+
+[tool.uv.workspace]
+# This explicitly tells uv that this is a monorepo workspace and links all your internal packages
+members = [
+    "services/*",
+    "application/packages/*",
+    "tests/service_automation",
+    "scripts/workflow/tests/open_search_index",
+    "sandbox/*"
+]
+exclude = [
+    "services/dos-ui",
+    "services/read-only-viewer",
+    "sandbox/dos-search",
+    "sandbox/dos-ingest-sandbox",
+    "application/packages/utilities",
+    # Excluded: pins pandas==3.0.0 which is incompatible with awswrangler used
+    # in ftrs-aws-local. Manage this project's venv independently.
+    "tests/performance/scripts/data_generation",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "ANN", "LOG", "PL", "TRY", "FURB", "PT"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "PLR2004", "PLR0913", "PLR0915", "PLR0912", "PLR0911", "C901", "F811"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = ["-v", "--cov-report=term-missing"]

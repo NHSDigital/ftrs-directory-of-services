@@ -135,35 +135,20 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: "Install asdf"
-        uses: asdf-vm/actions/setup@v4.0.1
-        with:
-          asdf_branch: v0.15.0
+      - name: "Setup asdf"
+        id: setup-asdf
+        uses: ./.github/actions/setup-asdf
 
-      - name: "Cache asdf tools"
-        id: asdf-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.asdf
-          key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions', 'tests/service_automation/.tool-versions') }}
-
-      - name: "Install tools from .tool-versions"
-        if: steps.asdf-cache.outputs.cache-hit != 'true'
-        uses: asdf-vm/actions/install@v4.0.1
-
-      - name: "Cache Poetry dependencies"
-        id: poetry-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('tests/service_automation/poetry.lock') }}
+      - name: "Setup uv"
+        id: setup-uv
+        uses: ./.github/actions/setup-uv
 
       - name: "Cache Playwright browsers"
         id: playwright-cache
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/service_automation/poetry.lock') }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('uv.lock') }}
 
       - name: Configure AWS Credentials
         uses: ./.github/actions/configure-credentials
@@ -174,8 +159,10 @@ jobs:
           environment: ${{ inputs.environment }}
 
       - name: "Install project"
-        if: steps.asdf-cache.outputs.cache-hit != 'true' || steps.poetry-cache.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
-        run: make install
+        if: steps.setup-asdf.outputs.cache-hit != 'true' || steps.setup-uv.outputs.cache-hit != 'true' || steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          uv sync
+          uv run playwright install
         working-directory: "tests/service_automation"
 
       - name: Authenticate with APIM

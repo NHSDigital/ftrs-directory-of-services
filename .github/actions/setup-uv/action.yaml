@@ -1,0 +1,31 @@
+name: 'Setup uv'
+description: 'Install uv with caching enabled. Optionally creates a virtual environment and installs packages into it.'
+
+inputs:
+  packages:
+    description: 'Space-separated list of packages to install into a virtual environment. If empty, no virtual environment is created.'
+    required: false
+    default: ''
+
+outputs:
+  cache-hit:
+    description: 'Whether the uv package cache was restored from a previous run'
+    value: ${{ steps.install-uv.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install uv
+      id: install-uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: 'true'
+
+    - name: Set up Python virtual environment
+      if: inputs.packages != ''
+      shell: bash
+      run: |
+        set -euo pipefail
+        [ -d .venv ] || uv venv .venv
+        echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
+        uv pip install --python .venv/bin/python ${{ inputs.packages }}

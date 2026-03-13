@@ -7,8 +7,8 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= slack-notifier
-POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := slack_notifier-$(POETRY_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := slack_notifier-$(PROJECT_VERSION)-py3-none-any.whl
 
 # ==============================================================================
 # Include Shared Python Service Targets

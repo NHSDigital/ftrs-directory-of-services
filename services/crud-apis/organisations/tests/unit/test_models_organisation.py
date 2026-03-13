@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from pydantic import ValidationError
@@ -272,8 +274,8 @@ def test_valid_typed_period_extension_with_both_dates() -> None:
         date_type_ext.valueCoding.system
         == "https://fhir.nhs.uk/England/CodeSystem/England-PeriodType"
     )
-    assert period_ext.valuePeriod.start == "2020-01-15"
-    assert period_ext.valuePeriod.end == "2025-12-31"
+    assert period_ext.valuePeriod.start == date(2020, 1, 15)
+    assert period_ext.valuePeriod.end == date(2025, 12, 31)
 
 
 def test_valid_typed_period_extension_with_start_only() -> None:
@@ -301,7 +303,7 @@ def test_valid_typed_period_extension_with_start_only() -> None:
 
     sub_exts = {e.url: e for e in typed_period_ext.extension}
     period_ext = sub_exts["period"]
-    assert period_ext.valuePeriod.start == "2020-01-15"
+    assert period_ext.valuePeriod.start == date(2020, 1, 15)
     assert period_ext.valuePeriod.end is None
 
 
@@ -528,8 +530,8 @@ def test_valid_organisation_role_extension_with_typed_period() -> None:
     assert "dateType" in sub_exts
     assert "period" in sub_exts
     assert sub_exts["dateType"].valueCoding.code == "Legal"
-    assert sub_exts["period"].valuePeriod.start == "2020-01-15"
-    assert sub_exts["period"].valuePeriod.end == "2025-12-31"
+    assert sub_exts["period"].valuePeriod.start == date(2020, 1, 15)
+    assert sub_exts["period"].valuePeriod.end == date(2025, 12, 31)
 
 
 def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None:
@@ -569,7 +571,7 @@ def test_valid_organisation_role_extension_with_multiple_typed_periods() -> None
     assert "dateType" in sub_exts
     assert "period" in sub_exts
     assert sub_exts["dateType"].valueCoding.code == "Legal"  # First one should be Legal
-    assert sub_exts["period"].valuePeriod.start == "2020-01-15"
+    assert sub_exts["period"].valuePeriod.start == date(2020, 1, 15)
 
 
 def test_invalid_organisation_role_extension_empty_extension_array() -> None:

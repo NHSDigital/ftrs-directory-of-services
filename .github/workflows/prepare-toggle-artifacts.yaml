@@ -30,10 +30,10 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
 
-      - name: "Install Python dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
+      - name: "Setup uv"
+        uses: ./.github/actions/setup-uv
+        with:
+          packages: pyyaml
 
       - name: "Generate feature flags JSON"
         env:

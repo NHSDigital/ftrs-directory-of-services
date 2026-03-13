@@ -1,0 +1,26 @@
+name: 'Setup asdf'
+description: 'Install asdf, restore the tool cache, and install tools from .tool-versions'
+
+outputs:
+  cache-hit:
+    description: 'Whether the asdf tool cache was restored from a previous run'
+    value: ${{ steps.asdf-cache.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install asdf
+      uses: asdf-vm/actions/setup@v4.0.1
+      with:
+        asdf_branch: v0.15.0
+
+    - name: Cache asdf tools
+      id: asdf-cache
+      uses: actions/cache@v5
+      with:
+        path: ~/.asdf
+        key: asdf-${{ runner.os }}-${{ hashFiles('.tool-versions') }}
+
+    - name: Install tools from .tool-versions
+      if: steps.asdf-cache.outputs.cache-hit != 'true'
+      uses: asdf-vm/actions/install@v4.0.1

@@ -7,8 +7,8 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= dos-search
-POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := dos_search-$(POETRY_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := dos_search-$(PROJECT_VERSION)-py3-none-any.whl
 
 # ==============================================================================
 # Include Shared Python Service Targets
@@ -19,22 +19,6 @@ include ../../scripts/services/python-service.mk
 # ==============================================================================
 # Service-Specific Overrides
 # ==============================================================================
-
-# Override dependency layer export to exclude additional groups
-build-dependency-layer: ## Build Python dependency layer artefact
-	@echo "Building dependency layer for $(SERVICE)..."
-	@mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without test --without shared --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
-	pip install \
-		--platform $(PLATFORM) \
-		--target $(DEPENDENCY_DIR)/python \
-		--implementation cp \
-		--python-version $(PYTHON_VERSION) \
-		--no-deps \
-		--upgrade \
-		-r $(DEPENDENCY_DIR)/requirements.txt
-	cd $(DEPENDENCY_DIR) && zip -r -q ../$(DEPENDENCY_LAYER_NAME).zip * --exclude "*__pycache__/*"
-	@echo "Dependency layer built: $(DEPENDENCY_LAYER_NAME).zip"
 
 _install-dependency: ## Install asdf dependency - mandatory: name=[listed in the '.tool-versions' file]; optional: version=[if not listed]
 	echo ${name}

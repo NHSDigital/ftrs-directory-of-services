@@ -7,7 +7,7 @@
 
 PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
-POETRY_VERSION := $(shell poetry version -s)
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
 
 BUILD_DIR := ../../build/services/$(SERVICE)
 DEPENDENCY_DIR := $(BUILD_DIR)/dependency-layer
@@ -78,26 +78,26 @@ install: install-dependencies
 
 install-dependencies: ## Install project dependencies
 	asdf install
-	poetry install --no-interaction
+	uv sync
 
 # ------------------------------------------------------------------------------
 # Quality
 # ------------------------------------------------------------------------------
 
 lint: ## Run linting checks
-	poetry run ruff check
-	poetry run ruff format --check
+	uv run ruff check
+	uv run ruff format --check
 
 lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 test: unit-test ## Run all tests
 
 unit-test: coverage ## Run unit tests
 
 coverage: ## Run unit tests with coverage
-	poetry run pytest --cov-report xml:coverage-$(SERVICE).xml tests/unit
+	uv run pytest --cov-report xml:coverage-$(SERVICE).xml tests/unit
 
 # ------------------------------------------------------------------------------
 # Build
@@ -113,7 +113,7 @@ generate-build-info: ensure-build-dir
 build-dependency-layer: clean ### Build the dependency layer
 	$(call log_start,Building dependency layer for $(SERVICE))
 	@mkdir -p $(DEPENDENCY_DIR)/python
-	poetry export --without dev --without-hashes > $(DEPENDENCY_DIR)/requirements.txt
+	uv export --no-dev --no-hashes --no-emit-workspace -o $(DEPENDENCY_DIR)/requirements.txt
 	pip install \
 		--platform $(PLATFORM) \
 		--target $(DEPENDENCY_DIR)/python \
@@ -140,14 +140,14 @@ ifdef LAMBDA_SUBDIRS
 	$(call log_start,Building $(SERVICE) with multiple lambdas: $(LAMBDA_SUBDIRS))
 	$(foreach lambda,$(LAMBDA_SUBDIRS),$(call build_lambda,$(lambda)))
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+	uv export --no-hashes -o $(BUILD_DIR)/requirements.txt
 	$(call log_success,Build complete)
 else
 	$(call log_start,Building $(SERVICE))
-	poetry build -f wheel -o $(BUILD_DIR)
+	uv build --wheel --out-dir $(BUILD_DIR)
 	echo "$(COMMIT_HASH)" > $(BUILD_DIR)/metadata.txt
 	mv $(BUILD_DIR)/$(WHEEL_NAME) $(BUILD_DIR)/$(LAMBDA_NAME).zip
-	poetry export -f requirements.txt --output $(BUILD_DIR)/requirements.txt --without-hashes
+	uv export --no-hashes -o $(BUILD_DIR)/requirements.txt
 	$(call log_success,Build complete: $(LAMBDA_NAME).zip)
 endif
 

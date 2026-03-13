@@ -7,8 +7,8 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= crud-apis
-POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := crud_apis-$(POETRY_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := crud_apis-$(PROJECT_VERSION)-py3-none-any.whl
 
 # ==============================================================================
 # Include Shared Python Service Targets
@@ -21,20 +21,20 @@ include ../../scripts/services/python-service.mk
 # ==============================================================================
 
 coverage: ## Run tests with coverage for all API modules
-	poetry run pytest --cov-report xml:coverage-$(SERVICE).xml \
+	uv run pytest --cov-report xml:coverage-$(SERVICE).xml \
 		organisations/tests/unit \
 		healthcare_service/tests/ \
 		location/tests/
 
 # Local development targets
 start-organisations-api: ## Start organisations API
-	poetry run poe start-organisations-api
+	uv run start-organisations-api
 
 start-healthcare-api: ## Start healthcare service API
-	poetry run poe start-healthcare-api
+	uv run start-healthcare-api
 
 start-location-api: ## Start location API
-	poetry run poe start-location-api
+	uv run start-location-api
 
 start-all-apis: ## Start all APIs
-	poetry run poe start-all-apis
+	uv run start-all-apis

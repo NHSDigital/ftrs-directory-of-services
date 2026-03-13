@@ -2,14 +2,14 @@
 
 ## Installation
 
-This project requires Python and Poetry as core dependencies.
+This project requires Python and uv as core dependencies.
 The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
 
 ### Install Python Dependencies
 
 ```bash
 cd services/data-migration
-poetry install
+uv sync
 ```
 
 ### Running Linting
@@ -23,10 +23,8 @@ make lint # Runs ruff check and ruff format
 To automatically format Python code and fix some linting issues, you can use:
 
 ```bash
-eval $(poetry env activate)
-
-ruff check --fix  # Runs linting with fix mode enabled
-ruff format       # Runs the python code formatter
+uv run ruff check --fix  # Runs linting with fix mode enabled
+uv run ruff format       # Runs the python code formatter
 ```
 
 ### Building the Lambda Package and Dependency Layers
@@ -44,8 +42,7 @@ Unit tests are run using Pytest. You can use the make target to conveniently run
 ```bash
 make unit-test
 # or
-eval $(poetry env activate)
-pytest tests/unit
+uv run pytest tests/unit
 ```
 
 ### Start Database Container
@@ -94,12 +91,7 @@ ftrs-directory-of-services/application/packages/ftrs_aws_local/README.md
 
 ### Running the pipeline locally
 
-The pipeline can be run locally using the `dos-etl` command. Ensure you are in the correct directory and have activated the Poetry environment.
-
-```bash
-# Activate Python virtual environment
-eval $(poetry env activate)
-```
+The pipeline can be run locally using the `dos-etl` command. Prefix each command with `uv run` to run within the project environment.
 
 The migration command accepts the following mandatory options:
 
@@ -115,26 +107,26 @@ The following options are also available:
 
 ```bash
 # Store output locally
-dos-etl migrate \
+uv run dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env local \
     --output-dir /tmp/out/extract.parquet
 
 # Migrate all services directly into local DynamoDB
-dos-etl migrate \
+uv run dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env local \
     --ddb-endpoint-url http://localhost:8000
 
 
 # Migrate a specific service directly into dev DynamoDB
-dos-etl migrate \
+uv run dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env dev \
     --service-id <service_id>
 
 # Migrate all services directly into workspaced DynamoDB
-dos-etl migrate \
+uv run dos-etl migrate \
     --db-uri postgresql://<user>:<password>@<host>:<port>/<database> \
     --env dev \
     --workspace fdos-000 \

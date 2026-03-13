@@ -145,9 +145,8 @@ This section translates the higher-level spec into concrete build steps a develo
 ### 14.1 Environment & Project Setup
 
 1. From repository root: `cd services/crud-apis/organisations` (or `location`, `healthcare_service`).
-2. Install deps: `poetry install`.
-3. Activate environment: `eval $(poetry environment activate)`.
-4. Run unit tests baseline: `pytest -q` (should pass existing tests).
+2. Install deps: `uv sync`.
+3. Run unit tests baseline: `uv run pytest -q` (should pass existing tests).
 
 ### 14.2 Common Coding Conventions
 

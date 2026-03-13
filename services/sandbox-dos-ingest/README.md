@@ -102,21 +102,18 @@ curl -X PUT \
 ### Local development (without docker)
 
 ```bash
-# Install dependencies
-poetry install
+# Install dependencies (from the repository root)
+uv sync
 
 # Run locally
-poetry run uvicorn src.app.main:app --host 0.0.0.0 --port 9000 --reload
+uv run uvicorn src.app.main:app --host 0.0.0.0 --port 9000 --reload
 ```
 
 ### Running tests
 
 ```bash
-# Install dev dependencies
-poetry install --with dev
-
 # Run tests
-poetry run pytest
+uv run pytest
 ```
 
 ## Pipeline deployment

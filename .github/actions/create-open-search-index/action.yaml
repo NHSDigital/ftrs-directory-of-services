@@ -31,6 +31,9 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
+
     - name: Create OpenSearch index
       id: create_index
       shell: bash
@@ -45,8 +48,4 @@ runs:
 
         echo "Using OPEN_SEARCH_DOMAIN=${OPEN_SEARCH_DOMAIN} INDEX=${INDEX} WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>}"
 
-        python3 -m pip install --upgrade pip setuptools wheel
-
-        python3 -m pip install boto3 requests
-
-        python3 ./scripts/workflow/create_open_search_index.py
+        uvx --with boto3 --with requests python3 ./scripts/workflow/create_open_search_index.py

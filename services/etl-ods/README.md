@@ -2,14 +2,14 @@
 
 ## Installation
 
-This project requires Python and Poetry as core dependencies. test.
+This project requires Python and uv as core dependencies.
 The current versions of these can be found in the `.tool-versions` file, and can be installed using asdf.
 
 ### Install Python Dependencies
 
 ```bash
 cd services/etl-ods
-poetry install
+uv sync
 ```
 
 ### Running Linting
@@ -25,10 +25,8 @@ make lint
 To automatically format Python code and fix some linting issues, you can use:
 
 ```bash
-eval $(poetry env activate)
-
-ruff check --fix
-ruff format
+uv run ruff check --fix
+uv run ruff format
 ```
 
 ### Building the Lambda Package and Dependency Layers

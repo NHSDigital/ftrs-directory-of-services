@@ -7,8 +7,8 @@
 
 ENVIRONMENT ?= mgmt
 SERVICE ?= data-migration
-POETRY_VERSION := $(shell poetry version -s)
-WHEEL_NAME := pipeline-$(POETRY_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := pipeline-$(PROJECT_VERSION)-py3-none-any.whl
 
 # Service-specific Lambda names
 DMS_DB_LAMBDA_NAME := ftrs-dos-$(ENVIRONMENT)-data-migration-dms-db-setup
@@ -27,10 +27,10 @@ include ../../scripts/services/python-service.mk
 # ==============================================================================
 
 export-to-s3: install ## Export data from the source database to S3
-	poetry run dos-etl export-to-s3 --env $(ENVIRONMENT)
+	uv run dos-etl export-to-s3 --env $(ENVIRONMENT)
 
 restore-from-s3: install ## Restore data from S3 to the source database
-	poetry run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
+	uv run dos-etl restore-from-s3 --env $(ENVIRONMENT) --workspace $(WORKSPACE)
 
 invoke-replication-task: ## Invoke the DMS replication tasks (full load + CDC)
 	@echo "Checking status of replication task $(FULL_REPLICATION_TASK_NAME)..."

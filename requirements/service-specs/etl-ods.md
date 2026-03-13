@@ -93,8 +93,7 @@ API key retrieved from Secrets Manager using environment + project prefix. Local
 
 ```bash
 cd services/etl-ods
-poetry install
-eval $(poetry environment activate)
+uv sync
 export LOCAL_APIM_API_URL=http://localhost:8001
 export LOCAL_API_KEY=changeme
 ```

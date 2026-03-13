@@ -19,4 +19,4 @@ With this you can now run the Python file 'temporary_sgsd_setup.py'
 Every time this file is ran, the index will be rebuilt from scratch, meaning the data will be updated to align with what's in dynamo. Although this will take several minutes to run.
 
 You can run the file by using the following command in the parent directory:
-    ```poetry run Python opensearch_local_index_populator/temporary_sgsd_setup.py```
+    ```uv run python opensearch_local_index_populator/temporary_sgsd_setup.py```

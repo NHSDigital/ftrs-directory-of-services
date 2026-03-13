@@ -137,7 +137,7 @@ From `services/dos-search`:
 make build-endpoint-lambdas APPLICATION_TAG=test-tag
 
 # Or run the script directly
-poetry run python scripts/package_endpoint_lambdas.py \
+uv run python scripts/package_endpoint_lambdas.py \
   --out build \
   --application-tag test-tag
 
@@ -245,19 +245,19 @@ Run unit tests:
 
 ```shell
 # Run all tests
-poetry run pytest tests/unit
+uv run pytest tests/unit
 
 # Run with coverage report
-poetry run pytest --cov=functions tests/unit
+uv run pytest --cov=functions tests/unit
 
 # Run specific test file
-poetry run pytest tests/unit/functions/test_dos_search_ods_code_function.py
+uv run pytest tests/unit/functions/test_dos_search_ods_code_function.py
 ```
 
 Run the lambda function locally for manual testing:
 
 ```shell
-PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions poetry run python tests/manual_test.py
+PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions uv run python tests/manual_test.py
 ```
 
 ### Linting and Formatting
@@ -308,7 +308,7 @@ The Lambda function accepts an event with an `odsCode` parameter:
 Use the `manual_test.py` script to test the Lambda function locally:
 
 ```shell
-PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions poetry run python tests/manual_test.py
+PYTHONPATH=$(git rev-parse --show-toplevel)/services/dos-search/functions uv run python tests/manual_test.py
 ```
 
 This will use the ODS_CODE from your environment variables to make a test request.
@@ -328,17 +328,14 @@ This will use the ODS_CODE from your environment variables to make a test reques
 Update dependencies:
 
 ```shell
-# Update lock file with changes from pyproject.toml
-poetry lock --no-update
+# Update lock file without upgrading dependencies
+uv lock --frozen
 
 # Update all dependencies to latest versions
-poetry lock
+uv lock
 
-# Update poetry environment with lock file changes
-poetry install
-
-# Update poetry environment with lock file changes, removing unused dependencies
-poetry sync
+# Sync environment with lock file changes
+uv sync
 ```
 
 ## Troubleshooting

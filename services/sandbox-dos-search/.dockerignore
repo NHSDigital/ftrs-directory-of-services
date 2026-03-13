@@ -28,6 +28,10 @@ build/
 venv/
 env/
 
+# Lock files (not needed; uv pip install reads pyproject.toml directly)
+uv.lock
+poetry.lock
+
 # Git / IDE / OS
 .git/
 .gitignore
@@ -43,4 +47,3 @@ env/
 tests/
 scripts/
 Makefile
-README.md

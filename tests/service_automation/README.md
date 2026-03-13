@@ -213,6 +213,7 @@ make test MARKERS="data-sourcing"
 ### Running crud-api tests
 
 ### Running crud-api for organization tests
+
 ```shell
 make test MARKERS="crud-org-api"
 ```
@@ -295,12 +296,12 @@ The ETL mock includes the following test scenarios:
 | **Missing Optional Fields**| API response missing optional fields|Tests the system's ability to handle missing optional fields|
 | **Invalid ODSCode Format**|API returns an invalid format for the ODSCode field|Verifies validation of the ODSCode format|
 
-
 Each scenario is designed to test specific error conditions and edge cases that might occur when interacting with the real ODS API.
 
 #### Configuration
 
 The mock system automatically:
+
 - Retrieves the mock API Gateway URL from AWS Systems Manager Parameter Store
 - Configures the ETL Lambda environment variables to use the mock endpoint
 - Manages test data scenarios through predefined date-based triggers
@@ -316,7 +317,7 @@ make test MARKERS="is-api is-infra"
 ### Running specific feature tests
 
 ```shell
-poetry run pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
+uv run pytest tests/step_definitions/is_infra_steps/test_s3_bucket.py -p allure_pytest_bdd --alluredir=allure-results
 ```
 
 ### Generate Allure reports
@@ -365,4 +366,4 @@ export API_NAME=dos-search   # replacing dos-search with the matching api name o
 
 - If reports are blank, ensure that the command to generate the report has been run in the same directory as the allure-results directory
 - If you encounter issues with asdf tools, try `asdf reshim` to update the shims
-- For Playwright issues, try `poetry run playwright install --with-deps` to install all system dependencies
+- For Playwright issues, try `uv run playwright install --with-deps` to install all system dependencies

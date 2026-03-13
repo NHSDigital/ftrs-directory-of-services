@@ -32,12 +32,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install dependencies
-      shell: bash
-      run: |
-        set -euo pipefail
-        python -m pip install --upgrade pip
-        pip install pyyaml
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
+      with:
+        packages: pyyaml
 
     - name: Validate workspace format
       if: ${{ !contains(inputs.apim_env, 'sandbox') }}

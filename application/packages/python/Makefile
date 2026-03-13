@@ -2,8 +2,8 @@ ENVIRONMENT ?= mgmt
 PACKAGE ?= python
 BUILD_DIR := ../../../build/packages/$(PACKAGE)
 ARTEFACT_BUCKET := ${REPO_NAME}-$(ENVIRONMENT)-artefacts-bucket
-PACKAGE_VERSION := $(shell poetry version -s)
-WHEEL_NAME := ftrs_python_packages-$(PACKAGE_VERSION)-py3-none-any.whl
+PROJECT_VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+WHEEL_NAME := ftrs_python_packages-$(PROJECT_VERSION)-py3-none-any.whl
 PYTHON_VERSION ?= 3.12
 PLATFORM ?= manylinux2014_x86_64
 PACKAGES_LAYER_NAME := ftrs-dos-python-packages-layer
@@ -30,12 +30,12 @@ ensure-build-dir:
 	@mkdir -p $(BUILD_DIR)
 
 clean:
-	@rm -rf .poetry .pytest_cache .ruff_cache .tmp .venv .build .coverage coverage.xml
+	@rm -rf .pytest_cache .ruff_cache .tmp .venv .build .coverage coverage.xml
 	@rm -rf $(BUILD_DIR)
 
 install:
 	asdf install
-	poetry install
+	uv sync
 
 generate-build-info: ensure-build-dir
 	@echo '{' > $(BUILD_INFO_FILE)
@@ -48,7 +48,7 @@ build: ensure-build-dir build-package build-layer generate-build-info
 
 build-package:
 	@echo "Building Python packages wheel..."
-	poetry build -o $(BUILD_DIR) -f wheel
+	uv build --wheel --out-dir $(BUILD_DIR)
 
 build-layer:
 	@echo "Building Lambda layer from wheel..."
@@ -68,26 +68,26 @@ build-layer:
 LINT_HINT := Hint: Run 'make lint-fix' to fix any fixable linting errors and to format all files in the project
 
 lint:
-	poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }
-	poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
+	uv run ruff check || { echo "$(LINT_HINT)"; exit 1; }
+	uv run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }
 
 lint-staged:
 	files=$$(git diff --relative --name-only --cached --diff-filter=d -- '*.py'); \
 	if [ -z "$$files" ]; then \
 		echo "No files staged"; \
 	else \
-		echo "$$files" | xargs poetry run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
-		echo "$$files" | xargs poetry run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs uv run ruff check || { echo "$(LINT_HINT)"; exit 1; }; \
+		echo "$$files" | xargs uv run ruff format --check || { echo "$(LINT_HINT)"; exit 1; }; \
 	fi
 
 lint-fix:
-	poetry run ruff check --fix
-	poetry run ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 pre-commit: lint-staged
 
 unit-test:
-	poetry run pytest --cov-report xml:coverage-$(PACKAGE).xml
+	uv run pytest --cov-report xml:coverage-$(PACKAGE).xml
 
 coverage: unit-test
 

@@ -28,6 +28,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup uv
+      uses: ./.github/actions/setup-uv
+
     - name: Populate OpenSearch index
       id: populate_index
       shell: bash
@@ -43,8 +46,4 @@ runs:
 
         echo "Using WORKSPACE=${WORKSPACE} AWS_REGION=${AWS_REGION:-<unset>} OS_ENDPOINT=${OS_ENDPOINT:-<unset>} OS_FINAL_INDEX=${OS_FINAL_INDEX:-<unset>}"
 
-        python3 -m pip install --upgrade pip setuptools wheel
-
-        python3 -m pip install boto3 requests
-
-        python3 ./scripts/workflow/populate_open_search_index.py
+        uvx --with boto3 --with requests python3 ./scripts/workflow/populate_open_search_index.py
