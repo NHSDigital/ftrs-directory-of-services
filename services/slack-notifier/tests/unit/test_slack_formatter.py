@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from functions.slack_formatter import (
+    build_resource_links,
     build_slack_message,
     format_timestamp,
     get_severity_from_alarm_name,
@@ -142,6 +143,8 @@ class TestBuildSlackMessage:
             "AlarmName": "test-alarm",
             "AlarmArn": "arn:aws:cloudwatch:us-east-1:000000000000:alarm:test",  # gitleaks:allow
             "NewStateValue": "ALARM",
+            "Trigger_Namespace": "AWS/Lambda",
+            "Trigger_Dimensions_0_name": "FunctionName",
             "Trigger_Dimensions_0_value": "my-function",
         }
 
@@ -155,3 +158,56 @@ class TestBuildSlackMessage:
         assert "us-east-1.console.aws.amazon.com" in str(links_section)
         assert "Lambda Logs" in str(links_section)
         assert "Lambda Metrics" in str(links_section)
+
+
+class TestBuildResourceLinks:
+    def test_lambda_namespace(self):
+        alarm_data = {
+            "Trigger_Namespace": "AWS/Lambda",
+            "Trigger_Dimensions_0_name": "FunctionName",
+            "Trigger_Dimensions_0_value": "my-lambda",
+        }
+        result = build_resource_links(alarm_data, "test-alarm", "eu-west-2")
+        assert "View Alarm" in result
+        assert "Lambda Logs" in result
+        assert "Lambda Metrics" in result
+
+    def test_api_gateway_namespace(self):
+        alarm_data = {
+            "Trigger_Namespace": "AWS/ApiGateway",
+            "Trigger_Dimensions_0_name": "ApiName",
+            "Trigger_Dimensions_0_value": "my-api",
+        }
+        result = build_resource_links(alarm_data, "test-alarm", "eu-west-2")
+        assert "View Alarm" in result
+        assert "API Gateway Console" in result
+        assert "Lambda" not in result
+
+    def test_waf_namespace(self):
+        alarm_data = {
+            "Trigger_Namespace": "AWS/WAFV2",
+            "Trigger_Dimensions_0_name": "WebACL",
+            "Trigger_Dimensions_0_value": "my-acl",
+        }
+        result = build_resource_links(alarm_data, "test-alarm", "eu-west-2")
+        assert "View Alarm" in result
+        assert "WAF Console" in result
+        assert "Lambda" not in result
+
+    def test_cloudfront_namespace(self):
+        alarm_data = {
+            "Trigger_Namespace": "AWS/CloudFront",
+            "Trigger_Dimensions_0_name": "DistributionId",
+            "Trigger_Dimensions_0_value": "EDFDVBD6EXAMPLE",
+        }
+        result = build_resource_links(alarm_data, "test-alarm", "eu-west-2")
+        assert "View Alarm" in result
+        assert "CloudFront Console" in result
+        assert "Lambda" not in result
+
+    def test_unknown_namespace_fallback(self):
+        alarm_data = {"Trigger_Namespace": "Custom/Something"}
+        result = build_resource_links(alarm_data, "test-alarm", "eu-west-2")
+        assert "View Alarm" in result
+        assert "Lambda" not in result
+        assert result.count("<") == 1  # only one link

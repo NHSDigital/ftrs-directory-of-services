@@ -5,9 +5,14 @@ from typing import Any
 
 from functions.alarm_tags import get_alarm_tags
 from functions.aws_url_builder import (
+
+    build_api_gateway_url,
+    build_cloudfront_url,
     build_cloudwatch_url,
     build_lambda_logs_url,
     build_lambda_metrics_url,
+    build_waf_url,
+    extract_dimension_value,
     extract_region_code,
 )
 from functions.logger import logger
@@ -55,6 +60,47 @@ def format_timestamp(timestamp_str: str) -> str:
         return f"<!date^{unix_ts}^{{date_short_pretty}} at {{time}}|{timestamp_str}>"
 
 
+def build_resource_links(
+    alarm_data: dict, alarm_name: str, aws_region: str | None
+) -> str:
+    """Build Slack mrkdwn links appropriate for the alarm's resource type.
+
+    Args:
+        alarm_data: Flattened alarm data
+        alarm_name: CloudWatch alarm name
+        aws_region: AWS region code
+
+    Returns:
+        str: Slack mrkdwn formatted links string
+    """
+    cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
+    view_alarm_link = f"<{cloudwatch_url}| 🔗 View Alarm>"
+    namespace = alarm_data.get("Trigger_Namespace", "")
+
+    match namespace:
+        case "AWS/Lambda":
+            lambda_name = extract_dimension_value(
+                alarm_data, "FunctionName"
+            ) or alarm_data.get("Trigger_Dimensions_0_value", "Unknown")
+            logs_url = build_lambda_logs_url(lambda_name, aws_region)
+            metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
+            return f"{view_alarm_link} | <{logs_url}| 📋 Lambda Logs> | <{metrics_url}| 📊 Lambda Metrics>"
+        case "AWS/ApiGateway":
+            api_name = extract_dimension_value(alarm_data, "ApiName") or "Unknown"
+            api_url = build_api_gateway_url(api_name, aws_region)
+            return f"{view_alarm_link} | <{api_url}| 📋 API Gateway Console>"
+        case "AWS/WAFV2":
+            acl_name = extract_dimension_value(alarm_data, "WebACL") or "Unknown"
+            waf_url = build_waf_url(acl_name, aws_region)
+            return f"{view_alarm_link} | <{waf_url}| 🛡️ WAF Console>"
+        case "AWS/CloudFront":
+            dist_id = extract_dimension_value(alarm_data, "DistributionId") or "Unknown"
+            cf_url = build_cloudfront_url(dist_id, aws_region)
+            return f"{view_alarm_link} | <{cf_url}| 🌐 CloudFront Console>"
+        case _:
+            return view_alarm_link
+
+
 def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     """
     Build a Slack message with essential alert information using blocks and attachments.
@@ -83,7 +129,6 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
     trigger_period = alarm_data.get("Trigger_Period", 30)
     trigger_eval_periods = alarm_data.get("Trigger_EvaluationPeriods", 1)
     timestamp_val = alarm_data.get("StateChangeTime")
-    lambda_name = alarm_data.get("Trigger_Dimensions_0_value", "Unknown Lambda")
     region_display = alarm_data.get("Region", "Unknown Region")
     aws_region = extract_region_code(alarm_arn)
 
@@ -110,9 +155,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
             f"Non-alarm state - state_value: {state_value}, emoji: {emoji}, display_state: {display_state}"
         )
 
-    cloudwatch_url = build_cloudwatch_url(alarm_name, aws_region)
-    lambda_logs_url = build_lambda_logs_url(lambda_name, aws_region)
-    lambda_metrics_url = build_lambda_metrics_url(lambda_name, aws_region)
+    resource_links = build_resource_links(alarm_data, alarm_name, aws_region)
 
     # Fetch alarm tags for api_path and service
     alarm_tags = get_alarm_tags(alarm_arn)
@@ -158,10 +201,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": (
-                        f"<{cloudwatch_url}| 🔗 View Alarm> | <{lambda_logs_url}| 📋 Lambda Logs> | "
-                        f"<{lambda_metrics_url}| 📊 Lambda Metrics>"
-                    ),
+                    "text": resource_links,
                 },
             },
             {
@@ -169,7 +209,7 @@ def build_slack_message(alarm_data: dict[str, Any]) -> dict[str, Any]:
                 "elements": [
                     {
                         "type": "mrkdwn",
-                        "text": f"Lambda: {lambda_name} | Region: {region_display}",
+                        "text": f"Region: {region_display}",
                     }
                 ],
             },
