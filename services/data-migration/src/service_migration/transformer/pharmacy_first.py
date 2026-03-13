@@ -29,7 +29,8 @@ class PharmacyFirstTransformer(LinkedPharmacyTransformer):
     - The service name must be prefixed with 'PF++:'
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Parent pharmacy resolution:
     - The ODS suffix ('M06' or 'M06DSP') is removed to derive the base ODS code

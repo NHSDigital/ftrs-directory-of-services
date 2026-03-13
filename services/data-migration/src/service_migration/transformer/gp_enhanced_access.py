@@ -37,7 +37,8 @@ class GPEnhancedAccessTransformer(ServiceTransformer):
     - The ODS code format should match (Unnnnn) - beginning with letter 'U' followed by 5 digits
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
     - Service name must not contain excluded patterns: "GP Protected Learning Time (PLT)", "ARI - ", "Primary Care CAS - "
     """
 

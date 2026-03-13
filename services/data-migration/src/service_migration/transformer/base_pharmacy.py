@@ -45,7 +45,8 @@ class BasePharmacyTransformer(ServiceTransformer):
       - Follow alternating alpha-numeric pattern: letter-number-letter-number-letter (e.g., A1B2C)
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Feature flag behavior:
     - When data_migration_pharmacy_enabled is disabled:
