@@ -74,7 +74,7 @@ module "acm_cloudfront_cert_alarms" {
   alarm_config_path = "acm/config"
 
   monitored_resources = {
-    cloudfront_cert = aws_acm_certificate.custom_domain_cert_cloudfront[0].arn
+    cloudfront_cert = data.aws_acm_certificate.custom_domain_cert_cloudfront[0].arn
   }
 
   resource_metadata              = {}

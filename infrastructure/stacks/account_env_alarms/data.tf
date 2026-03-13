@@ -96,3 +96,9 @@ data "aws_acm_certificate" "custom_domain_api_cert" {
   count  = var.environment == "mgmt" ? 0 : 1
   domain = "*.${local.root_domain_name}"
 }
+
+data "aws_acm_certificate" "custom_domain_cert_cloudfront" {
+  count    = var.environment == "mgmt" ? 0 : 1
+  domain   = "*.${local.root_domain_name}"
+  provider = aws.us-east-1
+}
