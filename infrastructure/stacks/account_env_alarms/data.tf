@@ -85,7 +85,11 @@ data "aws_vpc_endpoint" "logs_vpce" {
 
 data "aws_vpc_endpoint" "current_dos_rds_endpoint" {
   vpc_id       = data.aws_vpc.vpc.id
-  service_name = "${local.project_prefix}-account-wide-current-dos-rds-vpc-endpoint"
+  service_name = data.aws_ssm_parameter.texas_vpc_endpoint_service_name.value
+}
+
+data "aws_ssm_parameter" "texas_vpc_endpoint_service_name" {
+  name = "/${local.project_prefix}-account-wide/texas-vpc-endpoint-service-name"
 }
 
 data "aws_acm_certificate" "custom_domain_api_cert" {
