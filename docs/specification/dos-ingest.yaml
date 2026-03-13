@@ -216,11 +216,12 @@ paths:
                 resourceType: "Bundle"
                 id: "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe"
                 type: "searchset"
+                total: 1
                 link:
                   - relation: "self"
-                    url: "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
+                    url: "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123"
                 entry:
-                  - fullUrl: "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
+                  - fullUrl: "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96"
                     resource:
                       resourceType: "Organization"
                       id: "04393ec4-198f-42dd-9507-f4fa5e9ebf96"
@@ -228,7 +229,8 @@ paths:
                         profile:
                           - "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
                       identifier:
-                        - system: "https://fhir.nhs.uk/Id/ods-organization-code"
+                        - use: "official"
+                          system: "https://fhir.nhs.uk/Id/ods-organization-code"
                           value: "ABC123"
                       active: true
                       name: "Example GP Practice"
@@ -1171,6 +1173,12 @@ components:
               - system
               - value
             properties:
+              use:
+                type: string
+                enum:
+                  - official
+                description: Identifies the purpose of this identifier (fixed to 'official' for ODS codes)
+                example: official
               system:
                 type: string
                 enum:
@@ -1214,6 +1222,10 @@ components:
           type: string
           enum: [searchset]
           example: searchset
+        total:
+          type: integer
+          description: Total number of resources that match the search criteria
+          example: 1
         link:
           type: array
           description: Links related to this Bundle, including self-reference
@@ -1225,7 +1237,7 @@ components:
                 example: self
               url:
                 type: string
-                example: https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
+                example: https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
         entry:
           type: array
           description: Organization resources matching the search criteria.
@@ -1237,7 +1249,7 @@ components:
               fullUrl:
                 type: string
                 description: Absolute URL for this resource
-                example: https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96
+                example: https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96
               resource:
                 $ref: '#/components/schemas/Organization'
               search:

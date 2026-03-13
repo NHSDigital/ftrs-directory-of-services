@@ -271,8 +271,13 @@ class OrganizationMapper(FhirMapper):
 
     def _extract_base_url(self, request_url: str) -> str:
         if "?" in request_url:
-            return request_url.split("?")[0].rsplit("/", 1)[0]
-        return request_url.rsplit("/", 1)[0]
+            # Remove query parameters first
+            base_with_path = request_url.split("?")[0]
+        else:
+            base_with_path = request_url
+
+        # Remove the last path segment (e.g., /Organization)
+        return base_with_path.rsplit("/", 1)[0]
 
     def from_ods_fhir_to_fhir(
         self, ods_fhir_organization: dict

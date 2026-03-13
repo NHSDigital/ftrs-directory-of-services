@@ -9,15 +9,16 @@ SUCCESS_BUNDLE_ABC123 = {
     "resourceType": "Bundle",
     "id": "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe",
     "type": "searchset",
+    "total": 1,
     "link": [
         {
             "relation": "self",
-            "url": "https://api.service.nhs.uk/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
+            "url": "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123",
         }
     ],
     "entry": [
         {
-            "fullUrl": "https://api.service.nhs.uk/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
+            "fullUrl": "https://api.service.nhs.uk/dos-ingest/FHIR/R4/Organization/04393ec4-198f-42dd-9507-f4fa5e9ebf96",
             "resource": {
                 "resourceType": "Organization",
                 "id": "04393ec4-198f-42dd-9507-f4fa5e9ebf96",
@@ -28,6 +29,7 @@ SUCCESS_BUNDLE_ABC123 = {
                 },
                 "identifier": [
                     {
+                        "use": "official",
                         "system": ODS_ORG_CODE_IDENTIFIER_SYSTEM,
                         "value": "ABC123",
                     }

@@ -317,6 +317,12 @@ def test_get_handle_organisation_returns_bundle_with_fhir_fields(
     assert "tag" not in resource["meta"]
 
     assert "identifier" in resource
+    assert resource["identifier"][0]["use"] == "official"
+    assert (
+        resource["identifier"][0]["system"]
+        == "https://fhir.nhs.uk/Id/ods-organization-code"
+    )
+    assert resource["identifier"][0]["value"] == "ODS12345"
     assert "active" in resource
     assert "name" in resource
     assert "telecom" in resource
