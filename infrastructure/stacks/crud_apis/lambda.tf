@@ -53,6 +53,7 @@ module "organisation_api_lambda" {
     "APPCONFIG_APPLICATION_ID"           = data.aws_ssm_parameter.appconfig_application_id.value
     "APPCONFIG_ENVIRONMENT_ID"           = local.appconfig_environment_id
     "APPCONFIG_CONFIGURATION_PROFILE_ID" = local.appconfig_configuration_profile_id
+    "APIM_BASE_URL"                      = var.apim_base_url
   }
 
   allowed_triggers = {

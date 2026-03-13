@@ -17,3 +17,6 @@ class Settings(BaseSettings):
     appconfig_configuration_profile_id: str | None = Field(
         None, alias="APPCONFIG_CONFIGURATION_PROFILE_ID"
     )
+
+    # Public APIM base URL for FHIR API responses
+    apim_base_url: str = Field(default="", alias="APIM_BASE_URL")

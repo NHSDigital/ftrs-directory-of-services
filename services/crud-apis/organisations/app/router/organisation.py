@@ -19,6 +19,7 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
+from ftrs_common.utils.api_url_util import get_apim_base_url
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
@@ -53,31 +54,6 @@ def _get_organization_query_params(
     return OrganizationQueryParams(identifier=identifier)
 
 
-def _build_public_url(request: Request) -> str:
-    """
-    Build public APIM URL from request.
-
-    The request.url returns internal mTLS backend URL (e.g., https://crud-ftrs-3199.dev.ftrs.cloud.nhs.uk).
-    We need to return the public APIM URL (e.g., https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4).
-    """
-    forwarded_host = request.headers.get("X-Forwarded-Host")
-    forwarded_proto = request.headers.get("X-Forwarded-Proto", "https")
-
-    if forwarded_host:
-        # Construct public APIM URL
-        # X-Forwarded-Host might be: internal-dev.api.service.nhs.uk
-        api_path = "/dos-ingest/FHIR/R4"
-        base_url = f"{forwarded_proto}://{forwarded_host}{api_path}"
-
-        # Preserve query parameters
-        if request.url.query:
-            return f"{base_url}/Organization?{request.url.query}"
-        return f"{base_url}/Organization"
-
-    # Fallback to internal URL (local dev)
-    return str(request.url)
-
-
 @router.get("/_status")
 def get_status() -> Response:
     table_active = organisation_service.check_if_table_active()
@@ -105,7 +81,11 @@ async def get_handle_organisation_requests(
         ods_code = organization_query_params.ods_code
         result = organisation_service.get_by_ods_code(ods_code)
 
-        request_url = _build_public_url(request)
+        base_url = get_apim_base_url()
+
+        request_url = f"{base_url}/Organization"
+        if request.url.query:
+            request_url = f"{request_url}?{request.url.query}"
 
         bundle = organisation_mapper.to_fhir_bundle(result, request_url=request_url)
         return JSONResponse(
