@@ -30,6 +30,7 @@ client = TestClient(test_app)
 test_org_id = uuid4()
 
 TEST_PRODUCT_ID = "test-product-id"
+TEST_APIM_BASE_URL = "https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4"
 
 
 @pytest.fixture(autouse=True)
@@ -40,6 +41,13 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     )
     mock_client.is_enabled.return_value = True
     return mock_client
+
+@pytest.fixture(autouse=True)
+def mock_apim_base_url(mocker: MockerFixture) -> MagicMock:
+    """Mock the APIM base URL settings for all tests."""
+    mock_settings = mocker.patch("ftrs_common.utils.api_url_util._settings")
+    mock_settings.apim_base_url = TEST_APIM_BASE_URL
+    return mock_settings
 
 
 def get_organisation() -> dict:
@@ -298,11 +306,14 @@ def test_get_handle_organisation_returns_bundle_with_fhir_fields(
     assert "link" in bundle
     assert len(bundle["link"]) > 0
     assert bundle["link"][0]["relation"] == "self"
+    assert bundle["link"][0]["url"].startswith(TEST_APIM_BASE_URL)
+    assert "Organization?identifier=" in bundle["link"][0]["url"]
 
     assert len(bundle["entry"]) == 1
     entry = bundle["entry"][0]
 
     assert "fullUrl" in entry
+    assert entry["fullUrl"].startswith(TEST_APIM_BASE_URL)
     assert f"/Organization/{test_org_id}" in entry["fullUrl"]
 
     assert "search" in entry
@@ -327,6 +338,29 @@ def test_get_handle_organisation_returns_bundle_with_fhir_fields(
     assert "name" in resource
     assert "telecom" in resource
     assert "extension" not in resource
+
+
+def test_get_handle_organisation_requests_apim_url_not_set(
+    mocker: MockerFixture,
+) -> None:
+    """Test GET /Organization raises error when APIM_BASE_URL is not set."""
+    mock_org = Organisation(**get_organisation())
+    mocker.patch(
+        "organisations.app.router.organisation.org_repository.get_by_ods_code",
+        return_value=[mock_org],
+    )
+    
+    # Mock empty APIM base URL
+    mocker.patch("ftrs_common.utils.api_url_util._settings.apim_base_url", "")
+    
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
+    
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "exception"
+    assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
 
 
 def test_update_organisation_success(mock_organisation_service: MockerFixture) -> None:
