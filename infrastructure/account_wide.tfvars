@@ -34,7 +34,6 @@ enable_s3_kms_encryption = true
 enable_firehose_s3_kms_encryption = true
 firehose_log_group_name           = "splunk-firehose-logs"
 hec_acknowledgment_timeout        = 300
-hec_endpoint_type                 = "Raw"
 retry_duration                    = 300
 s3_backup_mode                    = "FailedEventsOnly"
 

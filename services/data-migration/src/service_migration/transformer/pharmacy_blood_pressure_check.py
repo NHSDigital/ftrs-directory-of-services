@@ -30,7 +30,8 @@ class PharmacyBPCheckTransformer(LinkedPharmacyTransformer):
     - The service name must be prefixed with "BP Check:" or "BP:"
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Parent pharmacy resolution:
     - The ODS suffix "BPS" is removed to derive the base 5-character ODS code

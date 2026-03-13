@@ -567,8 +567,4 @@ def base_endpoint() -> Endpoint:
         service=UUID("43f8c8c0-2272-4371-966a-f2db6d338e58"),
         order=1,
         isCompressionEnabled=False,
-        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        created=datetime(2023, 1, 1),
-        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
-        lastUpdated=datetime(2023, 1, 1),
     )

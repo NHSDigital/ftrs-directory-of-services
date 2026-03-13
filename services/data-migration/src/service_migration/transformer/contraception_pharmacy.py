@@ -23,7 +23,8 @@ class ContraceptionPharmacyTransformer(LinkedPharmacyTransformer):
     - The service name must be prefixed with 'Contraception: '
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Parent pharmacy resolution:
     - The ODS suffix 'CON' is removed to derive the base ODS code (no length validation)

@@ -45,7 +45,8 @@ class BasePharmacyTransformer(ServiceTransformer):
       - Follow alternating alpha-numeric pattern: letter-number-letter-number-letter (e.g., A1B2C)
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Feature flag behavior:
     - When data_migration_pharmacy_enabled is disabled:
@@ -162,6 +163,16 @@ class LinkedPharmacyTransformer(ServiceTransformer):
             healthcare_service=[healthcare_service],
         )
 
+    def derive_base_ods_code(self, service: legacy_model.Service) -> str:
+        """
+        Derive the parent pharmacy ODS code from the linked service ODS code.
+        """
+        return (
+            service.odscode[: -len(self.ODS_SUFFIX)]
+            if self.ODS_SUFFIX
+            else service.odscode
+        )
+
     def resolve_parent(
         self,
         service: legacy_model.Service,
@@ -171,11 +182,7 @@ class LinkedPharmacyTransformer(ServiceTransformer):
         """
         Resolve the parent pharmacy organisation and location for a linked service.
         """
-        base_ods_code = (
-            service.odscode[: -len(self.ODS_SUFFIX)]
-            if self.ODS_SUFFIX
-            else service.odscode
-        )
+        base_ods_code = self.derive_base_ods_code(service)
 
         parent_service = self._find_parent_service(engine, base_ods_code)
 

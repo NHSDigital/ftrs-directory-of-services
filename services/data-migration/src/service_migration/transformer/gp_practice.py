@@ -31,7 +31,8 @@ class GPPracticeTransformer(ServiceTransformer):
     - The ODS code format should start with one of the following letters: A, B, C, D, E, F, G, H, J, K, L, M, N, P, V, W, Y
 
     Filter criteria:
-    - The service must be active
+    - By default, the service must be active
+    - Inactive services are still included when a migration state record already exists
 
     Feature flag behavior:
     - When data_migration_search_triage_code_enabled is disabled:

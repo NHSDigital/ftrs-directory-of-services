@@ -115,18 +115,6 @@ def test_service_transformer_build_organisation(
         endpoints=[
             Endpoint(
                 id="a226aaa5-392c-59c8-8d79-563bb921cb0d",
-                createdBy={
-                    "type": "app",
-                    "value": "INTERNAL001",
-                    "display": "Data Migration",
-                },
-                created="2025-07-17T12:00:00Z",
-                lastUpdatedBy={
-                    "type": "app",
-                    "value": "INTERNAL001",
-                    "display": "Data Migration",
-                },
-                lastUpdated="2025-07-17T12:00:00Z",
                 identifier_oldDoS_id=1,
                 status="active",
                 connectionType="http",
@@ -143,18 +131,6 @@ def test_service_transformer_build_organisation(
             ),
             Endpoint(
                 id="4d678d9c-61db-584f-a64c-bd8eb829d8db",
-                createdBy={
-                    "type": "app",
-                    "value": "INTERNAL001",
-                    "display": "Data Migration",
-                },
-                created="2025-07-17T12:00:00Z",
-                lastUpdatedBy={
-                    "type": "app",
-                    "value": "INTERNAL001",
-                    "display": "Data Migration",
-                },
-                lastUpdated="2025-07-17T12:00:00Z",
                 identifier_oldDoS_id=2,
                 status="active",
                 connectionType="email",
@@ -220,14 +196,6 @@ def test_build_endpoint(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
-        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        created="2025-07-17T12:00:00Z",
-        lastUpdatedBy={
-            "type": "app",
-            "value": "INTERNAL001",
-            "display": "Data Migration",
-        },
-        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=12345,
         status="active",
         connectionType="itk",
@@ -271,14 +239,6 @@ def test_build_endpoint_no_comment(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="01d78de8-4e63-53b3-9b7d-107c39c23a8d",
-        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        created="2025-07-17T12:00:00Z",
-        lastUpdatedBy={
-            "type": "app",
-            "value": "INTERNAL001",
-            "display": "Data Migration",
-        },
-        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=12345,
         status="active",
         connectionType="itk",
@@ -325,14 +285,6 @@ def test_build_endpoint_telno(
     assert isinstance(result, Endpoint)
     assert result == Endpoint(
         id="4f1a685e-15da-5324-b596-6090fc90dc49",
-        createdBy={"type": "app", "value": "INTERNAL001", "display": "Data Migration"},
-        created="2025-07-17T12:00:00Z",
-        lastUpdatedBy={
-            "type": "app",
-            "value": "INTERNAL001",
-            "display": "Data Migration",
-        },
-        lastUpdated="2025-07-17T12:00:00Z",
         identifier_oldDoS_id=67890,
         status="active",
         connectionType="telno",
