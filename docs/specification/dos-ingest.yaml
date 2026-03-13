@@ -317,6 +317,7 @@ paths:
                         details:
                           coding:
                             - system: https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode
+                              version: "1.0.0"
                               code: INVALID_SEARCH_DATA
                               display: Invalid search data
                         diagnostics: "Invalid request data provided: Missing required request parameters: [identifier]"
