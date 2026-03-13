@@ -42,12 +42,7 @@ EXCLUDE_PATHS = [
     "root['created']",
     "root['lastUpdated']",
 ]
-EXCLUDE_REGEX_PATHS = [
-    r"root\['endpoints'\]\[\d+\]\['created'\]",
-    r"root\['endpoints'\]\[\d+\]\['lastUpdated'\]",
-    r"root\['endpoints'\]\[\d+\]\['createdBy'\]",
-    r"root\['endpoints'\]\[\d+\]\['lastUpdatedBy'\]",
-]
+EXCLUDE_REGEX_PATHS = []
 
 
 @dataclass

@@ -17,7 +17,6 @@ from utilities.common.dynamoDB_tables import get_table_name
 # Load all scenarios from the feature file
 scenarios("../../tests/features/data_migration_features/audit_event_tracking.feature")
 
-
 # Storage for audit timestamps across test steps
 stored_audit_values: Dict[str, Any] = {}
 
@@ -105,9 +104,6 @@ def get_nested_value(obj: Dict[str, Any], path: str) -> Any:
     return value
 
 
-# === GIVEN steps for storing audit values ===
-
-
 @given(
     parsers.parse(
         "I store the {entity_type} audit timestamps for service '{service_id}'"
@@ -120,34 +116,19 @@ def store_audit_timestamps(
     Store audit timestamps and createdBy/lastUpdatedBy for later comparison.
 
     Args:
-        entity_type: Type of entity (organisation, location, healthcare service, endpoint)
+        entity_type: Type of entity (organisation, location, healthcare service)
         service_id: Service ID
         dynamodb: DynamoDB fixture
     """
     entity_type_normalized = entity_type.replace(" ", "-")
 
-    if entity_type_normalized == "endpoint":
-        endpoints = get_endpoint_records(dynamodb, service_id)
-        stored_audit_values[f"{entity_type}_{service_id}"] = [
-            {
-                "created": endpoint.get("created"),
-                "createdBy": endpoint.get("createdBy"),
-                "lastUpdated": endpoint.get("lastUpdated"),
-                "lastUpdatedBy": endpoint.get("lastUpdatedBy"),
-            }
-            for endpoint in endpoints
-        ]
-    else:
-        record = get_entity_record(dynamodb, entity_type_normalized, service_id)
-        stored_audit_values[f"{entity_type}_{service_id}"] = {
-            "created": record.get("created"),
-            "createdBy": record.get("createdBy"),
-            "lastUpdated": record.get("lastUpdated"),
-            "lastUpdatedBy": record.get("lastUpdatedBy"),
-        }
-
-
-# === THEN steps for checking audit field values ===
+    record = get_entity_record(dynamodb, entity_type_normalized, service_id)
+    stored_audit_values[f"{entity_type}_{service_id}"] = {
+        "created": record.get("created"),
+        "createdBy": record.get("createdBy"),
+        "lastUpdated": record.get("lastUpdated"),
+        "lastUpdatedBy": record.get("lastUpdatedBy"),
+    }
 
 
 @then(parsers.parse('the {entity_type} record has "{field}" populated'))
