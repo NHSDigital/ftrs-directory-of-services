@@ -42,6 +42,7 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     mock_client.is_enabled.return_value = True
     return mock_client
 
+
 @pytest.fixture(autouse=True)
 def mock_apim_base_url(mocker: MockerFixture) -> MagicMock:
     """Mock the APIM base URL settings for all tests."""
@@ -337,15 +338,15 @@ def test_get_handle_organisation_requests_apim_url_not_set(
         "organisations.app.router.organisation.org_repository.get_by_ods_code",
         return_value=[mock_org],
     )
-    
+
     # Mock empty APIM base URL
     mocker.patch("ftrs_common.utils.api_url_util._settings.apim_base_url", "")
-    
+
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.get(
             "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
         )
-    
+
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
