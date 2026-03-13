@@ -65,6 +65,7 @@ locals {
     rds             = "alias/${local.project_prefix}-rds-kms"
     opensearch      = "alias/${local.project_prefix}-opensearch-kms"
     firehose        = "alias/${local.project_prefix}-firehose-kms"
+    lambda          = "alias/${local.project_prefix}-lambda-kms"
     backup_sns      = "alias/${local.project_prefix}-backup-sns-kms"
     backup          = "alias/${local.project_prefix}-backup-kms"
     scheduler       = "alias/${local.project_prefix}-scheduler-kms"

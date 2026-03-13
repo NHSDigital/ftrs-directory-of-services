@@ -22,11 +22,30 @@ resource "aws_iam_role_policy_attachment" "splunk_hec_transformer_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy" "splunk_hec_transformer_kms" {
+  name = "${local.resource_prefix}-splunk-hec-transformer-kms"
+  role = aws_iam_role.splunk_hec_transformer_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource = module.lambda_encryption_key.arn
+    }]
+  })
+}
+
 resource "aws_lambda_function" "splunk_hec_transformer" {
   # checkov:skip=CKV_AWS_116: Dead-letter queue not required for a synchronous Firehose transformer
   # checkov:skip=CKV_AWS_117: VPC not required; Firehose invokes this directly
   # checkov:skip=CKV_AWS_50: X-Ray tracing not required for simple passthrough transformer
   # checkov:skip=CKV_AWS_272: Code signing not enforced for internal tooling lambda
+  # checkov:skip=CKV_AWS_115: Concurrency limit not required for synchronous Firehose transformer
   function_name    = "${local.resource_prefix}-splunk-hec-transformer"
   role             = aws_iam_role.splunk_hec_transformer_role.arn
   handler          = "handler.lambda_handler"
@@ -35,6 +54,7 @@ resource "aws_lambda_function" "splunk_hec_transformer" {
   source_code_hash = data.archive_file.splunk_hec_transformer.output_base64sha256
   timeout          = 60
   description      = "Strips whitespace from Firehose records before Splunk Event HEC delivery"
+  kms_key_arn      = module.lambda_encryption_key.arn
 
   environment {
     variables = {
