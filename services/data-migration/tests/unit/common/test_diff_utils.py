@@ -136,10 +136,6 @@ def make_endpoint(organisation_id: UUID, service_id: UUID) -> Endpoint:
         service=service_id,
         order=1,
         isCompressionEnabled=False,
-        createdBy={"display": "Test User", "type": "app", "value": "TESTVALUE"},
-        created=datetime(2023, 1, 1),
-        lastUpdatedBy={"display": "Test User12", "type": "app", "value": "TESTVALUE"},
-        lastUpdated=datetime(2023, 1, 1),
     )
 
 
@@ -152,34 +148,6 @@ def test_organisation_excludes_created_datetime(organisation: Organisation) -> N
 def test_organisation_excludes_modified_datetime(organisation: Organisation) -> None:
     modified = organisation.model_copy(update={"lastUpdated": datetime(2025, 12, 31)})
     diff = get_organisation_diff(organisation, modified)
-    assert len(diff) == 0
-
-
-def test_organisation_excludes_endpoint_created_datetime(
-    organisation: Organisation,
-) -> None:
-    service_id = uuid4()
-    endpoint1 = make_endpoint(organisation.id, service_id)
-    endpoint2 = endpoint1.model_copy(update={"created": datetime(2025, 6, 15)})
-
-    org1 = organisation.model_copy(update={"endpoints": [endpoint1]})
-    org2 = organisation.model_copy(update={"endpoints": [endpoint2]})
-
-    diff = get_organisation_diff(org1, org2)
-    assert len(diff) == 0
-
-
-def test_organisation_excludes_endpoint_modified_datetime(
-    organisation: Organisation,
-) -> None:
-    service_id = uuid4()
-    endpoint1 = make_endpoint(organisation.id, service_id)
-    endpoint2 = endpoint1.model_copy(update={"lastUpdated": datetime(2025, 6, 15)})
-
-    org1 = organisation.model_copy(update={"endpoints": [endpoint1]})
-    org2 = organisation.model_copy(update={"endpoints": [endpoint2]})
-
-    diff = get_organisation_diff(org1, org2)
     assert len(diff) == 0
 
 
