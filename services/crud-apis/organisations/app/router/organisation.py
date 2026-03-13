@@ -19,6 +19,7 @@ from ftrs_common.fhir.operation_outcome import (
 )
 from ftrs_common.fhir.r4b.organisation_mapper import OrganizationMapper
 from ftrs_common.logger import Logger
+from ftrs_common.utils.api_url_util import get_apim_base_url
 from ftrs_common.utils.db_service import get_service_repository
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.logbase import CrudApisLogBase
@@ -79,7 +80,14 @@ async def get_handle_organisation_requests(
 
         ods_code = organization_query_params.ods_code
         result = organisation_service.get_by_ods_code(ods_code)
-        bundle = organisation_mapper.to_fhir_bundle(result)
+
+        base_url = get_apim_base_url()
+
+        request_url = f"{base_url}/Organization"
+        if request.url.query:
+            request_url = f"{request_url}?{request.url.query}"
+
+        bundle = organisation_mapper.to_fhir_bundle(result, request_url=request_url)
         return JSONResponse(
             content=bundle.model_dump(mode="json"), media_type=FHIR_MEDIA_TYPE
         )

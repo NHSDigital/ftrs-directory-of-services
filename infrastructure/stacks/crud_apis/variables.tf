@@ -160,3 +160,8 @@ variable "regional_waf_name" {
   type        = string
   default     = "regional-waf-web-acl"
 }
+
+variable "apim_base_url" {
+  description = "Public APIM base URL for FHIR R4 API responses"
+  type        = string
+}

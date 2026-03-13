@@ -1,4 +1,4 @@
-from fhir.resources.R4B.bundle import Bundle, BundleEntry
+from fhir.resources.R4B.bundle import Bundle, BundleEntry, BundleEntrySearch, BundleLink
 from fhir.resources.R4B.contactpoint import ContactPoint
 from fhir.resources.R4B.extension import Extension
 from fhir.resources.R4B.identifier import Identifier
@@ -48,7 +48,6 @@ class OrganizationMapper(FhirMapper):
 
     def _build_telecom(self, telecom: list[Telecom] | str | None) -> list[dict]:
         """Build FHIR telecom list from phone, email and web."""
-        # Temporary handling for string and None telecom (old data format)
         if not telecom:
             return []
         if isinstance(telecom, str):
@@ -192,11 +191,10 @@ class OrganizationMapper(FhirMapper):
             "active": organisation.active,
             "name": organisation.name,
             "identifier": self._build_identifier(organisation.identifier_ODS_ODSCode),
-            "telecom": self._build_telecom(organisation.telecom),
         }
-        extensions = self._build_organisation_extensions(organisation)
-        if extensions:
-            org_dict["extension"] = extensions
+        if organisation.telecom:
+            telecom = self._build_telecom(organisation.telecom)
+            org_dict["telecom"] = telecom
         return FhirOrganisation.model_validate(org_dict)
 
     def from_fhir(self, fhir_resource: FhirOrganisation) -> Organisation:
@@ -221,17 +219,65 @@ class OrganizationMapper(FhirMapper):
             non_primary_role_codes=non_primary_codes,
         )
 
-    def to_fhir_bundle(self, organisations: list[Organisation]) -> Bundle:
-        """Convert list of Organisation objects to FHIR Bundle (searchset)."""
-        entries = [
-            BundleEntry.model_construct(resource=self.to_fhir(org))
-            for org in organisations
-        ]
-        bundle = Bundle.model_construct()
-        bundle.type = "searchset"
-        bundle.total = len(entries)
-        bundle.entry = entries
-        return bundle
+    def to_fhir_bundle(
+        self,
+        organisations: list[Organisation],
+        request_url: str | None = None,
+    ) -> Bundle:
+        """Convert list of Organisation objects to FHIR Bundle (searchset).
+
+        Returns a FHIR-compliant Bundle containing minimal Organization resources with only id and meta.
+        Each entry has search.mode set to "match" indicating the resource matched the search criteria.
+
+        Args:
+            organisations: List of Organisation domain objects
+            request_url: The request URL for the Bundle self link
+
+        Returns:
+            FHIR Bundle with Organization resources
+        """
+        base_url = self._extract_base_url(request_url) if request_url else None
+        entries = [self._create_bundle_entry(org, base_url) for org in organisations]
+
+        bundle_dict = {
+            "resourceType": "Bundle",
+            "type": "searchset",
+            "total": len(entries),
+            "entry": entries,
+        }
+
+        if request_url:
+            bundle_dict["link"] = [
+                BundleLink.model_validate({"relation": "self", "url": request_url})
+            ]
+
+        return Bundle.model_construct(**bundle_dict)
+
+    def _create_bundle_entry(
+        self, org: Organisation, base_url: str | None = None
+    ) -> BundleEntry:
+        """Create a FHIR Bundle entry with Organization resource."""
+        full_org = self.to_fhir(org)
+
+        entry_dict = {
+            "resource": full_org,
+            "search": BundleEntrySearch.model_validate({"mode": "match"}),
+        }
+
+        if base_url:
+            entry_dict["fullUrl"] = f"{base_url}/Organization/{org.id}"
+
+        return BundleEntry.model_construct(**entry_dict)
+
+    def _extract_base_url(self, request_url: str) -> str:
+        if "?" in request_url:
+            # Remove query parameters first
+            base_with_path = request_url.split("?")[0]
+        else:
+            base_with_path = request_url
+
+        # Remove the last path segment (e.g., /Organization)
+        return base_with_path.rsplit("/", 1)[0]
 
     def from_ods_fhir_to_fhir(
         self, ods_fhir_organization: dict

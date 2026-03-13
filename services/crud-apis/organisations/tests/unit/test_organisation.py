@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 from ftrs_common.fhir.operation_outcome import OperationOutcomeException
 from ftrs_data_layer.domain import Organisation
 from ftrs_data_layer.domain.enums import TelecomType
-from ftrs_data_layer.repository.dynamodb import AttributeLevelRepository
 from pytest_mock import MockerFixture
 from starlette.responses import JSONResponse
 
@@ -23,7 +22,6 @@ with patch("ftrs_common.feature_flags.FeatureFlagsClient") as mock_ff_class:
         _get_organization_query_params,
         router,
     )
-    from organisations.app.services.organisation_service import OrganisationService
 
 test_app = FastAPI()
 test_app.include_router(router)
@@ -32,6 +30,7 @@ client = TestClient(test_app)
 test_org_id = uuid4()
 
 TEST_PRODUCT_ID = "test-product-id"
+TEST_APIM_BASE_URL = "https://internal-dev.api.service.nhs.uk/dos-ingest/FHIR/R4"
 
 
 @pytest.fixture(autouse=True)
@@ -42,6 +41,14 @@ def mock_feature_flags(mocker: MockerFixture) -> MagicMock:
     )
     mock_client.is_enabled.return_value = True
     return mock_client
+
+
+@pytest.fixture(autouse=True)
+def mock_apim_base_url(mocker: MockerFixture) -> MagicMock:
+    """Mock the APIM base URL settings for all tests."""
+    mock_settings = mocker.patch("ftrs_common.utils.api_url_util._settings")
+    mock_settings.apim_base_url = TEST_APIM_BASE_URL
+    return mock_settings
 
 
 def get_organisation() -> dict:
@@ -183,30 +190,6 @@ def test_get_handle_organisation_requests_missing_identifier(
     assert data["detail"][0]["loc"] == ["query", "identifier"]
 
 
-# Additional test to cover identifier with different valid ODS code (lines 79-85)
-def test_get_handle_organisation_requests_by_identifier_success_with_different_code(
-    mocker: MockerFixture,
-) -> None:
-    mock_org = Organisation(**get_organisation())
-    mocker.patch(
-        "organisations.app.router.organisation.org_repository.get_by_ods_code",
-        return_value=mock_org,
-    )
-    response = client.get(
-        "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS54321"
-    )
-    assert response.status_code == HTTPStatus.OK
-    bundle = response.json()
-    assert bundle["resourceType"] == "Bundle"
-    assert len(bundle["entry"]) == 1
-    assert bundle["entry"][0]["resource"]["id"] == str(test_org_id)
-    # Also check the identifier is present in the response
-    assert any(
-        i["system"] == "https://fhir.nhs.uk/Id/ods-organization-code"
-        for i in bundle["entry"][0]["resource"].get("identifier", [])
-    )
-
-
 def test_get_handle_organisation_requests_by_identifier_invalid_ods_code() -> None:
     with pytest.raises(Exception) as exc_info:
         client.get(
@@ -284,6 +267,86 @@ def test_get_handle_organisation_requests_unhandled_exception(
         client.get(
             "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
         )
+    outcome = exc_info.value.outcome
+    assert outcome["issue"][0]["code"] == "exception"
+    assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
+
+
+def test_get_handle_organisation_returns_bundle_with_fhir_fields(
+    mocker: MockerFixture,
+) -> None:
+    """Test GET /Organization returns minimal Bundle with proper FHIR structure."""
+    mock_org = Organisation(**get_organisation())
+    mocker.patch(
+        "organisations.app.router.organisation.org_repository.get_by_ods_code",
+        return_value=mock_org,
+    )
+    response = client.get(
+        "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+    )
+    assert response.status_code == HTTPStatus.OK
+    bundle = response.json()
+
+    # Verify Bundle structure
+    assert bundle["resourceType"] == "Bundle"
+    assert bundle["type"] == "searchset"
+    assert bundle["total"] == 1
+
+    assert "link" in bundle
+    assert len(bundle["link"]) > 0
+    assert bundle["link"][0]["relation"] == "self"
+    assert bundle["link"][0]["url"].startswith(TEST_APIM_BASE_URL)
+    assert "Organization?identifier=" in bundle["link"][0]["url"]
+
+    assert len(bundle["entry"]) == 1
+    entry = bundle["entry"][0]
+
+    assert "fullUrl" in entry
+    assert entry["fullUrl"].startswith(TEST_APIM_BASE_URL)
+    assert f"/Organization/{test_org_id}" in entry["fullUrl"]
+
+    assert "search" in entry
+    assert entry["search"]["mode"] == "match"
+
+    resource = entry["resource"]
+    assert resource["resourceType"] == "Organization"
+    assert resource["id"] == str(test_org_id)
+
+    assert "meta" in resource
+    assert "profile" in resource["meta"]
+    assert "tag" not in resource["meta"]
+
+    assert "identifier" in resource
+    assert resource["identifier"][0]["use"] == "official"
+    assert (
+        resource["identifier"][0]["system"]
+        == "https://fhir.nhs.uk/Id/ods-organization-code"
+    )
+    assert resource["identifier"][0]["value"] == "ODS12345"
+    assert "active" in resource
+    assert "name" in resource
+    assert "telecom" in resource
+    assert "extension" not in resource
+
+
+def test_get_handle_organisation_requests_apim_url_not_set(
+    mocker: MockerFixture,
+) -> None:
+    """Test GET /Organization raises error when APIM_BASE_URL is not set."""
+    mock_org = Organisation(**get_organisation())
+    mocker.patch(
+        "organisations.app.router.organisation.org_repository.get_by_ods_code",
+        return_value=[mock_org],
+    )
+
+    # Mock empty APIM base URL
+    mocker.patch("ftrs_common.utils.api_url_util._settings.apim_base_url", "")
+
+    with pytest.raises(OperationOutcomeException) as exc_info:
+        client.get(
+            "/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS12345"
+        )
+
     outcome = exc_info.value.outcome
     assert outcome["issue"][0]["code"] == "exception"
     assert "Unhandled exception occurred" in outcome["issue"][0]["diagnostics"]
@@ -570,8 +633,18 @@ def test_update_organisation_missing_required_field() -> None:
 def test_update_organisation_telecom_phone_validation_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Telecom value field contains an invalid phone number: 01234",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -585,17 +658,8 @@ def test_update_organisation_telecom_phone_validation_error_exception(
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [
-            {"system": "phone", "value": "01234"},
-            {"system": "email", "value": "mailnhs.net"},
-        ],
+        "telecom": [{"system": "phone", "value": "01234"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
@@ -609,8 +673,18 @@ def test_update_organisation_telecom_phone_validation_error_exception(
 def test_update_organisation_telecom_email_validation_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Telecom value field contains an invalid email address: mailnhs.net",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -626,12 +700,6 @@ def test_update_organisation_telecom_email_validation_error_exception(
         "active": False,
         "telecom": [{"system": "email", "value": "mailnhs.net"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
@@ -645,8 +713,18 @@ def test_update_organisation_telecom_email_validation_error_exception(
 def test_update_organisation_telecom_url_validation_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Telecom value field contains an invalid url: nhs.net",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -662,17 +740,10 @@ def test_update_organisation_telecom_url_validation_error_exception(
         "active": False,
         "telecom": [{"system": "url", "value": "nhs.net"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
     assert exc_info.value.outcome["issue"][0]["severity"] == "error"
-    print("exc_info:", exc_info.value.outcome)
     assert (
         "Telecom value field contains an invalid url: nhs.net"
         in exc_info.value.outcome["issue"][0]["diagnostics"]
@@ -682,8 +753,18 @@ def test_update_organisation_telecom_url_validation_error_exception(
 def test_update_organisation_telecom_no_type_value_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Validation failed for the following resource: Telecom type (system) cannot be None or empty",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -697,17 +778,8 @@ def test_update_organisation_telecom_no_type_value_error_exception(
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [
-            {"value": "01234"},
-            {"system": "email", "value": "mailnhs.net"},
-        ],
+        "telecom": [{"value": "01234"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
@@ -721,8 +793,18 @@ def test_update_organisation_telecom_no_type_value_error_exception(
 def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Validation failed for the following resource: invalid telecom type (system): pager",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -736,17 +818,8 @@ def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [
-            {"system": "pager", "value": "01234"},
-            {"system": "email", "value": "mailnhs.net"},
-        ],
+        "telecom": [{"system": "pager", "value": "01234"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"
@@ -760,8 +833,18 @@ def test_update_organisation_telecom_invalid_type_pager_value_error_exception(
 def test_update_organisation_telecom_invalid_value_character_value_error_exception(
     mock_organisation_service: MockerFixture,
 ) -> None:
-    org_repository = MagicMock(spec=AttributeLevelRepository)
-    organisation_service = OrganisationService(org_repository=org_repository)
+    mock_organisation_service.process_organisation_update.side_effect = OperationOutcomeException(
+        {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "error",
+                    "code": "invalid",
+                    "diagnostics": "Validation failed for the following resources: Telecom value field contains an invalid phone number: 0300 311 22 33#",
+                }
+            ],
+        }
+    )
     update_payload = {
         "resourceType": "Organization",
         "id": str(test_org_id),
@@ -775,16 +858,8 @@ def test_update_organisation_telecom_invalid_value_character_value_error_excepti
         ],
         "name": "Test Organisation",
         "active": False,
-        "telecom": [
-            {"system": "phone", "value": "0300 311 22 33#"},
-        ],
+        "telecom": [{"system": "phone", "value": "0300 311 22 33#"}],
     }
-    try:
-        organisation_service.process_organisation_update(
-            test_org_id, update_payload, TEST_PRODUCT_ID
-        )
-    except OperationOutcomeException as e:
-        mock_organisation_service.process_organisation_update.side_effect = e
     with pytest.raises(OperationOutcomeException) as exc_info:
         client.put(f"/Organization/{test_org_id}", json=update_payload)
     assert exc_info.value.outcome["issue"][0]["code"] == "invalid"

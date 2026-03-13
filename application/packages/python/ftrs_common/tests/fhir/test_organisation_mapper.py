@@ -60,7 +60,6 @@ def test_to_fhir_maps_fields_correctly() -> None:
         non_primary_role_codes=["bcd123"],
     )
     fhir_org = mapper.to_fhir(org)
-    EXPECTED_EXTENTION_LENGTH = 2
     assert isinstance(fhir_org, FhirOrganisation)
     assert fhir_org.id == "123e4567-e89b-12d3-a456-42661417400a"
     assert fhir_org.name == "Test Org"
@@ -73,8 +72,7 @@ def test_to_fhir_maps_fields_correctly() -> None:
         fhir_org.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == EXPECTED_EXTENTION_LENGTH
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 def test_to_fhir_handles_missing_telecom() -> None:
@@ -96,7 +94,7 @@ def test_to_fhir_handles_missing_telecom() -> None:
     assert fhir_org.name == "Test Org 2"
     assert fhir_org.active is False
     assert fhir_org.identifier[0].value == "ODS2"
-    assert not hasattr(fhir_org, "contact") or fhir_org.telecom == []
+    assert not hasattr(fhir_org, "telecom") or fhir_org.telecom is None
 
 
 def test__build_meta_profile() -> None:
@@ -466,19 +464,24 @@ def test_to_fhir_bundle_single_org() -> None:
     assert len(bundle_single.entry) == 1
     resource = bundle_single.entry[0].resource
     assert resource.id == "00000000-0000-0000-0000-00000000000a"
-    assert resource.name == "Test Org 1"
-    assert resource.active is True
-    assert resource.identifier[0].value == "ODS1"
-    assert (
-        resource.identifier[0].system == "https://fhir.nhs.uk/Id/ods-organization-code"
-    )
-    assert resource.identifier[0].use == "official"
-    assert resource.telecom[0].system == "phone"
-    assert resource.telecom[0].value == "020 7972 3272"
     assert (
         resource.meta.profile[0]
         == "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
     )
+
+    # Verify MustSupport fields ARE present
+    assert resource.identifier is not None
+    assert len(resource.identifier) > 0
+    assert resource.identifier[0].value == "ODS1"
+    assert resource.active is True
+    assert resource.name == "Test Org 1"
+    assert resource.telecom is not None
+    assert len(resource.telecom) == 1
+    assert resource.telecom[0].value == "020 7972 3272"
+
+    # Verify extensions and address are NOT present
+    assert not hasattr(resource, "extension") or resource.extension is None
+    assert not hasattr(resource, "address") or resource.address is None
 
 
 def test_to_fhir_bundle_multiple_orgs() -> None:
@@ -513,6 +516,76 @@ def test_to_fhir_bundle_multiple_orgs() -> None:
         "00000000-0000-0000-0000-00000000000a",
         "00000000-0000-0000-0000-00000000000b",
     }
+
+    for entry in bundle_multi.entry:
+        resource = entry.resource
+
+        # Verify MustSupport fields ARE present
+        assert resource.identifier is not None
+        assert len(resource.identifier) > 0
+        assert resource.active is not None
+        assert resource.name is not None
+
+        # Verify extensions and address are NOT present
+        assert not hasattr(resource, "extension") or resource.extension is None
+        assert not hasattr(resource, "address") or resource.address is None
+
+
+def test_to_fhir_bundle_with_request_url() -> None:
+    """Test that to_fhir_bundle includes link and fullUrl when request_url is provided."""
+    mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    org1 = Organisation(
+        id="00000000-0000-0000-0000-00000000000a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom=[],
+        lastUpdatedBy=modified_by,
+    )
+
+    request_url = "https://api.example.com/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ODS1"
+    bundle = mapper.to_fhir_bundle([org1], request_url=request_url)
+
+    assert bundle.link is not None
+    assert len(bundle.link) == 1
+    assert bundle.link[0].relation == "self"
+    assert bundle.link[0].url == request_url
+
+    assert len(bundle.entry) == 1
+    assert bundle.entry[0].fullUrl is not None
+    assert (
+        "/Organization/00000000-0000-0000-0000-00000000000a" in bundle.entry[0].fullUrl
+    )
+
+    assert bundle.entry[0].search is not None
+    assert bundle.entry[0].search.mode == "match"
+
+
+def test_to_fhir_bundle_without_request_url() -> None:
+    """Test that to_fhir_bundle works without request_url (no link or fullUrl)."""
+    mapper = OrganizationMapper()
+    modified_by = AuditEvent(
+        type=AuditEventType.user, value="test_user", display="Test User"
+    )
+    org1 = Organisation(
+        id="00000000-0000-0000-0000-00000000000a",
+        identifier_ODS_ODSCode="ODS1",
+        name="Test Org 1",
+        active=True,
+        telecom=[],
+        lastUpdatedBy=modified_by,
+    )
+
+    bundle = mapper.to_fhir_bundle([org1])
+
+    # Verify Bundle has no link when request_url not provided
+    assert bundle.link is None or len(bundle.link) == 0
+
+    assert len(bundle.entry) == 1
+    assert bundle.entry[0].fullUrl is None
 
 
 def test__get_org_telecom_with_phone() -> None:
@@ -1024,24 +1097,8 @@ def test_to_fhir_with_legal_dates() -> None:
     fhir_org = mapper.to_fhir(org)
 
     assert isinstance(fhir_org, FhirOrganisation)
-    assert hasattr(fhir_org, "extension")
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == 1
-
-    ext_dict = fhir_org.extension[0].dict()
-    assert (
-        ext_dict["url"]
-        == "https://fhir.nhs.uk/England/StructureDefinition/Extension-England-OrganisationRole"
-    )
-
-    # Check that the TypedPeriod extension is present
-    typed_period = next(
-        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
-    )
-    assert typed_period is not None
-    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-    assert period["valuePeriod"]["start"] == "2020-01-15"
-    assert period["valuePeriod"]["end"] == "2025-12-31"
+    # Extensions are not included in to_fhir (used for minimal GET responses)
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 @pytest.mark.parametrize(
@@ -1258,27 +1315,7 @@ def test_to_fhir_partial_dates_absent_not_null(
 
     fhir_org = mapper.to_fhir(org)
 
-    assert fhir_org.extension is not None
-    assert len(fhir_org.extension) == 1
-
-    ext_dict = fhir_org.extension[0].dict()
-    typed_period = next(
-        (e for e in ext_dict["extension"] if e["url"] == TYPED_PERIOD_URL), None
-    )
-    assert typed_period is not None
-    period = next((e for e in typed_period["extension"] if e["url"] == "period"), None)
-
-    if expected_start_in_period is not None:
-        assert "start" in period["valuePeriod"]
-        assert period["valuePeriod"]["start"] == expected_start_in_period
-    else:
-        assert "start" not in period["valuePeriod"]
-
-    if expected_end_in_period is not None:
-        assert "end" in period["valuePeriod"]
-        assert period["valuePeriod"]["end"] == expected_end_in_period
-    else:
-        assert "end" not in period["valuePeriod"]
+    assert not hasattr(fhir_org, "extension") or fhir_org.extension is None
 
 
 def test_from_ods_fhir_to_fhir_includes_legal_dates_typed_period() -> None:

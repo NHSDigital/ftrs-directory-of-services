@@ -23,7 +23,17 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
         "type": "searchset",
         "status_code": 200,
         "entry": [
-            {"resource": {"resourceType": "Organization", "id": "BUNDLE_ORG_ID"}}
+            {
+                "resource": {
+                    "resourceType": "Organization",
+                    "id": "ORG_ID",
+                    "meta": {
+                        "profile": [
+                            "https://fhir.hl7.org.uk/StructureDefinition/UKCore-Organization"
+                        ]
+                    },
+                }
+            }
         ],
     }
     make_request_mock = mocker.patch(
@@ -32,7 +42,7 @@ def test_fetch_organisation_uuid(mocker: MockerFixture) -> None:
 
     result_bundle = fetch_organisation_uuid("XYZ999", "test-msg-123")
 
-    assert result_bundle == "BUNDLE_ORG_ID"
+    assert result_bundle == "ORG_ID"
     make_request_mock.assert_called_once_with(
         "http://apim-proxy/Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|XYZ999",
         method="GET",
