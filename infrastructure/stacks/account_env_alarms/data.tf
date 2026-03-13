@@ -89,7 +89,7 @@ data "aws_vpc_endpoint" "current_dos_rds_endpoint" {
 }
 
 data "aws_ssm_parameter" "texas_vpc_endpoint_service_name" {
-  name = "/${local.resource_prefix}/texas-vpc-endpoint-service-name"
+  name = "/${local.account_prefix}-account-wide/texas-vpc-endpoint-service-name"
 }
 
 data "aws_acm_certificate" "custom_domain_api_cert" {
