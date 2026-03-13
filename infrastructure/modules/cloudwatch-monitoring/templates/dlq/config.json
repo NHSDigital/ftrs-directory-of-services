@@ -1,0 +1,26 @@
+{
+  "dlq": [
+    {
+      "metric_name": "ApproximateNumberOfMessagesVisible",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "message-count",
+      "description": "Alert when messages appear in DLQ",
+      "severity": "warning",
+      "namespace": "AWS/SQS",
+      "dimension_name": "QueueName"
+    }
+  ],
+  "queue": [
+    {
+      "metric_name": "ApproximateAgeOfOldestMessage",
+      "statistic": "Maximum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "message-age",
+      "description": "Queue messages are too old",
+      "severity": "warning",
+      "namespace": "AWS/SQS",
+      "dimension_name": "QueueName"
+    }
+  ]
+}
