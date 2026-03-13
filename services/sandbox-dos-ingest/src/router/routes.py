@@ -7,14 +7,15 @@ from fastapi.responses import JSONResponse
 from src.models.constants import MEDIA_TYPE, ODS_ORG_CODE_IDENTIFIER_SYSTEM
 from src.router.responses import (
     ERROR_INTERNAL_SERVER,
-    ERROR_INVALID_IDENTIFIER_SYSTEM,
-    ERROR_INVALID_IDENTIFIER_VALUE,
     ERROR_MISSING_IDENTIFIER,
     ERROR_MISSING_IDENTIFIER_SEPARATOR,
-    ERROR_NOT_FOUND,
     PUT_NOT_FOUND_RESPONSE,
     PUT_SUCCESS_RESPONSE,
+    PUT_VALIDATION_ERROR_RESPONSE,
     SUCCESS_BUNDLE_ABC123,
+    build_invalid_identifier_system_error,
+    build_invalid_identifier_value_error,
+    build_not_found_error,
 )
 
 router = APIRouter()
@@ -23,7 +24,7 @@ router = APIRouter()
 @router.get("/Organization")
 async def get_organization(
     identifier: str | None = Query(
-        None,
+        default=None,
         alias="identifier",
         description=f"ODS code in the format '{ODS_ORG_CODE_IDENTIFIER_SYSTEM}|{{CODE}}' (FHIR search parameter)",
     ),
@@ -57,7 +58,7 @@ async def get_organization(
     if system != ODS_ORG_CODE_IDENTIFIER_SYSTEM:
         return JSONResponse(
             status_code=400,
-            content=ERROR_INVALID_IDENTIFIER_SYSTEM,
+            content=build_invalid_identifier_system_error(system),
             media_type=MEDIA_TYPE,
         )
 
@@ -65,11 +66,11 @@ async def get_organization(
     if not re.fullmatch(r"[A-Za-z0-9]{1,12}", code or ""):
         return JSONResponse(
             status_code=400,
-            content=ERROR_INVALID_IDENTIFIER_VALUE,
+            content=build_invalid_identifier_value_error(code),
             media_type=MEDIA_TYPE,
         )
 
-    # Canned response for ABC123 - success
+    # Canned response for ABC123 - success (found organization)
     if code.upper() == "ABC123":
         return JSONResponse(
             status_code=200,
@@ -77,15 +78,7 @@ async def get_organization(
             media_type=MEDIA_TYPE,
         )
 
-    # Canned response for DEF456 - not found
-    if code.upper() == "DEF456":
-        return JSONResponse(
-            status_code=404,
-            content=ERROR_NOT_FOUND,
-            media_type=MEDIA_TYPE,
-        )
-
-    # Canned response for GHI789 - internal server error
+    # Canned response for GHI789 - internal server error (demo)
     if code.upper() == "GHI789":
         return JSONResponse(
             status_code=500,
@@ -93,14 +86,10 @@ async def get_organization(
             media_type=MEDIA_TYPE,
         )
 
-    # Default: return empty bundle for unknown codes
+    # Default: return 404 for any other ODS code (matches CRUD API behavior)
     return JSONResponse(
-        status_code=200,
-        content={
-            "resourceType": "Bundle",
-            "type": "searchset",
-            "entry": [],
-        },
+        status_code=404,
+        content=build_not_found_error(code.upper()),
         media_type=MEDIA_TYPE,
     )
 
@@ -113,26 +102,28 @@ async def update_organization(
     """Update/overwrite an organization resource by ID.
 
     Returns an OperationOutcome indicating success or failure.
+
+    Sandbox trigger IDs:
+    - 04393ec4-198f-42dd-9507-f4fa5e9ebf96 → 200 Success (matches GET response)
+    - trigger-422-validation-error → 422 Validation Error
+    - Any other ID → 404 Not Found
     """
-    # Canned response for success (specific ID)
-    if organization_id == "87c5f637-cca3-4ddd-97a9-a3f6e6746bbe":
+    if organization_id == "04393ec4-198f-42dd-9507-f4fa5e9ebf96":
         return JSONResponse(
             status_code=200,
             content=PUT_SUCCESS_RESPONSE,
             media_type=MEDIA_TYPE,
         )
 
-    # Canned response for not found
-    if organization_id == "not-found-id":
+    if organization_id == "trigger-422-validation-error":
         return JSONResponse(
-            status_code=404,
-            content=PUT_NOT_FOUND_RESPONSE,
+            status_code=422,
+            content=PUT_VALIDATION_ERROR_RESPONSE,
             media_type=MEDIA_TYPE,
         )
 
-    # Default: return success for any other ID (stateless sandbox)
     return JSONResponse(
-        status_code=200,
-        content=PUT_SUCCESS_RESPONSE,
+        status_code=404,
+        content=PUT_NOT_FOUND_RESPONSE,
         media_type=MEDIA_TYPE,
     )

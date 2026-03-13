@@ -153,6 +153,21 @@ paths:
 
         Example: /Organization?identifier=https://fhir.nhs.uk/Id/ods-organization-code|ABC123
 
+        ## Sandbox testing
+        Use the sandbox environment to test this endpoint without affecting real data.
+
+        | ODS Code | Response |
+        |----------|----------|
+        | `ABC123` | `200` Returns a Bundle containing a matching Organization |
+        | `GHI789` | `500` Internal Server Error |
+        | Any other valid code | `404` Organization not found |
+
+        Validation errors (400) are returned for:
+        - Missing `identifier` query parameter entirely
+        - Missing `|` separator in the identifier
+        - Invalid identifier system (not `https://fhir.nhs.uk/Id/ods-organization-code`)
+        - Invalid ODS code format (must be 1-12 alphanumeric characters)
+
       operationId: searchOrganizations
       parameters:
       - in: header
@@ -292,6 +307,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/OperationOutcome'
               examples:
+                missing-identifier:
+                  summary: Missing required identifier parameter
+                  value:
+                    resourceType: OperationOutcome
+                    issue:
+                      - severity: error
+                        code: invalid
+                        details:
+                          coding:
+                            - system: https://fhir.hl7.org.uk/CodeSystem/UKCore-SpineErrorOrWarningCode
+                              code: INVALID_SEARCH_DATA
+                              display: Invalid search data
+                        diagnostics: "Invalid request data provided: Missing required request parameters: [identifier]"
                 invalid-identifier-separator:
                   summary: Missing identifier separator
                   value:
@@ -318,15 +346,15 @@ paths:
                             - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
                               code: BAD_REQUEST
                               display: The Server was unable to process the request.
-                          text: Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'
-                        diagnostics: Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'
+                          text: "Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
+                        diagnostics: "Invalid identifier system '<system from request parameters>' - expected 'https://fhir.nhs.uk/Id/ods-organization-code'"
                 invalid-identifier-format:
                   summary: Invalid ODS code format
                   value:
                     resourceType: OperationOutcome
                     issue:
                       - severity: error
-                        code: invalid
+                        code: structure
                         details:
                           coding:
                             - system: https://fhir.nhs.uk/CodeSystem/http-error-codes
@@ -655,6 +683,18 @@ paths:
           }
         ]
         ```
+
+        ## Sandbox testing
+        Use the sandbox environment to test this endpoint without affecting real data.
+
+        | Organization ID | Response |
+        |-----------------|----------|
+        | `04393ec4-198f-42dd-9507-f4fa5e9ebf96` | `200` Organization updated successfully |
+        | `trigger-422-validation-error` | `422` Validation error (e.g., invalid resource data) |
+        | Any other ID | `404` Organization not found |
+
+        Note: The ID `04393ec4-198f-42dd-9507-f4fa5e9ebf96` matches the Organization returned by the GET endpoint using ODS code `ABC123`, allowing you to test a complete read-update workflow.
+
       parameters:
       - in: header
         name: Authorization
