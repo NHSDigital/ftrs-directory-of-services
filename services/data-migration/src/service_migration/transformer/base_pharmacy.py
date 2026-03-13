@@ -28,7 +28,30 @@ if TYPE_CHECKING:
     from service_migration.models import ServiceMigrationState
 
 
-class BasePharmacyTransformer(ServiceTransformer):
+class HealthcareServiceEndpointsMixin:
+    """
+    Mixin that overrides build_healthcare_service to attach endpoints to
+    the HealthcareService rather than to the Organisation.
+    """
+
+    def build_healthcare_service(
+        self,
+        service: legacy_model.Service,
+        organisation_id: UUID,
+        location_id: UUID,
+        category: HealthcareServiceCategory | None = None,
+        type: HealthcareServiceType | None = None,
+    ) -> HealthcareService:
+        hs = super().build_healthcare_service(
+            service, organisation_id, location_id, category=category, type=type
+        )
+        endpoints = [
+            self.build_endpoint(ep, organisation_id, hs.id) for ep in service.endpoints
+        ]
+        return hs.model_copy(update={"endpoints": endpoints})
+
+
+class BasePharmacyTransformer(HealthcareServiceEndpointsMixin, ServiceTransformer):
     STATUS_ACTIVE = 1
     PHARMACY_TYPE_IDS = frozenset({13, 134})
     PHARMACY_ODS_CODE_REGEX_F_PREFIX = re.compile(r"^F[A-Z0-9]{4}$")
@@ -62,22 +85,6 @@ class BasePharmacyTransformer(ServiceTransformer):
         """
         organisation = super().build_organisation(service)
         return organisation.model_copy(update={"endpoints": []})
-
-    def build_healthcare_service(
-        self,
-        service: legacy_model.Service,
-        organisation_id: UUID,
-        location_id: UUID,
-        category: HealthcareServiceCategory | None = None,
-        type: HealthcareServiceType | None = None,
-    ) -> HealthcareService:
-        hs = super().build_healthcare_service(
-            service, organisation_id, location_id, category=category, type=type
-        )
-        endpoints = [
-            self.build_endpoint(ep, organisation_id, hs.id) for ep in service.endpoints
-        ]
-        return hs.model_copy(update={"endpoints": endpoints})
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         organisation = self.build_organisation(service)
@@ -148,7 +155,7 @@ class BasePharmacyTransformer(ServiceTransformer):
         return True, None
 
 
-class LinkedPharmacyTransformer(ServiceTransformer):
+class LinkedPharmacyTransformer(HealthcareServiceEndpointsMixin, ServiceTransformer):
     """
     Base class for transformers that create a service linked to a separately-migrated
     parent pharmacy organisation/location.
@@ -164,22 +171,6 @@ class LinkedPharmacyTransformer(ServiceTransformer):
         super().__init__(logger=logger, metadata=metadata)
         self.parent_organisation_id: UUID | None = None
         self.parent_location_id: UUID | None = None
-
-    def build_healthcare_service(
-        self,
-        service: legacy_model.Service,
-        organisation_id: UUID,
-        location_id: UUID,
-        category: HealthcareServiceCategory | None = None,
-        type: HealthcareServiceType | None = None,
-    ) -> HealthcareService:
-        hs = super().build_healthcare_service(
-            service, organisation_id, location_id, category=category, type=type
-        )
-        endpoints = [
-            self.build_endpoint(ep, organisation_id, hs.id) for ep in service.endpoints
-        ]
-        return hs.model_copy(update={"endpoints": endpoints})
 
     def transform(self, service: legacy_model.Service) -> ServiceTransformOutput:
         healthcare_service = self.build_healthcare_service(
