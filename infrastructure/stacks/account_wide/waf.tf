@@ -235,7 +235,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = false
+      cloudwatch_metrics_enabled = true
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-ip-reputation-list"
       sampled_requests_enabled   = true
     }
@@ -285,7 +285,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = false
+      cloudwatch_metrics_enabled = true
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-bot-control"
       sampled_requests_enabled   = true
     }
@@ -307,7 +307,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = false
+      cloudwatch_metrics_enabled = true
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-known-bad-inputs"
       sampled_requests_enabled   = true
     }
@@ -360,7 +360,7 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = false
+      cloudwatch_metrics_enabled = true
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-common-rules"
       sampled_requests_enabled   = true
     }
@@ -404,14 +404,14 @@ resource "aws_wafv2_web_acl" "regional_waf_web_acl" {
     }
 
     visibility_config {
-      cloudwatch_metrics_enabled = false
+      cloudwatch_metrics_enabled = true
       metric_name                = "${local.resource_prefix}-regional-waf-aws-managed-unix-rules"
       sampled_requests_enabled   = true
     }
   }
 
   visibility_config {
-    cloudwatch_metrics_enabled = false
+    cloudwatch_metrics_enabled = true
     metric_name                = "${local.resource_prefix}-regional-waf"
     sampled_requests_enabled   = true
   }

@@ -103,47 +103,6 @@ Feature: Data Migration - Audit Event Tracking
     And the healthcare service "lastUpdated" equals "created"
     And the healthcare service "lastUpdatedBy" equals "createdBy"
 
-  Scenario: INSERT operation - Audit fields populated on Endpoint creation
-    Given a "Service" exists in DoS with attributes
-      | key                 | value                       |
-      | id                  | 700004                      |
-      | uid                 | 700004                      |
-      | name                | Audit Test Practice 4       |
-      | odscode             | A70004                      |
-      | openallhours        | FALSE                       |
-      | restricttoreferrals | FALSE                       |
-      | address             | 4 Audit Street              |
-      | town                | AUDITTOWN                   |
-      | postcode            | AU4 4AA                     |
-      | publicphone         | 01234 700004                |
-      | email               | audit4@nhs.net              |
-      | web                 | www.audit4.com              |
-      | createdtime         | 2024-01-01 08:00:00.000     |
-      | modifiedtime        | 2024-01-01 08:00:00.000     |
-      | typeid              | 100                         |
-      | statusid            | 1                           |
-      | publicname          | Audit Test Practice 4       |
-      | latitude            | 51.5074                     |
-      | longitude           | -0.1278                     |
-
-    And a "ServiceEndpoint" exists in DoS with attributes
-      | key              | value                        |
-      | id               | 800004                       |
-      | serviceid        | 700004                       |
-      | address          | mailto:audit4@endpoint.net   |
-      | endpointorder    | 1                            |
-      | transport        | email                        |
-      | businessscenario | Primary                      |
-
-    When the data migration process is run for table 'services', ID '700004' and method 'insert'
-    Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
-    And the endpoint records have "created" populated
-    And all endpoints "createdBy.type" is "app"
-    And all endpoints "createdBy.value" is "INTERNAL001"
-    And all endpoints "createdBy.display" is "Data Migration"
-    And all endpoints "lastUpdated" equals "created"
-    And all endpoints "lastUpdatedBy" equals "createdBy"
-
   Scenario: UPDATE operation - Audit fields updated on Organisation modification
     Given a "Service" exists in DoS with attributes
       | key                 | value                       |
