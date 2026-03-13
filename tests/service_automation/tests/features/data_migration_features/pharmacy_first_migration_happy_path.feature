@@ -8,101 +8,101 @@ Feature: Data Migration - Pharmacy First
 
   @happy
   Scenario: Pharmacy First (M06) migration when parent Community Pharmacy has not been migrated yet
-    # Parent Community Pharmacy (type 13) with ODS code FV498 exists in DoS but has NOT been migrated.
-    # When the PF++ service (ODS FV498M06) is processed, the processor auto-migrates the parent first
+    # Parent Community Pharmacy (type 13) with ODS code FPQ49 exists in DoS but has NOT been migrated.
+    # When the PF++ service (ODS FPQ49M06) is processed, the processor auto-migrates the parent first
     # (transaction 1), then creates the Pharmacy First HealthcareService linked to the parent
     # org/location (transaction 2).
     Given a "Service" exists in DoS with attributes
       | key                                 | value                                                   |
-      | id                                  | 214258                                                  |
-      | uid                                 | 2000130082                                              |
-      | name                                | Boots - Folkestone                                      |
-      | odscode                             | FV498                                                   |
+      | id                                  | 167707                                                  |
+      | uid                                 | 2000083534                                              |
+      | name                                | Pharmacy: Craig Thomson Pharmacy, Brent, London         |
+      | odscode                             | FPQ49                                                   |
       | openallhours                        | FALSE                                                   |
       | publicreferralinstructions          |                                                         |
       | telephonetriagereferralinstructions |                                                         |
       | restricttoreferrals                 | FALSE                                                   |
-      | address                             | 22 Sandgate Road$Folkestone$Kent                        |
-      | town                                | FOLKESTONE                                              |
-      | postcode                            | CT20 1DR                                                |
-      | easting                             | 621000                                                  |
-      | northing                            | 136000                                                  |
-      | publicphone                         | 01303123456                                             |
+      | address                             | 70-72 Walm Lane$Willesden Green$London                  |
+      | town                                | LONDON                                                  |
+      | postcode                            | NW2 4RA                                                 |
+      | easting                             | 523387                                                  |
+      | northing                            | 184769                                                  |
+      | publicphone                         | 02084590833                                             |
       | nonpublicphone                      |                                                         |
-      | fax                                 |                                                         |
-      | email                               | 214258-fake@nhs.gov.uk                                  |
-      | web                                 | www.boots.com                                           |
+      | fax                                 | 00000 666666                                            |
+      | email                               | 167707-fake@nhs.gov.uk                                  |
+      | web                                 |                                                         |
       | createdby                           | HUMAN                                                   |
-      | createdtime                         | 2023-10-24 11:36:40.000                                 |
-      | modifiedby                          | HUMAN                                                   |
-      | modifiedtime                        | 2025-01-02 07:09:38.000                                 |
-      | lasttemplatename                    | Pharmacy Template                                       |
-      | lasttemplateid                      | 221808                                                  |
+      | createdtime                         | 2021-10-21 14:37:50.000                                 |
+      | modifiedby                          | ROBOT                                                   |
+      | modifiedtime                        | 2025-02-11 18:23:00.000                                 |
+      | lasttemplatename                    | 202401 Tinashe Working Template                         |
+      | lasttemplateid                      | 226211                                                  |
       | typeid                              | 13                                                      |
-      | parentid                            | 196814                                                  |
-      | subregionid                         | 150021                                                  |
+      | parentid                            | 167616                                                  |
+      | subregionid                         | 21855                                                   |
       | statusid                            | 1                                                       |
       | organisationid                      |                                                         |
       | returnifopenminutes                 |                                                         |
-      | publicname                          | Boots                                                   |
-      | latitude                            | 51.0828000                                              |
-      | longitude                           | 1.1780000                                               |
+      | publicname                          | Craig Thomson Pharmacy, Brent                           |
+      | latitude                            | 51.5483336                                              |
+      | longitude                           | -0.2218897                                              |
       | professionalreferralinfo            |                                                         |
       | lastverified                        |                                                         |
       | nextverificationdue                 |                                                         |
     And a "Service" exists in DoS with attributes
       | key                                 | value                                                   |
-      | id                                  | 214259                                                  |
-      | uid                                 | 2000130083                                              |
-      | name                                | PF++: Kent - Boots - Folkestone                         |
-      | odscode                             | FV498M06                                                |
+      | id                                  | 137267                                                  |
+      | uid                                 | 2000083535                                              |
+      | name                                | PF++: London - Craig Thomson Pharmacy, Brent            |
+      | odscode                             | FPQ49M06                                                |
       | openallhours                        | FALSE                                                   |
       | publicreferralinstructions          |                                                         |
       | telephonetriagereferralinstructions |                                                         |
       | restricttoreferrals                 | FALSE                                                   |
-      | address                             | 22 Sandgate Road$Folkestone$Kent                        |
-      | town                                | FOLKESTONE                                              |
-      | postcode                            | CT20 1DR                                                |
-      | easting                             | 621000                                                  |
-      | northing                            | 136000                                                  |
-      | publicphone                         | 01303123456                                             |
+      | address                             | 70-72 Walm Lane$Willesden Green$London                  |
+      | town                                | LONDON                                                  |
+      | postcode                            | NW2 4RA                                                 |
+      | easting                             | 523387                                                  |
+      | northing                            | 184769                                                  |
+      | publicphone                         | 02084590833                                             |
       | nonpublicphone                      |                                                         |
       | fax                                 |                                                         |
-      | email                               | 214259-fake@nhs.gov.uk                                  |
-      | web                                 | www.boots.com                                           |
+      | email                               | 137267-fake@nhs.gov.uk                                  |
+      | web                                 |                                                         |
       | createdby                           | HUMAN                                                   |
-      | createdtime                         | 2023-10-24 11:36:40.000                                 |
-      | modifiedby                          | HUMAN                                                   |
-      | modifiedtime                        | 2025-01-02 07:09:38.000                                 |
+      | createdtime                         | 2021-10-21 14:37:50.000                                 |
+      | modifiedby                          | ROBOT                                                   |
+      | modifiedtime                        | 2025-02-11 18:23:00.000                                 |
       | lasttemplatename                    | *Service* Template - NHS Pharmacy First (PF++) R1.0     |
       | lasttemplateid                      | 221811                                                  |
       | typeid                              | 132                                                     |
-      | parentid                            | 196814                                                  |
-      | subregionid                         | 150021                                                  |
+      | parentid                            | 167616                                                  |
+      | subregionid                         | 21855                                                   |
       | statusid                            | 1                                                       |
       | organisationid                      |                                                         |
       | returnifopenminutes                 |                                                         |
-      | publicname                          | Boots                                                   |
-      | latitude                            | 51.0828000                                              |
-      | longitude                           | 1.1780000                                               |
+      | publicname                          | Craig Thomson Pharmacy, Brent                           |
+      | latitude                            | 51.5483336                                              |
+      | longitude                           | -0.2218897                                              |
       | professionalreferralinfo            | This is a self referral service. Advise the patient to make their way to the pharmacy. |
       | lastverified                        |                                                         |
       | nextverificationdue                 |                                                         |
 
-    When the data migration process is run for table 'services', ID '214259' and method 'insert'
+    When the data migration process is run for table 'services', ID '137267' and method 'insert'
     Then the SQS event metrics should be 1 total, 1 supported, 0 unsupported, 1 transformed, 1 inserted, 0 updated, 0 skipped and 0 errors
     And there is 1 organisation, 1 location and 2 healthcare services created
-    And the state table contains a record for key 'services#214259' with version 1
+    And the state table contains a record for key 'services#137267' with version 1
 
     # Validate that the Pharmacy First healthcare service is linked to the auto-migrated parent org/location
-    Then the 'healthcare-service' for service ID '214259' has content:
+    Then the 'healthcare-service' for service ID '137267' has content:
       """
       {
-        "id": "91103641-dc4a-5428-8241-ab10ba6eb485",
-        "identifier_oldDoS_uid": "2000130083",
-        "providedBy": "eac08862-442a-5db6-9bd7-b7c855ba3540",
-        "location": "6f4f3e6c-ba93-51e4-ad5e-8a7255ae204a",
-        "name": "PF++: Kent - Boots - Folkestone",
+        "id": "d21082d3-df91-58c3-ba04-415ff3d7dfdd",
+        "identifier_oldDoS_uid": "2000083535",
+        "providedBy": "c979f90b-3651-502e-a0f8-37f100af0b44",
+        "location": "67e57dd4-05e5-5d0b-ad48-ea31cdf70bc2",
+        "name": "PF++: London - Craig Thomson Pharmacy, Brent",
         "category": "Pharmacy Services",
         "type": "Pharmacy First",
         "status": "active"
