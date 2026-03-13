@@ -38,7 +38,10 @@ resource "aws_iam_role_policy" "firehose_policy" {
         Action = [
           "logs:PutLogEvents"
         ]
-        Resource = "${aws_cloudwatch_log_group.firehose_log_group.arn}"
+        Resource = [
+          "${aws_cloudwatch_log_group.firehose_log_group.arn}:log-stream:*",
+          "${aws_cloudwatch_log_group.firehose_raw_log_group.arn}:log-stream:*"
+        ]
       }
       ], var.enable_firehose_sse ? [{
         Effect = "Allow"
@@ -81,7 +84,10 @@ resource "aws_iam_role_policy" "cw_to_firehose_policy" {
         "firehose:PutRecord",
         "firehose:PutRecordBatch"
       ]
-      Resource = aws_kinesis_firehose_delivery_stream.splunk.arn
+      Resource = [
+        aws_kinesis_firehose_delivery_stream.splunk.arn,
+        aws_kinesis_firehose_delivery_stream.splunk_raw.arn
+      ]
     }]
   })
 }
