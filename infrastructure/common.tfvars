@@ -34,7 +34,5 @@ rds_port = 5432
 
 firehose_name = "splunk-firehose"
 
-raw_firehose_name = "splunk-raw"
-
 # Firehose subscription filter for lambda logs to Splunk
 build_splunk_subscription = true

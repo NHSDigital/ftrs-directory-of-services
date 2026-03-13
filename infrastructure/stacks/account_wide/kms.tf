@@ -318,6 +318,31 @@ module "scheduler_encryption_key" {
   ]
 }
 
+module "lambda_encryption_key" {
+  source           = "../../modules/kms"
+  alias_name       = local.kms_aliases.lambda
+  account_id       = data.aws_caller_identity.current.account_id
+  aws_service_name = "lambda.amazonaws.com"
+  description      = "Encryption key for Lambda environment variables in ${var.environment} environment"
+
+  additional_policy_statements = [
+    {
+      Sid    = "AllowLambdaExecutionRoleAccess"
+      Effect = "Allow"
+      Principal = {
+        AWS = [aws_iam_role.splunk_hec_transformer_role.arn]
+      }
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      Resource  = "*"
+      Condition = {}
+    }
+  ]
+}
+
 module "cloudtrail_encryption_key" {
   source           = "../../modules/kms"
   alias_name       = local.kms_aliases.cloudtrail
