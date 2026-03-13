@@ -2,6 +2,8 @@ resource "aws_kinesis_firehose_delivery_stream" "splunk" {
   name        = "${local.resource_prefix}-${var.firehose_name}"
   destination = "splunk"
 
+  depends_on = [aws_lambda_permission.firehose_invoke_splunk_hec_transformer]
+
   server_side_encryption {
     enabled  = var.enable_firehose_sse
     key_type = var.enable_firehose_sse ? "CUSTOMER_MANAGED_CMK" : null

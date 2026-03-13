@@ -53,7 +53,7 @@ resource "aws_lambda_function" "splunk_hec_transformer" {
   filename         = data.archive_file.splunk_hec_transformer.output_path
   source_code_hash = data.archive_file.splunk_hec_transformer.output_base64sha256
   timeout          = 60
-  description      = "Strips whitespace from Firehose records before Splunk Event HEC delivery"
+  description      = "Decompresses CloudWatch Logs envelopes from Firehose, extracts individual log events, and wraps non-HEC messages into Splunk HEC Event format before delivery"
   kms_key_arn      = module.lambda_encryption_key.arn
 
   environment {
@@ -64,9 +64,9 @@ resource "aws_lambda_function" "splunk_hec_transformer" {
 }
 
 resource "aws_lambda_permission" "firehose_invoke_splunk_hec_transformer" {
-  statement_id  = "AllowFirehoseInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.splunk_hec_transformer.function_name
-  principal     = "firehose.amazonaws.com"
-  source_arn    = aws_kinesis_firehose_delivery_stream.splunk.arn
+  statement_id   = "AllowFirehoseInvoke"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.splunk_hec_transformer.function_name
+  principal      = "firehose.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
 }

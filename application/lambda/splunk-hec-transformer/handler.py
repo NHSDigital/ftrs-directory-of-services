@@ -91,7 +91,7 @@ def lambda_handler(event: dict, context: object) -> dict:
             continue
 
         log_group = envelope.get("logGroup", "")
-        hec_payload = "".join(
+        hec_payload = "\n".join(
             _wrap_hec(le["message"].strip(), le.get("timestamp", 0), log_group)
             for le in envelope.get("logEvents", [])
             if le.get("message", "").strip()
