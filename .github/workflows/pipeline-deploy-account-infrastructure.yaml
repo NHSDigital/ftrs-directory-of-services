@@ -119,7 +119,7 @@ jobs:
       ref: ${{ inputs.ref }}
       environment: ${{ needs.metadata.outputs.environment }}
       workspace: "default"
-      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination']"
+      stacks: "['terraform_management','account_wide','artefact_management','domain_name','account_security','slack_notifier','aws_backup_source','aws_backup_destination','account_env_alarms']"
       type: account
       build_timestamp: ${{ needs.metadata.outputs.build_timestamp }}
       skip_dirs: "services/dos-ui,services/read-only-viewer"

@@ -13,7 +13,7 @@ module "metric_alarm" {
   extended_statistic  = can(regex("^p(\\d+(\\.\\d+)?)$", each.value.statistic)) ? each.value.statistic : null
   threshold           = each.value.threshold
   alarm_description   = each.value.description
-  alarm_actions       = [aws_sns_topic.alarms[0].arn]
+  alarm_actions       = [aws_sns_topic.alarms.arn]
   treat_missing_data  = "notBreaching"
 
   dimensions = each.value.dimensions
