@@ -2,6 +2,10 @@ module "metric_alarm" {
   for_each = local.alarms
   source   = "git::https://github.com/terraform-aws-modules/terraform-aws-cloudwatch.git//modules/metric-alarm?ref=a2a5f9d15e30d0d24b667933599e5e1bef24a8b8"
 
+  providers = {
+    aws = aws.metrics
+  }
+
   alarm_name          = each.value.alarm_name
   comparison_operator = each.value.comparison_operator
   evaluation_periods  = each.value.evaluation_periods

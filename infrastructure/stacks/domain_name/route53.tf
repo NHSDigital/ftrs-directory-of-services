@@ -27,35 +27,3 @@ resource "aws_route53_record" "environment_zone_delegation" {
   ttl      = 300
   records  = aws_route53_zone.environment_zone[0].name_servers
 }
-
-resource "aws_route53_health_check" "environment_zone" {
-  # checkov:skip=CKV2_AWS_49: alarm notification is handled via CloudWatch alarms and SNS
-  count             = var.environment == "mgmt" ? 0 : 1
-  fqdn              = local.root_domain_name
-  port              = 443
-  type              = "HTTPS"
-  resource_path     = "/"
-  failure_threshold = var.route53_health_check_failure_threshold
-  request_interval  = var.route53_health_check_request_interval
-  measure_latency   = true
-
-  tags = {
-    Name = "${local.resource_prefix}-environment-zone-health-check"
-  }
-}
-
-resource "aws_route53_health_check" "root_zone" {
-  # checkov:skip=CKV2_AWS_49: alarm notification is handled via CloudWatch alarms and SNS
-  count             = var.environment == "mgmt" ? 0 : 1
-  fqdn              = var.root_domain_name
-  port              = 443
-  type              = "HTTPS"
-  resource_path     = "/"
-  failure_threshold = var.route53_health_check_failure_threshold
-  request_interval  = var.route53_health_check_request_interval
-  measure_latency   = true
-
-  tags = {
-    Name = "${local.resource_prefix}-root-zone-health-check"
-  }
-}

@@ -70,6 +70,7 @@ module "acm_cloudfront_cert_alarms" {
   resource_prefix  = local.resource_prefix
   sns_topic_name   = local.alarms_topic_name
   sns_display_name = "ACM CloudFront Certificate Alarms"
+  kms_key_id       = null
 
   alarm_config_path = "acm/config"
 
