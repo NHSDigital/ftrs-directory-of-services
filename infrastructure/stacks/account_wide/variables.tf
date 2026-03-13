@@ -280,11 +280,6 @@ variable "hec_acknowledgment_timeout" {
   type        = number
 }
 
-variable "hec_endpoint_type" {
-  description = "Type of hec endpoint -  Raw or Event"
-  type        = string
-}
-
 variable "retry_duration" {
   description = "Seconds during which Firehose re-tries delivery after failure"
   type        = number
