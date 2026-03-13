@@ -64,9 +64,9 @@ resource "aws_lambda_function" "splunk_hec_transformer" {
 }
 
 resource "aws_lambda_permission" "firehose_invoke_splunk_hec_transformer" {
-  statement_id   = "AllowFirehoseInvoke"
-  action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.splunk_hec_transformer.function_name
-  principal      = "firehose.amazonaws.com"
-  source_account = data.aws_caller_identity.current.account_id
+  statement_id  = "AllowFirehoseInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.splunk_hec_transformer.function_name
+  principal     = "firehose.amazonaws.com"
+  source_arn    = "arn:aws:firehose:${var.aws_region}:${data.aws_caller_identity.current.account_id}:deliverystream/${local.resource_prefix}-${var.firehose_name}"
 }
