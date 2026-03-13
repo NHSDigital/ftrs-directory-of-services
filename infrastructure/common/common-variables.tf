@@ -249,6 +249,12 @@ variable "firehose_name" {
   type        = string
 }
 
+variable "raw_firehose_name" {
+  description = "Name suffix for the raw (non-event) Splunk Firehose delivery stream - hyphenated"
+  type        = string
+  default     = "splunk-raw"
+}
+
 variable "build_splunk_subscription" {
   description = "Whether to build the Splunk subscription filter for Lambda logs"
   type        = bool

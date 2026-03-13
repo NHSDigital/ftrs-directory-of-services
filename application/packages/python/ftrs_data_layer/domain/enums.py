@@ -45,6 +45,7 @@ class HealthcareServiceType(str, Enum):
     ORAL_CONTRACEPTION_PRESCRIPTION_AND_SUPPLY = (
         "Oral Contraception Prescription and Supply"
     )
+    PHARMACY_FIRST = "Pharmacy First"
 
 
 class HealthcareServiceStatus(str, Enum):
