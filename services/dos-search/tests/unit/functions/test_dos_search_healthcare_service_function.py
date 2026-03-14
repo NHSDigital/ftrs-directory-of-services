@@ -94,6 +94,7 @@ def assert_response(
     assert response["body"] == expected_body
 
 
+@pytest.mark.usefixtures("mock_feature_flags_client")
 class TestHealthcareServiceLambdaHandler:
     @pytest.mark.parametrize(
         "ods_code",
@@ -116,7 +117,6 @@ class TestHealthcareServiceLambdaHandler:
         self,
         lambda_context: MagicMock,
         mock_ftrs_service: MagicMock,
-        _mock_feature_flags_client: MagicMock,
         ods_code: str,
         bundle: Bundle,
     ) -> None:
@@ -139,7 +139,6 @@ class TestHealthcareServiceLambdaHandler:
         self,
         lambda_context: MagicMock,
         mock_error_util: MagicMock,
-        _mock_feature_flags_client: MagicMock,
     ) -> None:
         # Arrange
         event = {
@@ -168,7 +167,6 @@ class TestHealthcareServiceLambdaHandler:
         lambda_context: MagicMock,
         mock_error_util: MagicMock,
         mock_logger: MagicMock,
-        _mock_feature_flags_client: MagicMock,
     ) -> None:
         # Arrange
         event = {
@@ -202,7 +200,6 @@ class TestHealthcareServiceLambdaHandler:
         lambda_context: MagicMock,
         mock_ftrs_service: MagicMock,
         mock_error_util: MagicMock,
-        _mock_feature_flags_client: MagicMock,
     ) -> None:
         # Arrange
         mock_ftrs_service.healthcare_services_by_ods.side_effect = Exception(
@@ -227,7 +224,6 @@ class TestHealthcareServiceLambdaHandler:
         lambda_context: MagicMock,
         mock_ftrs_service: MagicMock,
         mock_logger: MagicMock,
-        _mock_feature_flags_client: MagicMock,
         bundle: Bundle,
     ) -> None:
         # Arrange
@@ -249,7 +245,6 @@ class TestHealthcareServiceLambdaHandler:
         lambda_context: MagicMock,
         mock_ftrs_service: MagicMock,
         mock_logger: MagicMock,
-        _mock_feature_flags_client: MagicMock,
         bundle: Bundle,
     ) -> None:
         # Arrange
@@ -274,7 +269,6 @@ class TestHealthcareServiceLambdaHandler:
         mock_ftrs_service: MagicMock,
         mock_error_util: MagicMock,
         mock_logger: MagicMock,
-        _mock_feature_flags_client: MagicMock,
     ) -> None:
         # Arrange
         mock_ftrs_service.healthcare_services_by_ods.side_effect = Exception(
