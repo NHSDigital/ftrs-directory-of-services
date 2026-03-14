@@ -75,7 +75,6 @@ def _handle_triage_code_request(start: float) -> Response:
     return create_response(503, fhir_resource)
 
 
-
 _guard_triage_code_request: TriageCodeRequestGuard = build_feature_flag_guard_chain(
     config=_TRIAGE_CODE_FEATURE_FLAG_CONFIG,
     dependencies=_TRIAGE_CODE_FEATURE_FLAG_DEPENDENCIES,

@@ -45,7 +45,9 @@ def _build_runtime_with_mocks() -> RuntimeBuildResult:
     return runtime, logger, tracer, app, create_response
 
 
-def test_build_fhir_response_headers_includes_default_cors_and_security_headers() -> None:
+def test_build_fhir_response_headers_includes_default_cors_and_security_headers() -> (
+    None
+):
     assert build_fhir_response_headers() == {
         "Content-Type": "application/fhir+json",
         "Access-Control-Allow-Methods": "GET",
