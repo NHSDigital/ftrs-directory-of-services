@@ -13,6 +13,7 @@ from functions.dos_search_ods_code_function import (
     lambda_handler,
 )
 from functions.logbase import DosSearchLogBase
+from functions.organization_headers import OrganizationHeaders
 
 
 @pytest.fixture
@@ -58,6 +59,17 @@ def lambda_context():
 EXPECTED_MULTI_VALUE_HEADERS = {
     header: [value] for header, value in DEFAULT_RESPONSE_HEADERS.items()
 }
+
+
+def test_default_response_headers_use_organization_allowed_headers() -> None:
+    assert DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "GET"
+    assert DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Headers"] == ", ".join(
+        sorted(OrganizationHeaders.get_allowed_headers())
+    )
+    assert (
+        DEFAULT_RESPONSE_HEADERS["Strict-Transport-Security"]
+        == "max-age=31536000; includeSubDomains"
+    )
 
 
 def _build_event_with_headers(headers: dict[str, str]):
@@ -137,12 +149,6 @@ class TestLambdaHandler:
                     dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
                     dos_message_category="METRICS",
                 ),
-                call.log(
-                    DosSearchLogBase.DOS_SEARCH_004,
-                    status_code=200,
-                    body=ANY,
-                    dos_message_category="RESPONSE",
-                ),
             ]
         )
 
@@ -203,12 +209,6 @@ class TestLambdaHandler:
                     dos_response_time="1ms",
                     dos_response_size=response_size,
                 ),
-                call.log(
-                    DosSearchLogBase.DOS_SEARCH_004,
-                    status_code=400,
-                    body=ANY,
-                    dos_message_category="RESPONSE",
-                ),
             ]
         )
 
@@ -267,12 +267,6 @@ class TestLambdaHandler:
                     DosSearchLogBase.DOS_SEARCH_006,
                     dos_response_time="1ms",
                     dos_response_size=len(bundle.model_dump_json().encode("utf-8")),
-                ),
-                call.log(
-                    DosSearchLogBase.DOS_SEARCH_004,
-                    status_code=500,
-                    body=ANY,
-                    dos_message_category="RESPONSE",
                 ),
             ]
         )

@@ -16,9 +16,11 @@ from ftrs_common.feature_flags.feature_flags_client import (
 from ftrs_common.logbase import FeatureFlagLogBase
 from pytest_mock import MockerFixture
 
+type ResetSingletonFixture = Generator[None, None, None]
+
 
 @pytest.fixture(autouse=True)
-def reset_singleton() -> Generator[None, None, None]:
+def reset_singleton() -> ResetSingletonFixture:
     """Reset the singleton instance before each test."""
     FeatureFlagsClient._instance = None
     FeatureFlagsClient._feature_flags = None
@@ -113,7 +115,8 @@ class TestFeatureFlagError:
 
 
 class TestFeatureFlagsClient:
-    def test_singleton_returns_same_instance(self, mock_settings: MagicMock) -> None:
+    @pytest.mark.usefixtures("mock_settings")
+    def test_singleton_returns_same_instance(self) -> None:
         client1 = FeatureFlagsClient()
         client2 = FeatureFlagsClient()
         assert client1 is client2
@@ -128,7 +131,7 @@ class TestFeatureFlagsClient:
         mock_settings.assert_called_once()
 
     def test_get_appconfig_store_raises_error_when_application_id_missing(
-        self, mocker: MockerFixture, mock_logger: MagicMock
+        self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = None
@@ -141,7 +144,7 @@ class TestFeatureFlagsClient:
         assert "APPCONFIG_APPLICATION_ID" in str(exc_info.value)
 
     def test_get_appconfig_store_raises_error_when_environment_id_missing(
-        self, mocker: MockerFixture, mock_logger: MagicMock
+        self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = "test-app-id"
@@ -154,7 +157,7 @@ class TestFeatureFlagsClient:
         assert "APPCONFIG_ENVIRONMENT_ID" in str(exc_info.value)
 
     def test_get_appconfig_store_raises_error_when_configuration_profile_id_missing(
-        self, mocker: MockerFixture, mock_logger: MagicMock
+        self, mocker: MockerFixture
     ) -> None:
         mock = mocker.patch("ftrs_common.feature_flags.feature_flags_client.Settings")
         mock.return_value.appconfig_application_id = "test-app-id"
@@ -166,11 +169,10 @@ class TestFeatureFlagsClient:
 
         assert "APPCONFIG_CONFIGURATION_PROFILE_ID" in str(exc_info.value)
 
+    @pytest.mark.usefixtures("mock_settings", "mock_logger")
     def test_get_appconfig_store_creates_store_with_correct_config(
         self,
-        mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         FeatureFlagsClient()
 
@@ -182,12 +184,10 @@ class TestFeatureFlagsClient:
             max_age=CACHE_TTL_SECONDS,
         )
 
+    @pytest.mark.usefixtures("mock_settings", "mock_appconfig_store", "mock_logger")
     def test_init_creates_feature_flags_instance(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         FeatureFlagsClient()
 
@@ -196,12 +196,11 @@ class TestFeatureFlagsClient:
             FeatureFlagsClient._feature_flags is mock_feature_flags_class.return_value
         )
 
+    @pytest.mark.usefixtures("mock_settings", "mock_logger")
     def test_init_calls_appconfig_store_once(
         self,
-        mock_settings: MagicMock,
         mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         FeatureFlagsClient()
 
@@ -209,13 +208,11 @@ class TestFeatureFlagsClient:
         mock_feature_flags_class.assert_called_once()
 
 
+@pytest.mark.usefixtures("mock_settings", "mock_appconfig_store")
 class TestIsEnabled:
     def test_returns_true_when_flag_is_enabled(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {"my_feature": {"enabled": True}}
@@ -228,10 +225,7 @@ class TestIsEnabled:
 
     def test_returns_false_when_flag_is_disabled(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {"my_feature": {"enabled": False}}
@@ -244,10 +238,7 @@ class TestIsEnabled:
 
     def test_returns_default_false_when_flag_not_found(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {"other_flag": {"enabled": True}}
@@ -260,10 +251,7 @@ class TestIsEnabled:
 
     def test_returns_default_true_when_flag_not_found(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {"other_flag": {"enabled": True}}
@@ -276,10 +264,7 @@ class TestIsEnabled:
 
     def test_returns_default_when_configuration_is_empty(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = None
@@ -292,10 +277,7 @@ class TestIsEnabled:
 
     def test_returns_default_when_configuration_is_empty_dict(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {}
@@ -308,10 +290,7 @@ class TestIsEnabled:
 
     def test_raises_error_on_configuration_store_error(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.side_effect = ConfigurationStoreError(
@@ -329,10 +308,7 @@ class TestIsEnabled:
 
     def test_raises_error_on_unexpected_exception(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.side_effect = RuntimeError("Unexpected error")
@@ -348,8 +324,6 @@ class TestIsEnabled:
 
     def test_logs_flag_evaluation(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
@@ -364,8 +338,6 @@ class TestIsEnabled:
 
     def test_logs_warning_when_flag_not_found(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
@@ -404,17 +376,16 @@ class TestModuleFunctions:
         client = _get_client()
         assert isinstance(client, FeatureFlagsClient)
 
-    def test_get_client_returns_cached_instance(self, mock_settings: MagicMock) -> None:
+    @pytest.mark.usefixtures("mock_settings")
+    def test_get_client_returns_cached_instance(self) -> None:
         client1 = _get_client()
         client2 = _get_client()
         assert client1 is client2
 
+    @pytest.mark.usefixtures("mock_settings", "mock_appconfig_store", "mock_logger")
     def test_is_enabled_function_checks_flag(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {"test_flag": {"enabled": True}}
@@ -423,12 +394,10 @@ class TestModuleFunctions:
         result = is_enabled("test_flag")
         assert result is True
 
+    @pytest.mark.usefixtures("mock_settings", "mock_appconfig_store", "mock_logger")
     def test_is_enabled_function_uses_default_value_false(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {}
@@ -437,12 +406,10 @@ class TestModuleFunctions:
         result = is_enabled("missing_flag", default=False)
         assert result is False
 
+    @pytest.mark.usefixtures("mock_settings", "mock_appconfig_store", "mock_logger")
     def test_is_enabled_function_uses_default_value_true(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {}
@@ -452,11 +419,10 @@ class TestModuleFunctions:
         assert result is True
 
 
+@pytest.mark.usefixtures("mock_settings", "mock_appconfig_store")
 class TestIsEnabledLogging:
     def test_logs_configuration_store_error(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
@@ -476,8 +442,6 @@ class TestIsEnabledLogging:
 
     def test_logs_unexpected_error(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
@@ -495,8 +459,6 @@ class TestIsEnabledLogging:
 
     def test_logs_successful_flag_evaluation_with_ff_002(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
@@ -512,8 +474,6 @@ class TestIsEnabledLogging:
 
     def test_logs_appconfig_store_initialization_with_ff_001(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_logger: MagicMock,
     ) -> None:
         client = FeatureFlagsClient()
@@ -533,21 +493,24 @@ class TestFeatureFlagErrorOriginalException:
         assert error.original_exception is None
 
     def test_error_can_be_raised_and_caught(self) -> None:
-        with pytest.raises(FeatureFlagError) as exc_info:
-            raise FeatureFlagError(
-                flag_name="test_flag",
-                message="Test error message",
-            )
-        assert exc_info.value.flag_name == "test_flag"
+        error = FeatureFlagError(
+            flag_name="test_flag",
+            message="Test error message",
+        )
+
+        try:
+            raise error
+        except FeatureFlagError as caught_error:
+            assert caught_error is error
+
+        assert error.flag_name == "test_flag"
 
 
+@pytest.mark.usefixtures("mock_settings", "mock_appconfig_store", "mock_logger")
 class TestIsEnabledFlagConfigEdgeCases:
     def test_returns_default_when_flag_has_no_enabled_key(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {
@@ -562,10 +525,7 @@ class TestIsEnabledFlagConfigEdgeCases:
 
     def test_returns_enabled_value_from_flag_config(
         self,
-        mock_settings: MagicMock,
-        mock_appconfig_store: MagicMock,
         mock_feature_flags_class: MagicMock,
-        mock_logger: MagicMock,
     ) -> None:
         mock_store = MagicMock()
         mock_store.get_configuration.return_value = {

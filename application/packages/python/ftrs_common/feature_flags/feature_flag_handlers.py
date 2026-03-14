@@ -1,174 +1,148 @@
-from collections.abc import Callable, Sequence
-from typing import Any, Protocol, TypeAlias, TypeVar
+"""Utilities for building feature-flag guards around request handlers."""
+
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from typing import Protocol
 
 from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 from ftrs_common.feature_flags.feature_flags_client import is_enabled
 from ftrs_common.logger import LogBase, Logger
 
-ArgumentT = TypeVar("ArgumentT")
-ResourceT = TypeVar("ResourceT")
-ResponseT = TypeVar("ResponseT")
-RequestGuardResult: TypeAlias = Any | None
+type LogContext = Mapping[str, object]
+type ErrorResourceFactory[ResourceT] = Callable[[], ResourceT]
+type ResponseSizeAndDurationCalculator[ResourceT] = Callable[
+    [ResourceT, float, Logger], tuple[int, int]
+]
+type ResponseFactory[ResourceT, ResponseT] = Callable[[int, ResourceT], ResponseT]
 
 
-class RequestGuard(Protocol):
-    def __call__(self, arg: Any) -> RequestGuardResult: ...
+class RequestGuard[ArgumentT, ResponseT](Protocol):
+    def __call__(self, request_arg: ArgumentT) -> ResponseT | None: ...
 
 
-class RequestGuardChain:
+class RequestGuardChain[ArgumentT, ResponseT]:
     def __init__(
         self,
-        guards: Sequence[Callable[[Any], Any | None]],
-        handler: Callable[[Any], Any],
+        guards: Sequence[RequestGuard[ArgumentT, ResponseT]],
+        handler: Callable[[ArgumentT], ResponseT],
     ) -> None:
         self._guards = tuple(guards)
         self._handler = handler
 
-    def handle(self, arg: Any) -> Any:
+    def handle(self, request_arg: ArgumentT) -> ResponseT:
         for guard in self._guards:
-            response = guard(arg)
+            response = guard(request_arg)
             if response is not None:
                 return response
-        return self._handler(arg)
+        return self._handler(request_arg)
+
+
+@dataclass(frozen=True)
+class FeatureFlagGuardConfig:
+    flag_name: FeatureFlag | str
+    enabled_log_reference: LogBase
+    disabled_log_reference: LogBase
+    log_context: LogContext | None = None
+    status_code: int = 503
+    default: bool = False
+
+
+@dataclass(frozen=True)
+class FeatureFlagGuardDependencies[ResourceT, ResponseT]:
+    logger_getter: Callable[[], Logger]
+    create_error_resource_getter: Callable[[], ErrorResourceFactory[ResourceT]]
+    get_response_size_and_duration_getter: Callable[
+        [], ResponseSizeAndDurationCalculator[ResourceT]
+    ]
+    create_response_getter: Callable[[], ResponseFactory[ResourceT, ResponseT]]
 
 
 def _resolve_flag_config_name(flag_name: FeatureFlag | str) -> str:
+    """Return the AppConfig lookup key for a feature flag."""
+
     return flag_name.value if isinstance(flag_name, FeatureFlag) else flag_name
 
 
 def _resolve_flag_log_name(flag_name: FeatureFlag | str) -> str:
+    """Return the human-readable/loggable name for a feature flag."""
+
     return flag_name.name if isinstance(flag_name, FeatureFlag) else flag_name
 
 
-def build_enabled_feature_flag_handler(
+def _create_disabled_feature_flag_response[ResourceT, ResponseT](
     *,
-    flag_name: FeatureFlag | str,
+    start: float,
+    config: FeatureFlagGuardConfig,
+    dependencies: FeatureFlagGuardDependencies[ResourceT, ResponseT],
     logger: Logger,
-    log_reference: LogBase,
-    handler: Callable[[ArgumentT], ResponseT],
-    log_context: dict[str, Any] | None = None,
-) -> Callable[[ArgumentT], ResponseT]:
-    resolved_flag_name = _resolve_flag_log_name(flag_name)
-    extra_context = log_context or {}
+) -> ResponseT:
+    flag_log_name = _resolve_flag_log_name(config.flag_name)
+    log_context = config.log_context or {}
+    create_error_resource = dependencies.create_error_resource_getter()
+    calculate_response_size_and_duration = (
+        dependencies.get_response_size_and_duration_getter()
+    )
+    create_response = dependencies.create_response_getter()
 
-    def _enabled_handler(arg: ArgumentT) -> ResponseT:
-        logger.log(
-            log_reference,
-            feature_flag=resolved_flag_name,
-            feature_flag_status="enabled",
-            **extra_context,
-        )
-        return handler(arg)
+    error_resource = create_error_resource()
+    response_size, duration_ms = calculate_response_size_and_duration(
+        error_resource, start, logger
+    )
+    logger.log(
+        config.disabled_log_reference,
+        feature_flag=flag_log_name,
+        feature_flag_status="disabled",
+        dos_response_time=f"{duration_ms}ms",
+        dos_response_size=response_size,
+        **log_context,
+    )
+    return create_response(config.status_code, error_resource)
 
-    return _enabled_handler
 
-
-def build_disabled_feature_flag_handler(
+def build_feature_flag_guard[ResourceT, ResponseT](
     *,
-    flag_name: FeatureFlag | str,
-    logger: Logger,
-    log_reference: LogBase,
-    create_error_resource: Callable[[], ResourceT],
-    get_response_size_and_duration: Callable[[ResourceT, float, Logger], tuple[int, int]],
-    create_response: Callable[[int, ResourceT], ResponseT],
-    status_code: int = 503,
-    log_context: dict[str, Any] | None = None,
-) -> Callable[[float], ResponseT]:
-    resolved_flag_name = _resolve_flag_log_name(flag_name)
-    extra_context = log_context or {}
+    config: FeatureFlagGuardConfig,
+    dependencies: FeatureFlagGuardDependencies[ResourceT, ResponseT],
+) -> RequestGuard[float, ResponseT]:
+    flag_log_name = _resolve_flag_log_name(config.flag_name)
+    flag_config_name = _resolve_flag_config_name(config.flag_name)
+    log_context = config.log_context or {}
 
-    def _disabled_handler(start: float) -> ResponseT:
-        error_resource = create_error_resource()
-        response_size, duration_ms = get_response_size_and_duration(
-            error_resource, start, logger
-        )
-        logger.log(
-            log_reference,
-            feature_flag=resolved_flag_name,
-            feature_flag_status="disabled",
-            dos_response_time=f"{duration_ms}ms",
-            dos_response_size=response_size,
-            **extra_context,
-        )
-        return create_response(status_code, error_resource)
+    def _guard_request(start: float) -> ResponseT | None:
+        logger = dependencies.logger_getter()
 
-    return _disabled_handler
-
-
-def build_feature_flag_guard(
-    *,
-    flag_name: FeatureFlag | str,
-    logger_getter: Callable[[], Logger],
-    enabled_log_reference: LogBase,
-    disabled_log_reference: LogBase,
-    create_error_resource_getter: Callable[[], Callable[[], ResourceT]],
-    get_response_size_and_duration_getter: Callable[
-        [], Callable[[ResourceT, float, Logger], tuple[int, int]]
-    ],
-    create_response_getter: Callable[[], Callable[[int, ResourceT], ResponseT]],
-    log_context: dict[str, Any] | None = None,
-    status_code: int = 503,
-    default: bool = False,
-) -> Callable[[float], ResponseT | None]:
-    resolved_flag_log_name = _resolve_flag_log_name(flag_name)
-    resolved_flag_config_name = _resolve_flag_config_name(flag_name)
-    extra_context = log_context or {}
-
-    def _guard(start: float) -> ResponseT | None:
-        if is_enabled(resolved_flag_config_name, default):
-            logger_getter().log(
-                enabled_log_reference,
-                feature_flag=resolved_flag_log_name,
+        if is_enabled(flag_config_name, config.default):
+            logger.log(
+                config.enabled_log_reference,
+                feature_flag=flag_log_name,
                 feature_flag_status="enabled",
-                **extra_context,
+                **log_context,
             )
             return None
 
-        return build_disabled_feature_flag_handler(
-            flag_name=flag_name,
-            logger=logger_getter(),
-            log_reference=disabled_log_reference,
-            create_error_resource=create_error_resource_getter(),
-            get_response_size_and_duration=get_response_size_and_duration_getter(),
-            create_response=create_response_getter(),
-            status_code=status_code,
-            log_context=log_context,
-        )(start)
+        return _create_disabled_feature_flag_response(
+            start=start,
+            config=config,
+            dependencies=dependencies,
+            logger=logger,
+        )
 
-    return _guard
+    return _guard_request
 
 
-def build_feature_flag_guard_chain(
+def build_feature_flag_guard_chain[ResourceT, ResponseT](
     *,
-    flag_name: FeatureFlag | str,
-    logger_getter: Callable[[], Logger],
-    enabled_log_reference: LogBase,
-    disabled_log_reference: LogBase,
-    create_error_resource_getter: Callable[[], Callable[[], ResourceT]],
-    get_response_size_and_duration_getter: Callable[
-        [], Callable[[ResourceT, float, Logger], tuple[int, int]]
-    ],
-    create_response_getter: Callable[[], Callable[[int, ResourceT], ResponseT]],
+    config: FeatureFlagGuardConfig,
+    dependencies: FeatureFlagGuardDependencies[ResourceT, ResponseT],
     handler: Callable[[float], ResponseT],
-    additional_guards: Sequence[Callable[[float], ResponseT | None]] = (),
-    log_context: dict[str, Any] | None = None,
-    status_code: int = 503,
-    default: bool = False,
-) -> RequestGuardChain:
-    feature_flag_guard = build_feature_flag_guard(
-        flag_name=flag_name,
-        logger_getter=logger_getter,
-        enabled_log_reference=enabled_log_reference,
-        disabled_log_reference=disabled_log_reference,
-        create_error_resource_getter=create_error_resource_getter,
-        get_response_size_and_duration_getter=get_response_size_and_duration_getter,
-        create_response_getter=create_response_getter,
-        log_context=log_context,
-        status_code=status_code,
-        default=default,
+    additional_guards: Sequence[RequestGuard[float, ResponseT]] = (),
+) -> RequestGuardChain[float, ResponseT]:
+    request_guard = build_feature_flag_guard(
+        config=config,
+        dependencies=dependencies,
     )
     return RequestGuardChain(
-        guards=[feature_flag_guard, *additional_guards],
+        guards=[request_guard, *additional_guards],
         handler=handler,
     )
 
@@ -176,10 +150,9 @@ def build_feature_flag_guard_chain(
 __all__ = [
     "RequestGuard",
     "RequestGuardChain",
-    "build_disabled_feature_flag_handler",
-    "build_enabled_feature_flag_handler",
+    "FeatureFlagGuardConfig",
+    "FeatureFlagGuardDependencies",
     "build_feature_flag_guard",
     "build_feature_flag_guard_chain",
     "_resolve_flag_config_name",
 ]
-

@@ -80,5 +80,5 @@ class DosSearchLogBase(LogBase):
     )
     DOS_SEARCH_018 = LogReference(
         level=WARNING,
-        message="Triage code search endpoint is not yet implemented",
+        message="Triage code search endpoint is currently unavailable",
     )

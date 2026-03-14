@@ -2,19 +2,26 @@ from collections.abc import Generator
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-from fhir.resources.R4B.operationoutcome import OperationOutcome
 
 from functions.dos_search_triage_code_function import (
     DEFAULT_RESPONSE_HEADERS,
     lambda_handler,
 )
+from functions.error_util import create_resource_service_unavailable_error
 from functions.logbase import DosSearchLogBase
+
+type MockFixture = Generator[MagicMock, None, None]
+type LambdaEvent = dict[str, object]
+type LambdaResponse = dict[str, object]
+
+TRIAGE_SERVICE_NAME = "Triage code search endpoint"
+TRIAGE_UNAVAILABLE_STATUS = "currently unavailable"
 
 
 @pytest.fixture
 def mock_request_context(
     mock_setup_request: MagicMock,
-) -> Generator[MagicMock, None, None]:
+) -> MockFixture:
     with (
         patch("functions.request_context_middleware.logger") as mock_middleware_logger,
     ):
@@ -26,13 +33,13 @@ def mock_request_context(
 
 
 @pytest.fixture
-def mock_logger() -> Generator[MagicMock, None, None]:
+def mock_logger() -> MockFixture:
     with patch("functions.dos_search_triage_code_function.logger") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_feature_flag_is_enabled() -> Generator[MagicMock, None, None]:
+def mock_feature_flag_is_enabled() -> MockFixture:
     with patch("ftrs_common.feature_flags.feature_flag_handlers.is_enabled") as mock:
         mock.return_value = True
         yield mock
@@ -48,7 +55,11 @@ EXPECTED_MULTI_VALUE_HEADERS = {
 }
 
 
-def _build_event(http_method: str = "POST") -> dict[str, object]:
+def test_default_response_headers_allow_post_requests() -> None:
+    assert DEFAULT_RESPONSE_HEADERS["Access-Control-Allow-Methods"] == "POST"
+
+
+def _build_event(http_method: str = "POST") -> LambdaEvent:
     return {
         "path": "/triage_code",
         "httpMethod": http_method,
@@ -59,7 +70,7 @@ def _build_event(http_method: str = "POST") -> dict[str, object]:
 
 
 def assert_response(
-    response: dict[str, object],
+    response: LambdaResponse,
     expected_status_code: int,
     expected_body: str,
 ) -> None:
@@ -78,18 +89,9 @@ def test_lambda_handler_with_feature_flag_enabled(
 
     response = lambda_handler(event, lambda_context)
 
-    expected_resource = OperationOutcome.model_validate(
-        {
-            "issue": [
-                {
-                    "severity": "warning",
-                    "code": "not-supported",
-                    "diagnostics": (
-                        "Triage code search endpoint is not yet implemented"
-                    ),
-                }
-            ]
-        }
+    expected_resource = create_resource_service_unavailable_error(
+        service_name=TRIAGE_SERVICE_NAME,
+        availability_status=TRIAGE_UNAVAILABLE_STATUS,
     )
     mock_request_context.setup_request.assert_called_once()
     mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()
@@ -115,7 +117,7 @@ def test_lambda_handler_with_feature_flag_enabled(
     )
     assert_response(
         response,
-        expected_status_code=501,
+        expected_status_code=503,
         expected_body=expected_resource.model_dump_json(),
     )
 
@@ -131,18 +133,9 @@ def test_lambda_handler_with_feature_flag_disabled(
 
     response = lambda_handler(event, lambda_context)
 
-    expected_resource = OperationOutcome.model_validate(
-        {
-            "issue": [
-                {
-                    "severity": "fatal",
-                    "code": "exception",
-                    "diagnostics": (
-                        "Service Unavailable: Triage code search endpoint is currently disabled"
-                    ),
-                }
-            ]
-        }
+    expected_resource = create_resource_service_unavailable_error(
+        service_name=TRIAGE_SERVICE_NAME,
+        availability_status=TRIAGE_UNAVAILABLE_STATUS,
     )
     mock_request_context.setup_request.assert_called_once()
     mock_request_context.middleware_logger.thread_safe_clear_keys.assert_called_once()

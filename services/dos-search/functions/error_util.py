@@ -96,14 +96,20 @@ def create_resource_internal_server_error() -> OperationOutcome:
     )
 
 
-def create_resource_service_unavailable_error() -> OperationOutcome:
+def create_resource_service_unavailable_error(
+    *,
+    service_name: str,
+    availability_status: str,
+) -> OperationOutcome:
     return OperationOutcome.model_validate(
         {
             "issue": [
                 _create_issue(
                     "exception",
                     "fatal",
-                    diagnostics="Service Unavailable: Healthcare Service search endpoint is currently disabled",
+                    diagnostics=(
+                        f"Service Unavailable: {service_name} is {availability_status}"
+                    ),
                 )
             ]
         }

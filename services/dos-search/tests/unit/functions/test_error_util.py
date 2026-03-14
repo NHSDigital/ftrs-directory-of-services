@@ -12,6 +12,7 @@ from functions.error_util import (
     REC_BAD_REQUEST_CODING,
     _create_issue,
     create_resource_internal_server_error,
+    create_resource_service_unavailable_error,
     create_validation_error_operation_outcome,
 )
 from functions.organization_headers import OrganizationHeaders
@@ -45,6 +46,36 @@ class TestErrorUtil:
         assert result.issue[0].severity == "fatal"
         assert result.issue[0].code == "exception"
         assert result.issue[0].diagnostics == "Internal server error"
+        assert result.issue[0].details is None
+
+    def test_create_resource_service_unavailable_error(self) -> None:
+        result = create_resource_service_unavailable_error(
+            service_name="Healthcare Service search endpoint",
+            availability_status="currently disabled",
+        )
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "fatal"
+        assert result.issue[0].code == "exception"
+        assert result.issue[0].diagnostics == (
+            "Service Unavailable: Healthcare Service search endpoint is currently disabled"
+        )
+        assert result.issue[0].details is None
+
+    def test_create_resource_service_unavailable_error_for_triage(self) -> None:
+        result = create_resource_service_unavailable_error(
+            service_name="Triage code search endpoint",
+            availability_status="currently unavailable",
+        )
+
+        assert isinstance(result, OperationOutcome)
+        assert len(result.issue) == 1
+        assert result.issue[0].severity == "fatal"
+        assert result.issue[0].code == "exception"
+        assert result.issue[0].diagnostics == (
+            "Service Unavailable: Triage code search endpoint is currently unavailable"
+        )
         assert result.issue[0].details is None
 
     def test_create_validation_error_invalid_ods_code_format(self):

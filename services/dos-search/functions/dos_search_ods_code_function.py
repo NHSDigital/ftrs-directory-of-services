@@ -1,10 +1,7 @@
 import time
 
-from aws_lambda_powertools import Tracer
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
+from aws_lambda_powertools.event_handler import Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
-from ftrs_common.logger import Logger
 from pydantic import ValidationError
 
 from functions import error_util
@@ -13,27 +10,17 @@ from functions.ftrs_service.ftrs_service import FtrsService
 from functions.logbase import DosSearchLogBase
 from functions.organization_headers import OrganizationHeaders
 from functions.organization_query_params import OrganizationQueryParams
-from functions.request_context_middleware import request_context_middleware
+from functions.response_util import build_dos_search_lambda_runtime
 
-service = "dos-search"
-logger = Logger.get(service=service)
-tracer = Tracer()
-
-app = APIGatewayRestResolver()
-app.use([request_context_middleware])
-
-
-DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
-    "Content-Type": "application/fhir+json",
-    "Access-Control-Allow-Methods": "GET",
-    "Access-Control-Allow-Headers": ", ".join(
-        sorted(OrganizationHeaders.get_allowed_headers())
-    ),
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-    "Cache-Control": "no-store",
-}
+runtime = build_dos_search_lambda_runtime(
+    log_reference=DosSearchLogBase.DOS_SEARCH_004,
+    allowed_headers=OrganizationHeaders.get_allowed_headers(),
+)
+logger = runtime.logger
+tracer = runtime.tracer
+app = runtime.app
+DEFAULT_RESPONSE_HEADERS = runtime.default_response_headers
+create_response = runtime.create_response
 
 
 @app.get("/Organization")
@@ -109,23 +96,6 @@ def handle_general_exception(start: float) -> Response:
     )
 
     return create_response(500, fhir_resource)
-
-
-def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
-    # Log response creation with structured fields (we don't have event in this scope)
-    # response details have been logged in the handler; this is an additional log point
-    body = fhir_resource.model_dump_json()
-    logger.log(
-        DosSearchLogBase.DOS_SEARCH_004,
-        status_code=status_code,
-        body=body,
-        dos_message_category="RESPONSE",
-    )
-    return Response(
-        status_code=status_code,
-        headers=DEFAULT_RESPONSE_HEADERS,
-        body=body,
-    )
 
 
 @tracer.capture_lambda_handler
