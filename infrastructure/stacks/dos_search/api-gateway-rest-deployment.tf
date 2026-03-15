@@ -3,6 +3,7 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.organization,
     aws_api_gateway_integration.status,
     aws_api_gateway_integration.healthcare_service,
+    aws_api_gateway_integration.triage_code,
     aws_api_gateway_gateway_response.default_gateway_response,
   ]
 
@@ -20,12 +21,15 @@ resource "aws_api_gateway_deployment" "deployment" {
       aws_api_gateway_resource.organization,
       aws_api_gateway_resource.status,
       aws_api_gateway_resource.healthcare_service,
+      aws_api_gateway_resource.triage_code,
       aws_api_gateway_method.organization,
       aws_api_gateway_method.status,
       aws_api_gateway_method.healthcare_service,
+      aws_api_gateway_method.triage_code,
       aws_api_gateway_integration.organization,
       aws_api_gateway_integration.status,
       aws_api_gateway_integration.healthcare_service,
+      aws_api_gateway_integration.triage_code,
       aws_api_gateway_gateway_response.default_gateway_response,
     ]))
   }

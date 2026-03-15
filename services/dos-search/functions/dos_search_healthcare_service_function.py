@@ -1,35 +1,52 @@
 import time
+from collections.abc import Callable
 
-from aws_lambda_powertools import Tracer
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
+from aws_lambda_powertools.event_handler import Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from fhir.resources.R4B.fhirresourcemodel import FHIRResourceModel
-from ftrs_common.feature_flags import FeatureFlag, FeatureFlagsClient
-from ftrs_common.logger import Logger
+from ftrs_common.feature_flags import (
+    FeatureFlag,
+    FeatureFlagGuardConfig,
+    FeatureFlagGuardDependencies,
+    build_feature_flag_guard_chain,
+)
 from pydantic import ValidationError
 
 from functions import error_util
+from functions.constants import FEATURE_FLAG_LOG_CONTEXT
 from functions.event_context import DosSearchLogBase, get_response_size_and_duration
 from functions.ftrs_service.healthcare_services_by_ods import (
     HealthcareServicesByOdsService,
 )
 from functions.healthcare_service_query_params import HealthcareServiceQueryParams
-from functions.request_context_middleware import request_context_middleware
+from functions.response_util import build_dos_search_lambda_runtime
 
-service = "dos-search"
-logger = Logger.get(service=service)
-tracer = Tracer()
-app = APIGatewayRestResolver()
-app.use([request_context_middleware])
-FEATURE_FLAGS_CLIENT: FeatureFlagsClient = FeatureFlagsClient()
+runtime = build_dos_search_lambda_runtime(log_reference=DosSearchLogBase.DOS_SEARCH_004)
+logger = runtime.logger
+tracer = runtime.tracer
+app = runtime.app
+DEFAULT_RESPONSE_HEADERS = runtime.default_response_headers
+create_response = runtime.create_response
 
-DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
-    "Content-Type": "application/fhir+json",
-    "Access-Control-Allow-Methods": "GET",
-    "Access-Control-Allow-Headers": (
-        "Authorization, Content-Type, NHSD-Correlation-ID, NHSD-Request-ID"
+type HealthcareServiceRequestGuard = Callable[[float], Response]
+
+_HEALTHCARE_SERVICE_FEATURE_FLAG_CONFIG = FeatureFlagGuardConfig(
+    flag_name=FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED,
+    enabled_log_reference=DosSearchLogBase.DOS_SEARCH_014,
+    disabled_log_reference=DosSearchLogBase.DOS_SEARCH_013,
+    log_context=FEATURE_FLAG_LOG_CONTEXT,
+)
+
+_HEALTHCARE_SERVICE_FEATURE_FLAG_DEPENDENCIES = FeatureFlagGuardDependencies(
+    logger_getter=lambda: logger,
+    create_error_resource_getter=(
+        lambda: lambda: error_util.create_resource_service_unavailable_error(
+            service_name="Healthcare Service search endpoint",
+            availability_status="currently disabled",
+        )
     ),
-}
+    get_response_size_and_duration_getter=lambda: get_response_size_and_duration,
+    create_response_getter=lambda: create_response,
+)
 
 
 @app.get("/HealthcareService")
@@ -37,30 +54,7 @@ DEFAULT_RESPONSE_HEADERS: dict[str, str] = {
 def get_healthcare_service() -> Response:
     start = time.time()
 
-    if FEATURE_FLAGS_CLIENT.is_enabled(
-        FeatureFlag.DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED
-    ):
-        logger.log(
-            DosSearchLogBase.DOS_SEARCH_014,
-            feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-            feature_flag_status="enabled",
-            dos_message_category="FEATURE_FLAG",
-        )
-        return _handle_healthcare_service_request(start)
-
-    fhir_resource = error_util.create_resource_service_unavailable_error()
-    response_size, duration_ms = get_response_size_and_duration(
-        fhir_resource, start, logger
-    )
-    logger.log(
-        DosSearchLogBase.DOS_SEARCH_013,
-        feature_flag="DOS_SEARCH_HEALTHCARE_SERVICE_ENABLED",
-        feature_flag_status="disabled",
-        dos_message_category="FEATURE_FLAG",
-        dos_response_time=f"{duration_ms}ms",
-        dos_response_size=response_size,
-    )
-    return create_response(503, fhir_resource)
+    return _guard_healthcare_service_request(start)
 
 
 def _handle_healthcare_service_request(start: float) -> Response:
@@ -116,18 +110,13 @@ def _handle_healthcare_service_request(start: float) -> Response:
         return create_response(200, fhir_resource)
 
 
-def create_response(status_code: int, fhir_resource: FHIRResourceModel) -> Response:
-    body = fhir_resource.model_dump_json()
-    logger.log(
-        DosSearchLogBase.DOS_SEARCH_004,
-        status_code=status_code,
-        dos_message_category="RESPONSE",
-    )
-    return Response(
-        status_code=status_code,
-        headers=DEFAULT_RESPONSE_HEADERS,
-        body=body,
-    )
+_guard_healthcare_service_request: HealthcareServiceRequestGuard = (
+    build_feature_flag_guard_chain(
+        config=_HEALTHCARE_SERVICE_FEATURE_FLAG_CONFIG,
+        dependencies=_HEALTHCARE_SERVICE_FEATURE_FLAG_DEPENDENCIES,
+        handler=_handle_healthcare_service_request,
+    ).handle
+)
 
 
 @tracer.capture_lambda_handler

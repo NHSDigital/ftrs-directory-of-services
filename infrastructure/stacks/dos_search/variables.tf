@@ -18,6 +18,10 @@ variable "healthcare_service_lambda_name" {
   description = "The name of the healthcare service lambda"
 }
 
+variable "triage_code_lambda_name" {
+  description = "The name of the triage code lambda"
+}
+
 variable "lambda_runtime" {
   description = "The runtime environment for the lambda function"
 }

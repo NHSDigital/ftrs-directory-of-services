@@ -19,16 +19,33 @@ Usage:
         pass
 """
 
+from ftrs_common.feature_flags.feature_flag_config import FeatureFlag
 from ftrs_common.feature_flags.feature_flags_client import (
     FeatureFlagError,
     FeatureFlagsClient,
     is_enabled,
 )
 
-__all__ = ["FeatureFlagError", "FeatureFlagsClient", "is_enabled"]
-
-from ftrs_common.feature_flags.feature_flag_config import (
-    FeatureFlag,
+from .feature_flag_handlers import (
+    FeatureFlagGuardConfig,
+    FeatureFlagGuardDependencies,
+    RequestGuard,
+    RequestGuardChain,
+    build_feature_flag_guard,
+    build_feature_flag_guard_chain,
 )
 
-__all__ += ["FeatureFlag"]
+type FeatureFlagExports = list[str]
+
+__all__: FeatureFlagExports = [
+    "FeatureFlagError",
+    "FeatureFlag",
+    "FeatureFlagsClient",
+    "FeatureFlagGuardConfig",
+    "FeatureFlagGuardDependencies",
+    "RequestGuard",
+    "RequestGuardChain",
+    "build_feature_flag_guard",
+    "build_feature_flag_guard_chain",
+    "is_enabled",
+]

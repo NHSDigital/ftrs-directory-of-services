@@ -66,3 +66,19 @@ class DosSearchLogBase(LogBase):
         level=INFO,
         message="Healthcare Service search endpoint is enabled via feature flag",
     )
+    DOS_SEARCH_015 = LogReference(
+        level=INFO,
+        message="Received request for triage code",
+    )
+    DOS_SEARCH_016 = LogReference(
+        level=WARNING,
+        message="Service unavailable - Triage code search endpoint is disabled via feature flag",
+    )
+    DOS_SEARCH_017 = LogReference(
+        level=INFO,
+        message="Triage code search endpoint is enabled via feature flag",
+    )
+    DOS_SEARCH_018 = LogReference(
+        level=WARNING,
+        message="Triage code search endpoint is currently unavailable",
+    )
