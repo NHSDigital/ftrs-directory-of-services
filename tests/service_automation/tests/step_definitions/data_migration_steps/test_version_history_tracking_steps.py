@@ -138,6 +138,113 @@ def update_healthcare_service_document(
     )
 
 
+@when("a new Organisation document is created with")
+def create_new_organisation_document(
+    dynamodb: Dict[str, Any],
+    migration_context: Dict[str, Any],
+    datatable,
+) -> None:
+    """Create a new Organisation document and trigger version history processing."""
+    _create_new_entity_document_with_history(
+        dynamodb, "organisation", datatable, migration_context
+    )
+
+
+@when("the Organisation document is deleted")
+def delete_organisation_document(
+    dynamodb: Dict[str, Any],
+    migration_context: Dict[str, Any],
+) -> None:
+    """Delete an Organisation document and trigger version history processing."""
+    _delete_entity_document_with_history(
+        dynamodb, "organisation", migration_context
+    )
+
+
+def _create_new_entity_document_with_history(
+    dynamodb: Dict[str, Any],
+    entity_type: str,
+    table_data: list,
+    migration_context: Dict[str, Any],
+) -> None:
+    """Helper to create new entity document and trigger version history processing."""
+    # Parse the data from the table
+    data = parse_gherkin_table(table_data)
+
+    # Extract id
+    entity_id = data.pop("id", None)
+    if not entity_id:
+        raise ValueError("Entity id is required")
+
+    # Store for later assertions
+    migration_context["entity_id"] = entity_id
+    migration_context["entity_type"] = entity_type
+    migration_context["document_data"] = data.copy()
+
+    # Create the document record in DynamoDB
+    table = get_dynamodb_table(dynamodb, entity_type)
+
+    item = {
+        "id": entity_id,
+        "field": "document",
+        **data,
+    }
+    table.put_item(Item=item)
+
+    # Manually invoke handler for CREATE event (INSERT)
+    version_history_helper = VersionHistoryHelper(
+        dynamodb_endpoint=dynamodb.get("endpoint_url")
+    )
+
+    table_name = get_table_name(entity_type)
+
+    version_history_helper.process_document_create_as_stream_event(
+        table_name=table_name,
+        entity_id=entity_id,
+        new_document=data,
+        last_updated_by={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+    )
+
+
+def _delete_entity_document_with_history(
+    dynamodb: Dict[str, Any],
+    entity_type: str,
+    migration_context: Dict[str, Any],
+) -> None:
+    """Helper to delete entity document and trigger version history processing."""
+    entity_id = migration_context.get("entity_id")
+    old_document = migration_context.get("document_data", {}).copy()
+
+    if not entity_id:
+        raise ValueError("No entity_id in context - create entity first")
+
+    # Delete the document record from DynamoDB
+    table = get_dynamodb_table(dynamodb, entity_type)
+    table.delete_item(Key={"id": entity_id, "field": "document"})
+
+    # Manually invoke handler for DELETE event (REMOVE)
+    version_history_helper = VersionHistoryHelper(
+        dynamodb_endpoint=dynamodb.get("endpoint_url")
+    )
+
+    table_name = get_table_name(entity_type)
+
+    version_history_helper.process_document_delete_as_stream_event(
+        table_name=table_name,
+        entity_id=entity_id,
+        old_document=old_document,
+        last_updated_by={
+            "type": "app",
+            "value": "INTERNAL001",
+            "display": "Data Migration",
+        },
+    )
+
+
 def _update_entity_document_with_history(
     dynamodb: Dict[str, Any],
     entity_type: str,

@@ -36,3 +36,32 @@ Feature: Version History Tracking
       | field       | value                                |
       | status      | active                               |
     Then no version history record should be created for entity "organisation#dddddddd-dddd-dddd-dddd-dddddddddddd#document"
+
+  Scenario: Organisation document creation creates version history record
+    When a new Organisation document is created with
+      | field       | value                                |
+      | id          | bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb |
+      | name        | New Organisation Name                |
+      | type        | user                                 |
+      | status      | active                               |
+    Then a version history record should exist with
+      | attribute      | value                                                 |
+      | entity_id      | organisation#bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb#document |
+      | change_type    | CREATE                                                |
+    And the version history "changed_by.type" should be "app"
+    And the version history record should have a valid timestamp
+
+  Scenario: Organisation document deletion creates version history record
+    Given an Organisation document exists in DynamoDB with
+      | field       | value                                |
+      | id          | cccccccc-cccc-cccc-cccc-cccccccccccc |
+      | name        | Organisation To Delete               |
+      | type        | user                                 |
+      | status      | active                               |
+    When the Organisation document is deleted
+    Then a version history record should exist with
+      | attribute      | value                                                 |
+      | entity_id      | organisation#cccccccc-cccc-cccc-cccc-cccccccccccc#document |
+      | change_type    | DELETE                                                |
+    And the version history "changed_by.type" should be "app"
+    And the version history record should have a valid timestamp
