@@ -316,7 +316,7 @@ jobs:
 
       - name: "Trivy scan"
         id: "trivy"
-        uses: aquasecurity/trivy-action@0.34.2
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: "fs"
           scan-ref: "."
