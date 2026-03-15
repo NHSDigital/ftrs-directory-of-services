@@ -65,7 +65,67 @@ variable "resource_metadata" {
   default = {}
 }
 
+variable "resource_extra_dimensions" {
+  description = "Map of resource keys to alarm suffixes to extra CloudWatch dimensions (e.g. for AWS/WAFV2 Region)"
+  type        = map(map(map(string)))
+  default     = {}
+}
+
 variable "slack_notifier_function_name" {
   description = "Name of the Slack notifier Lambda function"
   type        = string
+}
+
+variable "api_gateway_log_group_name" {
+  description = "CloudWatch log group name for API Gateway access logs (required for 429 metric filter)"
+  type        = string
+  default     = null
+}
+
+variable "rate_limiting_429_critical_threshold" {
+  description = "Critical threshold for 429 rate limiting alarm (null disables it)"
+  type        = number
+  default     = null
+}
+
+variable "rate_limiting_429_critical_period" {
+  description = "Period in seconds for 429 critical alarm"
+  type        = number
+  default     = 60
+}
+
+variable "rate_limiting_429_critical_evaluation_periods" {
+  description = "Evaluation periods for 429 critical alarm"
+  type        = number
+  default     = 1
+}
+
+variable "rate_limiting_429_warning_threshold" {
+  description = "Warning threshold for 429 rate limiting alarm (null disables it)"
+  type        = number
+  default     = null
+}
+
+variable "rate_limiting_429_warning_period" {
+  description = "Period in seconds for 429 warning alarm"
+  type        = number
+  default     = 300
+}
+
+variable "rate_limiting_429_warning_evaluation_periods" {
+  description = "Evaluation periods for 429 warning alarm"
+  type        = number
+  default     = 1
+}
+
+variable "rate_limiting_429_metric_namespace" {
+  description = "CloudWatch custom metric namespace for 429 rate limiting"
+  type        = string
+  default     = "Custom/ApiGateway"
+}
+
+variable "rate_limiting_429_metric_name" {
+  description = "CloudWatch custom metric name for 429 rate limiting"
+  type        = string
+  default     = "429RateLimitedRequests"
 }

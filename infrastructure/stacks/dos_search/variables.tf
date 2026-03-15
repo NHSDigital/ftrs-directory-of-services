@@ -300,3 +300,268 @@ variable "enable_warning_alarms" {
   type        = bool
   default     = false
 }
+
+################################################################################
+# API Gateway CloudWatch Alarms Configuration
+################################################################################
+
+############################
+# Global / Shared
+############################
+variable "api_gateway_alarm_evaluation_periods" {
+  description = "Default number of periods over which to evaluate API Gateway alarms"
+  type        = number
+  default     = 1
+}
+
+variable "api_gateway_alarm_period_seconds" {
+  description = "Default CloudWatch period in seconds for API Gateway alarm metric evaluation (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+############################
+# API Response Time (Latency)
+# CRITICAL: p99 > 400ms
+# WARNING: p95 > 150ms
+# Baseline: Over 5 minutes
+############################
+variable "api_gateway_latency_p95_warning_ms" {
+  description = "API Gateway latency p95 warning threshold in milliseconds"
+  type        = number
+  default     = 150
+}
+
+variable "api_gateway_latency_p99_critical_ms" {
+  description = "API Gateway latency p99 critical threshold in milliseconds"
+  type        = number
+  default     = 400
+}
+
+############################
+# Backend Response Time (IntegrationLatency)
+# CRITICAL: p99 > 400ms
+# WARNING: p95 > 150ms
+# Baseline: Over 5 minutes
+############################
+variable "api_gateway_integration_latency_p95_warning_ms" {
+  description = "API Gateway integration latency p95 warning threshold in milliseconds"
+  type        = number
+  default     = 150
+}
+
+variable "api_gateway_integration_latency_p99_critical_ms" {
+  description = "API Gateway integration latency p99 critical threshold in milliseconds"
+  type        = number
+  default     = 400
+}
+
+############################
+# Transactions Per Second (TPS)
+# CRITICAL: ≥100 TPS sustained over 1 minute
+# Count metric converted to requests/second
+############################
+variable "api_gateway_tps_critical_threshold" {
+  description = "API Gateway TPS critical threshold (requests in 1 minute = 100 TPS * 60 seconds)"
+  type        = number
+  default     = 6000
+}
+
+variable "api_gateway_tps_period_seconds" {
+  description = "CloudWatch period in seconds for TPS alarm (1 minute)"
+  type        = number
+  default     = 60
+}
+
+variable "api_gateway_tps_evaluation_periods" {
+  description = "Evaluation periods for TPS alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# API Usage Volume (Count)
+# CRITICAL: > 2× baseline (600 requests/hour)
+# WARNING: > 1.5× baseline (450 requests/hour)
+# Baseline: 300 requests/hour
+############################
+variable "api_gateway_usage_volume_baseline" {
+  description = "Baseline API usage volume in requests per hour"
+  type        = number
+  default     = 300
+}
+
+variable "api_gateway_usage_volume_warning_multiplier" {
+  description = "Multiplier over baseline to trigger WARNING usage volume alarm"
+  type        = number
+  default     = 1.5
+}
+
+variable "api_gateway_usage_volume_critical_multiplier" {
+  description = "Multiplier over baseline to trigger CRITICAL usage volume alarm"
+  type        = number
+  default     = 2
+}
+
+variable "api_gateway_usage_volume_period_seconds" {
+  description = "CloudWatch period in seconds for usage volume alarm (1 hour)"
+  type        = number
+  default     = 3600
+}
+
+variable "api_gateway_usage_volume_evaluation_periods" {
+  description = "Evaluation periods for usage volume alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# Customer Request Problems (4xx errors)
+# CRITICAL: >2× baseline for 5 min
+# WARNING: >1.5× baseline for 5 min
+# Baseline: TBC (using 0 for now)
+############################
+variable "api_gateway_4xx_errors_warning_threshold" {
+  description = "API Gateway 4XX errors warning threshold (1.5× baseline, TBC)"
+  type        = number
+  default     = 0
+}
+
+variable "api_gateway_4xx_errors_critical_threshold" {
+  description = "API Gateway 4XX errors critical threshold (2× baseline, TBC)"
+  type        = number
+  default     = 0
+}
+
+variable "api_gateway_4xx_errors_period_seconds" {
+  description = "CloudWatch period in seconds for 4XX errors alarm (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+variable "api_gateway_4xx_errors_evaluation_periods" {
+  description = "Evaluation periods for 4XX errors alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# Service Failures (5xx errors)
+# CRITICAL: > 0 for 1 min
+############################
+variable "api_gateway_5xx_errors_critical_threshold" {
+  description = "API Gateway 5XX errors critical threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+variable "api_gateway_5xx_errors_period_seconds" {
+  description = "CloudWatch period in seconds for 5XX errors alarm (1 minute)"
+  type        = number
+  default     = 60
+}
+
+variable "api_gateway_5xx_errors_evaluation_periods" {
+  description = "Evaluation periods for 5XX errors alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# API Health – /_status availability (5xx errors scoped to endpoint)
+# CRITICAL: > 0 for 1 minute
+############################
+variable "api_gateway_status_endpoint_5xx_critical_threshold" {
+  description = "API Gateway status endpoint 5XX errors critical threshold (set to 0, alarm if > 0)"
+  type        = number
+  default     = 0
+}
+
+variable "api_gateway_status_endpoint_5xx_period_seconds" {
+  description = "CloudWatch period in seconds for status endpoint 5XX errors alarm (1 minute)"
+  type        = number
+  default     = 60
+}
+
+variable "api_gateway_status_endpoint_5xx_evaluation_periods" {
+  description = "Evaluation periods for status endpoint 5XX errors alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# API Rate Limiting (429 errors)
+# Per-app limit: 10 TPS (600/min), proxy limit: 150 TPS (9000/min)
+# CRITICAL: >= 10 over 1 minute (multiple apps throttled or single app significantly over limit)
+# WARNING: ≥ 5 over 1 minute (sustained rate limiting) - disabled for now until baseline established
+############################
+variable "api_gateway_429_critical_threshold" {
+  description = "API Gateway 429 rate limiting critical threshold (>= 10/min suggests meaningful throttling given 10 TPS per-app limit)"
+  type        = number
+  default     = 10
+}
+
+variable "api_gateway_429_critical_period_seconds" {
+  description = "CloudWatch period in seconds for 429 critical alarm (1 minute)"
+  type        = number
+  default     = 60
+}
+
+variable "api_gateway_429_critical_evaluation_periods" {
+  description = "Evaluation periods for 429 critical alarm"
+  type        = number
+  default     = 1
+}
+
+variable "api_gateway_429_warning_threshold" {
+  description = "API Gateway 429 rate limiting warning threshold (null disables it per spec)"
+  type        = number
+  default     = null
+}
+
+variable "api_gateway_429_warning_period_seconds" {
+  description = "CloudWatch period in seconds for 429 warning alarm (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+variable "api_gateway_429_warning_evaluation_periods" {
+  description = "Evaluation periods for 429 warning alarm"
+  type        = number
+  default     = 1
+}
+
+############################
+# AWS WAF Blocked Requests
+# CRITICAL: >= 250 blocks per 5 minutes sustained for 15+ minutes
+# WARNING: >= 75 blocks per 5 minutes (3x baseline of 25)
+############################
+variable "waf_blocked_requests_warning_threshold" {
+  description = "WAF blocked requests warning threshold (3x baseline of 25 per 5 min)"
+  type        = number
+  default     = 75
+}
+
+variable "waf_blocked_requests_critical_threshold" {
+  description = "WAF blocked requests critical threshold (likely coordinated attack)"
+  type        = number
+  default     = 250
+}
+
+variable "waf_blocked_requests_period_seconds" {
+  description = "CloudWatch period in seconds for WAF blocked requests alarms (5 minutes)"
+  type        = number
+  default     = 300
+}
+
+variable "waf_blocked_requests_warning_evaluation_periods" {
+  description = "Evaluation periods for WAF blocked requests warning alarm"
+  type        = number
+  default     = 1
+}
+
+variable "waf_blocked_requests_critical_evaluation_periods" {
+  description = "Evaluation periods for WAF blocked requests critical alarm (sustained 15+ minutes = 3 periods of 5 min)"
+  type        = number
+  default     = 3
+}

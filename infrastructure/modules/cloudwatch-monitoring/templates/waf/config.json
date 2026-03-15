@@ -8,7 +8,10 @@
       "description": "WAF blocked requests warning threshold",
       "severity": "warning",
       "namespace": "AWS/WAFV2",
-      "dimension_name": "WebACL"
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "ALL"
+      }
     },
     {
       "metric_name": "BlockedRequests",
@@ -18,7 +21,10 @@
       "description": "WAF blocked requests critical threshold (potential attack)",
       "severity": "critical",
       "namespace": "AWS/WAFV2",
-      "dimension_name": "WebACL"
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "ALL"
+      }
     },
     {
       "metric_name": "AllowedRequests",
@@ -28,7 +34,10 @@
       "description": "WAF allowed requests spike critical threshold",
       "severity": "critical",
       "namespace": "AWS/WAFV2",
-      "dimension_name": "WebACL"
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "ALL"
+      }
     },
     {
       "metric_name": "CountedRequests",
@@ -38,7 +47,62 @@
       "description": "WAF counted requests warning threshold (count mode rules)",
       "severity": "warning",
       "namespace": "AWS/WAFV2",
-      "dimension_name": "WebACL"
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "ALL"
+      }
+    },
+    {
+      "metric_name": "BlockedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "rate-limit-rule-blocked-critical",
+      "description": "WAF rate-limit-rule blocked requests - IPs exceeding 100 requests per 2 minutes",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "rate-limit-rule"
+      }
+    },
+    {
+      "metric_name": "BlockedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "ip-reputation-blocked-critical",
+      "description": "WAF blocked requests from known malicious IPs (AWSManagedRulesAmazonIpReputationList)",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "AWSManagedRulesAmazonIpReputationList"
+      }
+    },
+    {
+      "metric_name": "BlockedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "known-bad-inputs-blocked-critical",
+      "description": "WAF blocked requests matching known exploit/attack patterns (AWSManagedRulesKnownBadInputsRuleSet)",
+      "severity": "critical",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "AWSManagedRulesKnownBadInputsRuleSet"
+      }
+    },
+    {
+      "metric_name": "CountedRequests",
+      "statistic": "Sum",
+      "comparison_operator": "GreaterThanThreshold",
+      "alarm_suffix": "bot-control-counted-warning",
+      "description": "WAF BotControl counted requests (CategoryHttpLibrary and SignalNonBrowserUserAgent are in count mode - monitor for potential flip to block)",
+      "severity": "warning",
+      "namespace": "AWS/WAFV2",
+      "dimension_name": "WebACL",
+      "extra_dimensions": {
+        "Rule": "AWSManagedRulesBotControlRuleSet"
+      }
     }
   ]
 }
