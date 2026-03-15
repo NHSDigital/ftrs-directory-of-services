@@ -324,3 +324,12 @@ data "aws_iam_role" "firehose_role" {
 data "http" "rds_ca_certificate" {
   url = "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
 }
+
+data "aws_lambda_function" "slack_notifier" {
+  count         = local.is_primary_environment ? 1 : 0
+  function_name = "ftrs-dos-${var.environment}-slack-notifier"
+}
+
+data "aws_kms_key" "sns_kms_alias" {
+  key_id = local.kms_aliases.sns
+}

@@ -51,3 +51,53 @@ resource "aws_cloudwatch_log_group" "dms_db_data_protection_audit_log_group" {
   name              = "/aws/data-protection-audit/${var.environment}/${local.resource_prefix}-${var.dms_db_lambda_name}"
   retention_in_days = var.dms_audit_cloudwatch_logs_retention_days
 }
+
+resource "aws_cloudwatch_metric_alarm" "dms_metric_alarms" {
+  for_each = {
+    for alarm_key, alarm_cfg in merge(local.dms_simple_metric_alarm_configs, local.dms_metric_query_alarm_configs) : alarm_key => alarm_cfg
+    if local.is_primary_environment
+  }
+
+  alarm_name          = each.value.alarm_name
+  comparison_operator = try(each.value.comparison_operator, "GreaterThanThreshold")
+  evaluation_periods  = each.value.evaluation_periods
+  datapoints_to_alarm = each.value.datapoints_to_alarm
+  metric_name         = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.metric_name, null)
+  namespace           = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.namespace, "AWS/DMS")
+  period              = length(try(each.value.metric_queries, [])) > 0 ? null : each.value.period
+  statistic           = length(try(each.value.metric_queries, [])) > 0 ? null : try(each.value.statistic, "Average")
+  threshold           = try(each.value.threshold, null)
+  threshold_metric_id = try(each.value.threshold_metric_id, null)
+  treat_missing_data  = "notBreaching"
+
+  insufficient_data_actions = []
+
+  dynamic "metric_query" {
+    for_each = try(each.value.metric_queries, [])
+    content {
+      id          = metric_query.value.id
+      expression  = try(metric_query.value.expression, null)
+      label       = try(metric_query.value.label, null)
+      return_data = try(metric_query.value.return_data, null)
+
+      dynamic "metric" {
+        for_each = try(metric_query.value.metric, null) == null ? [] : [metric_query.value.metric]
+        content {
+          metric_name = metric.value.metric_name
+          namespace   = metric.value.namespace
+          period      = metric.value.period
+          stat        = metric.value.stat
+          unit        = try(metric.value.unit, null)
+          dimensions  = try(metric.value.dimensions, null)
+        }
+      }
+    }
+  }
+
+  dimensions = length(try(each.value.metric_queries, [])) > 0 ? null : each.value.dimensions
+
+  alarm_description = each.value.alarm_description
+
+  alarm_actions = [aws_sns_topic.data_migration_sns_topic[0].arn]
+  ok_actions    = [aws_sns_topic.data_migration_sns_topic[0].arn]
+}
